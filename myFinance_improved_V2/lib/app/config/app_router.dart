@@ -53,7 +53,9 @@ import '../../features/session/presentation/pages/session_review_page.dart';
 import '../../features/session/presentation/pages/session_receiving_review_page.dart';
 import '../../features/session/presentation/pages/session_history_page.dart';
 import '../../features/session/presentation/pages/session_history_detail_page.dart';
+import '../../features/session/presentation/pages/receiving_result_page.dart';
 import '../../features/session/domain/entities/session_history_item.dart';
+import '../../features/session/domain/entities/session_review_item.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/design_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -864,6 +866,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             sessionName: sessionName,
             storeId: storeId,
           );
+        },
+      ),
+      // Receiving result page - shows stock changes after submit
+      GoRoute(
+        path: '/session/receiving-result',
+        name: 'receiving-result',
+        builder: (context, state) {
+          final response = state.extra as SessionSubmitResponse?;
+          if (response == null) {
+            // Fallback if no response data - go back to session page
+            return const SessionPage();
+          }
+          return ReceivingResultPage(response: response);
         },
       ),
     ],

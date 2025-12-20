@@ -1,0 +1,1570 @@
+/**
+ * CountingSessionPage Styles
+ * Styles for the counting session detail page
+ */
+
+.pageLayout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #FFFFFF;
+  padding: 0 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.container {
+  padding: 88px 0 24px 0; /* 64px navbar + 24px spacing */
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingContainer p {
+  color: #64748B;
+  font-size: 14px;
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+  text-align: center;
+}
+
+.errorContainer h2 {
+  color: #1E293B;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.errorContainer p {
+  color: #64748B;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+}
+
+.sessionBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badgeStatus {
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.badgeStatus.complete {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.badgeStatus.process {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.badgeStatus.cancelled {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.storeName {
+  color: #64748B;
+  font-size: 14px;
+}
+
+/* Session Banner */
+.sessionBanner {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E2E8F0;
+  border-left: 4px solid #8B5CF6;
+}
+
+.sessionBannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sessionBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sessionBannerLeft svg {
+  color: #8B5CF6;
+}
+
+.sessionBannerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sessionBannerLabel {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.sessionBannerName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.sessionBannerDetails {
+  display: flex;
+  gap: 32px;
+}
+
+.sessionBannerItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bannerItemLabel {
+  font-size: 11px;
+  color: #94A3B8;
+  text-transform: uppercase;
+}
+
+.bannerItemValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.bannerItemStatus {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.bannerItemStatus.complete {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.bannerItemStatus.process {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.bannerItemStatus.cancelled {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Summary Card */
+.summaryCard {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E2E8F0;
+}
+
+.summaryRow {
+  display: flex;
+  gap: 48px;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.summaryValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.summaryValueBlue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #3B82F6;
+}
+
+.summaryValueRed {
+  font-size: 24px;
+  font-weight: 700;
+  color: #EF4444;
+}
+
+/* Items Card */
+.itemsCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E2E8F0;
+  min-height: 200px;
+}
+
+.itemsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.itemsHeader h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 0;
+}
+
+.itemCount {
+  font-size: 14px;
+  color: #64748B;
+}
+
+.emptyItems {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #94A3B8;
+}
+
+.emptyItems p {
+  font-size: 16px;
+  font-weight: 500;
+  color: #64748B;
+  margin: 16px 0 4px 0;
+}
+
+.emptyItems span {
+  font-size: 14px;
+  color: #94A3B8;
+}
+
+/* Items Table */
+.tableContainer {
+  overflow-x: auto;
+}
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.itemsTable thead {
+  background: #F8FAFC;
+}
+
+.itemsTable th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.itemsTable td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #E2E8F0;
+  color: #1E293B;
+}
+
+.itemsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Table Column Styles */
+.thExpand {
+  width: 40px;
+}
+
+.thProduct {
+  min-width: 200px;
+}
+
+.thNumber {
+  text-align: center !important;
+  min-width: 80px;
+}
+
+.tdExpand {
+  width: 40px;
+  cursor: pointer;
+}
+
+.expandIcon {
+  transition: transform 0.2s ease;
+  color: #64748B;
+}
+
+.expandIcon.rotated {
+  transform: rotate(90deg);
+}
+
+.tdProduct {
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.tdNumber {
+  text-align: center;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.tdNumberBlue {
+  text-align: center;
+  font-weight: 600;
+  color: #3B82F6;
+}
+
+.tdNumberRed {
+  text-align: center;
+  font-weight: 600;
+  color: #EF4444;
+}
+
+/* Item Row */
+.itemRow {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.itemRow:hover {
+  background: #F8FAFC;
+}
+
+.itemRow.expanded {
+  background: #F1F5F9;
+}
+
+/* Expanded Row */
+.expandedRow {
+  background: #F8FAFC;
+}
+
+.expandedRow td {
+  padding: 0;
+}
+
+.userBreakdown {
+  padding: 16px 24px 16px 56px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.userBreakdownHeader {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.userList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+
+.userAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.userStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.userCountedLabel {
+  color: #64748B;
+}
+
+.userCounted {
+  font-weight: 600;
+  color: #3B82F6;
+  margin-right: 8px;
+}
+
+.userRejectedLabel {
+  color: #64748B;
+}
+
+.userRejected {
+  font-weight: 600;
+  color: #EF4444;
+}
+
+/* ============ Modal Styles ============ */
+
+/* Modal Backdrop */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+/* Session Select Modal */
+.sessionSelectModal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.2s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modalHeader h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 0;
+}
+
+.modalCloseButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #F1F5F9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  transition: all 0.15s ease;
+}
+
+.modalCloseButton:hover {
+  background: #E2E8F0;
+  color: #1E293B;
+}
+
+.sessionSelectContent {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.sessionSelectDescription {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.noSessionsMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.noSessionsMessage p {
+  font-size: 14px;
+  color: #64748B;
+  margin: 16px 0 0 0;
+}
+
+.sessionSelectList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sessionSelectItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.sessionSelectItem:hover {
+  background: #F1F5F9;
+  border-color: #8B5CF6;
+}
+
+.sessionSelectItemLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sessionSelectItemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.sessionSelectItemMeta {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.sessionSelectItemRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sessionSelectItemMembers {
+  font-size: 12px;
+  color: #8B5CF6;
+  font-weight: 500;
+  background: #F3E8FF;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Comparison Modal - Toss Design System */
+.comparisonModal {
+  background: white;
+  border-radius: 16px;
+  width: 95%;
+  max-width: 1400px;
+  min-height: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  animation: modalSlideIn 0.2s ease;
+}
+
+.comparisonContent {
+  padding: 32px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.comparisonSessions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px;
+  background: #F8F9FA;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.comparisonSessionInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.comparisonSessionLabel {
+  font-size: 11px;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.comparisonSessionName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #212529;
+}
+
+.comparisonVs {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ADB5BD;
+  padding: 6px 14px;
+  background: white;
+  border-radius: 999px;
+  border: 1px solid #DEE2E6;
+}
+
+.comparisonError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FFEFED;
+  border: 1px solid #FF5847;
+  border-radius: 8px;
+  color: #FF5847;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.noComparisonItems {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.noComparisonItems p {
+  font-size: 14px;
+  color: #6C757D;
+  margin: 16px 0 0 0;
+}
+
+/* Comparison Table - Toss Design System */
+.comparisonTableContainer {
+  overflow-x: auto;
+  margin-bottom: 0;
+  border: 1px solid #DEE2E6;
+  border-radius: 12px;
+}
+
+.comparisonTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.comparisonTable thead {
+  background: #F8F9FA;
+}
+
+.comparisonTable th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #DEE2E6;
+  white-space: nowrap;
+}
+
+.comparisonTable td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F0F0F0;
+  color: #212529;
+}
+
+.comparisonTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.comparisonTable tbody tr:hover {
+  background: #F8F9FA;
+}
+
+.comparisonProduct {
+  font-weight: 500;
+  color: #212529;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparisonNumber {
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Quantity Colors - Toss Design System */
+.quantityBlue {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 600;
+  color: #0064FF;
+}
+
+.quantityGreen {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 600;
+  color: #00C896;
+}
+
+.quantityEmpty {
+  color: #CED4DA;
+}
+
+.quantityTotal {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 700;
+  color: #212529;
+}
+
+/* Comparison Summary - Toss Design System */
+.comparisonSummary {
+  display: flex;
+  gap: 24px;
+  padding: 16px;
+  background: #F8F9FA;
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.comparisonSummaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.summaryValueGreen {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #00C896;
+}
+
+.summaryValueTotal {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0064FF;
+}
+
+/* Comparison Actions - Toss Design System */
+.comparisonActions {
+  padding: 16px 24px;
+  border-top: 1px solid #DEE2E6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.closeComparisonButton {
+  padding: 12px 24px;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  color: #212529;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeComparisonButton:hover {
+  background: #F8F9FA;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Merge Button - Toss Blue Primary */
+.mergeButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #0064FF;
+  border: 1px solid #0064FF;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.15);
+}
+
+.mergeButton:hover:not(:disabled) {
+  background: #0050CC;
+  border-color: #0050CC;
+}
+
+.mergeButton:disabled {
+  background: #4D94FF;
+  border-color: #4D94FF;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mergeButtonLoading {
+  background: #4D94FF;
+  border-color: #4D94FF;
+  cursor: wait;
+}
+
+.buttonSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Merge Error - Toss Design System */
+.mergeError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FFEFED;
+  border: 1px solid #FF5847;
+  border-radius: 8px;
+  color: #FF5847;
+  font-size: 14px;
+  margin: 0 24px 16px 24px;
+}
+
+/* Merge Success Toast - Toss Design System */
+.mergeSuccessToast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #00C896;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 40px rgba(0, 200, 150, 0.3);
+  z-index: 1100;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============ Enhanced Comparison Modal Styles (Toss Design System) ============ */
+
+/* Session Meta Info */
+.comparisonSessionMeta {
+  font-size: 12px;
+  color: #6C757D;
+  margin-top: 4px;
+}
+
+/* Summary Cards Grid - Toss Design System */
+.comparisonSummaryCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.comparisonSummaryCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+  background: #FFFFFF;
+  border: 1px solid #DEE2E6;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.comparisonSummaryCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Matched Products Card - Toss Green */
+.summaryCardMatched {
+  background: #E3FFF4;
+  border-color: #00C896;
+}
+
+/* Only in Current (A) Card - Toss Blue */
+.summaryCardOnlyA {
+  background: #F0F6FF;
+  border-color: #0064FF;
+}
+
+/* Only in Selected (B) Card - Toss Orange/Warning */
+.summaryCardOnlyB {
+  background: #FFF4E6;
+  border-color: #FF9500;
+}
+
+.summaryCardValue {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #212529;
+  line-height: 1;
+}
+
+.summaryCardMatched .summaryCardValue {
+  color: #00C896;
+}
+
+.summaryCardOnlyA .summaryCardValue {
+  color: #0064FF;
+}
+
+.summaryCardOnlyB .summaryCardValue {
+  color: #FF9500;
+}
+
+.summaryCardLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+}
+
+.summaryCardDetail {
+  font-size: 11px;
+  color: #ADB5BD;
+  margin-top: 4px;
+}
+
+/* Comparison Sections - Toss Design System */
+.comparisonSection {
+  margin-bottom: 24px;
+}
+
+.comparisonSection:last-child {
+  margin-bottom: 0;
+}
+
+.comparisonSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 12px;
+  padding: 10px 16px;
+  background: #F8F9FA;
+  border-radius: 8px;
+}
+
+/* Section Title - Toss Green for Matched */
+.sectionTitleGreen {
+  color: #00C896;
+  background: #E3FFF4;
+}
+
+/* Section Title - Toss Blue for Only in A */
+.sectionTitleBlue {
+  color: #0064FF;
+  background: #F0F6FF;
+}
+
+/* Section Title - Toss Orange for Only in B */
+.sectionTitleOrange {
+  color: #FF9500;
+  background: #FFF4E6;
+}
+
+/* SKU Column Style - Toss Design System */
+.comparisonSku {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-size: 12px;
+  color: #6C757D;
+  background: #F1F3F5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Table Row Styles - Toss Design System */
+.rowMatch {
+  background: #FFFFFF;
+}
+
+.rowMatch:hover {
+  background: #F8F9FA !important;
+}
+
+.rowMismatch {
+  background: #FFF4E6;
+}
+
+.rowMismatch:hover {
+  background: #FFEDD5 !important;
+}
+
+.rowOnlyA {
+  background: #F0F6FF;
+}
+
+.rowOnlyA:hover {
+  background: #E6F0FF !important;
+}
+
+.rowOnlyB {
+  background: #FFF4E6;
+}
+
+.rowOnlyB:hover {
+  background: #FFEDD5 !important;
+}
+
+/* Quantity Diff Styles - Toss Colors */
+.quantityDiffPositive {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 600;
+  color: #00C896;
+}
+
+.quantityDiffNegative {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 600;
+  color: #FF5847;
+}
+
+.quantityDiffZero {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 600;
+  color: #6C757D;
+}
+
+/* Status Badge Styles - Toss Design System */
+.statusMatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #E3FFF4;
+  color: #00C896;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.statusMismatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #FFF4E6;
+  color: #FF9500;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Empty Section State - Toss Design System */
+.emptySectionMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #ADB5BD;
+  font-size: 14px;
+  background: #F8F9FA;
+  border-radius: 8px;
+  border: 1px dashed #DEE2E6;
+}
+
+/* Responsive for Summary Cards */
+@media (max-width: 600px) {
+  .comparisonSummaryCards {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCardValue {
+    font-size: 28px;
+  }
+}
+
+/* Responsive - Extra large screens */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Responsive - Tablets and Mobile */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .container {
+    padding: 80px 0 16px 0;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .sessionBanner {
+    padding: 12px 16px;
+  }
+
+  .sessionBannerContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .sessionBannerDetails {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .summaryRow {
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .itemsCard {
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .itemsTable th,
+  .itemsTable td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .thProduct {
+    min-width: 150px;
+  }
+
+  .thNumber {
+    min-width: 60px;
+  }
+
+  .userBreakdown {
+    padding: 12px 16px;
+  }
+
+  .userItem {
+    padding: 10px 12px;
+  }
+}
+
+/* ============ Two Column Comparison Layout (Toss Design System) ============ */
+
+.comparisonTwoColumnLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+  min-height: 350px;
+}
+
+.comparisonColumn {
+  background: #FFFFFF;
+  border: 1px solid #E9ECEF;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.comparisonColumnHeader {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  border-bottom: 2px solid #E9ECEF;
+}
+
+.columnHeaderBlue {
+  background: linear-gradient(135deg, #F0F6FF 0%, #E6F0FF 100%);
+  border-bottom-color: #0064FF;
+}
+
+.columnHeaderOrange {
+  background: linear-gradient(135deg, #FFF4E6 0%, #FFEDD5 100%);
+  border-bottom-color: #FF9500;
+}
+
+.columnSessionName {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 6px;
+}
+
+.columnHeaderBlue .columnSessionName {
+  color: #0064FF;
+}
+
+.columnHeaderOrange .columnSessionName {
+  color: #FF9500;
+}
+
+.columnItemCount {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6C757D;
+}
+
+.comparisonColumnContent {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 450px;
+}
+
+.comparisonColumnTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.comparisonColumnTable thead th {
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #E9ECEF;
+  text-align: left;
+  background: #F8F9FA;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.comparisonColumnTable tbody tr {
+  border-bottom: 1px solid #F1F3F5;
+  transition: background-color 0.15s ease;
+}
+
+.comparisonColumnTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.comparisonColumnTable tbody tr:hover {
+  background: #F8F9FA;
+}
+
+.comparisonColumnTable td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #495057;
+}
+
+/* Product name truncate for two column table */
+.comparisonColumnTable td.comparisonProduct {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.columnEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  color: #ADB5BD;
+  text-align: center;
+  flex: 1;
+}
+
+.columnEmptyState p {
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Quantity Styles for Two Column Layout */
+.quantityOrange {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 600;
+  color: #FF9500;
+}
+
+/* Matched Products Details (Collapsible) - Toss Design System */
+.matchedProductsDetails {
+  margin-bottom: 16px;
+  border: 1px solid #E9ECEF;
+  border-radius: 12px;
+  background: #FFFFFF;
+  overflow: hidden;
+}
+
+.matchedProductsDetails[open] {
+  border-color: #00C896;
+}
+
+.matchedProductsSummary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  background: #E3FFF4;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.matchedProductsSummary:hover {
+  background: #D0FFED;
+}
+
+.matchedProductsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.matchedProductsSummary::before {
+  content: '▸';
+  font-size: 12px;
+  color: #00C896;
+  transition: transform 0.2s ease;
+}
+
+.matchedProductsDetails[open] .matchedProductsSummary::before {
+  transform: rotate(90deg);
+}
+
+.matchedProductsSummary svg {
+  color: #00C896;
+}
+
+.matchedSummaryInfo {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6C757D;
+}
+
+/* Two Column Layout Responsive */
+@media (max-width: 1200px) {
+  .comparisonModal {
+    max-width: 95%;
+    min-height: 600px;
+  }
+
+  .comparisonColumnTable td.comparisonProduct {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 900px) {
+  .comparisonTwoColumnLayout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .comparisonColumnContent {
+    max-height: 350px;
+  }
+
+  .comparisonColumnTable td.comparisonProduct {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+  .comparisonModal {
+    min-height: auto;
+  }
+
+  .comparisonColumnHeader {
+    padding: 14px 16px;
+  }
+
+  .columnSessionName {
+    font-size: 18px;
+  }
+
+  .comparisonColumnContent {
+    padding: 14px;
+    max-height: 280px;
+  }
+
+  .comparisonColumnTable td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .comparisonColumnTable td.comparisonProduct {
+    max-width: 120px;
+  }
+}

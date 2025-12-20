@@ -38,6 +38,8 @@ export const OrderCreatePage: React.FC = () => {
     handleOneTimeSupplierChange,
     suppliersLoading,
     supplierOptions,
+    orderTitle,
+    setOrderTitle,
     note,
     setNote,
     currency,
@@ -78,10 +80,28 @@ export const OrderCreatePage: React.FC = () => {
 
           {/* Main Content */}
           <div className={styles.content}>
-            {/* Items Section */}
+            {/* Order Title Section */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
                 <span className={styles.sectionNumber}>1</span>
+                Order Title
+              </h2>
+              <div className={styles.sectionContent}>
+                <input
+                  type="text"
+                  className={styles.input}
+                  placeholder="Enter order title (optional) - Auto-generated if empty"
+                  value={orderTitle}
+                  onChange={(e) => setOrderTitle(e.target.value)}
+                  maxLength={50}
+                />
+              </div>
+            </div>
+
+            {/* Items Section */}
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                <span className={styles.sectionNumber}>2</span>
                 Order Items
               </h2>
               <div className={styles.sectionContent}>
@@ -156,7 +176,7 @@ export const OrderCreatePage: React.FC = () => {
             {/* Supplier Section */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                <span className={styles.sectionNumber}>2</span>
+                <span className={styles.sectionNumber}>3</span>
                 Supplier Information
               </h2>
               <div className={styles.sectionContent}>
@@ -243,7 +263,7 @@ export const OrderCreatePage: React.FC = () => {
             {/* Note Section */}
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                <span className={styles.sectionNumber}>3</span>
+                <span className={styles.sectionNumber}>4</span>
                 Notes
               </h2>
               <div className={styles.sectionContent}>

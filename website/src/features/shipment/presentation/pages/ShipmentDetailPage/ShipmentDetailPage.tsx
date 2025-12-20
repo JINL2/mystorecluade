@@ -6,6 +6,7 @@
 import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
 import { useShipmentDetail, formatDateTime } from '../../hooks/useShipmentDetail';
 import styles from './ShipmentDetailPage.module.css';
 
@@ -17,6 +18,11 @@ export const ShipmentDetailPage: React.FC = () => {
     formatPrice,
     getStatusBadgeClass,
     handleBack,
+    isCloseModalOpen,
+    isClosing,
+    openCloseModal,
+    closeCloseModal,
+    handleCloseShipment,
   } = useShipmentDetail();
 
   // Render loading state
@@ -80,6 +86,16 @@ export const ShipmentDetailPage: React.FC = () => {
               <span className={getStatusBadgeClass(shipmentDetail.status, styles)}>
                 {shipmentDetail.status}
               </span>
+              {shipmentDetail.status !== 'cancelled' && shipmentDetail.status !== 'complete' && (
+                <button className={styles.closeShipmentButton} onClick={openCloseModal}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                  Close Shipment
+                </button>
+              )}
             </div>
           </div>
 
@@ -237,6 +253,20 @@ export const ShipmentDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Close Shipment Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isCloseModalOpen}
+        onClose={closeCloseModal}
+        onConfirm={handleCloseShipment}
+        variant="error"
+        title="Close Shipment"
+        message="Are you sure you want to close this shipment? This action cannot be undone."
+        confirmText="Close Shipment"
+        cancelText="Go Back"
+        confirmButtonVariant="error"
+        isLoading={isClosing}
+      />
     </>
   );
 };

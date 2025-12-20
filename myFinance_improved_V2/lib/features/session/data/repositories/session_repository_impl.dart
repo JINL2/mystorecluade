@@ -1,6 +1,7 @@
 import '../../domain/entities/close_session_response.dart';
 import '../../domain/entities/inventory_session.dart';
 import '../../domain/entities/join_session_response.dart';
+import '../../domain/entities/session_compare_result.dart';
 import '../../domain/entities/session_history_item.dart';
 import '../../domain/entities/session_item.dart';
 import '../../domain/entities/session_list_item.dart';
@@ -355,5 +356,18 @@ class SessionRepositoryImpl implements SessionRepository {
       items: items,
     );
     return model.toEntity();
+  }
+
+  @override
+  Future<SessionCompareResult> compareSessions({
+    required String sourceSessionId,
+    required String targetSessionId,
+    required String userId,
+  }) async {
+    return _datasource.compareSessions(
+      sourceSessionId: sourceSessionId,
+      targetSessionId: targetSessionId,
+      userId: userId,
+    );
   }
 }

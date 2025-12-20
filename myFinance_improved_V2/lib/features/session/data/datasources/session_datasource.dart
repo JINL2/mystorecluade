@@ -12,6 +12,7 @@ import '../models/session_item_model.dart';
 import '../models/session_list_item_model.dart';
 import '../models/session_review_item_model.dart';
 import '../models/shipment_model.dart';
+import '../models/session_compare_model.dart';
 import '../models/update_session_items_response_model.dart';
 import '../models/user_session_items_model.dart';
 
@@ -325,9 +326,10 @@ class SessionDatasource {
     return stockMap;
   }
 
-  /// Submit session with confirmed items via RPC (inventory_submit_session)
+  /// Submit session with confirmed items via RPC (inventory_submit_session_v2)
   /// Creates receiving record, updates inventory stock, and closes session
   /// Only session creator can submit
+  /// V2 includes stock_changes with before/after quantities for display tracking
   Future<SessionSubmitResponseModel> submitSession({
     required String sessionId,
     required String userId,
@@ -335,23 +337,34 @@ class SessionDatasource {
     bool isFinal = false,
     String? notes,
   }) async {
+    print('🔄 [Datasource] submitSession called');
+    print('🔄 [Datasource] sessionId: $sessionId');
+    print('🔄 [Datasource] userId: $userId');
+    print('🔄 [Datasource] items: $items');
+    print('🔄 [Datasource] isFinal: $isFinal');
+
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_submit_session',
+      'inventory_submit_session_v2',
       params: {
         'p_session_id': sessionId,
         'p_user_id': userId,
         'p_items': items,
         'p_is_final': isFinal,
         if (notes != null) 'p_notes': notes,
+        'p_time': DateTimeUtils.toLocalWithOffset(DateTime.now()),
         'p_timezone': DateTimeUtils.getLocalTimezone(),
       },
     ).single();
 
+    print('🔄 [Datasource] RPC response: $response');
+
     if (response['success'] != true) {
+      print('❌ [Datasource] RPC failed: ${response['error']}');
       throw Exception(response['error'] ?? 'Failed to submit session');
     }
 
     final data = response['data'] as Map<String, dynamic>? ?? {};
+    print('✅ [Datasource] RPC data: $data');
     return SessionSubmitResponseModel.fromJson(data);
   }
 
@@ -671,5 +684,64 @@ class SessionDatasource {
     }
 
     return SessionHistoryResponseModel.fromJson(response);
+  }
+
+  /// Compare two sessions via RPC (inventory_compare_sessions)
+  /// Returns items that exist in target session but not in source session
+  Future<SessionCompareResponseModel> compareSessions({
+    required String sourceSessionId,
+    required String targetSessionId,
+    required String userId,
+  }) async {
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_compare_sessions',
+      params: {
+        'p_session_id_a': sourceSessionId,
+        'p_session_id_b': targetSessionId,
+        'p_user_id': userId,
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    // Debug: Print the actual RPC response structure
+    print('🔍 [compareSessions] Response keys: ${response.keys.toList()}');
+    if (response['data'] != null) {
+      final data = response['data'] as Map<String, dynamic>;
+      print('🔍 [compareSessions] Data keys: ${data.keys.toList()}');
+      print('🔍 [compareSessions] Full data: $data');
+    }
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to compare sessions');
+    }
+
+    return SessionCompareResponseModel.fromJson(response);
+  }
+
+  /// Merge source session into target session via RPC (inventory_merge_sessions)
+  /// - Copies all items from source to target with source_session_id tracking
+  /// - Adds source's members to target (skips duplicates)
+  /// - Deactivates source session
+  Future<Map<String, dynamic>> mergeSessions({
+    required String targetSessionId,
+    required String sourceSessionId,
+    required String userId,
+  }) async {
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_merge_sessions',
+      params: {
+        'p_target_session_id': targetSessionId,
+        'p_source_session_id': sourceSessionId,
+        'p_user_id': userId,
+        'p_time': DateTimeUtils.toLocalWithOffset(DateTime.now()),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+      },
+    ).single();
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to merge sessions');
+    }
+
+    return response;
   }
 }

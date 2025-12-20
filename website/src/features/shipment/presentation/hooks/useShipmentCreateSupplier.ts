@@ -15,6 +15,8 @@ export interface SupplierOption {
   value: string;
   label: string;
   description?: string;
+  descriptionBgColor?: string;
+  descriptionColor?: string;
 }
 
 interface UseShipmentCreateSupplierProps {
@@ -46,12 +48,21 @@ export const useShipmentCreateSupplier = ({
     address: '',
   });
 
-  // Convert suppliers to options format
-  const supplierOptions: SupplierOption[] = suppliers.map((supplier) => ({
-    value: supplier.counterparty_id,
-    label: supplier.name,
-    description: supplier.is_internal ? 'INTERNAL' : undefined,
-  }));
+  // Convert suppliers to options format with INTERNAL/SUPPLIER badges
+  const supplierOptions: SupplierOption[] = suppliers.map((supplier) => {
+    const isSupplier = supplier.type === 'Suppliers';
+    const badges: string[] = [];
+    if (supplier.is_internal) badges.push('INTERNAL');
+    if (isSupplier) badges.push('SUPPLIER');
+
+    return {
+      value: supplier.counterparty_id,
+      label: supplier.name,
+      description: badges.length > 0 ? badges.join(' · ') : undefined,
+      descriptionBgColor: badges.length > 0 ? 'rgba(107, 114, 128, 0.15)' : undefined,
+      descriptionColor: badges.length > 0 ? 'rgb(107, 114, 128)' : undefined,
+    };
+  });
 
   // Load suppliers if not passed from ShipmentPage using Repository
   useEffect(() => {

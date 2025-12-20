@@ -30,8 +30,9 @@ import { MarketingPlanPage } from '@/features/marketing-plan/presentation/pages/
 import { OrderPage } from '@/features/order/presentation/pages/OrderPage';
 import { OrderCreatePage } from '@/features/order/presentation/pages/OrderCreatePage';
 import { OrderDetailPage } from '@/features/order/presentation/pages/OrderDetailPage';
-import { ProductReceivePage } from '@/features/product-receive/presentation/pages/ProductReceivePage';
-import { ReceivingSessionPage } from '@/features/product-receive/presentation/pages/ReceivingSessionPage';
+import { ProductReceivePage } from '@/features/session/presentation/pages/ProductReceivePage';
+import { ReceivingSessionPage } from '@/features/session/presentation/pages/ReceivingSessionPage';
+import { CountingSessionPage } from '@/features/session/presentation/pages/CountingSessionPage';
 import { ShipmentPage } from '@/features/shipment/presentation/pages/ShipmentPage';
 import { ShipmentCreatePage } from '@/features/shipment/presentation/pages/ShipmentCreatePage';
 import { ShipmentDetailPage } from '@/features/shipment/presentation/pages/ShipmentDetailPage';
@@ -123,7 +124,7 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
-        path="/product/product-receive"
+        path="/product/session"
         element={
           <ProtectedRoute requiredFeatureId="bd9c6193-27ae-4681-845b-34ccce91273f">
             <ProductReceivePage />
@@ -135,6 +136,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="bd9c6193-27ae-4681-845b-34ccce91273f">
             <ReceivingSessionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/product/counting/session/:sessionId"
+        element={
+          <ProtectedRoute requiredFeatureId="bd9c6193-27ae-4681-845b-34ccce91273f">
+            <CountingSessionPage />
           </ProtectedRoute>
         }
       />

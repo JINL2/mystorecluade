@@ -13,6 +13,7 @@ import '../domain/usecases/get_session_review_items.dart';
 import '../domain/usecases/get_shipment_list.dart';
 import '../domain/usecases/get_user_session_items.dart';
 import '../domain/usecases/join_session.dart';
+import '../domain/usecases/compare_sessions.dart';
 import '../domain/usecases/update_session_items.dart';
 import '../domain/usecases/search_products.dart';
 import '../domain/usecases/submit_session.dart';
@@ -101,4 +102,10 @@ final getUserSessionItemsUseCaseProvider = Provider<GetUserSessionItems>((ref) {
 final updateSessionItemsUseCaseProvider = Provider<UpdateSessionItems>((ref) {
   final repository = ref.watch(sessionRepositoryProvider);
   return UpdateSessionItems(repository);
+});
+
+/// Provider for CompareSessions UseCase
+final compareSessionsUseCaseProvider = Provider<CompareSessions>((ref) {
+  final repository = ref.watch(sessionRepositoryProvider);
+  return CompareSessions(repository);
 });

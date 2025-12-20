@@ -43,6 +43,9 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
     );
 
     if (result != null && mounted) {
+      // Refresh the session list after creating a new session
+      ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
+
       // Get store ID from app state for navigation
       final appState = ref.read(appStateProvider);
       final storeId = appState.storeChoosen;
@@ -66,13 +69,13 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
     }
   }
 
-  void _onSessionTap(SessionListItem session) {
+  Future<void> _onSessionTap(SessionListItem session) async {
     final appState = ref.read(appStateProvider);
     final currentUserId = appState.userId;
     final isOwner = session.createdBy == currentUserId;
 
     // Navigate to session count detail page (matches stock_in_detail_page design)
-    Navigator.of(context).push<void>(
+    await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (context) => SessionCountDetailPage(
           sessionId: session.sessionId,
@@ -86,6 +89,11 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
         ),
       ),
     );
+
+    // Refresh the session list when returning from detail page
+    if (mounted) {
+      ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
+    }
   }
 
   @override

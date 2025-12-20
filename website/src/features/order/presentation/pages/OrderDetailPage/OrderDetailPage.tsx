@@ -6,6 +6,7 @@
 import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
 import { useOrderDetail, formatDateTime } from '../../hooks/useOrderDetail';
 import styles from './OrderDetailPage.module.css';
 
@@ -17,6 +18,11 @@ export const OrderDetailPage: React.FC = () => {
     formatPrice,
     getStatusBadgeClass,
     handleBack,
+    isCancelModalOpen,
+    isCancelling,
+    openCancelModal,
+    closeCancelModal,
+    handleCancelOrder,
   } = useOrderDetail();
 
   // Render loading state
@@ -83,6 +89,16 @@ export const OrderDetailPage: React.FC = () => {
               <span className={getStatusBadgeClass(orderDetail.receiving_status, styles)}>
                 {orderDetail.receiving_status}
               </span>
+              {orderDetail.order_status !== 'cancelled' && orderDetail.order_status !== 'complete' && (
+                <button className={styles.cancelOrderButton} onClick={openCancelModal}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                  Cancel Order
+                </button>
+              )}
             </div>
           </div>
 
@@ -234,6 +250,20 @@ export const OrderDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Order Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isCancelModalOpen}
+        onClose={closeCancelModal}
+        onConfirm={handleCancelOrder}
+        variant="error"
+        title="Cancel Order"
+        message="Are you sure you want to cancel this order? This action cannot be undone."
+        confirmText="Cancel Order"
+        cancelText="Go Back"
+        confirmButtonVariant="error"
+        isLoading={isCancelling}
+      />
     </>
   );
 };

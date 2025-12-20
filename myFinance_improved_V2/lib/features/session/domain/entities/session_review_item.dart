@@ -125,8 +125,32 @@ class SessionSubmitItem {
       };
 }
 
+/// Stock change item from submit response (V2)
+/// Tracks before/after quantities for display tracking
+class StockChangeItem {
+  final String productId;
+  final String? sku;
+  final String productName;
+  final int quantityBefore;
+  final int quantityReceived;
+  final int quantityAfter;
+  /// True if quantityBefore was 0 (new item needs display)
+  final bool needsDisplay;
+
+  const StockChangeItem({
+    required this.productId,
+    this.sku,
+    required this.productName,
+    required this.quantityBefore,
+    required this.quantityReceived,
+    required this.quantityAfter,
+    required this.needsDisplay,
+  });
+}
+
 /// Response from session submit
 class SessionSubmitResponse {
+  final String sessionType;
   final String receivingId;
   final String receivingNumber;
   final String sessionId;
@@ -135,8 +159,13 @@ class SessionSubmitResponse {
   final int totalQuantity;
   final int totalRejected;
   final bool stockUpdated;
+  /// Stock changes for each product (receiving only)
+  final List<StockChangeItem> stockChanges;
+  /// Count of new items that need display (quantityBefore = 0)
+  final int newDisplayCount;
 
   const SessionSubmitResponse({
+    this.sessionType = 'receiving',
     required this.receivingId,
     required this.receivingNumber,
     required this.sessionId,
@@ -145,5 +174,7 @@ class SessionSubmitResponse {
     required this.totalQuantity,
     required this.totalRejected,
     required this.stockUpdated,
+    this.stockChanges = const [],
+    this.newDisplayCount = 0,
   });
 }

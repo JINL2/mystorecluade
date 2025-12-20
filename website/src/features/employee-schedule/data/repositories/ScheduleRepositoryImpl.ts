@@ -7,6 +7,8 @@ import type {
   IScheduleRepository,
   ScheduleDataResult,
   EmployeesResult,
+  ShiftCardsResult,
+  ShiftCardData,
 } from '../../domain/repositories/IScheduleRepository';
 import { ScheduleEmployee } from '../../domain/entities/ScheduleEmployee';
 import { ScheduleAssignment } from '../../domain/entities/ScheduleAssignment';
@@ -102,8 +104,9 @@ export class ScheduleRepositoryImpl implements IScheduleRepository {
     storeId: string,
     date: string,
     shiftStartTime: string,
+    shiftEndTime: string,
     approvedBy: string
-  ): Promise<{ success: boolean; error?: string }> {
+  ): Promise<{ success: boolean; error?: string; errorCode?: string }> {
     try {
       const result = await this.dataSource.createAssignment(
         userId,
@@ -111,6 +114,7 @@ export class ScheduleRepositoryImpl implements IScheduleRepository {
         storeId,
         date,
         shiftStartTime,
+        shiftEndTime,
         approvedBy
       );
 
@@ -132,5 +136,66 @@ export class ScheduleRepositoryImpl implements IScheduleRepository {
 
   async deleteAssignment(assignmentId: string): Promise<{ success: boolean; error?: string }> {
     return await this.dataSource.deleteAssignment(assignmentId);
+  }
+
+  async getShiftCards(
+    companyId: string,
+    storeId: string | null,
+    startDate: string,
+    endDate: string
+  ): Promise<ShiftCardsResult> {
+    try {
+      const result = await this.dataSource.getShiftCards(companyId, storeId, startDate, endDate);
+
+      if (!result.success || !result.data) {
+        return {
+          success: false,
+          error: result.error || 'Failed to fetch shift cards',
+        };
+      }
+
+      // Flatten cards from all stores into a single array
+      const cards: ShiftCardData[] = [];
+      for (const store of result.data.stores || []) {
+        for (const card of store.cards || []) {
+          cards.push({
+            shiftRequestId: card.shift_request_id,
+            userId: card.user_id,
+            userName: card.user_name,
+            shiftDate: card.shift_date,
+            shiftName: card.shift_name,
+            shiftStartTime: card.shift_start_time,
+            shiftEndTime: card.shift_end_time,
+            isApproved: card.is_approved,
+            isProblem: card.is_problem,
+            isProblemSolved: card.is_problem_solved,
+          });
+        }
+      }
+
+      return {
+        success: true,
+        cards,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
+      };
+    }
+  }
+
+  async toggleApproval(
+    shiftRequestIds: string[],
+    userId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      return await this.dataSource.toggleApproval(shiftRequestIds, userId);
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
+      };
+    }
   }
 }

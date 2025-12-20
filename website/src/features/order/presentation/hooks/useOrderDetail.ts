@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { supabaseService } from '@/core/services/supabase_service';
+import { useAuth } from '@/shared/hooks/useAuth';
 import type { Currency, OrderDetail } from '../pages/OrderDetailPage/OrderDetailPage.types';
 
 // Format date for display (yyyy/MM/dd)
@@ -38,6 +39,7 @@ export const useOrderDetail = () => {
   // App state
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id;
+  const { user } = useAuth();
 
   // Order detail state
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
@@ -46,6 +48,10 @@ export const useOrderDetail = () => {
 
   // Currency state
   const [currency, setCurrency] = useState<Currency>({ symbol: '₩', code: 'KRW' });
+
+  // Cancel order modal state
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Load base currency
   useEffect(() => {
@@ -140,12 +146,74 @@ export const useOrderDetail = () => {
     navigate('/product/order');
   }, [navigate]);
 
+  // Open cancel order modal
+  const openCancelModal = useCallback(() => {
+    setIsCancelModalOpen(true);
+  }, []);
+
+  // Close cancel order modal
+  const closeCancelModal = useCallback(() => {
+    setIsCancelModalOpen(false);
+  }, []);
+
+  // Handle cancel order
+  const handleCancelOrder = useCallback(async () => {
+    if (!orderId || !companyId || !user?.id) {
+      console.error('❌ Missing required parameters for cancel order');
+      return;
+    }
+
+    setIsCancelling(true);
+
+    try {
+      const supabase = supabaseService.getClient();
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      console.log('🚫 Calling inventory_close_order with:', {
+        p_order_id: orderId,
+        p_user_id: user.id,
+        p_company_id: companyId,
+        p_timezone: userTimezone,
+      });
+
+      const { data, error: rpcError } = await supabase.rpc('inventory_close_order', {
+        p_order_id: orderId,
+        p_user_id: user.id,
+        p_company_id: companyId,
+        p_timezone: userTimezone,
+      });
+
+      console.log('🚫 inventory_close_order response:', { data, rpcError });
+
+      if (rpcError) {
+        throw new Error(rpcError.message);
+      }
+
+      if (data?.success) {
+        // Close modal and navigate back to list
+        setIsCancelModalOpen(false);
+        navigate('/product/order');
+      } else {
+        throw new Error(data?.error || 'Failed to cancel order');
+      }
+    } catch (err) {
+      console.error('🚫 Cancel order error:', err);
+      alert(err instanceof Error ? err.message : 'Failed to cancel order');
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [orderId, companyId, user?.id, navigate]);
+
   return {
     // State
     orderDetail,
     isLoading,
     error,
     currency,
+
+    // Cancel order modal state
+    isCancelModalOpen,
+    isCancelling,
 
     // Utilities
     formatPrice,
@@ -155,5 +223,10 @@ export const useOrderDetail = () => {
 
     // Navigation
     handleBack,
+
+    // Cancel order actions
+    openCancelModal,
+    closeCancelModal,
+    handleCancelOrder,
   };
 };

@@ -6,6 +6,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
+import { useAuth } from '@/shared/hooks/useAuth';
+import { supabaseService } from '@/core/services/supabase_service';
 import { getShipmentRepository } from '../../data/repositories/ShipmentRepositoryImpl';
 import type { Currency, ShipmentDetail } from '../pages/ShipmentDetailPage/ShipmentDetailPage.types';
 
@@ -39,6 +41,7 @@ export const useShipmentDetail = () => {
   // App state
   const { currentCompany } = useAppState();
   const companyId = currentCompany?.company_id;
+  const { user } = useAuth();
 
   // Shipment detail state
   const [shipmentDetail, setShipmentDetail] = useState<ShipmentDetail | null>(null);
@@ -47,6 +50,10 @@ export const useShipmentDetail = () => {
 
   // Currency state
   const [currency, setCurrency] = useState<Currency>({ symbol: '₩', code: 'KRW' });
+
+  // Close shipment modal state
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Load base currency using Repository
   useEffect(() => {
@@ -141,12 +148,74 @@ export const useShipmentDetail = () => {
     navigate('/product/shipment');
   }, [navigate]);
 
+  // Open close shipment modal
+  const openCloseModal = useCallback(() => {
+    setIsCloseModalOpen(true);
+  }, []);
+
+  // Close shipment modal
+  const closeCloseModal = useCallback(() => {
+    setIsCloseModalOpen(false);
+  }, []);
+
+  // Handle close shipment
+  const handleCloseShipment = useCallback(async () => {
+    if (!shipmentId || !companyId || !user?.id) {
+      console.error('❌ Missing required parameters for close shipment');
+      return;
+    }
+
+    setIsClosing(true);
+
+    try {
+      const supabase = supabaseService.getClient();
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      console.log('🚫 Calling inventory_close_shipment with:', {
+        p_shipment_id: shipmentId,
+        p_user_id: user.id,
+        p_company_id: companyId,
+        p_timezone: userTimezone,
+      });
+
+      const { data, error: rpcError } = await supabase.rpc('inventory_close_shipment', {
+        p_shipment_id: shipmentId,
+        p_user_id: user.id,
+        p_company_id: companyId,
+        p_timezone: userTimezone,
+      });
+
+      console.log('🚫 inventory_close_shipment response:', { data, rpcError });
+
+      if (rpcError) {
+        throw new Error(rpcError.message);
+      }
+
+      if (data?.success) {
+        // Close modal and navigate back to list
+        setIsCloseModalOpen(false);
+        navigate('/product/shipment');
+      } else {
+        throw new Error(data?.error || 'Failed to close shipment');
+      }
+    } catch (err) {
+      console.error('🚫 Close shipment error:', err);
+      alert(err instanceof Error ? err.message : 'Failed to close shipment');
+    } finally {
+      setIsClosing(false);
+    }
+  }, [shipmentId, companyId, user?.id, navigate]);
+
   return {
     // State
     shipmentDetail,
     isLoading,
     error,
     currency,
+
+    // Close shipment modal state
+    isCloseModalOpen,
+    isClosing,
 
     // Utilities
     formatPrice,
@@ -156,5 +225,10 @@ export const useShipmentDetail = () => {
 
     // Navigation
     handleBack,
+
+    // Close shipment actions
+    openCloseModal,
+    closeCloseModal,
+    handleCloseShipment,
   };
 };

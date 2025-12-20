@@ -53,8 +53,13 @@ export class ScheduleModel {
     // Flatten the nested schedule structure into individual assignments
     const assignments: ScheduleAssignment[] = [];
 
+    console.group('🔄 ScheduleModel.fromSupabase - Processing schedule');
+    console.log('Raw schedule data:', rawData.schedule);
+
     (rawData.schedule || []).forEach((dayData: ScheduleDayData) => {
+      console.log(`Day: ${dayData.date}, shifts count: ${dayData.shifts?.length}`);
       dayData.shifts.forEach((shiftInDay) => {
+        console.log(`  Shift: ${shiftInDay.shift_name}, employees:`, shiftInDay.employees);
         // Get shift details from the shift map
         const shiftDetails = shiftMap.get(shiftInDay.shift_id);
 
@@ -84,12 +89,16 @@ export class ScheduleModel {
             date: dateString,
             shift,
             status: employee.status || 'scheduled',
+            is_approved: employee.is_approved ?? false,
           });
 
           assignments.push(assignment);
         });
       });
     });
+
+    console.log('Total assignments created:', assignments.length);
+    console.groupEnd();
 
     return { shifts, assignments };
   }

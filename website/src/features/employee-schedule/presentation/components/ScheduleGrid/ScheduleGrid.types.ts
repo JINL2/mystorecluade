@@ -28,9 +28,14 @@ export interface ScheduleGridProps {
   dropTarget: DropTarget | null;
 
   /**
-   * Open add employee modal for a date
+   * Open add employee modal for a date and shift
    */
-  onOpenAddEmployeeModal: (date: string) => void;
+  onOpenAddEmployeeModal: (date: string, shiftId: string) => void;
+
+  /**
+   * Handle assignment card click (for approval status toggle)
+   */
+  onAssignmentClick?: (assignment: ScheduleAssignment) => void;
 
   /**
    * Handle cell drag over

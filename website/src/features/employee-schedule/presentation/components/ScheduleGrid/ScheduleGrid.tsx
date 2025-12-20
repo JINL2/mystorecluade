@@ -5,6 +5,7 @@
 
 import React from 'react';
 import type { ScheduleGridProps } from './ScheduleGrid.types';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 import styles from './ScheduleGrid.module.css';
 
 export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
@@ -13,6 +14,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   getAssignmentsForDate,
   dropTarget,
   onOpenAddEmployeeModal,
+  onAssignmentClick,
   onCellDragOver,
   onCellDragEnter,
   onCellDragLeave,
@@ -24,9 +26,9 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
   };
 
-  // Check if date is today
+  // Check if date is today (using local timezone)
   const isToday = (date: string): boolean => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = DateTimeUtils.toDateOnly(new Date());
     return date === today;
   };
 
@@ -94,7 +96,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                 {shiftAssignments.length === 0 ? (
                   <button
                     className={styles.addEmployeeCellButton}
-                    onClick={() => onOpenAddEmployeeModal(date)}
+                    onClick={() => onOpenAddEmployeeModal(date, shift.shiftId)}
                     title="Add Employee"
                   >
                     <AddIcon />
@@ -104,20 +106,30 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     {shiftAssignments.map((assignment) => (
                       <div
                         key={assignment.assignmentId}
-                        className={styles.employeeChip}
-                        title={`${assignment.fullName} - ${assignment.status}`}
+                        className={`${styles.employeeChip} ${onAssignmentClick ? styles.clickable : ''}`}
+                        title={`${assignment.fullName} - ${assignment.isApproved ? 'Approved' : 'Pending'}. Click to change status.`}
+                        onClick={() => onAssignmentClick?.(assignment)}
+                        role={onAssignmentClick ? 'button' : undefined}
+                        tabIndex={onAssignmentClick ? 0 : undefined}
+                        onKeyDown={(e) => {
+                          if (onAssignmentClick && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            onAssignmentClick(assignment);
+                          }
+                        }}
                       >
+                        {/* Approval status dot on LEFT - Blue=Approved, Yellow=Pending */}
+                        <span
+                          className={`${styles.approvalDot} ${styles[assignment.approvalStatus]}`}
+                        ></span>
                         <span className={styles.employeeName}>
                           {assignment.fullName || 'Unknown'}
                         </span>
-                        <span
-                          className={`${styles.statusDot} ${styles[assignment.status]}`}
-                        ></span>
                       </div>
                     ))}
                     <button
                       className={styles.addEmployeeCellButtonSmall}
-                      onClick={() => onOpenAddEmployeeModal(date)}
+                      onClick={() => onOpenAddEmployeeModal(date, shift.shiftId)}
                       title="Add Another Employee"
                     >
                       +

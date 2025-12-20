@@ -107,6 +107,9 @@ export const useOrderCreate = () => {
     address: '',
   });
 
+  // Order Title (Custom Order Number)
+  const [orderTitle, setOrderTitle] = useState<string>('');
+
   // Note
   const [note, setNote] = useState<string>('');
 
@@ -338,15 +341,21 @@ export const useOrderCreate = () => {
         rpcParams.p_notes = note.trim();
       }
 
+      // Add custom order number (title) if provided
+      if (orderTitle.trim()) {
+        rpcParams.p_order_number = orderTitle.trim();
+      }
+
       console.log('📦 Creating order with params:', JSON.stringify(rpcParams, null, 2));
       console.log('📦 Order items detail:', JSON.stringify(items, null, 2));
       console.log('📦 Supplier type:', supplierType);
       console.log('📦 Selected supplier:', selectedSupplier);
       console.log('📦 One-time supplier info:', supplierInfo);
+      console.log('📦 Order title:', orderTitle);
 
-      const { data, error } = await supabase.rpc('inventory_create_order_v2', rpcParams);
+      const { data, error } = await supabase.rpc('inventory_create_order_v3', rpcParams);
 
-      console.log('📦 inventory_create_order_v2 response:', { data, error });
+      console.log('📦 inventory_create_order_v3 response:', { data, error });
       if (error) {
         console.error('📦 RPC Error details:', {
           message: error.message,
@@ -380,7 +389,7 @@ export const useOrderCreate = () => {
         message: err instanceof Error ? err.message : 'Failed to create order. Please try again.',
       });
     }
-  }, [orderItems, supplierType, selectedSupplier, oneTimeSupplier, companyId, note]);
+  }, [orderItems, supplierType, selectedSupplier, oneTimeSupplier, companyId, note, orderTitle]);
 
   // Handle cancel
   const handleCancel = useCallback(() => {
@@ -443,6 +452,10 @@ export const useOrderCreate = () => {
     suppliers,
     suppliersLoading,
     supplierOptions,
+
+    // Order Title
+    orderTitle,
+    setOrderTitle,
 
     // Note
     note,

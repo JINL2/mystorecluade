@@ -847,3 +847,53 @@
   text-align: right;
   flex: 1;
 }
+
+/* Approval Modal Content */
+.approvalContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-200, #E9ECEF);
+  margin-top: var(--space-4, 16px);
+}
+
+.approvalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2, 8px) 0;
+  border-bottom: 1px solid var(--color-gray-200, #E9ECEF);
+}
+
+.approvalRow:last-child {
+  border-bottom: none;
+}
+
+.approvalLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-600, #6C757D);
+  min-width: 100px;
+}
+
+.approvalValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-900, #212529);
+  text-align: right;
+  flex: 1;
+}
+
+/* Approval Status Colors */
+.statusApproved {
+  color: #0064FF !important;
+  font-weight: 600 !important;
+}
+
+.statusPending {
+  color: #FFB800 !important;
+  font-weight: 600 !important;
+}

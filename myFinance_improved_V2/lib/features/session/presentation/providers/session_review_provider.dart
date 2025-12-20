@@ -203,7 +203,12 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
     bool isFinal = false,
     String? notes,
   }) async {
+    print('🔄 [SessionReview] submitSession called');
+    print('🔄 [SessionReview] isFinal: $isFinal');
+    print('🔄 [SessionReview] items count: ${state.items.length}');
+
     if (state.items.isEmpty) {
+      print('❌ [SessionReview] No items to submit');
       return (success: false, error: 'No items to submit', data: null);
     }
 
@@ -213,7 +218,10 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
       final appState = _ref.read(appStateProvider);
       final userId = appState.userId;
 
+      print('🔄 [SessionReview] userId: $userId');
+
       if (userId.isEmpty) {
+        print('❌ [SessionReview] User not found');
         state = state.copyWith(isSubmitting: false, error: 'User not found');
         return (success: false, error: 'User not found', data: null);
       }
@@ -231,6 +239,12 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
               ),)
           .toList();
 
+      print('🔄 [SessionReview] submitItems: ${submitItems.length}');
+      for (final item in submitItems) {
+        print('   - productId: ${item.productId}, qty: ${item.quantity}, rejected: ${item.quantityRejected}');
+      }
+
+      print('🔄 [SessionReview] Calling _submitSession RPC...');
       final response = await _submitSession(
         sessionId: state.sessionId,
         userId: userId,
@@ -239,9 +253,16 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
         notes: notes,
       );
 
+      print('✅ [SessionReview] RPC Success!');
+      print('✅ [SessionReview] receivingNumber: ${response.receivingNumber}');
+      print('✅ [SessionReview] stockChanges count: ${response.stockChanges.length}');
+      print('✅ [SessionReview] newDisplayCount: ${response.newDisplayCount}');
+
       state = state.copyWith(isSubmitting: false);
       return (success: true, error: null, data: response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ [SessionReview] Error: $e');
+      print('❌ [SessionReview] StackTrace: $stackTrace');
       final errorMsg = e.toString();
       state = state.copyWith(isSubmitting: false, error: errorMsg);
       return (success: false, error: errorMsg, data: null);

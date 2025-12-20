@@ -63,6 +63,7 @@ export const useShipmentCreate = () => {
   });
 
   // Shipment details
+  const [shipmentTitle, setShipmentTitle] = useState<string>('');
   const [trackingNumber, setTrackingNumber] = useState<string>('');
   const [note, setNote] = useState<string>('');
 
@@ -256,6 +257,7 @@ export const useShipmentCreate = () => {
         supplierInfo,
         trackingNumber: trackingNumber.trim() || undefined,
         notes: note.trim() || undefined,
+        shipmentNumber: shipmentTitle.trim() || undefined,
       });
 
       if (result.success) {
@@ -278,7 +280,7 @@ export const useShipmentCreate = () => {
         message: err instanceof Error ? err.message : 'Failed to create shipment. Please try again.',
       });
     }
-  }, [selectionMode, shipmentItems, supplierHook, orderHook.selectedOrder, companyId, trackingNumber, note, repository]);
+  }, [selectionMode, shipmentItems, supplierHook, orderHook.selectedOrder, companyId, shipmentTitle, trackingNumber, note, repository]);
 
   // Handle cancel
   const handleCancel = useCallback(() => {
@@ -357,6 +359,8 @@ export const useShipmentCreate = () => {
     handleCostChange,
 
     // Shipment details
+    shipmentTitle,
+    setShipmentTitle,
     trackingNumber,
     setTrackingNumber,
     note,
