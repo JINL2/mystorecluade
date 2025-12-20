@@ -44,8 +44,8 @@ class IncomeStatementDisplay extends StatelessWidget {
                     const SizedBox(height: TossSpacing.space6),
                     
                     // Income Statement Sections
-                    ...data.map<Widget>((section) => 
-                      _buildSection(section),
+                    ...data.map<Widget>((section) =>
+                      _buildSection(section as Map<String, dynamic>),
                     ),
                     
                     // Bottom padding
@@ -413,8 +413,8 @@ class IncomeStatementDisplay extends StatelessWidget {
                 vertical: TossSpacing.space4,
               ),
               child: Column(
-                children: subcategories.map<Widget>((subcategory) => 
-                  _buildSubcategory(subcategory),
+                children: subcategories.map<Widget>((subcategory) =>
+                  _buildSubcategory(subcategory as Map<String, dynamic>),
                 ).toList(),
               ),
             ),
@@ -432,8 +432,8 @@ class IncomeStatementDisplay extends StatelessWidget {
       children: [
         if (subcategoryName.isNotEmpty && subcategoryTotal != null)
           _buildSubcategoryHeader(subcategoryName, subcategoryTotal),
-        if (accounts.isNotEmpty) ...accounts.map<Widget>((account) => 
-          _buildAccountItem(account),
+        if (accounts.isNotEmpty) ...accounts.map<Widget>((account) =>
+          _buildAccountItem(account as Map<String, dynamic>),
         ),
         const SizedBox(height: TossSpacing.space3),
       ],

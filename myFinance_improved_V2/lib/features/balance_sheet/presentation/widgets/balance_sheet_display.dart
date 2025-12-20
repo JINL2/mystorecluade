@@ -20,20 +20,27 @@ class BalanceSheetDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = balanceSheetData['data'];
-    final companyInfo = balanceSheetData['company_info'];
-    final uiData = balanceSheetData['ui_data'];
-    final totals = data['totals'];
-    final parameters = balanceSheetData['parameters'];
-    
+    final data = balanceSheetData['data'] as Map<String, dynamic>;
+    final companyInfo = balanceSheetData['company_info'] as Map<String, dynamic>;
+    final uiData = balanceSheetData['ui_data'] as Map<String, dynamic>;
+    final totals = data['totals'] as Map<String, dynamic>;
+    final parameters = balanceSheetData['parameters'] as Map<String, dynamic>;
+
+    final currentAssets = data['current_assets'] as List;
+    final nonCurrentAssets = data['non_current_assets'] as List;
+    final currentLiabilities = data['current_liabilities'] as List;
+    final nonCurrentLiabilities = data['non_current_liabilities'] as List;
+    final equity = data['equity'] as List;
+    final comprehensiveIncome = data['comprehensive_income'] as List;
+
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
           child: Column(
             children: [
-              // Header with Store and Date info
+              // Header with Store info (v2: no date filter)
               _buildHeader(companyInfo, parameters),
-              
+
               // Balance Sheet Content
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -43,37 +50,37 @@ class BalanceSheetDisplay extends StatelessWidget {
                 child: Column(
                   children: [
                     // Balance Verification Card
-                    _buildBalanceVerificationCard(uiData['balance_verification'], currencySymbol),
+                    _buildBalanceVerificationCard(uiData['balance_verification'] as Map<String, dynamic>, currencySymbol),
                     const SizedBox(height: TossSpacing.space4),
-                    
+
                     // Summary Cards
                     _buildSummaryCards(totals, currencySymbol),
                     const SizedBox(height: TossSpacing.space6),
-                    
+
                     // Assets Section
-                    if (data['current_assets'].length > 0 || data['non_current_assets'].length > 0) ...[
+                    if (currentAssets.isNotEmpty || nonCurrentAssets.isNotEmpty) ...[
                       _buildAssetsSection(data, totals, currencySymbol),
                       const SizedBox(height: TossSpacing.space4),
                     ],
-                    
+
                     // Liabilities Section
-                    if (data['current_liabilities'].length > 0 || data['non_current_liabilities'].length > 0) ...[
+                    if (currentLiabilities.isNotEmpty || nonCurrentLiabilities.isNotEmpty) ...[
                       _buildLiabilitiesSection(data, totals, currencySymbol),
                       const SizedBox(height: TossSpacing.space4),
                     ],
-                    
+
                     // Equity Section
-                    if (data['equity'].length > 0) ...[
+                    if (equity.isNotEmpty) ...[
                       _buildEquitySection(data, totals, currencySymbol),
                       const SizedBox(height: TossSpacing.space4),
                     ],
-                    
+
                     // Comprehensive Income (if any)
-                    if (data['comprehensive_income'].length > 0) ...[
+                    if (comprehensiveIncome.isNotEmpty) ...[
                       _buildComprehensiveIncomeSection(data, totals, currencySymbol),
                       const SizedBox(height: TossSpacing.space4),
                     ],
-                    
+
                     // Bottom padding
                     const SizedBox(height: TossSpacing.space8),
                   ],
@@ -130,7 +137,7 @@ class BalanceSheetDisplay extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        companyInfo['store_name'] ?? companyInfo['company_name'] ?? 'Balance Sheet',
+                        companyInfo['store_name']?.toString() ?? companyInfo['company_name']?.toString() ?? 'Balance Sheet',
                         style: TossTextStyles.bodyLarge.copyWith(
                           color: TossColors.gray900,
                           fontWeight: FontWeight.w700,
@@ -139,11 +146,11 @@ class BalanceSheetDisplay extends StatelessWidget {
                       const SizedBox(height: TossSpacing.space1),
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today_outlined, 
+                          const Icon(Icons.access_time_outlined,
                             color: TossColors.gray500, size: 14,),
                           const SizedBox(width: TossSpacing.space1),
                           Text(
-                            '${parameters['start_date']} ~ ${parameters['end_date']}',
+                            'All-time cumulative balance',
                             style: TossTextStyles.bodySmall.copyWith(
                               color: TossColors.gray600,
                             ),
@@ -184,17 +191,17 @@ class BalanceSheetDisplay extends StatelessWidget {
   }
   
   Widget _buildBalanceVerificationCard(Map<String, dynamic> verification, String currencySymbol) {
-    final isBalanced = verification['is_balanced'] ?? false;
-    
+    final isBalanced = (verification['is_balanced'] as bool?) ?? false;
+
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: isBalanced 
+        color: isBalanced
           ? TossColors.success.withOpacity(0.05)
           : TossColors.error.withOpacity(0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
-          color: isBalanced 
+          color: isBalanced
             ? TossColors.success.withOpacity(0.2)
             : TossColors.error.withOpacity(0.2),
           width: 1,
@@ -334,6 +341,9 @@ class BalanceSheetDisplay extends StatelessWidget {
   }
   
   Widget _buildAssetsSection(Map<String, dynamic> data, Map<String, dynamic> totals, String currencySymbol) {
+    final currentAssets = data['current_assets'] as List;
+    final nonCurrentAssets = data['non_current_assets'] as List;
+
     return _buildSection(
       title: 'Assets',
       total: totals['total_assets'],
@@ -342,29 +352,32 @@ class BalanceSheetDisplay extends StatelessWidget {
       color: TossColors.success,
       children: [
         // Current Assets
-        if (data['current_assets'].length > 0) ...[
+        if (currentAssets.isNotEmpty) ...[
           _buildSubSection(
             'Current Assets',
             totals['total_current_assets'],
             currencySymbol,
-            data['current_assets'],
+            currentAssets,
           ),
         ],
         // Non-Current Assets
-        if (data['non_current_assets'].length > 0) ...[
-          if (data['current_assets'].length > 0) const SizedBox(height: TossSpacing.space3),
+        if (nonCurrentAssets.isNotEmpty) ...[
+          if (currentAssets.isNotEmpty) const SizedBox(height: TossSpacing.space3),
           _buildSubSection(
             'Non-Current Assets',
             totals['total_non_current_assets'],
             currencySymbol,
-            data['non_current_assets'],
+            nonCurrentAssets,
           ),
         ],
       ],
     );
   }
-  
+
   Widget _buildLiabilitiesSection(Map<String, dynamic> data, Map<String, dynamic> totals, String currencySymbol) {
+    final currentLiabilities = data['current_liabilities'] as List;
+    final nonCurrentLiabilities = data['non_current_liabilities'] as List;
+
     return _buildSection(
       title: 'Liabilities',
       total: totals['total_liabilities'],
@@ -373,29 +386,31 @@ class BalanceSheetDisplay extends StatelessWidget {
       color: TossColors.warning,
       children: [
         // Current Liabilities
-        if (data['current_liabilities'].length > 0) ...[
+        if (currentLiabilities.isNotEmpty) ...[
           _buildSubSection(
             'Current Liabilities',
             totals['total_current_liabilities'],
             currencySymbol,
-            data['current_liabilities'],
+            currentLiabilities,
           ),
         ],
         // Non-Current Liabilities
-        if (data['non_current_liabilities'].length > 0) ...[
-          if (data['current_liabilities'].length > 0) const SizedBox(height: TossSpacing.space3),
+        if (nonCurrentLiabilities.isNotEmpty) ...[
+          if (currentLiabilities.isNotEmpty) const SizedBox(height: TossSpacing.space3),
           _buildSubSection(
             'Non-Current Liabilities',
             totals['total_non_current_liabilities'],
             currencySymbol,
-            data['non_current_liabilities'],
+            nonCurrentLiabilities,
           ),
         ],
       ],
     );
   }
-  
+
   Widget _buildEquitySection(Map<String, dynamic> data, Map<String, dynamic> totals, String currencySymbol) {
+    final equityList = data['equity'] as List;
+
     return _buildSection(
       title: 'Shareholder\'s Equity',
       total: totals['total_equity'],
@@ -403,14 +418,16 @@ class BalanceSheetDisplay extends StatelessWidget {
       icon: Icons.pie_chart_outline,
       color: TossColors.primary,
       children: [
-        ...data['equity'].map<Widget>((account) => 
-          _buildAccountItem(account, currencySymbol),
-        ).toList(),
+        ...equityList.map<Widget>((account) =>
+          _buildAccountItem(account as Map<String, dynamic>, currencySymbol),
+        ),
       ],
     );
   }
-  
+
   Widget _buildComprehensiveIncomeSection(Map<String, dynamic> data, Map<String, dynamic> totals, String currencySymbol) {
+    final comprehensiveIncomeList = data['comprehensive_income'] as List;
+
     return _buildSection(
       title: 'Other Comprehensive Income',
       total: totals['total_comprehensive_income'],
@@ -418,9 +435,9 @@ class BalanceSheetDisplay extends StatelessWidget {
       icon: Icons.trending_up_outlined,
       color: TossColors.info,
       children: [
-        ...data['comprehensive_income'].map<Widget>((account) => 
-          _buildAccountItem(account, currencySymbol),
-        ).toList(),
+        ...comprehensiveIncomeList.map<Widget>((account) =>
+          _buildAccountItem(account as Map<String, dynamic>, currencySymbol),
+        ),
       ],
     );
   }
@@ -513,16 +530,16 @@ class BalanceSheetDisplay extends StatelessWidget {
     return Column(
       children: [
         _buildBalanceItem(title, '', true, false),
-        ...accounts.map((account) => _buildAccountItem(account, currencySymbol)),
+        ...accounts.map((account) => _buildAccountItem(account as Map<String, dynamic>, currencySymbol)),
         const Divider(color: TossColors.gray100, height: TossSpacing.space4),
         _buildBalanceItem('Total $title', _formatCurrency(total, currencySymbol), true, true),
       ],
     );
   }
-  
+
   Widget _buildAccountItem(Map<String, dynamic> account, String currencySymbol) {
     final balance = account['balance'] ?? 0;
-    final hasTransactions = account['has_transactions'] ?? false;
+    final hasTransactions = (account['has_transactions'] as bool?) ?? false;
     
     return _buildBalanceItem(
       '  ${account['account_name']}',
@@ -601,12 +618,13 @@ class BalanceSheetDisplay extends StatelessWidget {
   
   String _formatCurrency(dynamic amount, String currencySymbol) {
     if (amount == null) return '$currencySymbol 0';
-    
+
+    final num numAmount = (amount is num) ? amount : 0;
     final formatter = NumberFormat('#,##0', 'en_US');
-    final absAmount = amount.abs();
+    final absAmount = numAmount.abs();
     final formatted = formatter.format(absAmount);
-    
-    if (amount < 0) {
+
+    if (numAmount < 0) {
       return '-$currencySymbol$formatted';
     }
     return '$currencySymbol$formatted';

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/timezone_utils.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -173,12 +174,10 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
     }
 
 
-    // Create params for provider
+    // Create params for provider (v2 - no date filter)
     // Note: storeId comes from App State (storeChoosen), not Page State
     final params = BalanceSheetParams(
       companyId: companyId,
-      startDate: pageState.dateRange.startDateFormatted,
-      endDate: pageState.dateRange.endDateFormatted,
       storeId: appState.storeChoosen.isEmpty ? null : appState.storeChoosen,
     );
 
@@ -272,8 +271,8 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
             },
           },
           'parameters': {
-            'start_date': balanceSheet.dateRange.startDateFormatted,
-            'end_date': balanceSheet.dateRange.endDateFormatted,
+            'company_id': balanceSheet.companyInfo.companyId,
+            'store_id': balanceSheet.companyInfo.storeId,
           },
         };
 
@@ -317,6 +316,8 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
     if (!pageState.hasIncomeStatementData) {
       return BalanceSheetInput(
         companyId: companyId,
+        showDateSelector: true, // Income Statement needs date filter
+        buttonText: 'Generate Income Statement',
         onGenerate: () {
           // Mark that we want to generate Income Statement
           ref.read(balanceSheetPageProvider.notifier).generateIncomeStatement();
@@ -324,13 +325,16 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
       );
     }
 
-
-    // Create params for provider
+    // Create params for income statement provider (v3 - with timezone support)
     // Note: storeId comes from App State (storeChoosen), not Page State
-    final params = BalanceSheetParams(
+    // Use device's local timezone (IANA format)
+    final ianaTimezone = TimezoneUtils.getCurrentIanaTimezone();
+
+    final params = IncomeStatementParams(
       companyId: companyId,
-      startDate: pageState.dateRange.startDateFormatted,
-      endDate: pageState.dateRange.endDateFormatted,
+      startTime: pageState.dateRange.startTimeFormatted,
+      endTime: pageState.dateRange.endTimeFormatted,
+      timezone: ianaTimezone,
       storeId: appState.storeChoosen.isEmpty ? null : appState.storeChoosen,
     );
 

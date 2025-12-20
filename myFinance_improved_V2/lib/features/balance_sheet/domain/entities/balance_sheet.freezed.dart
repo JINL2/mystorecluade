@@ -521,7 +521,6 @@ mixin _$BalanceSheet {
   BalanceSheetTotals get totals => throw _privateConstructorUsedError;
   BalanceVerification get verification => throw _privateConstructorUsedError;
   CompanyInfo get companyInfo => throw _privateConstructorUsedError;
-  DateRange get dateRange => throw _privateConstructorUsedError;
 
   /// Create a copy of BalanceSheet
   /// with the given fields replaced by the non-null parameter values.
@@ -545,13 +544,11 @@ abstract class $BalanceSheetCopyWith<$Res> {
       List<FinancialAccount> comprehensiveIncome,
       BalanceSheetTotals totals,
       BalanceVerification verification,
-      CompanyInfo companyInfo,
-      DateRange dateRange});
+      CompanyInfo companyInfo});
 
   $BalanceSheetTotalsCopyWith<$Res> get totals;
   $BalanceVerificationCopyWith<$Res> get verification;
   $CompanyInfoCopyWith<$Res> get companyInfo;
-  $DateRangeCopyWith<$Res> get dateRange;
 }
 
 /// @nodoc
@@ -578,7 +575,6 @@ class _$BalanceSheetCopyWithImpl<$Res, $Val extends BalanceSheet>
     Object? totals = null,
     Object? verification = null,
     Object? companyInfo = null,
-    Object? dateRange = null,
   }) {
     return _then(_value.copyWith(
       currentAssets: null == currentAssets
@@ -617,10 +613,6 @@ class _$BalanceSheetCopyWithImpl<$Res, $Val extends BalanceSheet>
           ? _value.companyInfo
           : companyInfo // ignore: cast_nullable_to_non_nullable
               as CompanyInfo,
-      dateRange: null == dateRange
-          ? _value.dateRange
-          : dateRange // ignore: cast_nullable_to_non_nullable
-              as DateRange,
     ) as $Val);
   }
 
@@ -653,16 +645,6 @@ class _$BalanceSheetCopyWithImpl<$Res, $Val extends BalanceSheet>
       return _then(_value.copyWith(companyInfo: value) as $Val);
     });
   }
-
-  /// Create a copy of BalanceSheet
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $DateRangeCopyWith<$Res> get dateRange {
-    return $DateRangeCopyWith<$Res>(_value.dateRange, (value) {
-      return _then(_value.copyWith(dateRange: value) as $Val);
-    });
-  }
 }
 
 /// @nodoc
@@ -682,8 +664,7 @@ abstract class _$$BalanceSheetImplCopyWith<$Res>
       List<FinancialAccount> comprehensiveIncome,
       BalanceSheetTotals totals,
       BalanceVerification verification,
-      CompanyInfo companyInfo,
-      DateRange dateRange});
+      CompanyInfo companyInfo});
 
   @override
   $BalanceSheetTotalsCopyWith<$Res> get totals;
@@ -691,8 +672,6 @@ abstract class _$$BalanceSheetImplCopyWith<$Res>
   $BalanceVerificationCopyWith<$Res> get verification;
   @override
   $CompanyInfoCopyWith<$Res> get companyInfo;
-  @override
-  $DateRangeCopyWith<$Res> get dateRange;
 }
 
 /// @nodoc
@@ -717,7 +696,6 @@ class __$$BalanceSheetImplCopyWithImpl<$Res>
     Object? totals = null,
     Object? verification = null,
     Object? companyInfo = null,
-    Object? dateRange = null,
   }) {
     return _then(_$BalanceSheetImpl(
       currentAssets: null == currentAssets
@@ -756,10 +734,6 @@ class __$$BalanceSheetImplCopyWithImpl<$Res>
           ? _value.companyInfo
           : companyInfo // ignore: cast_nullable_to_non_nullable
               as CompanyInfo,
-      dateRange: null == dateRange
-          ? _value.dateRange
-          : dateRange // ignore: cast_nullable_to_non_nullable
-              as DateRange,
     ));
   }
 }
@@ -776,8 +750,7 @@ class _$BalanceSheetImpl implements _BalanceSheet {
       required final List<FinancialAccount> comprehensiveIncome,
       required this.totals,
       required this.verification,
-      required this.companyInfo,
-      required this.dateRange})
+      required this.companyInfo})
       : _currentAssets = currentAssets,
         _nonCurrentAssets = nonCurrentAssets,
         _currentLiabilities = currentLiabilities,
@@ -843,12 +816,10 @@ class _$BalanceSheetImpl implements _BalanceSheet {
   final BalanceVerification verification;
   @override
   final CompanyInfo companyInfo;
-  @override
-  final DateRange dateRange;
 
   @override
   String toString() {
-    return 'BalanceSheet(currentAssets: $currentAssets, nonCurrentAssets: $nonCurrentAssets, currentLiabilities: $currentLiabilities, nonCurrentLiabilities: $nonCurrentLiabilities, equity: $equity, comprehensiveIncome: $comprehensiveIncome, totals: $totals, verification: $verification, companyInfo: $companyInfo, dateRange: $dateRange)';
+    return 'BalanceSheet(currentAssets: $currentAssets, nonCurrentAssets: $nonCurrentAssets, currentLiabilities: $currentLiabilities, nonCurrentLiabilities: $nonCurrentLiabilities, equity: $equity, comprehensiveIncome: $comprehensiveIncome, totals: $totals, verification: $verification, companyInfo: $companyInfo)';
   }
 
   @override
@@ -871,9 +842,7 @@ class _$BalanceSheetImpl implements _BalanceSheet {
             (identical(other.verification, verification) ||
                 other.verification == verification) &&
             (identical(other.companyInfo, companyInfo) ||
-                other.companyInfo == companyInfo) &&
-            (identical(other.dateRange, dateRange) ||
-                other.dateRange == dateRange));
+                other.companyInfo == companyInfo));
   }
 
   @override
@@ -887,8 +856,7 @@ class _$BalanceSheetImpl implements _BalanceSheet {
       const DeepCollectionEquality().hash(_comprehensiveIncome),
       totals,
       verification,
-      companyInfo,
-      dateRange);
+      companyInfo);
 
   /// Create a copy of BalanceSheet
   /// with the given fields replaced by the non-null parameter values.
@@ -909,8 +877,7 @@ abstract class _BalanceSheet implements BalanceSheet {
       required final List<FinancialAccount> comprehensiveIncome,
       required final BalanceSheetTotals totals,
       required final BalanceVerification verification,
-      required final CompanyInfo companyInfo,
-      required final DateRange dateRange}) = _$BalanceSheetImpl;
+      required final CompanyInfo companyInfo}) = _$BalanceSheetImpl;
 
   @override
   List<FinancialAccount> get currentAssets;
@@ -930,8 +897,6 @@ abstract class _BalanceSheet implements BalanceSheet {
   BalanceVerification get verification;
   @override
   CompanyInfo get companyInfo;
-  @override
-  DateRange get dateRange;
 
   /// Create a copy of BalanceSheet
   /// with the given fields replaced by the non-null parameter values.

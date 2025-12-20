@@ -3,6 +3,7 @@ import '../../domain/entities/income_statement.dart';
 import '../../domain/value_objects/date_range.dart';
 
 /// Income statement model (DTO + Mapper)
+/// Updated for get_income_statement_v3 response format (with timezone support)
 class IncomeStatementModel {
   final List<dynamic> rawData;
   final Map<String, dynamic> parameters;
@@ -61,12 +62,12 @@ class IncomeStatementModel {
       );
     }).toList();
 
-    // Parse date range
-    final startDateStr = parameters['start_date']?.toString() ?? '';
-    final endDateStr = parameters['end_date']?.toString() ?? '';
+    // Parse date range from v3 timestamp format (YYYY-MM-DD HH:MM:SS)
+    final startTimeStr = parameters['start_time']?.toString() ?? '';
+    final endTimeStr = parameters['end_time']?.toString() ?? '';
     final dateRange = DateRange(
-      startDate: _parseDate(startDateStr),
-      endDate: _parseDate(endDateStr),
+      startDate: _parseTimestamp(startTimeStr),
+      endDate: _parseTimestamp(endTimeStr),
     );
 
     return IncomeStatement(
@@ -85,14 +86,13 @@ class IncomeStatementModel {
     return 0.0;
   }
 
-  /// Parse date from string (YYYY-MM-DD)
-  /// 날짜만 필요하므로 타임존 변환 없음
-  ///
-  /// Note: Income Statement는 날짜만 사용합니다.
-  /// 만약 timestamp 필드가 추가되면 DateTimeUtils.toLocalSafe()를 사용하세요.
-  DateTime _parseDate(String dateStr) {
+  /// Parse timestamp from string (YYYY-MM-DD HH:MM:SS)
+  /// Extracts date part from timestamp for DateRange
+  DateTime _parseTimestamp(String timestampStr) {
     try {
-      final parts = dateStr.split('-');
+      // Format: '2025-12-01 00:00:00'
+      final datePart = timestampStr.split(' ').first;
+      final parts = datePart.split('-');
       if (parts.length == 3) {
         return DateTime(
           int.parse(parts[0]),
@@ -105,16 +105,4 @@ class IncomeStatementModel {
     }
     return DateTime.now();
   }
-
-  // Timestamp 파싱이 필요한 경우 아래 메서드를 사용하세요:
-  //
-  // import '../../../../core/utils/datetime_utils.dart';
-  //
-  // DateTime? _parseTimestamp(dynamic value) {
-  //   if (value == null) return null;
-  //   if (value is String) {
-  //     return DateTimeUtils.toLocalSafe(value);
-  //   }
-  //   return null;
-  // }
 }
