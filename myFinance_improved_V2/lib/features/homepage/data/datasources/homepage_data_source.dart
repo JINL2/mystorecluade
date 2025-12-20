@@ -412,4 +412,43 @@ class HomepageDataSource {
       return true;
     }
   }
+
+  // === Revenue Chart Operations ===
+
+  /// Fetch revenue chart data via get_dashboard_revenue_v3 RPC
+  ///
+  /// Calls: rpc('get_dashboard_revenue_v3', {...})
+  /// Returns: Chart data with revenue, gross_profit, net_income time series
+  ///
+  /// Time filter options:
+  /// - today: Single day total
+  /// - yesterday: Previous day total
+  /// - this_week: Daily data Mon~Today
+  /// - last_week: Daily data Mon~Sun of previous week
+  /// - this_month: Daily data 1st~Today
+  /// - last_month: Daily data for full previous month
+  /// - this_year: Monthly data Jan~Current month
+  Future<Map<String, dynamic>> getRevenueChartData({
+    required String companyId,
+    required String timeFilter,
+    required String timezone,
+    String? storeId,
+  }) async {
+    try {
+      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
+        'get_dashboard_revenue_v3',
+        params: {
+          'p_company_id': companyId,
+          'p_time': DateTime.now().toIso8601String(),
+          'p_timezone': timezone,
+          'p_time_filter': timeFilter,
+          'p_store_id': storeId,
+        },
+      );
+
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
