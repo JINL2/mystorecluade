@@ -17,6 +17,7 @@ abstract class HomepageRepository {
     required String companyId,
     String? storeId,
     required RevenuePeriod period,
+    required String timezone,
   });
 
   // === User & Company Operations ===

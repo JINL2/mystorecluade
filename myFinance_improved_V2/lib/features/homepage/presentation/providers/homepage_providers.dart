@@ -82,10 +82,14 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
         ? storeId
         : null;
 
+    // Get device timezone
+    final timezone = DateTime.now().timeZoneName;
+
     final revenue = await repository.getRevenue(
       companyId: companyId,
       storeId: effectiveStoreId,
       period: period,
+      timezone: timezone,
     );
     return revenue;
   },

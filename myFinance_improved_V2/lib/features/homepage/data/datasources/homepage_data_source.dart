@@ -19,79 +19,58 @@ class HomepageDataSource {
 
   // === Revenue Operations ===
 
-  /// Fetch revenue data via get_dashboard_revenue RPC
+  /// Fetch revenue data via get_dashboard_revenue_v3 RPC
   ///
-  /// Calls: rpc('get_dashboard_revenue', {...})
-  /// Returns: Single revenue record
+  /// Calls: rpc('get_dashboard_revenue_v3', {...})
+  /// Returns: Single revenue record with summary totals
+  ///
+  /// Uses the same RPC as chart data but extracts summary for display.
   Future<RevenueModel> getRevenue({
     required String companyId,
     String? storeId,
     required String period,
+    required String timezone,
   }) async {
-
-    // Convert period to date for RPC
-    final date = _periodToDate(period);
-
     try {
-      final response = await _supabaseService.client.rpc(
-        'get_dashboard_revenue',
+      // Build ISO8601 string with timezone offset for accurate date calculation
+      final now = DateTime.now();
+      final offset = now.timeZoneOffset;
+      final offsetSign = offset.isNegative ? '-' : '+';
+      final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
+      final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+      final timeWithOffset = '${now.toIso8601String()}$offsetSign$offsetHours:$offsetMinutes';
+
+      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
+        'get_dashboard_revenue_v3',
         params: {
           'p_company_id': companyId,
+          'p_time': timeWithOffset,
+          'p_timezone': timezone,
+          'p_time_filter': period,
           'p_store_id': storeId,
-          'p_date': date,  // Changed from p_period to p_date
         },
       );
 
+      // Extract summary from response
+      final summary = response['summary'] as Map<String, dynamic>? ?? {};
+      final revenueSummary = summary['revenue'] as Map<String, dynamic>? ?? {};
+      final currencySymbol = (response['currency_symbol'] as String?) ?? '\$';
 
-      if (response == null) {
-        throw Exception('No revenue data returned from database');
-      }
+      // Get total revenue from summary
+      final totalRevenue = (revenueSummary['total'] as num?)?.toDouble() ?? 0.0;
 
-      // Manually map RPC response to model
-      // RPC returns: total_today, total_yesterday, currency_code, currency_symbol
-      // Model expects: amount, currencySymbol, period, comparisonAmount
-      final data = response as Map<String, dynamic>;
-
-      // Determine which totals to use based on period
-      double currentAmount = 0.0;
-      double previousAmount = 0.0;
-
-      switch (period.toLowerCase()) {
-        case 'today':
-          currentAmount = (data['total_today'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
-          break;
-        case 'yesterday':
-          currentAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = 0.0; // Day before yesterday not available in RPC
-          break;
-        case 'thismonth':
-          currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
-          break;
-        case 'thisyear':
-          currentAmount = (data['total_this_year'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = 0.0; // Previous year data not available in current RPC
-          break;
-        case 'month':
-          currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
-          break;
-        case 'year':
-          currentAmount = (data['total_this_year'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = 0.0; // No previous year data in current RPC
-          break;
-        default:
-          currentAmount = (data['total_today'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
-      }
+      // Get comparison amount from previous period summary if available
+      final previousSummary = response['previous_summary'] as Map<String, dynamic>?;
+      final previousRevenue = previousSummary != null
+          ? ((previousSummary['revenue'] as Map<String, dynamic>?)?['total'] as num?)?.toDouble() ?? 0.0
+          : 0.0;
 
       final model = RevenueModel(
-        amount: currentAmount,
-        currencySymbol: (data['currency_symbol'] as String?) ?? '\$',
+        amount: totalRevenue,
+        currencySymbol: currencySymbol,
         period: period,
-        comparisonAmount: previousAmount,
-        comparisonPeriod: period == 'today' ? 'yesterday' : 'previous $period',
+        comparisonAmount: previousRevenue,
+        comparisonPeriod: _getComparisonPeriodLabel(period),
         lastUpdated: DateTime.now(),
         storeId: storeId,
         companyId: companyId,
@@ -100,6 +79,28 @@ class HomepageDataSource {
       return model;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// Get comparison period label based on current period
+  String _getComparisonPeriodLabel(String period) {
+    switch (period.toLowerCase()) {
+      case 'today':
+        return 'yesterday';
+      case 'yesterday':
+        return 'day before';
+      case 'this_week':
+        return 'last week';
+      case 'last_week':
+        return 'previous week';
+      case 'this_month':
+        return 'last month';
+      case 'last_month':
+        return 'previous month';
+      case 'this_year':
+        return 'last year';
+      default:
+        return 'previous period';
     }
   }
 
@@ -310,37 +311,6 @@ class HomepageDataSource {
       // Silently fail - don't block user
       return false;
     }
-  }
-
-  /// Convert period string to date string for RPC
-  ///
-  /// Converts: 'today', 'yesterday', 'thisMonth', 'thisYear' → '2025-11-26'
-  String _periodToDate(String period) {
-    final now = DateTime.now();
-
-    switch (period.toLowerCase()) {
-      case 'today':
-        return _formatDate(now);
-      case 'yesterday':
-        return _formatDate(now.subtract(const Duration(days: 1)));
-      case 'thismonth':
-        return _formatDate(now);
-      case 'thisyear':
-        return _formatDate(now);
-      case 'week':
-        return _formatDate(now.subtract(const Duration(days: 7)));
-      case 'month':
-        return _formatDate(DateTime(now.year, now.month - 1, now.day));
-      case 'year':
-        return _formatDate(DateTime(now.year - 1, now.month, now.day));
-      default:
-        return _formatDate(now);
-    }
-  }
-
-  /// Format DateTime to YYYY-MM-DD
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   // === User Salary Operations ===

@@ -25,12 +25,14 @@ class HomepageRepositoryImpl implements HomepageRepository {
     required String companyId,
     String? storeId,
     required RevenuePeriod period,
+    required String timezone,
   }) async {
     try {
       final revenueModel = await _dataSource.getRevenue(
         companyId: companyId,
         storeId: storeId,
-        period: period.name, // Convert enum to string
+        period: period.apiValue, // Use apiValue for v3 RPC
+        timezone: timezone,
       );
 
       final revenue = revenueModel.toEntity();
