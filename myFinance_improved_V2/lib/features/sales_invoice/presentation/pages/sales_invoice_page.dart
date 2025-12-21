@@ -39,6 +39,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(invoiceListProvider.notifier).loadInvoices();
+      ref.read(invoiceListProvider.notifier).loadCashLocations();
     });
     _scrollController.addListener(_onScroll);
   }
@@ -167,6 +168,27 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       ),
       titleSpacing: 0,
       actions: [
+        // Hide Today Location Sales button only when sort is 'oldest' (dateAsc)
+        // because oldest sort doesn't include today's data
+        if (_currentSort != _SortOption.dateAsc)
+          TextButton(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _showTodayLocationSalesSheet();
+            },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'Today Location Sale',
+              style: TossTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.primary,
+              ),
+            ),
+          ),
         _buildAppBarIconButton(Icons.search, () {
           // TODO: Implement search navigation
           HapticFeedback.lightImpact();
@@ -193,8 +215,8 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   }
 
   Widget _buildBody(InvoiceListState invoiceState) {
-    // Apply local sorting
-    List<Invoice> displayInvoices = _applyLocalSort(invoiceState.invoices);
+    // Cash location and status filter applied (sorting is now server-side)
+    List<Invoice> displayInvoices = invoiceState.filteredInvoices;
 
     if (displayInvoices.isEmpty && !invoiceState.isLoading) {
       return Column(
@@ -345,11 +367,17 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               children: [
                 _buildFilterPill('Time', invoiceState.selectedPeriod.displayName),
                 const SizedBox(width: 8),
-                _buildFilterPill('Amount', 'Paid · Sub-total · Discount'),
+                _buildFilterPill(
+                  'Cash Location',
+                  invoiceState.selectedCashLocation?.name ?? 'All Locations',
+                  isActive: invoiceState.selectedCashLocation != null,
+                ),
                 const SizedBox(width: 8),
-                _buildFilterPill('Payment', 'Cash · Bank · Vault'),
-                const SizedBox(width: 8),
-                _buildFilterPill('Status', 'Completed · Cancelled'),
+                _buildFilterPill(
+                  'Status',
+                  invoiceState.statusDisplayText,
+                  isActive: invoiceState.selectedStatus != null,
+                ),
               ],
             ),
           ),
@@ -373,7 +401,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     );
   }
 
-  Widget _buildFilterPill(String title, String subtitle) {
+  Widget _buildFilterPill(String title, String subtitle, {bool isActive = false}) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
@@ -384,8 +412,9 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: TossColors.gray50,
+            color: isActive ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            border: isActive ? Border.all(color: TossColors.primary, width: 1) : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -398,7 +427,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                     title,
                     style: TossTextStyles.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
+                      color: isActive ? TossColors.primary : TossColors.gray900,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -406,16 +435,16 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                     subtitle,
                     style: TossTextStyles.caption.copyWith(
                       fontWeight: FontWeight.w400,
-                      color: TossColors.gray600,
+                      color: isActive ? TossColors.primary : TossColors.gray600,
                     ),
                   ),
                 ],
               ),
               const SizedBox(width: 16),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down,
                 size: 16,
-                color: TossColors.gray600,
+                color: isActive ? TossColors.primary : TossColors.gray600,
               ),
             ],
           ),
@@ -520,6 +549,10 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   void _showFilterBottomSheet(String filterType) {
     if (filterType == 'Time') {
       _showPeriodFilterSheet();
+    } else if (filterType == 'Cash Location') {
+      _showCashLocationFilterSheet();
+    } else if (filterType == 'Status') {
+      _showStatusFilterSheet();
     } else {
       // For other filters, show placeholder
       TossBottomSheet.show<void>(
@@ -574,6 +607,321 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     );
   }
 
+  void _showStatusFilterSheet() {
+    final invoiceState = ref.read(invoiceListProvider);
+    final selectedStatus = invoiceState.selectedStatus;
+
+    TossBottomSheet.show<void>(
+      context: context,
+      title: 'Filter by Status',
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // All option
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'All',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: selectedStatus == null ? FontWeight.w600 : FontWeight.w400,
+                  color: selectedStatus == null ? TossColors.primary : TossColors.gray900,
+                ),
+              ),
+              trailing: selectedStatus == null
+                  ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                  : null,
+              onTap: () {
+                ref.read(invoiceListProvider.notifier).updateStatus(null);
+                Navigator.pop(context);
+              },
+            ),
+            // Completed option
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'Completed',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: selectedStatus == 'completed' ? FontWeight.w600 : FontWeight.w400,
+                  color: selectedStatus == 'completed' ? TossColors.primary : TossColors.gray900,
+                ),
+              ),
+              trailing: selectedStatus == 'completed'
+                  ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                  : null,
+              onTap: () {
+                ref.read(invoiceListProvider.notifier).updateStatus('completed');
+                Navigator.pop(context);
+              },
+            ),
+            // Refunded option
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'Refunded',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: selectedStatus == 'refunded' ? FontWeight.w600 : FontWeight.w400,
+                  color: selectedStatus == 'refunded' ? TossColors.primary : TossColors.gray900,
+                ),
+              ),
+              trailing: selectedStatus == 'refunded'
+                  ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                  : null,
+              onTap: () {
+                ref.read(invoiceListProvider.notifier).updateStatus('refunded');
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCashLocationFilterSheet() {
+    final invoiceState = ref.read(invoiceListProvider);
+    final cashLocations = invoiceState.cashLocations;
+    final selectedCashLocation = invoiceState.selectedCashLocation;
+
+    TossBottomSheet.show<void>(
+      context: context,
+      title: 'Filter by Cash Location',
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // "All Locations" option
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'All Locations',
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: selectedCashLocation == null ? FontWeight.w600 : FontWeight.w400,
+                  color: selectedCashLocation == null ? TossColors.primary : TossColors.gray900,
+                ),
+              ),
+              trailing: selectedCashLocation == null
+                  ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                  : null,
+              onTap: () {
+                ref.read(invoiceListProvider.notifier).clearCashLocationFilter();
+                Navigator.pop(context);
+              },
+            ),
+            // Cash location options
+            ...cashLocations.map((location) {
+              final isSelected = selectedCashLocation?.id == location.id;
+              return ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  location.name,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? TossColors.primary : TossColors.gray900,
+                  ),
+                ),
+                subtitle: Text(
+                  location.type.toUpperCase(),
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+                trailing: isSelected
+                    ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                    : null,
+                onTap: () {
+                  ref.read(invoiceListProvider.notifier).updateCashLocation(location);
+                  Navigator.pop(context);
+                },
+              );
+            }),
+            // Loading indicator
+            if (invoiceState.isLoadingCashLocations)
+              const Padding(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+                  ),
+                ),
+              ),
+            // Empty state
+            if (!invoiceState.isLoadingCashLocations && cashLocations.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(TossSpacing.space4),
+                child: Text(
+                  'No cash locations available',
+                  style: TossTextStyles.body.copyWith(color: TossColors.gray600),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTodayLocationSalesSheet() {
+    final invoiceState = ref.read(invoiceListProvider);
+    final cashLocations = invoiceState.cashLocations;
+    final allInvoices = invoiceState.invoices;
+
+    // Filter today's invoices only
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEnd = todayStart.add(const Duration(days: 1));
+
+    final todayInvoices = allInvoices.where((invoice) {
+      return invoice.saleDate.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
+          invoice.saleDate.isBefore(todayEnd) &&
+          invoice.status == 'completed'; // Only completed invoices
+    }).toList();
+
+    // Calculate sales by cash location
+    final salesByLocation = <String, double>{};
+    final locationNames = <String, String>{};
+
+    // Initialize with all cash locations (including those with 0 sales)
+    for (final location in cashLocations) {
+      salesByLocation[location.id] = 0.0;
+      locationNames[location.id] = location.name;
+    }
+
+    // Sum up sales for each location
+    for (final invoice in todayInvoices) {
+      final locationId = invoice.cashLocation?.cashLocationId;
+      if (locationId != null) {
+        salesByLocation[locationId] =
+            (salesByLocation[locationId] ?? 0.0) + invoice.amounts.totalAmount;
+        if (!locationNames.containsKey(locationId)) {
+          locationNames[locationId] =
+              invoice.cashLocation?.locationName ?? 'Unknown';
+        }
+      }
+    }
+
+    // Calculate total
+    final totalSales =
+        salesByLocation.values.fold(0.0, (sum, amount) => sum + amount);
+
+    TossBottomSheet.show<void>(
+      context: context,
+      title: 'Today\'s Sales by Location',
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.6,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Total section
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space3),
+                margin: const EdgeInsets.only(bottom: TossSpacing.space4),
+                decoration: BoxDecoration(
+                  color: TossColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total',
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                    Text(
+                      _formatCurrency(totalSales),
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Location list
+              if (salesByLocation.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  child: Text(
+                    'No cash locations available',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                )
+              else
+                ...salesByLocation.entries.map((entry) {
+                  final locationName = locationNames[entry.key] ?? 'Unknown';
+                  final amount = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space3,
+                        vertical: TossSpacing.space3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: TossColors.gray50,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: TossColors.gray100,
+                              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                            ),
+                            child: const Icon(
+                              Icons.store_outlined,
+                              color: TossColors.gray600,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: TossSpacing.space3),
+                          Expanded(
+                            child: Text(
+                              locationName,
+                              style: TossTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: TossColors.gray900,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            _formatCurrency(amount),
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: amount > 0 ? TossColors.success : TossColors.gray500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showSortOptionsSheet() {
     TossBottomSheet.show<void>(
       context: context,
@@ -609,35 +957,40 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
           ? const Icon(Icons.check, color: TossColors.primary, size: 20)
           : null,
       onTap: () {
-        setState(() {
-          if (_currentSort == option) {
-            _currentSort = null;
-          } else {
-            _currentSort = option;
-          }
-        });
         Navigator.pop(context);
+
+        if (_currentSort == option) {
+          // Deselect - clear server sort
+          setState(() {
+            _currentSort = null;
+          });
+          ref.read(invoiceListProvider.notifier).clearServerSort();
+        } else {
+          // Select new sort option
+          setState(() {
+            _currentSort = option;
+          });
+          // Apply server-side sorting based on option
+          _applyServerSort(option);
+        }
       },
     );
   }
 
-  List<Invoice> _applyLocalSort(List<Invoice> invoices) {
-    if (_currentSort == null) return invoices;
+  /// Apply server-side sorting via RPC
+  void _applyServerSort(_SortOption option) {
+    final notifier = ref.read(invoiceListProvider.notifier);
 
-    final sorted = List<Invoice>.from(invoices);
-
-    switch (_currentSort!) {
-      case _SortOption.dateAsc:
-        sorted.sort((a, b) => a.saleDate.compareTo(b.saleDate));
+    switch (option) {
       case _SortOption.dateDesc:
-        sorted.sort((a, b) => b.saleDate.compareTo(a.saleDate));
-      case _SortOption.amountAsc:
-        sorted.sort((a, b) => a.amounts.totalAmount.compareTo(b.amounts.totalAmount));
+        notifier.updateServerSort(dateFilter: 'newest', amountFilter: null);
+      case _SortOption.dateAsc:
+        notifier.updateServerSort(dateFilter: 'oldest', amountFilter: null);
       case _SortOption.amountDesc:
-        sorted.sort((a, b) => b.amounts.totalAmount.compareTo(a.amounts.totalAmount));
+        notifier.updateServerSort(amountFilter: 'high');
+      case _SortOption.amountAsc:
+        notifier.updateServerSort(amountFilter: 'low');
     }
-
-    return sorted;
   }
 
   Map<DateTime, List<Invoice>> _groupInvoicesByDate(List<Invoice> invoices) {
@@ -717,11 +1070,19 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
               children: [
                 _buildFilterPill(context, 'Time', invoiceState.selectedPeriod.displayName),
                 const SizedBox(width: 8),
-                _buildFilterPill(context, 'Amount', 'Paid · Sub-total · Discount'),
+                _buildFilterPill(
+                  context,
+                  'Cash Location',
+                  invoiceState.selectedCashLocation?.name ?? 'All Locations',
+                  isActive: invoiceState.selectedCashLocation != null,
+                ),
                 const SizedBox(width: 8),
-                _buildFilterPill(context, 'Payment', 'Cash · Bank · Vault'),
-                const SizedBox(width: 8),
-                _buildFilterPill(context, 'Status', 'Completed · Cancelled'),
+                _buildFilterPill(
+                  context,
+                  'Status',
+                  invoiceState.statusDisplayText,
+                  isActive: invoiceState.selectedStatus != null,
+                ),
               ],
             ),
           ),
@@ -745,7 +1106,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  Widget _buildFilterPill(BuildContext context, String title, String subtitle) {
+  Widget _buildFilterPill(BuildContext context, String title, String subtitle, {bool isActive = false}) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
@@ -754,8 +1115,9 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: TossColors.gray50,
+            color: isActive ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            border: isActive ? Border.all(color: TossColors.primary, width: 1) : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -768,7 +1130,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                     title,
                     style: TossTextStyles.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
+                      color: isActive ? TossColors.primary : TossColors.gray900,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -776,16 +1138,16 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                     subtitle,
                     style: TossTextStyles.caption.copyWith(
                       fontWeight: FontWeight.w400,
-                      color: TossColors.gray600,
+                      color: isActive ? TossColors.primary : TossColors.gray600,
                     ),
                   ),
                 ],
               ),
               const SizedBox(width: 16),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down,
                 size: 16,
-                color: TossColors.gray600,
+                color: isActive ? TossColors.primary : TossColors.gray600,
               ),
             ],
           ),

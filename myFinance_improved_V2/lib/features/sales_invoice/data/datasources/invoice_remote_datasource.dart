@@ -2,8 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
+import '../../domain/entities/cash_location.dart';
+import '../../domain/entities/invoice_detail.dart';
 import '../../domain/exceptions/invoice_exceptions.dart';
 import '../../domain/value_objects/invoice_filter.dart';
+import '../models/cash_location_model.dart';
+import '../models/invoice_detail_model.dart';
 import '../models/invoice_page_response_model.dart';
 
 /// Invoice remote data source
@@ -21,7 +25,7 @@ class InvoiceRemoteDataSource {
     try {
       final dateRange = filter.period.getDateRange();
 
-      final response = await _client.rpc<Map<String, dynamic>>('get_invoice_page_v2', params: {
+      final response = await _client.rpc<Map<String, dynamic>>('get_invoice_page_v3', params: {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_page': filter.page,
@@ -30,17 +34,9 @@ class InvoiceRemoteDataSource {
         'p_start_date': dateRange.startDate?.toIso8601String().split('T').first,
         'p_end_date': dateRange.endDate?.toIso8601String().split('T').first,
         'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_date_filter': filter.dateFilter,
+        'p_amount_filter': filter.amountFilter,
       },);
-
-      // Debug: Log raw invoice data to check cash_location
-      final data = response['data'] as Map<String, dynamic>?;
-      if (data != null && data['invoices'] != null) {
-        final invoices = data['invoices'] as List;
-        for (final invoice in invoices) {
-          final inv = invoice as Map<String, dynamic>;
-          debugPrint('📋 [Invoice] ${inv['invoice_number']} - cash_location: ${inv['cash_location']}');
-        }
-      }
 
       return InvoicePageResponseModel.fromJson(response);
     } on PostgrestException catch (e) {
@@ -93,6 +89,94 @@ class InvoiceRemoteDataSource {
       if (e is InvoiceException) rethrow;
       throw InvoiceDataException(
         'Failed to process refund: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  /// Get cash locations for filtering
+  ///
+  /// Calls the `get_cash_locations_v2` RPC function
+  /// Note: RPC returns List directly, not a wrapper object
+  Future<List<CashLocation>> getCashLocations({
+    required String companyId,
+    String? storeId,
+  }) async {
+    try {
+      final response = await _client.rpc<List<dynamic>>(
+        'get_cash_locations_v2',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+        },
+      );
+
+      debugPrint('💰 [getCashLocations] Response: $response');
+
+      return response
+          .map((json) => CashLocationModel.fromJson(json as Map<String, dynamic>).toEntity())
+          .toList();
+    } on PostgrestException catch (e) {
+      throw InvoiceNetworkException(
+        'Failed to load cash locations: ${e.message}',
+        code: e.code,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is InvoiceException) rethrow;
+      throw InvoiceDataException(
+        'Failed to parse cash locations: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  /// Get invoice detail by ID
+  ///
+  /// Calls the `get_invoice_detail` RPC function
+  Future<InvoiceDetail> getInvoiceDetail({
+    required String invoiceId,
+    String? timezone,
+  }) async {
+    try {
+      final tz = timezone ?? DateTimeUtils.getLocalTimezone();
+
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_invoice_detail',
+        params: {
+          'p_invoice_id': invoiceId,
+          'p_timezone': tz,
+        },
+      );
+
+      // Check for success
+      final success = response['success'] as bool? ?? false;
+      if (!success) {
+        final message = response['message'] as String? ?? 'Unknown error';
+        final code = response['code'] as String? ?? 'UNKNOWN';
+        throw InvoiceDataException(
+          message,
+          originalError: {'code': code, 'message': message},
+        );
+      }
+
+      // Parse data
+      final data = response['data'] as Map<String, dynamic>?;
+      if (data == null) {
+        throw InvoiceDataException('Invoice detail data is null');
+      }
+
+      return InvoiceDetailModel.fromJson(data).toEntity();
+    } on PostgrestException catch (e) {
+      throw InvoiceNetworkException(
+        'Failed to load invoice detail: ${e.message}',
+        code: e.code,
+        originalError: e,
+      );
+    } catch (e) {
+      if (e is InvoiceException) rethrow;
+      throw InvoiceDataException(
+        'Failed to parse invoice detail: $e',
         originalError: e,
       );
     }

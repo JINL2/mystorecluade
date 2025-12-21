@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
@@ -9,17 +10,20 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../domain/entities/invoice.dart';
+import '../../domain/entities/invoice_detail.dart';
+import '../providers/invoice_detail_provider.dart';
 
 /// Invoice Detail Page - Full page view for invoice details
 ///
 /// Features:
-/// - AppBar with invoice number, date/time/store info, and delete action
-/// - Collapsible "View items" card with item count badge
+/// - Loads invoice detail from RPC on init
+/// - AppBar with invoice number, date/time/store info
+/// - Collapsible "View items" card with actual item details
 /// - Payment breakdown section (subtotal, discount, total)
 /// - Payment method section with icon
 /// - Created by section with avatar
 /// - Refund action for completed invoices
-class InvoiceDetailPage extends StatefulWidget {
+class InvoiceDetailPage extends ConsumerStatefulWidget {
   final Invoice invoice;
   final String? currencySymbol;
   final void Function(Invoice invoice)? onRefundPressed;
@@ -55,21 +59,34 @@ class InvoiceDetailPage extends StatefulWidget {
   }
 
   @override
-  State<InvoiceDetailPage> createState() => _InvoiceDetailPageState();
+  ConsumerState<InvoiceDetailPage> createState() => _InvoiceDetailPageState();
 }
 
-class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
-  bool _isItemsExpanded = false;
-  static final _currencyFormat = NumberFormat.currency(symbol: '', decimalDigits: 0);
+class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
+  bool _isItemsExpanded = true;
+  static final _currencyFormat =
+      NumberFormat.currency(symbol: '', decimalDigits: 0);
 
   String get _symbol => widget.currencySymbol ?? '';
 
   Invoice get invoice => widget.invoice;
 
+  @override
+  void initState() {
+    super.initState();
+    // Load invoice detail on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(invoiceDetailProvider.notifier).loadDetail(invoice.invoiceId);
+    });
+  }
+
   /// Get payment method icon based on cash location type
-  IconData get _paymentIcon {
-    final locationType = invoice.cashLocation?.locationType.toLowerCase() ?? '';
-    final paymentMethod = invoice.paymentMethod.toLowerCase();
+  IconData _getPaymentIcon(InvoiceDetail? detail) {
+    final locationType = detail?.cashLocationType?.toLowerCase() ??
+        invoice.cashLocation?.locationType.toLowerCase() ??
+        '';
+    final paymentMethod =
+        detail?.paymentMethod.toLowerCase() ?? invoice.paymentMethod.toLowerCase();
 
     if (locationType == 'cash' || paymentMethod == 'cash') {
       return Icons.payments_outlined;
@@ -82,9 +99,12 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
   }
 
   /// Get payment method display name
-  String get _paymentMethodName {
-    final locationType = invoice.cashLocation?.locationType.toLowerCase() ?? '';
-    final paymentMethod = invoice.paymentMethod.toLowerCase();
+  String _getPaymentMethodName(InvoiceDetail? detail) {
+    final locationType = detail?.cashLocationType?.toLowerCase() ??
+        invoice.cashLocation?.locationType.toLowerCase() ??
+        '';
+    final paymentMethod =
+        detail?.paymentMethod.toLowerCase() ?? invoice.paymentMethod.toLowerCase();
 
     if (locationType == 'cash' || paymentMethod == 'cash') {
       return 'Cash';
@@ -93,61 +113,133 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     } else if (locationType == 'vault' || paymentMethod == 'vault') {
       return 'Vault';
     }
-    return invoice.paymentMethod;
+    return detail?.paymentMethod ?? invoice.paymentMethod;
   }
 
   @override
   Widget build(BuildContext context) {
+    final detailState = ref.watch(invoiceDetailProvider);
+    final detail = detailState.detail;
+
     return TossScaffold(
-      appBar: _buildAppBar(context),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // View Items Card (Collapsible)
-                  Padding(
-                    padding: const EdgeInsets.all(TossSpacing.space4),
-                    child: _buildViewItemsCard(),
-                  ),
-
-                  // Gray divider before Payment breakdown
-                  const GrayDividerSpace(),
-
-                  // Payment Breakdown Section
-                  _buildPaymentBreakdownSection(),
-
-                  // Gray divider before Payment method
-                  const GrayDividerSpace(),
-
-                  // Payment Method Section
-                  _buildPaymentMethodSection(),
-
-                  // Gray divider before Created by
-                  const GrayDividerSpace(),
-
-                  // Created By Section
-                  _buildCreatedBySection(),
-
-                  const SizedBox(height: TossSpacing.space6),
-                ],
+      appBar: _buildAppBar(context, detail),
+      body: detailState.isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
               ),
+            )
+          : detailState.error != null
+              ? _buildErrorState(detailState.error!)
+              : Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // View Items Card (Collapsible)
+                            Padding(
+                              padding: const EdgeInsets.all(TossSpacing.space4),
+                              child: _buildViewItemsCard(detail),
+                            ),
+
+                            // Gray divider before Payment breakdown
+                            const GrayDividerSpace(),
+
+                            // Payment Breakdown Section
+                            _buildPaymentBreakdownSection(detail),
+
+                            // Gray divider before Payment method
+                            const GrayDividerSpace(),
+
+                            // Payment Method Section
+                            _buildPaymentMethodSection(detail),
+
+                            // Gray divider before Created by
+                            const GrayDividerSpace(),
+
+                            // Created By Section
+                            _buildCreatedBySection(detail),
+
+                            // AI Description Section (if available)
+                            if (detail?.hasAiDescription == true) ...[
+                              const GrayDividerSpace(),
+                              _buildAiDescriptionSection(detail!),
+                            ],
+
+                            // Attachments Section (if available)
+                            if (detail?.hasAttachments == true) ...[
+                              const GrayDividerSpace(),
+                              _buildAttachmentsSection(detail!),
+                            ],
+
+                            const SizedBox(height: TossSpacing.space6),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Refund Button (only for completed invoices)
+                    if (invoice.isCompleted && widget.onRefundPressed != null)
+                      _buildRefundButton(context),
+                  ],
+                ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 64,
+            color: TossColors.error,
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          Text(
+            'Error loading invoice',
+            style: TossTextStyles.bodyLarge.copyWith(
+              color: TossColors.gray600,
             ),
           ),
-
-          // Refund Button (only for completed invoices)
-          if (invoice.isCompleted && widget.onRefundPressed != null)
-            _buildRefundButton(context),
+          const SizedBox(height: TossSpacing.space2),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+            child: Text(
+              error,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space4),
+          ElevatedButton(
+            onPressed: () {
+              ref
+                  .read(invoiceDetailProvider.notifier)
+                  .loadDetail(invoice.invoiceId);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: TossColors.primary,
+              foregroundColor: TossColors.white,
+            ),
+            child: const Text('Retry'),
+          ),
         ],
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, InvoiceDetail? detail) {
     final dateFormat = DateFormat('dd MMM yyyy');
     final timeFormat = DateFormat('HH:mm');
+    final saleDate = detail?.saleDate ?? invoice.saleDate;
+    final storeName = detail?.storeName ?? invoice.storeName;
+    final invoiceNumber = detail?.invoiceNumber ?? invoice.invoiceNumber;
 
     return AppBar(
       backgroundColor: TossColors.white,
@@ -161,7 +253,7 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            invoice.invoiceNumber,
+            invoiceNumber,
             style: TossTextStyles.body.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray900,
@@ -169,7 +261,7 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
           ),
           const SizedBox(height: 2),
           Text(
-            '${dateFormat.format(invoice.saleDate)} · ${timeFormat.format(invoice.saleDate)} · ${invoice.storeName}',
+            '${dateFormat.format(saleDate)} · ${timeFormat.format(saleDate)} · $storeName',
             style: TossTextStyles.small.copyWith(
               color: TossColors.gray500,
             ),
@@ -188,8 +280,8 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     );
   }
 
-  Widget _buildViewItemsCard() {
-    final itemCount = invoice.itemsSummary.itemCount;
+  Widget _buildViewItemsCard(InvoiceDetail? detail) {
+    final itemCount = detail?.itemCount ?? invoice.itemsSummary.itemCount;
 
     return GestureDetector(
       onTap: () {
@@ -248,7 +340,7 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
           // Expanded content
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
-            secondChild: _buildItemsList(),
+            secondChild: _buildItemsList(detail),
             crossFadeState: _isItemsExpanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
@@ -259,8 +351,22 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     );
   }
 
-  Widget _buildItemsList() {
-    // Since we don't have detailed items, show summary info
+  Widget _buildItemsList(InvoiceDetail? detail) {
+    // Use actual items from detail if available
+    if (detail != null && detail.items.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        child: Column(
+          children: [
+            const Divider(height: 1, color: TossColors.gray200),
+            const SizedBox(height: TossSpacing.space3),
+            ...detail.items.map((item) => _buildItemRow(item)),
+          ],
+        ),
+      );
+    }
+
+    // Fallback to summary info
     final itemCount = invoice.itemsSummary.itemCount;
     final totalQty = invoice.itemsSummary.totalQuantity;
 
@@ -270,10 +376,8 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
         children: [
           const Divider(height: 1, color: TossColors.gray200),
           const SizedBox(height: TossSpacing.space3),
-          // Placeholder for items - in real app this would list each item
           Row(
             children: [
-              // Product thumbnail placeholder
               Container(
                 width: 48,
                 height: 48,
@@ -323,7 +427,84 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     );
   }
 
-  Widget _buildPaymentBreakdownSection() {
+  Widget _buildItemRow(InvoiceDetailItem item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product image or placeholder
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: TossColors.gray200,
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              image: item.productImage != null
+                  ? DecorationImage(
+                      image: NetworkImage(item.productImage!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: item.productImage == null
+                ? const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: TossColors.gray500,
+                    size: 24,
+                  )
+                : null,
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.productName,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: TossColors.gray900,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${_formatAmount(item.unitPrice)} × ${item.quantity}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+                if (item.discountAmount > 0)
+                  Text(
+                    'Discount: -${_formatAmount(item.discountAmount)}',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.error,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Text(
+            _formatAmount(item.totalPrice),
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w500,
+              color: TossColors.gray900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentBreakdownSection(InvoiceDetail? detail) {
+    final subtotal = detail?.subtotal ?? invoice.amounts.subtotal;
+    final discountAmount = detail?.discountAmount ?? invoice.amounts.discountAmount;
+    final taxAmount = detail?.taxAmount ?? invoice.amounts.taxAmount;
+    final totalAmount = detail?.totalAmount ?? invoice.amounts.totalAmount;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
@@ -342,21 +523,21 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
           // Sub-total
           _buildPaymentRow(
             'Sub-total',
-            _formatAmount(invoice.amounts.subtotal),
+            _formatAmount(subtotal),
           ),
 
           // Discount (if any)
-          if (invoice.amounts.discountAmount > 0) ...[
+          if (discountAmount > 0) ...[
             const SizedBox(height: TossSpacing.space3),
-            _buildDiscountRow(),
+            _buildDiscountRow(subtotal, discountAmount),
           ],
 
           // Tax (if any)
-          if (invoice.amounts.taxAmount > 0) ...[
+          if (taxAmount > 0) ...[
             const SizedBox(height: TossSpacing.space3),
             _buildPaymentRow(
               'Tax',
-              _formatAmount(invoice.amounts.taxAmount),
+              _formatAmount(taxAmount),
             ),
           ],
 
@@ -382,7 +563,7 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
                 ),
               ),
               Text(
-                _formatAmount(invoice.amounts.totalAmount),
+                _formatAmount(totalAmount),
                 style: TossTextStyles.h4.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.primary,
@@ -416,8 +597,8 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     );
   }
 
-  Widget _buildDiscountRow() {
-    final discountPercent = _calculateDiscountPercent();
+  Widget _buildDiscountRow(double subtotal, double discountAmount) {
+    final discountPercent = _calculateDiscountPercent(subtotal, discountAmount);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -432,7 +613,7 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
               ),
             ),
             Text(
-              '-${_formatAmount(invoice.amounts.discountAmount)}',
+              '-${_formatAmount(discountAmount)}',
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w500,
                 color: TossColors.error,
@@ -453,7 +634,11 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     );
   }
 
-  Widget _buildPaymentMethodSection() {
+  Widget _buildPaymentMethodSection(InvoiceDetail? detail) {
+    final locationName =
+        detail?.cashLocationName ?? invoice.cashLocation?.locationName;
+    final isPaid = detail?.isPaid ?? invoice.isPaid;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
@@ -472,14 +657,14 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
             children: [
               // Payment icon
               Icon(
-                _paymentIcon,
+                _getPaymentIcon(detail),
                 color: TossColors.gray700,
                 size: 24,
               ),
               const SizedBox(width: TossSpacing.space3),
               // Payment method name
               Text(
-                _paymentMethodName,
+                _getPaymentMethodName(detail),
                 style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w500,
                   color: TossColors.gray900,
@@ -487,9 +672,9 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
               ),
               const Spacer(),
               // Location name or status
-              if (invoice.cashLocation != null)
+              if (locationName != null)
                 Text(
-                  invoice.cashLocation!.locationName,
+                  locationName,
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.gray500,
                   ),
@@ -502,15 +687,15 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
                     vertical: TossSpacing.space1,
                   ),
                   decoration: BoxDecoration(
-                    color: invoice.isPaid
+                    color: isPaid
                         ? TossColors.success.withValues(alpha: 0.1)
                         : TossColors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
-                    invoice.isPaid ? 'Paid' : 'Pending',
+                    isPaid ? 'Paid' : 'Pending',
                     style: TossTextStyles.small.copyWith(
-                      color: invoice.isPaid ? TossColors.success : TossColors.warning,
+                      color: isPaid ? TossColors.success : TossColors.warning,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -522,8 +707,10 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     );
   }
 
-  Widget _buildCreatedBySection() {
-    final createdByName = invoice.createdByName ?? 'Unknown';
+  Widget _buildCreatedBySection(InvoiceDetail? detail) {
+    final createdByName =
+        detail?.createdByName ?? invoice.createdByName ?? 'Unknown';
+    final profileImage = detail?.createdByProfileImage;
     final initials = _getInitials(createdByName);
 
     return Padding(
@@ -542,23 +729,32 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
           // Avatar and name
           Row(
             children: [
-              // Avatar
+              // Avatar - show profile image if available, otherwise initials
               Container(
                 width: 32,
                 height: 32,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: TossColors.primary,
                   shape: BoxShape.circle,
+                  image: profileImage != null && profileImage.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(profileImage),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child: Center(
-                  child: Text(
-                    initials,
-                    style: TossTextStyles.small.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.white,
-                    ),
-                  ),
-                ),
+                clipBehavior: Clip.antiAlias,
+                child: profileImage == null || profileImage.isEmpty
+                    ? Center(
+                        child: Text(
+                          initials,
+                          style: TossTextStyles.small.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.white,
+                          ),
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: TossSpacing.space2),
               // Name
@@ -572,6 +768,267 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAiDescriptionSection(InvoiceDetail detail) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section title
+          Row(
+            children: [
+              const Icon(
+                Icons.auto_awesome,
+                color: TossColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Text(
+                'AI Description',
+                style: TossTextStyles.h4.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          // Description text
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(color: TossColors.gray200),
+            ),
+            child: Text(
+              detail.aiDescription ?? '',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray700,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttachmentsSection(InvoiceDetail detail) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section title
+          Row(
+            children: [
+              const Icon(
+                Icons.attach_file,
+                color: TossColors.gray700,
+                size: 20,
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Text(
+                'Attachments',
+                style: TossTextStyles.h4.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space2,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.gray200,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                ),
+                child: Text(
+                  '${detail.validAttachments.length}',
+                  style: TossTextStyles.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          // Attachments grid - only show valid attachments with fileUrl
+          SizedBox(
+            height: 100,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: detail.validAttachments.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: TossSpacing.space2),
+              itemBuilder: (context, index) {
+                final attachment = detail.validAttachments[index];
+                return _buildAttachmentThumbnail(attachment);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttachmentThumbnail(InvoiceAttachment attachment) {
+    return GestureDetector(
+      onTap: () {
+        if (attachment.fileUrl != null) {
+          _showFullImageDialog(attachment);
+        }
+      },
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: TossColors.gray200,
+          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+          border: Border.all(color: TossColors.gray300),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: attachment.isImage && attachment.fileUrl != null
+            ? Image.network(
+                attachment.fileUrl!,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                      strokeWidth: 2,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        TossColors.primary,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: TossColors.gray500,
+                      size: 32,
+                    ),
+                  );
+                },
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    attachment.isPdf
+                        ? Icons.picture_as_pdf
+                        : Icons.insert_drive_file,
+                    color: TossColors.gray500,
+                    size: 32,
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      attachment.fileName,
+                      style: TossTextStyles.small.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  void _showFullImageDialog(InvoiceAttachment attachment) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(TossSpacing.space4),
+        child: Stack(
+          children: [
+            // Image
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  attachment.fileUrl!,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 200,
+                      height: 200,
+                      color: TossColors.white,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            TossColors.primary,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 200,
+                      height: 200,
+                      color: TossColors.white,
+                      child: const Center(
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          color: TossColors.gray500,
+                          size: 64,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            // Close button
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: TossColors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: TossColors.gray900,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -695,35 +1152,67 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
                 color: TossColors.gray500,
               ),
             ),
+            const SizedBox(height: TossSpacing.space4),
+            // Buttons row - Cancel and Refund side by side
+            Row(
+              children: [
+                // Cancel button
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: TossColors.gray700,
+                      side: const BorderSide(color: TossColors.gray300),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: TossSpacing.space3,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.gray700,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                // Refund button
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext); // Close dialog
+                      Navigator.pop(context); // Close page
+                      widget.onRefundPressed?.call(invoice);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TossColors.error,
+                      foregroundColor: TossColors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: TossSpacing.space3,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      ),
+                    ),
+                    child: Text(
+                      'Refund',
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext); // Close dialog
-              Navigator.pop(context); // Close page
-              widget.onRefundPressed?.call(invoice);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.error,
-              foregroundColor: TossColors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              ),
-            ),
-            child: const Text('Refund'),
-          ),
-        ],
+        actions: const [], // Empty actions since we have custom buttons in content
       ),
     );
   }
@@ -799,9 +1288,9 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
     return '$_symbol$formatted';
   }
 
-  String _calculateDiscountPercent() {
-    if (invoice.amounts.subtotal <= 0) return '';
-    final percent = (invoice.amounts.discountAmount / invoice.amounts.subtotal) * 100;
+  String _calculateDiscountPercent(double subtotal, double discountAmount) {
+    if (subtotal <= 0) return '';
+    final percent = (discountAmount / subtotal) * 100;
     return '${percent.toStringAsFixed(1)}%';
   }
 

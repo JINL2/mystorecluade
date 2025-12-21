@@ -10,6 +10,9 @@ class InvoiceFilter extends Equatable {
   final String? searchQuery;
   final int page;
   final int limit;
+  // Server-side sorting parameters for get_invoice_page_v3
+  final String? dateFilter; // 'newest' or 'oldest'
+  final String? amountFilter; // 'high' or 'low' (takes priority over dateFilter)
 
   const InvoiceFilter({
     this.period = InvoicePeriod.allTime,
@@ -18,6 +21,8 @@ class InvoiceFilter extends Equatable {
     this.searchQuery,
     this.page = 1,
     this.limit = 20,
+    this.dateFilter,
+    this.amountFilter,
   });
 
   InvoiceFilter copyWith({
@@ -27,6 +32,9 @@ class InvoiceFilter extends Equatable {
     String? searchQuery,
     int? page,
     int? limit,
+    String? dateFilter,
+    String? amountFilter,
+    bool clearAmountFilter = false,
   }) {
     return InvoiceFilter(
       period: period ?? this.period,
@@ -35,6 +43,8 @@ class InvoiceFilter extends Equatable {
       searchQuery: searchQuery ?? this.searchQuery,
       page: page ?? this.page,
       limit: limit ?? this.limit,
+      dateFilter: dateFilter ?? this.dateFilter,
+      amountFilter: clearAmountFilter ? null : (amountFilter ?? this.amountFilter),
     );
   }
 
@@ -46,5 +56,7 @@ class InvoiceFilter extends Equatable {
         searchQuery,
         page,
         limit,
+        dateFilter,
+        amountFilter,
       ];
 }

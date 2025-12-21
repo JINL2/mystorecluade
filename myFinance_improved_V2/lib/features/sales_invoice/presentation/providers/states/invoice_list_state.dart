@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../domain/entities/cash_location.dart';
 import '../../../domain/entities/invoice.dart';
 import '../../../domain/repositories/invoice_repository.dart';
 import '../../../domain/value_objects/invoice_period.dart';
@@ -25,17 +26,63 @@ class InvoiceListState with _$InvoiceListState {
     @Default(false) bool sortAscending,
     @Default('') String searchQuery,
     @Default(1) int currentPage,
+    // Cash location filter
+    @Default([]) List<CashLocation> cashLocations,
+    @Default(false) bool isLoadingCashLocations,
+    CashLocation? selectedCashLocation,
+    // Status filter: null = All, 'completed', 'refunded'
+    String? selectedStatus,
+    // Server-side sorting for get_invoice_page_v3
+    String? dateFilter, // 'newest' or 'oldest'
+    String? amountFilter, // 'high' or 'low' (takes priority)
   }) = _InvoiceListState;
 
   /// Check if more data can be loaded
   bool get canLoadMore =>
       response?.pagination.hasNext == true && !isLoadingMore;
 
-  /// Get grouped invoices by date
+  /// Get invoices filtered by selected cash location and status
+  List<Invoice> get filteredInvoices {
+    var result = invoices;
+
+    // Filter by cash location
+    if (selectedCashLocation != null) {
+      result = result
+          .where(
+            (invoice) =>
+                invoice.cashLocation?.cashLocationId ==
+                selectedCashLocation!.id,
+          )
+          .toList();
+    }
+
+    // Filter by status
+    if (selectedStatus != null) {
+      result = result
+          .where((invoice) => invoice.status == selectedStatus)
+          .toList();
+    }
+
+    return result;
+  }
+
+  /// Get display text for selected status
+  String get statusDisplayText {
+    switch (selectedStatus) {
+      case 'completed':
+        return 'Completed';
+      case 'refunded':
+        return 'Refunded';
+      default:
+        return 'All';
+    }
+  }
+
+  /// Get grouped invoices by date (with cash location filter applied)
   Map<String, List<Invoice>> get groupedInvoices {
     final grouped = <String, List<Invoice>>{};
 
-    for (final invoice in invoices) {
+    for (final invoice in filteredInvoices) {
       final dateKey = invoice.dateString;
       if (!grouped.containsKey(dateKey)) {
         grouped[dateKey] = [];

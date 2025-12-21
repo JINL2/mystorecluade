@@ -34,6 +34,7 @@ class Invoice extends Equatable {
   final String paymentStatus;
   final InvoiceAmounts amounts;
   final ItemsSummary itemsSummary;
+  final String? aiDescription;
   final String? createdById;
   final String? createdByName;
   final String? createdByEmail;
@@ -53,6 +54,7 @@ class Invoice extends Equatable {
     required this.paymentStatus,
     required this.amounts,
     required this.itemsSummary,
+    this.aiDescription,
     this.createdById,
     this.createdByName,
     this.createdByEmail,
@@ -112,6 +114,7 @@ class Invoice extends Equatable {
         paymentStatus,
         amounts,
         itemsSummary,
+        aiDescription,
         createdById,
         createdByName,
         createdByEmail,

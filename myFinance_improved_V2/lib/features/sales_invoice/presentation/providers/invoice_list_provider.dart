@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/repositories/invoice_repository.dart';
 import '../../domain/value_objects/invoice_filter.dart';
@@ -49,6 +50,8 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         sortAscending: state.sortAscending,
         searchQuery: state.searchQuery.isEmpty ? null : state.searchQuery,
         page: state.currentPage,
+        dateFilter: state.dateFilter,
+        amountFilter: state.amountFilter,
       );
 
       final result = await _repository.getInvoices(
@@ -94,6 +97,85 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     loadInvoices();
   }
 
+  /// Update server-side sorting (for get_invoice_page_v3)
+  ///
+  /// - dateFilter: 'newest' or 'oldest' (default: newest)
+  /// - amountFilter: 'high' or 'low' (takes priority over dateFilter)
+  void updateServerSort({String? dateFilter, String? amountFilter}) {
+    state = state.copyWith(
+      dateFilter: dateFilter,
+      amountFilter: amountFilter,
+      currentPage: 1,
+    );
+    loadInvoices();
+  }
+
+  /// Clear server-side sorting (reset to default)
+  void clearServerSort() {
+    state = state.copyWith(
+      dateFilter: null,
+      amountFilter: null,
+      currentPage: 1,
+    );
+    loadInvoices();
+  }
+
+  /// Load cash locations for filter
+  Future<void> loadCashLocations() async {
+    if (state.isLoadingCashLocations) return;
+
+    state = state.copyWith(isLoadingCashLocations: true);
+
+    try {
+      final appState = _ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+
+      if (companyId.isEmpty) {
+        state = state.copyWith(isLoadingCashLocations: false);
+        return;
+      }
+
+      final cashLocations = await _repository.getCashLocations(
+        companyId: companyId,
+        storeId: storeId,
+      );
+
+      debugPrint('💰 [CashLocations] Loaded ${cashLocations.length} cash locations');
+
+      state = state.copyWith(
+        isLoadingCashLocations: false,
+        cashLocations: cashLocations,
+      );
+    } catch (e) {
+      debugPrint('❌ [CashLocations] Error loading: $e');
+      state = state.copyWith(isLoadingCashLocations: false);
+    }
+  }
+
+  /// Update cash location filter
+  void updateCashLocation(CashLocation? cashLocation) {
+    state = state.copyWith(selectedCashLocation: cashLocation, currentPage: 1);
+    loadInvoices();
+  }
+
+  /// Clear cash location filter
+  void clearCashLocationFilter() {
+    state = state.copyWith(selectedCashLocation: null, currentPage: 1);
+    loadInvoices();
+  }
+
+  /// Update status filter (null = All, 'completed', 'refunded')
+  void updateStatus(String? status) {
+    state = state.copyWith(selectedStatus: status);
+    // Note: Status filter is client-side only, no need to reload
+  }
+
+  /// Clear status filter
+  void clearStatusFilter() {
+    state = state.copyWith(selectedStatus: null);
+  }
+
   /// Load next page (infinite scroll - appends data)
   Future<void> loadNextPage() async {
     if (state.isLoadingMore || !state.canLoadMore) return;
@@ -117,6 +199,8 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         sortAscending: state.sortAscending,
         searchQuery: state.searchQuery.isEmpty ? null : state.searchQuery,
         page: nextPage,
+        dateFilter: state.dateFilter,
+        amountFilter: state.amountFilter,
       );
 
       final result = await _repository.getInvoices(

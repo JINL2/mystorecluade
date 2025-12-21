@@ -170,12 +170,17 @@ class InvoiceDetail extends Equatable {
   /// Check if has AI description
   bool get hasAiDescription => aiDescription != null && aiDescription!.isNotEmpty;
 
-  /// Check if has attachments
-  bool get hasAttachments => attachments.isNotEmpty;
+  /// Check if has valid attachments (with fileUrl)
+  bool get hasAttachments =>
+      attachments.any((a) => a.fileUrl != null && a.fileUrl!.isNotEmpty);
+
+  /// Get valid attachments only (with fileUrl)
+  List<InvoiceAttachment> get validAttachments =>
+      attachments.where((a) => a.fileUrl != null && a.fileUrl!.isNotEmpty).toList();
 
   /// Get image attachments only
   List<InvoiceAttachment> get imageAttachments =>
-      attachments.where((a) => a.isImage).toList();
+      attachments.where((a) => a.isImage && a.fileUrl != null && a.fileUrl!.isNotEmpty).toList();
 
   /// Get formatted time string (HH:mm)
   String get timeString {
