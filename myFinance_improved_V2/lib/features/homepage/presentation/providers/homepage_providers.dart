@@ -28,7 +28,7 @@ enum RevenueViewTab { company, store }
 
 /// Provider for selected revenue view tab
 final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
-  return RevenueViewTab.company;
+  return RevenueViewTab.store;
 });
 
 /// Provider for fetching revenue data

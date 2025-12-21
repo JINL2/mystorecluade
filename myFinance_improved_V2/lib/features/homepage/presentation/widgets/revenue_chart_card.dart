@@ -76,15 +76,22 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
   int? _selectedBarIndex;
   _ChartDataPoint? _selectedDataPoint;
   RevenuePeriod? _lastPeriod;
+  RevenueViewTab? _lastTab;
+  String? _lastStoreId;
 
   @override
   Widget build(BuildContext context) {
     final chartDataAsync = ref.watch(revenueChartDataProvider);
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
+    final selectedTab = ref.watch(selectedRevenueTabProvider);
+    final appState = ref.watch(appStateProvider);
+    final currentStoreId = appState.storeChoosen;
 
-    // Reset selection when period changes
-    if (_lastPeriod != selectedPeriod) {
+    // Reset selection when period, tab, or store changes
+    if (_lastPeriod != selectedPeriod || _lastTab != selectedTab || _lastStoreId != currentStoreId) {
       _lastPeriod = selectedPeriod;
+      _lastTab = selectedTab;
+      _lastStoreId = currentStoreId;
       _selectedBarIndex = null;
       _selectedDataPoint = null;
     }
@@ -234,7 +241,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
                     return Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 1),
-                        child: _buildBar(point, yAxisScale.maxValue, chartPoints.length, index),
+                        child: _buildBar(point, yAxisScale, chartPoints.length, index),
                       ),
                     );
                   }).toList(),
@@ -504,8 +511,10 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
     return label;
   }
 
-  Widget _buildBar(_ChartDataPoint data, double maxValue, int dataCount, int index) {
-    // Calculate heights proportionally (max height 140)
+  Widget _buildBar(_ChartDataPoint data, _YAxisScale scale, int dataCount, int index) {
+    // Calculate heights proportionally using Y-axis scale max (max height 140)
+    // Use scale.maxValue to ensure bar height matches Y-axis labels
+    final maxValue = scale.maxValue;
     final revenueHeight = maxValue > 0 ? (data.revenue / maxValue) * 140 : 0.0;
     final grossProfitHeight = maxValue > 0 ? (data.grossProfit / maxValue) * 140 : 0.0;
 

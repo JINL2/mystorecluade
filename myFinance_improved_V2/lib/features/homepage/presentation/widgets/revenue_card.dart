@@ -213,14 +213,14 @@ class _TabSelector extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildTab(
-          'Company',
-          RevenueViewTab.company,
-          selectedTab == RevenueViewTab.company,
-        ),
-        _buildTab(
           'Store',
           RevenueViewTab.store,
           selectedTab == RevenueViewTab.store,
+        ),
+        _buildTab(
+          'Company',
+          RevenueViewTab.company,
+          selectedTab == RevenueViewTab.company,
         ),
       ],
     );
