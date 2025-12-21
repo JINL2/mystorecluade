@@ -150,12 +150,8 @@ class TransactionLine extends Equatable {
     }
 
     // ✅ cash 객체 추가 (category_tag가 'cash'면)
-    // IMPORTANT: Use template's cash_location_id directly!
-    // Each line has its own cash_location_id (e.g., Debit=TPBank, Credit=Cashier)
-    // Do NOT override with selectedMyCashLocationId - that causes both lines to have same location!
     if (categoryTag == 'cash') {
-      // Use template's cash_location_id for this specific line
-      final cashLocationId = cash?.cashLocationId;
+      final cashLocationId = cash?.cashLocationId ?? selectedMyCashLocationId;
       if (cashLocationId != null) {
         rpcLine['cash'] = {
           'cash_location_id': cashLocationId,
@@ -164,14 +160,12 @@ class TransactionLine extends Equatable {
     }
 
     // ✅ debt 객체 추가 (category_tag가 'receivable'/'payable'면)
-    // IMPORTANT: User selection takes priority over template default!
     if (categoryTag == 'receivable' || categoryTag == 'payable') {
       DebtConfig? finalDebt = debt;
 
       // debt 객체가 없으면 auto-generate
       if (finalDebt == null) {
-        // Priority: User selection > Template default
-        final counterpartyId = selectedCounterpartyId ?? this.counterpartyId;
+        final counterpartyId = this.counterpartyId ?? selectedCounterpartyId;
         if (counterpartyId != null) {
           finalDebt = DebtConfig(
             counterpartyId: counterpartyId,

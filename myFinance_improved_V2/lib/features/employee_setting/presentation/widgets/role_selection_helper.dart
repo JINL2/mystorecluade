@@ -76,13 +76,9 @@ class RoleSelectionHelper {
     required void Function(String?) onRoleUpdated,
     required List<Role> roles,
   }) async {
-    // Filter out current role and Owner role from available options
+    // Filter out current role from available options
     final availableRoles = roles.where((role) {
-      // Exclude current role
-      if (role.roleName == currentRoleName) return false;
-      // Exclude Owner role - Owner cannot be assigned through UI
-      if (role.roleType.toLowerCase() == 'owner') return false;
-      return true;
+      return role.roleName != currentRoleName;
     }).toList();
 
     if (availableRoles.isEmpty) {

@@ -24,8 +24,6 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 // Import journal_input providers for counterparty store and account mapping
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
-// Import account provider for account_code lookup
-import 'package:myfinance_improved/app/providers/account_provider.dart';
 
 import '../../domain/enums/template_constants.dart';
 import '../../domain/usecases/update_template_usecase.dart';
@@ -129,13 +127,6 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
   bool _isLoadingCounterpartyData = false;
   String? _nameError;
 
-  // Original values for change detection
-  late final String _originalName;
-  late final String _originalDescription;
-  late final bool _originalRequiredAttachment;
-  late final String _originalPermission;
-  late final Map<int, _EntryOriginalState> _originalEntryStates;
-
   @override
   void initState() {
     super.initState();
@@ -153,66 +144,26 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
     _requiredAttachment = widget.template['required_attachment'] == true;
     _permission = widget.template['permission']?.toString() ?? TemplateConstants.commonPermissionUUID;
 
-    // Store original values for change detection
-    _originalName = widget.template['name']?.toString() ?? '';
-    _originalDescription = widget.template['template_description']?.toString() ?? '';
-    _originalRequiredAttachment = widget.template['required_attachment'] == true;
-    _originalPermission = widget.template['permission']?.toString() ?? TemplateConstants.commonPermissionUUID;
-    _originalEntryStates = {};
-
     // Entry level fields
     final data = widget.template['data'] as List? ?? [];
     for (int i = 0; i < data.length; i++) {
       final entry = data[i] as Map<String, dynamic>;
       _entryStates[i] = _EntryEditState.fromEntry(entry);
-      // Store original entry state for change detection
-      _originalEntryStates[i] = _EntryOriginalState.fromEntry(entry);
-      // Add listener for entry description changes
-      _entryStates[i]!.descriptionController.addListener(_updateFormValidity);
     }
 
     // Add name validation listener
     _nameController.addListener(_validateName);
 
-    // Add description listener for form validity
-    _descriptionController.addListener(_updateFormValidity);
-
     // Load counterparty details for entries that have counterparty but missing linked_company_id
-    // Also load missing account_codes for legacy templates
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMissingCounterpartyData();
-      _loadMissingAccountCodes();
       _updateFormValidity();
     });
   }
 
   /// Update form validity notifier when state changes
-  /// Button is enabled only when: form is valid AND there are changes
   void _updateFormValidity() {
-    widget.formValidityNotifier?.value = _isFormValid && _hasChanges;
-  }
-
-  /// Check if any value has changed from original
-  bool get _hasChanges {
-    // Check template level changes
-    if (_nameController.text.trim() != _originalName) return true;
-    if (_descriptionController.text.trim() != _originalDescription) return true;
-    if (_requiredAttachment != _originalRequiredAttachment) return true;
-    if (_permission != _originalPermission) return true;
-
-    // Check entry level changes
-    for (final entry in _entryStates.entries) {
-      final current = entry.value;
-      final original = _originalEntryStates[entry.key];
-      if (original == null) continue;
-
-      if (current.descriptionController.text.trim() != original.description) return true;
-      if (current.cashLocationId != original.cashLocationId) return true;
-      if (current.counterpartyStoreId != original.counterpartyStoreId) return true;
-      if (current.counterpartyCashLocationId != original.counterpartyCashLocationId) return true;
-    }
-
-    return false;
+    widget.formValidityNotifier?.value = _isFormValid;
   }
 
   /// Load counterparty data from database for entries missing linked_company_id
@@ -273,51 +224,6 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
           _isLoadingCounterpartyData = false;
         });
       }
-    }
-  }
-
-  /// Load account_code for entries missing it (legacy templates)
-  /// This ensures expense account detection works for older templates
-  Future<void> _loadMissingAccountCodes() async {
-    // Find entries with accountId but missing accountCode
-    final entriesNeedingAccountCode = _entryStates.entries.where((e) {
-      final state = e.value;
-      return state.accountId != null &&
-             state.accountId!.isNotEmpty &&
-             (state.accountCode == null || state.accountCode!.isEmpty);
-    }).toList();
-
-    if (entriesNeedingAccountCode.isEmpty) return;
-
-    try {
-      // Get all accounts for lookup
-      final accountsAsync = ref.read(currentAccountsProvider);
-      final accounts = accountsAsync.maybeWhen(
-        data: (data) => data,
-        orElse: () => <dynamic>[],
-      );
-
-      if (accounts.isEmpty) return;
-
-      // Update entry states with account codes
-      for (final entry in entriesNeedingAccountCode) {
-        final state = entry.value;
-        final account = accounts.firstWhere(
-          (a) => a.id == state.accountId,
-          orElse: () => null,
-        );
-
-        if (account != null && account.accountCode != null) {
-          state.accountCode = account.accountCode;
-          debugPrint('📝 Loaded account_code ${account.accountCode} for account ${state.accountId}');
-        }
-      }
-
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      debugPrint('Error loading account codes: $e');
     }
   }
 
@@ -612,7 +518,6 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
               setState(() {
                 _requiredAttachment = value;
               });
-              _updateFormValidity();
             },
           ),
 
@@ -732,7 +637,6 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
         setState(() {
           _permission = value;
         });
-        _updateFormValidity();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -1484,12 +1388,6 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
         // Update cash location
         original['cash_location_id'] = entryState.cashLocationId;
 
-        // Update account_code (preserve existing or use from entryState)
-        // This ensures account_code is maintained for expense account detection
-        if (entryState.accountCode != null && entryState.accountCode!.isNotEmpty) {
-          original['account_code'] = entryState.accountCode;
-        }
-
         // Update counterparty fields
         original['counterparty_id'] = entryState.counterpartyId;
         original['counterparty_name'] = entryState.counterpartyName;
@@ -1530,7 +1428,6 @@ class _EntryEditState {
   String? counterpartyCashLocationName;
   String? categoryTag; // To check if payable/receivable
   String? accountId; // For account mapping check
-  String? accountCode; // Account code for expense detection (5000-9999)
   Map<String, dynamic>? accountMapping; // Account mapping result
   String? mappingError; // Account mapping error
 
@@ -1547,7 +1444,6 @@ class _EntryEditState {
     this.counterpartyCashLocationName,
     this.categoryTag,
     this.accountId,
-    this.accountCode,
     this.accountMapping,
     this.mappingError,
   });
@@ -1582,35 +1478,10 @@ class _EntryEditState {
       counterpartyCashLocationName: entry['counterparty_cash_location_name']?.toString(),
       categoryTag: entry['category_tag']?.toString(),
       accountId: entry['account_id']?.toString(),
-      accountCode: entry['account_code']?.toString(), // For expense detection
     );
   }
 
   void dispose() {
     descriptionController.dispose();
-  }
-}
-
-/// Original entry state for change detection (immutable snapshot)
-class _EntryOriginalState {
-  final String description;
-  final String? cashLocationId;
-  final String? counterpartyStoreId;
-  final String? counterpartyCashLocationId;
-
-  const _EntryOriginalState({
-    required this.description,
-    this.cashLocationId,
-    this.counterpartyStoreId,
-    this.counterpartyCashLocationId,
-  });
-
-  factory _EntryOriginalState.fromEntry(Map<String, dynamic> entry) {
-    return _EntryOriginalState(
-      description: entry['description']?.toString() ?? '',
-      cashLocationId: entry['cash_location_id']?.toString(),
-      counterpartyStoreId: entry['counterparty_store_id']?.toString(),
-      counterpartyCashLocationId: entry['counterparty_cash_location_id']?.toString(),
-    );
   }
 }

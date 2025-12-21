@@ -14,7 +14,8 @@ abstract class UserProfileRepository {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String? dateOfBirth,
+    String? bankName,
+    String? bankAccountNumber,
     String? profileImage,
   });
 
@@ -23,34 +24,4 @@ abstract class UserProfileRepository {
 
   /// Remove profile image
   Future<void> removeProfileImage(String userId);
-
-  /// Get user's bank account info
-  Future<Map<String, dynamic>?> getUserBankAccount({
-    required String userId,
-    required String companyId,
-  });
-
-  /// Save user's bank account
-  Future<bool> saveUserBankAccount({
-    required String userId,
-    required String companyId,
-    required String bankName,
-    required String accountNumber,
-    required String description,
-  });
-
-  /// Get available languages
-  Future<List<Map<String, dynamic>>> getLanguages();
-
-  /// Get user's current language ID
-  Future<String?> getUserLanguageId(String userId);
-
-  /// Get language code by ID
-  Future<String?> getLanguageCode(String languageId);
-
-  /// Update user's language preference
-  Future<bool> updateUserLanguage({
-    required String userId,
-    required String languageId,
-  });
 }

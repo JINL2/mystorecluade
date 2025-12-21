@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -15,6 +14,7 @@ import '../../domain/usecases/create_error_adjustment_usecase.dart';
 import '../../domain/usecases/create_foreign_currency_translation_usecase.dart';
 import '../../di/injection.dart';
 import '../providers/cash_ending_provider.dart';
+import 'package:flutter/foundation.dart';
 
 /// Cash Ending Completion Page
 ///
@@ -109,13 +109,12 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
         _currentBalanceSummary = updatedSummary;
         _isRefreshing = false;
       });
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashEndingCompletionPage refresh balance failed',
-        extra: {'locationId': widget.cashLocationId},
-      );
+
+      debugPrint('✅ [AutoBalance] Balance summary refreshed:');
+      debugPrint('   - Total Journal: ${updatedSummary.formattedTotalJournal}');
+      debugPrint('   - Total Real: ${updatedSummary.formattedTotalReal}');
+      debugPrint('   - Difference: ${updatedSummary.formattedDifference}');
+    } catch (e) {
       if (!mounted) return;
 
       setState(() {
@@ -123,6 +122,7 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
       });
 
       _showMessage('Failed to refresh balance: $e', isError: true);
+      debugPrint('❌ [AutoBalance] Failed to refresh balance: $e');
     }
   }
 

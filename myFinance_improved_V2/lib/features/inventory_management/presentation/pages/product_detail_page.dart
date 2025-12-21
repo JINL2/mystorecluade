@@ -15,7 +15,6 @@ import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../shared/widgets/toss/toss_icon_button.dart';
 import '../../domain/entities/product.dart';
-import '../../domain/repositories/inventory_repository.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/move_stock_dialog.dart';
 import 'product_transactions_page.dart';
@@ -35,79 +34,17 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   bool _hasStockFilter = true;
-  List<StoreStock>? _storeStocks;
-  bool _isLoadingStocks = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStoreStocks();
-  }
-
-  Future<void> _loadStoreStocks() async {
-    final appState = ref.read(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      setState(() {
-        _isLoadingStocks = false;
-      });
-      return;
-    }
-
-    try {
-      final repository = ref.read(inventoryRepositoryProvider);
-      final result = await repository.getProductStockByStores(
-        companyId: companyId,
-        productIds: [widget.productId],
-      );
-
-      if (mounted) {
-        if (result != null && result.products.isNotEmpty) {
-          setState(() {
-            _storeStocks = result.products.first.stores;
-            _isLoadingStocks = false;
-          });
-        } else {
-          setState(() {
-            _storeStocks = [];
-            _isLoadingStocks = false;
-          });
-        }
-      }
-    } catch (e) {
-      // ignore: avoid_print
-      print('[ProductDetailPage] Error loading store stocks: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingStocks = false;
-        });
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    // ignore: avoid_print
-    print('🔴 [ProductDetailPage] build called - productId: ${widget.productId}');
     final productsState = ref.watch(inventoryPageProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
-    // Find product in the list (return null if not found during refresh)
-    final product = productsState.products.cast<Product?>().firstWhere(
-      (p) => p?.id == widget.productId,
-      orElse: () => null,
+    // Find product in the list
+    final product = productsState.products.firstWhere(
+      (p) => p.id == widget.productId,
+      orElse: () => throw Exception('Product not found'),
     );
-
-    // Show loading state if product not found (during refresh)
-    if (product == null) {
-      return const TossScaffold(
-        backgroundColor: TossColors.white,
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -171,35 +108,13 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
             ],
           ),
-          // Right side - edit, history, and more buttons
+          // Right side - edit and more buttons
           Row(
             children: [
               TossIconButton.edit(
-                size: 26,
-                padding: const EdgeInsets.all(12),
                 onPressed: () {
                   context.push('/inventoryManagement/editProduct/${widget.productId}');
                 },
-              ),
-              // Transaction history button
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push<void>(
-                    MaterialPageRoute<void>(
-                      builder: (context) => ProductTransactionsPage(product: product),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.history,
-                    size: 26,
-                    color: TossColors.gray900,
-                  ),
-                ),
               ),
               TossIconButton.more(
                 onPressed: () => _showMoreOptions(context, ref, product),
@@ -212,96 +127,107 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   }
 
   Widget _buildProductHeader(BuildContext context, Product product) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(
-        TossSpacing.space4,
-        TossSpacing.space6,
-        TossSpacing.space4,
-        TossSpacing.space5,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product image
-          _buildProductImage(product),
-          const SizedBox(width: TossSpacing.space4),
-          // Product info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // SKU with copy button
-                Row(
-                  children: [
-                    Text(
-                      product.sku,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: () {
-                        Clipboard.setData(ClipboardData(text: product.sku));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('SKU copied to clipboard'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        Icons.copy_outlined,
-                        size: 18,
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // Product name
-                Text(
-                  product.name,
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space4),
-                // Quantity badge
-                Row(
-                  children: [
-                    Container(
-                      height: 32,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: TossColors.primary,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '${product.onHand}',
-                        style: TossTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.white,
+    return GestureDetector(
+      onTap: () {
+        context.push('/inventoryManagement/editProduct/${widget.productId}');
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          TossSpacing.space4,
+          TossSpacing.space6,
+          TossSpacing.space4,
+          TossSpacing.space5,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product image
+            _buildProductImage(product),
+            const SizedBox(width: TossSpacing.space4),
+            // Product info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // SKU with copy button
+                  Row(
+                    children: [
+                      Text(
+                        product.sku,
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: TossColors.gray600,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: TossSpacing.space2),
-                    Text(
-                      'On-hand qty',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: product.sku));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('SKU copied to clipboard'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.copy_outlined,
+                          size: 18,
+                          color: TossColors.gray500,
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Product name
+                  Text(
+                    product.name,
+                    style: TossTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: TossColors.gray900,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: TossSpacing.space4),
+                  // Quantity badge
+                  Row(
+                    children: [
+                      Container(
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: TossColors.primary,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${product.onHand}',
+                          style: TossTextStyles.bodyMedium.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      Text(
+                        'On-hand qty',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            // Chevron
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: TossColors.gray500,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -459,11 +385,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
   Widget _buildLocationsSection(Product product) {
     final appState = ref.watch(appStateProvider);
-    final currentStoreId = appState.storeChoosen;
-
-    // Use RPC data if available, otherwise fallback to AppState
-    final stores = _buildStoreLocations(appState, product, currentStoreId);
-
+    final stores = _getCompanyStores(appState, product);
     // Find current store for Move Stock dialog
     final currentStore = stores.firstWhere(
       (s) => s.isCurrentStore,
@@ -520,44 +442,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   ],
                 ),
               ),
-              // Loading indicator or store rows
-              if (_isLoadingStocks)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
-                  child: Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                )
-              else
-                ...filteredStores.map((store) => _buildStoreRow(store, product, stores)),
+              // Store rows
+              ...filteredStores.map((store) => _buildStoreRow(store, product, stores)),
             ],
           ),
         ),
+        // Recent transactions button - full width dividers
+        _buildRecentTransactionsButton(product),
         const SizedBox(height: TossSpacing.space4),
       ],
     );
-  }
-
-  /// Build store locations from RPC data or fallback to AppState
-  List<StoreLocation> _buildStoreLocations(AppState appState, Product product, String currentStoreId) {
-    // If we have RPC data, use it
-    if (_storeStocks != null && _storeStocks!.isNotEmpty) {
-      return _storeStocks!.map((stock) {
-        return StoreLocation(
-          id: stock.storeId,
-          name: stock.storeName,
-          stock: stock.quantityOnHand,
-          isCurrentStore: stock.storeId == currentStoreId,
-        );
-      }).toList();
-    }
-
-    // Fallback to AppState-based method
-    return _getCompanyStores(appState, product);
   }
 
   Widget _buildToggle(bool isOn) {
@@ -736,79 +630,70 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     MoveStockDialog.show(
       context: context,
       productName: product.name,
-      productId: product.id,
       fromLocation: fromLocation,
       allStores: allStores,
-      onSubmit: (fromStore, toStore, quantity) async {
-        // Call move stock RPC - dialog handles its own loading state and closing
-        return await _executeMoveStock(
-          context: context,
-          product: product,
-          fromStore: fromStore,
-          toStore: toStore,
-          quantity: quantity,
+      onSubmit: (fromStore, toStore, quantity) {
+        // TODO: Implement move stock API call
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Moved $quantity units from ${fromStore.name} to ${toStore.name}'),
+            duration: const Duration(seconds: 2),
+          ),
         );
       },
     );
   }
 
-  Future<bool> _executeMoveStock({
-    required BuildContext context,
-    required Product product,
-    required StoreLocation fromStore,
-    required StoreLocation toStore,
-    required int quantity,
-  }) async {
-    try {
-      final appState = ref.read(appStateProvider);
-      final repository = ref.read(inventoryRepositoryProvider);
-
-      final result = await repository.moveProduct(
-        companyId: appState.companyChoosen,
-        fromStoreId: fromStore.id,
-        toStoreId: toStore.id,
-        productId: product.id,
-        quantity: quantity,
-        updatedBy: appState.userId,
-        notes: 'Transfer from ${fromStore.name} to ${toStore.name}',
-      );
-
-      if (result != null && mounted) {
-        // Show success dialog
-        if (context.mounted) {
-          await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (ctx) => TossDialog.success(
-              title: 'Stock Moved',
-              message: 'Moved $quantity units from ${fromStore.name} to ${toStore.name}',
-              primaryButtonText: 'OK',
+  Widget _buildRecentTransactionsButton(Product product) {
+    return Column(
+      children: [
+        // Top divider
+        Container(
+          height: 1,
+          color: TossColors.gray200,
+          margin: const EdgeInsets.only(bottom: 10),
+        ),
+        // Button
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ProductTransactionsPage(product: product),
+              ),
+            );
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.history,
+                  size: 20,
+                  color: TossColors.gray600,
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Text(
+                  'Recent transactions',
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: TossColors.gray600,
+                  ),
+                ),
+              ],
             ),
-          );
-        }
-
-        // Refresh store stocks
-        await _loadStoreStocks();
-
-        // Refresh inventory list (use refresh instead of invalidate to avoid losing current product)
-        ref.read(inventoryPageProvider.notifier).refresh();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      if (context.mounted) {
-        // Show error dialog
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (ctx) => TossDialog.error(
-            title: 'Move Failed',
-            message: e.toString().replaceAll('Exception:', '').trim(),
           ),
-        );
-      }
-      return false;
-    }
+        ),
+        // Bottom divider
+        Container(
+          height: 1,
+          color: TossColors.gray200,
+          margin: const EdgeInsets.only(top: 10),
+        ),
+      ],
+    );
   }
 
   String _formatCurrency(double value) {
@@ -847,7 +732,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                _showDeleteConfirmation(product);
+                _showDeleteConfirmation(context, ref, product);
               },
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -857,21 +742,25 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     );
   }
 
-  Future<void> _showDeleteConfirmation(Product product) async {
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    Product product,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: const Text('Delete Product'),
         content: Text(
           'Are you sure you want to delete "${product.name}"?\n\nThis action cannot be undone.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: TossColors.error,
             ),
@@ -881,93 +770,100 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       ),
     );
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed == true && context.mounted) {
+      try {
+        // Get company ID
+        final appState = ref.read(appStateProvider);
+        final companyId = appState.companyChoosen as String?;
 
-    try {
-      // Get company ID
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen as String?;
+        if (companyId == null) {
+          if (context.mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (context) => TossDialog.error(
+                title: 'Company Not Selected',
+                message: 'Please select a company to delete products.',
+                primaryButtonText: 'OK',
+              ),
+            );
+          }
+          return;
+        }
 
-      if (companyId == null) {
-        if (!mounted) return;
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => TossDialog.error(
-            title: 'Company Not Selected',
-            message: 'Please select a company to delete products.',
-            primaryButtonText: 'OK',
-          ),
+        // Show loading indicator
+        if (context.mounted) {
+          showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Delete product
+        final repository = ref.read(inventoryRepositoryProvider);
+        final success = await repository.deleteProducts(
+          productIds: [product.id],
+          companyId: companyId,
         );
-        return;
+
+        // Close loading indicator
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+
+        if (success) {
+          // Refresh inventory list
+          ref.read(inventoryPageProvider.notifier).refresh();
+
+          if (context.mounted) {
+            // Navigate back to inventory list first
+            context.pop();
+
+            // Show success dialog
+            if (context.mounted) {
+              await showDialog<void>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => TossDialog.success(
+                  title: 'Product Deleted',
+                  message: '${product.name} has been successfully deleted.',
+                  primaryButtonText: 'OK',
+                  onPrimaryPressed: () => Navigator.pop(context),
+                ),
+              );
+            }
+          }
+        } else {
+          if (context.mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (context) => TossDialog.error(
+                title: 'Delete Failed',
+                message: 'Failed to delete product. Please try again.',
+                primaryButtonText: 'OK',
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        // Close loading indicator if still showing
+        if (context.mounted && Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+
+        if (context.mounted) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) => TossDialog.error(
+              title: 'Error',
+              message: e.toString().replaceAll('Exception:', '').trim(),
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
       }
-
-      // Show loading indicator
-      if (!mounted) return;
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
-      // Delete product
-      final repository = ref.read(inventoryRepositoryProvider);
-      final success = await repository.deleteProducts(
-        productIds: [product.id],
-        companyId: companyId,
-      );
-
-      // Close loading indicator
-      if (!mounted) return;
-      Navigator.of(context).pop();
-
-      if (success) {
-        // Refresh inventory list
-        ref.read(inventoryPageProvider.notifier).refresh();
-
-        if (!mounted) return;
-        // Navigate back to inventory list first
-        context.pop();
-
-        // Show success dialog
-        if (!mounted) return;
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => TossDialog.success(
-            title: 'Product Deleted',
-            message: '${product.name} has been successfully deleted.',
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.pop(ctx),
-          ),
-        );
-      } else {
-        if (!mounted) return;
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => TossDialog.error(
-            title: 'Delete Failed',
-            message: 'Failed to delete product. Please try again.',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-    } catch (e) {
-      // Close loading indicator if still showing
-      if (mounted && Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
-
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => TossDialog.error(
-          title: 'Error',
-          message: e.toString().replaceAll('Exception:', '').trim(),
-          primaryButtonText: 'OK',
-        ),
-      );
     }
   }
 }

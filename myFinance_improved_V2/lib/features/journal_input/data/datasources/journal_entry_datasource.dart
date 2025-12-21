@@ -226,13 +226,10 @@ class JournalEntryDataSource {
   static const int _maxFileSizeBytes = 5 * 1024 * 1024;
 
   /// Image compression quality (0-100)
-  /// Lower value = smaller file size, reduced quality
-  /// 50 produces ~100-150KB images for most photos
-  static const int _compressionQuality = 50;
+  static const int _compressionQuality = 70;
 
   /// Maximum image dimension for compression
-  /// 1000px is sufficient for receipt/document viewing
-  static const int _maxImageDimension = 1000;
+  static const int _maxImageDimension = 1200;
 
   /// Upload attachments to storage and save metadata to database
   Future<List<JournalAttachment>> uploadAttachments({

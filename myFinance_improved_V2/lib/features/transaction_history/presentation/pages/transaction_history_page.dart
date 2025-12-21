@@ -35,7 +35,6 @@ class TransactionHistoryPage extends ConsumerStatefulWidget {
 
 class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage> {
   final ScrollController _scrollController = ScrollController();
-  bool _isFilterSheetOpen = false;
 
   /// Threshold in pixels before the end of the list to trigger loading more items
   static const double _loadMoreThreshold = 200.0;
@@ -90,17 +89,12 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
   }
 
   void _showFilterSheet() {
-    if (_isFilterSheetOpen) return;
-    _isFilterSheetOpen = true;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => const TransactionFilterSheet(),
-    ).whenComplete(() {
-      _isFilterSheetOpen = false;
-    });
+    );
   }
 
 

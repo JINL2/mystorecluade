@@ -8,7 +8,6 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
-import '../../../../../shared/widgets/toss/month_dates_picker.dart';
 import 'schedule_shift_card.dart';
 import '../../models/schedule_models.dart';
 import '../../providers/state/shift_metadata_provider.dart';
@@ -61,7 +60,6 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
 class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
   late DateTime _currentWeekStart;
   late DateTime _selectedDate;
-  bool _isExpanded = false; // Toggle between week and month view
 
   @override
   void initState() {
@@ -69,30 +67,20 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     _selectedDate = widget.selectedDate;
     _currentWeekStart = _getWeekStart(_selectedDate);
 
-    // Note: Data loading is handled by parent page (time_table_manage_page.dart)
-    // Parent calls fetchMonthlyShiftStatus(forceRefresh: true) on page entry
-    // We don't load data here to avoid duplicate RPC calls and race conditions
-  }
-
-  /// Toggle between week and month view
-  void _toggleExpanded() {
-    setState(() {
-      _isExpanded = !_isExpanded;
+    // Load shift data for current month
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMonthData();
     });
   }
 
   /// Load shift data for current month
-  ///
-  /// [forceRefresh]: If true, always fetch fresh data from RPC.
-  /// Used when navigating to a different month that may not be cached.
-  void _loadMonthData({bool forceRefresh = false}) {
+  void _loadMonthData() {
     if (widget.selectedStoreId == null) return;
 
     // Load monthly shift status (employee data for shifts)
-    // Only force refresh when explicitly requested (e.g., month change)
+    // Provider handles caching internally - won't re-fetch if already loaded
     ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier).loadMonth(
       month: _selectedDate,
-      forceRefresh: forceRefresh,
     );
 
     // Note: shiftMetadataProvider is NOT invalidated here
@@ -108,14 +96,12 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         _selectedDate = widget.selectedDate;
         _currentWeekStart = _getWeekStart(_selectedDate);
       });
-      // Date changed within same store - load if month changed
-      // Provider caching handles duplicate month requests
       _loadMonthData();
     }
 
-    // Reload if store changed - force refresh to get new store's data
+    // Reload if store changed
     if (widget.selectedStoreId != oldWidget.selectedStoreId) {
-      _loadMonthData(forceRefresh: true);
+      _loadMonthData();
     }
   }
 
@@ -130,18 +116,19 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     final appState = ref.watch(appStateProvider);
     final userData = appState.user;
     final companies = (userData['companies'] as List<dynamic>?) ?? [];
+    Map<String, dynamic>? selectedCompany;
 
-    // Get stores from selected company only (no fallback to prevent showing wrong company's stores)
-    List<dynamic> stores = [];
-    if (companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
-      for (final company in companies) {
-        final companyMap = company as Map<String, dynamic>;
-        if (companyMap['company_id']?.toString() == appState.companyChoosen) {
-          stores = (companyMap['stores'] as List<dynamic>?) ?? [];
-          break;
-        }
+    if (companies.isNotEmpty) {
+      try {
+        selectedCompany = companies.firstWhere(
+          (c) => (c as Map<String, dynamic>)['company_id'] == appState.companyChoosen,
+        ) as Map<String, dynamic>;
+      } catch (e) {
+        selectedCompany = companies.first as Map<String, dynamic>;
       }
     }
+
+    final stores = (selectedCompany?['stores'] as List<dynamic>?) ?? [];
 
     return SingleChildScrollView(
       controller: widget.scrollController,
@@ -157,61 +144,28 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
           const SizedBox(height: TossSpacing.space3),
 
-          // Week/Month navigation with expand button
-          Row(
-            children: [
-              Expanded(
-                child: _isExpanded
-                    ? _buildMonthNavigation()
-                    : TossWeekNavigation(
-                        weekLabel: _getWeekLabel(),
-                        dateRange: _formatWeekRange(),
-                        onPrevWeek: () => _changeWeek(-7),
-                        onCurrentWeek: () => _jumpToToday(),
-                        onNextWeek: () => _changeWeek(7),
-                      ),
-              ),
-              // Expand/Collapse button
-              IconButton(
-                onPressed: _toggleExpanded,
-                icon: Icon(
-                  _isExpanded ? Icons.unfold_less : Icons.unfold_more,
-                  color: TossColors.gray600,
-                  size: 24,
-                ),
-                tooltip: _isExpanded ? 'Show week' : 'Show month',
-              ),
-            ],
+          // Week navigation
+          TossWeekNavigation(
+            weekLabel: _getWeekLabel(),
+            dateRange: _formatWeekRange(),
+            onPrevWeek: () => _changeWeek(-7),
+            onCurrentWeek: () => _jumpToToday(),
+            onNextWeek: () => _changeWeek(7),
           ),
 
           const SizedBox(height: TossSpacing.space3),
 
-          // Week or Month date picker
-          if (_isExpanded)
-            MonthDatesPicker(
-              currentMonth: widget.focusedMonth,
-              selectedDate: _selectedDate,
-              problemStatusByDate: const {}, // Schedule tab doesn't use problem status
-              shiftAvailabilityMap: _getMonthShiftAvailabilityMap(),
-              onDateSelected: (date) {
-                setState(() {
-                  _selectedDate = date;
-                  _currentWeekStart = _getWeekStart(date);
-                });
-                widget.onDateSelected(date);
-              },
-            )
-          else
-            WeekDatesPicker(
-              selectedDate: _selectedDate,
-              weekStartDate: _currentWeekStart,
-              datesWithUserApproved: {}, // Remove blue circle border
-              shiftAvailabilityMap: _getShiftAvailabilityMap(),
-              onDateSelected: (date) {
-                setState(() => _selectedDate = date);
-                widget.onDateSelected(date);
-              },
-            ),
+          // Week date picker
+          WeekDatesPicker(
+            selectedDate: _selectedDate,
+            weekStartDate: _currentWeekStart,
+            datesWithUserApproved: {}, // Remove blue circle border
+            shiftAvailabilityMap: _getShiftAvailabilityMap(),
+            onDateSelected: (date) {
+              setState(() => _selectedDate = date);
+              widget.onDateSelected(date);
+            },
+          ),
 
           const SizedBox(height: TossSpacing.space4),
 
@@ -373,7 +327,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     );
   }
 
-  /// Get week label (e.g., "This week", "Next week", "Last week", or "Week 52")
+  /// Get week label (e.g., "This week", "Next week", "Previous week", or "Week of 8 Dec")
   String _getWeekLabel() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -399,28 +353,15 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     if (_currentWeekStart.year == previousWeekStart.year &&
         _currentWeekStart.month == previousWeekStart.month &&
         _currentWeekStart.day == previousWeekStart.day) {
-      return 'Last week';
+      return 'Previous week';
     }
 
-    // Otherwise, return "Week [number]" (ISO week number)
-    final weekNumber = _getIsoWeekNumber(_currentWeekStart);
-    return 'Week $weekNumber';
-  }
-
-  /// Calculate ISO week number (1-53)
-  /// ISO 8601: Week 1 is the week containing the first Thursday of the year
-  int _getIsoWeekNumber(DateTime date) {
-    // Find the Thursday of the current week
-    final thursday = date.add(Duration(days: 4 - date.weekday));
-
-    // Find January 1st of that Thursday's year
-    final jan1 = DateTime(thursday.year, 1, 1);
-
-    // Calculate the number of days from Jan 1 to the Thursday
-    final daysDiff = thursday.difference(jan1).inDays;
-
-    // Week number is (days / 7) + 1
-    return (daysDiff / 7).floor() + 1;
+    // Otherwise, return "Week of [date]"
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return 'Week of ${_currentWeekStart.day} ${months[_currentWeekStart.month - 1]}';
   }
 
   /// Format week range for navigation (e.g., "10-16 Jun")
@@ -707,112 +648,5 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     } catch (e) {
       return false;
     }
-  }
-
-  /// Build month navigation widget (same style as timesheets_tab.dart)
-  Widget _buildMonthNavigation() {
-    final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    final monthName = months[widget.focusedMonth.month - 1];
-    final year = widget.focusedMonth.year;
-
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => widget.onPreviousMonth(),
-          icon: Icon(Icons.chevron_left, color: TossColors.gray600),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-        ),
-        Expanded(
-          child: GestureDetector(
-            onTap: _jumpToToday,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '$monthName $year',
-                  style: TossTextStyles.h4.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        IconButton(
-          onPressed: () => widget.onNextMonth(),
-          icon: Icon(Icons.chevron_right, color: TossColors.gray600),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-        ),
-      ],
-    );
-  }
-
-  /// Get shift availability map for entire month
-  /// Logic:
-  /// - Blue dot: total_required > total_approved (understaffed)
-  /// - Gray dot: total_required <= total_approved (fully staffed)
-  Map<DateTime, ShiftAvailabilityStatus> _getMonthShiftAvailabilityMap() {
-    if (widget.selectedStoreId == null) return {};
-
-    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
-    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
-    final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
-
-    // Get shift metadata for total_required when no requests exist
-    final hasMetadata = metadataAsync.hasValue && metadataAsync.value != null;
-    final activeShifts = hasMetadata ? metadataAsync.value!.activeShifts : <ShiftMetadataItem>[];
-
-    // Get all days in the focused month
-    final lastDay = DateTime(widget.focusedMonth.year, widget.focusedMonth.month + 1, 0);
-
-    for (int day = 1; day <= lastDay.day; day++) {
-      final date = DateTime(widget.focusedMonth.year, widget.focusedMonth.month, day);
-      final normalizedDate = DateTime(date.year, date.month, date.day);
-      final dateStr = DateFormat('yyyy-MM-dd').format(date);
-
-      // Find daily shift data for this date
-      final dailyShiftData = monthlyStatusState.allMonthlyStatuses
-          .expand((status) => status.dailyShifts)
-          .where((daily) => daily.date == dateStr)
-          .firstOrNull;
-
-      int totalRequired = 0;
-      int totalApproved = 0;
-
-      if (dailyShiftData != null && dailyShiftData.shifts.isNotEmpty) {
-        // Has request data - use it
-        for (final shiftWithReqs in dailyShiftData.shifts) {
-          totalRequired += shiftWithReqs.shift.targetCount;
-          totalApproved += shiftWithReqs.approvedRequests.length;
-        }
-      } else if (activeShifts.isNotEmpty) {
-        // No request data but has active shifts - use metadata
-        // All shifts are understaffed (0 approved, total_required from metadata)
-        for (final shiftMeta in activeShifts) {
-          totalRequired += shiftMeta.targetCount;
-        }
-        // totalApproved stays 0
-      } else {
-        // No shifts configured - no dot
-        continue;
-      }
-
-      // Determine availability status
-      if (totalRequired > totalApproved) {
-        // Understaffed - blue dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.available;
-      } else {
-        // Fully staffed - gray dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
-      }
-    }
-
-    return availabilityMap;
   }
 }

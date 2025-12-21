@@ -37,12 +37,6 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
   final TransactionScope? initialScope; // Current scope context (for reference)
   final String? locationType; // Filter by specific location type
   final Set<String>? blockedLocationIds; // IDs of locations that cannot be selected
-  /// Hide built-in label (useful when providing custom label externally)
-  final bool hideLabel;
-  /// Filter to show only store-specific + company-wide locations (no tabs, just filtered list)
-  /// When true: shows only locations where (isCompanyWide OR storeId == widget.storeId)
-  /// Useful for counterparty cash location selection
-  final bool storeOnly;
 
   const AutonomousCashLocationSelector({
     super.key,
@@ -61,8 +55,6 @@ class AutonomousCashLocationSelector extends ConsumerStatefulWidget {
     this.initialScope,
     this.locationType,
     this.blockedLocationIds,
-    this.hideLabel = false,
-    this.storeOnly = false,
   });
 
   @override
@@ -214,21 +206,12 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
 
     // If scope tabs are disabled, use custom simple selector with blocked items support
     if (!widget.showScopeTabs) {
-      // Apply storeOnly filter if enabled
-      final filteredLocations = allLocationsAsync.maybeWhen(
-        data: (locations) {
-          if (widget.storeOnly && effectiveStoreId != null && effectiveStoreId.isNotEmpty) {
-            // Filter to show only company-wide + store-specific locations
-            return locations.where((location) =>
-              location.isCompanyWide || location.storeId == effectiveStoreId,
-            ).toList();
-          }
-          return locations;
-        },
-        orElse: () => <CashLocationData>[],
+      return _buildSimpleSelector(context, allLocationsAsync.isLoading, selectedLocation,
+        allLocationsAsync.maybeWhen(
+          data: (locations) => locations,
+          orElse: () => [],
+        ),
       );
-
-      return _buildSimpleSelector(context, allLocationsAsync.isLoading, selectedLocation, filteredLocations);
     }
 
     // Custom selector with scope tabs
@@ -241,27 +224,25 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     CashLocationData? selectedLocation,
   ) {
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
-
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label (can be hidden if hideLabel is true)
-        if (!widget.hideLabel) ...[
-          Text(
-            widget.label ?? 'Cash Location',
-            style: TossTextStyles.caption.copyWith(
-              color: hasError ? TossColors.error : TossColors.gray600,
-              fontWeight: FontWeight.w600,
-            ),
-            overflow: TextOverflow.ellipsis,
+        // Label
+        Text(
+          widget.label ?? 'Cash Location',
+          style: TossTextStyles.caption.copyWith(
+            color: hasError ? TossColors.error : TossColors.gray600,
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: TossSpacing.space2),
-        ],
-
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        
         // Selector Field
         GestureDetector(
-          onTap: isLoading || widget.onChanged == null
-            ? null
+          onTap: isLoading || widget.onChanged == null 
+            ? null 
             : () => _showScopedSelectionBottomSheet(context),
           behavior: HitTestBehavior.opaque,
           child: Container(
@@ -419,10 +400,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
         content: StatefulBuilder(
           builder: (context, setModalState) {
             final screenHeight = MediaQuery.of(context).size.height;
-
-            // Local state for tab and search - ensures proper updates with setModalState
-            // Using widget state variables that get updated via setModalState
-
+            
             return Container(
               constraints: BoxConstraints(
                 maxHeight: screenHeight * 0.7, // Limit to 70% of screen height
@@ -472,13 +450,12 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                   const SizedBox(height: TossSpacing.space4),
                   
                   // Search field
-                  if (widget.showSearch) ...[
+                  if (widget.showSearch) ...[ 
                     TossSearchField(
                       hintText: 'Search ${_selectedTabIndex == 0 ? 'company' : 'store'} locations',
                       onChanged: (value) {
                         setModalState(() {
-                          // Update search query directly - filtering is done in displayItems calculation
-                          _searchQuery = value;
+                          _filterItems(value);
                         });
                       },
                     ),
@@ -493,35 +470,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                   Flexible(
                 child: allLocationsAsync.when(
                   data: (locations) {
-                    // Calculate filtered items directly based on current tab
-                    // This ensures proper filtering when tab changes
-                    final List<CashLocationData> currentItems;
-                    if (_selectedTabIndex == 0) {
-                      // Company tab: Show ALL locations
-                      currentItems = locations;
-                    } else {
-                      // Store tab: Show company-wide + store-specific locations
-                      if (effectiveStoreId != null && effectiveStoreId.isNotEmpty) {
-                        currentItems = locations.where((location) =>
-                          location.isCompanyWide || location.storeId == effectiveStoreId,
-                        ).toList();
-                      } else {
-                        currentItems = locations.where((location) =>
-                          location.isCompanyWide,
-                        ).toList();
-                      }
-                    }
-
-                    // Apply search filter
-                    final displayItems = _searchQuery.isEmpty
-                        ? currentItems
-                        : currentItems.where((item) {
-                            final nameLower = item.name.toLowerCase();
-                            final typeLower = item.type.toLowerCase();
-                            final queryLower = _searchQuery.toLowerCase();
-                            return nameLower.contains(queryLower) || typeLower.contains(queryLower);
-                          }).toList();
-
+                    final currentItems = _selectedTabIndex == 0 ? _companyItems : _storeItems;
                     if (currentItems.isEmpty) {
                       return Padding(
                         padding: const EdgeInsets.all(TossSpacing.space6),
@@ -548,7 +497,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                         ),
                       );
                     }
-                    return displayItems.isEmpty
+                    return _filteredItems.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.all(TossSpacing.space6),
                         child: Center(
@@ -579,13 +528,13 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
                       )
                     : ListView.separated(
                         shrinkWrap: true,
-                        itemCount: displayItems.length,
+                        itemCount: _filteredItems.length,
                         separatorBuilder: (context, index) => Container(
                           height: 1,
                           color: TossColors.gray100,
                         ),
                         itemBuilder: (context, index) {
-                          final item = displayItems[index];
+                          final item = _filteredItems[index];
                           final isSelected = item.id == widget.selectedLocationId;
                           final isBlocked = widget.blockedLocationIds?.contains(item.id) ?? false;
                           
@@ -736,7 +685,7 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
       child: InkWell(
         onTap: () => setModalState(() {
           _selectedTabIndex = index;
-          // No need to call _updateFilteredItems() - displayItems is calculated directly
+          _updateFilteredItems();
         }),
         borderRadius: BorderRadius.horizontal(
           left: index == 0 ? const Radius.circular(11) : Radius.zero,
@@ -785,27 +734,25 @@ class _AutonomousCashLocationSelectorState extends ConsumerState<AutonomousCashL
     List<CashLocationData> locations,
   ) {
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
-
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label (can be hidden if hideLabel is true)
-        if (!widget.hideLabel) ...[
-          Text(
-            widget.label ?? 'Cash Location',
-            style: TossTextStyles.caption.copyWith(
-              color: hasError ? TossColors.error : TossColors.gray600,
-              fontWeight: FontWeight.w600,
-            ),
-            overflow: TextOverflow.ellipsis,
+        // Label
+        Text(
+          widget.label ?? 'Cash Location',
+          style: TossTextStyles.caption.copyWith(
+            color: hasError ? TossColors.error : TossColors.gray600,
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: TossSpacing.space2),
-        ],
-
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        
         // Selector Field
         GestureDetector(
-          onTap: isLoading || widget.onChanged == null
-            ? null
+          onTap: isLoading || widget.onChanged == null 
+            ? null 
             : () => _showSimpleSelectionBottomSheet(context, locations),
           behavior: HitTestBehavior.opaque,
           child: Container(

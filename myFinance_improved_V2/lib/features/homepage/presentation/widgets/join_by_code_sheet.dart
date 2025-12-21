@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../providers/homepage_providers.dart';
 import '../providers/notifier_providers.dart';
 import '../providers/states/join_state.dart';
 
@@ -37,7 +35,6 @@ class JoinByCodeSheet extends ConsumerStatefulWidget {
 class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -56,67 +53,67 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to state changes for navigation and error handling
+    // Listen to state changes for snackbars and navigation
     ref.listen<JoinState>(joinNotifierProvider, (previous, next) {
       next.when(
         initial: () {
-          setState(() => _errorMessage = null);
+          // Do nothing
         },
         loading: () {
-          setState(() => _errorMessage = null);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                    ),
+                  ),
+                  SizedBox(width: TossSpacing.space3),
+                  Text('Joining...'),
+                ],
+              ),
+              backgroundColor: TossColors.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              duration: const Duration(seconds: 30), // Will be dismissed on success/error
+            ),
+          );
         },
         error: (message, errorCode) {
-          // Show error inline in the sheet
-          setState(() => _errorMessage = message);
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: TossColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: TossColors.white,
+                onPressed: () => _handleJoin(),
+              ),
+            ),
+          );
         },
         success: (result) {
-          // 1. AppState 즉시 업데이트 (UI 반영)
-          final appStateNotifier = ref.read(appStateProvider.notifier);
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-          if (result.isCompanyJoin && result.companyId != null) {
-            // 회사 join - 회사를 user.companies에 추가
-            appStateNotifier.addNewCompanyToUser(
-              companyId: result.companyId!,
-              companyName: result.companyName ?? 'Company',
-              role: {'role_name': result.roleAssigned ?? 'Employee', 'permissions': []},
-            );
-          } else if (result.isStoreJoin && result.storeId != null) {
-            // 스토어 join - 스토어를 해당 회사의 stores에 추가
-            if (result.companyId != null) {
-              appStateNotifier.addNewStoreToCompany(
-                companyId: result.companyId!,
-                storeId: result.storeId!,
-                storeName: result.storeName ?? 'Store',
-              );
-            }
-          }
-
-          // 2. 새로 join한 회사/스토어를 선택
-          if (result.companyId != null) {
-            appStateNotifier.selectCompany(
-              result.companyId!,
-              companyName: result.companyName,
-            );
-
-            if (result.storeId != null) {
-              appStateNotifier.selectStore(
-                result.storeId!,
-                storeName: result.storeName,
-              );
-            }
-          }
-
-          // 3. Provider invalidate (백그라운드에서 서버 최신 데이터 재조회)
-          ref.invalidate(userCompaniesProvider);
-
-          // 4. Sheet 닫기
+          // Close the sheet and return result
           Navigator.of(context).pop(result);
 
-          // 5. 성공 메시지 표시
+          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Successfully joined ${result.entityName}!',
+                'Successfully joined ${result.entityName}! Role: ${result.roleAssigned ?? "Member"}',
               ),
               backgroundColor: TossColors.success,
               behavior: SnackBarBehavior.floating,
@@ -249,35 +246,6 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                   ),
 
                   const SizedBox(height: TossSpacing.space4),
-
-                  // Error message (if any)
-                  if (_errorMessage != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(TossSpacing.space3),
-                      decoration: BoxDecoration(
-                        color: TossColors.error.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        border: Border.all(color: TossColors.error.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: TossColors.error, size: 20),
-                          const SizedBox(width: TossSpacing.space2),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.error,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space4),
-                  ],
 
                   // Info text
                   Text(

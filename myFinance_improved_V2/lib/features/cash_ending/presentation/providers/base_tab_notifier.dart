@@ -26,13 +26,6 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
   })  : _getStockFlowsUseCase = getStockFlowsUseCase,
         super(initialState);
 
-  /// Safe state update - checks if notifier is still mounted
-  void safeSetState(T newState) {
-    if (mounted) {
-      state = newState;
-    }
-  }
-
   /// Update loading state - must be implemented by each subclass
   /// This ensures type safety without dynamic casting
   T updateLoadingState({required bool isLoading, String? error});
@@ -59,7 +52,6 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
     required String locationId,
     bool loadMore = false,
   }) async {
-    if (!mounted) return;
     if (state.isLoadingFlows) return;
 
     state = updateLoadingState(isLoading: true, error: null);
@@ -79,21 +71,19 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
         ),
       );
 
-      if (!mounted) return;
-
       if (result.success) {
         // UseCase handles pagination merge logic
-        safeSetState(updateFlowsState(
+        state = updateFlowsState(
           flows: result.actualFlows,
           summary: loadMore ? state.locationSummary : result.locationSummary,
           hasMore: result.pagination?.hasMore ?? false,
           offset: result.actualFlows.length,
-        ));
+        );
       } else {
-        safeSetState(updateErrorState('Failed to load stock flows'));
+        state = updateErrorState('Failed to load stock flows');
       }
     } catch (e) {
-      safeSetState(updateErrorState(e.toString()));
+      state = updateErrorState(e.toString());
     }
   }
 
@@ -101,7 +91,6 @@ abstract class BaseTabNotifier<T extends BaseTabState> extends StateNotifier<T> 
   ///
   /// Common implementation for all tabs
   void clearError() {
-    if (!mounted) return;
     state = updateLoadingState(isLoading: state.isLoadingFlows, error: null);
   }
 

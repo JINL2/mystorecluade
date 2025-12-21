@@ -1,8 +1,7 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../../../core/monitoring/sentry_config.dart';
 
 /// Session state tracking for smart data fetching decisions
 ///
@@ -126,13 +125,11 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         state = SessionState.fromJson(json);
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // If loading fails, start with fresh state
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'SessionManager._loadFromStorage failed',
-      );
+      if (kDebugMode) {
+        debugPrint('⚠️ [SessionManager] Failed to load state: $e');
+      }
     }
   }
 
@@ -142,12 +139,10 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = jsonEncode(state.toJson());
       await prefs.setString(_storageKey, jsonString);
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'SessionManager._saveToStorage failed',
-      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ [SessionManager] Failed to save state: $e');
+      }
     }
   }
 
@@ -164,6 +159,10 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
       sessionId: sessionId,
     );
     await _saveToStorage();
+
+    if (kDebugMode) {
+      debugPrint('✅ [SessionManager] Login recorded: $sessionId');
+    }
   }
 
   /// Record successful user data fetch
@@ -178,6 +177,10 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
       userDataCacheExpiry: expiry,
     );
     await _saveToStorage();
+
+    if (kDebugMode) {
+      debugPrint('✅ [SessionManager] User data cached until: $expiry');
+    }
   }
 
   /// Record successful features data fetch
@@ -191,6 +194,10 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
       featuresCacheExpiry: expiry,
     );
     await _saveToStorage();
+
+    if (kDebugMode) {
+      debugPrint('✅ [SessionManager] Features cached until: $expiry');
+    }
   }
 
   /// Check if we should fetch fresh user data
@@ -230,17 +237,29 @@ class SessionManagerNotifier extends StateNotifier<SessionState> {
   Future<void> clearSession() async {
     state = const SessionState();
     await _saveToStorage();
+
+    if (kDebugMode) {
+      debugPrint('✅ [SessionManager] Session cleared');
+    }
   }
 
   /// Force expire cache (for manual refresh)
   ///
   /// Used when user explicitly requests fresh data (pull-to-refresh).
   Future<void> expireCache() async {
+    if (kDebugMode) {
+      debugPrint('🔴 [SessionManager] Expiring cache - forcing fresh data fetch');
+    }
+
     state = state.copyWith(
       userDataCacheExpiry: DateTime.now().subtract(const Duration(seconds: 1)),
       featuresCacheExpiry: DateTime.now().subtract(const Duration(seconds: 1)),
     );
     await _saveToStorage();
+
+    if (kDebugMode) {
+      debugPrint('🔴 [SessionManager] Cache expired successfully');
+    }
   }
 }
 

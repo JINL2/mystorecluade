@@ -37,13 +37,11 @@ import '../widgets/payment_method/sections/view_items_section.dart';
 class PaymentMethodPage extends ConsumerStatefulWidget {
   final List<SalesProduct> selectedProducts;
   final Map<String, int> productQuantities;
-  final ExchangeRateData? exchangeRateData;
 
   const PaymentMethodPage({
     super.key,
     required this.selectedProducts,
     required this.productQuantities,
-    this.exchangeRateData,
   });
 
   @override
@@ -61,17 +59,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   @override
   void initState() {
     super.initState();
-    // Use exchange rate data passed from SaleProductPage if available
-    if (widget.exchangeRateData != null) {
-      _exchangeRateData = widget.exchangeRateData;
-    }
     // Load currency and cash location data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(paymentMethodProvider.notifier).loadCurrencyData();
-      // Only load exchange rates if not already provided
-      if (_exchangeRateData == null) {
-        _loadExchangeRates();
-      }
+      _loadExchangeRates();
     });
   }
 

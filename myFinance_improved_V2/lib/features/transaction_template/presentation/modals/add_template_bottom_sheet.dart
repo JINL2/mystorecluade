@@ -175,16 +175,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         orElse: () => null,
       );
 
-      // ✅ NEW: Get account codes for expense account detection
-      final debitAccountCode = debitAccountAsync.maybeWhen(
-        data: (account) => account?.accountCode,
-        orElse: () => null,
-      );
-      final creditAccountCode = creditAccountAsync.maybeWhen(
-        data: (account) => account?.accountCode,
-        orElse: () => null,
-      );
-
       print('💳 DEBIT ACCOUNT:');
       print('  - ID: $_selectedDebitAccountId');
       print('  - Name: $debitAccountName');
@@ -235,7 +225,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         debitAccountId: _selectedDebitAccountId,
         debitAccountName: debitAccountName,
         debitCategoryTag: debitAccountCategoryTag,
-        debitAccountCode: debitAccountCode, // For expense account detection
         debitCashLocationId: _selectedDebitMyCashLocationId,
         debitCashLocationName: debitCashLocationName,
         debitCounterpartyId: _selectedDebitCounterpartyId,
@@ -246,7 +235,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         creditAccountId: _selectedCreditAccountId,
         creditAccountName: creditAccountName,
         creditCategoryTag: creditAccountCategoryTag,
-        creditAccountCode: creditAccountCode, // For expense account detection
         creditCashLocationId: _selectedCreditMyCashLocationId,
         creditCashLocationName: creditCashLocationName,
         creditCounterpartyId: _selectedCreditCounterpartyId,

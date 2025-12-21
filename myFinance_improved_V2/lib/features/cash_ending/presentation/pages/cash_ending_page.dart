@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/ai_chat/ai_chat.dart';
+import '../../../../shared/widgets/ai_chat/ai_chat_fab.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
@@ -57,10 +57,16 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
   String? _featureId;
   bool _featureInfoExtracted = false;
 
+  // AI Chat session ID - persists while page is active
+  late final String _aiChatSessionId;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
+    // Generate AI Chat session ID
+    _aiChatSessionId = const Uuid().v4();
 
     // Listen to tab changes
     _tabController.addListener(() {
@@ -104,6 +110,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     if (widget.feature == null) {
       _featureName = 'Cash Ending';
+      debugPrint('[CashEnding] ⚠️  No feature provided - AI Chat will not have feature_id');
       return;
     }
 
@@ -112,20 +119,30 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         final topFeature = widget.feature as TopFeature;
         _featureName = topFeature.featureName;
         _featureId = topFeature.featureId;
+        debugPrint('[CashEnding] ✅ TopFeature extracted: $_featureName (ID: $_featureId)');
       } else if (widget.feature is Feature) {
         final feature = widget.feature as Feature;
         _featureName = feature.featureName;
         _featureId = feature.featureId;
+        debugPrint('[CashEnding] ✅ Feature extracted: $_featureName (ID: $_featureId)');
       } else if (widget.feature is Map<String, dynamic>) {
         final featureMap = widget.feature as Map<String, dynamic>;
         _featureName = featureMap['feature_name'] as String? ?? featureMap['featureName'] as String?;
         _featureId = featureMap['feature_id'] as String? ?? featureMap['featureId'] as String?;
+        debugPrint('[CashEnding] ✅ Map extracted: $_featureName (ID: $_featureId)');
+      } else {
+        debugPrint('[CashEnding] ⚠️  Unknown feature type: ${widget.feature.runtimeType}');
       }
     } catch (e) {
+      debugPrint('[CashEnding] ❌ Error extracting feature: $e');
       _featureName = 'Cash Ending';
     }
 
     _featureName ??= 'Cash Ending';
+
+    if (_featureId == null) {
+      debugPrint('[CashEnding] ⚠️  Feature ID is null - AI Chat will not work properly');
+    }
   }
 
   @override
@@ -206,6 +223,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       ),
       floatingActionButton: AiChatFab(
         featureName: _featureName ?? 'Cash Ending',
+        sessionId: _aiChatSessionId,
         pageContext: _buildPageContext(state),
         featureId: _featureId,
       ),
@@ -252,6 +270,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
       context['cash_location_id'] = cashLocationId;
     }
 
+    debugPrint('[CashEnding] Context for AI: $context');
     return context;
   }
 
@@ -261,12 +280,9 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     CashEndingState state,
     String currencyId,
   ) async {
-    // ✅ Immediately set saving state to prevent double-tap
-    ref.read(cashTabProvider.notifier).setSaving(true);
 
     // Validation
     if (state.selectedCashLocationId == null) {
-      ref.read(cashTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Please select a cash location',
@@ -279,7 +295,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
 
     if (companyId.isEmpty || userId.isEmpty) {
-      ref.read(cashTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Invalid company or user',
@@ -292,7 +307,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Validate currencies list is not empty
     if (state.currencies.isEmpty) {
-      ref.read(cashTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'No currencies available. Please reload the page.',
@@ -425,12 +439,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     CashEndingState state,
     String currencyId,
   ) async {
-    // ✅ Immediately set saving state to prevent double-tap
-    ref.read(bankTabProvider.notifier).setSaving(true);
-
     // Validation
     if (state.selectedBankLocationId == null) {
-      ref.read(bankTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Please select a bank location',
@@ -443,7 +453,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final userId = ref.read(appStateProvider).user['user_id'] as String?;
 
     if (companyId.isEmpty || userId == null) {
-      ref.read(bankTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Invalid company or user',
@@ -453,10 +462,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Get amount from widget using type-safe getter
     final amount = _getBankTabAmount();
-
-    // Check if user has explicitly entered a value
-    // Empty string means user hasn't typed anything
-    final isExplicitlySet = amount.isNotEmpty;
 
     // Parse amount (remove commas if any) as integer
     final amountText = amount.replaceAll(',', '');
@@ -491,8 +496,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           ],
         ),
       ],
-      // Track if user explicitly entered a value (including 0)
-      isExplicitlySet: isExplicitlySet,
     );
 
     // Save via BankTabProvider
@@ -566,12 +569,19 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     String currencyId,
     String transactionType,
   ) async {
-    // ✅ Immediately set saving state to prevent double-tap
-    ref.read(vaultTabProvider.notifier).setSaving(true);
+    debugPrint('\n');
+    debugPrint('╔═══════════════════════════════════════════════════════╗');
+    debugPrint('║  🎯 [CashEndingPage] _saveVaultTransaction 호출    ║');
+    debugPrint('╠═══════════════════════════════════════════════════════╣');
+    debugPrint('║  📋 transactionType: $transactionType');
+    debugPrint('║  💰 currencyId: $currencyId');
+    debugPrint('║  🏢 companyId: ${ref.read(appStateProvider).companyChoosen}');
+    debugPrint('║  👤 userId: ${ref.read(appStateProvider).user['user_id']}');
+    debugPrint('╚═══════════════════════════════════════════════════════╝');
+    debugPrint('\n');
 
     // Validation
     if (state.selectedVaultLocationId == null) {
-      ref.read(vaultTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Please select a vault location',
@@ -588,7 +598,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final companyId = appState.companyChoosen;
 
     if (userId == null || companyId.isEmpty) {
-      ref.read(vaultTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'Missing user or company information',
@@ -598,7 +607,6 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     // Validate currencies list is not empty
     if (state.currencies.isEmpty) {
-      ref.read(vaultTabProvider.notifier).setSaving(false);
       await TossDialogs.showCashEndingError(
         context: context,
         error: 'No currencies available. Please reload the page.',
@@ -643,7 +651,10 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     Map<String, dynamic>? recountResult;
 
     if (transactionType == 'recount') {
+      debugPrint('🟢 [CashEndingPage] ✨ RECOUNT 분기 진입! (Stock → Flow 변환)');
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // RECOUNT: Stock → Flow 변환
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // Use first currency for recount (recount is per currency)
       final currency = currenciesWithData.first;
       final vaultRecount = VaultRecount(
@@ -657,20 +668,24 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         denominations: currency.denominations, // Stock 수량
       );
 
+      debugPrint('📦 [CashEndingPage] VaultRecount entity 생성:');
+      debugPrint('   - locationId: ${vaultRecount.locationId}');
+      debugPrint('   - currencyId: ${vaultRecount.currencyId}');
+      debugPrint('   - denominations: ${vaultRecount.denominations.length}개');
+      debugPrint('   - totalAmount: ${vaultRecount.totalAmount}');
+
       try {
+        debugPrint('🚀 [CashEndingPage] VaultTabNotifier.recountVault() 호출...');
         // Call recount RPC via VaultTabNotifier
         recountResult = await ref.read(vaultTabProvider.notifier).recountVault(vaultRecount);
         success = recountResult['success'] == true;
-      } catch (e, stackTrace) {
-        SentryConfig.captureException(
-          e,
-          stackTrace,
-          hint: 'CashEndingPage vault recount failed',
-          extra: {
-            'locationId': state.selectedVaultLocationId,
-            'currencyId': currency.currencyId,
-          },
-        );
+
+        debugPrint('✅ [CashEndingPage] Recount 성공!');
+        debugPrint('   - adjustment_count: ${recountResult['adjustment_count']}');
+        debugPrint('   - total_variance: ${recountResult['total_variance']}');
+        debugPrint('   - adjustments: ${recountResult['adjustments']}');
+      } catch (e) {
+        debugPrint('❌ [CashEndingPage] Recount 실패: $e');
         success = false;
         if (mounted) {
           await TossDialogs.showCashEndingError(
@@ -681,7 +696,12 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         return;
       }
     } else {
+      debugPrint('🔵🟠 [CashEndingPage] ✨ NORMAL 분기 진입! (In/Out Transaction)');
+      debugPrint('   - isCredit: ${transactionType == 'credit'}');
+      debugPrint('   - currencies: ${currenciesWithData.length}개');
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       // NORMAL: In/Out Transaction (다중 통화 지원)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // ✅ Filter out currencies with no quantities
       final currenciesWithQuantities = currenciesWithData
@@ -689,7 +709,7 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
           .toList();
 
       if (currenciesWithQuantities.isEmpty) {
-        ref.read(vaultTabProvider.notifier).setSaving(false);
+        debugPrint('⚠️ [CashEndingPage] No currencies with quantities!');
         success = false;
         if (mounted) {
           await TossDialogs.showCashEndingError(
@@ -712,8 +732,17 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         currencies: currenciesWithQuantities, // ✅ ALL currencies at once
       );
 
+      debugPrint('📦 [CashEndingPage] VaultTransaction entity 생성 (Multi-Currency):');
+      debugPrint('   - currencies: ${vaultTransaction.currencies.length}개');
+      for (final currency in currenciesWithQuantities) {
+        debugPrint('   - ${currency.currencyCode}: ${currency.denominations.where((d) => d.quantity > 0).length}개 denominations');
+        debugPrint('     totalAmount: ${currency.totalAmount}');
+      }
+
       // ✅ Save ALL currencies in one RPC call
       success = await ref.read(vaultTabProvider.notifier).saveVaultTransaction(vaultTransaction);
+
+      debugPrint('✅ [CashEndingPage] 모든 통화 저장 ${success ? '성공' : '실패'}!');
     }
 
     if (!mounted) return;

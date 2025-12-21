@@ -1,6 +1,5 @@
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
-import '../../domain/entities/shift_audit_log.dart';
 import '../../domain/repositories/employee_repository.dart';
 import '../../domain/value_objects/salary_update_request.dart';
 import '../datasources/employee_remote_datasource.dart';
@@ -50,50 +49,5 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
     return _remoteDataSource
         .watchEmployeeSalaries(companyId)
         .map((models) => models.map((model) => model.toEntity()).toList());
-  }
-
-  @override
-  Future<bool> isCurrentUserOwner(String companyId) async {
-    return _remoteDataSource.isCurrentUserOwner(companyId);
-  }
-
-  @override
-  Future<Map<String, dynamic>> validateEmployeeDelete({
-    required String companyId,
-    required String employeeUserId,
-  }) async {
-    return _remoteDataSource.validateEmployeeDelete(
-      companyId: companyId,
-      employeeUserId: employeeUserId,
-    );
-  }
-
-  @override
-  Future<Map<String, dynamic>> deleteEmployee({
-    required String companyId,
-    required String employeeUserId,
-    bool deleteSalary = true,
-  }) async {
-    return _remoteDataSource.deleteEmployee(
-      companyId: companyId,
-      employeeUserId: employeeUserId,
-      deleteSalary: deleteSalary,
-    );
-  }
-
-  @override
-  Future<List<ShiftAuditLog>> getEmployeeShiftAuditLogs({
-    required String userId,
-    required String companyId,
-    int limit = 20,
-    int offset = 0,
-  }) async {
-    final models = await _remoteDataSource.getEmployeeShiftAuditLogs(
-      userId: userId,
-      companyId: companyId,
-      limit: limit,
-      offset: offset,
-    );
-    return models.map((model) => model.toEntity()).toList();
   }
 }

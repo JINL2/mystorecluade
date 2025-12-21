@@ -28,23 +28,11 @@ class JoinRepositoryImpl extends BaseRepository implements JoinRepository {
 
         // Check if join was successful
         if (!model.success) {
-          // RPC returned success=false with error details
-          if (model.isAlreadyJoined) {
-            throw NotFoundFailure(
-              message: model.errorMessage,
-              code: 'ALREADY_JOINED',
-            );
-          } else if (model.isInvalidCode) {
-            throw NotFoundFailure(
-              message: model.errorMessage,
-              code: 'INVALID_CODE',
-            );
-          } else {
-            throw NotFoundFailure(
-              message: model.errorMessage,
-              code: 'JOIN_FAILED',
-            );
-          }
+          // RPC returned success=false, usually means code not found
+          throw const NotFoundFailure(
+            message: 'Invalid code. Please check and try again.',
+            code: 'INVALID_CODE',
+          );
         }
 
         // Convert model to entity

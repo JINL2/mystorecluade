@@ -31,8 +31,6 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
   bool? _lastHasAdminPermission;
-  bool _isFilterSheetOpen = false;
-
   @override
   void initState() {
     super.initState();
@@ -323,20 +321,6 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     );
   }
 
-  void _showFilterSheet() {
-    if (_isFilterSheetOpen) return;
-    _isFilterSheetOpen = true;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => const TemplateFilterSheet(),
-    ).whenComplete(() {
-      _isFilterSheetOpen = false;
-    });
-  }
-
   Widget _buildFilterButton() {
     return Stack(
       clipBehavior: Clip.none,
@@ -347,7 +331,14 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
             color: TossColors.gray600,
             size: 24,
           ),
-          onPressed: _showFilterSheet,
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: TossColors.transparent,
+              builder: (context) => const TemplateFilterSheet(),
+            );
+          },
         ),
       ],
     );

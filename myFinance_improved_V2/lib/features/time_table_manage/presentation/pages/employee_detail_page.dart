@@ -7,8 +7,6 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
 import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 
-import '../../domain/entities/employee_monthly_detail.dart';
-import '../providers/state/employee_monthly_detail_provider.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 
 /// Employee Detail Page
@@ -16,7 +14,7 @@ import '../widgets/stats/stats_leaderboard.dart';
 /// Shows comprehensive employee information including:
 /// - Profile header with avatar, name, role
 /// - Performance metrics (On-time Rate, Completed Shifts, Reliability Score)
-/// - Attendance history with filterable tabs (real data from RPC)
+/// - Attendance history with filterable tabs
 /// - Salary breakdown for the selected month
 class EmployeeDetailPage extends ConsumerStatefulWidget {
   final LeaderboardEmployee employee;
@@ -40,23 +38,6 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
   void initState() {
     super.initState();
     _selectedMonth = DateTime.now();
-    // Load data after frame is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMonthlyData();
-    });
-  }
-
-  String get _yearMonth {
-    return '${_selectedMonth.year}-${_selectedMonth.month.toString().padLeft(2, '0')}';
-  }
-
-  void _loadMonthlyData() {
-    final userId = widget.employee.visitorId;
-    if (userId == null) return;
-    ref.read(employeeMonthlyDetailProvider.notifier).loadData(
-          userId: userId,
-          yearMonth: _yearMonth,
-        );
   }
 
   void _changeMonth(int delta) {
@@ -67,7 +48,6 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         _selectedMonth.month + delta,
       );
     });
-    _loadMonthlyData();
   }
 
   String get _monthLabel {
@@ -76,50 +56,38 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(employeeMonthlyDetailProvider);
-    final userId = widget.employee.visitorId;
-    final monthlyData = userId != null ? state.getData(userId, _yearMonth) : null;
-
     return Scaffold(
       backgroundColor: TossColors.white,
       appBar: _buildAppBar(),
-      body: state.isLoading && monthlyData == null
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Profile Header Section
-                  Padding(
-                    padding: const EdgeInsets.all(TossSpacing.space4),
-                    child: _buildProfileHeader(monthlyData),
-                  ),
-
-                  // Gray divider (full width)
-                  const GrayDividerSpace(),
-
-                  // Attendance History Section
-                  _buildAttendanceHistorySection(monthlyData),
-
-                  // Gray divider (full width)
-                  const GrayDividerSpace(),
-
-                  // Recent Activity Section (Audit Logs)
-                  _buildRecentActivitySection(monthlyData),
-
-                  // Gray divider (full width)
-                  const GrayDividerSpace(),
-
-                  // Salary Breakdown Section
-                  Padding(
-                    padding: const EdgeInsets.all(TossSpacing.space4),
-                    child: _buildSalaryBreakdownSection(monthlyData),
-                  ),
-
-                  const SizedBox(height: TossSpacing.space6),
-                ],
-              ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile Header Section
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              child: _buildProfileHeader(),
             ),
+
+            // Gray divider (full width)
+            const GrayDividerSpace(),
+
+            // Attendance History Section
+            _buildAttendanceHistorySection(),
+
+            // Gray divider (full width)
+            const GrayDividerSpace(),
+
+            // Salary Breakdown Section
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              child: _buildSalaryBreakdownSection(),
+            ),
+
+            const SizedBox(height: TossSpacing.space6),
+          ],
+        ),
+      ),
     );
   }
 
@@ -132,46 +100,26 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         icon: const Icon(Icons.arrow_back, color: TossColors.gray900),
         onPressed: () => Navigator.pop(context),
       ),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Previous month button
-          IconButton(
-            icon: const Icon(Icons.chevron_left, color: TossColors.gray600),
-            onPressed: () => _changeMonth(-1),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-          // Month label (tappable for picker)
-          GestureDetector(
-            onTap: _showMonthPicker,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _monthLabel,
-                  style: TossTextStyles.titleMedium.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 20,
-                  color: TossColors.primary,
-                ),
-              ],
+      title: GestureDetector(
+        onTap: _showMonthPicker,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _monthLabel,
+              style: TossTextStyles.titleMedium.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          // Next month button
-          IconButton(
-            icon: const Icon(Icons.chevron_right, color: TossColors.gray600),
-            onPressed: () => _changeMonth(1),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-        ],
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 18,
+              color: TossColors.primary,
+            ),
+          ],
+        ),
       ),
       centerTitle: true,
     );
@@ -179,26 +127,10 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
 
   void _showMonthPicker() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => _MonthPickerSheet(
-        selectedMonth: _selectedMonth,
-        onMonthSelected: (month) {
-          Navigator.pop(context);
-          setState(() {
-            _selectedMonth = month;
-          });
-          _loadMonthlyData();
-        },
-      ),
-    );
+    // TODO: Implement month picker bottom sheet
   }
 
-  Widget _buildProfileHeader(EmployeeMonthlyDetail? monthlyData) {
+  Widget _buildProfileHeader() {
     final employee = widget.employee;
 
     return Column(
@@ -244,29 +176,22 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         const SizedBox(height: TossSpacing.space5),
 
         // Performance Metrics Row
-        _buildMetricsRow(monthlyData),
+        _buildMetricsRow(),
       ],
     );
   }
 
-  Widget _buildMetricsRow(EmployeeMonthlyDetail? monthlyData) {
-    final summary = monthlyData?.summary;
+  void _showEmployeeSelector() {
+    HapticFeedback.selectionClick();
+    // TODO: Implement employee selector bottom sheet
+  }
 
-    // Calculate on-time rate from monthly data
-    // On-time = shifts with actual_start that are not late
-    final totalWorkedShifts = summary?.approvedCount ?? 0;
-    final lateCount = summary?.lateCount ?? 0;
-    final onTimeCount = totalWorkedShifts - lateCount;
-    final onTimeRate = totalWorkedShifts > 0
-        ? (onTimeCount / totalWorkedShifts * 100).round()
-        : 0;
+  Widget _buildMetricsRow() {
+    final employee = widget.employee;
 
-    // Completed shifts = shifts with both check-in and check-out
-    // For now, use approvedCount as proxy (TODO: add completed_count to RPC)
-    final completedShifts = summary?.approvedCount ?? 0;
-
-    // Total shifts this month
-    final totalShifts = summary?.totalShifts ?? 0;
+    // Calculate on-time rate from late rate
+    final onTimeRate = 100 - employee.lateRate;
+    final onTimeRateStr = '${onTimeRate.toStringAsFixed(0)}%';
 
     return Row(
       children: [
@@ -274,8 +199,10 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         Expanded(
           child: _MetricCard(
             label: 'On-time Rate',
-            value: '$onTimeRate%',
-            footnote: '$onTimeCount / $totalWorkedShifts shifts',
+            value: onTimeRateStr,
+            change: '+1.5%', // TODO: Calculate from historical data
+            changeIsPositive: true,
+            footnote: '#1 in company',
           ),
         ),
         const _MetricDivider(),
@@ -283,17 +210,21 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         Expanded(
           child: _MetricCard(
             label: 'Completed Shifts',
-            value: completedShifts.toString(),
-            footnote: 'of $totalShifts total',
+            value: employee.completedShifts.toString(),
+            change: '+0.8%',
+            changeIsPositive: true,
+            footnote: 'Above store average',
           ),
         ),
         const _MetricDivider(),
-        // Total Hours
+        // Reliability Score
         Expanded(
           child: _MetricCard(
-            label: 'Total Hours',
-            value: summary?.formattedWorkedHours ?? '0h',
-            footnote: 'this month',
+            label: 'Reliability Score',
+            value: employee.finalScore.round().toString(),
+            change: '-0.2%',
+            changeIsPositive: false,
+            footnote: '#2 of 23 staff',
             showInfoIcon: true,
           ),
         ),
@@ -301,17 +232,14 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
     );
   }
 
-  Widget _buildAttendanceHistorySection(EmployeeMonthlyDetail? monthlyData) {
-    // Get shifts based on selected tab
-    final shifts = monthlyData != null
-        ? _getFilteredShifts(monthlyData)
-        : <EmployeeShiftRecord>[];
-
-    final summary = monthlyData?.summary;
-    final unresolvedCount = summary?.unresolvedCount ?? 0;
-    final resolvedCount = summary?.resolvedCount ?? 0;
-    // All shifts tab shows only approved shifts
-    final approvedCount = summary?.approvedCount ?? 0;
+  Widget _buildAttendanceHistorySection() {
+    // Get attendance items based on selected tab
+    final filter = _selectedAttendanceTab == 0
+        ? 'unresolved'
+        : _selectedAttendanceTab == 1
+            ? 'resolved'
+            : 'all';
+    final attendanceItems = _getMockAttendanceItems(filter);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,33 +263,22 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         const SizedBox(height: TossSpacing.space3),
 
         // Tab Bar
-        _buildAttendanceTabs(unresolvedCount, resolvedCount, approvedCount),
+        _buildAttendanceTabs(),
 
         const SizedBox(height: TossSpacing.space3),
 
         // Tab Content (no fixed height, renders inline)
-        _buildAttendanceContent(shifts),
+        _buildAttendanceContent(attendanceItems),
       ],
     );
   }
 
-  List<EmployeeShiftRecord> _getFilteredShifts(EmployeeMonthlyDetail data) {
-    switch (_selectedAttendanceTab) {
-      case 0: // Unresolved
-        return data.getShiftsByFilter(ShiftFilterType.unresolved);
-      case 1: // Resolved
-        return data.getShiftsByFilter(ShiftFilterType.resolved);
-      case 2: // All
-      default:
-        return data.getShiftsByFilter(ShiftFilterType.all);
-    }
-  }
+  Widget _buildAttendanceTabs() {
+    // TODO: Get actual counts from data
+    const unresolvedCount = 4;
+    const resolvedCount = 10;
+    const allCount = 16;
 
-  Widget _buildAttendanceTabs(
-    int unresolvedCount,
-    int resolvedCount,
-    int totalCount,
-  ) {
     return Container(
       decoration: const BoxDecoration(
         border: Border(
@@ -392,7 +309,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
           ),
           Expanded(
             child: _AttendanceTab(
-              title: 'All shifts ($totalCount)',
+              title: 'All shifts ($allCount)',
               isActive: _selectedAttendanceTab == 2,
               onTap: () {
                 HapticFeedback.selectionClick();
@@ -405,8 +322,8 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
     );
   }
 
-  Widget _buildAttendanceContent(List<EmployeeShiftRecord> shifts) {
-    if (shifts.isEmpty) {
+  Widget _buildAttendanceContent(List<_AttendanceItem> items) {
+    if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(TossSpacing.space6),
         child: Center(
@@ -435,108 +352,187 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
-        children: shifts
-            .map((shift) => _AttendanceCard(shift: shift))
+        children: items
+            .map((item) => _AttendanceCard(
+                  item: item,
+                  onTap: () => _navigateToShiftDetail(item),
+                ))
             .toList(),
       ),
     );
   }
 
-  Widget _buildRecentActivitySection(EmployeeMonthlyDetail? monthlyData) {
-    final auditLogs = monthlyData?.auditLogs ?? [];
+  List<_AttendanceItem> _getMockAttendanceItems(String filter) {
+    // Mock data for demonstration - unresolved items
+    final unresolvedItems = [
+      const _AttendanceItem(
+        paidHours: 13.8,
+        shiftName: 'Morning shift',
+        dayNumber: 15,
+        clockIn: '08:12',
+        clockOut: '--:--',
+        needsConfirm: true,
+        issueType: AttendanceIssueType.noCheckOut,
+      ),
+      const _AttendanceItem(
+        paidHours: 11.8,
+        shiftName: 'Opening shift',
+        dayNumber: 14,
+        clockIn: '--:--',
+        clockOut: '16:02',
+        needsConfirm: true,
+        issueType: AttendanceIssueType.noCheckIn,
+      ),
+      const _AttendanceItem(
+        paidHours: 9.8,
+        shiftName: 'Afternoon shift',
+        dayNumber: 12,
+        clockIn: '14:00',
+        clockOut: '23:18',
+        needsConfirm: true,
+        issueType: AttendanceIssueType.overtime,
+      ),
+      const _AttendanceItem(
+        paidHours: 7.8,
+        shiftName: 'Closing shift',
+        dayNumber: 10,
+        clockIn: '17:58',
+        clockOut: '21:15',
+        needsConfirm: true,
+        issueType: AttendanceIssueType.earlyCheckOut,
+      ),
+    ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            TossSpacing.space4,
-            TossSpacing.space4,
-            TossSpacing.space4,
-            0,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Recent Activity',
-                style: TossTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (auditLogs.isNotEmpty)
-                Text(
-                  '${auditLogs.length} events',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-            ],
-          ),
-        ),
+    // Mock data for demonstration - resolved items (same issues but confirmed)
+    final resolvedItems = [
+      const _AttendanceItem(
+        paidHours: 13.8,
+        shiftName: 'Morning shift',
+        dayNumber: 8,
+        clockIn: '08:05',
+        clockOut: '--:--',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.noCheckOut,
+      ),
+      const _AttendanceItem(
+        paidHours: 11.8,
+        shiftName: 'Opening shift',
+        dayNumber: 7,
+        clockIn: '--:--',
+        clockOut: '15:45',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.noCheckIn,
+      ),
+      const _AttendanceItem(
+        paidHours: 10.2,
+        shiftName: 'Afternoon shift',
+        dayNumber: 6,
+        clockIn: '13:55',
+        clockOut: '22:30',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.overtime,
+      ),
+      const _AttendanceItem(
+        paidHours: 7.5,
+        shiftName: 'Closing shift',
+        dayNumber: 5,
+        clockIn: '18:02',
+        clockOut: '21:00',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.earlyCheckOut,
+      ),
+      const _AttendanceItem(
+        paidHours: 8.0,
+        shiftName: 'Morning shift',
+        dayNumber: 4,
+        clockIn: '08:15',
+        clockOut: '16:00',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.late,
+      ),
+      const _AttendanceItem(
+        paidHours: 8.0,
+        shiftName: 'Opening shift',
+        dayNumber: 3,
+        clockIn: '07:58',
+        clockOut: '16:05',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.noCheckIn,
+      ),
+      const _AttendanceItem(
+        paidHours: 9.5,
+        shiftName: 'Afternoon shift',
+        dayNumber: 2,
+        clockIn: '14:00',
+        clockOut: '23:00',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.overtime,
+      ),
+      const _AttendanceItem(
+        paidHours: 7.2,
+        shiftName: 'Closing shift',
+        dayNumber: 1,
+        clockIn: '17:50',
+        clockOut: '20:45',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.earlyCheckOut,
+      ),
+      const _AttendanceItem(
+        paidHours: 8.0,
+        shiftName: 'Morning shift',
+        dayNumber: 28,
+        clockIn: '08:20',
+        clockOut: '16:10',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.late,
+      ),
+      const _AttendanceItem(
+        paidHours: 12.0,
+        shiftName: 'Opening shift',
+        dayNumber: 25,
+        clockIn: '--:--',
+        clockOut: '18:00',
+        needsConfirm: false,
+        issueType: AttendanceIssueType.noCheckIn,
+      ),
+    ];
 
-        const SizedBox(height: TossSpacing.space3),
-
-        // Activity List
-        if (auditLogs.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space6),
-            child: Center(
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.history,
-                    size: 48,
-                    color: TossColors.gray300,
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  Text(
-                    'No activity this month',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: Column(
-              children: auditLogs
-                  .take(10) // Limit to 10 most recent
-                  .map((log) => _ActivityLogItem(log: log))
-                  .toList(),
-            ),
-          ),
-      ],
-    );
+    switch (filter) {
+      case 'unresolved':
+        return unresolvedItems;
+      case 'resolved':
+        return resolvedItems;
+      case 'all':
+      default:
+        return [...unresolvedItems, ...resolvedItems];
+    }
   }
 
-  Widget _buildSalaryBreakdownSection(EmployeeMonthlyDetail? monthlyData) {
-    final employee = widget.employee;
-    final summary = monthlyData?.summary;
-    final salaryInfo = monthlyData?.salary;
+  void _navigateToShiftDetail(_AttendanceItem item) {
+    HapticFeedback.selectionClick();
+    // TODO: Navigate to shift detail page
+  }
 
-    // Use real data if available
-    final totalWorkedHours = summary?.totalWorkedHours ?? (employee.completedShifts * 8.0);
-    final salaryAmount = salaryInfo?.salaryAmount ?? employee.salaryAmount;
-    final totalBonus = summary?.totalBonus ?? 0;
-    final totalLateMinutes = summary?.totalLateDeduction ?? 0; // This is minutes, not currency
-    final unresolvedCount = summary?.unresolvedCount ?? 0;
+  Widget _buildSalaryBreakdownSection() {
+    final employee = widget.employee;
+
+    // Calculate salary values
+    final salaryAmount = employee.salaryAmount;
+    final completedShifts = employee.completedShifts;
+    final paidHours = completedShifts * 8.0; // Approximate
 
     // Format values
     final formatter = NumberFormat('#,###');
-    final currencySymbol = salaryInfo?.currencySymbol ?? '₫';
+    final totalConfirmedTime = '${paidHours.toStringAsFixed(0)}h 30m';
+    final hourlySalary = '${formatter.format(salaryAmount.toInt())}₫';
+    final basePay = formatter.format((paidHours * salaryAmount).toInt());
+    final bonusPay = '1,450,000';
+    final penaltyDeduction = '-300,000';
+    final totalPayment = formatter.format(
+      (paidHours * salaryAmount + 1450000 - 300000).toInt(),
+    );
 
-    final basePay = totalWorkedHours * salaryAmount;
-    // Note: totalLateMinutes is in minutes, not deducted from payment directly
-    // The actual deduction calculation would need a per-minute rate
-    final totalPayment = basePay + totalBonus;
-
-    final monthRange = monthlyData?.period.displayRange ?? _getMonthRange();
+    final monthRange = _getMonthRange();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,37 +553,25 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         const SizedBox(height: TossSpacing.space4),
 
         // Salary rows
-        _SalaryRow(
-          label: 'Total confirmed time',
-          value: summary?.formattedWorkedHours ?? '${totalWorkedHours.toStringAsFixed(0)}h 0m',
-        ),
+        _SalaryRow(label: 'Total confirmed time', value: totalConfirmedTime),
         const SizedBox(height: 12),
-        _SalaryRow(
-          label: 'Hourly salary',
-          value: '${formatter.format(salaryAmount.toInt())}$currencySymbol',
-        ),
+        _SalaryRow(label: 'Hourly salary', value: hourlySalary),
         const SizedBox(height: 12),
         Container(height: 1, color: TossColors.gray100),
         const SizedBox(height: 12),
-        _SalaryRow(
-          label: 'Base pay',
-          value: '${formatter.format(basePay.toInt())}$currencySymbol',
-        ),
+        _SalaryRow(label: 'Base pay', value: '${basePay}₫'),
         const SizedBox(height: 12),
-        _SalaryRow(
-          label: 'Bonus pay',
-          value: '${formatter.format(totalBonus.toInt())}$currencySymbol',
-        ),
+        _SalaryRow(label: 'Bonus pay', value: '${bonusPay}₫'),
         const SizedBox(height: 12),
         _SalaryRow(
           label: 'Penalty deduction',
-          value: '-${totalLateMinutes.toInt()}m',
+          value: '${penaltyDeduction}₫',
           valueColor: TossColors.error,
         ),
         const SizedBox(height: 12),
         _SalaryRow(
           label: 'Total payment',
-          value: '${formatter.format(totalPayment.toInt())}$currencySymbol',
+          value: '${totalPayment}₫',
           labelStyle: TossTextStyles.titleMedium.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -600,33 +584,32 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         const SizedBox(height: TossSpacing.space3),
 
         // Warning message if unresolved issues exist
-        if (unresolvedCount > 0)
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.warning.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  size: 18,
-                  color: TossColors.warning,
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    'Warning: $unresolvedCount unresolved problems may affect final payment',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.warning,
-                      fontWeight: FontWeight.w500,
-                    ),
+        Container(
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: TossColors.warning.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 18,
+                color: TossColors.warning,
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  'Warning: 4 unresolved problems may affect final payment',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.warning,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
       ],
     );
   }
@@ -647,12 +630,16 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
 class _MetricCard extends StatelessWidget {
   final String label;
   final String value;
+  final String? change;
+  final bool changeIsPositive;
   final String? footnote;
   final bool showInfoIcon;
 
   const _MetricCard({
     required this.label,
     required this.value,
+    this.change,
+    this.changeIsPositive = true,
     this.footnote,
     this.showInfoIcon = false,
   });
@@ -686,12 +673,28 @@ class _MetricCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
 
-        // Value
-        Text(
-          value,
-          style: TossTextStyles.titleLarge.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+        // Value and change
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              value,
+              style: TossTextStyles.titleLarge.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (change != null) ...[
+              const SizedBox(width: 4),
+              Text(
+                change!,
+                style: TossTextStyles.caption.copyWith(
+                  color: changeIsPositive ? TossColors.primary : TossColors.error,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
         ),
 
         // Footnote
@@ -765,28 +768,57 @@ class _AttendanceTab extends StatelessWidget {
   }
 }
 
-/// Attendance card widget - uses real EmployeeShiftRecord
+/// Attendance item data model
+class _AttendanceItem {
+  final double paidHours;
+  final String shiftName;
+  final int dayNumber; // Day of month (1-31)
+  final String clockIn;
+  final String clockOut;
+  final bool needsConfirm;
+  final AttendanceIssueType? issueType;
+
+  const _AttendanceItem({
+    required this.paidHours,
+    required this.shiftName,
+    required this.dayNumber,
+    required this.clockIn,
+    required this.clockOut,
+    this.needsConfirm = false,
+    this.issueType,
+  });
+}
+
+enum AttendanceIssueType {
+  late,
+  overtime,
+  noCheckIn,
+  noCheckOut,
+  earlyCheckOut,
+}
+
+/// Attendance card widget
 class _AttendanceCard extends StatelessWidget {
-  final EmployeeShiftRecord shift;
+  final _AttendanceItem item;
+  final VoidCallback? onTap;
 
   const _AttendanceCard({
-    required this.shift,
+    required this.item,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isResolved = shift.isProblemSolved;
-    final clockIn = shift.displayClockIn;
-    final clockOut = shift.displayClockOut;
-    final workedHoursText = shift.workedHours != null
-        ? '${shift.workedHours!.toStringAsFixed(1)}h'
-        : '-';
+    final isResolved = !item.needsConfirm;
 
-    return Padding(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
         padding: const EdgeInsets.only(bottom: TossSpacing.space4),
         child: Row(
           children: [
-            // Day of month circle
+            // Paid hours circle (smaller)
             Container(
               width: 32,
               height: 32,
@@ -796,7 +828,7 @@ class _AttendanceCard extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  '${shift.dayOfMonth ?? '-'}',
+                  item.paidHours.toStringAsFixed(1),
                   style: TossTextStyles.small.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray700,
@@ -812,7 +844,7 @@ class _AttendanceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    shift.shiftName ?? 'Shift',
+                    item.shiftName,
                     style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -822,18 +854,17 @@ class _AttendanceCard extends StatelessWidget {
                   Text.rich(
                     TextSpan(
                       children: [
-                        // Worked hours
                         TextSpan(
-                          text: '$workedHoursText · ',
+                          text: '${item.dayNumber} · ',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray600,
-                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         TextSpan(
-                          text: clockIn,
+                          text: item.clockIn,
                           style: TossTextStyles.caption.copyWith(
-                            color: clockIn == '--:--'
+                            // Gray for resolved, red for unresolved missing time
+                            color: item.clockIn == '--:--'
                                 ? (isResolved ? TossColors.gray500 : TossColors.error)
                                 : TossColors.gray600,
                           ),
@@ -845,13 +876,15 @@ class _AttendanceCard extends StatelessWidget {
                           ),
                         ),
                         TextSpan(
-                          text: clockOut,
+                          text: item.clockOut,
                           style: TossTextStyles.caption.copyWith(
-                            color: clockOut == '--:--'
+                            // Gray for resolved, red for unresolved missing time
+                            color: item.clockOut == '--:--'
                                 ? (isResolved ? TossColors.gray500 : TossColors.error)
                                 : TossColors.gray600,
                           ),
                         ),
+                        // Show "Confirmed" for resolved, "Need Confirm" for unresolved
                         TextSpan(
                           text: ' · ',
                           style: TossTextStyles.small.copyWith(
@@ -859,7 +892,7 @@ class _AttendanceCard extends StatelessWidget {
                           ),
                         ),
                         TextSpan(
-                          text: shift.isApproved ? 'Confirmed' : 'Need Confirm',
+                          text: isResolved ? 'Confirmed' : 'Need Confirm',
                           style: TossTextStyles.small.copyWith(
                             color: TossColors.gray400,
                           ),
@@ -873,23 +906,32 @@ class _AttendanceCard extends StatelessWidget {
               ),
             ),
 
-            // Issue badge
-            if (shift.issueType != null) ...[
+            // Issue badge (gray for resolved, red for unresolved)
+            if (item.issueType != null) ...[
               const SizedBox(width: TossSpacing.space2),
               _IssueBadge(
-                issueType: shift.issueType!,
+                issueType: item.issueType!,
                 isResolved: isResolved,
               ),
             ],
+
+            // Arrow
+            const SizedBox(width: TossSpacing.space2),
+            const Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: TossColors.gray400,
+            ),
           ],
         ),
-      );
+      ),
+    );
   }
 }
 
 /// Issue badge for attendance cards
 class _IssueBadge extends StatelessWidget {
-  final ShiftIssueType issueType;
+  final AttendanceIssueType issueType;
   final bool isResolved;
 
   const _IssueBadge({
@@ -899,6 +941,7 @@ class _IssueBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final label = _getIssueLabel();
     // Use gray for resolved issues, red for unresolved
     final color = isResolved ? TossColors.gray400 : TossColors.error;
 
@@ -912,13 +955,28 @@ class _IssueBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
-        issueType.label,
+        label,
         style: TossTextStyles.small.copyWith(
           color: TossColors.white,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
+  }
+
+  String _getIssueLabel() {
+    switch (issueType) {
+      case AttendanceIssueType.late:
+        return 'Late';
+      case AttendanceIssueType.overtime:
+        return 'OT';
+      case AttendanceIssueType.noCheckIn:
+        return 'No check-in';
+      case AttendanceIssueType.noCheckOut:
+        return 'No check-out';
+      case AttendanceIssueType.earlyCheckOut:
+        return 'Early check-out';
+    }
   }
 }
 
@@ -960,314 +1018,5 @@ class _SalaryRow extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-/// Activity log item widget for Recent Activity section
-class _ActivityLogItem extends StatelessWidget {
-  final EmployeeAuditLog log;
-
-  const _ActivityLogItem({required this.log});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icon based on action type
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _getActionColor().withValues(alpha: 0.1),
-            ),
-            child: Icon(
-              _getActionIcon(),
-              size: 16,
-              color: _getActionColor(),
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-
-          // Log details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Action label
-                Text(
-                  log.actionType.label,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                // Details row: store, date, changed by
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      if (log.storeName != null) ...[
-                        TextSpan(
-                          text: log.storeName,
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' · ',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray400,
-                          ),
-                        ),
-                      ],
-                      if (log.workDate != null) ...[
-                        TextSpan(
-                          text: _formatWorkDate(log.workDate!),
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' · ',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray400,
-                          ),
-                        ),
-                      ],
-                      TextSpan(
-                        text: log.changedByName ?? 'System',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          // Relative time
-          Text(
-            log.relativeTime,
-            style: TossTextStyles.small.copyWith(
-              color: TossColors.gray400,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatWorkDate(DateTime date) {
-    return '${date.month}/${date.day}';
-  }
-
-  IconData _getActionIcon() {
-    switch (log.actionType) {
-      case AuditActionType.scheduleCreated:
-        return Icons.add_circle_outline;
-      case AuditActionType.scheduleDeleted:
-        return Icons.remove_circle_outline;
-      case AuditActionType.approvalChanged:
-        return Icons.check_circle_outline;
-      case AuditActionType.checkIn:
-        return Icons.login;
-      case AuditActionType.checkOut:
-        return Icons.logout;
-      case AuditActionType.timeConfirmed:
-        return Icons.schedule;
-      case AuditActionType.problemResolved:
-        return Icons.build_circle_outlined;
-      case AuditActionType.reportResolved:
-        return Icons.report_off_outlined;
-      case AuditActionType.bonusUpdated:
-        return Icons.attach_money;
-      case AuditActionType.memoAdded:
-        return Icons.note_add_outlined;
-      case AuditActionType.updated:
-        return Icons.edit_outlined;
-    }
-  }
-
-  Color _getActionColor() {
-    switch (log.actionType) {
-      case AuditActionType.scheduleCreated:
-        return TossColors.primary;
-      case AuditActionType.scheduleDeleted:
-        return TossColors.error;
-      case AuditActionType.approvalChanged:
-        return TossColors.success;
-      case AuditActionType.checkIn:
-        return TossColors.success;
-      case AuditActionType.checkOut:
-        return TossColors.primary;
-      case AuditActionType.timeConfirmed:
-        return TossColors.success;
-      case AuditActionType.problemResolved:
-        return TossColors.warning;
-      case AuditActionType.reportResolved:
-        return TossColors.warning;
-      case AuditActionType.bonusUpdated:
-        return TossColors.success;
-      case AuditActionType.memoAdded:
-        return TossColors.gray600;
-      case AuditActionType.updated:
-        return TossColors.gray600;
-    }
-  }
-}
-
-/// Month picker bottom sheet widget
-class _MonthPickerSheet extends StatefulWidget {
-  final DateTime selectedMonth;
-  final ValueChanged<DateTime> onMonthSelected;
-
-  const _MonthPickerSheet({
-    required this.selectedMonth,
-    required this.onMonthSelected,
-  });
-
-  @override
-  State<_MonthPickerSheet> createState() => _MonthPickerSheetState();
-}
-
-class _MonthPickerSheetState extends State<_MonthPickerSheet> {
-  late int _selectedYear;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedYear = widget.selectedMonth.year;
-  }
-
-  void _changeYear(int delta) {
-    HapticFeedback.selectionClick();
-    setState(() {
-      _selectedYear += delta;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            // Year selector
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  color: TossColors.gray600,
-                  onPressed: () => _changeYear(-1),
-                ),
-                Text(
-                  '$_selectedYear',
-                  style: TossTextStyles.titleLarge.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  color: TossColors.gray600,
-                  onPressed: _selectedYear < now.year ? () => _changeYear(1) : null,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: TossSpacing.space4),
-
-            // Month grid (3x4)
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: 1.5,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: 12,
-              itemBuilder: (context, index) {
-                final monthName = _getMonthName(index + 1);
-                final isSelected = _selectedYear == widget.selectedMonth.year &&
-                    index == widget.selectedMonth.month - 1;
-                final isFuture = _selectedYear > now.year ||
-                    (_selectedYear == now.year && index > now.month - 1);
-
-                return GestureDetector(
-                  onTap: isFuture
-                      ? null
-                      : () {
-                          HapticFeedback.selectionClick();
-                          widget.onMonthSelected(
-                            DateTime(_selectedYear, index + 1),
-                          );
-                        },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? TossColors.primary
-                          : isFuture
-                              ? TossColors.gray100
-                              : TossColors.gray50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: isSelected
-                          ? null
-                          : Border.all(color: TossColors.gray200),
-                    ),
-                    child: Center(
-                      child: Text(
-                        monthName,
-                        style: TossTextStyles.body.copyWith(
-                          color: isSelected
-                              ? TossColors.white
-                              : isFuture
-                                  ? TossColors.gray400
-                                  : TossColors.gray900,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: TossSpacing.space4),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return months[month - 1];
   }
 }

@@ -22,6 +22,7 @@ import '../../features/auth/presentation/pages/complete_profile_page.dart';
 import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
+import '../../features/cash_location/presentation/pages/account_settings_page.dart';
 import '../../features/cash_location/presentation/pages/cash_location_page.dart';
 import '../../features/counter_party/presentation/pages/counter_party_page.dart';
 import '../../features/counter_party/presentation/pages/debt_account_settings_page.dart';
@@ -32,30 +33,22 @@ import '../../features/employee_setting/presentation/pages/employee_setting_page
 import '../../features/homepage/presentation/pages/homepage.dart';
 import '../../features/inventory_management/presentation/pages/add_product_page.dart';
 import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
+import '../../features/inventory_management/presentation/pages/inventory_count_detail_page.dart';
+import '../../features/inventory_management/presentation/pages/inventory_count_page.dart';
 import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
+import '../../features/inventory_management/presentation/pages/new_inventory_count_page.dart';
 import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
+import '../../features/inventory_management/presentation/pages/stock_in_page.dart';
+import '../../features/inventory_management/presentation/pages/new_stock_in_record_page.dart';
 import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../features/my_page/presentation/pages/edit_profile_page.dart';
-import '../../features/my_page/presentation/pages/language_settings_page.dart';
 import '../../features/my_page/presentation/pages/my_page.dart';
 import '../../features/my_page/presentation/pages/notifications_settings_page.dart';
 import '../../features/my_page/presentation/pages/privacy_security_page.dart';
-import '../../features/my_page/presentation/pages/subscription_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/register_denomination/presentation/pages/register_denomination_page.dart';
 import '../../features/sale_product/presentation/pages/sale_product_page.dart';
 import '../../features/sales_invoice/presentation/pages/sales_invoice_page.dart';
-import '../../features/session/presentation/pages/session_page.dart';
-import '../../features/session/presentation/pages/session_action_page.dart';
-import '../../features/session/presentation/pages/session_detail_page.dart';
-import '../../features/session/presentation/pages/session_count_detail_page.dart';
-import '../../features/session/presentation/pages/session_review_page.dart';
-import '../../features/session/presentation/pages/session_receiving_review_page.dart';
-import '../../features/session/presentation/pages/session_history_page.dart';
-import '../../features/session/presentation/pages/session_history_detail_page.dart';
-import '../../features/session/presentation/pages/receiving_result_page.dart';
-import '../../features/session/domain/entities/session_history_item.dart';
-import '../../features/session/domain/entities/session_review_item.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/design_library/presentation/pages/theme_library_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
@@ -91,6 +84,7 @@ class RouterNotifier extends ChangeNotifier {
     _authListener = _ref.listen<bool>(
       isAuthenticatedProvider,
       (previous, next) {
+        debugPrint('🔄 [RouterNotifier] Auth state changed: $previous -> $next');
         // Skip notifications during active auth navigation
         if (_lastAuthNavigationTime != null &&
             DateTime.now().difference(_lastAuthNavigationTime!) < const Duration(seconds: 2)) {
@@ -132,15 +126,20 @@ class RouterNotifier extends ChangeNotifier {
     _userCompaniesListener = _ref.listen<AsyncValue<Map<String, dynamic>?>>(
       userCompaniesProvider,
       (previous, next) {
+        debugPrint('🔄 [RouterNotifier] UserCompanies state changed');
         next.when(
           data: (data) {
+            debugPrint('✅ [RouterNotifier] UserCompanies data loaded: ${data != null}');
             // Data loaded - trigger router refresh for next step navigation
             Future.delayed(const Duration(milliseconds: 200), () {
               notifyListeners();
             });
           },
-          loading: () {},
+          loading: () {
+            debugPrint('⏳ [RouterNotifier] UserCompanies loading...');
+          },
           error: (error, stack) {
+            debugPrint('❌ [RouterNotifier] UserCompanies error: $error');
             // Error (e.g., orphan session) - trigger refresh to handle redirect
             Future.delayed(const Duration(milliseconds: 100), () {
               notifyListeners();
@@ -234,18 +233,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       try {
         final currentPath = state.matchedLocation;
 
+        // 🔍 DEBUG: Current path
+        debugPrint('┌─────────────────────────────────────────────────────');
+
         // Skip redirects during active navigation
         if (routerNotifier.isNavigationLocked) {
+          debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
 
         // Helper function for safe redirect with loop detection
         String? safeRedirect(String targetPath, String reason) {
           if (routerNotifier._checkForRedirectLoop(targetPath)) {
+            debugPrint('└─────────────────────────────────────────────────────');
             routerNotifier._clearRedirectHistory();
             return '/';
           }
 
+          debugPrint('└─────────────────────────────────────────────────────');
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
         }
@@ -292,6 +297,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // Allow unauthenticated users to access auth pages (login, signup)
         if (!isAuth && isAuthRoute) {
+          debugPrint('└─────────────────────────────────────────────────────');
           return null;
         }
 
@@ -312,6 +318,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // ⚠️ CRITICAL FIX: Check if AppState data is still loading
           // If AppState is empty, stay on auth page and wait for data to load
           if (!hasUserData) {
+            debugPrint('└─────────────────────────────────────────────────────');
             return null;  // Stay on current page, wait for data to load
           }
 
@@ -324,8 +331,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return safeRedirect('/onboarding/choose-role', 'No companies');
         }
 
+        debugPrint('└─────────────────────────────────────────────────────');
         return null;
       } catch (error) {
+        debugPrint('└─────────────────────────────────────────────────────');
         return '/';
       }
     },
@@ -603,16 +612,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'privacy-security',
         builder: (context, state) => const PrivacySecurityPage(),
       ),
-      GoRoute(
-        path: '/language-settings',
-        name: 'language-settings',
-        builder: (context, state) => const LanguageSettingsPage(),
-      ),
-      GoRoute(
-        path: '/subscription',
-        name: 'subscription',
-        builder: (context, state) => const SubscriptionPage(),
-      ),
 
       // Store Shift Route
       GoRoute(
@@ -698,6 +697,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               return EditProductPage(productId: productId);
             },
           ),
+          GoRoute(
+            path: 'inventoryCount',
+            name: 'inventoryCount',
+            builder: (context, state) => const InventoryCountPage(),
+          ),
+          GoRoute(
+            path: 'stockIn',
+            name: 'stockIn',
+            builder: (context, state) => const StockInPage(),
+          ),
+          GoRoute(
+            path: 'newStockInRecord',
+            name: 'newStockInRecord',
+            builder: (context, state) => const NewStockInRecordPage(),
+          ),
+          GoRoute(
+            path: 'newInventoryCount',
+            name: 'newInventoryCount',
+            builder: (context, state) => const NewInventoryCountPage(),
+          ),
+          GoRoute(
+            path: 'inventoryCountDetail',
+            name: 'inventoryCountDetail',
+            builder: (context, state) {
+              final extra = state.extra;
+              if (extra is! Map<String, dynamic>) {
+                return const Scaffold(
+                  body: Center(child: Text('Invalid parameters')),
+                );
+              }
+              return InventoryCountDetailPage(
+                countId: extra['countId'] as String,
+                title: extra['title'] as String,
+                location: extra['location'] as String,
+                startedAt: extra['startedAt'] as DateTime,
+                status: extra['status'] as String,
+                memo: extra['memo'] as String?,
+              );
+            },
+          ),
         ],
       ),
 
@@ -745,144 +784,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return ReportControlPage(feature: feature);
         },
       ),
-
-      // Session Route
-      GoRoute(
-        path: '/session',
-        name: 'session',
-        builder: (context, state) {
-          final feature = state.extra;
-          return SessionPage(feature: feature);
-        },
-      ),
-
-      // Session History Route (view past sessions) - Must be before dynamic routes
-      GoRoute(
-        path: '/session/history',
-        name: 'session-history',
-        builder: (context, state) => const SessionHistoryPage(),
-      ),
-
-      // Session History Detail Route
-      GoRoute(
-        path: '/session/history/detail',
-        name: 'session-history-detail',
-        builder: (context, state) {
-          final session = state.extra as SessionHistoryItem;
-          return SessionHistoryDetailPage(session: session);
-        },
-      ),
-
-      // Session Action Route (Create or Join)
-      GoRoute(
-        path: '/session/action/:sessionType',
-        name: 'session-action',
-        builder: (context, state) {
-          final sessionType = state.pathParameters['sessionType'] ?? 'counting';
-          return SessionActionPage(sessionType: sessionType);
-        },
-      ),
-
-      // Session Count Detail Route (session info page with users)
-      GoRoute(
-        path: '/session/count-detail/:sessionId',
-        name: 'session-count-detail',
-        builder: (context, state) {
-          final sessionId = state.pathParameters['sessionId'] ?? '';
-          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
-          final storeId = state.uri.queryParameters['storeId'] ?? '';
-          final sessionName = state.uri.queryParameters['sessionName'] ?? '';
-          final storeName = state.uri.queryParameters['storeName'] ?? '';
-          final isActiveParam = state.uri.queryParameters['isActive'];
-          final isActive = isActiveParam == 'true';
-          final createdAt = state.uri.queryParameters['createdAt'] ?? '';
-          final memo = state.uri.queryParameters['memo'];
-          final isOwnerParam = state.uri.queryParameters['isOwner'];
-          final isOwner = isOwnerParam == 'true';
-
-          return SessionCountDetailPage(
-            sessionId: sessionId,
-            sessionName: sessionName,
-            sessionType: sessionType,
-            storeId: storeId,
-            storeName: storeName,
-            isActive: isActive,
-            createdAt: createdAt,
-            memo: memo,
-            isOwner: isOwner,
-          );
-        },
-      ),
-
-      // Session Detail Route (after creating/joining a session)
-      GoRoute(
-        path: '/session/detail/:sessionId',
-        name: 'session-detail',
-        builder: (context, state) {
-          final sessionId = state.pathParameters['sessionId'] ?? '';
-          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
-          final storeId = state.uri.queryParameters['storeId'] ?? '';
-          final sessionName = state.uri.queryParameters['sessionName'];
-          final isOwnerParam = state.uri.queryParameters['isOwner'];
-          final isOwner = isOwnerParam == 'true';
-
-          return SessionDetailPage(
-            sessionId: sessionId,
-            sessionType: sessionType,
-            storeId: storeId,
-            sessionName: sessionName,
-            isOwner: isOwner,
-          );
-        },
-      ),
-
-      // Session Review Route (review counted items before final submission)
-      // Routes to different pages based on session type:
-      // - counting: SessionReviewPage (card-style review)
-      // - receiving: SessionReceivingReviewPage (table-style with Shipped/Received/Accepted/Rejected)
-      GoRoute(
-        path: '/session/review/:sessionId',
-        name: 'session-review',
-        builder: (context, state) {
-          final sessionId = state.pathParameters['sessionId'] ?? '';
-          final sessionType = state.uri.queryParameters['sessionType'] ?? 'counting';
-          final sessionName = state.uri.queryParameters['sessionName'];
-          final storeId = state.uri.queryParameters['storeId'] ?? '';
-
-          // Use different review page based on session type
-          if (sessionType == 'receiving') {
-            return SessionReceivingReviewPage(
-              sessionId: sessionId,
-              sessionType: sessionType,
-              sessionName: sessionName,
-              storeId: storeId,
-            );
-          }
-
-          // Default: counting session uses original review page
-          return SessionReviewPage(
-            sessionId: sessionId,
-            sessionType: sessionType,
-            sessionName: sessionName,
-            storeId: storeId,
-          );
-        },
-      ),
-      // Receiving result page - shows stock changes after submit
-      GoRoute(
-        path: '/session/receiving-result',
-        name: 'receiving-result',
-        builder: (context, state) {
-          final response = state.extra as SessionSubmitResponse?;
-          if (response == null) {
-            // Fallback if no response data - go back to session page
-            return const SessionPage();
-          }
-          return ReceivingResultPage(response: response);
-        },
-      ),
     ],
   );
+
+  // 🔍 DEBUG: Log all registered routes
+  debugPrint('🔍 [Router Init] Total routes: ${router.configuration.routes.length}');
+  for (var route in router.configuration.routes) {
+    if (route is GoRoute) {
+      debugPrint('🔍 [Router Init] Path: ${route.path}, Name: ${route.name}');
+    }
+  }
 
   return router;
 });

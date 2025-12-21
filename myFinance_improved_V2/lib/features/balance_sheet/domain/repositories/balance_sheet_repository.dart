@@ -5,25 +5,19 @@ import '../value_objects/currency.dart';
 
 /// Balance sheet repository interface
 abstract class BalanceSheetRepository {
-  /// Get balance sheet data (v2 - no date filter, uses balance_sheet_logs)
+  /// Get balance sheet data
   Future<BalanceSheet> getBalanceSheet({
     required String companyId,
+    required String startDate,
+    required String endDate,
     String? storeId,
   });
 
-  /// Get income statement data (v3 - with timezone support)
-  ///
-  /// Parameters:
-  /// - companyId: Company UUID
-  /// - startTime: Start timestamp in user's local time (YYYY-MM-DD HH:MM:SS)
-  /// - endTime: End timestamp in user's local time (YYYY-MM-DD HH:MM:SS)
-  /// - timezone: IANA timezone string (e.g., 'Asia/Ho_Chi_Minh', 'Asia/Seoul')
-  /// - storeId: Optional store UUID (null = all stores)
+  /// Get income statement data
   Future<IncomeStatement> getIncomeStatement({
     required String companyId,
-    required String startTime,
-    required String endTime,
-    required String timezone,
+    required String startDate,
+    required String endDate,
     String? storeId,
   });
 

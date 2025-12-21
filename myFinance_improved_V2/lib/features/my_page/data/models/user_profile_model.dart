@@ -7,7 +7,6 @@ class UserProfileModel {
   final String? lastName;
   final String email;
   final String? phoneNumber;
-  final String? dateOfBirth;
   final String? profileImage;
   final String? bankName;
   final String? bankAccountNumber;
@@ -28,7 +27,6 @@ class UserProfileModel {
     this.lastName,
     required this.email,
     this.phoneNumber,
-    this.dateOfBirth,
     this.profileImage,
     this.bankName,
     this.bankAccountNumber,
@@ -51,7 +49,6 @@ class UserProfileModel {
       lastName: json['last_name']?.toString(),
       email: json['email']?.toString() ?? '',
       phoneNumber: json['user_phone_number']?.toString(),
-      dateOfBirth: json['date_of_birth']?.toString(),
       profileImage: json['profile_image']?.toString(),
       bankName: json['bank_name']?.toString(),
       bankAccountNumber: json['bank_account_number']?.toString(),
@@ -75,7 +72,6 @@ class UserProfileModel {
       'last_name': lastName,
       'email': email,
       'user_phone_number': phoneNumber,
-      'date_of_birth': dateOfBirth,
       'profile_image': profileImage,
       'bank_name': bankName,
       'bank_account_number': bankAccountNumber,
@@ -99,7 +95,6 @@ class UserProfileModel {
       lastName: lastName,
       email: email,
       phoneNumber: phoneNumber,
-      dateOfBirth: dateOfBirth,
       profileImage: profileImage,
       bankName: bankName,
       bankAccountNumber: bankAccountNumber,
@@ -123,7 +118,6 @@ class UserProfileModel {
       lastName: entity.lastName,
       email: entity.email,
       phoneNumber: entity.phoneNumber,
-      dateOfBirth: entity.dateOfBirth,
       profileImage: entity.profileImage,
       bankName: entity.bankName,
       bankAccountNumber: entity.bankAccountNumber,

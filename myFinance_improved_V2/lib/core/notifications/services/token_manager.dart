@@ -88,6 +88,7 @@ class TokenManager {
       // Token manager initialized (reduced logging)
     } catch (e, stack) {
       _monitor.logError('initialization_failed', e, stack);
+      debugPrint('❌ Token Manager init failed: $e');
       // Don't rethrow - allow app to continue
     }
   }
@@ -235,6 +236,10 @@ class TokenManager {
         'duration_ms': stopwatch.elapsedMilliseconds,
         'success': _currentToken != null,
       });
+      
+      if (kDebugMode && stopwatch.elapsedMilliseconds > 1000) {
+        debugPrint('⚡ Token registered in ${stopwatch.elapsedMilliseconds}ms');
+      }
     } catch (e, stack) {
       stopwatch.stop();
       _monitor.logError('immediate_registration_failed', e, stack);
@@ -362,6 +367,11 @@ class TokenManager {
           'retry_count': retryCount,
           'token_id': result.id,
         });
+        
+        // Reduced logging - only log in debug mode
+        if (kDebugMode) {
+          debugPrint('✅ Token updated (${result.id})');
+        }
       } else {
         throw Exception('Token update returned null - check if user_fcm_tokens table exists in Supabase');
       }
@@ -376,7 +386,9 @@ class TokenManager {
           'retry_count': retryCount + 1,
           'delay_seconds': delay.inSeconds,
         });
-
+        
+        debugPrint('⏳ Retrying in ${delay.inSeconds}s (attempt ${retryCount + 1}/$_maxRetries)');
+        
         _retryTimer?.cancel();
         _retryTimer = Timer(delay, () {
           _updateTokenWithRetry(token, immediate: immediate, retryCount: retryCount + 1);
@@ -384,6 +396,7 @@ class TokenManager {
       } else {
         // Max retries reached - queue for later
         _queueTokenUpdate(token);
+        debugPrint('❌ Token update failed after $_maxRetries attempts - queued');
       }
     }
   }
@@ -675,12 +688,29 @@ class _TokenMonitor {
       _events.removeAt(0);
     }
     
+    // Only log significant events to reduce console spam
+    final significantEvents = [
+      'initialization_completed',
+      'token_update_success',
+      'auth_signed_in',
+      'auth_signed_out',
+      'immediate_registration',
+    ];
+    
+    if (kDebugMode && significantEvents.contains(event)) {
+      debugPrint('📊 $event ${data ?? ''}');
+    }
   }
-
+  
   void logError(String event, dynamic error, StackTrace? stack) {
     logEvent('error_$event', {
       'error': error.toString(),
+      'stack': kDebugMode ? stack?.toString() : null,
     });
+    
+    if (kDebugMode) {
+      debugPrint('❌ Token Error [$event]: $error');
+    }
   }
   
   Map<String, dynamic> getStats() {

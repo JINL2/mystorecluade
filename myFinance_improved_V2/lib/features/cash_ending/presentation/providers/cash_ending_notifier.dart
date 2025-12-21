@@ -5,7 +5,6 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/monitoring/sentry_config.dart';
 import '../../core/constants.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/location.dart';
@@ -119,11 +118,17 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   ///
   /// ✅ Uses LoadCurrenciesUseCase (auto-selection logic in Domain)
   Future<void> loadCurrencies(String companyId) async {
+    print('🟣 [PRESENTATION] CashEndingNotifier.loadCurrencies');
+    print('  📌 companyId: $companyId');
+
     state = state.copyWith(isLoadingCurrencies: true, errorMessage: null);
 
     try {
       // ✅ UseCase handles auto-selection business logic
       final result = await _loadCurrenciesUseCase.execute(companyId);
+
+      print('  ✅ UseCase returned ${result.currencies.length} currencies');
+      print('  💰 Base currency: ${result.baseCurrency?.currencyCode ?? "none"}');
 
       // Build selection lists
       final selectedCashIds = state.selectedCashCurrencyIds.isEmpty && result.defaultCurrencyId != null
@@ -134,20 +139,21 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
           ? [result.defaultCurrencyId!]
           : state.selectedVaultCurrencyIds;
 
+      print('  🎯 Selected cash IDs: $selectedCashIds');
+      print('  🎯 Selected vault IDs: $selectedVaultIds');
+
       state = state.copyWith(
         currencies: result.currencies,
-        baseCurrency: result.baseCurrency,
+        baseCurrency: result.baseCurrency, // Store base currency
         isLoadingCurrencies: false,
         selectedCashCurrencyIds: selectedCashIds,
         selectedVaultCurrencyIds: selectedVaultIds,
       );
+
+      print('  ✅ State updated successfully');
     } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashEndingNotifier.loadCurrencies failed',
-        extra: {'companyId': companyId},
-      );
+      print('  ❌ ERROR in loadCurrencies: $e');
+      print('  Stack: $stackTrace');
 
       state = state.copyWith(
         isLoadingCurrencies: false,

@@ -37,8 +37,6 @@ Map<String, dynamic> convertCompanyToMap(Company company) {
       'role_name': company.role.roleName,
       'permissions': company.role.permissions,
     },
-    if (company.subscription != null)
-      'subscription': company.subscription!.toMap(),
   };
 }
 

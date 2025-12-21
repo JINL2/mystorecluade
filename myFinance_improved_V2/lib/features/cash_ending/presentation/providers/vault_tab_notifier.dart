@@ -1,6 +1,7 @@
 // lib/features/cash_ending/presentation/providers/vault_tab_notifier.dart
 
-import '../../../../core/monitoring/sentry_config.dart';
+import 'package:flutter/foundation.dart';
+
 import '../../domain/entities/vault_transaction.dart';
 import '../../domain/entities/vault_recount.dart';
 import '../../domain/entities/multi_currency_recount.dart';
@@ -117,6 +118,11 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
 
   /// Convenience method for type-safe saving
   Future<bool> saveVaultTransaction(VaultTransaction transaction) {
+    debugPrint('\n🔷 [VaultTabNotifier] saveVaultTransaction() 호출');
+    debugPrint('   - locationId: ${transaction.locationId}');
+    debugPrint('   - isCredit: ${transaction.isCredit}');
+    debugPrint('   - totalAmount: ${transaction.totalAmount}');
+
     return saveData(
       data: transaction,
       companyId: transaction.companyId,
@@ -136,15 +142,28 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   ///
   /// ✅ Uses RecountVaultUseCase (Clean Architecture compliant)
   Future<Map<String, dynamic>> recountVault(VaultRecount recount) async {
+    debugPrint('\n🟢 [VaultTabNotifier] recountVault() 호출 - Stock → Flow 변환 시작');
+    debugPrint('   - locationId: ${recount.locationId}');
+    debugPrint('   - currencyId: ${recount.currencyId}');
+    debugPrint('   - totalAmount (Stock): ${recount.totalAmount}');
+    debugPrint('   - denominations: ${recount.denominations.length}개');
+
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
+      debugPrint('🚀 [VaultTabNotifier] RecountVaultUseCase.execute() 호출...');
       // ✅ UseCase handles validation and recount
       final result = await _recountVaultUseCase.execute(recount);
+
+      debugPrint('✅ [VaultTabNotifier] RPC 응답 받음:');
+      debugPrint('   - success: ${result['success']}');
+      debugPrint('   - adjustment_count: ${result['adjustment_count']}');
+      debugPrint('   - total_variance: ${result['total_variance']}');
 
       state = state.copyWith(isSaving: false);
 
       // Reload stock flows after recount
+      debugPrint('🔄 [VaultTabNotifier] Stock flows 리로드 중...');
       if (recount.locationId.isNotEmpty) {
         await loadStockFlows(
           companyId: recount.companyId,
@@ -153,17 +172,10 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
         );
       }
 
+      debugPrint('✅ [VaultTabNotifier] recountVault() 완료!');
       return result;
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'VaultTabNotifier.recountVault failed',
-        extra: {
-          'locationId': recount.locationId,
-          'currencyId': recount.currencyId,
-        },
-      );
+    } catch (e) {
+      debugPrint('❌ [VaultTabNotifier] recountVault() 에러: $e');
       state = state.copyWith(
         isSaving: false,
         errorMessage: e.toString(),
@@ -181,22 +193,28 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   Future<void> submitVaultEnding({
     required String locationId,
   }) async {
+    debugPrint('\n📊 [VaultTabNotifier] submitVaultEnding() 호출');
+    debugPrint('   - locationId: $locationId');
+
     try {
       // ✅ UseCase handles validation and fetches balance summary
+      debugPrint('🚀 [VaultTabNotifier] getBalanceSummary() 호출...');
       final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
+
+      debugPrint('✅ [VaultTabNotifier] Balance Summary 받음:');
+      debugPrint('   - Total Journal: ${balanceSummary.formattedTotalJournal}');
+      debugPrint('   - Total Real: ${balanceSummary.formattedTotalReal}');
+      debugPrint('   - Difference: ${balanceSummary.formattedDifference}');
 
       // Update state with balance summary and show dialog
       state = state.copyWith(
         balanceSummary: balanceSummary,
         showBalanceDialog: true,
       );
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'VaultTabNotifier.submitVaultEnding failed',
-        extra: {'locationId': locationId},
-      );
+
+      debugPrint('✅ [VaultTabNotifier] Dialog 표시 준비 완료');
+    } catch (e) {
+      debugPrint('❌ [VaultTabNotifier] submitVaultEnding() 에러: $e');
       state = state.copyWith(
         errorMessage: 'Failed to get balance summary: $e',
       );
@@ -216,12 +234,19 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   /// ✅ Uses ExecuteMultiCurrencyRecountUseCase (Clean Architecture compliant)
   /// ✅ Now accepts MultiCurrencyRecount entity instead of Map
   Future<void> executeMultiCurrencyRecount(MultiCurrencyRecount recount) async {
+    debugPrint('\n🟢 [VaultTabNotifier] executeMultiCurrencyRecount() 호출');
+    debugPrint('   - Location: ${recount.locationId}');
+    debugPrint('   - Currencies: ${recount.currencyRecounts.length}개');
+
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
+      debugPrint('🚀 [VaultTabNotifier] ExecuteMultiCurrencyRecountUseCase.execute() 호출...');
+
       // ✅ UseCase handles validation and RPC execution
       await _executeMultiCurrencyRecountUseCase.execute(recount);
 
+      debugPrint('✅ [VaultTabNotifier] Multi-currency RECOUNT 완료!');
       state = state.copyWith(isSaving: false);
 
       // Reload stock flows after recount
@@ -232,16 +257,8 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
           locationId: recount.locationId,
         );
       }
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'VaultTabNotifier.executeMultiCurrencyRecount failed',
-        extra: {
-          'locationId': recount.locationId,
-          'currencyCount': recount.currencyRecounts.length,
-        },
-      );
+    } catch (e) {
+      debugPrint('❌ [VaultTabNotifier] executeMultiCurrencyRecount() 에러: $e');
       state = state.copyWith(
         isSaving: false,
         errorMessage: e.toString(),
@@ -258,11 +275,5 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
       showBalanceDialog: false,
       balanceSummary: null,
     );
-  }
-
-  /// Set saving state immediately (for double-tap prevention)
-  /// Call this at the START of onSave callback to prevent rapid taps
-  void setSaving(bool value) {
-    state = state.copyWith(isSaving: value);
   }
 }

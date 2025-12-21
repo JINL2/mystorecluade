@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +8,6 @@ import 'package:go_router/go_router.dart';
 // Core - Constants ✅
 import '../../../../core/constants/auth_constants.dart';
 // Core - Infrastructure Services ✅
-import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/notifications/services/production_token_service.dart';
 import '../../../../shared/themes/toss_animations.dart';
 // Shared - Theme System ✅
@@ -439,19 +439,21 @@ class _LoginPageState extends ConsumerState<LoginPage>
         password: _passwordController.text,
       );
 
+      debugPrint('🔵 [Login] Sign-in successful, loading user data...');
+
       // ✅ Load user data immediately after login
       // This ensures AppState is populated before GoRouter redirect
       await ref.read(userCompaniesProvider.future);
 
+      debugPrint('🔵 [Login] User data loaded, waiting for GoRouter auto-redirect...');
+
       // Register FCM token (optional, non-blocking)
       final productionTokenService = ProductionTokenService();
       unawaited(
-        productionTokenService.registerTokenForLogin().catchError((Object e, StackTrace stackTrace) {
-          SentryConfig.captureException(
-            e,
-            stackTrace,
-            hint: 'FCM token registration failed after email login',
-          );
+        productionTokenService.registerTokenForLogin().catchError((Object e) {
+          if (kDebugMode) {
+            debugPrint('⚠️ FCM token registration failed: $e');
+          }
           return false;
         }),
       );

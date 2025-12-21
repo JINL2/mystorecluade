@@ -1,5 +1,4 @@
 import '../../domain/entities/category_with_features.dart';
-import '../../domain/entities/homepage_alert.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
@@ -25,14 +24,12 @@ class HomepageRepositoryImpl implements HomepageRepository {
     required String companyId,
     String? storeId,
     required RevenuePeriod period,
-    required String timezone,
   }) async {
     try {
       final revenueModel = await _dataSource.getRevenue(
         companyId: companyId,
         storeId: storeId,
-        period: period.apiValue, // Use apiValue for v3 RPC
-        timezone: timezone,
+        period: period.name, // Convert enum to string
       );
 
       final revenue = revenueModel.toEntity();
@@ -103,81 +100,6 @@ class HomepageRepositoryImpl implements HomepageRepository {
       );
     } catch (e) {
       // Silently fail - don't block user navigation
-    }
-  }
-
-  // === Alert Operations ===
-
-  @override
-  Future<HomepageAlert> getHomepageAlert({required String userId}) async {
-    try {
-      final alertModel = await _dataSource.getHomepageAlert(userId: userId);
-      return alertModel.toEntity();
-    } catch (e) {
-      // Return default (no alert) on error
-      return const HomepageAlert(isShow: false, isChecked: false, content: null);
-    }
-  }
-
-  @override
-  Future<bool> responseHomepageAlert({
-    required String userId,
-    required bool isChecked,
-  }) async {
-    try {
-      return await _dataSource.responseHomepageAlert(
-        userId: userId,
-        isChecked: isChecked,
-      );
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // === App Version Check ===
-
-  @override
-  Future<bool> checkAppVersion() async {
-    return await _dataSource.checkAppVersion();
-  }
-
-  // === User Salary Operations ===
-
-  @override
-  Future<Map<String, dynamic>> getUserSalary({
-    required String userId,
-    required String companyId,
-    required String timezone,
-  }) async {
-    try {
-      return await _dataSource.getUserSalary(
-        userId: userId,
-        companyId: companyId,
-        timezone: timezone,
-      );
-    } catch (e) {
-      throw Exception('Failed to fetch user salary: $e');
-    }
-  }
-
-  // === Revenue Chart Operations ===
-
-  @override
-  Future<Map<String, dynamic>> getRevenueChartData({
-    required String companyId,
-    required String timeFilter,
-    required String timezone,
-    String? storeId,
-  }) async {
-    try {
-      return await _dataSource.getRevenueChartData(
-        companyId: companyId,
-        timeFilter: timeFilter,
-        timezone: timezone,
-        storeId: storeId,
-      );
-    } catch (e) {
-      throw Exception('Failed to fetch revenue chart data: $e');
     }
   }
 }

@@ -1,0 +1,521 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/theme/toss_theme.dart';
+import '../../../../../core/widgets/toss_loading_view.dart';
+import '../../../../../providers/auth_state_provider.dart';
+
+/// Widget showing list of available shifts for selected date
+class ShiftDetailListWidget extends ConsumerWidget {
+  final DateTime selectedDate;
+  final List<dynamic>? shiftMetadata;
+  final List<dynamic>? monthlyShiftStatus;
+  final String? selectedShift;
+  final String? selectionMode;
+  final bool isLoadingMetadata;
+  final bool isLoadingShiftStatus;
+  final Function(String shiftId, bool userHasRegistered) onShiftClick;
+
+  const ShiftDetailListWidget({
+    super.key,
+    required this.selectedDate,
+    required this.shiftMetadata,
+    required this.monthlyShiftStatus,
+    required this.selectedShift,
+    required this.selectionMode,
+    required this.isLoadingMetadata,
+    required this.isLoadingShiftStatus,
+    required this.onShiftClick,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allStoreShifts = _getAllStoreShifts();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Shifts section
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Show all store shifts or loading state
+              if (isLoadingMetadata || isLoadingShiftStatus) ...[
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                    child: TossLoadingView(),
+                  ),
+                ),
+              ] else if (allStoreShifts.isNotEmpty) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Available Shifts in This Store',
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.gray700,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (selectedShift != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space2,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TossColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.check_circle,
+                              size: 14,
+                              color: TossColors.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '1 selected',
+                              style: TossTextStyles.caption.copyWith(
+                                color: TossColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (selectionMode != null) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${selectionMode == 'registered' ? 'Registered' : 'New'})',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.primary,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: TossSpacing.space2),
+
+                // Show ALL shifts from the store - Toss Style
+                ...allStoreShifts.map((shift) => _buildShiftCard(shift, ref)),
+              ] else ...[
+                Container(
+                  padding: const EdgeInsets.all(TossSpacing.space3),
+                  decoration: BoxDecoration(
+                    color: TossColors.warning.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    border: Border.all(
+                      color: TossColors.warning.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: TossColors.warning,
+                      ),
+                      const SizedBox(width: TossSpacing.space2),
+                      Text(
+                        'No shifts configured for this store',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.warning,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShiftCard(Map<String, dynamic> shift, WidgetRef ref) {
+    // Extract shift details
+    final shiftId = shift['shift_id'] ?? shift['id'] ?? shift['store_shift_id'];
+    final shiftIdStr = shiftId?.toString() ?? '';
+    final shiftName = shift['shift_name'] ?? shift['name'] ?? shift['shift_type'] ?? 'Shift ${shiftId ?? ""}';
+    final startTime = shift['start_time'] ?? shift['shift_start_time'] ?? shift['default_start_time'] ?? '--:--';
+    final endTime = shift['end_time'] ?? shift['shift_end_time'] ?? shift['default_end_time'] ?? '--:--';
+
+    // Get employees for this shift from monthlyShiftStatus
+    List<Map<String, dynamic>> pendingEmployees = [];
+    List<Map<String, dynamic>> approvedEmployees = [];
+
+    // Find employees for this shift on the selected date
+    final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+
+    if (monthlyShiftStatus != null && monthlyShiftStatus!.isNotEmpty) {
+      // Find the data for the selected date
+      for (final dayData in monthlyShiftStatus!) {
+        if (dayData['request_date'] == dateStr) {
+          final shifts = dayData['shifts'] as List? ?? [];
+
+          // Find the matching shift by ID
+          for (final shiftData in shifts) {
+            // Compare shift IDs as strings to avoid type issues
+            if (shiftData['shift_id'].toString() == shiftId.toString()) {
+              // Extract pending employees
+              if (shiftData['pending_employees'] != null) {
+                final pending = shiftData['pending_employees'] as List;
+                pendingEmployees = List<Map<String, dynamic>>.from(
+                  pending.map((e) => Map<String, dynamic>.from(e as Map)),
+                );
+              }
+
+              // Extract approved employees
+              if (shiftData['approved_employees'] != null) {
+                final approved = shiftData['approved_employees'] as List;
+                approvedEmployees = List<Map<String, dynamic>>.from(
+                  approved.map((e) => Map<String, dynamic>.from(e as Map)),
+                );
+              }
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    // Check if the current user has registered for this shift
+    final authStateAsync = ref.read(authStateProvider);
+    final user = authStateAsync.value;
+    bool userHasRegistered = false;
+    bool userRegistrationIsPending = false;
+
+    if (user != null) {
+      // Check in pending employees
+      for (final emp in pendingEmployees) {
+        if (emp['user_id'] == user.id) {
+          userHasRegistered = true;
+          userRegistrationIsPending = true;
+          break;
+        }
+      }
+
+      // Check in approved employees if not found in pending
+      if (!userHasRegistered) {
+        for (final emp in approvedEmployees) {
+          if (emp['user_id'] == user.id) {
+            userHasRegistered = true;
+            userRegistrationIsPending = false;
+            break;
+          }
+        }
+      }
+    }
+
+    final hasAnyRegistrations = pendingEmployees.isNotEmpty || approvedEmployees.isNotEmpty;
+    final isSelected = selectedShift == shiftIdStr;
+
+    return GestureDetector(
+      onTap: () => onShiftClick(shiftIdStr, userHasRegistered),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: TossSpacing.space3),
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? TossColors.primary.withOpacity(0.08)
+              : (userRegistrationIsPending
+                  ? TossColors.warning.withOpacity(0.08)
+                  : (userHasRegistered && !userRegistrationIsPending
+                      ? TossColors.success.withOpacity(0.08)
+                      : (hasAnyRegistrations
+                          ? TossColors.gray50
+                          : TossColors.background))),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+          border: Border.all(
+            color: isSelected
+                ? TossColors.primary
+                : (userRegistrationIsPending
+                    ? TossColors.warning.withOpacity(0.3)
+                    : (userHasRegistered && !userRegistrationIsPending
+                        ? TossColors.success.withOpacity(0.3)
+                        : (hasAnyRegistrations
+                            ? TossColors.gray300
+                            : TossColors.gray200))),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Radio button style selector
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? TossColors.primary : TossColors.gray400,
+                      width: isSelected ? 2 : 1.5,
+                    ),
+                  ),
+                  child: isSelected
+                      ? Center(
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: TossColors.primary,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                // Clock icon
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Icon(
+                    Icons.access_time,
+                    size: 18,
+                    color: hasAnyRegistrations ? TossColors.primary : TossColors.gray600,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Text(
+                    shiftName.toString(),
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                // Show employee count if there are registrations
+                if (hasAnyRegistrations) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: userHasRegistered && !userRegistrationIsPending
+                          ? TossColors.success.withOpacity(0.1)
+                          : userRegistrationIsPending
+                              ? TossColors.warning.withOpacity(0.1)
+                              : TossColors.gray100,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                    ),
+                    child: Text(
+                      userHasRegistered && !userRegistrationIsPending
+                          ? 'Approved'
+                          : userRegistrationIsPending
+                              ? 'Pending'
+                              : '${approvedEmployees.length + pendingEmployees.length} registered',
+                      style: TossTextStyles.caption.copyWith(
+                        color: userHasRegistered && !userRegistrationIsPending
+                            ? TossColors.success
+                            : userRegistrationIsPending
+                                ? TossColors.warning
+                                : TossColors.gray700,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            // Time display
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space3,
+                vertical: TossSpacing.space2,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.schedule_outlined,
+                    size: 14,
+                    color: TossColors.gray600,
+                  ),
+                  const SizedBox(width: TossSpacing.space1),
+                  Text(
+                    '$startTime - $endTime',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Show registered employees for this shift
+            if (approvedEmployees.isNotEmpty || pendingEmployees.isNotEmpty) ...[
+              const SizedBox(height: TossSpacing.space3),
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space2),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Approved employees
+                    if (approvedEmployees.isNotEmpty) ...[
+                      ...approvedEmployees.map((employee) => _buildEmployeeRow(
+                            employee,
+                            isApproved: true,
+                          )),
+                    ],
+                    // Pending employees
+                    if (pendingEmployees.isNotEmpty) ...[
+                      ...pendingEmployees.map((employee) => _buildEmployeeRow(
+                            employee,
+                            isApproved: false,
+                          )),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+            if (pendingEmployees.isEmpty && approvedEmployees.isEmpty && !isSelected) ...[
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'No employees registered for this shift',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                ),
+              ),
+            ] else if (isSelected) ...[
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Selected - Tap to deselect',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmployeeRow(Map<String, dynamic> employee, {required bool isApproved}) {
+    final statusColor = isApproved ? TossColors.success : TossColors.warning;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          // Profile image
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: employee['profile_image'] != null && employee['profile_image'].toString().isNotEmpty
+                ? ClipOval(
+                    child: CachedNetworkImage(
+                      imageUrl: employee['profile_image'].toString(),
+                      width: 32,
+                      height: 32,
+                      fit: BoxFit.contain,
+                      memCacheWidth: 64,
+                      memCacheHeight: 64,
+                      placeholder: (context, url) => Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.person_outline,
+                            size: 16,
+                            color: statusColor,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Center(
+                        child: Icon(
+                          Icons.person_outline,
+                          size: 16,
+                          color: statusColor,
+                        ),
+                      ),
+                    ),
+                  )
+                : Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: statusColor,
+                  ),
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          // Name
+          Expanded(
+            child: Text(
+              (employee['user_name'] ?? 'Unknown').toString(),
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          // Approval status
+          Text(
+            isApproved ? 'Approved' : 'Pending',
+            style: TossTextStyles.caption.copyWith(
+              color: isApproved ? TossColors.success : TossColors.error,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _getAllStoreShifts() {
+    if (shiftMetadata == null || shiftMetadata!.isEmpty) {
+      return [];
+    }
+
+    // Convert ShiftMetadata entities to Maps and filter for active shifts
+    return shiftMetadata!
+        .where((shift) => shift.isActive)
+        .map((shift) => shift.toJson())
+        .toList();
+  }
+}

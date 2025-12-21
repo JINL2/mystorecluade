@@ -32,12 +32,7 @@ mixin _$InventoryPageState {
   String? get sortBy => throw _privateConstructorUsedError;
   String? get sortDirection =>
       throw _privateConstructorUsedError; // Currency info
-  Currency? get currency =>
-      throw _privateConstructorUsedError; // Base currency info from get_base_currency RPC
-  BaseCurrencyInfo? get baseCurrency =>
-      throw _privateConstructorUsedError; // Summary data from get_inventory_page_v4
-  double get serverTotalValue => throw _privateConstructorUsedError;
-  int get filteredCount => throw _privateConstructorUsedError;
+  Currency? get currency => throw _privateConstructorUsedError;
 
   /// Create a copy of InventoryPageState
   /// with the given fields replaced by the non-null parameter values.
@@ -64,10 +59,7 @@ abstract class $InventoryPageStateCopyWith<$Res> {
       String? selectedStockStatus,
       String? sortBy,
       String? sortDirection,
-      Currency? currency,
-      BaseCurrencyInfo? baseCurrency,
-      double serverTotalValue,
-      int filteredCount});
+      Currency? currency});
 }
 
 /// @nodoc
@@ -97,9 +89,6 @@ class _$InventoryPageStateCopyWithImpl<$Res, $Val extends InventoryPageState>
     Object? sortBy = freezed,
     Object? sortDirection = freezed,
     Object? currency = freezed,
-    Object? baseCurrency = freezed,
-    Object? serverTotalValue = null,
-    Object? filteredCount = null,
   }) {
     return _then(_value.copyWith(
       products: null == products
@@ -150,18 +139,6 @@ class _$InventoryPageStateCopyWithImpl<$Res, $Val extends InventoryPageState>
           ? _value.currency
           : currency // ignore: cast_nullable_to_non_nullable
               as Currency?,
-      baseCurrency: freezed == baseCurrency
-          ? _value.baseCurrency
-          : baseCurrency // ignore: cast_nullable_to_non_nullable
-              as BaseCurrencyInfo?,
-      serverTotalValue: null == serverTotalValue
-          ? _value.serverTotalValue
-          : serverTotalValue // ignore: cast_nullable_to_non_nullable
-              as double,
-      filteredCount: null == filteredCount
-          ? _value.filteredCount
-          : filteredCount // ignore: cast_nullable_to_non_nullable
-              as int,
     ) as $Val);
   }
 }
@@ -186,10 +163,7 @@ abstract class _$$InventoryPageStateImplCopyWith<$Res>
       String? selectedStockStatus,
       String? sortBy,
       String? sortDirection,
-      Currency? currency,
-      BaseCurrencyInfo? baseCurrency,
-      double serverTotalValue,
-      int filteredCount});
+      Currency? currency});
 }
 
 /// @nodoc
@@ -217,9 +191,6 @@ class __$$InventoryPageStateImplCopyWithImpl<$Res>
     Object? sortBy = freezed,
     Object? sortDirection = freezed,
     Object? currency = freezed,
-    Object? baseCurrency = freezed,
-    Object? serverTotalValue = null,
-    Object? filteredCount = null,
   }) {
     return _then(_$InventoryPageStateImpl(
       products: null == products
@@ -270,18 +241,6 @@ class __$$InventoryPageStateImplCopyWithImpl<$Res>
           ? _value.currency
           : currency // ignore: cast_nullable_to_non_nullable
               as Currency?,
-      baseCurrency: freezed == baseCurrency
-          ? _value.baseCurrency
-          : baseCurrency // ignore: cast_nullable_to_non_nullable
-              as BaseCurrencyInfo?,
-      serverTotalValue: null == serverTotalValue
-          ? _value.serverTotalValue
-          : serverTotalValue // ignore: cast_nullable_to_non_nullable
-              as double,
-      filteredCount: null == filteredCount
-          ? _value.filteredCount
-          : filteredCount // ignore: cast_nullable_to_non_nullable
-              as int,
     ));
   }
 }
@@ -307,10 +266,7 @@ class _$InventoryPageStateImpl extends _InventoryPageState {
       this.selectedStockStatus,
       this.sortBy,
       this.sortDirection,
-      this.currency,
-      this.baseCurrency,
-      this.serverTotalValue = 0.0,
-      this.filteredCount = 0})
+      this.currency})
       : _products = products,
         super._();
 
@@ -356,20 +312,10 @@ class _$InventoryPageStateImpl extends _InventoryPageState {
 // Currency info
   @override
   final Currency? currency;
-// Base currency info from get_base_currency RPC
-  @override
-  final BaseCurrencyInfo? baseCurrency;
-// Summary data from get_inventory_page_v4
-  @override
-  @JsonKey()
-  final double serverTotalValue;
-  @override
-  @JsonKey()
-  final int filteredCount;
 
   @override
   String toString() {
-    return 'InventoryPageState(products: $products, isLoading: $isLoading, isLoadingMore: $isLoadingMore, error: $error, pagination: $pagination, searchQuery: $searchQuery, selectedCategoryId: $selectedCategoryId, selectedBrandId: $selectedBrandId, selectedStockStatus: $selectedStockStatus, sortBy: $sortBy, sortDirection: $sortDirection, currency: $currency, baseCurrency: $baseCurrency, serverTotalValue: $serverTotalValue, filteredCount: $filteredCount)';
+    return 'InventoryPageState(products: $products, isLoading: $isLoading, isLoadingMore: $isLoadingMore, error: $error, pagination: $pagination, searchQuery: $searchQuery, selectedCategoryId: $selectedCategoryId, selectedBrandId: $selectedBrandId, selectedStockStatus: $selectedStockStatus, sortBy: $sortBy, sortDirection: $sortDirection, currency: $currency)';
   }
 
   @override
@@ -397,13 +343,7 @@ class _$InventoryPageStateImpl extends _InventoryPageState {
             (identical(other.sortDirection, sortDirection) ||
                 other.sortDirection == sortDirection) &&
             (identical(other.currency, currency) ||
-                other.currency == currency) &&
-            (identical(other.baseCurrency, baseCurrency) ||
-                other.baseCurrency == baseCurrency) &&
-            (identical(other.serverTotalValue, serverTotalValue) ||
-                other.serverTotalValue == serverTotalValue) &&
-            (identical(other.filteredCount, filteredCount) ||
-                other.filteredCount == filteredCount));
+                other.currency == currency));
   }
 
   @override
@@ -420,10 +360,7 @@ class _$InventoryPageStateImpl extends _InventoryPageState {
       selectedStockStatus,
       sortBy,
       sortDirection,
-      currency,
-      baseCurrency,
-      serverTotalValue,
-      filteredCount);
+      currency);
 
   /// Create a copy of InventoryPageState
   /// with the given fields replaced by the non-null parameter values.
@@ -448,10 +385,7 @@ abstract class _InventoryPageState extends InventoryPageState {
       final String? selectedStockStatus,
       final String? sortBy,
       final String? sortDirection,
-      final Currency? currency,
-      final BaseCurrencyInfo? baseCurrency,
-      final double serverTotalValue,
-      final int filteredCount}) = _$InventoryPageStateImpl;
+      final Currency? currency}) = _$InventoryPageStateImpl;
   const _InventoryPageState._() : super._();
 
 // Products list
@@ -478,13 +412,7 @@ abstract class _InventoryPageState extends InventoryPageState {
   @override
   String? get sortDirection; // Currency info
   @override
-  Currency? get currency; // Base currency info from get_base_currency RPC
-  @override
-  BaseCurrencyInfo? get baseCurrency; // Summary data from get_inventory_page_v4
-  @override
-  double get serverTotalValue;
-  @override
-  int get filteredCount;
+  Currency? get currency;
 
   /// Create a copy of InventoryPageState
   /// with the given fields replaced by the non-null parameter values.

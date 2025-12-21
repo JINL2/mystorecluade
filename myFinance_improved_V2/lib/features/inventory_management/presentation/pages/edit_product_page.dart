@@ -59,21 +59,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Product? _product;
 
-  // Original values for change detection
-  String _originalName = '';
-  String _originalSku = '';
-  String _originalBarcode = '';
-  String _originalSalePrice = '';
-  String _originalCostPrice = '';
-  String _originalDescription = '';
-  String _originalOnHand = '';
-  String _originalWeight = '';
-  String? _originalUnit;
-  bool _originalIsActive = true;
-  String? _originalCategoryId;
-  String? _originalBrandId;
-  List<String> _originalImageUrls = [];
-
   @override
   void initState() {
     super.initState();
@@ -100,21 +85,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _isActive = _product!.isActive;
     _existingImageUrls = List.from(_product!.images);
 
-    // Store original values for change detection
-    _originalName = _product!.name;
-    _originalSku = _product!.sku;
-    _originalBarcode = _product!.barcode ?? '';
-    _originalSalePrice = _product!.salePrice.toStringAsFixed(0);
-    _originalCostPrice = _product!.costPrice.toStringAsFixed(0);
-    _originalDescription = _product!.description ?? '';
-    _originalOnHand = _product!.onHand.toString();
-    _originalWeight = (_product!.weight ?? 0).toString();
-    _originalUnit = _product!.unit;
-    _originalIsActive = _product!.isActive;
-    _originalCategoryId = _product!.categoryId;
-    _originalBrandId = _product!.brandId;
-    _originalImageUrls = List.from(_product!.images);
-
     // Load metadata to find category and brand
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final metadataState = ref.read(inventoryMetadataProvider);
@@ -131,40 +101,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         });
       }
     });
-  }
-
-  /// Check if any field has been modified from original values
-  bool get _hasChanges {
-    // Text field changes
-    if (_nameController.text != _originalName) return true;
-    if (_productNumberController.text != _originalSku) return true;
-    if (_barcodeController.text != _originalBarcode) return true;
-    if (_salePriceController.text != _originalSalePrice) return true;
-    if (_costPriceController.text != _originalCostPrice) return true;
-    if (_descriptionController.text != _originalDescription) return true;
-    if (_onHandController.text != _originalOnHand) return true;
-    if (_weightController.text != _originalWeight) return true;
-
-    // Selection changes
-    if (_selectedUnit != _originalUnit) return true;
-    if (_isActive != _originalIsActive) return true;
-    if (_selectedCategory?.id != _originalCategoryId) return true;
-    if (_selectedBrand?.id != _originalBrandId) return true;
-
-    // Image changes
-    if (_selectedImages.isNotEmpty) return true;
-    if (!_listEquals(_existingImageUrls, _originalImageUrls)) return true;
-
-    return false;
-  }
-
-  /// Helper to compare two string lists
-  bool _listEquals(List<String> a, List<String> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
   }
 
   @override
@@ -200,15 +136,14 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen as String?;
     final storeId = appState.storeChoosen as String?;
-    final userId = appState.user['user_id'] as String?;
 
-    if (companyId == null || storeId == null || userId == null) {
+    if (companyId == null || storeId == null) {
       await showDialog<bool>(
         context: context,
         barrierDismissible: true,
         builder: (context) => TossDialog.error(
           title: 'Validation Error',
-          message: 'Company, store, or user not selected',
+          message: 'Company or store not selected',
           primaryButtonText: 'OK',
         ),
       );
@@ -283,20 +218,11 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       // Step 3: Combine existing URLs with newly uploaded URLs
       final allImageUrls = [..._existingImageUrls, ...newImageUrls];
 
-      // Parse quantity - only send if changed from original
-      final parsedOnHand = int.tryParse(_onHandController.text);
-      final originalOnHand = _product?.onHand;
-      // Only send onHand if quantity has changed
-      final onHand = (parsedOnHand != null && parsedOnHand != originalOnHand)
-          ? parsedOnHand
-          : null;
-
-      // Step 4: Proceed with actual update (inventory_edit_product_v4)
+      // Step 4: Proceed with actual update (inventory_edit_product_v2)
       final product = await repository.updateProduct(
         productId: widget.productId,
         companyId: companyId,
         storeId: storeId,
-        createdBy: userId,
         name: productName,
         sku: sku,
         categoryId: _selectedCategory?.id,
@@ -304,34 +230,27 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         unit: _selectedUnit,
         costPrice: costPrice,
         salePrice: salePrice,
-        onHand: onHand,
         imageUrls: allImageUrls.isNotEmpty ? allImageUrls : null,
       );
 
       if (product != null && mounted) {
-        // Refresh the inventory list and wait for completion
-        await ref.read(inventoryPageProvider.notifier).refresh();
+        // Refresh the inventory list
+        ref.read(inventoryPageProvider.notifier).refresh();
 
-        if (!mounted) return;
+        if (!context.mounted) return;
         await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (ctx) => TossDialog.success(
+          builder: (context) => TossDialog.success(
             title: 'Product Updated',
             message: 'Product updated successfully',
             primaryButtonText: 'OK',
           ),
         );
 
-        // Navigate back to inventory page
-        // Pop twice: edit page -> product detail -> inventory page
+        // Navigate back
         if (mounted) {
-          // First pop: close edit page
           context.pop();
-          // Second pop: close product detail page (if came from there)
-          if (context.canPop()) {
-            context.pop();
-          }
         }
       } else if (mounted) {
         await showDialog<bool>(
@@ -582,11 +501,11 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             )
           else
             TextButton(
-              onPressed: _hasChanges ? _saveProduct : null,
+              onPressed: _saveProduct,
               child: Text(
                 'Save',
                 style: TossTextStyles.bodyLarge.copyWith(
-                  color: _hasChanges ? TossColors.primary : TossColors.gray400,
+                  color: TossColors.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -673,7 +592,6 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                     _showUnitSelector(metadataState.metadata!);
                   }
                 },
-                onChanged: (_) => setState(() {}),
               ),
 
               const SizedBox(height: 80), // Bottom padding

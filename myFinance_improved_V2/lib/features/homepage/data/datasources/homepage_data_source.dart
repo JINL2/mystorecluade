@@ -1,9 +1,5 @@
-import 'package:package_info_plus/package_info_plus.dart';
-
-import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../models/category_features_model.dart';
-import '../models/homepage_alert_model.dart';
 import '../models/revenue_model.dart';
 import '../models/top_feature_model.dart';
 import '../models/user_companies_model.dart';
@@ -19,58 +15,79 @@ class HomepageDataSource {
 
   // === Revenue Operations ===
 
-  /// Fetch revenue data via get_dashboard_revenue_v3 RPC
+  /// Fetch revenue data via get_dashboard_revenue RPC
   ///
-  /// Calls: rpc('get_dashboard_revenue_v3', {...})
-  /// Returns: Single revenue record with summary totals
-  ///
-  /// Uses the same RPC as chart data but extracts summary for display.
+  /// Calls: rpc('get_dashboard_revenue', {...})
+  /// Returns: Single revenue record
   Future<RevenueModel> getRevenue({
     required String companyId,
     String? storeId,
     required String period,
-    required String timezone,
   }) async {
-    try {
-      // Build ISO8601 string with timezone offset for accurate date calculation
-      final now = DateTime.now();
-      final offset = now.timeZoneOffset;
-      final offsetSign = offset.isNegative ? '-' : '+';
-      final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
-      final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-      final timeWithOffset = '${now.toIso8601String()}$offsetSign$offsetHours:$offsetMinutes';
 
-      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
-        'get_dashboard_revenue_v3',
+    // Convert period to date for RPC
+    final date = _periodToDate(period);
+
+    try {
+      final response = await _supabaseService.client.rpc(
+        'get_dashboard_revenue',
         params: {
           'p_company_id': companyId,
-          'p_time': timeWithOffset,
-          'p_timezone': timezone,
-          'p_time_filter': period,
           'p_store_id': storeId,
+          'p_date': date,  // Changed from p_period to p_date
         },
       );
 
-      // Extract summary from response
-      final summary = response['summary'] as Map<String, dynamic>? ?? {};
-      final revenueSummary = summary['revenue'] as Map<String, dynamic>? ?? {};
-      final currencySymbol = (response['currency_symbol'] as String?) ?? '\$';
 
-      // Get total revenue from summary
-      final totalRevenue = (revenueSummary['total'] as num?)?.toDouble() ?? 0.0;
+      if (response == null) {
+        throw Exception('No revenue data returned from database');
+      }
 
-      // Get comparison amount from previous period summary if available
-      final previousSummary = response['previous_summary'] as Map<String, dynamic>?;
-      final previousRevenue = previousSummary != null
-          ? ((previousSummary['revenue'] as Map<String, dynamic>?)?['total'] as num?)?.toDouble() ?? 0.0
-          : 0.0;
+      // Manually map RPC response to model
+      // RPC returns: total_today, total_yesterday, currency_code, currency_symbol
+      // Model expects: amount, currencySymbol, period, comparisonAmount
+      final data = response as Map<String, dynamic>;
+
+      // Determine which totals to use based on period
+      double currentAmount = 0.0;
+      double previousAmount = 0.0;
+
+      switch (period.toLowerCase()) {
+        case 'today':
+          currentAmount = (data['total_today'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case 'yesterday':
+          currentAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // Day before yesterday not available in RPC
+          break;
+        case 'thismonth':
+          currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case 'thisyear':
+          currentAmount = (data['total_this_year'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // Previous year data not available in current RPC
+          break;
+        case 'month':
+          currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case 'year':
+          currentAmount = (data['total_this_year'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // No previous year data in current RPC
+          break;
+        default:
+          currentAmount = (data['total_today'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
+      }
 
       final model = RevenueModel(
-        amount: totalRevenue,
-        currencySymbol: currencySymbol,
+        amount: currentAmount,
+        currencySymbol: (data['currency_symbol'] as String?) ?? '\$',
         period: period,
-        comparisonAmount: previousRevenue,
-        comparisonPeriod: _getComparisonPeriodLabel(period),
+        comparisonAmount: previousAmount,
+        comparisonPeriod: period == 'today' ? 'yesterday' : 'previous $period',
         lastUpdated: DateTime.now(),
         storeId: storeId,
         companyId: companyId,
@@ -82,45 +99,23 @@ class HomepageDataSource {
     }
   }
 
-  /// Get comparison period label based on current period
-  String _getComparisonPeriodLabel(String period) {
-    switch (period.toLowerCase()) {
-      case 'today':
-        return 'yesterday';
-      case 'yesterday':
-        return 'day before';
-      case 'this_week':
-        return 'last week';
-      case 'last_week':
-        return 'previous week';
-      case 'this_month':
-        return 'last month';
-      case 'last_month':
-        return 'previous month';
-      case 'this_year':
-        return 'last year';
-      default:
-        return 'previous period';
-    }
-  }
-
   // === User & Company Operations ===
 
-  /// Fetch user companies and stores via get_user_companies_with_subscription RPC
+  /// Fetch user companies and stores via get_user_companies_and_stores RPC
   ///
-  /// Calls: rpc('get_user_companies_with_subscription', {...})
-  /// Returns: User with companies, stores, and subscription info
+  /// Calls: rpc('get_user_companies_and_stores', {...})
+  /// Returns: User with companies and stores
   ///
-  /// ✅ Uses new RPC that includes subscription data for each company
   /// ✅ Filters out deleted companies and stores before parsing
   Future<UserCompaniesModel> getUserCompanies(String userId) async {
 
     final response = await _supabaseService.client.rpc(
-      'get_user_companies_with_subscription',
+      'get_user_companies_and_stores',
       params: {
         'p_user_id': userId,
       },
     );
+
 
     if (response == null) {
       throw Exception('No user companies data returned from database');
@@ -252,181 +247,34 @@ class HomepageDataSource {
     }
   }
 
-  // === Alert Operations ===
+  /// Convert period string to date string for RPC
+  ///
+  /// Converts: 'today', 'yesterday', 'thisMonth', 'thisYear' → '2025-11-26'
+  String _periodToDate(String period) {
+    final now = DateTime.now();
 
-  /// Fetch homepage alert via homepage_get_alert RPC
-  ///
-  /// Calls: rpc('homepage_get_alert', {p_user_id: userId})
-  /// Returns: Alert with is_show, is_checked flag and content
-  ///
-  /// Uses 6-hour cache to prevent excessive API calls.
-  /// Cache is reset on app restart or pull-to-refresh.
-  Future<HomepageAlertModel> getHomepageAlert({required String userId}) async {
-    try {
-      final response = await AuthDataCache.instance.deduplicate<Map<String, dynamic>>(
-        'homepage_get_alert_$userId',
-        () => _supabaseService.client.rpc<Map<String, dynamic>>(
-          'homepage_get_alert',
-          params: {'p_user_id': userId},
-        ),
-        customTimeout: const Duration(hours: 6),
-      );
-      return HomepageAlertModel.fromJson(response);
-    } catch (e) {
-      // Return default (no alert) on error to not block homepage
-      return const HomepageAlertModel(isShow: false, isChecked: false, content: null);
+    switch (period.toLowerCase()) {
+      case 'today':
+        return _formatDate(now);
+      case 'yesterday':
+        return _formatDate(now.subtract(const Duration(days: 1)));
+      case 'thismonth':
+        return _formatDate(now);
+      case 'thisyear':
+        return _formatDate(now);
+      case 'week':
+        return _formatDate(now.subtract(const Duration(days: 7)));
+      case 'month':
+        return _formatDate(DateTime(now.year, now.month - 1, now.day));
+      case 'year':
+        return _formatDate(DateTime(now.year - 1, now.month, now.day));
+      default:
+        return _formatDate(now);
     }
   }
 
-  /// Force refresh homepage alert by invalidating cache
-  void invalidateHomepageAlertCache(String userId) {
-    AuthDataCache.instance.invalidate('homepage_get_alert_$userId');
-  }
-
-  /// Update user's alert response (is_checked) via homepage_response_alert RPC
-  ///
-  /// Calls: rpc('homepage_response_alert', {p_user_id: userId, p_is_checked: isChecked})
-  /// Returns: {status: 'success', is_checked: bool} or {status: 'error', message: string}
-  Future<bool> responseHomepageAlert({
-    required String userId,
-    required bool isChecked,
-  }) async {
-    try {
-      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
-        'homepage_response_alert',
-        params: {
-          'p_user_id': userId,
-          'p_is_checked': isChecked,
-        },
-      );
-
-      final status = response['status'] as String?;
-      if (status == 'success') {
-        // Invalidate cache so next fetch gets updated is_checked value
-        invalidateHomepageAlertCache(userId);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      // Silently fail - don't block user
-      return false;
-    }
-  }
-
-  // === User Salary Operations ===
-
-  /// Fetch user salary data via homepage_user_salary RPC
-  ///
-  /// Calls: rpc('homepage_user_salary', {...})
-  /// Returns: Salary data with company_total and by_store breakdown
-  ///
-  /// Response structure:
-  /// {
-  ///   "salary_info": { salary_type, salary_amount, currency_code, currency_symbol },
-  ///   "by_store": [ { store_id, store_name, today, this_week, this_month, ... } ],
-  ///   "company_total": { today, this_week, this_month, last_month, this_year }
-  /// }
-  Future<Map<String, dynamic>> getUserSalary({
-    required String userId,
-    required String companyId,
-    required String timezone,
-  }) async {
-    try {
-      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
-        'homepage_user_salary',
-        params: {
-          'p_user_id': userId,
-          'p_company_id': companyId,
-          'p_request_time': DateTime.now().toIso8601String(),
-          'p_timezone': timezone,
-        },
-      );
-
-      return response;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // === App Version Check ===
-
-  /// Check app version via check_app_version RPC
-  ///
-  /// Calls: rpc('check_app_version')
-  /// Returns: {version: "1.0.0"} or {version: null}
-  ///
-  /// Compares server version with current app version.
-  /// Returns true if versions match (app is up to date).
-  /// Returns false if versions don't match (update required).
-  Future<bool> checkAppVersion() async {
-    try {
-      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
-        'check_app_version',
-      );
-
-      final serverVersion = response['version'] as String?;
-
-      if (serverVersion == null) {
-        // No version set on server - allow app to continue
-        return true;
-      }
-
-      // Get current app version
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
-
-      // Compare versions
-      return serverVersion == currentVersion;
-    } catch (e) {
-      // On error, allow app to continue (don't block users)
-      return true;
-    }
-  }
-
-  // === Revenue Chart Operations ===
-
-  /// Fetch revenue chart data via get_dashboard_revenue_v3 RPC
-  ///
-  /// Calls: rpc('get_dashboard_revenue_v3', {...})
-  /// Returns: Chart data with revenue, gross_profit, net_income time series
-  ///
-  /// Time filter options:
-  /// - today: Single day total
-  /// - yesterday: Previous day total
-  /// - this_week: Daily data Mon~Today
-  /// - last_week: Daily data Mon~Sun of previous week
-  /// - this_month: Daily data 1st~Today
-  /// - last_month: Daily data for full previous month
-  /// - this_year: Monthly data Jan~Current month
-  Future<Map<String, dynamic>> getRevenueChartData({
-    required String companyId,
-    required String timeFilter,
-    required String timezone,
-    String? storeId,
-  }) async {
-    try {
-      // Build ISO8601 string with timezone offset for accurate date calculation
-      final now = DateTime.now();
-      final offset = now.timeZoneOffset;
-      final offsetSign = offset.isNegative ? '-' : '+';
-      final offsetHours = offset.inHours.abs().toString().padLeft(2, '0');
-      final offsetMinutes = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
-      final timeWithOffset = '${now.toIso8601String()}$offsetSign$offsetHours:$offsetMinutes';
-
-      final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
-        'get_dashboard_revenue_v3',
-        params: {
-          'p_company_id': companyId,
-          'p_time': timeWithOffset,
-          'p_timezone': timezone,
-          'p_time_filter': timeFilter,
-          'p_store_id': storeId,
-        },
-      );
-
-      return response;
-    } catch (e) {
-      rethrow;
-    }
+  /// Format DateTime to YYYY-MM-DD
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

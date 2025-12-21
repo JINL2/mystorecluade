@@ -28,10 +28,6 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
   Future<void> loadInvoices() async {
     if (state.isLoading) return;
 
-    debugPrint('📋 [InvoiceList] loadInvoices() START');
-    debugPrint('📋 [InvoiceList] Current page: ${state.currentPage}');
-    debugPrint('📋 [InvoiceList] Current invoices count: ${state.invoices.length}');
-
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -39,11 +35,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
-      debugPrint('📋 [InvoiceList] companyId: $companyId');
-      debugPrint('📋 [InvoiceList] storeId: $storeId');
-
       if (companyId.isEmpty || storeId.isEmpty) {
-        debugPrint('❌ [InvoiceList] Error: Company or store not selected');
         state = state.copyWith(
           isLoading: false,
           error: 'Company or store not selected',
@@ -59,22 +51,11 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         page: state.currentPage,
       );
 
-      debugPrint('📋 [InvoiceList] Filter: period=${state.selectedPeriod}, sortBy=${state.sortBy}, page=${state.currentPage}');
-
       final result = await _repository.getInvoices(
         companyId: companyId,
         storeId: storeId,
         filter: filter,
       );
-
-      debugPrint('📋 [InvoiceList] Result: ${result.invoices.length} invoices');
-      debugPrint('📋 [InvoiceList] Pagination: page=${result.pagination.page}, total=${result.pagination.total}, hasNext=${result.pagination.hasNext}');
-
-      // Debug: Log each invoice
-      for (int i = 0; i < result.invoices.length; i++) {
-        final inv = result.invoices[i];
-        debugPrint('📋 [InvoiceList] Invoice[$i]: ${inv.invoiceNumber} - ${inv.dateString} - status=${inv.status}');
-      }
 
       state = state.copyWith(
         isLoading: false,
@@ -82,11 +63,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         response: result,
         error: null,
       );
-
-      debugPrint('📋 [InvoiceList] State updated: ${state.invoices.length} invoices');
-      debugPrint('📋 [InvoiceList] loadInvoices() END');
     } catch (e) {
-      debugPrint('❌ [InvoiceList] Error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -204,7 +181,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     }
 
     // 1. Process the inventory refund
-    debugPrint('📤 [Refund] Step 1: Calling inventory_refund_invoice_v3 RPC...');
+    debugPrint('📤 [Refund] Step 1: Calling inventory_refund_invoice_v2 RPC...');
     final result = await _repository.refundInvoice(
       invoiceIds: [invoice.invoiceId],
       userId: userId,
@@ -220,7 +197,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     debugPrint('🔄 [Refund] - result.success: ${result.success}');
 
     if (result.success) {
-      debugPrint('📤 [Refund] Step 2: Calling insert_journal_with_everything_v2 RPC...');
+      debugPrint('📤 [Refund] Step 2: Calling insert_journal_with_everything_utc RPC...');
       debugPrint('📤 [Refund] Journal Params:');
       debugPrint('📤 [Refund] - companyId: $companyId');
       debugPrint('📤 [Refund] - storeId: $storeId');
@@ -232,7 +209,6 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       debugPrint('📤 [Refund] - cogsAccountId: $_cogsAccountId');
       debugPrint('📤 [Refund] - inventoryAccountId: $_inventoryAccountId');
       debugPrint('📤 [Refund] - totalCost: ${invoice.amounts.totalCost}');
-      debugPrint('📤 [Refund] - invoiceId: ${invoice.invoiceId}');
 
       try {
         final journalRepository = _ref.read(salesJournalRepositoryProvider);
@@ -250,7 +226,6 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
           cogsAccountId: _cogsAccountId,
           inventoryAccountId: _inventoryAccountId,
           totalCost: invoice.amounts.totalCost,
-          invoiceId: invoice.invoiceId,
         );
         debugPrint('✅ [Refund] Step 2: Journal entries created successfully (Refund + COGS Reversal)');
       } catch (e) {
@@ -275,10 +250,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
 }
 
 /// Invoice list provider
-///
-/// Uses autoDispose to automatically clear cached data when no longer in use.
-/// This prevents stale data from showing when user switches store/company.
-final invoiceListProvider = StateNotifierProvider.autoDispose<InvoiceListNotifier, InvoiceListState>((ref) {
+final invoiceListProvider = StateNotifierProvider<InvoiceListNotifier, InvoiceListState>((ref) {
   final repository = ref.watch(invoiceRepositoryProvider);
   return InvoiceListNotifier(repository, ref);
 });

@@ -21,8 +21,7 @@ class JoinByCode {
   /// Returns Either<Failure, JoinResult>
   Future<Either<Failure, JoinResult>> call(JoinByCodeParams params) async {
     // Validate code is not empty
-    // Keep original case - DB stores codes in lowercase
-    final code = params.code.trim();
+    final code = params.code.trim().toUpperCase();
 
     if (code.isEmpty) {
       return const Left(ValidationFailure(
@@ -31,8 +30,8 @@ class JoinByCode {
       ),);
     }
 
-    // Validate code format (alphanumeric, 5-20 characters, case insensitive)
-    final codeRegex = RegExp(r'^[a-zA-Z0-9]{5,20}$');
+    // Validate code format (alphanumeric, 5-20 characters)
+    final codeRegex = RegExp(r'^[A-Z0-9]{5,20}$');
     if (!codeRegex.hasMatch(code)) {
       return const Left(ValidationFailure(
         message: 'Code must be 5-20 alphanumeric characters',
@@ -40,10 +39,10 @@ class JoinByCode {
       ),);
     }
 
-    // Call repository with lowercase code (DB stores codes in lowercase)
+    // Call repository
     return await repository.joinByCode(
       userId: params.userId,
-      code: code.toLowerCase(),
+      code: code,
     );
   }
 }

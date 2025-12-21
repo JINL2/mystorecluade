@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -34,10 +33,10 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
   void initState() {
     super.initState();
     final filterState = ref.read(templateFilterProvider);
-    // TemplateFilterState에서 기존 필터값 복원
-    _selectedAccountIds = filterState.accountIds;
-    _selectedCounterpartyId = filterState.counterpartyId;
-    _selectedCashLocationId = filterState.cashLocationId;
+    // TemplateFilterState에서 기본값 설정
+    _selectedAccountIds = null; // TemplateFilterState에는 accountIds가 없음
+    _selectedCounterpartyId = null; // TemplateFilterState에는 counterpartyId가 없음
+    _selectedCashLocationId = null; // TemplateFilterState에는 cashLocationId가 없음
     _searchController.text = filterState.searchText;
   }
 
@@ -122,21 +121,12 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
                   const SizedBox(height: TossSpacing.space4),
                   
                   // Cash Location Selector
-                  Builder(
-                    builder: (context) {
-                      final appState = ref.watch(appStateProvider);
-                      final currentStoreId = appState.storeChoosen;
-
-                      return AutonomousCashLocationSelector(
-                        selectedLocationId: _selectedCashLocationId,
-                        storeId: currentStoreId, // ✅ 필터용이지만 Store 탭 필터링을 위해 전달
-                        showScopeTabs: true, // ✅ 필터 시트에서도 탭 사용 가능
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedCashLocationId = value;
-                          });
-                        },
-                      );
+                  AutonomousCashLocationSelector(
+                    selectedLocationId: _selectedCashLocationId,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCashLocationId = value;
+                      });
                     },
                   ),
                   const SizedBox(height: TossSpacing.space4),

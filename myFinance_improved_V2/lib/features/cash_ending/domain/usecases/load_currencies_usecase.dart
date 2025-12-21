@@ -1,6 +1,5 @@
 // lib/features/cash_ending/domain/usecases/load_currencies_usecase.dart
 
-import '../../../../core/monitoring/sentry_config.dart';
 import '../entities/currency.dart';
 import '../repositories/currency_repository.dart';
 
@@ -47,6 +46,9 @@ class LoadCurrenciesUseCase {
   ///
   /// Returns currencies with a default selection and base currency
   Future<LoadCurrenciesResult> execute(String companyId) async {
+    print('🟢 [DOMAIN] LoadCurrenciesUseCase.execute');
+    print('  📌 companyId: $companyId');
+
     try {
       // RPC call to get currencies with exchange rates
       final currencies = await _currencyRepository
@@ -54,15 +56,19 @@ class LoadCurrenciesUseCase {
         companyId: companyId,
       );
 
+      print('  ✅ Repository returned ${currencies.length} currencies');
+
       // Business Rule: Find base currency
       Currency? baseCurrency;
       try {
         baseCurrency = currencies.firstWhere(
           (c) => c.isBaseCurrency,
         );
+        print('  💰 Base currency: ${baseCurrency.currencyCode}');
       } catch (e) {
         // If no base currency found, use first currency as fallback
         baseCurrency = currencies.isNotEmpty ? currencies.first : null;
+        print('  ⚠️ No base currency found, using fallback: ${baseCurrency?.currencyCode ?? "none"}');
       }
 
       // Business Rule: Auto-select first currency as default
@@ -71,18 +77,16 @@ class LoadCurrenciesUseCase {
           ? currencies.first.currencyId
           : null;
 
+      print('  🎯 Default currency ID: $defaultCurrencyId');
+
       return LoadCurrenciesResult(
         currencies: currencies,
         defaultCurrencyId: defaultCurrencyId,
         baseCurrency: baseCurrency,
       );
     } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'LoadCurrenciesUseCase.execute failed',
-        extra: {'companyId': companyId},
-      );
+      print('  ❌ ERROR in LoadCurrenciesUseCase: $e');
+      print('  Stack: $stackTrace');
       rethrow;
     }
   }

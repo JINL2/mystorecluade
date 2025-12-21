@@ -1,26 +1,25 @@
 /// Revenue period enumeration for filtering revenue data
 ///
-/// Represents different time periods for revenue analysis.
-/// Used with both get_dashboard_revenue and get_dashboard_revenue_v3 RPCs.
+/// Represents different time periods for revenue analysis:
+/// - today: Current day's revenue
+/// - yesterday: Previous day's revenue
+/// - thisMonth: Current month's total revenue
+/// - thisYear: Current year's total revenue
 enum RevenuePeriod {
-  today('Today', 'vs Yesterday', 'today'),
-  yesterday('Yesterday', 'vs Day Before', 'yesterday'),
-  thisWeek('This Week', 'vs Last Week', 'this_week'),
-  lastWeek('Last Week', 'vs Previous Week', 'last_week'),
-  thisMonth('This Month', 'vs Last Month', 'this_month'),
-  lastMonth('Last Month', 'vs Previous Month', 'last_month'),
-  thisYear('This Year', 'vs Last Year', 'this_year');
+  today('Today', 'vs Yesterday'),
+  yesterday('Yesterday', 'vs Day Before'),
+  thisMonth('This Month', 'vs Last Month'),
+  thisYear('This Year', 'vs Last Year');
 
   final String displayName;
   final String comparisonText;
-  final String apiValue; // For get_dashboard_revenue_v3
 
-  const RevenuePeriod(this.displayName, this.comparisonText, this.apiValue);
+  const RevenuePeriod(this.displayName, this.comparisonText);
 
   /// Parse string to RevenuePeriod enum
   static RevenuePeriod fromString(String value) {
     return RevenuePeriod.values.firstWhere(
-      (period) => period.name == value || period.displayName == value || period.apiValue == value,
+      (period) => period.name == value || period.displayName == value,
       orElse: () => RevenuePeriod.today,
     );
   }

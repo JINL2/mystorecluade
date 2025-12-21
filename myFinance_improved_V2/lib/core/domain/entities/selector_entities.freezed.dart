@@ -274,8 +274,6 @@ mixin _$AccountData {
   String? get categoryTag => throw _privateConstructorUsedError;
   String? get expenseNature =>
       throw _privateConstructorUsedError; // fixed, variable
-  String? get accountCode =>
-      throw _privateConstructorUsedError; // Account code (e.g., 5000-9999 for expense accounts)
   int get transactionCount => throw _privateConstructorUsedError;
   Map<String, dynamic>? get additionalData =>
       throw _privateConstructorUsedError;
@@ -302,7 +300,6 @@ abstract class $AccountDataCopyWith<$Res> {
       String type,
       String? categoryTag,
       String? expenseNature,
-      String? accountCode,
       int transactionCount,
       Map<String, dynamic>? additionalData});
 }
@@ -327,7 +324,6 @@ class _$AccountDataCopyWithImpl<$Res, $Val extends AccountData>
     Object? type = null,
     Object? categoryTag = freezed,
     Object? expenseNature = freezed,
-    Object? accountCode = freezed,
     Object? transactionCount = null,
     Object? additionalData = freezed,
   }) {
@@ -351,10 +347,6 @@ class _$AccountDataCopyWithImpl<$Res, $Val extends AccountData>
       expenseNature: freezed == expenseNature
           ? _value.expenseNature
           : expenseNature // ignore: cast_nullable_to_non_nullable
-              as String?,
-      accountCode: freezed == accountCode
-          ? _value.accountCode
-          : accountCode // ignore: cast_nullable_to_non_nullable
               as String?,
       transactionCount: null == transactionCount
           ? _value.transactionCount
@@ -382,7 +374,6 @@ abstract class _$$AccountDataImplCopyWith<$Res>
       String type,
       String? categoryTag,
       String? expenseNature,
-      String? accountCode,
       int transactionCount,
       Map<String, dynamic>? additionalData});
 }
@@ -405,7 +396,6 @@ class __$$AccountDataImplCopyWithImpl<$Res>
     Object? type = null,
     Object? categoryTag = freezed,
     Object? expenseNature = freezed,
-    Object? accountCode = freezed,
     Object? transactionCount = null,
     Object? additionalData = freezed,
   }) {
@@ -430,10 +420,6 @@ class __$$AccountDataImplCopyWithImpl<$Res>
           ? _value.expenseNature
           : expenseNature // ignore: cast_nullable_to_non_nullable
               as String?,
-      accountCode: freezed == accountCode
-          ? _value.accountCode
-          : accountCode // ignore: cast_nullable_to_non_nullable
-              as String?,
       transactionCount: null == transactionCount
           ? _value.transactionCount
           : transactionCount // ignore: cast_nullable_to_non_nullable
@@ -455,7 +441,6 @@ class _$AccountDataImpl extends _AccountData {
       required this.type,
       this.categoryTag,
       this.expenseNature,
-      this.accountCode,
       this.transactionCount = 0,
       final Map<String, dynamic>? additionalData})
       : _additionalData = additionalData,
@@ -477,9 +462,6 @@ class _$AccountDataImpl extends _AccountData {
   final String? expenseNature;
 // fixed, variable
   @override
-  final String? accountCode;
-// Account code (e.g., 5000-9999 for expense accounts)
-  @override
   @JsonKey()
   final int transactionCount;
   final Map<String, dynamic>? _additionalData;
@@ -494,7 +476,7 @@ class _$AccountDataImpl extends _AccountData {
 
   @override
   String toString() {
-    return 'AccountData(id: $id, name: $name, type: $type, categoryTag: $categoryTag, expenseNature: $expenseNature, accountCode: $accountCode, transactionCount: $transactionCount, additionalData: $additionalData)';
+    return 'AccountData(id: $id, name: $name, type: $type, categoryTag: $categoryTag, expenseNature: $expenseNature, transactionCount: $transactionCount, additionalData: $additionalData)';
   }
 
   @override
@@ -509,8 +491,6 @@ class _$AccountDataImpl extends _AccountData {
                 other.categoryTag == categoryTag) &&
             (identical(other.expenseNature, expenseNature) ||
                 other.expenseNature == expenseNature) &&
-            (identical(other.accountCode, accountCode) ||
-                other.accountCode == accountCode) &&
             (identical(other.transactionCount, transactionCount) ||
                 other.transactionCount == transactionCount) &&
             const DeepCollectionEquality()
@@ -526,7 +506,6 @@ class _$AccountDataImpl extends _AccountData {
       type,
       categoryTag,
       expenseNature,
-      accountCode,
       transactionCount,
       const DeepCollectionEquality().hash(_additionalData));
 
@@ -553,7 +532,6 @@ abstract class _AccountData extends AccountData {
       required final String type,
       final String? categoryTag,
       final String? expenseNature,
-      final String? accountCode,
       final int transactionCount,
       final Map<String, dynamic>? additionalData}) = _$AccountDataImpl;
   const _AccountData._() : super._();
@@ -571,9 +549,6 @@ abstract class _AccountData extends AccountData {
   String? get categoryTag;
   @override
   String? get expenseNature; // fixed, variable
-  @override
-  String?
-      get accountCode; // Account code (e.g., 5000-9999 for expense accounts)
   @override
   int get transactionCount;
   @override

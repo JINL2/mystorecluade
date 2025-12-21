@@ -24,11 +24,7 @@ mixin _$BankBalance {
   String get userId => throw _privateConstructorUsedError;
   DateTime get recordDate => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
-  List<Currency> get currencies =>
-      throw _privateConstructorUsedError; // Each currency with totalAmount (no denominations used)
-  /// Flag to indicate if user explicitly entered a value (including 0)
-  /// Used to distinguish between "not entered" vs "explicitly set to 0"
-  bool get isExplicitlySet => throw _privateConstructorUsedError;
+  List<Currency> get currencies => throw _privateConstructorUsedError;
 
   /// Create a copy of BankBalance
   /// with the given fields replaced by the non-null parameter values.
@@ -51,8 +47,7 @@ abstract class $BankBalanceCopyWith<$Res> {
       String userId,
       DateTime recordDate,
       DateTime createdAt,
-      List<Currency> currencies,
-      bool isExplicitlySet});
+      List<Currency> currencies});
 }
 
 /// @nodoc
@@ -78,7 +73,6 @@ class _$BankBalanceCopyWithImpl<$Res, $Val extends BankBalance>
     Object? recordDate = null,
     Object? createdAt = null,
     Object? currencies = null,
-    Object? isExplicitlySet = null,
   }) {
     return _then(_value.copyWith(
       balanceId: freezed == balanceId
@@ -113,10 +107,6 @@ class _$BankBalanceCopyWithImpl<$Res, $Val extends BankBalance>
           ? _value.currencies
           : currencies // ignore: cast_nullable_to_non_nullable
               as List<Currency>,
-      isExplicitlySet: null == isExplicitlySet
-          ? _value.isExplicitlySet
-          : isExplicitlySet // ignore: cast_nullable_to_non_nullable
-              as bool,
     ) as $Val);
   }
 }
@@ -137,8 +127,7 @@ abstract class _$$BankBalanceImplCopyWith<$Res>
       String userId,
       DateTime recordDate,
       DateTime createdAt,
-      List<Currency> currencies,
-      bool isExplicitlySet});
+      List<Currency> currencies});
 }
 
 /// @nodoc
@@ -162,7 +151,6 @@ class __$$BankBalanceImplCopyWithImpl<$Res>
     Object? recordDate = null,
     Object? createdAt = null,
     Object? currencies = null,
-    Object? isExplicitlySet = null,
   }) {
     return _then(_$BankBalanceImpl(
       balanceId: freezed == balanceId
@@ -197,10 +185,6 @@ class __$$BankBalanceImplCopyWithImpl<$Res>
           ? _value._currencies
           : currencies // ignore: cast_nullable_to_non_nullable
               as List<Currency>,
-      isExplicitlySet: null == isExplicitlySet
-          ? _value.isExplicitlySet
-          : isExplicitlySet // ignore: cast_nullable_to_non_nullable
-              as bool,
     ));
   }
 }
@@ -216,8 +200,7 @@ class _$BankBalanceImpl extends _BankBalance {
       required this.userId,
       required this.recordDate,
       required this.createdAt,
-      required final List<Currency> currencies,
-      this.isExplicitlySet = false})
+      required final List<Currency> currencies})
       : _currencies = currencies,
         super._();
 
@@ -244,16 +227,9 @@ class _$BankBalanceImpl extends _BankBalance {
     return EqualUnmodifiableListView(_currencies);
   }
 
-// Each currency with totalAmount (no denominations used)
-  /// Flag to indicate if user explicitly entered a value (including 0)
-  /// Used to distinguish between "not entered" vs "explicitly set to 0"
-  @override
-  @JsonKey()
-  final bool isExplicitlySet;
-
   @override
   String toString() {
-    return 'BankBalance(balanceId: $balanceId, companyId: $companyId, storeId: $storeId, locationId: $locationId, userId: $userId, recordDate: $recordDate, createdAt: $createdAt, currencies: $currencies, isExplicitlySet: $isExplicitlySet)';
+    return 'BankBalance(balanceId: $balanceId, companyId: $companyId, storeId: $storeId, locationId: $locationId, userId: $userId, recordDate: $recordDate, createdAt: $createdAt, currencies: $currencies)';
   }
 
   @override
@@ -274,9 +250,7 @@ class _$BankBalanceImpl extends _BankBalance {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             const DeepCollectionEquality()
-                .equals(other._currencies, _currencies) &&
-            (identical(other.isExplicitlySet, isExplicitlySet) ||
-                other.isExplicitlySet == isExplicitlySet));
+                .equals(other._currencies, _currencies));
   }
 
   @override
@@ -289,8 +263,7 @@ class _$BankBalanceImpl extends _BankBalance {
       userId,
       recordDate,
       createdAt,
-      const DeepCollectionEquality().hash(_currencies),
-      isExplicitlySet);
+      const DeepCollectionEquality().hash(_currencies));
 
   /// Create a copy of BankBalance
   /// with the given fields replaced by the non-null parameter values.
@@ -310,8 +283,7 @@ abstract class _BankBalance extends BankBalance {
       required final String userId,
       required final DateTime recordDate,
       required final DateTime createdAt,
-      required final List<Currency> currencies,
-      final bool isExplicitlySet}) = _$BankBalanceImpl;
+      required final List<Currency> currencies}) = _$BankBalanceImpl;
   const _BankBalance._() : super._();
 
   @override
@@ -329,12 +301,7 @@ abstract class _BankBalance extends BankBalance {
   @override
   DateTime get createdAt;
   @override
-  List<Currency>
-      get currencies; // Each currency with totalAmount (no denominations used)
-  /// Flag to indicate if user explicitly entered a value (including 0)
-  /// Used to distinguish between "not entered" vs "explicitly set to 0"
-  @override
-  bool get isExplicitlySet;
+  List<Currency> get currencies;
 
   /// Create a copy of BankBalance
   /// with the given fields replaced by the non-null parameter values.

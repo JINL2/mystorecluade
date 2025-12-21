@@ -1,5 +1,4 @@
 import '../../domain/entities/invoice.dart';
-import '../../domain/entities/invoice_detail.dart';
 import '../../domain/repositories/invoice_repository.dart';
 import '../../domain/value_objects/invoice_filter.dart';
 import '../datasources/invoice_remote_datasource.dart';
@@ -31,16 +30,6 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   }) async {
     // TODO: Implement get invoice by ID
     throw UnimplementedError('Get invoice by ID not implemented yet');
-  }
-
-  @override
-  Future<InvoiceDetail> getInvoiceDetail({
-    required String invoiceId,
-  }) async {
-    final response = await _remoteDataSource.getInvoiceDetail(
-      invoiceId: invoiceId,
-    );
-    return response.toEntity();
   }
 
   @override

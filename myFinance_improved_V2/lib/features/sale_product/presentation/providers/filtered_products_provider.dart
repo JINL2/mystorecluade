@@ -1,25 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/sales_product.dart';
 import 'sales_product_provider.dart';
+import 'use_case_providers.dart';
 
-/// Filtered products provider
+/// Filtered and sorted products provider
 ///
-/// Returns products in server order (SKU-based from RPC).
-/// Only applies local search filter when needed.
+/// Automatically recomputes only when dependencies change:
+/// - products list
+/// - search query
+/// - sort option
 final filteredProductsProvider = Provider<List<SalesProduct>>((ref) {
   final salesState = ref.watch(salesProductProvider);
-  final products = salesState.products;
-  final searchQuery = salesState.searchQuery;
+  final filterUseCase = ref.watch(filterProductsUseCaseProvider);
 
-  // If no search query, return server-ordered products as-is
-  if (searchQuery.isEmpty) {
-    return products;
-  }
-
-  // Apply local search filter only
-  final searchLower = searchQuery.toLowerCase();
-  return products.where((product) {
-    return product.productName.toLowerCase().contains(searchLower) ||
-        product.sku.toLowerCase().contains(searchLower);
-  }).toList();
+  // This computation is memoized - only runs when dependencies change
+  return filterUseCase.execute(
+    products: salesState.products,
+    searchQuery: salesState.searchQuery,
+    sortOption: salesState.sortOption,
+  );
 });

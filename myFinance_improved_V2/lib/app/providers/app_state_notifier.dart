@@ -35,7 +35,8 @@ class AppStateNotifier extends StateNotifier<AppState> {
         'companyName': prefs.getString(_keyLastCompanyName),
         'storeName': prefs.getString(_keyLastStoreName),
       };
-    } catch (_) {
+    } catch (e) {
+      print('⚠️ [AppState] Failed to load last selection: $e');
       return {};
     }
   }
@@ -48,8 +49,9 @@ class AppStateNotifier extends StateNotifier<AppState> {
       await prefs.setString(_keyLastStoreId, state.storeChoosen);
       await prefs.setString(_keyLastCompanyName, state.companyName);
       await prefs.setString(_keyLastStoreName, state.storeName);
-    } catch (_) {
-      // Cache save failure is not critical
+      print('💾 [AppState] Saved selection: ${state.companyName} / ${state.storeName}');
+    } catch (e) {
+      print('⚠️ [AppState] Failed to save last selection: $e');
     }
   }
 
@@ -61,8 +63,9 @@ class AppStateNotifier extends StateNotifier<AppState> {
       await prefs.remove(_keyLastStoreId);
       await prefs.remove(_keyLastCompanyName);
       await prefs.remove(_keyLastStoreName);
-    } catch (_) {
-      // Cache clear failure is not critical
+      print('🗑️ [AppState] Cleared last selection cache');
+    } catch (e) {
+      print('⚠️ [AppState] Failed to clear last selection: $e');
     }
   }
 
@@ -91,39 +94,15 @@ class AppStateNotifier extends StateNotifier<AppState> {
     required String storeId,
     String? companyName,
     String? storeName,
-    Map<String, dynamic>? subscription,
   }) {
-    // Use plan_name instead of plan_type because:
-    // - plan_type in DB is 'free' or 'paid' (billing category)
-    // - plan_name is 'free', 'basic', 'pro' (actual plan tier)
-    final planName = (subscription?['plan_name'] as String?) ?? state.planType;
-
     state = state.copyWith(
       companyChoosen: companyId,
       storeChoosen: storeId,
       companyName: companyName ?? state.companyName,
       storeName: storeName ?? state.storeName,
-      currentSubscription: subscription ?? state.currentSubscription,
-      planType: planName,
-      maxStores: (subscription?['max_stores'] as int?) ?? state.maxStores,
-      maxEmployees: (subscription?['max_employees'] as int?) ?? state.maxEmployees,
-      aiDailyLimit: (subscription?['ai_daily_limit'] as int?) ?? state.aiDailyLimit,
     );
-
     // Save to cache
     _saveLastSelection();
-  }
-
-  /// Update subscription context
-  void updateSubscription(Map<String, dynamic> subscription) {
-    // ⚠️ Use plan_name instead of plan_type (see updateBusinessContext comment)
-    state = state.copyWith(
-      currentSubscription: subscription,
-      planType: (subscription['plan_name'] as String?) ?? 'free',  // ✅ Use plan_name
-      maxStores: (subscription['max_stores'] as int?) ?? 1,
-      maxEmployees: (subscription['max_employees'] as int?) ?? 5,
-      aiDailyLimit: (subscription['ai_daily_limit'] as int?) ?? 2,
-    );
   }
 
   /// Update company selection
@@ -201,8 +180,15 @@ class AppStateNotifier extends StateNotifier<AppState> {
     String? companyCode,
     Map<String, dynamic>? role,
   }) {
+    print('🟢 [AppState] addNewCompanyToUser called');
+    print('🟢 [AppState] companyId: $companyId');
+    print('🟢 [AppState] companyName: $companyName');
+    print('🟢 [AppState] companyCode: $companyCode');
+
     final userCopy = Map<String, dynamic>.from(state.user);
     final companiesList = List<dynamic>.from(userCopy['companies'] as List<dynamic>? ?? []);
+
+    print('🟢 [AppState] Current companies count: ${companiesList.length}');
 
     // Add new company to the list
     companiesList.insert(0, {
@@ -213,9 +199,12 @@ class AppStateNotifier extends StateNotifier<AppState> {
       'role': role ?? {'role_name': 'Owner', 'permissions': []},
     });
 
+    print('🟢 [AppState] New companies count: ${companiesList.length}');
+
     userCopy['companies'] = companiesList;
 
     state = state.copyWith(user: userCopy);
+    print('✅ [AppState] AppState updated with new company');
   }
 
   /// Add newly created store to company's stores list

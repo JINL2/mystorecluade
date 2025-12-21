@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart';
 // import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+import '../firebase_stub.dart';
 
 /// Logger specifically for notification debugging
 class NotificationLogger {

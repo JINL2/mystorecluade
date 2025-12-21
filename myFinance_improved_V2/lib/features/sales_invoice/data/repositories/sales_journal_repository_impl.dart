@@ -119,7 +119,6 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
     required String cogsAccountId,
     required String inventoryAccountId,
     required double totalCost,
-    required String invoiceId,
   }) async {
     final entryDateUtc = DateTimeUtils.toRpcFormat(DateTime.now());
 
@@ -159,15 +158,13 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
       'p_company_id': companyId,
       'p_created_by': userId,
       'p_description': description,
-      'p_time': entryDateUtc,
+      'p_entry_date_utc': entryDateUtc,
       'p_lines': refundJournalLines,
       'p_store_id': storeId,
-      'p_invoice_id': invoiceId,
-      'p_timezone': DateTimeUtils.getLocalTimezone(),
     };
 
     await _client.rpc<dynamic>(
-      'insert_journal_with_everything_v2',
+      'insert_journal_with_everything_utc',
       params: refundJournalParams,
     );
 
@@ -197,15 +194,13 @@ class SalesJournalRepositoryImpl implements SalesJournalRepository {
         'p_company_id': companyId,
         'p_created_by': userId,
         'p_description': 'COGS Reversal - $description',
-        'p_time': entryDateUtc,
+        'p_entry_date_utc': entryDateUtc,
         'p_lines': cogsReversalLines,
         'p_store_id': storeId,
-        'p_invoice_id': invoiceId,
-        'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       await _client.rpc<dynamic>(
-        'insert_journal_with_everything_v2',
+        'insert_journal_with_everything_utc',
         params: cogsReversalParams,
       );
     }

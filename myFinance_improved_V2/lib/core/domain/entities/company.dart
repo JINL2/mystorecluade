@@ -1,5 +1,4 @@
 import 'store.dart';
-import 'subscription.dart';
 
 /// Company entity representing a business organization
 ///
@@ -11,7 +10,6 @@ class Company {
     required this.companyCode,
     required this.role,
     required this.stores,
-    this.subscription,
   });
 
   final String id;
@@ -19,7 +17,6 @@ class Company {
   final String companyCode;
   final UserRole role;
   final List<Store> stores;
-  final Subscription? subscription;
 
   // ============================================================================
   // Factory Constructors
@@ -35,9 +32,6 @@ class Company {
       stores: (map['stores'] as List<dynamic>)
           .map((s) => Store.fromMap(s as Map<String, dynamic>))
           .toList(),
-      subscription: map['subscription'] != null
-          ? Subscription.fromMap(map['subscription'] as Map<String, dynamic>)
-          : null,
     );
   }
 
@@ -115,30 +109,6 @@ class Company {
   /// Requires 'invite_members' permission or owner role
   bool get canInviteMembers =>
       isOwner || hasPermission('invite_members');
-
-  // ============================================================================
-  // Subscription-related Methods
-  // ============================================================================
-
-  /// Get current subscription (defaults to free if null)
-  Subscription get currentSubscription =>
-      subscription ?? Subscription.free();
-
-  /// Check if on free plan
-  bool get isFreePlan => currentSubscription.isFree;
-
-  /// Check if on paid plan
-  bool get isPaidPlan => currentSubscription.isPaid;
-
-  /// Check if can add more stores based on subscription
-  bool get canAddStore => currentSubscription.canAddStore(storeCount);
-
-  /// Check if can add employee based on subscription
-  bool canAddEmployee(int currentEmployeeCount) =>
-      currentSubscription.canAddEmployee(currentEmployeeCount);
-
-  /// Get subscription plan name for display
-  String get planDisplayName => currentSubscription.displayName;
 }
 
 class UserRole {

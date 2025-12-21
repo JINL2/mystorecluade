@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/constants/inventory_constants.dart';
-import '../../domain/entities/product.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/pagination_params.dart';
 import '../../domain/value_objects/product_filter.dart';
@@ -171,9 +170,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Load base currency first
-      await _loadBaseCurrency();
-
       final filter = ProductFilter(
         searchQuery: state.searchQuery,
         categoryId: state.selectedCategoryId,
@@ -201,8 +197,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
           products: result.products,
           pagination: result.pagination,
           currency: result.currency,
-          serverTotalValue: result.serverTotalValue,
-          filteredCount: result.filteredCount,
           isLoading: false,
           error: null,
         );
@@ -217,22 +211,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         isLoading: false,
         error: e.toString(),
       );
-    }
-  }
-
-  /// Load base currency from get_base_currency RPC
-  Future<void> _loadBaseCurrency() async {
-    if (companyId == null) return;
-
-    try {
-      final result = await repository.getBaseCurrency(companyId: companyId!);
-      if (result != null) {
-        state = state.copyWith(baseCurrency: result.baseCurrency);
-      }
-    } catch (e) {
-      // Log error but don't fail the whole operation
-      // ignore: avoid_print
-      print('[InventoryPageNotifier] Failed to load base currency: $e');
     }
   }
 
@@ -296,14 +274,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
       ),
     );
     await loadInitialData();
-  }
-
-  /// Add product to list if not already present (for search result navigation)
-  void addProductIfNotExists(Product product) {
-    final exists = state.products.any((p) => p.id == product.id);
-    if (!exists) {
-      state = state.copyWith(products: [...state.products, product]);
-    }
   }
 
   /// Set search query with debounce

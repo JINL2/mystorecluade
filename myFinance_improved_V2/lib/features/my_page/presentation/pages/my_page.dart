@@ -8,20 +8,17 @@ import 'package:image_picker/image_picker.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../../auth/presentation/providers/auth_service.dart';
 import '../providers/user_profile_providers.dart';
 import '../widgets/profile_avatar_section.dart';
 import '../widgets/profile_header_section.dart';
 import '../widgets/settings_section.dart';
-import '../widgets/subscription_section.dart';
 
 class MyPage extends ConsumerStatefulWidget {
   const MyPage({super.key});
@@ -38,7 +35,6 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
   // Local state for optimistic UI updates
   String? _temporaryProfileImageUrl;
   bool _isUploadingImage = false;
-  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -79,39 +75,11 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
           curve: const Interval(0.1, 0.4, curve: Curves.easeOutCubic),
         ),
       ),
-      Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(
-          parent: _entryController,
-          curve: const Interval(0.2, 0.5, curve: Curves.easeOutCubic),
-        ),
-      ),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-    // Show loading view during logout
-    if (_isLoggingOut) {
-      return TossScaffold(
-        backgroundColor: TossColors.gray100,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const TossLoadingView(),
-              const SizedBox(height: TossSpacing.space4),
-              Text(
-                'Signing out...',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final myPageState = ref.watch(myPageProvider);
     final userProfile = myPageState.userProfile;
     final businessData = myPageState.businessDashboard;
@@ -187,22 +155,13 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
                                     const SizedBox(height: TossSpacing.space4),
 
-                                    // Subscription Section
-                                    FadeTransition(
-                                      opacity: _animations[1],
-                                      child: const SubscriptionSection(),
-                                    ),
-
-                                    const SizedBox(height: TossSpacing.space4),
-
                                     // Settings Section
                                     FadeTransition(
-                                      opacity: _animations[2],
+                                      opacity: _animations[1],
                                       child: SettingsSection(
                                         onEditProfile: _navigateToEditProfile,
                                         onNotifications: _navigateToNotifications,
                                         onPrivacySecurity: _navigateToPrivacySecurity,
-                                        onLanguage: _navigateToLanguage,
                                         onSignOut: _handleSignOut,
                                       ),
                                     ),
@@ -255,9 +214,9 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: source,
-        maxWidth: 400,
-        maxHeight: 400,
-        imageQuality: 50,
+        maxWidth: 600,
+        maxHeight: 600,
+        imageQuality: 70,
       );
 
       if (image != null) {
@@ -451,20 +410,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     context.push('/privacy-security');
   }
 
-  void _navigateToLanguage() {
-    HapticFeedback.lightImpact();
-    context.push('/language-settings');
-  }
-
-  /// Handle logout with smooth UX (same pattern as homepage.dart)
-  ///
-  /// Improved logout flow:
-  /// 1. Show confirmation dialog
-  /// 2. Show full-screen loading view immediately
-  /// 3. Clear app state BEFORE auth signOut (prevents "dispose" error)
-  /// 4. Execute auth signOut (triggers GoRouter redirect)
-  /// 5. Let GoRouter handle navigation to login page
-  Future<void> _handleSignOut() async {
+  void _handleSignOut() async {
     HapticFeedback.lightImpact();
 
     final confirmed = await TossConfirmCancelDialog.show(
@@ -478,48 +424,20 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
     if (confirmed == true) {
       try {
-        // ✅ Read all providers BEFORE logout starts
-        final authService = ref.read(authServiceProvider);
-        final appStateNotifier = ref.read(appStateProvider.notifier);
-
-        if (!mounted) return;
-
-        // ✅ Show full-screen loading view
-        setState(() {
-          _isLoggingOut = true;
-        });
-
-        // ✅ Clear app state FIRST (before auth logout)
-        // This prevents "Bad state: Tried to use AppStateNotifier after dispose"
-        // because authService.signOut() will invalidate all providers
-        appStateNotifier.signOut();
-
-        // ✅ Execute auth logout AFTER clearing app state
-        // This will:
-        // 1. Clear session
-        // 2. Sign out from Supabase
-        // 3. Invalidate providers (including appStateProvider)
-        // 4. Trigger GoRouter redirect (auth state changes to null)
-        await authService.signOut();
-
-        // GoRouter will automatically redirect to /auth/login
-        // Loading view will be visible until navigation completes
-
-      } catch (e) {
-        // ✅ Reset loading state on error
+        await Supabase.instance.client.auth.signOut();
         if (mounted) {
-          setState(() {
-            _isLoggingOut = false;
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Sign out failed: $e'),
-              backgroundColor: TossColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
+          context.go('/auth/login');
+        }
+      } catch (e) {
+        if (mounted) {
+          await showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.error(
+              title: 'Sign Out Failed',
+              message: 'Failed to sign out: $e',
+              primaryButtonText: 'OK',
+              onPrimaryPressed: () => context.pop(),
             ),
           );
         }

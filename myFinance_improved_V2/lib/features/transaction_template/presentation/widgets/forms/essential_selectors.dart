@@ -3,15 +3,13 @@
 /// Purpose: Displays only the essential selectors needed based on template analysis:
 /// - Cash location selector (when template needs cash location)
 /// - Counterparty selector (when template needs counterparty)
-///
+/// 
 /// Automatically determines which selectors to show based on missing items
 /// from template analysis results.
 ///
 /// Usage: EssentialSelectors(analysis: analysis, onSelectionChanged: callback)
 library;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -20,7 +18,7 @@ import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterpa
 
 import '../../../domain/value_objects/template_analysis_result.dart';
 
-class EssentialSelectors extends ConsumerWidget {
+class EssentialSelectors extends StatelessWidget {
   final TemplateAnalysisResult analysis;
   final String? selectedMyCashLocationId;
   final String? selectedCounterpartyId;
@@ -41,15 +39,13 @@ class EssentialSelectors extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final currentStoreId = appState.storeChoosen;
-    final selectors = _buildSelectors(currentStoreId);
-
+  Widget build(BuildContext context) {
+    final selectors = _buildSelectors();
+    
     if (selectors.isEmpty) {
       return const SizedBox.shrink();
     }
-
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -68,38 +64,36 @@ class EssentialSelectors extends ConsumerWidget {
       ],
     );
   }
-
-  List<Widget> _buildSelectors(String? currentStoreId) {
+  
+  List<Widget> _buildSelectors() {
     final List<Widget> selectors = [];
-
+    
     // Add cash location selector if needed
     if (analysis.missingItems.contains('cash_location')) {
-      selectors.add(_buildCashLocationSelector(currentStoreId));
+      selectors.add(_buildCashLocationSelector());
     }
-
+    
     // Add counterparty selector if needed
     if (analysis.missingItems.contains('counterparty')) {
       selectors.add(_buildCounterpartySelector());
     }
-
+    
     // Add counterparty cash location selector if needed
     if (analysis.missingItems.contains('counterparty_cash_location')) {
       selectors.add(_buildCounterpartyCashLocationSelector());
     }
-
+    
     return selectors;
   }
-
-  Widget _buildCashLocationSelector(String? currentStoreId) {
+  
+  Widget _buildCashLocationSelector() {
     return AutonomousCashLocationSelector(
       selectedLocationId: selectedMyCashLocationId,
-      storeId: currentStoreId, // ✅ 내 storeId 전달
       onChanged: onMyCashLocationChanged,
       label: 'Cash Location',
       hint: 'Select cash location',
       showSearch: false,
       showTransactionCount: false,
-      showScopeTabs: true,
     );
   }
   

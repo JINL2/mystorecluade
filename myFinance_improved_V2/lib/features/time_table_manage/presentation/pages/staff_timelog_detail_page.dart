@@ -70,9 +70,8 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   int penaltyAmount = 0;
   late int _initialPenaltyAmount;
 
-  // Controllers for bonus, deduct and memo text fields
+  // Controllers for bonus and memo text fields
   final TextEditingController _bonusController = TextEditingController();
-  final TextEditingController _deductController = TextEditingController();
   final TextEditingController _memoController = TextEditingController();
 
   // Memo state
@@ -96,10 +95,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   bool get isCheckOutChanged => confirmedCheckOut != _initialConfirmedCheckOut;
 
   /// Check if confirmed attendance section has any changes
-  /// Includes time changes OR manual confirmation (even if same time value)
-  bool get isConfirmedTimeChanged =>
-      isCheckInChanged || isCheckOutChanged ||
-      isCheckInManuallyConfirmed || isCheckOutManuallyConfirmed;
+  bool get isConfirmedTimeChanged => isCheckInChanged || isCheckOutChanged;
 
   /// Check if bonus amount has changed
   bool get isBonusChanged => bonusAmount != _initialBonusAmount;
@@ -141,93 +137,29 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   bool get _isFullyConfirmed {
-    // IMPORTANT: Check shift progress FIRST
+    final hasCheckIn = confirmedCheckIn != '--:--:--';
+    final hasCheckOut = confirmedCheckOut != '--:--:--';
+
+    debugPrint('[DEBUG] _isFullyConfirmed: hasCheckIn=$hasCheckIn, hasCheckOut=$hasCheckOut');
+    debugPrint('[DEBUG] confirmedCheckIn=$confirmedCheckIn, confirmedCheckOut=$confirmedCheckOut');
+    debugPrint('[DEBUG] shiftEndTime=${widget.staffRecord.shiftEndTime}');
+    debugPrint('[DEBUG] _isShiftStillInProgress=$_isShiftStillInProgress');
+
+    // IMPORTANT: Check shift progress FIRST, before checking hasCheckIn/hasCheckOut
     // If shift is still in progress (hasn't ended yet), don't require confirmation yet
+    // Treat as "confirmed" for now (no need to show "Need confirm")
     if (_isShiftStillInProgress) {
+      debugPrint('[DEBUG] Shift still in progress - returning true (no need confirm)');
       return true;
     }
 
-    // Use problemDetails for comprehensive problem checking
-    final pd = widget.staffRecord.problemDetails;
+    // Shift has ended - now check if we have both check-in and check-out
+    if (!hasCheckIn || !hasCheckOut) return false;
 
-    // If no problemDetails or no problems, check basic attendance
-    if (pd == null || pd.problemCount == 0) {
-      // No problems = fully confirmed
-      return true;
-    }
-
-    // Check if ALL problems are solved using problemDetails.isFullySolved
-    // This covers: late, overtime, early_leave, no_checkout, reported, etc.
-    if (pd.isFullySolved) {
-      return true;
-    }
-
-    // Has unsolved problems = needs confirmation
-    return false;
-  }
-
-  // ============================================================================
-  // Check-in/Check-out Specific Problem Helpers (for ConfirmedAttendanceCard)
-  // ============================================================================
-
-  /// Check-in related problems: late, invalid_checkin
-  bool get _hasCheckInProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isLate;
-    // invalid_checkin is also a check-in problem
-    return pd.hasLate || pd.problems.any((p) => p.type == 'invalid_checkin');
-  }
-
-  /// Check-out related problems: overtime, early_leave, no_checkout, absence, location_issue
-  bool get _hasCheckOutProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isOvertime;
-    // location_issue is typically a check-out related problem (GPS mismatch at checkout)
-    return pd.hasOvertime || pd.hasEarlyLeave || pd.hasNoCheckout || pd.hasAbsence || pd.hasLocationIssue;
-  }
-
-  /// Check if check-in problem is unsolved (for "Need confirm" red status)
-  bool get _hasUnsolvedCheckInProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) {
-      return widget.staffRecord.isLate && !widget.staffRecord.isProblemSolved;
-    }
-    // Check-in related problems: late, invalid_checkin
-    final checkInTypes = ['late', 'invalid_checkin'];
-    return pd.problems.any((p) => checkInTypes.contains(p.type) && !p.isSolved);
-  }
-
-  /// Check if check-out problem is unsolved (for "Need confirm" red status)
-  bool get _hasUnsolvedCheckOutProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) {
-      return widget.staffRecord.isOvertime && !widget.staffRecord.isProblemSolved;
-    }
-    // Check any check-out related problems that are unsolved
-    final checkOutTypes = ['overtime', 'early_leave', 'no_checkout', 'absence', 'location_issue'];
-    return pd.problems.any((p) => checkOutTypes.contains(p.type) && !p.isSolved);
-  }
-
-  /// Check if ALL check-in problems were solved by DB (for blue "Confirmed" status)
-  bool get _isCheckInProblemSolved {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isProblemSolved;
-    // Check if ALL check-in related problems are solved
-    final checkInTypes = ['late', 'invalid_checkin'];
-    final checkInProblems = pd.problems.where((p) => checkInTypes.contains(p.type));
-    if (checkInProblems.isEmpty) return false;
-    return checkInProblems.every((p) => p.isSolved);
-  }
-
-  /// Check if ALL check-out problems were solved by DB (for blue "Confirmed" status)
-  bool get _isCheckOutProblemSolved {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isProblemSolved;
-    // Check if ALL check-out related problems are solved
-    final checkOutTypes = ['overtime', 'early_leave', 'no_checkout', 'absence', 'location_issue'];
-    final checkOutProblems = pd.problems.where((p) => checkOutTypes.contains(p.type));
-    if (checkOutProblems.isEmpty) return false;
-    return checkOutProblems.every((p) => p.isSolved);
+    // Shift has ended - now check late/overtime status for confirmation requirements
+    bool checkInConfirmed = !widget.staffRecord.isLate || isCheckInManuallyConfirmed;
+    bool checkOutConfirmed = !widget.staffRecord.isOvertime || isCheckOutManuallyConfirmed;
+    return checkInConfirmed && checkOutConfirmed;
   }
 
   // Salary computed properties
@@ -284,7 +216,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   String get asOfDate => TimelogHelpers.formatAsOfDate(widget.shiftDate);
-  String get bonusPay => '${NumberFormat('#,###').format(bonusAmount - penaltyAmount)}₫';
+  String get bonusPay => '${NumberFormat('#,###').format(bonusAmount)}₫';
   String get penaltyDeduction => '${NumberFormat('#,###').format(penaltyAmount)}₫';
   String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount - penaltyAmount)}₫';
 
@@ -333,7 +265,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   @override
   void dispose() {
     _bonusController.dispose();
-    _deductController.dispose();
     _memoController.dispose();
     super.dispose();
   }
@@ -343,15 +274,14 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   // ============================================================================
 
   Future<void> _showTimePickerForCheckIn() async {
-    // Use recorded time as default (not confirmed time)
-    final parsedRecordedTime = TimelogHelpers.parseTime(recordedCheckIn);
+    final parsedTime = TimelogHelpers.parseTime(confirmedCheckIn);
     final result = await TimePickerBottomSheet.show(
       context: context,
       title: 'Confirmed Check In',
       recordedTimeLabel: 'Recorded check in',
       recordedTime: recordedCheckIn,
-      initialTime: parsedRecordedTime['time'] as TimeOfDay,
-      initialSeconds: parsedRecordedTime['seconds'] as int,
+      initialTime: parsedTime['time'] as TimeOfDay,
+      initialSeconds: parsedTime['seconds'] as int,
     );
 
     if (result != null) {
@@ -365,15 +295,14 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   Future<void> _showTimePickerForCheckOut() async {
-    // Use recorded time as default (not confirmed time)
-    final parsedRecordedTime = TimelogHelpers.parseTime(recordedCheckOut);
+    final parsedTime = TimelogHelpers.parseTime(confirmedCheckOut);
     final result = await TimePickerBottomSheet.show(
       context: context,
       title: 'Confirmed Check Out',
       recordedTimeLabel: 'Recorded check out',
       recordedTime: recordedCheckOut,
-      initialTime: parsedRecordedTime['time'] as TimeOfDay,
-      initialSeconds: parsedRecordedTime['seconds'] as int,
+      initialTime: parsedTime['time'] as TimeOfDay,
+      initialSeconds: parsedTime['seconds'] as int,
     );
 
     if (result != null) {
@@ -392,10 +321,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
   void _onBonusChanged(int amount) {
     setState(() => bonusAmount = amount);
-  }
-
-  void _onDeductChanged(int amount) {
-    setState(() => penaltyAmount = amount);
   }
 
   // ============================================================================
@@ -422,31 +347,16 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
       final inputCardV5UseCase = ref.read(inputCardV5UseCaseProvider);
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      // v5: isProblemSolved (for Late/Overtime/EarlyLeave time confirmation)
-      // When manager clicks "Save & confirm shift", mark problem as solved if:
-      // 1. Confirm time has been changed (manual edit)
-      // 2. OR there's an existing problem that hasn't been solved yet
-      //    (Late, Overtime, EarlyLeave, NoCheckout, etc.)
-      // This allows manager to "confirm" auto-calculated times without editing them
-      bool? isProblemSolved;
-      final hasProblem = (widget.staffRecord.problemDetails?.problemCount ?? 0) > 0;
-      final isAlreadySolved = widget.staffRecord.isProblemSolved;
-
-      if (isConfirmedTimeChanged) {
-        // Confirm time이 변경되면 문제 해결됨으로 처리
-        isProblemSolved = true;
-      } else if (hasProblem && !isAlreadySolved) {
-        // 시간 변경 없이도 "Save & confirm" 버튼 누르면 문제 해결 처리
-        // (예: early_leave에서 뷰가 자동 계산한 시간을 매니저가 확인만 하는 경우)
-        isProblemSolved = true;
-      }
-
-      // v5: isReportedSolved (for Report approval/rejection)
+      // v5: isReportedSolved
+      // - confirm time이 변경되면 → true (문제 해결됨으로 처리)
       // - Approve 클릭 → true
       // - Reject 클릭 → false
       // - 아무것도 안 바꿨으면 → 기존 값 전송
       bool? isReportedSolved;
-      if (widget.staffRecord.isReported) {
+      if (isConfirmedTimeChanged) {
+        // Confirm time이 변경되면 문제 해결됨으로 처리
+        isReportedSolved = true;
+      } else if (widget.staffRecord.isReported) {
         if (issueReportStatus == 'approved') {
           isReportedSolved = true;
         } else if (issueReportStatus == 'rejected') {
@@ -483,37 +393,18 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
         confirmEndTime = null;
       }
 
-      // Net bonus amount = Add bonus - Deduct (can be negative)
-      final netBonusAmount = bonusAmount - penaltyAmount;
-
-      debugPrint('[StaffTimelogDetail] ========== RPC PARAMS ==========');
-      debugPrint('[StaffTimelogDetail] bonusAmount: $bonusAmount');
-      debugPrint('[StaffTimelogDetail] penaltyAmount: $penaltyAmount');
-      debugPrint('[StaffTimelogDetail] netBonusAmount: $netBonusAmount');
-      debugPrint('[StaffTimelogDetail] confirmStartTime: $confirmStartTime');
-      debugPrint('[StaffTimelogDetail] confirmEndTime: $confirmEndTime');
-      debugPrint('[StaffTimelogDetail] isProblemSolved: $isProblemSolved');
-      debugPrint('[StaffTimelogDetail]   - isConfirmedTimeChanged: $isConfirmedTimeChanged');
-      debugPrint('[StaffTimelogDetail]   - hasProblem: $hasProblem');
-      debugPrint('[StaffTimelogDetail]   - isAlreadySolved: $isAlreadySolved');
-      debugPrint('[StaffTimelogDetail] isReportedSolved: $isReportedSolved');
-      debugPrint('[StaffTimelogDetail] managerMemo: $managerMemo');
-      debugPrint('[StaffTimelogDetail] ================================');
-
       final params = InputCardV5Params(
         managerId: managerId,
         shiftRequestId: shiftRequestId,
         confirmStartTime: confirmStartTime,
         confirmEndTime: confirmEndTime,
-        isProblemSolved: isProblemSolved,
         isReportedSolved: isReportedSolved,
-        bonusAmount: netBonusAmount.toDouble(),
+        bonusAmount: bonusAmount.toDouble(),
         managerMemo: managerMemo,
         timezone: timezone,
       );
 
-      final result = await inputCardV5UseCase.call(params);
-      debugPrint('[StaffTimelogDetail] RPC Result: $result');
+      await inputCardV5UseCase.call(params);
 
       if (mounted) {
         setState(() {
@@ -521,7 +412,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
           _initialConfirmedCheckIn = confirmedCheckIn;
           _initialConfirmedCheckOut = confirmedCheckOut;
           _initialBonusAmount = bonusAmount;
-          _initialPenaltyAmount = penaltyAmount;
           _initialMemo = _memoController.text;
           if (issueReportStatus != null) {
             // Convert user selection to bool for storage
@@ -573,8 +463,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           shiftTimeRange: widget.shiftTimeRange,
                           isLate: widget.staffRecord.isLate,
                           isOvertime: widget.staffRecord.isOvertime,
-                          // v5: Pass problemDetails for displaying badges with minutes
-                          problemDetails: widget.staffRecord.problemDetails,
                         ),
                         // Issue report card (if employee reported an issue) - positioned after shift info
                         if (employeeIssueReport != null && employeeIssueReport!.isNotEmpty) ...[
@@ -607,20 +495,11 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           isFullyConfirmed: _isFullyConfirmed,
                           confirmedCheckIn: confirmedCheckIn,
                           confirmedCheckOut: confirmedCheckOut,
-                          // Use problemDetails for comprehensive problem checking
-                          // checkInNeedsConfirm: late problem unsolved
-                          checkInNeedsConfirm: !_isShiftStillInProgress &&
-                              _hasUnsolvedCheckInProblem &&
-                              !isCheckInManuallyConfirmed,
-                          // checkOutNeedsConfirm: overtime/early_leave/no_checkout problem unsolved
-                          checkOutNeedsConfirm: !_isShiftStillInProgress &&
-                              _hasUnsolvedCheckOutProblem &&
-                              !isCheckOutManuallyConfirmed,
-                          // Blue text: problem exists AND confirmed (solved OR manually confirmed)
-                          isCheckInConfirmed: _hasCheckInProblem &&
-                              (_isCheckInProblemSolved || isCheckInManuallyConfirmed),
-                          isCheckOutConfirmed: _hasCheckOutProblem &&
-                              (_isCheckOutProblemSolved || isCheckOutManuallyConfirmed),
+                          // Don't show "needs confirm" if shift is still in progress
+                          checkInNeedsConfirm: !_isShiftStillInProgress && widget.staffRecord.isLate && !isCheckInManuallyConfirmed,
+                          checkOutNeedsConfirm: !_isShiftStillInProgress && widget.staffRecord.isOvertime && !isCheckOutManuallyConfirmed,
+                          isCheckInConfirmed: isCheckInManuallyConfirmed,
+                          isCheckOutConfirmed: isCheckOutManuallyConfirmed,
                           onEditCheckIn: _showTimePickerForCheckIn,
                           onEditCheckOut: _showTimePickerForCheckOut,
                           // Hide status badge when shift is still in progress
@@ -633,14 +512,12 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                   // Full-width gray divider before Adjustment section
                   const GrayDividerSpace(),
 
-                  // Section 2: Adjustment section (bonus and deduct)
+                  // Section 2: Adjustment section (bonus only)
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: AdjustmentSection(
                       bonusController: _bonusController,
-                      deductController: _deductController,
                       onBonusChanged: _onBonusChanged,
-                      onDeductChanged: _onDeductChanged,
                     ),
                   ),
 

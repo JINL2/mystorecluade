@@ -38,7 +38,6 @@ class Invoice extends Equatable {
   final String? createdByName;
   final String? createdByEmail;
   final DateTime createdAt;
-  final String? aiDescription;
 
   const Invoice({
     required this.invoiceId,
@@ -58,12 +57,7 @@ class Invoice extends Equatable {
     this.createdByName,
     this.createdByEmail,
     required this.createdAt,
-    this.aiDescription,
   });
-
-  /// Check if has AI description
-  bool get hasAiDescription =>
-      aiDescription != null && aiDescription!.isNotEmpty;
 
   /// Helper getters for status checking
   bool get isCompleted => status == 'completed';
@@ -122,6 +116,5 @@ class Invoice extends Equatable {
         createdByName,
         createdByEmail,
         createdAt,
-        aiDescription,
       ];
 }

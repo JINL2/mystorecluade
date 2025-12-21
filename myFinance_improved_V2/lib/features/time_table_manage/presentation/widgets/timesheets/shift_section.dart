@@ -14,8 +14,7 @@ class ShiftTimelog {
   final String timeRange;
   final int assignedCount;
   final int totalCount;
-  final int problemCount; // Unsolved problems count
-  final int solvedCount; // Solved problems count
+  final int problemCount;
   final List<StaffTimeRecord> staffRecords;
   final DateTime date;
 
@@ -26,7 +25,6 @@ class ShiftTimelog {
     required this.assignedCount,
     required this.totalCount,
     required this.problemCount,
-    this.solvedCount = 0,
     required this.staffRecords,
     required this.date,
   });
@@ -56,44 +54,6 @@ class _ShiftSectionState extends State<ShiftSection> {
   void initState() {
     super.initState();
     _isExpanded = widget.initiallyExpanded;
-  }
-
-  /// Build problem and solved indicators for shift header
-  /// Shows: "2 problems" (red) + "solved 1" (gray) or just "solved 1" (gray)
-  List<Widget> _buildProblemSolvedIndicators() {
-    final List<Widget> indicators = [];
-    final problemCount = widget.shift.problemCount;
-    final solvedCount = widget.shift.solvedCount;
-
-    // Unsolved problems: red text
-    if (problemCount > 0) {
-      indicators.add(const SizedBox(width: TossSpacing.space2));
-      indicators.add(
-        Text(
-          '$problemCount problems',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.error,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
-    }
-
-    // Solved problems: green text
-    if (solvedCount > 0) {
-      indicators.add(const SizedBox(width: TossSpacing.space2));
-      indicators.add(
-        Text(
-          'solved $solvedCount',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.success,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      );
-    }
-
-    return indicators;
   }
 
   @override
@@ -133,8 +93,16 @@ class _ShiftSectionState extends State<ShiftSection> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            // Problem & Solved indicators
-                            ..._buildProblemSolvedIndicators(),
+                            if (widget.shift.problemCount > 0) ...[
+                              const SizedBox(width: TossSpacing.space2),
+                              Text(
+                                '${widget.shift.problemCount} problems',
+                                style: TossTextStyles.caption.copyWith(
+                                  color: TossColors.error,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 2),

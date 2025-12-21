@@ -10,19 +10,19 @@ import '../../domain/entities/product.dart';
 /// Extension to provide display properties for StockStatus
 /// This keeps the Domain layer pure and moves UI concerns to Presentation
 extension StockStatusDisplay on StockStatus {
-  /// Display name for UI
+  /// Display name for UI (localized)
   String get displayName {
     switch (this) {
       case StockStatus.outOfStock:
-        return 'Out of Stock';
+        return '품절';
       case StockStatus.critical:
-        return 'Critical';
+        return '긴급';
       case StockStatus.low:
-        return 'Low';
+        return '부족';
       case StockStatus.normal:
-        return 'Normal';
+        return '정상';
       case StockStatus.excess:
-        return 'Excess';
+        return '과재고';
     }
   }
 

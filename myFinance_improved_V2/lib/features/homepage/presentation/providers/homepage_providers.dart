@@ -1,17 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../app/providers/auth_providers.dart';
-import '../../../../core/services/revenuecat_service.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../domain/entities/category_with_features.dart';
 import '../../domain/entities/company_type.dart';
 import '../../domain/entities/currency.dart';
-import '../../domain/entities/homepage_alert.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/entities/top_feature.dart';
 import '../../domain/entities/user_with_companies.dart';
@@ -28,18 +26,7 @@ enum RevenueViewTab { company, store }
 
 /// Provider for selected revenue view tab
 final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
-  return RevenueViewTab.store;
-});
-
-/// Provider that auto-switches to Store tab when store selection changes
-/// Use ref.watch(autoSwitchToStoreTabProvider) in homepage widgets to enable this behavior
-final autoSwitchToStoreTabProvider = Provider<void>((ref) {
-  ref.listen(appStateProvider.select((state) => state.storeChoosen), (previous, next) {
-    // Auto-switch to Store tab when store changes (not on initial load)
-    if (previous != null && previous != next && next.isNotEmpty) {
-      ref.read(selectedRevenueTabProvider.notifier).state = RevenueViewTab.store;
-    }
-  });
+  return RevenueViewTab.company;
 });
 
 /// Provider for fetching revenue data
@@ -82,14 +69,10 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
         ? storeId
         : null;
 
-    // Get device timezone
-    final timezone = DateTime.now().timeZoneName;
-
     final revenue = await repository.getRevenue(
       companyId: companyId,
       storeId: effectiveStoreId,
       period: period,
-      timezone: timezone,
     );
     return revenue;
   },
@@ -250,24 +233,11 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     // Convert entity to Map once (avoid duplication)
     final userData = convertUserEntityToMap(userEntity);
 
-    // ✅ Always update AppState.user with fresh data (includes companies with subscription)
-    // This ensures CompanyStoreSelector and other widgets get updated subscription data
-    appStateNotifier.updateUser(
-      user: userData,
-      isAuthenticated: true,
-    );
-
-    // ✅ Login to RevenueCat with Supabase user ID
-    // This links the user's subscription data across devices
-    try {
-      await RevenueCatService().loginUser(user.id);
-    } catch (e, stackTrace) {
-      // RevenueCat login failure shouldn't block user data loading
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'RevenueCat login failed',
-        extra: {'userId': user.id},
+    // Update AppState only if data changed
+    if (appState.user.isEmpty || appState.user['user_id'] != user.id) {
+      appStateNotifier.updateUser(
+        user: userData,
+        isAuthenticated: true,
       );
     }
 
@@ -286,63 +256,22 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
         ),
       );
 
-      // Update app state with selected company/store and subscription
+      // Update app state with selected company/store
       if (selection.hasSelection) {
         appStateNotifier.updateBusinessContext(
           companyId: selection.company!.id,
           storeId: selection.store?.id ?? '',
           companyName: selection.company!.companyName,
           storeName: selection.store?.storeName,
-          subscription: selection.company!.subscription?.toMap(),
         );
       }
-    } else if (userEntity.companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
-      // ✅ Company already selected - still update subscription data on refresh
-      // Find the currently selected company and update its subscription
-      final selectedCompany = userEntity.companies.firstWhere(
-        (c) => c.id == appState.companyChoosen,
-        orElse: () => userEntity.companies.first,
-      );
-
-      // ✅ Find the actual store name from the selected store ID
-      // This fixes cached storeName being incorrect (e.g., store_code instead of store_name)
-      String? actualStoreName = appState.storeName;
-      if (appState.storeChoosen.isNotEmpty && selectedCompany.stores.isNotEmpty) {
-        try {
-          final selectedStore = selectedCompany.stores.firstWhere(
-            (s) => s.id == appState.storeChoosen,
-          );
-          actualStoreName = selectedStore.storeName;
-        } catch (_) {
-          // Store not found - use first store as fallback
-          if (selectedCompany.stores.isNotEmpty) {
-            actualStoreName = selectedCompany.stores.first.storeName;
-          }
-        }
-      }
-
-      // Update subscription data without changing company/store selection
-      appStateNotifier.updateBusinessContext(
-        companyId: selectedCompany.id,
-        storeId: appState.storeChoosen,
-        companyName: selectedCompany.companyName,
-        storeName: actualStoreName,
-        subscription: selectedCompany.subscription?.toMap(),
-      );
     }
 
     // Return Map (already converted once, reuse userData)
     return userData;
-  } on TimeoutException catch (e, stackTrace) {
+  } on TimeoutException {
     // ⚠️ Timeout - auto logout and throw error
-    SentryConfig.captureException(
-      e,
-      stackTrace,
-      hint: 'UserCompanies timeout - forcing logout',
-    );
-
-    // Sign out from RevenueCat
-    await RevenueCatService().logoutUser();
+    debugPrint('🔴 [UserCompanies] Timeout loading user data - forcing logout');
 
     // Sign out the user
     await ref.read(authServiceProvider).signOut();
@@ -351,18 +280,13 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     appStateNotifier.signOut();
 
     throw Exception('Session expired. Please sign in again.');
-  } catch (e, stackTrace) {
+  } catch (e) {
     // ⚠️ Other errors (e.g., user profile not found in public.users)
+    debugPrint('🔴 [UserCompanies] Error loading user data: $e');
+
     // If error contains "No user companies data" - orphan auth session
     if (e.toString().contains('No user companies data')) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'UserCompanies orphan auth session - forcing logout',
-      );
-
-      // Sign out from RevenueCat
-      await RevenueCatService().logoutUser();
+      debugPrint('🔴 [UserCompanies] Orphan auth session detected - forcing logout');
 
       // Sign out the user
       await ref.read(authServiceProvider).signOut();
@@ -373,11 +297,6 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
       throw Exception('Account data not found. Please sign in again.');
     }
 
-    SentryConfig.captureException(
-      e,
-      stackTrace,
-      hint: 'UserCompanies error loading user data',
-    );
     rethrow;
   }
 });
@@ -444,39 +363,4 @@ final currenciesProvider = FutureProvider.autoDispose<List<Currency>>((ref) asyn
     (failure) => throw Exception(failure.message),
     (currencies) => currencies,
   );
-});
-
-// === App Version Check Provider ===
-
-/// Provider for checking app version against server
-///
-/// Returns true if app is up to date, false if update required.
-/// This should be called BEFORE loading other homepage data.
-final appVersionCheckProvider = FutureProvider<bool>((ref) async {
-  final repository = ref.watch(homepageRepositoryProvider);
-  return await repository.checkAppVersion();
-});
-
-// === Homepage Alert Provider ===
-
-/// Provider for fetching homepage alert
-///
-/// Returns alert data with is_show and is_checked flags.
-/// Uses 6-hour cache in DataSource to prevent excessive API calls.
-final homepageAlertProvider = FutureProvider<HomepageAlert>((ref) async {
-  // Wait for authentication
-  final authState = ref.watch(authStateProvider);
-  final user = authState.when(
-    data: (user) => user,
-    loading: () => null,
-    error: (_, __) => null,
-  );
-
-  if (user == null) {
-    return const HomepageAlert(isShow: false, isChecked: false, content: null);
-  }
-
-  final repository = ref.watch(homepageRepositoryProvider);
-  final alert = await repository.getHomepageAlert(userId: user.id);
-  return alert;
 });

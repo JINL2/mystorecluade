@@ -17,7 +17,6 @@ import '../../../../shared/widgets/toss/toss_button.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/inventory_metadata.dart';
-import '../adapters/xfile_image_adapter.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/product_form/dialogs/brand_creation_dialog.dart';
 import '../widgets/product_form/dialogs/category_creation_dialog.dart';
@@ -79,15 +78,16 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   final TextEditingController _salePriceController = TextEditingController();
   final TextEditingController _costPriceController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
   final FocusNode _productNameFocusNode = FocusNode();
   final FocusNode _salePriceFocusNode = FocusNode();
   final FocusNode _costPriceFocusNode = FocusNode();
   final FocusNode _quantityFocusNode = FocusNode();
+  final FocusNode _weightFocusNode = FocusNode();
   bool _isProductNameFocused = false;
   bool _isSalePriceFocused = false;
   bool _isCostPriceFocused = false;
   String? _sku;
-  bool _isAutoGenerateSku = false; // true면 SKU 자동 생성
   Category? _selectedCategory;
   Brand? _selectedBrand;
   String? _selectedLocation; // Store ID
@@ -95,34 +95,12 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   String _unit = 'piece';
   bool _isSaving = false;
 
-  /// Check if required fields are filled for save button
-  bool get _canSave {
-    final hasProductName = _productNameController.text.trim().isNotEmpty;
-    final hasLocation = _selectedLocation != null && _selectedLocation!.isNotEmpty;
-    return hasProductName && hasLocation && !_isSaving;
-  }
-
   @override
   void initState() {
     super.initState();
     _productNameFocusNode.addListener(_onProductNameFocusChange);
     _salePriceFocusNode.addListener(_onSalePriceFocusChange);
     _costPriceFocusNode.addListener(_onCostPriceFocusChange);
-    _productNameController.addListener(_onRequiredFieldChanged);
-
-    // Set default store location from AppState
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final appState = ref.read(appStateProvider);
-      final defaultStoreId = appState.storeChoosen;
-      final defaultStoreName = appState.storeName;
-
-      if (defaultStoreId.isNotEmpty) {
-        setState(() {
-          _selectedLocation = defaultStoreId;
-          _selectedLocationName = defaultStoreName.isNotEmpty ? defaultStoreName : null;
-        });
-      }
-    });
   }
 
   @override
@@ -130,15 +108,16 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     _productNameFocusNode.removeListener(_onProductNameFocusChange);
     _salePriceFocusNode.removeListener(_onSalePriceFocusChange);
     _costPriceFocusNode.removeListener(_onCostPriceFocusChange);
-    _productNameController.removeListener(_onRequiredFieldChanged);
     _productNameFocusNode.dispose();
     _salePriceFocusNode.dispose();
     _costPriceFocusNode.dispose();
     _quantityFocusNode.dispose();
+    _weightFocusNode.dispose();
     _productNameController.dispose();
     _salePriceController.dispose();
     _costPriceController.dispose();
     _quantityController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -146,11 +125,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     setState(() {
       _isProductNameFocused = _productNameFocusNode.hasFocus;
     });
-  }
-
-  void _onRequiredFieldChanged() {
-    // Trigger rebuild to update Save button state
-    setState(() {});
   }
 
   void _onSalePriceFocusChange() {
@@ -334,32 +308,15 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     // Get app state
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen as String?;
-    // Use selected location if available, otherwise fall back to app state
-    final storeId = _selectedLocation ?? appState.storeChoosen as String?;
-    final userId = appState.user['user_id'] as String?;
+    final storeId = appState.storeChoosen as String?;
 
-    // Validate required fields
-    if (companyId == null || userId == null) {
+    if (companyId == null || storeId == null) {
       await showDialog<bool>(
         context: context,
         barrierDismissible: true,
         builder: (context) => TossDialog.error(
           title: 'Validation Error',
-          message: 'Company or user not selected',
-          primaryButtonText: 'OK',
-        ),
-      );
-      return;
-    }
-
-    // Validate store location is selected
-    if (storeId == null) {
-      await showDialog<bool>(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) => TossDialog.error(
-          title: 'Validation Error',
-          message: 'Please select a store location',
+          message: 'Company or store not selected',
           primaryButtonText: 'OK',
         ),
       );
@@ -373,78 +330,20 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     try {
       final repository = ref.read(inventoryRepositoryProvider);
 
-      // Step 1: Validate with inventory_check_create RPC
-      final userSku = _sku?.trim().isEmpty ?? true ? null : _sku!.trim();
-      final productName = _productNameController.text.trim();
-
-      // ignore: avoid_print
-      print('[_saveProduct] Step 1: Calling checkCreateProduct');
-      // ignore: avoid_print
-      print('[_saveProduct] companyId: $companyId, productName: $productName, storeId: $storeId, sku: $userSku');
-
-      final validationResult = await repository.checkCreateProduct(
-        companyId: companyId,
-        productName: productName,
-        storeId: storeId,
-        sku: userSku,
-        barcode: null,
-        categoryId: _selectedCategory?.id,
-        brandId: _selectedBrand?.id,
-      );
-
-      // ignore: avoid_print
-      print('[_saveProduct] Validation result: success=${validationResult.success}, errorCode=${validationResult.errorCode}');
-
-      if (!validationResult.success) {
-        // Show error dialog based on errorCode
-        String errorMessage = validationResult.errorMessage ?? 'Validation failed';
-        if (validationResult.errorCode == 'DUPLICATE_SKU') {
-          errorMessage = 'SKU already exists. Please use a different SKU.';
-        } else if (validationResult.errorCode == 'DUPLICATE_BARCODE') {
-          errorMessage = 'Barcode already exists. Please use a different barcode.';
-        } else if (validationResult.errorCode == 'STORE_ID_REQUIRED') {
-          errorMessage = 'Store ID is required.';
-        }
-
-        if (mounted) {
-          await showDialog<bool>(
-            context: context,
-            barrierDismissible: true,
-            builder: (context) => TossDialog.error(
-              title: 'Validation Error',
-              message: errorMessage,
-              primaryButtonText: 'OK',
-            ),
-          );
-        }
-        return;
-      }
-
-      // Step 2: Upload images to bucket if any
-      List<String> imageUrls = [];
-      if (_selectedImages.isNotEmpty) {
-        final imageFiles = XFileImageAdapter.fromXFiles(_selectedImages);
-        imageUrls = await repository.uploadProductImages(
-          companyId: companyId,
-          images: imageFiles,
-        );
-      }
-
-      // Step 3: Create product with validated data and image URLs
+      // Create product
       final product = await repository.createProduct(
         companyId: companyId,
         storeId: storeId,
-        createdBy: userId,
         name: productName,
-        sku: validationResult.sku,
-        barcode: validationResult.barcode,
+        sku: _sku?.trim().isEmpty ?? true ? _generateSKU() : _sku!.trim(),
+        barcode: null,
         categoryId: _selectedCategory?.id,
         brandId: _selectedBrand?.id,
         unit: _unit,
         costPrice: double.tryParse(_costPriceController.text.replaceAll(',', '')) ?? 0.0,
         sellingPrice: double.tryParse(_salePriceController.text.replaceAll(',', '')) ?? 0.0,
         initialQuantity: int.tryParse(_quantityController.text) ?? 0,
-        imageUrls: imageUrls,
+        imageUrls: [],
       );
 
       if (product != null && mounted) {
@@ -494,6 +393,18 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         });
       }
     }
+  }
+
+  String _generateSKU() {
+    final name = _productNameController.text.trim();
+    if (name.isEmpty) return 'PROD${DateTime.now().millisecondsSinceEpoch}';
+
+    final prefix = name
+        .split(' ')
+        .take(3)
+        .map((word) => word.isNotEmpty ? word[0].toUpperCase() : '')
+        .join('');
+    return '$prefix${DateTime.now().millisecondsSinceEpoch % 10000}';
   }
 
   void _showSkuInput() {
@@ -625,7 +536,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             // Barcode was scanned
             setState(() {
               _sku = result;
-              _isAutoGenerateSku = false;
             });
           }
         }
@@ -635,8 +545,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         break;
       case 'auto':
         setState(() {
-          _sku = null; // null이면 RPC에서 SKU 자동 생성
-          _isAutoGenerateSku = true;
+          _sku = _generateSKU();
         });
         break;
     }
@@ -747,7 +656,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       if (value != null && value.isNotEmpty && mounted) {
         setState(() {
           _sku = value;
-          _isAutoGenerateSku = false;
         });
       }
     });
@@ -921,32 +829,24 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   void _showLocationSelector() {
-    // Get stores from AppState for the selected company
-    final appState = ref.read(appStateProvider);
-    final companies = appState.user['companies'] as List<dynamic>? ?? [];
-    final selectedCompanyId = appState.companyChoosen;
-
-    // Find the selected company and get its stores
-    List<Map<String, String>> stores = [];
-    for (final company in companies) {
-      final companyMap = company as Map<String, dynamic>;
-      if (companyMap['company_id'] == selectedCompanyId) {
-        final companyStores = companyMap['stores'] as List<dynamic>? ?? [];
-        stores = companyStores.map((store) {
-          final storeMap = store as Map<String, dynamic>;
-          return {
-            'id': (storeMap['store_id'] as String?) ?? '',
-            'name': (storeMap['store_name'] as String?) ?? '',
-          };
-        }).toList();
-        break;
-      }
-    }
+    // Mock store data with IDs (in real app, this would come from provider/API)
+    final stores = [
+      {'id': 'bb1f91be14', 'name': 'trial'},
+      {'id': '261c9b1dd4', 'name': 'test store22'},
+      {'id': '8df73d5aa2', 'name': 'test3'},
+      {'id': 'd161278ee5', 'name': 'test2'},
+      {'id': '570b4f196c', 'name': 'test1'},
+      {'id': '8b6e72c413', 'name': 'Hongdae Branch'},
+      {'id': 'a51e13772b', 'name': 'Headquarters'},
+      {'id': 'cd7be02d1f', 'name': 'Gangnam Branch'},
+      {'id': 'd1bb65328a', 'name': 'create test'},
+    ];
 
     final items = stores
         .map((store) => TossSelectionItem(
               id: store['id']!,
               title: store['name']!,
+              subtitle: store['id'],
               icon: TossIcons.store,
             ),)
         .toList();
@@ -956,7 +856,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       title: 'Store',
       items: items,
       selectedId: _selectedLocation,
-      showSubtitle: false,
+      showSubtitle: true,
       selectedFontWeight: FontWeight.w700,
       unselectedFontWeight: FontWeight.w500,
       unselectedIconColor: TossColors.gray500,
@@ -972,9 +872,10 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     );
   }
 
-  Future<void> _showUnitSelector() async {
-    // Always use default units list - piece is first (default)
-    const units = ['piece', 'box', 'kg', 'g', 'l', 'ml', 'pack', 'set', 'dozen'];
+  Future<void> _showUnitSelector(InventoryMetadata metadata) async {
+    final units = metadata.units.isNotEmpty
+        ? metadata.units
+        : ['piece', 'kg', 'g', 'liter', 'ml', 'box', 'pack'];
 
     final items = units
         .map((unit) => TossSelectionItem.fromGeneric(id: unit, title: unit))
@@ -1113,7 +1014,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         children: [
           _buildListRow(
             label: 'SKU',
-            value: _isAutoGenerateSku ? 'Auto-generate' : _sku,
+            value: _sku,
             placeholder: 'Scan or enter manually',
             showChevron: true,
             showHelpBadge: true,
@@ -1133,25 +1034,12 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Label with required indicator
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'Product name',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.gray600,
-                  ),
-                ),
-                const TextSpan(
-                  text: ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+          // Label
+          Text(
+            'Product name',
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w500,
+              color: TossColors.gray600,
             ),
           ),
           // TextField and chevron
@@ -1234,30 +1122,24 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   Widget _buildPricingSection() {
-    // Get base currency symbol from inventory page state
-    final inventoryState = ref.watch(inventoryPageProvider);
-    final currencySymbol = inventoryState.baseCurrency?.displaySymbol ?? '₩';
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           _buildSectionHeader(title: 'Pricing'),
           _buildPriceRow(
-            label: 'Sale price ($currencySymbol)',
+            label: 'Sale price (₩)',
             controller: _salePriceController,
             focusNode: _salePriceFocusNode,
             isFocused: _isSalePriceFocused,
             placeholder: 'Enter selling price',
-            currencySymbol: currencySymbol,
           ),
           _buildPriceRow(
-            label: 'Cost of goods ($currencySymbol)',
+            label: 'Cost of goods (₩)',
             controller: _costPriceController,
             focusNode: _costPriceFocusNode,
             isFocused: _isCostPriceFocused,
             placeholder: 'Enter item cost',
-            currencySymbol: currencySymbol,
           ),
         ],
       ),
@@ -1270,7 +1152,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     required FocusNode focusNode,
     required bool isFocused,
     required String placeholder,
-    required String currencySymbol,
   }) {
     final bool hasValue = controller.text.isNotEmpty;
 
@@ -1323,7 +1204,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                 // Currency suffix
                 if (hasValue) ...[
                   Text(
-                    currencySymbol,
+                    '₩',
                     style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w400,
                       color: TossColors.gray900,
@@ -1355,7 +1236,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             value: _selectedLocationName,
             placeholder: 'Select store location',
             showChevron: true,
-            isRequired: true,
             onTap: _showLocationSelector,
           ),
           _buildNumberInputRow(
@@ -1364,13 +1244,20 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             focusNode: _quantityFocusNode,
             placeholder: 'e.g. 50',
           ),
+          _buildNumberInputRow(
+            label: 'Weight (g)',
+            controller: _weightController,
+            focusNode: _weightFocusNode,
+            placeholder: '0',
+            allowDecimal: true,
+          ),
           _buildListRow(
             label: 'Unit',
             value: _unit,
             placeholder: 'piece',
             showChevron: true,
             isValueActive: true,
-            onTap: _showUnitSelector,
+            onTap: metadata != null ? () => _showUnitSelector(metadata) : null,
           ),
         ],
       ),
@@ -1501,7 +1388,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     bool showChevron = false,
     bool showHelpBadge = false,
     bool isValueActive = false,
-    bool isRequired = false,
     VoidCallback? onTap,
     VoidCallback? onHelpTap,
   }) {
@@ -1519,25 +1405,11 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             // Label
             Row(
               children: [
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: label,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                      if (isRequired)
-                        const TextSpan(
-                          text: ' *',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                    ],
+                Text(
+                  label,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: TossColors.gray600,
                   ),
                 ),
                 if (showHelpBadge) ...[
@@ -1636,7 +1508,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             text: 'Save',
             fullWidth: true,
             isLoading: _isSaving,
-            isEnabled: _canSave,
             onPressed: _saveProduct,
           ),
         ),

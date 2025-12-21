@@ -1,7 +1,7 @@
 name: myfinance_improved
 description: MyFinance - Toss-style financial management app
 publish_to: 'none'
-version: 1.0.2+1
+version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -20,7 +20,6 @@ dependencies:
   # Data & API
   supabase_flutter: ^2.3.0
   dio: ^5.4.0
-  http: ^1.2.0
   
   # Local Storage
   shared_preferences: ^2.2.0
@@ -64,8 +63,8 @@ dependencies:
   url_launcher: ^6.3.2
   
   # Firebase & Push Notifications
-  firebase_core: ^3.8.1
-  firebase_messaging: ^15.1.6
+  # firebase_core: ^2.24.0
+  # firebase_messaging: ^14.7.10
   # firebase_analytics: ^10.8.0
   flutter_local_notifications: ^17.2.1
   
@@ -75,10 +74,7 @@ dependencies:
   
   # Permission Handling
   permission_handler: ^12.0.1
-
-  # Audio Playback for notification previews
-  audioplayers: ^6.1.0
-
+  
   # Deep Linking
   app_links: ^6.1.1
   
@@ -89,16 +85,10 @@ dependencies:
 
   # Timezone for notifications
   timezone: ^0.9.2
-
-  # App Badge for iOS/Android
-  flutter_app_badger: ^1.5.0
   flutter_timezone: ^3.0.1
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^6.1.4
   local_auth: ^2.3.0
-
-  # In-App Purchases (RevenueCat)
-  purchases_flutter: ^8.0.0
 
 dev_dependencies:
   flutter_test:
@@ -123,7 +113,6 @@ flutter:
   # Assets
   assets:
     - assets/images/
-    - assets/sounds/
     - .env
 
 # App Icon Configuration

@@ -71,7 +71,7 @@ _$ShiftEmployeeDtoImpl _$$ShiftEmployeeDtoImplFromJson(
     _$ShiftEmployeeDtoImpl(
       shiftRequestId: json['shift_request_id'] as String,
       userId: json['user_id'] as String,
-      userName: json['user_name'] as String? ?? 'Unknown',
+      userName: json['user_name'] as String,
       isApproved: json['is_approved'] as bool? ?? false,
       profileImage: json['profile_image'] as String?,
     );

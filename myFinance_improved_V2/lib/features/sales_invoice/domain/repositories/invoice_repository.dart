@@ -1,5 +1,4 @@
 import '../entities/invoice.dart';
-import '../entities/invoice_detail.dart';
 import '../value_objects/invoice_filter.dart';
 
 /// Invoice repository interface
@@ -13,11 +12,6 @@ abstract class InvoiceRepository {
 
   /// Get invoice by ID
   Future<Invoice?> getInvoiceById({
-    required String invoiceId,
-  });
-
-  /// Get invoice detail with items
-  Future<InvoiceDetail> getInvoiceDetail({
     required String invoiceId,
   });
 

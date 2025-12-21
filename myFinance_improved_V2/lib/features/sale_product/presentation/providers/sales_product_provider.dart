@@ -19,22 +19,14 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
   final Ref ref;
   final SalesProductRepository _repository;
 
-  static const int _defaultPageSize = 15;
+  static const int _defaultPageSize = 10;
 
   SalesProductNotifier(this.ref, this._repository) : super(const SalesProductState()) {
     loadProducts();
   }
 
-  /// Safe state update - checks if notifier is still mounted
-  void _safeSetState(SalesProductState newState) {
-    if (mounted) {
-      state = newState;
-    }
-  }
-
   /// Load products from repository (initial load)
   Future<void> loadProducts({String? search}) async {
-    if (!mounted) return;
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
@@ -43,11 +35,11 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
       final storeId = appState.storeChoosen;
 
       if (companyId.isEmpty || storeId.isEmpty) {
-        _safeSetState(state.copyWith(
+        state = state.copyWith(
           isLoading: false,
           errorMessage: 'Please select a company and store first',
           products: [],
-        ));
+        );
         return;
       }
 
@@ -59,7 +51,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         search: search ?? state.searchQuery,
       );
 
-      _safeSetState(state.copyWith(
+      state = state.copyWith(
         products: result.products,
         totalCount: result.totalCount,
         isLoading: false,
@@ -67,19 +59,18 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         currentPage: 1,
         pageSize: _defaultPageSize,
         hasNextPage: result.hasNextPage,
-      ));
+      );
     } catch (e) {
-      _safeSetState(state.copyWith(
+      state = state.copyWith(
         isLoading: false,
         errorMessage: 'Error loading products: $e',
         products: [],
-      ));
+      );
     }
   }
 
   /// Load next page of products
   Future<void> loadNextPage() async {
-    if (!mounted) return;
     if (!state.canLoadMore || state.isLoadingMore) return;
 
     state = state.copyWith(isLoadingMore: true);
@@ -90,7 +81,7 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
       final storeId = appState.storeChoosen;
 
       if (companyId.isEmpty || storeId.isEmpty) {
-        _safeSetState(state.copyWith(isLoadingMore: false));
+        state = state.copyWith(isLoadingMore: false);
         return;
       }
 
@@ -103,8 +94,6 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
         search: state.searchQuery,
       );
 
-      if (!mounted) return;
-
       // Append new products to existing list, avoiding duplicates
       final existingIds = state.products.map((p) => p.productId).toSet();
       final newProducts = result.products
@@ -112,20 +101,19 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
           .toList();
       final allProducts = [...state.products, ...newProducts];
 
-      _safeSetState(state.copyWith(
+      state = state.copyWith(
         products: allProducts,
         isLoadingMore: false,
         currentPage: nextPage,
         hasNextPage: result.hasNextPage,
-      ));
+      );
     } catch (e) {
-      _safeSetState(state.copyWith(isLoadingMore: false));
+      state = state.copyWith(isLoadingMore: false);
     }
   }
 
   /// Search products (reset pagination)
   void search(String query) {
-    if (!mounted) return;
     state = state.copyWith(searchQuery: query);
     // Reload from page 1 when search query changes
     loadProducts(search: query);
@@ -133,21 +121,18 @@ class SalesProductNotifier extends StateNotifier<SalesProductState> {
 
   /// Update sort option
   void updateSort(SortOption sortOption) {
-    if (!mounted) return;
     state = state.copyWith(sortOption: sortOption);
   }
 
   /// Refresh products (reset to page 1)
   Future<void> refresh() async {
-    if (!mounted) return;
     state = state.copyWith(isRefreshing: true);
     await loadProducts();
-    _safeSetState(state.copyWith(isRefreshing: false));
+    state = state.copyWith(isRefreshing: false);
   }
 
   /// Clear error message
   void clearError() {
-    if (!mounted) return;
     state = state.copyWith(errorMessage: null);
   }
 }

@@ -68,6 +68,7 @@ class _BankTabState extends ConsumerState<BankTab> {
 
   /// Clear bank amount input field
   void _clearAllInputs() {
+    debugPrint('🧹 [BankTab] Clearing all input fields');
     _bankAmountController.clear();
     setState(() {
       // Force rebuild to update UI
@@ -230,12 +231,6 @@ class _BankTabState extends ConsumerState<BankTab> {
     final currencyCode = selectedCurrency?.currencyCode ?? '';
     final currencySymbol = selectedCurrency?.symbol ?? '';
 
-    // Check if selected currency is base currency
-    final isSelectedCurrencyBaseCurrency = selectedCurrency?.isBaseCurrency ?? true;
-
-    // Get exchange rate to base currency (for foreign currency conversion)
-    final exchangeRateToBase = selectedCurrency?.exchangeRateToBase ?? 1.0;
-
     // Calculate current bank amount from input
     final bankAmount = double.tryParse(
       _bankAmountController.text.replaceAll(',', ''),
@@ -252,17 +247,13 @@ class _BankTabState extends ConsumerState<BankTab> {
         const SizedBox(height: TossSpacing.space4),
 
         // Grand Total with Journal and Difference
-        // For foreign currencies: show converted amount and compare with Journal in base currency
         GrandTotalSection(
           totalAmount: bankAmount,
           currencySymbol: currencySymbol,
           label: 'Bank Balance $currencyCode',
-          isBaseCurrency: isSelectedCurrencyBaseCurrency,
+          isBaseCurrency: true,
           journalAmount: state.bankLocationJournalAmount,
           isLoadingJournal: state.isLoadingBankJournalAmount,
-          // Pass exchange rate and base currency info for foreign currency conversion
-          exchangeRateToBase: isSelectedCurrencyBaseCurrency ? null : exchangeRateToBase,
-          baseCurrencySymbol: isSelectedCurrencyBaseCurrency ? null : state.baseCurrencySymbol,
           onHistoryTap: state.selectedBankLocationId != null
               ? () => _navigateToAccountDetail(state, bankAmount, currencySymbol)
               : null,
@@ -313,11 +304,11 @@ class _BankTabState extends ConsumerState<BankTab> {
               fontSize: 20,
             ),
             decoration: InputDecoration(
-              hintText: 'Enter amount',
+              hintText: '0',
               hintStyle: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray400,
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space4,
@@ -405,7 +396,7 @@ class _BankTabState extends ConsumerState<BankTab> {
           accountName: selectedLocation.locationName,
           locationType: 'bank',
           balance: journalAmount.toInt(),
-          errors: difference.toInt(),
+          errors: difference.toInt().abs(),
           totalJournal: journalAmount.toInt(),
           totalReal: bankAmount.toInt(),
           cashDifference: difference.toInt(),

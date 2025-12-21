@@ -38,18 +38,23 @@ class CompanyStoreService {
 
       result.fold(
         (failure) {
+          debugPrint('🔴 [CreateCompany] Failed: ${failure.message}');
           SnackbarHelpers.showError(
             scaffoldMessenger,
             failure.message,
           );
         },
         (company) async {
+          debugPrint('🟢 [CreateCompany] Company created successfully: ${company.name}');
+
           final appStateNotifier = ref.read(appStateProvider.notifier);
+          debugPrint('🟢 [CreateCompany] Setting new company as selected: ${company.id}');
           appStateNotifier.selectCompany(company.id, companyName: company.name);
 
           if (navigator.canPop()) navigator.pop();
           if (navigator.canPop()) navigator.pop();
 
+          debugPrint('🟢 [CreateCompany] Navigating to dashboard with fresh data fetch...');
           await SnackbarHelpers.navigateToDashboard(context, ref);
 
           SnackbarHelpers.showSuccess(
@@ -95,6 +100,7 @@ class CompanyStoreService {
 
       result.fold(
         (failure) async {
+          debugPrint('🔴 [JoinCompany] Failed: ${failure.message}');
           SnackbarHelpers.dismiss(scaffoldMessenger);
 
           await TossErrorDialogs.showBusinessJoinFailed(
@@ -107,6 +113,8 @@ class CompanyStoreService {
           );
         },
         (joinResult) async {
+          debugPrint('🟢 [JoinCompany] Join successful: ${joinResult.entityName}');
+
           if (navigator.canPop()) navigator.pop();
           if (navigator.canPop()) navigator.pop();
 
@@ -135,6 +143,7 @@ class CompanyStoreService {
         },
       );
     } catch (e) {
+      debugPrint('🔴 [JoinCompany] Exception: ${e.toString()}');
       SnackbarHelpers.dismiss(scaffoldMessenger);
 
       await TossErrorDialogs.showBusinessJoinFailed(
@@ -175,13 +184,17 @@ class CompanyStoreService {
 
       result.fold(
         (failure) {
+          debugPrint('🔴 [CreateStore] Failed: ${failure.message}');
           SnackbarHelpers.showError(
             scaffoldMessenger,
             failure.message,
           );
         },
         (store) async {
+          debugPrint('🟢 [CreateStore] Store created successfully: ${store.name}');
+
           final appStateNotifier = ref.read(appStateProvider.notifier);
+          debugPrint('🟢 [CreateStore] Setting company and store as selected: ${store.companyId}, ${store.id}');
           appStateNotifier.selectCompany(store.companyId);
           appStateNotifier.selectStore(store.id, storeName: store.name);
 
@@ -233,6 +246,7 @@ class CompanyStoreService {
 
       result.fold(
         (failure) async {
+          debugPrint('🔴 [JoinStore] Failed: ${failure.message}');
           SnackbarHelpers.dismiss(scaffoldMessenger);
 
           await TossErrorDialogs.showBusinessJoinFailed(
@@ -245,6 +259,8 @@ class CompanyStoreService {
           );
         },
         (joinResult) async {
+          debugPrint('🟢 [JoinStore] Join successful: ${joinResult.entityName}');
+
           if (navigator.canPop()) navigator.pop();
           if (navigator.canPop()) navigator.pop();
 
@@ -279,6 +295,7 @@ class CompanyStoreService {
         },
       );
     } catch (e) {
+      debugPrint('🔴 [JoinStore] Exception: ${e.toString()}');
       SnackbarHelpers.dismiss(scaffoldMessenger);
 
       await TossErrorDialogs.showBusinessJoinFailed(

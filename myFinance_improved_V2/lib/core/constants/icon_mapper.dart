@@ -203,8 +203,6 @@ class IconMapper {
 
       // Notifications & Communication
       'bell': LucideIcons.bell,
-      'BellRing': LucideIcons.bellRing,
-      'bellRing': LucideIcons.bellRing,
       'bellSlash': LucideIcons.bellOff,
       'envelope': LucideIcons.mail,
       'envelopeOpen': LucideIcons.mailOpen,
@@ -265,9 +263,6 @@ class IconMapper {
       'map_pin': LucideIcons.mapPin,
       'shopping_bag': LucideIcons.shoppingBag,
       'package': LucideIcons.package,
-      'line_chart': LucideIcons.lineChart,
-      'circle_help': LucideIcons.helpCircle,
-      'bar_chart_3': LucideIcons.barChart3,
     };
 
     // Return mapped icon or default

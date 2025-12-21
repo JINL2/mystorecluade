@@ -15,7 +15,6 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
 import 'view_invite_codes_sheet.dart';
 
@@ -320,27 +319,12 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Company name with subscription badge
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          companyName,
-                                          style: TossTextStyles.body.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      // Subscription Badge from company data
-                                      // ⚠️ Use plan_name (free/basic/pro) not plan_type (free/paid)
-                                      SubscriptionBadge.fromPlanType(
-                                        (company['subscription'] as Map<String, dynamic>?)?['plan_name'] as String?,
-                                        compact: true,
-                                      ),
-                                    ],
+                                  Text(
+                                    companyName,
+                                    style: TossTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                   Text(
                                     '${stores.length} ${stores.length == 1 ? 'store' : 'stores'}',
@@ -546,10 +530,10 @@ class _CompanyStoreListState extends ConsumerState<_CompanyStoreList> {
               },
             ),
             const Divider(height: 1),
-            // Add store option (create or join)
+            // Create store option
             ListTile(
               leading: const Icon(LucideIcons.plus, size: 20),
-              title: const Text('Add Store'),
+              title: const Text('Create Store'),
               onTap: () {
                 Navigator.pop(bottomSheetContext);
                 _showStoreActionsBottomSheet(context, ref, company);
@@ -790,24 +774,19 @@ class _CompanyActionsSheet extends StatelessWidget {
     // Close the actions sheet first
     context.pop();
 
-    // Use a small delay to ensure the previous sheet is fully closed
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (parentContext.mounted) {
-        // Show join by code sheet
-        showModalBottomSheet(
-          context: parentContext,
-          isScrollControlled: true,
-          backgroundColor: TossColors.transparent,
-          elevation: 0,
-          builder: (context) => const JoinByCodeSheet(
-            title: 'Join Company',
-            subtitle: 'Enter company invite code',
-          ),
-        ).then((result) {
-          if (result != null && result is JoinResult) {
-            _refreshDataAfterJoin(result);
-          }
-        });
+    // Show join by code sheet
+    showModalBottomSheet(
+      context: parentContext,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      elevation: 0,
+      builder: (context) => const JoinByCodeSheet(
+        title: 'Join Company',
+        subtitle: 'Enter company invite code',
+      ),
+    ).then((result) {
+      if (result != null && result is JoinResult) {
+        _refreshDataAfterJoin(result);
       }
     });
   }
@@ -1048,24 +1027,19 @@ class _StoreActionsSheet extends StatelessWidget {
     // Close the actions sheet first
     context.pop();
 
-    // Use a small delay to ensure the previous sheet is fully closed
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (parentContext.mounted) {
-        // Show join by code sheet
-        showModalBottomSheet(
-          context: parentContext,
-          isScrollControlled: true,
-          backgroundColor: TossColors.transparent,
-          elevation: 0,
-          builder: (context) => const JoinByCodeSheet(
-            title: 'Join Store',
-            subtitle: 'Enter store invite code',
-          ),
-        ).then((result) {
-          if (result != null && result is JoinResult) {
-            _refreshDataAfterJoin(result);
-          }
-        });
+    // Show join by code sheet
+    showModalBottomSheet(
+      context: parentContext,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      elevation: 0,
+      builder: (context) => const JoinByCodeSheet(
+        title: 'Join Store',
+        subtitle: 'Enter store invite code',
+      ),
+    ).then((result) {
+      if (result != null && result is JoinResult) {
+        _refreshDataAfterJoin(result);
       }
     });
   }

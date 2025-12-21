@@ -51,7 +51,7 @@ class StoreActionsSheet extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Add Store',
+                      'Store Actions',
                       style: TossTextStyles.h3.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w700,
@@ -99,7 +99,7 @@ class StoreActionsSheet extends ConsumerWidget {
                 _buildOptionCard(
                   context,
                   icon: Icons.add_location,
-                  title: 'Join by Code',
+                  title: 'Join Store',
                   subtitle: 'Enter store invite code to join',
                   onTap: onJoinStore,
                 ),

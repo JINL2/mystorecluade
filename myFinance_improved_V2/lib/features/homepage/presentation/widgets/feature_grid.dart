@@ -21,12 +21,14 @@ class FeatureGrid extends ConsumerWidget {
     try {
       final companies = appState.user['companies'] as List<dynamic>?;
       if (companies == null || companies.isEmpty) {
+        print('🔒 No companies found in appState');
         return [];
       }
 
       // Find current selected company
       final currentCompanyId = appState.companyChoosen;
       if (currentCompanyId.isEmpty) {
+        print('🔒 No company selected');
         return [];
       }
 
@@ -36,28 +38,36 @@ class FeatureGrid extends ConsumerWidget {
           (c) => c['company_id'] == currentCompanyId,
         ) as Map<String, dynamic>?;
       } catch (e) {
+        print('🔒 Current company not found: $currentCompanyId');
         return [];
       }
 
       if (currentCompany == null) {
+        print('🔒 Current company is null');
         return [];
       }
 
       // Get role permissions
       final role = currentCompany['role'] as Map<String, dynamic>?;
       if (role == null) {
+        print('🔒 No role found for company');
         return [];
       }
 
       final permissions = role['permissions'] as List<dynamic>?;
       if (permissions == null || permissions.isEmpty) {
+        print('🔒 No permissions found in role');
+        print('🔒 Role data: $role');
         return [];
       }
 
       // Convert to List<String>
       final permittedIds = permissions.map((p) => p.toString()).toList();
+      print('🔓 Permitted feature IDs (${permittedIds.length}): ${permittedIds.take(5)}...');
       return permittedIds;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('🔒 Error getting permitted feature IDs: $e');
+      print('🔒 Stack trace: $stackTrace');
       return [];
     }
   }
@@ -72,30 +82,15 @@ class FeatureGrid extends ConsumerWidget {
         // Get user's permitted feature IDs from current company
         final List<String> permittedFeatureIds = _getPermittedFeatureIds(appState);
 
-        // Filter features based on user permissions AND isShowMain flag
+        // Filter features based on user permissions
         // If no permissions found, show all features (fallback for safety)
         final categoriesWithFeatures = permittedFeatureIds.isEmpty
-            ? categories
-                .map((category) {
-                  // Filter features by isShowMain flag only (no permission check)
-                  final visibleFeatures = category.features
-                      .where((feature) => feature.isShowMain)
-                      .toList();
-                  return CategoryWithFeatures(
-                    categoryId: category.categoryId,
-                    categoryName: category.categoryName,
-                    features: visibleFeatures,
-                  );
-                })
-                .where((category) => category.features.isNotEmpty)
-                .toList()
+            ? categories.where((category) => category.features.isNotEmpty).toList()
             : categories
                 .map((category) {
-                  // Filter features by permission AND isShowMain flag
+                  // Filter features by permission
                   final permittedFeatures = category.features
-                      .where((feature) =>
-                          permittedFeatureIds.contains(feature.featureId) &&
-                          feature.isShowMain)
+                      .where((feature) => permittedFeatureIds.contains(feature.featureId))
                       .toList();
 
                   return CategoryWithFeatures(
@@ -149,13 +144,34 @@ class _CategorySection extends StatelessWidget {
 
   final CategoryWithFeatures category;
 
+  /// Features to hide from display (not delete)
+  static const List<String> _hiddenFeatures = [
+    'Account Mapping',
+    'Delete Transaction',
+    'Export Reports',
+    'Cash Balance',
+    'Income Statement',
+    'Manager Transaction Template',
+    'Bank Vault Ending',
+    'Cash Control',
+    'Survey Dashboard',
+    'Contents Helper',
+    'Edit Employee Salary',
+    'Role & Permission',
+    'Timetable',
+    'test',
+    'dashboard revenue',
+    'Inventory Analysis',
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // Features are already filtered by isShowMain in FeatureGrid build method
-    // No need for additional filtering here
-    final visibleFeatures = category.features;
+    // Filter out hidden features
+    final visibleFeatures = category.features
+        .where((feature) => !_hiddenFeatures.contains(feature.featureName))
+        .toList();
 
-    // If no features, don't show the category
+    // If all features are hidden, don't show the category
     if (visibleFeatures.isEmpty) {
       return const SizedBox.shrink();
     }

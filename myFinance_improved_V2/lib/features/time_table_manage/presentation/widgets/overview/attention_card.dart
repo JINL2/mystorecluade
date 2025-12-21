@@ -12,10 +12,8 @@ enum AttentionType {
   late,
   understaffed,
   overtime,
+  problem,
   reported,
-  noCheckIn,
-  noCheckOut,
-  earlyCheckOut,
 }
 
 /// Attention Item Data
@@ -169,8 +167,6 @@ class AttentionCard extends StatelessWidget {
               style: TossTextStyles.labelSmall.copyWith(
                 color: TossColors.gray600,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -179,30 +175,31 @@ class AttentionCard extends StatelessWidget {
   }
 
   /// Build badge based on attention type
-  /// All badges use error (red) status for Need Attention section
   Widget _buildBadge() {
+    BadgeStatus status;
     String label;
 
     switch (item.type) {
       case AttentionType.late:
+        status = BadgeStatus.error;
         label = 'Late';
       case AttentionType.understaffed:
+        status = BadgeStatus.info;
         label = 'Understaffed';
       case AttentionType.overtime:
+        status = BadgeStatus.error;
         label = 'Overtime';
+      case AttentionType.problem:
+        status = BadgeStatus.warning;
+        label = 'Problem';
       case AttentionType.reported:
+        status = BadgeStatus.warning;
         label = 'Reported';
-      case AttentionType.noCheckIn:
-        label = 'No check-in';
-      case AttentionType.noCheckOut:
-        label = 'No check-out';
-      case AttentionType.earlyCheckOut:
-        label = 'Early check-out';
     }
 
     return TossStatusBadge(
       label: label,
-      status: BadgeStatus.error,
+      status: status,
     );
   }
 }
