@@ -75,11 +75,26 @@ class RevenueChartCard extends ConsumerStatefulWidget {
 class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
   int? _selectedBarIndex;
   _ChartDataPoint? _selectedDataPoint;
+  RevenuePeriod? _lastPeriod;
+  RevenueViewTab? _lastTab;
+  String? _lastStoreId;
 
   @override
   Widget build(BuildContext context) {
     final chartDataAsync = ref.watch(revenueChartDataProvider);
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
+    final selectedTab = ref.watch(selectedRevenueTabProvider);
+    final appState = ref.watch(appStateProvider);
+    final currentStoreId = appState.storeChoosen;
+
+    // Reset selection when period, tab, or store changes
+    if (_lastPeriod != selectedPeriod || _lastTab != selectedTab || _lastStoreId != currentStoreId) {
+      _lastPeriod = selectedPeriod;
+      _lastTab = selectedTab;
+      _lastStoreId = currentStoreId;
+      _selectedBarIndex = null;
+      _selectedDataPoint = null;
+    }
 
     return Container(
       margin: EdgeInsets.zero,
@@ -186,18 +201,34 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
       (max, point) => point.revenue > max ? point.revenue : max,
     );
 
+    // Calculate nice Y-axis scale
+    final yAxisScale = _calculateYAxisScale(maxValue);
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final barAreaWidth = constraints.maxWidth;
+        // Reserve space for Y-axis labels
+        const yAxisWidth = 38.0;
+        final barAreaWidth = constraints.maxWidth - yAxisWidth;
         final barCount = chartPoints.length;
         final barSlotWidth = barAreaWidth / barCount;
 
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // Bar chart row
+            // Y-axis labels
             Positioned(
               left: 0,
+              top: 0,
+              bottom: 20, // Leave space for X-axis labels
+              child: SizedBox(
+                width: yAxisWidth,
+                child: _buildYAxisLabels(yAxisScale),
+              ),
+            ),
+
+            // Bar chart row
+            Positioned(
+              left: yAxisWidth,
               right: 0,
               bottom: 0,
               child: SizedBox(
@@ -210,7 +241,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
                     return Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 1),
-                        child: _buildBar(point, maxValue, chartPoints.length, index),
+                        child: _buildBar(point, yAxisScale, chartPoints.length, index),
                       ),
                     );
                   }).toList(),
@@ -222,7 +253,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
             if (_selectedBarIndex != null && _selectedDataPoint != null)
               Positioned(
                 top: 0,
-                left: 0,
+                left: yAxisWidth,
                 right: 0,
                 child: _buildPositionedTooltip(
                   _selectedDataPoint!,
@@ -234,6 +265,103 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
           ],
         );
       },
+    );
+  }
+
+  /// Calculate nice Y-axis scale based on max value
+  /// Returns scale info with max value and tick values
+  _YAxisScale _calculateYAxisScale(double maxValue) {
+    if (maxValue <= 0) {
+      return _YAxisScale(maxValue: 100, tickValues: [0, 25, 50, 75, 100], suffix: '');
+    }
+
+    // Determine the magnitude and nice interval
+    final magnitude = _getMagnitude(maxValue);
+    final normalizedMax = maxValue / magnitude;
+
+    // Find nice max value (round up to nice number)
+    double niceMax;
+    if (normalizedMax <= 1) {
+      niceMax = 1;
+    } else if (normalizedMax <= 2) {
+      niceMax = 2;
+    } else if (normalizedMax <= 5) {
+      niceMax = 5;
+    } else {
+      niceMax = 10;
+    }
+
+    final actualMax = niceMax * magnitude;
+
+    // Generate 5 tick values (0, 25%, 50%, 75%, 100%)
+    final tickValues = <double>[
+      0,
+      actualMax * 0.25,
+      actualMax * 0.5,
+      actualMax * 0.75,
+      actualMax,
+    ];
+
+    // Determine suffix based on magnitude
+    String suffix;
+    double divisor;
+    if (magnitude >= 1e9) {
+      suffix = 'B';
+      divisor = 1e9;
+    } else if (magnitude >= 1e6) {
+      suffix = 'M';
+      divisor = 1e6;
+    } else if (magnitude >= 1e3) {
+      suffix = 'K';
+      divisor = 1e3;
+    } else {
+      suffix = '';
+      divisor = 1;
+    }
+
+    return _YAxisScale(
+      maxValue: actualMax,
+      tickValues: tickValues,
+      suffix: suffix,
+      divisor: divisor,
+    );
+  }
+
+  /// Get magnitude (power of 10) for a value
+  double _getMagnitude(double value) {
+    if (value <= 0) return 1;
+    if (value < 10) return 1;
+    if (value < 100) return 10;
+    if (value < 1000) return 100;
+    if (value < 10000) return 1000;
+    if (value < 100000) return 10000;
+    if (value < 1000000) return 100000;
+    if (value < 10000000) return 1000000;
+    if (value < 100000000) return 10000000;
+    if (value < 1000000000) return 100000000;
+    return 1000000000;
+  }
+
+  /// Build Y-axis labels
+  Widget _buildYAxisLabels(_YAxisScale scale) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: scale.tickValues.reversed.map((double value) {
+        final displayValue = scale.divisor > 0 ? value / scale.divisor : value;
+        final label = displayValue == displayValue.roundToDouble()
+            ? '${displayValue.toInt()}${scale.suffix}'
+            : '${displayValue.toStringAsFixed(1)}${scale.suffix}';
+
+        return Text(
+          label,
+          style: TossTextStyles.caption.copyWith(
+            fontSize: 10,
+            color: TossColors.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -383,8 +511,10 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
     return label;
   }
 
-  Widget _buildBar(_ChartDataPoint data, double maxValue, int dataCount, int index) {
-    // Calculate heights proportionally (max height 140)
+  Widget _buildBar(_ChartDataPoint data, _YAxisScale scale, int dataCount, int index) {
+    // Calculate heights proportionally using Y-axis scale max (max height 140)
+    // Use scale.maxValue to ensure bar height matches Y-axis labels
+    final maxValue = scale.maxValue;
     final revenueHeight = maxValue > 0 ? (data.revenue / maxValue) * 140 : 0.0;
     final grossProfitHeight = maxValue > 0 ? (data.grossProfit / maxValue) * 140 : 0.0;
 
@@ -478,7 +608,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
             data.label,
             style: TossTextStyles.caption.copyWith(
               fontSize: fontSize,
-              color: isSelected ? TossColors.primary : TossColors.textTertiary,
+              color: isSelected ? TossColors.primary : TossColors.textPrimary,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             ),
             maxLines: 1,
@@ -555,5 +685,20 @@ class _ChartDataPoint {
     required this.revenue,
     required this.grossProfit,
     required this.netIncome,
+  });
+}
+
+/// Y-axis scale configuration
+class _YAxisScale {
+  final double maxValue;
+  final List<double> tickValues;
+  final String suffix;
+  final double divisor;
+
+  _YAxisScale({
+    required this.maxValue,
+    required this.tickValues,
+    required this.suffix,
+    this.divisor = 1,
   });
 }

@@ -45,7 +45,18 @@ enum RevenueViewTab { company, store }
 
 /// Provider for selected revenue view tab
 final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
-  return RevenueViewTab.company;
+  return RevenueViewTab.store;
+});
+
+/// Provider that auto-switches to Store tab when store selection changes
+/// Use ref.watch(autoSwitchToStoreTabProvider) in homepage widgets to enable this behavior
+final autoSwitchToStoreTabProvider = Provider<void>((ref) {
+  ref.listen(appStateProvider.select((state) => state.storeChoosen), (previous, next) {
+    // Auto-switch to Store tab when store changes (not on initial load)
+    if (previous != null && previous != next && next.isNotEmpty) {
+      ref.read(selectedRevenueTabProvider.notifier).state = RevenueViewTab.store;
+    }
+  });
 });
 
 /// Provider for fetching revenue data

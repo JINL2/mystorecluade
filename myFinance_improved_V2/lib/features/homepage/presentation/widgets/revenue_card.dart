@@ -17,6 +17,9 @@ class RevenueCard extends ConsumerWidget {
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
     final selectedTab = ref.watch(selectedRevenueTabProvider);
 
+    // Enable auto-switch to Store tab when store changes
+    ref.watch(autoSwitchToStoreTabProvider);
+
     // Watch revenue data with selected period
     final revenueAsync = ref.watch(revenueProvider(selectedPeriod));
 
@@ -213,14 +216,14 @@ class _TabSelector extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildTab(
-          'Company',
-          RevenueViewTab.company,
-          selectedTab == RevenueViewTab.company,
-        ),
-        _buildTab(
           'Store',
           RevenueViewTab.store,
           selectedTab == RevenueViewTab.store,
+        ),
+        _buildTab(
+          'Company',
+          RevenueViewTab.company,
+          selectedTab == RevenueViewTab.company,
         ),
       ],
     );
