@@ -286,9 +286,44 @@ class StaffTimelogCard extends StatelessWidget {
 
   /// Build problem tags from problem_details_v2 exclusively
   /// Priority order: No Checkout > Absence > Late > Early Leave > Overtime > Reported
+  ///
+  /// NEW: If shift is still in progress (current time < shift end time),
+  /// show "In Progress" instead of "No Checkout" or "Absent"
   List<Widget> _buildProblemTags() {
     final List<Widget> tags = [];
     final pd = record.problemDetails;
+
+    // Check if shift is still in progress
+    final shiftEnd = record.shiftEndTime;
+    final now = DateTime.now().toUtc();
+    final isInProgress = shiftEnd != null && now.isBefore(shiftEnd);
+
+    // If shift is in progress AND has checkin, show "In Progress" tag
+    if (isInProgress && record.actualStart != null) {
+      tags.add(const _StatusTag(
+        label: 'In Progress',
+        isPositive: true,
+      ));
+
+      // Still show other relevant problems (Late, Reported, etc.) but filter out future problems
+      if (pd != null && pd.problemCount > 0) {
+        for (final problem in pd.problems) {
+          // Skip "no_checkout" and "absence" for in-progress shifts
+          if (problem.type == 'no_checkout' || problem.type == 'absence') {
+            continue;
+          }
+          final tag = _buildTagForProblem(problem);
+          if (tag != null) tags.add(tag);
+        }
+      }
+      return tags;
+    }
+
+    // If shift hasn't started yet (no checkin) and shift hasn't ended, show nothing or "Scheduled"
+    if (isInProgress && record.actualStart == null) {
+      // Shift hasn't started yet - don't show "Absent" prematurely
+      return tags; // Empty - wait until shift ends
+    }
 
     // Only use problem_details_v2 - no legacy fallback
     if (pd == null || pd.problemCount == 0) {
@@ -434,6 +469,53 @@ class _ProblemTag extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Status tag widget for non-problem statuses
+///
+/// Colors:
+/// - 🟢 Green/Primary background: Positive status (In Progress, Working)
+/// - 🔵 Blue background: Info status
+class _StatusTag extends StatelessWidget {
+  final String label;
+  final bool isPositive; // Green for positive, blue for info
+
+  const _StatusTag({
+    required this.label,
+    required this.isPositive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color backgroundColor;
+    final Color textColor;
+
+    if (isPositive) {
+      // Positive status: Green background
+      backgroundColor = TossColors.success.withValues(alpha: 0.15);
+      textColor = TossColors.success;
+    } else {
+      // Info status: Blue background
+      backgroundColor = TossColors.primary.withValues(alpha: 0.15);
+      textColor = TossColors.primary;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TossTextStyles.caption.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w600,
+          fontSize: 10,
+        ),
       ),
     );
   }

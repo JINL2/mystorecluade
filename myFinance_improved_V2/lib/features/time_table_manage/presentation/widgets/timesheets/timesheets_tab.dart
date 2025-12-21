@@ -557,18 +557,38 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
       // A shift is "solved" ONLY when ALL problems are resolved:
       // - isSolved == true (general problems like late, overtime, no_checkout)
       // - AND if has reported → isReportSolved must also be true
+      //
+      // IMPORTANT: For in-progress shifts, exclude "no_checkout" and "absence"
+      // These are premature problems that shouldn't be counted yet
       int unsolvedCount = 0;
       int solvedCount = 0;
 
       for (final r in staffRecords) {
         final pd = r.problemDetails;
+        final shiftEnd = r.shiftEndTime;
+        final isInProgress = shiftEnd != null && DateTime.now().isBefore(shiftEnd);
 
         if (pd != null && pd.problemCount > 0) {
-          // Use isFullySolved which checks both isSolved AND reported status
-          if (pd.isFullySolved) {
-            solvedCount += 1;
+          // For in-progress shifts, filter out premature problems
+          if (isInProgress) {
+            // Count only non-premature problems (Late, OT, Reported, etc.)
+            final realProblems = pd.problems.where((p) =>
+              !p.isSolved &&
+              p.type != 'no_checkout' &&
+              p.type != 'absence'
+            ).toList();
+
+            if (realProblems.isNotEmpty) {
+              unsolvedCount += 1;
+            }
+            // Don't count as solved if only had premature problems
           } else {
-            unsolvedCount += 1;
+            // Shift has ended - use normal logic
+            if (pd.isFullySolved) {
+              solvedCount += 1;
+            } else {
+              unsolvedCount += 1;
+            }
           }
         }
       }

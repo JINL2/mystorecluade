@@ -99,6 +99,32 @@ class AttendanceProblem {
 
   /// Get all problem types (uses types if not empty, otherwise falls back to single type)
   List<ProblemType> get allTypes => types.isNotEmpty ? types : [type];
+
+  /// Check if shift is still in progress (current time < shift end time)
+  bool get isInProgress {
+    if (shiftEndTime == null) return false;
+    final now = DateTime.now().toUtc();
+    return now.isBefore(shiftEndTime!);
+  }
+
+  /// Get filtered problem types - exclude "in progress" problems
+  /// For shifts still in progress:
+  /// - Hide noCheckout (shift hasn't ended yet)
+  /// - Hide noCheckin (if shift hasn't started, it's not absence yet)
+  List<ProblemType> get filteredTypes {
+    if (!isInProgress) return allTypes;
+
+    return allTypes.where((type) {
+      // Filter out premature problem types for in-progress shifts
+      if (type == ProblemType.noCheckout) return false;
+      if (type == ProblemType.noCheckin) return false;
+      return true;
+    }).toList();
+  }
+
+  /// Check if this problem should be shown
+  /// Returns false if all problem types are filtered out (in-progress shift)
+  bool get shouldShow => filteredTypes.isNotEmpty;
 }
 
 /// Card displaying an attendance problem
@@ -229,13 +255,23 @@ class ProblemCard extends StatelessWidget {
             const SizedBox(width: TossSpacing.space2),
 
             // Problem Badges (multiple if shift has multiple problems)
+            // Use filteredTypes to exclude premature problems for in-progress shifts
             Wrap(
               spacing: 4,
               runSpacing: 4,
-              children: problem.allTypes.map((type) => TossStatusBadge(
-                label: _getProblemLabel(type),
-                status: _getBadgeStatus(type),
-              )).toList(),
+              children: [
+                // Show "In Progress" badge if shift is ongoing with checkin
+                if (problem.isInProgress && problem.clockIn != null)
+                  TossStatusBadge(
+                    label: 'In Progress',
+                    status: BadgeStatus.success,
+                  ),
+                // Show remaining problem badges (filtered)
+                ...problem.filteredTypes.map((type) => TossStatusBadge(
+                  label: _getProblemLabel(type),
+                  status: _getBadgeStatus(type),
+                )),
+              ],
             ),
 
             const SizedBox(width: TossSpacing.space2),

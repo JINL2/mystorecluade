@@ -58,6 +58,7 @@ import '../../features/session/domain/entities/session_history_item.dart';
 import '../../features/session/domain/entities/session_review_item.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
 import '../../features/design_library/presentation/pages/theme_library_page.dart';
+import '../../features/test/test_template_mapping_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
 import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
 import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
@@ -864,6 +865,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           }
           return ReceivingResultPage(response: response);
         },
+      ),
+
+      // Test Route - Template Mapping Test
+      GoRoute(
+        path: '/test',
+        name: 'test',
+        builder: (context, state) => const TestTemplateMapppingPage(),
       ),
     ],
   );

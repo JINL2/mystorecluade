@@ -142,12 +142,9 @@ class ScheduleDateUtils {
     }
 
     // Step 4: Determine if we should be in CHECKOUT mode
-    // Condition: chain's last shift ends today OR later (night shifts can end tomorrow)
-    final chainLastEndDate = chainLastEndTime != null
-        ? DateTime(chainLastEndTime.year, chainLastEndTime.month, chainLastEndTime.day)
-        : null;
-
-    final shouldCheckout = chainLastEndDate != null && !chainLastEndDate.isBefore(today);
+    // Condition: chain's last shift hasn't ended yet (end_time > now)
+    // No date comparison needed - just check if end_time is in the future
+    final shouldCheckout = chainLastEndTime != null && chainLastEndTime.isAfter(now);
 
     return ChainDetectionResult(
       inProgressShift: inProgressShift,
@@ -160,55 +157,50 @@ class ScheduleDateUtils {
 
   /// Find the shift with end_time closest to current time from chain
   /// Used for both UI display and QR scan checkout
+  ///
+  /// No date filtering - just finds the shift with end_time closest to now.
+  /// This correctly handles night shifts that cross midnight (e.g., 20:00-02:00).
   static ShiftCard? findClosestCheckoutShift(
     ChainDetectionResult chain, {
     DateTime? currentTime,
   }) {
     if (!chain.hasChain || !chain.shouldCheckout) return null;
+    if (chain.chainShifts.isEmpty) return null;
 
     final now = currentTime ?? DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
 
-    // Filter to shifts ending today
-    final todayChainShifts = chain.chainShifts.where((c) {
-      final endDate = parseShiftDate(c.shiftEndTime);
-      return endDate != null && isSameDay(endDate, today);
-    }).toList();
-
-    if (todayChainShifts.isEmpty) {
-      // If no today shifts, return last in chain
-      return chain.chainShifts.isNotEmpty ? chain.chainShifts.last : null;
-    }
-
-    // Sort by distance to now (closest first)
-    todayChainShifts.sort((a, b) {
+    // Sort by distance to now (closest end_time first)
+    // No date filtering needed - chain detection already validated the shifts
+    final sorted = [...chain.chainShifts]..sort((a, b) {
       final aEnd = parseShiftDateTime(a.shiftEndTime);
       final bEnd = parseShiftDateTime(b.shiftEndTime);
       if (aEnd == null || bEnd == null) return 0;
       return aEnd.difference(now).abs().compareTo(bEnd.difference(now).abs());
     });
 
-    return todayChainShifts.first;
+    return sorted.first;
   }
 
   /// Find the shift with start_time closest to current time for check-in
+  ///
+  /// Search range: past 24 hours ~ future
+  /// This prevents checking into shifts from days ago that were forgotten.
   static ShiftCard? findClosestCheckinShift(
     List<ShiftCard> shiftCards, {
     DateTime? currentTime,
   }) {
     final now = currentTime ?? DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final past24Hours = now.subtract(const Duration(hours: 24));
 
+    // Filter: approved, not checked in, start_time within past 24 hours or future
     final checkinCandidates = shiftCards.where((c) {
       if (!c.isApproved || c.isCheckedIn) return false;
 
-      final shiftStartDate = parseShiftDate(c.shiftStartTime);
-      final shiftEndDate = parseShiftDate(c.shiftEndTime);
-      if (shiftStartDate == null) return false;
+      final shiftStartTime = parseShiftDateTime(c.shiftStartTime);
+      if (shiftStartTime == null) return false;
 
-      // Today's shift (starts today or ends today for night shifts)
-      return isSameDay(shiftStartDate, today) ||
-          (shiftEndDate != null && isSameDay(shiftEndDate, today));
+      // Only include shifts starting within past 24 hours or in the future
+      return !shiftStartTime.isBefore(past24Hours);
     }).toList();
 
     if (checkinCandidates.isEmpty) return null;

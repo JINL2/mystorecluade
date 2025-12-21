@@ -42,7 +42,7 @@ import '../providers/use_case_providers.dart';
 import '../widgets/template_attachment_picker_section.dart';
 import 'edit_template_bottom_sheet.dart';
 // 🧮 Exchange rate calculator
-import '../../../journal_input/presentation/widgets/exchange_rate_calculator.dart';
+import '../../../../shared/widgets/common/exchange_rate_calculator.dart';
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 
 /// Custom TextInputFormatter for thousand separators (000,000 format)
@@ -403,24 +403,18 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: ExchangeRateCalculator(
-          initialAmount: _amountController.text.replaceAll(',', ''),
-          onAmountSelected: (amount) {
-            final formatter = NumberFormat('#,##0.##', 'en_US');
-            final numericValue = double.tryParse(amount) ?? 0;
-            setState(() {
-              _amountController.text = formatter.format(numericValue);
-            });
-          },
-        ),
+      builder: (context) => ExchangeRateCalculator(
+        initialAmount: _amountController.text.replaceAll(',', ''),
+        onAmountSelected: (amount) {
+          final formatter = NumberFormat('#,##0.##', 'en_US');
+          final numericValue = double.tryParse(amount) ?? 0;
+          setState(() {
+            _amountController.text = formatter.format(numericValue);
+          });
+        },
       ),
     );
   }
@@ -1498,6 +1492,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
     // 🔧 RPC-based: Call create_transaction_from_template RPC
     final dataSource = ref.read(templateDataSourceProvider);
+
     final response = await dataSource.createTransactionFromTemplate(
       templateId: templateId,
       amount: amount,
