@@ -77,10 +77,8 @@ class _HomepageState extends ConsumerState<Homepage> {
         if (userData == null) {
           // Show loading - router will redirect to /onboarding/choose-role
           return const Scaffold(
-            backgroundColor: TossColors.gray100,
-            body: Center(
-              child: CircularProgressIndicator(color: TossColors.primary),
-            ),
+            backgroundColor: TossColors.surface,
+            body: TossLoadingView(message: 'Loading...'),
           );
         }
 
@@ -89,34 +87,67 @@ class _HomepageState extends ConsumerState<Homepage> {
         if (companies.isEmpty) {
           // Show loading - router will redirect to /onboarding/choose-role
           return const Scaffold(
-            backgroundColor: TossColors.gray100,
-            body: Center(
-              child: CircularProgressIndicator(color: TossColors.primary),
-            ),
+            backgroundColor: TossColors.surface,
+            body: TossLoadingView(message: 'Loading...'),
           );
         }
 
-        // Check and show homepage alert
-        _checkAndShowAlert();
-
-        return _buildHomepage();
+        // 🔒 Wait for ALL essential data to load before showing homepage
+        return _buildHomepageWithDataCheck();
       },
       loading: () => const Scaffold(
-        backgroundColor: TossColors.gray100,
-        body: Center(
-          child: CircularProgressIndicator(color: TossColors.primary),
-        ),
+        backgroundColor: TossColors.surface,
+        body: TossLoadingView(message: 'Loading...'),
       ),
       error: (error, stack) {
         // Show loading - router will redirect appropriately
         return const Scaffold(
-          backgroundColor: TossColors.gray100,
-          body: Center(
-            child: CircularProgressIndicator(color: TossColors.primary),
-          ),
+          backgroundColor: TossColors.surface,
+          body: TossLoadingView(message: 'Loading...'),
         );
       },
     );
+  }
+
+  /// Build homepage only when ALL essential data is loaded
+  /// Shows full-screen loading until:
+  /// - Quick access features loaded
+  /// - Categories with features loaded
+  /// - Revenue/Salary data loaded (based on permission)
+  Widget _buildHomepageWithDataCheck() {
+    // Watch all essential providers
+    final quickAccessAsync = ref.watch(quickAccessFeaturesProvider);
+    final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
+
+    // Check if user has revenue permission to decide which data to wait for
+    final hasRevenue = _hasRevenuePermission();
+
+    // Determine loading state for revenue/salary
+    final AsyncValue<dynamic> revenueOrSalaryAsync;
+    if (hasRevenue) {
+      final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
+      revenueOrSalaryAsync = ref.watch(revenueProvider(selectedPeriod));
+    } else {
+      revenueOrSalaryAsync = ref.watch(homepageUserSalaryProvider);
+    }
+
+    // Check if ALL data is loaded (hasValue or hasError means loading is complete)
+    final isQuickAccessLoaded = quickAccessAsync.hasValue || quickAccessAsync.hasError;
+    final isCategoriesLoaded = categoriesAsync.hasValue || categoriesAsync.hasError;
+    final isRevenueOrSalaryLoaded = revenueOrSalaryAsync.hasValue || revenueOrSalaryAsync.hasError;
+
+    // Show loading until all data is ready
+    if (!isQuickAccessLoaded || !isCategoriesLoaded || !isRevenueOrSalaryLoaded) {
+      return const Scaffold(
+        backgroundColor: TossColors.surface,
+        body: TossLoadingView(message: 'Loading...'),
+      );
+    }
+
+    // All data loaded - check and show homepage alert
+    _checkAndShowAlert();
+
+    return _buildHomepage();
   }
 
   /// Check if user has permission to view company revenue

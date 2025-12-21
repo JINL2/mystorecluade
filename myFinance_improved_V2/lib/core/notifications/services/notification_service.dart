@@ -15,6 +15,7 @@ import '../utils/notification_logger.dart';
 import 'fcm_service.dart';
 import 'local_notification_service.dart';
 import 'notification_display_manager.dart';
+import 'production_token_service.dart';
 import 'token_manager.dart';
 
 /// Main notification service that coordinates all notification functionality
@@ -28,6 +29,7 @@ class NotificationService {
   final NotificationLogger _notificationLogger = NotificationLogger();
   final NotificationRepository _repository = NotificationRepository();
   final TokenManager _tokenManager = TokenManager();
+  final ProductionTokenService _productionTokenService = ProductionTokenService();
   final NotificationDisplayManager _displayManager = NotificationDisplayManager();
   // final Logger _logger = Logger();
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -68,9 +70,13 @@ class NotificationService {
       // Set up message handlers
       _setupMessageHandlers();
       
-      // Initialize token manager for automatic token management
+      // Initialize token manager for token lifecycle (refresh, validation)
       await _tokenManager.initialize();
-      
+
+      // 🔧 Initialize ProductionTokenService for auth-based token registration
+      // This sets up onAuthStateChange listener for automatic token registration
+      await _productionTokenService.initialize();
+
       // Initialize display manager to handle notification display intelligently
       await _displayManager.initialize();
       
