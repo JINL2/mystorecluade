@@ -1,14 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // Core - Constants ✅
 import '../../../../core/constants/auth_constants.dart';
-// Core - Infrastructure Services ✅
-import '../../../../core/monitoring/sentry_config.dart';
-import '../../../../core/notifications/services/production_token_service.dart';
 import '../../../../shared/themes/toss_animations.dart';
 // Shared - Theme System ✅
 import '../../../../shared/themes/toss_colors.dart';
@@ -443,18 +438,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
       // This ensures AppState is populated before GoRouter redirect
       await ref.read(userCompaniesProvider.future);
 
-      // Register FCM token (optional, non-blocking)
-      final productionTokenService = ProductionTokenService();
-      unawaited(
-        productionTokenService.registerTokenForLogin().catchError((Object e, StackTrace stackTrace) {
-          SentryConfig.captureException(
-            e,
-            stackTrace,
-            hint: 'FCM token registration failed after email login',
-          );
-          return false;
-        }),
-      );
+      // 🔧 FCM token registration is now handled automatically by ProductionTokenService
+      // via onAuthStateChange listener - no manual call needed
 
       // Show success message
       if (!mounted) return;

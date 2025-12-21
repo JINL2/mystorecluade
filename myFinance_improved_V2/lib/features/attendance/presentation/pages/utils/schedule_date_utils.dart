@@ -1,12 +1,51 @@
 import 'package:flutter/material.dart';
 
+import '../../../domain/entities/shift_card.dart';
+
+/// Result of continuous chain detection
+class ChainDetectionResult {
+  /// The in-progress shift that started the chain (has isCheckedIn=true)
+  final ShiftCard? inProgressShift;
+
+  /// When the chain started (first shift's start_time)
+  final DateTime? chainStartTime;
+
+  /// When the chain ends (last shift's end_time)
+  final DateTime? chainLastEndTime;
+
+  /// All shifts in the chain, sorted by start time
+  final List<ShiftCard> chainShifts;
+
+  /// Whether we should be in checkout mode (chain ends today or later)
+  final bool shouldCheckout;
+
+  const ChainDetectionResult({
+    this.inProgressShift,
+    this.chainStartTime,
+    this.chainLastEndTime,
+    this.chainShifts = const [],
+    this.shouldCheckout = false,
+  });
+
+  /// No chain found
+  static const ChainDetectionResult empty = ChainDetectionResult();
+
+  /// Check if a valid chain was found
+  bool get hasChain => inProgressShift != null && chainShifts.isNotEmpty;
+}
+
 /// Shared DateTime utilities for schedule views
 class ScheduleDateUtils {
   ScheduleDateUtils._();
 
+  // ============================================================
+  // CORE PARSING UTILITIES
+  // ============================================================
+
   /// Parse shift datetime from ISO format string
   /// Supports: "2025-06-01T14:00:00" or "2025-06-01 14:00:00"
-  static DateTime? parseShiftDateTime(String dateTimeStr) {
+  static DateTime? parseShiftDateTime(String? dateTimeStr) {
+    if (dateTimeStr == null || dateTimeStr.isEmpty) return null;
     try {
       if (dateTimeStr.contains('T')) {
         return DateTime.parse(dateTimeStr);
@@ -20,9 +59,169 @@ class ScheduleDateUtils {
     }
   }
 
+  /// Extract date-only from shift time string (e.g., "2025-12-20T08:00:00")
+  static DateTime? parseShiftDate(String? shiftTime) {
+    final dateTime = parseShiftDateTime(shiftTime);
+    if (dateTime == null) return null;
+    return DateTime(dateTime.year, dateTime.month, dateTime.day);
+  }
+
   /// Check if two dates are the same day
   static bool isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  // ============================================================
+  // CONTINUOUS CHAIN DETECTION (UNIFIED LOGIC)
+  // ============================================================
+
+  /// Detect continuous shift chain from in-progress shift
+  ///
+  /// For continuous shifts (08:00~13:00, 13:00~19:00, 19:00~02:00):
+  /// - Only FIRST shift has isCheckedIn=true
+  /// - Chain detection traces forward to find all connected shifts
+  /// - Uses 1-minute tolerance for time matching
+  ///
+  /// Returns [ChainDetectionResult] with chain info and checkout determination
+  static ChainDetectionResult detectContinuousChain(
+    List<ShiftCard> shiftCards, {
+    DateTime? currentTime,
+  }) {
+    if (shiftCards.isEmpty) return ChainDetectionResult.empty;
+
+    final now = currentTime ?? DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Step 1: Find in-progress shift (checked in but not out)
+    ShiftCard? inProgressShift;
+    for (final card in shiftCards) {
+      if (card.isApproved && card.isCheckedIn && !card.isCheckedOut) {
+        inProgressShift = card;
+        break;
+      }
+    }
+
+    if (inProgressShift == null) return ChainDetectionResult.empty;
+
+    final chainStartTime = parseShiftDateTime(inProgressShift.shiftStartTime);
+    if (chainStartTime == null) return ChainDetectionResult.empty;
+
+    // Step 2: Sort and filter candidates for chain
+    final sortedShifts = shiftCards
+        .where((c) => c.isApproved && !c.isCheckedOut)
+        .toList()
+      ..sort((a, b) {
+        final aStart = parseShiftDateTime(a.shiftStartTime);
+        final bStart = parseShiftDateTime(b.shiftStartTime);
+        if (aStart == null || bStart == null) return 0;
+        return aStart.compareTo(bStart);
+      });
+
+    // Step 3: Trace the chain forward from in-progress shift
+    final chainShifts = <ShiftCard>[inProgressShift];
+    DateTime? currentEndTime = parseShiftDateTime(inProgressShift.shiftEndTime);
+    DateTime? chainLastEndTime = currentEndTime;
+
+    for (final c in sortedShifts) {
+      if (c.shiftRequestId == inProgressShift.shiftRequestId) continue;
+
+      final shiftStart = parseShiftDateTime(c.shiftStartTime);
+      final shiftEnd = parseShiftDateTime(c.shiftEndTime);
+      if (shiftStart == null || shiftEnd == null) continue;
+
+      // Check if this shift continues the chain (start_time = previous end_time)
+      // Allow 1 minute tolerance for edge cases
+      if (currentEndTime != null) {
+        final diff = shiftStart.difference(currentEndTime).abs();
+        if (diff.inMinutes <= 1) {
+          chainShifts.add(c);
+          currentEndTime = shiftEnd;
+          chainLastEndTime = shiftEnd;
+        }
+      }
+    }
+
+    // Step 4: Determine if we should be in CHECKOUT mode
+    // Condition: chain's last shift ends today OR later (night shifts can end tomorrow)
+    final chainLastEndDate = chainLastEndTime != null
+        ? DateTime(chainLastEndTime.year, chainLastEndTime.month, chainLastEndTime.day)
+        : null;
+
+    final shouldCheckout = chainLastEndDate != null && !chainLastEndDate.isBefore(today);
+
+    return ChainDetectionResult(
+      inProgressShift: inProgressShift,
+      chainStartTime: chainStartTime,
+      chainLastEndTime: chainLastEndTime,
+      chainShifts: chainShifts,
+      shouldCheckout: shouldCheckout,
+    );
+  }
+
+  /// Find the shift with end_time closest to current time from chain
+  /// Used for both UI display and QR scan checkout
+  static ShiftCard? findClosestCheckoutShift(
+    ChainDetectionResult chain, {
+    DateTime? currentTime,
+  }) {
+    if (!chain.hasChain || !chain.shouldCheckout) return null;
+
+    final now = currentTime ?? DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Filter to shifts ending today
+    final todayChainShifts = chain.chainShifts.where((c) {
+      final endDate = parseShiftDate(c.shiftEndTime);
+      return endDate != null && isSameDay(endDate, today);
+    }).toList();
+
+    if (todayChainShifts.isEmpty) {
+      // If no today shifts, return last in chain
+      return chain.chainShifts.isNotEmpty ? chain.chainShifts.last : null;
+    }
+
+    // Sort by distance to now (closest first)
+    todayChainShifts.sort((a, b) {
+      final aEnd = parseShiftDateTime(a.shiftEndTime);
+      final bEnd = parseShiftDateTime(b.shiftEndTime);
+      if (aEnd == null || bEnd == null) return 0;
+      return aEnd.difference(now).abs().compareTo(bEnd.difference(now).abs());
+    });
+
+    return todayChainShifts.first;
+  }
+
+  /// Find the shift with start_time closest to current time for check-in
+  static ShiftCard? findClosestCheckinShift(
+    List<ShiftCard> shiftCards, {
+    DateTime? currentTime,
+  }) {
+    final now = currentTime ?? DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final checkinCandidates = shiftCards.where((c) {
+      if (!c.isApproved || c.isCheckedIn) return false;
+
+      final shiftStartDate = parseShiftDate(c.shiftStartTime);
+      final shiftEndDate = parseShiftDate(c.shiftEndTime);
+      if (shiftStartDate == null) return false;
+
+      // Today's shift (starts today or ends today for night shifts)
+      return isSameDay(shiftStartDate, today) ||
+          (shiftEndDate != null && isSameDay(shiftEndDate, today));
+    }).toList();
+
+    if (checkinCandidates.isEmpty) return null;
+
+    // Sort by distance from current time to start_time (closest first)
+    checkinCandidates.sort((a, b) {
+      final aStart = parseShiftDateTime(a.shiftStartTime);
+      final bStart = parseShiftDateTime(b.shiftStartTime);
+      if (aStart == null || bStart == null) return 0;
+      return aStart.difference(now).abs().compareTo(bStart.difference(now).abs());
+    });
+
+    return checkinCandidates.first;
   }
 
   /// Get week range (Monday to Sunday) for a given date

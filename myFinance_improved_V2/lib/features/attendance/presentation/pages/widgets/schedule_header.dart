@@ -14,6 +14,11 @@ class ScheduleHeader extends StatelessWidget {
   final VoidCallback? onGoToShiftSignUp;
   final VoidCallback? onReportIssue;
 
+  /// True if this shift is part of a continuous chain that's in-progress
+  /// (e.g., night shift in 08:00~13:00, 13:00~19:00, 19:00~02:00 chain)
+  /// When true, show "Check-out" button even if this shift's isCheckedIn is false
+  final bool isPartOfInProgressChain;
+
   const ScheduleHeader({
     super.key,
     this.cardKey,
@@ -23,6 +28,7 @@ class ScheduleHeader extends StatelessWidget {
     this.onCheckOut,
     this.onGoToShiftSignUp,
     this.onReportIssue,
+    this.isPartOfInProgressChain = false,
   });
 
   /// Parse shift datetime from ISO format string (e.g., "2025-06-01T14:00:00")
@@ -65,6 +71,13 @@ class ScheduleHeader extends StatelessWidget {
 
     if (card.isCheckedIn && !card.isCheckedOut) {
       return card.isLate ? ShiftStatus.late : ShiftStatus.onTime;
+    }
+
+    // ✅ Continuous chain: this shift is part of an in-progress chain
+    // Even though this specific shift doesn't have isCheckedIn=true,
+    // an earlier shift in the chain was checked in, so show "Check-out" button
+    if (isPartOfInProgressChain && !card.isCheckedOut) {
+      return ShiftStatus.inProgress;
     }
 
     // Past date but no check-in

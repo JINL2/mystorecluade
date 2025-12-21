@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../domain/entities/manager_memo.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/entities/problem_details.dart';
 import '../../../domain/usecases/get_manager_shift_cards.dart';
@@ -34,6 +35,20 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
     this._storeId,
     this._timezone,
   ) : super(const ManagerShiftCardsState());
+
+  /// Format number with comma separators (e.g., 150000 → "150,000")
+  static String _formatNumber(int value) {
+    final str = value.toString();
+    final buffer = StringBuffer();
+    final length = str.length;
+    for (var i = 0; i < length; i++) {
+      if (i > 0 && (length - i) % 3 == 0) {
+        buffer.write(',');
+      }
+      buffer.write(str[i]);
+    }
+    return buffer.toString();
+  }
 
   /// Safely update state - avoids "setState during build" errors
   /// by deferring state updates if called during widget build phase
@@ -164,14 +179,19 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
   /// Called after StaffTimelogDetailPage saves changes via inputCardV5.
   /// Updates the cached card with new problem data without RPC call.
   ///
+  /// v7: Now also calculates and updates salary fields (paidHour, basePay, totalPayWithBonus)
+  /// when confirmed times change, ensuring UI shows correct values after save.
+  ///
   /// Parameters:
   /// - [shiftRequestId]: The ID of the shift request to update
   /// - [shiftDate]: The date of the shift (yyyy-MM-dd format)
   /// - [isProblemSolved]: Whether problems are now solved (optional)
   /// - [isReportedSolved]: Whether report is solved (optional)
-  /// - [confirmedStartTime]: New confirmed start time (optional)
-  /// - [confirmedEndTime]: New confirmed end time (optional)
+  /// - [confirmedStartTime]: New confirmed start time HH:mm:ss (optional)
+  /// - [confirmedEndTime]: New confirmed end time HH:mm:ss (optional)
   /// - [bonusAmount]: New bonus amount (optional)
+  /// - [newManagerMemo]: New manager memo to append (optional)
+  /// - [calculatedPaidHour]: Pre-calculated paid hours from caller (optional)
   void updateCardProblemData({
     required String shiftRequestId,
     required String shiftDate,
@@ -180,6 +200,8 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
     String? confirmedStartTime,
     String? confirmedEndTime,
     double? bonusAmount,
+    ManagerMemo? newManagerMemo,
+    double? calculatedPaidHour,
   }) {
     if (!mounted) return;
 
@@ -248,11 +270,42 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
           );
         }
 
+        // Build updated managerMemos list (append new memo if provided)
+        final updatedManagerMemos = newManagerMemo != null
+            ? [...card.managerMemos, newManagerMemo]
+            : card.managerMemos;
+
+        // v7: Calculate salary fields when paidHour is provided
+        double? newPaidHour = calculatedPaidHour;
+        String? newBasePay;
+        String? newTotalPayWithBonus;
+
+        if (newPaidHour != null) {
+          // Get hourly rate from existing salaryAmount
+          final salaryAmountStr = card.salaryAmount;
+          if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
+            final hourlyRate = double.tryParse(salaryAmountStr.replaceAll(',', '')) ?? 0;
+            if (hourlyRate > 0) {
+              final basePayCalc = (newPaidHour * hourlyRate).toInt();
+              final finalBonus = bonusAmount ?? card.bonusAmount ?? 0;
+              final totalPayCalc = basePayCalc + finalBonus.toInt();
+
+              // Format with comma separators
+              newBasePay = _formatNumber(basePayCalc);
+              newTotalPayWithBonus = _formatNumber(totalPayCalc);
+            }
+          }
+        }
+
         return card.copyWith(
           problemDetails: updatedProblemDetails,
           confirmedStartRaw: confirmedStartTime ?? card.confirmedStartRaw,
           confirmedEndRaw: confirmedEndTime ?? card.confirmedEndRaw,
           bonusAmount: bonusAmount ?? card.bonusAmount,
+          managerMemos: updatedManagerMemos,
+          paidHour: newPaidHour ?? card.paidHour,
+          basePay: newBasePay ?? card.basePay,
+          totalPayWithBonus: newTotalPayWithBonus ?? card.totalPayWithBonus,
         );
       }
       return card;

@@ -185,7 +185,9 @@ class ShiftCard {
   }
 
   /// Check if this shift has been reported (from problemDetails)
-  bool get isReported => problemDetails?.problems.any((p) => p.type == 'reported' && !p.isSolved) ?? false;
+  /// NOTE: Returns true if report EXISTS, regardless of solved status.
+  /// Use isReportedSolved to check if it was resolved.
+  bool get isReported => problemDetails?.problems.any((p) => p.type == 'reported') ?? false;
 
   /// Report reason if this shift was reported (from problemDetails)
   String? get reportReason => problemDetails?.problems

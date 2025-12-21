@@ -13,7 +13,7 @@ import 'package:myfinance_improved/shared/widgets/toss/month_dates_picker.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../providers/time_table_providers.dart';
-import '../../../domain/entities/shift_metadata_item.dart';
+import '../../../domain/entities/manager_memo.dart';
 import '../../../domain/entities/shift_card.dart';
 import 'problem_card.dart';
 import 'shift_section.dart';
@@ -215,25 +215,13 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
 
   /// Change week
   void _changeWeek(int days) {
-    final newWeekStart = _currentWeekStart.add(Duration(days: days));
     final newSelectedDate = widget.selectedDate.add(Duration(days: days));
-
-    // Notify parent of date change
     widget.onDateSelected?.call(newSelectedDate);
   }
 
   /// Jump to current week
   void _jumpToToday() {
-    final now = DateTime.now();
-    // Notify parent of date change
-    widget.onDateSelected?.call(now);
-  }
-
-  /// Check if date is in current week
-  bool _isDateInCurrentWeek(DateTime date) {
-    final weekEnd = _currentWeekStart.add(const Duration(days: 6));
-    return date.isAfter(_currentWeekStart.subtract(const Duration(days: 1))) &&
-        date.isBefore(weekEnd.add(const Duration(days: 1)));
+    widget.onDateSelected?.call(DateTime.now());
   }
 
   /// Get problems from real data using problem_details (Single Source of Truth)
@@ -429,68 +417,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     }
   }
 
-  /// Get shift availability map for a date range
-  ///
-  /// Logic:
-  /// - Blue dot: total_required > total_approved (understaffed)
-  /// - Gray dot: total_required <= total_approved (fully staffed)
-  ///
-  /// [dates] - List of dates to check availability for
-  Map<DateTime, ShiftAvailabilityStatus> _getShiftAvailabilityMapForDates(List<DateTime> dates) {
-    if (widget.selectedStoreId == null || dates.isEmpty) return {};
-
-    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
-    final metadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
-    final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
-
-    // Get shift metadata for total_required when no requests exist
-    final hasMetadata = metadataAsync.hasValue && metadataAsync.value != null;
-    final activeShifts = hasMetadata ? metadataAsync.value!.activeShifts : <ShiftMetadataItem>[];
-
-    for (final date in dates) {
-      final normalizedDate = DateTime(date.year, date.month, date.day);
-      final dateStr = DateFormat('yyyy-MM-dd').format(date);
-
-      // Find daily shift data for this date
-      final dailyShiftData = monthlyStatusState.allMonthlyStatuses
-          .expand((status) => status.dailyShifts)
-          .where((daily) => daily.date == dateStr)
-          .firstOrNull;
-
-      int totalRequired = 0;
-      int totalApproved = 0;
-
-      if (dailyShiftData != null && dailyShiftData.shifts.isNotEmpty) {
-        // Has request data - use it
-        for (final shiftWithReqs in dailyShiftData.shifts) {
-          totalRequired += shiftWithReqs.shift.targetCount;
-          totalApproved += shiftWithReqs.approvedRequests.length;
-        }
-      } else if (activeShifts.isNotEmpty) {
-        // No request data but has active shifts - use metadata
-        // All shifts are understaffed (0 approved, total_required from metadata)
-        for (final shiftMeta in activeShifts) {
-          totalRequired += shiftMeta.targetCount;
-        }
-        // totalApproved stays 0
-      } else {
-        // No shifts configured - no dot
-        continue;
-      }
-
-      // Determine availability status
-      if (totalRequired > totalApproved) {
-        // Understaffed - has open slots
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.understaffed;
-      } else {
-        // Fully staffed - no dot
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.full;
-      }
-    }
-
-    return availabilityMap;
-  }
-
   /// Get shift timelogs for selected date from real data
   /// Uses shiftMetadataProvider for ALL shifts (like Schedule tab)
   /// Uses monthlyShiftStatusProvider for approved employees
@@ -569,8 +495,10 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
         final pd = detailedCard?.problemDetails;
         final hasLate = pd?.problems.any((p) => p.type == 'late' && !p.isSolved) ?? false;
         final hasOvertime = pd?.problems.any((p) => p.type == 'overtime' && !p.isSolved) ?? false;
-        final hasReported = pd?.problems.any((p) => p.type == 'reported' && !p.isSolved) ?? false;
+        // isReported: check if report EXISTS (regardless of solved status)
+        // hasReported is for UI display (unsolved only), isReported is for data existence
         final reportedProblem = pd?.problems.where((p) => p.type == 'reported').firstOrNull;
+        final isReported = reportedProblem != null; // Report exists (solved or not)
         final lateProblem = pd?.problems.where((p) => p.type == 'late').firstOrNull;
         final overtimeProblem = pd?.problems.where((p) => p.type == 'overtime').firstOrNull;
 
@@ -605,7 +533,7 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
           actualEnd: detailedCard?.actualEndRaw,
           confirmStartTime: detailedCard?.confirmedStartRaw,
           confirmEndTime: detailedCard?.confirmedEndRaw,
-          isReported: hasReported,
+          isReported: isReported,
           reportReason: reportedProblem?.reason,
           isProblemSolved: pd?.isSolved ?? false,
           bonusAmount: detailedCard?.bonusAmount ?? 0.0,
@@ -918,6 +846,19 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                               // Partial Update: Update cached data without full refresh
                               if (result != null && result['success'] == true && widget.selectedStoreId != null) {
                                 final shiftDate = DateFormat('yyyy-MM-dd').format(problem.date);
+
+                                // Build ManagerMemo from result if memo was added
+                                final memoText = result['managerMemo'] as String?;
+                                ManagerMemo? newMemo;
+                                if (memoText != null && memoText.isNotEmpty) {
+                                  newMemo = ManagerMemo(
+                                    type: 'note',
+                                    content: memoText,
+                                    createdAt: DateTime.now().toIso8601String(),
+                                    createdBy: null,
+                                  );
+                                }
+
                                 ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).updateCardProblemData(
                                   shiftRequestId: result['shiftRequestId'] as String,
                                   shiftDate: shiftDate,
@@ -926,6 +867,9 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                                   confirmedStartTime: result['confirmedStartTime'] as String?,
                                   confirmedEndTime: result['confirmedEndTime'] as String?,
                                   bonusAmount: result['bonusAmount'] as double?,
+                                  newManagerMemo: newMemo,
+                                  // v7: Pass calculated paid hour for salary update
+                                  calculatedPaidHour: result['calculatedPaidHour'] as double?,
                                 );
                               }
                             } else {
@@ -1045,6 +989,18 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                           onSaveResult: (result) {
                             // Partial Update: Update cached data without full refresh
                             if (widget.selectedStoreId != null) {
+                              // Build ManagerMemo from result if memo was added
+                              final memoText = result['managerMemo'] as String?;
+                              ManagerMemo? newMemo;
+                              if (memoText != null && memoText.isNotEmpty) {
+                                newMemo = ManagerMemo(
+                                  type: 'note',
+                                  content: memoText,
+                                  createdAt: DateTime.now().toIso8601String(),
+                                  createdBy: null, // Will be set by server
+                                );
+                              }
+
                               ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).updateCardProblemData(
                                 shiftRequestId: result['shiftRequestId'] as String,
                                 shiftDate: result['shiftDate'] as String,
@@ -1053,6 +1009,9 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
                                 confirmedStartTime: result['confirmedStartTime'] as String?,
                                 confirmedEndTime: result['confirmedEndTime'] as String?,
                                 bonusAmount: result['bonusAmount'] as double?,
+                                newManagerMemo: newMemo,
+                                // v7: Pass calculated paid hour for salary update
+                                calculatedPaidHour: result['calculatedPaidHour'] as double?,
                               );
                             }
                           },
@@ -1131,16 +1090,6 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab> {
     )));
 
     return problemData.statusByDate;
-  }
-
-  /// Get shift availability map for the entire month (uses unified method)
-  Map<DateTime, ShiftAvailabilityStatus> _getMonthShiftAvailabilityMap() {
-    final lastDay = DateTime(widget.focusedMonth.year, widget.focusedMonth.month + 1, 0);
-    final monthDates = List.generate(
-      lastDay.day,
-      (day) => DateTime(widget.focusedMonth.year, widget.focusedMonth.month, day + 1),
-    );
-    return _getShiftAvailabilityMapForDates(monthDates);
   }
 
   /// Build store selector dropdown

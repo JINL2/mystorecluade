@@ -1,14 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // Core - Constants
 import '../../../../core/constants/auth_constants.dart';
-// Core - Services
-import '../../../../core/monitoring/sentry_config.dart';
-import '../../../../core/notifications/services/production_token_service.dart';
 // Shared - Theme System
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -342,18 +337,8 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       // Load user data
       await ref.read(userCompaniesProvider.future);
 
-      // Register FCM token (optional, non-blocking)
-      final productionTokenService = ProductionTokenService();
-      unawaited(
-        productionTokenService.registerTokenForLogin().catchError((Object e, StackTrace stackTrace) {
-          SentryConfig.captureException(
-            e,
-            stackTrace,
-            hint: 'FCM token registration failed after Google Sign-In',
-          );
-          return false;
-        }),
-      );
+      // 🔧 FCM token registration is now handled automatically by ProductionTokenService
+      // via onAuthStateChange listener - no manual call needed
 
       // Show success message
       if (!mounted) return;
@@ -425,18 +410,8 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       // Load user data
       await ref.read(userCompaniesProvider.future);
 
-      // Register FCM token (optional, non-blocking)
-      final productionTokenService = ProductionTokenService();
-      unawaited(
-        productionTokenService.registerTokenForLogin().catchError((Object e, StackTrace stackTrace) {
-          SentryConfig.captureException(
-            e,
-            stackTrace,
-            hint: 'FCM token registration failed after Apple Sign-In',
-          );
-          return false;
-        }),
-      );
+      // 🔧 FCM token registration is now handled automatically by ProductionTokenService
+      // via onAuthStateChange listener - no manual call needed
 
       // Show success message
       if (!mounted) return;

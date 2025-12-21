@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_icons.dart';
@@ -143,6 +144,16 @@ class _BankTabState extends ConsumerState<BankTab> {
           selectedStoreId: state.selectedStoreId,
           onChanged: (storeId) async {
             if (storeId != null) {
+              // ✅ Sync global app state for Account Detail Page
+              final store = state.stores.firstWhere(
+                (s) => s.storeId == storeId,
+                orElse: () => state.stores.first,
+              );
+              ref.read(appStateProvider.notifier).selectStore(
+                storeId,
+                storeName: store.storeName,
+              );
+
               await ref.read(cashEndingProvider.notifier).selectStore(
                 storeId,
                 widget.companyId,

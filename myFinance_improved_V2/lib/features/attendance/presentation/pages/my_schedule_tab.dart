@@ -376,8 +376,12 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       data: (primaryShiftCards) {
         return todayShiftCardsAsync.when(
           data: (todayShiftCards) {
-            // Use findCurrentShift for unified UI/QR logic
-            final currentShift = ScheduleShiftFinder.findCurrentShift(todayShiftCards);
+            // Use findCurrentShiftWithChainInfo for unified UI/QR logic
+            // Returns both the shift and whether it's part of an in-progress chain
+            final result = ScheduleShiftFinder.findCurrentShiftWithChainInfo(todayShiftCards);
+            final currentShift = result.shift;
+            final isPartOfInProgressChain = result.isPartOfInProgressChain;
+
             // Only show upcoming if no current shift (findCurrentShift handles completed->upcoming transition)
             final upcomingShift = currentShift == null
                 ? ScheduleShiftFinder.findClosestUpcomingShift(todayShiftCards)
@@ -399,6 +403,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
             return _buildScrollableView(
               currentShift: currentShift,
               upcomingShift: upcomingShift,
+              isPartOfInProgressChain: isPartOfInProgressChain,
               weekRange: weekRange,
               primaryAsync: primaryShiftCardsAsync,
               secondaryAsync: secondaryShiftCardsAsync,
@@ -419,6 +424,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
   Widget _buildScrollableView({
     required ShiftCard? currentShift,
     required ShiftCard? upcomingShift,
+    required bool isPartOfInProgressChain,
     required DateTimeRange weekRange,
     required AsyncValue<List<ShiftCard>> primaryAsync,
     AsyncValue<List<ShiftCard>>? secondaryAsync,
@@ -465,6 +471,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
               cardKey: _todayShiftCardKey,
               todayShift: currentShift,
               upcomingShift: upcomingShift,
+              isPartOfInProgressChain: isPartOfInProgressChain,
               onCheckIn: () => _navigateToQRScanner(),
               onCheckOut: () => _navigateToQRScanner(),
               onGoToShiftSignUp: _goToShiftSignUpTab,

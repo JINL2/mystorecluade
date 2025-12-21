@@ -6,6 +6,17 @@ import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 
 /// Confirmed attendance card with expandable content and edit capability
+///
+/// Status display logic:
+/// - Header shows overall status (isFullyConfirmed)
+/// - Individual rows show per-field status:
+///   - Red "Need confirm": problem exists and unsolved
+///   - Blue with ✓: problem was confirmed/solved
+///   - Black: no problem for this field
+///
+/// Note: Header "Need confirm" may show even when individual times are confirmed.
+/// This happens when a report is pending approval (reported:solved=false),
+/// but time-related problems (late, overtime, absence) are already solved.
 class ConfirmedAttendanceCard extends StatelessWidget {
   final bool isExpanded;
   final VoidCallback onToggle;
@@ -21,6 +32,9 @@ class ConfirmedAttendanceCard extends StatelessWidget {
   /// When true, neither "Confirmed" nor "Need confirm" status is shown
   /// (shift is still in progress)
   final bool isShiftInProgress;
+  /// When true, shows "Report pending" instead of "Need confirm"
+  /// to indicate that time is confirmed but report needs approval
+  final bool hasUnsolvedReport;
 
   const ConfirmedAttendanceCard({
     super.key,
@@ -36,7 +50,35 @@ class ConfirmedAttendanceCard extends StatelessWidget {
     required this.onEditCheckIn,
     required this.onEditCheckOut,
     this.isShiftInProgress = false,
+    this.hasUnsolvedReport = false,
   });
+
+  /// Get header status text based on state
+  /// - "• Confirmed" when all problems solved
+  /// - "• Report pending" when time confirmed but report unsolved
+  /// - "• Need confirm" when time-related problems unsolved
+  String _getHeaderStatus() {
+    if (isFullyConfirmed) {
+      return '• Confirmed';
+    }
+    // Time is confirmed but report pending
+    if (!checkInNeedsConfirm && !checkOutNeedsConfirm && hasUnsolvedReport) {
+      return '• Report pending';
+    }
+    return '• Need confirm';
+  }
+
+  /// Get header status color
+  Color _getHeaderStatusColor() {
+    if (isFullyConfirmed) {
+      return TossColors.gray500;
+    }
+    // Report pending shows as orange (warning, not error)
+    if (!checkInNeedsConfirm && !checkOutNeedsConfirm && hasUnsolvedReport) {
+      return TossColors.warning;
+    }
+    return TossColors.error;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +111,9 @@ class ConfirmedAttendanceCard extends StatelessWidget {
                   if (!isShiftInProgress) ...[
                     const SizedBox(width: 8),
                     Text(
-                      isFullyConfirmed ? '• Confirmed' : '• Need confirm',
+                      _getHeaderStatus(),
                       style: TossTextStyles.caption.copyWith(
-                        color: isFullyConfirmed ? TossColors.gray500 : TossColors.error,
+                        color: _getHeaderStatusColor(),
                         fontWeight: FontWeight.w500,
                       ),
                     ),

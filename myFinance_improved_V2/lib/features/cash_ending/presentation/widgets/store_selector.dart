@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
@@ -12,6 +11,7 @@ import '../../domain/entities/store.dart';
 /// Store selector widget using TossDropdown
 ///
 /// Displays a dropdown to select store from a list
+/// Uses same simple style as Time Table Manage (store name only, no subtitle/icon)
 class StoreSelector extends StatelessWidget {
   final List<Store> stores;
   final String? selectedStoreId;
@@ -38,35 +38,24 @@ class StoreSelector extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                TossIcons.info,
-                color: TossColors.gray500,
-                size: 24,
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              Text(
-                'No stores available',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+          child: Text(
+            'No stores available',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray500,
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       );
     }
 
-    // Build dropdown items from stores
-    final List<TossDropdownItem<String>> dropdownItems = stores.map((store) => TossDropdownItem<String>(
-        value: store.storeId,
-        label: store.storeName,
-        subtitle: store.storeCode,
-        icon: TossIcons.store,
-      )).toList();
+    // Build dropdown items - simple style like Time Table Manage (name only)
+    final dropdownItems = stores
+        .map((store) => TossDropdownItem<String>(
+              value: store.storeId,
+              label: store.storeName,
+            ))
+        .toList();
 
     return TossDropdown<String>(
       label: label,

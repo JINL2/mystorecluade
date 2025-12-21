@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../../../../../../core/monitoring/sentry_config.dart';
 import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../domain/entities/shift_card.dart';
-import '../../../pages/utils/schedule_shift_finder.dart';
+import '../../../pages/utils/schedule_date_utils.dart';
 
 /// Helper methods for attendance-related operations
 class AttendanceHelpers {
@@ -228,34 +230,74 @@ class AttendanceHelpers {
     return value.toString();
   }
 
-  /// Find the shift_request_id of the shift closest to current time for QR scan
+  /// Find the shift_request_id for QR scan check-in/check-out
   ///
-  /// Uses unified findCurrentShift() logic with excludeCompleted=true
-  /// to ensure QR scan targets non-completed shifts only.
+  /// Uses unified chain detection from [ScheduleDateUtils].
   ///
-  /// [shiftCards] - List of ShiftCard entities from user_shift_cards_v5
+  /// Logic:
+  /// 1. Detect continuous chain (if any shift is in-progress)
+  /// 2. CHECKOUT mode: find shift with end_time closest to now
+  /// 3. CHECKIN mode: find shift with start_time closest to now
+  ///
+  /// [shiftCards] - List of ShiftCard entities from user_shift_cards_v7
   /// [now] - Current DateTime (optional, for testing)
   ///
-  /// Returns the shift_request_id of the closest shift, or null if no shifts found
-  ///
-  /// Priority:
-  /// 1. In-progress shift (checked in but not out)
-  /// 2. Upcoming shift closest to current time
-  /// 3. Excludes completed shifts (already checked in and out)
+  /// Returns the shift_request_id, or null if no valid shift found
   static String? findClosestShiftRequestId(
     List<ShiftCard> shiftCards, {
     DateTime? now,
   }) {
     if (shiftCards.isEmpty) return null;
+    final currentTime = now ?? DateTime.now();
 
-    // Use unified findCurrentShift with excludeCompleted=true for QR scan
-    final currentShift = ScheduleShiftFinder.findCurrentShift(
+    // Use unified chain detection
+    final chain = ScheduleDateUtils.detectContinuousChain(
       shiftCards,
-      excludeCompleted: true,
+      currentTime: currentTime,
     );
 
-    print('📱 [QR_SCAN] Selected: ${currentShift?.shiftRequestId ?? 'null'}');
-    return currentShift?.shiftRequestId;
-  }
+    // CHECKOUT MODE: Chain detected and should checkout
+    if (chain.shouldCheckout) {
+      final checkoutShift = ScheduleDateUtils.findClosestCheckoutShift(
+        chain,
+        currentTime: currentTime,
+      );
+      if (checkoutShift != null) {
+        SentryConfig.addBreadcrumb(
+          message: 'QR Checkout: ${checkoutShift.shiftRequestId}',
+          category: 'qr_scan',
+          data: {'mode': 'checkout', 'shift_id': checkoutShift.shiftRequestId},
+        );
+        return checkoutShift.shiftRequestId;
+      }
+    }
 
+    // CHECKIN MODE: Find closest check-in shift
+    final checkinShift = ScheduleDateUtils.findClosestCheckinShift(
+      shiftCards,
+      currentTime: currentTime,
+    );
+    if (checkinShift != null) {
+      SentryConfig.addBreadcrumb(
+        message: 'QR Checkin: ${checkinShift.shiftRequestId}',
+        category: 'qr_scan',
+        data: {'mode': 'checkin', 'shift_id': checkinShift.shiftRequestId},
+      );
+      return checkinShift.shiftRequestId;
+    }
+
+    // ⚠️ CRITICAL: QR scan found no valid shift - this is a potential issue
+    // Could indicate data inconsistency or user scanning at wrong time
+    SentryConfig.captureMessage(
+      'QR Scan: No valid shift found',
+      level: SentryLevel.warning,
+      extra: {
+        'shift_count': shiftCards.length,
+        'has_approved': shiftCards.any((c) => c.isApproved),
+        'has_in_progress': shiftCards.any((c) => c.isCheckedIn && !c.isCheckedOut),
+        'current_time': currentTime.toIso8601String(),
+      },
+    );
+    return null;
+  }
 }

@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../core/monitoring/sentry_config.dart';
-import '../../../../core/notifications/services/token_manager.dart';
+import '../../../../core/notifications/services/production_token_service.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -752,15 +752,15 @@ class _HomepageState extends ConsumerState<Homepage> {
       ref.invalidate(homepageUserSalaryProvider);
       ref.invalidate(userShiftStatsProvider);
 
-      // 🔥 Ensure FCM token is registered/refreshed
+      // 🔥 Force FCM token refresh on manual refresh (scenario 3)
       try {
-        await TokenManager().ensureTokenRegistered();
+        await ProductionTokenService().registerTokenAfterAuth();
       } catch (e, stackTrace) {
         // Don't fail the refresh if FCM fails
         SentryConfig.captureException(
           e,
           stackTrace,
-          hint: 'Homepage FCM token check failed',
+          hint: 'Homepage FCM token refresh failed',
         );
       }
 

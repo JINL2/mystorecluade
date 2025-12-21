@@ -2,31 +2,56 @@ import '../../../../../shared/widgets/toss/toss_week_shift_card.dart';
 import '../../../domain/entities/shift_card.dart';
 import 'schedule_date_utils.dart';
 
+/// Result of findCurrentShift with chain info
+class CurrentShiftResult {
+  final ShiftCard? shift;
+  final bool isPartOfInProgressChain;
+
+  const CurrentShiftResult({
+    this.shift,
+    this.isPartOfInProgressChain = false,
+  });
+}
+
 /// Shift search and status determination logic for schedule views
 class ScheduleShiftFinder {
   ScheduleShiftFinder._();
 
   /// Find the most relevant current shift (unified logic for UI and QR scan)
   ///
-  /// Priority (NO DATE FILTERING for in-progress!):
-  /// 1. In-progress shift (checked in but not out) - ANY DATE (for night shifts!)
-  /// 2. Today's shifts: not-started → completed
+  /// Uses unified chain detection from [ScheduleDateUtils].
+  ///
+  /// Priority:
+  /// 1. In-progress continuous chain → return shift with end_time closest to now
+  /// 2. Today's shifts: completed (most recent) → not-started (earliest)
   /// 3. Next upcoming shift (future date)
   ///
   /// [excludeCompleted]: true for QR scan (skip already completed shifts)
-  static ShiftCard? findCurrentShift(
+  ///
+  /// Returns [CurrentShiftResult] with shift and chain status
+  static CurrentShiftResult findCurrentShiftWithChainInfo(
     List<ShiftCard> shiftCards, {
     bool excludeCompleted = false,
   }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // PRIORITY 1: Find ANY in-progress shift (NO DATE FILTER!)
-    // This handles night shifts: started yesterday 23:00, checkout today 03:00
-    for (final card in shiftCards) {
-      if (!card.isApproved) continue;
-      if (card.isCheckedIn && !card.isCheckedOut) {
-        return card;
+    // PRIORITY 1: Use unified chain detection
+    final chain = ScheduleDateUtils.detectContinuousChain(shiftCards, currentTime: now);
+
+    if (chain.hasChain && chain.shouldCheckout) {
+      final checkoutShift = ScheduleDateUtils.findClosestCheckoutShift(chain, currentTime: now);
+      if (checkoutShift != null) {
+        // Chain shift: might not have isCheckedIn=true itself
+        final isChainShift = checkoutShift.shiftRequestId != chain.inProgressShift?.shiftRequestId;
+        return CurrentShiftResult(
+          shift: checkoutShift,
+          isPartOfInProgressChain: isChainShift,
+        );
+      }
+      // Fallback to in-progress shift
+      if (chain.inProgressShift != null) {
+        return CurrentShiftResult(shift: chain.inProgressShift);
       }
     }
 
@@ -44,18 +69,14 @@ class ScheduleShiftFinder {
 
       final startDate = DateTime(startTime.year, startTime.month, startTime.day);
       final endDate = DateTime(endTime.year, endTime.month, endTime.day);
-
-      // Check if shift is TODAY (start or end date matches today - for night shifts)
-      final isToday = startDate == today || endDate == today;
+      final isToday = ScheduleDateUtils.isSameDay(startDate, today) ||
+          ScheduleDateUtils.isSameDay(endDate, today);
 
       if (isToday) {
-        // Skip completed shifts for QR scan
         if (excludeCompleted && card.isCheckedIn && card.isCheckedOut) continue;
-        // Skip in-progress (already handled above)
-        if (card.isCheckedIn && !card.isCheckedOut) continue;
+        if (card.isCheckedIn && !card.isCheckedOut) continue; // Handled above
         todayShifts.add(card);
       } else if (!card.isCheckedIn && startDate.isAfter(today)) {
-        // Future shift - track closest upcoming
         if (nextUpcoming == null || startTime.isBefore(nextUpcomingStart!)) {
           nextUpcoming = card;
           nextUpcomingStart = startTime;
@@ -63,9 +84,7 @@ class ScheduleShiftFinder {
       }
     }
 
-    // Find best today shift
-    // Priority: completed (most recent) → not-started (earliest)
-    // Reason: After checkout, user wants to see completed shift, not next shift
+    // Find best today shift: completed (most recent) → not-started (earliest)
     if (todayShifts.isNotEmpty) {
       ShiftCard? notStarted;
       ShiftCard? completed;
@@ -76,7 +95,6 @@ class ScheduleShiftFinder {
         final endTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime)!;
 
         if (!card.isCheckedIn) {
-          // Not checked in yet - pick the earliest one (not ended)
           if (!now.isAfter(endTime)) {
             if (notStarted == null) {
               notStarted = card;
@@ -88,7 +106,6 @@ class ScheduleShiftFinder {
             }
           }
         } else if (card.isCheckedIn && card.isCheckedOut) {
-          // Completed - pick the most recent one
           if (completed == null || startTime.isAfter(completedStartTime!)) {
             completed = card;
             completedStartTime = startTime;
@@ -96,21 +113,22 @@ class ScheduleShiftFinder {
         }
       }
 
-      // Priority: completed first (user just checked out), then not-started
-      if (completed != null) {
-        return completed;
-      }
-      if (notStarted != null) {
-        return notStarted;
-      }
+      if (completed != null) return CurrentShiftResult(shift: completed);
+      if (notStarted != null) return CurrentShiftResult(shift: notStarted);
     }
 
-    // PRIORITY 3: Next upcoming shift (future date)
-    if (nextUpcoming != null) {
-      return nextUpcoming;
-    }
+    // PRIORITY 3: Next upcoming shift
+    if (nextUpcoming != null) return CurrentShiftResult(shift: nextUpcoming);
 
-    return null;
+    return const CurrentShiftResult();
+  }
+
+  /// Backward-compatible version that returns just the shift
+  static ShiftCard? findCurrentShift(
+    List<ShiftCard> shiftCards, {
+    bool excludeCompleted = false,
+  }) {
+    return findCurrentShiftWithChainInfo(shiftCards, excludeCompleted: excludeCompleted).shift;
   }
 
   /// Find today's shift from the shift cards list

@@ -180,30 +180,30 @@ class TokenManager {
     );
   }
   
-  /// Setup enhanced auth state monitoring with immediate token registration
+  /// Setup enhanced auth state monitoring
+  /// 🔧 OPTIMIZED: signedIn is handled by ProductionTokenService to avoid duplicate registration
   void _setupEnhancedAuthMonitoring() {
     _authSubscription?.cancel();
     _authSubscription = _supabase.auth.onAuthStateChange.listen(
       (data) async {
         final event = data.event;
-        
+
         switch (event) {
           case AuthChangeEvent.signedIn:
-            // IMMEDIATE token registration (< 100ms target)
-            _monitor.logEvent('auth_signed_in');
-            await _immediateTokenRegistration();
+            // 🔧 SKIP: ProductionTokenService handles signedIn to prevent duplicate registration
+            _monitor.logEvent('auth_signed_in_skipped_by_token_manager');
             break;
-            
+
           case AuthChangeEvent.tokenRefreshed:
             _monitor.logEvent('auth_token_refreshed');
             await _validateAndUpdateToken();
             break;
-            
+
           case AuthChangeEvent.signedOut:
             _monitor.logEvent('auth_signed_out');
             await _clearTokenInfo();
             break;
-            
+
           default:
             break;
         }

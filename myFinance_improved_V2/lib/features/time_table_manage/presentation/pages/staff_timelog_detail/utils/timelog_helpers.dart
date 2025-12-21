@@ -82,4 +82,26 @@ class TimelogHelpers {
       return dateString;
     }
   }
+
+  /// Calculate working hours from check-in/out time strings (HH:mm:ss)
+  /// Returns null if either time is invalid
+  static double? calculateHoursFromTimes(String checkIn, String checkOut) {
+    if (checkIn == '--:--:--' || checkOut == '--:--:--') return null;
+
+    try {
+      final inParts = checkIn.split(':');
+      final outParts = checkOut.split(':');
+      if (inParts.length < 2 || outParts.length < 2) return null;
+
+      final inMinutes = (int.tryParse(inParts[0]) ?? 0) * 60 + (int.tryParse(inParts[1]) ?? 0);
+      final outMinutes = (int.tryParse(outParts[0]) ?? 0) * 60 + (int.tryParse(outParts[1]) ?? 0);
+
+      var diff = outMinutes - inMinutes;
+      if (diff < 0) diff += 24 * 60; // overnight shift
+
+      return diff / 60.0;
+    } catch (_) {
+      return null;
+    }
+  }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/services/app_init_service.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../../../core/domain/entities/feature.dart';
@@ -20,6 +21,22 @@ import '../../domain/providers/repository_providers.dart';
 import '../../domain/providers/use_case_providers.dart';
 import '../../domain/revenue_period.dart';
 import '../../domain/usecases/auto_select_company_store.dart';
+
+// === App Init Scenario Provider ===
+
+/// Provider that determines the initialization scenario
+/// Used to optimize data loading based on how user entered the app
+final initScenarioProvider = FutureProvider<InitScenario>((ref) async {
+  final authState = ref.watch(authStateProvider);
+
+  final userId = authState.when(
+    data: (user) => user?.id,
+    loading: () => null,
+    error: (_, __) => null,
+  );
+
+  return await AppInitService().determineScenario(userId);
+});
 
 // === Revenue Provider ===
 

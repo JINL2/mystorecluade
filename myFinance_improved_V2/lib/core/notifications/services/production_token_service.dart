@@ -8,7 +8,7 @@ import '../repositories/notification_repository.dart';
 import 'fcm_service.dart';
 
 /// Production-safe FCM token management service
-/// Handles race conditions, initialization timing, and reliable token saving
+/// Optimized for fast initialization and no duplicate registrations
 class ProductionTokenService {
   static final ProductionTokenService _instance = ProductionTokenService._internal();
   factory ProductionTokenService() => _instance;
@@ -17,211 +17,206 @@ class ProductionTokenService {
   final FcmService _fcmService = FcmService();
   final NotificationRepository _repository = NotificationRepository();
   final SupabaseClient _supabase = Supabase.instance.client;
-  
+
   // State management
   bool _isInitialized = false;
   bool _isInitializing = false;
+  bool _isRegistering = false; // 🔧 NEW: Prevent duplicate registration calls
   String? _currentToken;
   String? _lastRegisteredToken;
+  String? _lastRegisteredUserId; // 🔧 NEW: Track which user we registered for
+  StreamSubscription<AuthState>? _authSubscription; // 🔧 NEW: Track subscription
   final List<Completer<bool>> _pendingRegistrations = [];
-  
+
   // Production monitoring
   final Map<String, dynamic> _stats = {
     'successful_registrations': 0,
     'failed_registrations': 0,
     'race_conditions_handled': 0,
+    'duplicate_calls_prevented': 0, // 🔧 NEW
     'fallback_recoveries': 0,
   };
-  
+
   /// Initialize the service - called once at app start
+  /// 🔧 OPTIMIZED: Faster initialization, no blocking waits
   Future<void> initialize() async {
     if (_isInitialized || _isInitializing) return;
-    
+
     _isInitializing = true;
-    
+
     try {
-      // Wait for FCM service to be ready
-      await _waitForFcmServiceReady();
-      
-      // Get current token
+      // 🔧 OPTIMIZED: Single initialization attempt, no retry loop
+      await _fcmService.initialize();
       _currentToken = _fcmService.fcmToken;
-      
-      // Set up auth state monitoring
+
+      // Set up auth state monitoring (only once)
       _setupAuthStateMonitoring();
-      
+
       _isInitialized = true;
       _isInitializing = false;
-      
+
       // Complete any pending registrations
       _completePendingRegistrations(success: true);
-      
+
       if (kDebugMode) {
         debugPrint('✅ ProductionTokenService initialized successfully');
       }
-      
+
     } catch (e) {
       _isInitializing = false;
-      
+      _isInitialized = true; // 🔧 Mark as initialized even on failure to prevent infinite retries
+
       // Complete pending registrations with failure
       _completePendingRegistrations(success: false);
-      
+
       if (kDebugMode) {
         debugPrint('❌ ProductionTokenService initialization failed: $e');
       }
     }
   }
-  
-  /// Wait for FCM service to be ready with timeout
-  Future<void> _waitForFcmServiceReady() async {
-    const maxAttempts = 10;
-    const delayBetweenAttempts = Duration(milliseconds: 200);
-    
-    for (int attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        await _fcmService.initialize();
-        
-        // Check if token is available
-        if (_fcmService.fcmToken != null) {
+
+  /// Set up auth state monitoring for automatic token registration
+  /// 🔧 OPTIMIZED: Only listen once, prevent duplicate subscriptions
+  void _setupAuthStateMonitoring() {
+    // Cancel existing subscription if any
+    _authSubscription?.cancel();
+
+    _authSubscription = _supabase.auth.onAuthStateChange.listen((data) async {
+      // 🔧 OPTIMIZED: Only handle signedIn, ignore other events
+      if (data.event == AuthChangeEvent.signedIn && data.session?.user != null) {
+        final userId = data.session!.user.id;
+
+        // 🔧 OPTIMIZED: Skip if already registered for this user in this session
+        if (_lastRegisteredUserId == userId && _lastRegisteredToken == _currentToken) {
+          if (kDebugMode) {
+            debugPrint('⏭️ Token already registered for user, skipping');
+          }
+          _stats['duplicate_calls_prevented'] = (_stats['duplicate_calls_prevented'] as int) + 1;
           return;
         }
-        
-        // Token not ready yet, wait a bit
-        if (attempt < maxAttempts - 1) {
-          await Future.delayed(delayBetweenAttempts);
-        }
-      } catch (e) {
-        if (attempt == maxAttempts - 1) rethrow;
-        await Future.delayed(delayBetweenAttempts);
-      }
-    }
-  }
-  
-  /// Set up auth state monitoring for automatic token registration
-  void _setupAuthStateMonitoring() {
-    _supabase.auth.onAuthStateChange.listen((data) async {
-      if (data.event == AuthChangeEvent.signedIn) {
-        // User signed in - immediately register token
-        await registerTokenAfterAuth();
+
+        await _registerTokenInternal(userId);
       }
     });
   }
-  
+
   /// Register token immediately after authentication - production-safe
+  /// 🔧 OPTIMIZED: Deduplication and faster execution
   Future<bool> registerTokenAfterAuth() async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return false;
+
+    return await _registerTokenInternal(userId);
+  }
+
+  /// Internal registration with deduplication
+  /// 🔧 NEW: Centralized registration logic with proper guards
+  Future<bool> _registerTokenInternal(String userId) async {
+    // 🔧 Prevent concurrent registration calls
+    if (_isRegistering) {
+      _stats['duplicate_calls_prevented'] = (_stats['duplicate_calls_prevented'] as int) + 1;
+      if (kDebugMode) {
+        debugPrint('⏭️ Registration already in progress, skipping duplicate call');
+      }
+      return true; // Return true as registration is happening
+    }
+
+    // 🔧 Skip if same token already registered for same user
+    final currentToken = _fcmService.fcmToken;
+    if (currentToken != null &&
+        currentToken == _lastRegisteredToken &&
+        userId == _lastRegisteredUserId) {
+      _stats['duplicate_calls_prevented'] = (_stats['duplicate_calls_prevented'] as int) + 1;
+      return true;
+    }
+
+    _isRegistering = true;
+
     try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return false;
-      
-      // Use the debug page's successful pattern
       return await _executeReliableTokenRegistration(userId);
-      
     } catch (e) {
       _stats['failed_registrations'] = (_stats['failed_registrations'] as int) + 1;
-      
+
       if (kDebugMode) {
-        debugPrint('❌ Token registration after auth failed: $e');
+        debugPrint('❌ Token registration failed: $e');
       }
-      
+
       // Schedule background retry
       _scheduleBackgroundRetry();
       return false;
+    } finally {
+      _isRegistering = false;
     }
   }
-  
-  /// Execute reliable token registration using debug page pattern
+
+  /// Execute reliable token registration
+  /// 🔧 OPTIMIZED: Removed unnecessary delays and redundant checks
   Future<bool> _executeReliableTokenRegistration(String userId) async {
-    try {
-      // Step 1: Ensure FCM service is ready
-      if (!_fcmService.isAvailable) {
-        await _fcmService.initialize();
-      }
-      
-      // Step 2: Get current token (similar to debug page approach)
-      String? token = _fcmService.fcmToken;
-      
-      // Step 3: If no token, try refresh approach from debug page
-      if (token == null) {
-        // Use debug page's successful refresh pattern
-        await _performTokenRefreshLikeDebugPage();
+    // Step 1: Get current token (no retry loop needed)
+    String? token = _fcmService.fcmToken;
+
+    // Step 2: If no token available, try one refresh
+    if (token == null) {
+      if (_fcmService.isAvailable) {
+        await _performTokenRefresh();
         token = _fcmService.fcmToken;
       }
-      
-      if (token == null) {
-        throw Exception('Unable to obtain FCM token after refresh');
-      }
-      
-      // Step 4: Check if token is already registered
-      final existingTokens = await _repository.getActiveFcmTokens(userId);
-      final alreadyRegistered = existingTokens.any((t) => t.token == token);
-      
-      if (alreadyRegistered) {
-        _lastRegisteredToken = token;
-        _currentToken = token;
-        return true;
-      }
-      
-      // Step 5: Store token using debug page's successful approach
-      final result = await _repository.storeOrUpdateFcmToken(
-        userId: userId,
-        token: token,
-        platform: Platform.isIOS ? 'ios' : 'android',
-        deviceId: 'device_${DateTime.now().millisecondsSinceEpoch}',
-        deviceModel: Platform.operatingSystem,
-        appVersion: '1.0.0',
-      );
-      
-      if (result != null && result.id != 'fallback_') {
-        // Success - update our state
-        _lastRegisteredToken = token;
-        _currentToken = token;
-        _stats['successful_registrations'] = (_stats['successful_registrations'] as int) + 1;
-        
-        if (kDebugMode) {
-          debugPrint('✅ Token registered successfully in production: ${result.id}');
-        }
-        
-        return true;
-      } else {
-        throw Exception('Token storage returned fallback result - indicates Supabase save failure');
-      }
-      
-    } catch (e) {
-      _stats['failed_registrations'] = (_stats['failed_registrations'] as int) + 1;
-      
+    }
+
+    if (token == null) {
+      throw Exception('FCM token unavailable');
+    }
+
+    // 🔧 OPTIMIZED: Skip DB check if we know token is already registered
+    if (token == _lastRegisteredToken && userId == _lastRegisteredUserId) {
+      return true;
+    }
+
+    // Step 3: Store token directly (let DB handle upsert)
+    final result = await _repository.storeOrUpdateFcmToken(
+      userId: userId,
+      token: token,
+      platform: Platform.isIOS ? 'ios' : 'android',
+      deviceId: 'device_${userId.hashCode}', // 🔧 Use stable device ID
+      deviceModel: Platform.operatingSystem,
+      appVersion: '1.0.0',
+    );
+
+    if (result != null && !(result.id?.startsWith('fallback_') ?? false)) {
+      // Success - update state
+      _lastRegisteredToken = token;
+      _lastRegisteredUserId = userId;
+      _currentToken = token;
+      _stats['successful_registrations'] = (_stats['successful_registrations'] as int) + 1;
+
       if (kDebugMode) {
-        debugPrint('❌ Reliable token registration failed: $e');
+        debugPrint('✅ Token registered successfully: ${result.id}');
       }
-      
-      rethrow;
+
+      return true;
+    } else {
+      throw Exception('Token storage failed');
     }
   }
-  
-  /// Perform token refresh using the debug page's successful pattern
-  Future<void> _performTokenRefreshLikeDebugPage() async {
+
+  /// Perform token refresh
+  /// 🔧 OPTIMIZED: Reduced delay from 1000ms to 300ms
+  Future<void> _performTokenRefresh() async {
     try {
-      // Debug page pattern: delete -> wait -> reinitialize -> get new token
-      
-      // Step 1: Delete current token (from debug page line 265)
       await _fcmService.deleteToken();
-      
-      // Step 2: Wait briefly (from debug page line 268)
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Step 3: Reinitialize FCM service (from debug page line 271)
+      await Future<void>.delayed(const Duration(milliseconds: 300));
       await _fcmService.initialize();
-      
-      // Step 4: Token should now be available
       _currentToken = _fcmService.fcmToken;
-      
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Token refresh pattern failed: $e');
+        debugPrint('❌ Token refresh failed: $e');
       }
       rethrow;
     }
   }
-  
+
   /// Register token for login - handles race conditions
+  /// 🔧 OPTIMIZED: Simpler logic, relies on internal deduplication
   Future<bool> registerTokenForLogin() async {
     // If service is not initialized yet, queue the registration
     if (!_isInitialized) {
@@ -230,22 +225,15 @@ class ProductionTokenService {
         final completer = Completer<bool>();
         _pendingRegistrations.add(completer);
         _stats['race_conditions_handled'] = (_stats['race_conditions_handled'] as int) + 1;
-        
-        if (kDebugMode) {
-          debugPrint('⚠️ Token registration queued - service initializing');
-        }
-        
         return completer.future;
       } else {
-        // Service not started - initialize now
         await initialize();
       }
     }
-    
-    // Service ready - proceed with registration
+
     return await registerTokenAfterAuth();
   }
-  
+
   /// Complete all pending registrations
   void _completePendingRegistrations({required bool success}) {
     for (final completer in _pendingRegistrations) {
@@ -255,14 +243,14 @@ class ProductionTokenService {
     }
     _pendingRegistrations.clear();
   }
-  
+
   /// Schedule background retry for failed registrations
   void _scheduleBackgroundRetry() {
     Timer(const Duration(minutes: 2), () async {
       try {
         await registerTokenAfterAuth();
         _stats['fallback_recoveries'] = (_stats['fallback_recoveries'] as int) + 1;
-        
+
         if (kDebugMode) {
           debugPrint('✅ Background token recovery successful');
         }
@@ -325,13 +313,12 @@ class ProductionTokenService {
       if (kDebugMode) {
         debugPrint('🚨 Emergency token refresh initiated');
       }
-      
-      // Use debug page's proven refresh pattern
-      await _performTokenRefreshLikeDebugPage();
-      
+
+      await _performTokenRefresh();
+
       // Register the new token
       return await registerTokenAfterAuth();
-      
+
     } catch (e) {
       if (kDebugMode) {
         debugPrint('❌ Emergency token refresh failed: $e');
@@ -441,10 +428,10 @@ class ProductionTokenService {
         return false;
       }
       
-      // Step 3: Get or refresh token using debug page pattern if needed
+      // Step 3: Get or refresh token if needed
       String? token = _fcmService.fcmToken;
       if (token == null) {
-        await _performTokenRefreshLikeDebugPage();
+        await _performTokenRefresh();
         token = _fcmService.fcmToken;
       }
       
