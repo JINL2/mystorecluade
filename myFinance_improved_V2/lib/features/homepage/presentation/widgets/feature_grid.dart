@@ -111,12 +111,17 @@ class FeatureGrid extends ConsumerWidget {
           return const _EmptyFeatures();
         }
 
-        // Sort categories: Setting should be at the bottom
+        // Sort categories: Setting should be at the bottom, others alphabetically
         categoriesWithFeatures.sort((a, b) {
           if (a.categoryName == 'Setting') return 1;
           if (b.categoryName == 'Setting') return -1;
-          return 0;
+          return a.categoryName.compareTo(b.categoryName);
         });
+
+        // Sort features within each category alphabetically
+        for (final category in categoriesWithFeatures) {
+          category.features.sort((a, b) => a.featureName.compareTo(b.featureName));
+        }
 
         return Padding(
           padding: EdgeInsets.zero,

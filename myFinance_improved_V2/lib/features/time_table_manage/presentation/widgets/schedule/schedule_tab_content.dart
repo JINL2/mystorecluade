@@ -10,10 +10,9 @@ import '../../../../../shared/widgets/toss/month_dates_picker.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
-import '../../../../store_shift/domain/entities/business_hours.dart';
-import '../../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../../domain/usecases/toggle_shift_approval.dart';
 import '../../models/schedule_models.dart';
+import '../../providers/state/coverage_gap_provider.dart';
 import '../../providers/time_table_providers.dart';
 import 'schedule_shift_card.dart';
 
@@ -477,103 +476,36 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Get shift availability map for the week
   ///
-  /// Logic (coverage-based):
+  /// Logic (coverage-based) - Uses CENTRALIZED coverageGapProvider:
   /// - Red dot: Coverage gap exists (business hours not fully covered by approved shifts)
   /// - No dot: No coverage gap OR store is closed
   /// - Past dates: No dot (only show today and future)
   ///
   /// OPTIMIZATION:
+  /// - Uses centralized weekCoverageGapMapProvider for consistent data across tabs
   /// - For TODAY: only check gaps AFTER current time (현재 시간 이후만)
   /// - For FUTURE dates: check all gaps
+  /// - Data is cached and shared with Overview tab
   Map<DateTime, ShiftAvailabilityStatus> _getShiftAvailabilityMap() {
     if (widget.selectedStoreId == null) return {};
 
-    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
-    final businessHoursAsync = ref.watch(businessHoursProvider);
+    // Use centralized coverage gap provider - same data source as Overview tab
+    final weekCoverageGaps = ref.watch(weekCoverageGapMapProvider(
+      WeekCoverageGapKey(
+        storeId: widget.selectedStoreId!,
+        weekStart: _currentWeekStart,
+      ),
+    ));
+
+    // Convert bool map to ShiftAvailabilityStatus map
     final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
-
-    // Get business hours (use default if not loaded yet)
-    final businessHours = businessHoursAsync.valueOrNull ?? BusinessHours.defaultHours();
-
-    // Today for filtering past dates
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // Get current time in minutes from midnight (for today's time-based filtering)
-    final currentTimeMinutes = now.hour * 60 + now.minute;
-
-    // Build a map of date -> approved shift time ranges
-    final Map<String, List<TimeRange>> approvedCoverageByDate = {};
-
-    for (final monthlyStatus in monthlyStatusState.allMonthlyStatuses) {
-      for (final dailyData in monthlyStatus.dailyShifts) {
-        for (final shiftWithReqs in dailyData.shifts) {
-          // Only count shifts with at least 1 approved employee
-          if (shiftWithReqs.approvedRequests.isEmpty) continue;
-
-          final shift = shiftWithReqs.shift;
-          final startTime = _extractTimeStr(shift.planStartTime);
-          final endTime = _extractTimeStr(shift.planEndTime);
-
-          if (startTime != null && endTime != null) {
-            approvedCoverageByDate
-                .putIfAbsent(dailyData.date, () => [])
-                .add(TimeRange.fromTimeStrings(startTime, endTime));
-          }
-        }
+    weekCoverageGaps.forEach((date, hasGap) {
+      if (hasGap) {
+        availabilityMap[date] = ShiftAvailabilityStatus.empty;
       }
-    }
-
-    // Check each day of the week
-    for (int i = 0; i < 7; i++) {
-      final date = _currentWeekStart.add(Duration(days: i));
-      final normalizedDate = DateTime(date.year, date.month, date.day);
-
-      // Skip past dates - no dot for past
-      if (normalizedDate.isBefore(today)) continue;
-
-      // Get business hours for this day
-      final dayHours = BusinessHours.getForDate(businessHours, normalizedDate);
-      if (dayHours == null || !dayHours.isOpen) continue;
-
-      final businessRange = dayHours.toTimeRange();
-      if (businessRange == null) continue;
-
-      // Get approved coverage for this date
-      final dateStr = DateFormat('yyyy-MM-dd').format(normalizedDate);
-      final coverage = approvedCoverageByDate[dateStr] ?? [];
-
-      // Calculate gaps
-      var gaps = TimeRange.findGaps(businessRange, coverage);
-
-      // For TODAY: filter out gaps that end before current time
-      // Only show gaps that are still relevant (after current time)
-      final isToday = normalizedDate.year == today.year &&
-          normalizedDate.month == today.month &&
-          normalizedDate.day == today.day;
-
-      if (isToday && gaps.isNotEmpty) {
-        gaps = gaps.where((gap) {
-          // Keep gap if its end time is after current time
-          // gap.endMinutes can exceed 1440 for overnight, so normalize
-          final gapEndMinutes = gap.endMinutes % 1440;
-          return gapEndMinutes > currentTimeMinutes || gap.endMinutes > 1440;
-        }).toList();
-      }
-
-      if (gaps.isNotEmpty) {
-        // 🔴 Red - coverage gap exists
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.empty;
-      }
-      // No dot for fully covered dates
-    }
+    });
 
     return availabilityMap;
-  }
-
-  /// Extract HH:mm time string from DateTime
-  String? _extractTimeStr(DateTime dateTime) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   /// Get shifts for selected date from real data
@@ -810,98 +742,40 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
   /// Get shift availability map for entire month
   ///
-  /// Logic (coverage-based):
+  /// Logic (coverage-based) - Uses CENTRALIZED coverageGapProvider:
   /// - Red dot: Coverage gap exists (business hours not fully covered by approved shifts)
   /// - No dot: No coverage gap OR store is closed
   /// - Past dates: No dot (only show today and future)
   ///
   /// OPTIMIZATION:
+  /// - Uses centralized monthCoverageGapProvider for consistent data across tabs
   /// - For TODAY: only check gaps AFTER current time (현재 시간 이후만)
   /// - For FUTURE dates: check all gaps
+  /// - Data is cached and shared with Overview tab
   Map<DateTime, ShiftAvailabilityStatus> _getMonthShiftAvailabilityMap() {
     if (widget.selectedStoreId == null) return {};
 
-    final monthlyStatusState = ref.watch(monthlyShiftStatusProvider(widget.selectedStoreId!));
-    final businessHoursAsync = ref.watch(businessHoursProvider);
+    // Use centralized coverage gap provider - same data source as Overview tab
+    final monthCoverageGaps = ref.watch(monthCoverageGapProvider(
+      MonthCoverageGapKey(
+        storeId: widget.selectedStoreId!,
+        year: widget.focusedMonth.year,
+        month: widget.focusedMonth.month,
+      ),
+    ));
+
+    // If still loading, return empty map
+    if (monthCoverageGaps.isLoading) {
+      return {};
+    }
+
+    // Convert CoverageGapState to ShiftAvailabilityStatus map
     final Map<DateTime, ShiftAvailabilityStatus> availabilityMap = {};
-
-    // Get business hours (use default if not loaded yet)
-    final businessHours = businessHoursAsync.valueOrNull ?? BusinessHours.defaultHours();
-
-    // Today for filtering past dates
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // Get current time in minutes from midnight (for today's time-based filtering)
-    final currentTimeMinutes = now.hour * 60 + now.minute;
-
-    // Build a map of date -> approved shift time ranges
-    final Map<String, List<TimeRange>> approvedCoverageByDate = {};
-
-    for (final monthlyStatus in monthlyStatusState.allMonthlyStatuses) {
-      for (final dailyData in monthlyStatus.dailyShifts) {
-        for (final shiftWithReqs in dailyData.shifts) {
-          // Only count shifts with at least 1 approved employee
-          if (shiftWithReqs.approvedRequests.isEmpty) continue;
-
-          final shift = shiftWithReqs.shift;
-          final startTime = _extractTimeStr(shift.planStartTime);
-          final endTime = _extractTimeStr(shift.planEndTime);
-
-          if (startTime != null && endTime != null) {
-            approvedCoverageByDate
-                .putIfAbsent(dailyData.date, () => [])
-                .add(TimeRange.fromTimeStrings(startTime, endTime));
-          }
-        }
+    monthCoverageGaps.gapsByDate.forEach((date, info) {
+      if (info.hasGap) {
+        availabilityMap[date] = ShiftAvailabilityStatus.empty;
       }
-    }
-
-    // Get all days in the focused month
-    final lastDay = DateTime(widget.focusedMonth.year, widget.focusedMonth.month + 1, 0);
-
-    for (int day = 1; day <= lastDay.day; day++) {
-      final date = DateTime(widget.focusedMonth.year, widget.focusedMonth.month, day);
-      final normalizedDate = DateTime(date.year, date.month, date.day);
-
-      // Skip past dates - no dot for past
-      if (normalizedDate.isBefore(today)) continue;
-
-      // Get business hours for this day
-      final dayHours = BusinessHours.getForDate(businessHours, normalizedDate);
-      if (dayHours == null || !dayHours.isOpen) continue;
-
-      final businessRange = dayHours.toTimeRange();
-      if (businessRange == null) continue;
-
-      // Get approved coverage for this date
-      final dateStr = DateFormat('yyyy-MM-dd').format(normalizedDate);
-      final coverage = approvedCoverageByDate[dateStr] ?? [];
-
-      // Calculate gaps
-      var gaps = TimeRange.findGaps(businessRange, coverage);
-
-      // For TODAY: filter out gaps that end before current time
-      // Only show gaps that are still relevant (after current time)
-      final isToday = normalizedDate.year == today.year &&
-          normalizedDate.month == today.month &&
-          normalizedDate.day == today.day;
-
-      if (isToday && gaps.isNotEmpty) {
-        gaps = gaps.where((gap) {
-          // Keep gap if its end time is after current time
-          // gap.endMinutes can exceed 1440 for overnight, so normalize
-          final gapEndMinutes = gap.endMinutes % 1440;
-          return gapEndMinutes > currentTimeMinutes || gap.endMinutes > 1440;
-        }).toList();
-      }
-
-      if (gaps.isNotEmpty) {
-        // 🔴 Red - coverage gap exists
-        availabilityMap[normalizedDate] = ShiftAvailabilityStatus.empty;
-      }
-      // No dot for fully covered dates
-    }
+    });
 
     return availabilityMap;
   }

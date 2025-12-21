@@ -6,7 +6,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../providers/attendance_providers.dart';
 import 'shift_requests_tab.dart';
@@ -185,11 +184,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
                       selectedStoreId: _selectedStoreId,
                       onStoreChanged: _handleStoreChange,
                     ),
-                    StatsTab(
-                      stores: stores,
-                      selectedStoreId: _selectedStoreId,
-                      onStoreChanged: _handleStoreChange,
-                    ),
+                    const StatsTab(),
                   ],
                 ),
               ),

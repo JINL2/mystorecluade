@@ -13,20 +13,11 @@ import '../widgets/stats/salary_trend_section.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
 
 /// StatsTab - Attendance statistics and salary overview
+/// Shows company-wide salary data (not store-specific)
 class StatsTab extends ConsumerStatefulWidget {
-  final List<Map<String, dynamic>> stores;
-  final String? selectedStoreId;
-  final void Function(String)? onStoreChanged;
-
-  const StatsTab({
-    super.key,
-    this.stores = const [],
-    this.selectedStoreId,
-    this.onStoreChanged,
-  });
+  const StatsTab({super.key});
 
   @override
   ConsumerState<StatsTab> createState() => _StatsTabState();
@@ -167,27 +158,7 @@ class _StatsTabState extends ConsumerState<StatsTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Store Selector (only if more than 1 store)
-              if (widget.stores.length > 1)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: TossDropdown<String>(
-                    label: 'Store',
-                    value: widget.selectedStoreId,
-                    items: widget.stores.map((store) {
-                      return TossDropdownItem<String>(
-                        value: store['store_id']?.toString() ?? '',
-                        label: store['store_name']?.toString() ?? 'Unknown',
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        widget.onStoreChanged?.call(newValue);
-                      }
-                    },
-                  ),
-                ),
-              // Hero Salary Display
+              // Hero Salary Display (company-wide data)
               Padding(
                 padding: EdgeInsets.all(TossSpacing.paddingMD),
                 child: HeroSalaryDisplay(

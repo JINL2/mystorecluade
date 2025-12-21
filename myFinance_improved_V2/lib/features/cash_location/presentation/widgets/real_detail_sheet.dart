@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../formatters/cash_location_formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -7,6 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 import '../../domain/entities/stock_flow.dart';
+import '../formatters/cash_location_formatters.dart';
 
 class RealDetailSheet extends StatelessWidget {
   const RealDetailSheet({
@@ -26,6 +26,9 @@ class RealDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Group denominations by currency for display
+    final groupedByCurrency = _groupDenominationsByCurrency(flow.currentDenominations);
+
     return Container(
       decoration: const BoxDecoration(
         color: TossColors.white,
@@ -308,7 +311,7 @@ class RealDetailSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: TossSpacing.space4),
                   ]
-                  // Denomination breakdown for Cash/Vault
+                  // Denomination breakdown for Cash/Vault - Grouped by Currency
                   else if (flow.currentDenominations.isNotEmpty) ...[
                     Text(
                       'Denomination Breakdown',
@@ -318,174 +321,233 @@ class RealDetailSheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space3),
-                    ...flow.currentDenominations.map(
-                      (denomination) => Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(TossSpacing.space3),
+                    // Build currency groups
+                    ...groupedByCurrency.entries.map((entry) {
+                      final currencyDenominations = entry.value;
+                      if (currencyDenominations.isEmpty) return const SizedBox.shrink();
+
+                      // Get currency info from first denomination
+                      final firstDenom = currencyDenominations.first;
+                      final currencySymbol = firstDenom.currencySymbol ?? '';
+                      final currencyCode = firstDenom.currencyCode ?? '';
+
+                      // Calculate total stock for this currency
+                      final currencyTotal = currencyDenominations.fold<double>(
+                        0.0,
+                        (sum, d) => sum + d.subtotal,
+                      );
+
+                      // Calculate total flow (change) for this currency
+                      final currencyFlow = currencyDenominations.fold<double>(
+                        0.0,
+                        (sum, d) => sum + (d.quantityChange * d.denominationValue),
+                      );
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                          color: TossColors.white,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                           border: Border.all(color: TossColors.gray200),
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Denomination value
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: TossColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                                  ),
-                                  child: Text(
-                                    formatCurrency(denomination.denominationValue, denomination.currencySymbol ?? ''),
-                                    style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: TossColors.primary,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-
-                                // Type badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: TossColors.gray200,
-                                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                                  ),
-                                  child: Text(
-                                    denomination.denominationType.toUpperCase(),
-                                    style: TossTextStyles.caption.copyWith(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: TossSpacing.space3),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Previous Qty',
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray600,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${denomination.previousQuantity}',
-                                        style: TossTextStyles.body.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Change',
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray600,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${denomination.quantityChange > 0 ? "+" : ""}${denomination.quantityChange}',
-                                        style: TossTextStyles.body.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                          color: denomination.quantityChange > 0
-                                              ? TossColors.success
-                                              : denomination.quantityChange < 0
-                                                  ? TossColors.error
-                                                  : TossColors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        'Current Qty',
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray600,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${denomination.currentQuantity}',
-                                        style: TossTextStyles.body.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: TossSpacing.space2),
-
-                            // Subtotal
+                            // Currency Header with Stock and Flow
                             Container(
-                              padding: const EdgeInsets.all(TossSpacing.space2),
-                              decoration: BoxDecoration(
-                                color: TossColors.white,
-                                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space4,
+                                vertical: TossSpacing.space3,
+                              ),
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(color: TossColors.gray200),
+                                ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
+                                  // Currency code
                                   Text(
-                                    'Subtotal',
-                                    style: TossTextStyles.caption.copyWith(
-                                      color: TossColors.gray600,
-                                      fontSize: 12,
+                                    currencyCode.isNotEmpty ? currencyCode : 'Currency',
+                                    style: TossTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
                                     ),
                                   ),
+                                  const Spacer(),
+                                  // Total stock
                                   Text(
-                                    formatBalance(denomination.subtotal, denomination.currencySymbol ?? ''),
+                                    formatBalance(currencyTotal, currencySymbol),
                                     style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  // Flow indicator (if any change)
+                                  if (currencyFlow != 0) ...[
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      currencyFlow > 0
+                                          ? '+${formatBalance(currencyFlow, currencySymbol)}'
+                                          : formatBalance(currencyFlow, currencySymbol),
+                                      style: TossTextStyles.body.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        color: currencyFlow > 0
+                                            ? TossColors.primary
+                                            : TossColors.error,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            // Table Header
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.space4,
+                                vertical: TossSpacing.space2,
+                              ),
+                              color: TossColors.gray50,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Denomination',
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.gray500,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      'Qty',
+                                      textAlign: TextAlign.center,
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.gray500,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Subtotal',
+                                      textAlign: TextAlign.end,
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: TossColors.gray500,
+                                        fontSize: 11,
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
+                            // Denomination rows - Simple table style
+                            ...currencyDenominations.asMap().entries.map((mapEntry) {
+                              final index = mapEntry.key;
+                              final denomination = mapEntry.value;
+                              final isLast = index == currencyDenominations.length - 1;
+
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: TossSpacing.space4,
+                                  vertical: TossSpacing.space3,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: isLast
+                                      ? null
+                                      : const Border(
+                                          bottom: BorderSide(color: TossColors.gray100),
+                                        ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Denomination value
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        formatCurrency(denomination.denominationValue, currencySymbol),
+                                        style: TossTextStyles.body.copyWith(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    // Quantity with change indicator
+                                    Expanded(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '${denomination.currentQuantity}',
+                                            style: TossTextStyles.body.copyWith(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          if (denomination.quantityChange != 0) ...[
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              denomination.quantityChange > 0
+                                                  ? '+${denomination.quantityChange}'
+                                                  : '${denomination.quantityChange}',
+                                              style: TossTextStyles.caption.copyWith(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: denomination.quantityChange > 0
+                                                    ? TossColors.primary
+                                                    : TossColors.error,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    // Subtotal
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        formatBalance(denomination.subtotal, currencySymbol),
+                                        textAlign: TextAlign.end,
+                                        style: TossTextStyles.body.copyWith(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space4),
+                      );
+                    }),
                   ],
 
-                  // Transaction info
-                  _buildDetailRow(context, 'Counted By', flow.createdBy.fullName),
-                  _buildDetailRow(
-                    context,
-                    'Date',
-                    DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt)),
+                  // Transaction info - Simple list style
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space4),
+                    decoration: BoxDecoration(
+                      color: TossColors.gray50,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildSimpleInfoRow('Counted By', flow.createdBy.fullName),
+                        const SizedBox(height: TossSpacing.space2),
+                        _buildSimpleInfoRow(
+                          'Date',
+                          DateFormat('MMM d, yyyy').format(DateTime.parse(flow.createdAt)),
+                        ),
+                        const SizedBox(height: TossSpacing.space2),
+                        _buildSimpleInfoRow('Time', CashLocationFormatters.formatActualFlowTime(flow)),
+                      ],
+                    ),
                   ),
-                  _buildDetailRow(context, 'Time', CashLocationFormatters.formatActualFlowTime(flow)),
 
                   const SizedBox(height: 20),
                 ],
@@ -500,34 +562,46 @@ class RealDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value, {bool isHighlighted = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-                fontSize: 14,
-              ),
-            ),
+  Widget _buildSimpleInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray600,
+            fontSize: 14,
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: TossTextStyles.body.copyWith(
-                fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
-                fontSize: isHighlighted ? 16 : 14,
-                color: isHighlighted ? Theme.of(context).colorScheme.primary : null,
-              ),
-            ),
+        ),
+        Text(
+          value,
+          style: TossTextStyles.body.copyWith(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
           ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  /// Group denominations by currency ID
+  Map<String, List<DenominationDetail>> _groupDenominationsByCurrency(
+      List<DenominationDetail> denominations,
+  ) {
+    final Map<String, List<DenominationDetail>> grouped = {};
+
+    for (final denom in denominations) {
+      // Use currencyId as key, fallback to 'unknown' if null
+      final key = denom.currencyId ?? 'unknown';
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(denom);
+    }
+
+    // Sort each group by denomination value (descending)
+    for (final key in grouped.keys) {
+      grouped[key]!.sort((a, b) => b.denominationValue.compareTo(a.denominationValue));
+    }
+
+    return grouped;
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
@@ -135,12 +136,16 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
     ref.invalidate(managerOverviewProvider(selectedStoreId!));
     ref.invalidate(managerCardsProvider(selectedStoreId!));
+    // CRITICAL: Also invalidate businessHoursProvider to ensure consistent data
+    // across Overview and Schedule tabs (both use this for coverage gap calculation)
+    ref.invalidate(businessHoursProvider);
 
     // 2. Trigger FutureProviders to actually fetch data
     // FutureProvider only executes when watched/read, invalidate alone won't trigger fetch
     // Using read() after invalidate to trigger immediate fetch
     ref.read(shiftMetadataProvider(selectedStoreId!));
     ref.read(reliabilityScoreProvider(selectedStoreId!));
+    ref.read(businessHoursProvider);
 
     // 3. StateNotifierProviders - run ALL in parallel for faster loading
     // Before: Sequential await (T1 + T2 + T3) ~3-5 seconds

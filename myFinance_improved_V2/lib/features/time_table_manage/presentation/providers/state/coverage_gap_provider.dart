@@ -11,11 +11,14 @@ class CoverageGapKey {
   final String storeId;
   final DateTime startDate;
   final DateTime endDate;
+  /// If true, for TODAY only check gaps AFTER current time
+  final bool filterByCurrentTime;
 
   const CoverageGapKey({
     required this.storeId,
     required this.startDate,
     required this.endDate,
+    this.filterByCurrentTime = true,
   });
 
   @override
@@ -28,7 +31,8 @@ class CoverageGapKey {
         other.startDate.day == startDate.day &&
         other.endDate.year == endDate.year &&
         other.endDate.month == endDate.month &&
-        other.endDate.day == endDate.day;
+        other.endDate.day == endDate.day &&
+        other.filterByCurrentTime == filterByCurrentTime;
   }
 
   @override
@@ -39,11 +43,12 @@ class CoverageGapKey {
       startDate.day.hashCode ^
       endDate.year.hashCode ^
       endDate.month.hashCode ^
-      endDate.day.hashCode;
+      endDate.day.hashCode ^
+      filterByCurrentTime.hashCode;
 
   @override
   String toString() =>
-      'CoverageGapKey(storeId: $storeId, start: $startDate, end: $endDate)';
+      'CoverageGapKey(storeId: $storeId, start: $startDate, end: $endDate, filterByTime: $filterByCurrentTime)';
 }
 
 /// Coverage gap data for a specific date
@@ -184,9 +189,10 @@ final coverageGapProvider = FutureProvider.autoDispose
     dailyShiftMap[daily.date] = daily;
   }
 
-  // Now for filtering - only future dates
+  // Now for filtering - only future dates (with current time filtering for TODAY)
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
+  final currentTimeMinutes = now.hour * 60 + now.minute;
 
   final gapsByDate = <DateTime, DateCoverageInfo>{};
   int gapCount = 0;
@@ -203,6 +209,8 @@ final coverageGapProvider = FutureProvider.autoDispose
       continue;
     }
 
+    final isToday = normalizedDate.isAtSameMomentAs(today);
+
     // Get business hours for this day
     final dayHours = BusinessHours.getForDate(businessHours, normalizedDate);
 
@@ -214,11 +222,24 @@ final coverageGapProvider = FutureProvider.autoDispose
     }
 
     // Get business hours time range
-    final businessRange = dayHours.toTimeRange();
+    var businessRange = dayHours.toTimeRange();
     if (businessRange == null) {
       gapsByDate[normalizedDate] = DateCoverageInfo.closed(normalizedDate);
       currentDate = currentDate.add(const Duration(days: 1));
       continue;
+    }
+
+    // OPTIMIZATION: For TODAY with filterByCurrentTime enabled, only check gaps AFTER current time
+    // Example: If it's 14:00 and business hours are 10:00-22:00, only check 14:00-22:00
+    if (isToday && key.filterByCurrentTime && currentTimeMinutes > businessRange.startMinutes) {
+      // Adjust business range to start from current time
+      if (currentTimeMinutes >= businessRange.endMinutes) {
+        // Past close time - no gaps to report for today
+        gapsByDate[normalizedDate] = DateCoverageInfo.noGap(normalizedDate);
+        currentDate = currentDate.add(const Duration(days: 1));
+        continue;
+      }
+      businessRange = TimeRange(currentTimeMinutes, businessRange.endMinutes);
     }
 
     // Get daily shift data for this date
@@ -247,15 +268,20 @@ final coverageGapProvider = FutureProvider.autoDispose
     // Calculate gaps
     final gaps = TimeRange.findGaps(businessRange, coverageRanges);
 
-    if (gaps.isNotEmpty) {
+    // For TODAY: filter out gaps that are before current time
+    final relevantGaps = isToday && key.filterByCurrentTime
+        ? gaps.where((gap) => gap.endMinutes > currentTimeMinutes).toList()
+        : gaps;
+
+    if (relevantGaps.isNotEmpty) {
       gapCount++;
       final gapSummary =
-          gaps.map((g) => '${g.toTimeString()}-${g.toEndTimeString()}').join(', ');
+          relevantGaps.map((g) => '${g.toTimeString()}-${g.toEndTimeString()}').join(', ');
 
       gapsByDate[normalizedDate] = DateCoverageInfo(
         date: normalizedDate,
         hasGap: true,
-        gaps: gaps,
+        gaps: relevantGaps,
         gapSummary: gapSummary,
       );
     } else {
@@ -297,5 +323,122 @@ final coverageGapCountProvider = Provider.autoDispose.family<int, String>((ref, 
     data: (state) => state.totalGapCount,
     loading: () => 0,
     error: (_, __) => 0,
+  );
+});
+
+/// Key for week-based coverage gap provider (used by Schedule tab calendar)
+class WeekCoverageGapKey {
+  final String storeId;
+  final DateTime weekStart;
+
+  const WeekCoverageGapKey({
+    required this.storeId,
+    required this.weekStart,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is WeekCoverageGapKey &&
+        other.storeId == storeId &&
+        other.weekStart.year == weekStart.year &&
+        other.weekStart.month == weekStart.month &&
+        other.weekStart.day == weekStart.day;
+  }
+
+  @override
+  int get hashCode =>
+      storeId.hashCode ^
+      weekStart.year.hashCode ^
+      weekStart.month.hashCode ^
+      weekStart.day.hashCode;
+}
+
+/// Provider for Schedule tab calendar - returns map of date -> has coverage gap
+///
+/// Uses centralized coverageGapProvider for consistent calculation
+/// across Overview and Schedule tabs.
+///
+/// Returns Map<DateTime, bool> where:
+/// - true = coverage gap exists (show red dot)
+/// - false = no gap (no dot)
+final weekCoverageGapMapProvider = Provider.autoDispose
+    .family<Map<DateTime, bool>, WeekCoverageGapKey>((ref, key) {
+  final weekEnd = key.weekStart.add(const Duration(days: 6));
+
+  final gapKey = CoverageGapKey(
+    storeId: key.storeId,
+    startDate: key.weekStart,
+    endDate: weekEnd,
+    filterByCurrentTime: true,
+  );
+
+  final gapState = ref.watch(coverageGapProvider(gapKey));
+
+  return gapState.when(
+    data: (state) {
+      final result = <DateTime, bool>{};
+      state.gapsByDate.forEach((date, info) {
+        result[date] = info.hasGap;
+      });
+      return result;
+    },
+    loading: () => {},
+    error: (_, __) => {},
+  );
+});
+
+/// Key for month-based coverage gap provider (used for full month view)
+class MonthCoverageGapKey {
+  final String storeId;
+  final int year;
+  final int month;
+
+  const MonthCoverageGapKey({
+    required this.storeId,
+    required this.year,
+    required this.month,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MonthCoverageGapKey &&
+        other.storeId == storeId &&
+        other.year == year &&
+        other.month == month;
+  }
+
+  @override
+  int get hashCode => storeId.hashCode ^ year.hashCode ^ month.hashCode;
+}
+
+/// Provider for full month coverage gaps - used by Overview timeline
+///
+/// Returns coverage gap data for entire month with current time filtering
+final monthCoverageGapProvider = Provider.autoDispose
+    .family<CoverageGapState, MonthCoverageGapKey>((ref, key) {
+  // Calculate month start and end
+  final monthStart = DateTime(key.year, key.month, 1);
+  final monthEnd = DateTime(key.year, key.month + 1, 0); // Last day of month
+
+  final gapKey = CoverageGapKey(
+    storeId: key.storeId,
+    startDate: monthStart,
+    endDate: monthEnd,
+    filterByCurrentTime: true,
+  );
+
+  final gapState = ref.watch(coverageGapProvider(gapKey));
+
+  return gapState.when(
+    data: (state) => state,
+    loading: () => CoverageGapState.loading(),
+    error: (_, __) => const CoverageGapState(
+      gapsByDate: {},
+      totalGapCount: 0,
+      isLoading: false,
+      error: 'Failed to load coverage gaps',
+    ),
   );
 });

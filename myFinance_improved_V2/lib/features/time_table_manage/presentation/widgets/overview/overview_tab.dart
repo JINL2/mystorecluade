@@ -8,14 +8,14 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../../store_shift/domain/entities/business_hours.dart';
-import '../../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../pages/staff_timelog_detail_page.dart';
+import '../../providers/state/coverage_gap_provider.dart';
+import '../../providers/state/problem_status_provider.dart';
 import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
 import 'attention_card.dart';
@@ -447,14 +447,14 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
   ///    - Reported: is_reported = true AND is_problem_solved = false
   ///    - Overtime: is_overtime = true (show overtime_minute)
   /// 2. Coverage Gap Detection (NEW):
-  ///    - Compare business hours vs approved shift coverage
+  ///    - Uses centralized coverageGapProvider for consistent data across tabs
   ///    - Only shows gap if no shift with approved employees covers that time
   ///    - Replaces old "understaffed" logic which counted per-shift
   List<AttentionItemData> _getAttentionItems(
     ManagerShiftCardsState? managerCardsState,
     MonthlyShiftStatusState? monthlyStatusState,
     ShiftMetadata? shiftMetadata, {
-    List<BusinessHours>? businessHours,
+    CoverageGapState? coverageGapState,
   }) {
     // Compute cache hash from input data AND storeId
     // Include storeId to invalidate cache when store changes
@@ -464,7 +464,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     final statusHash = monthlyStatusState?.allMonthlyStatuses
         .fold<int>(0, (sum, s) => sum + s.dailyShifts.length) ?? 0;
     final metadataHash = shiftMetadata?.activeShifts.length ?? 0;
-    final businessHoursHash = businessHours?.length ?? 0;
+    final coverageGapHash = coverageGapState?.totalGapCount ?? 0;
 
     // Include problem status in hash to invalidate cache when isSolved changes
     // Count unsolved problems to detect status changes
@@ -478,7 +478,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           return sum + pd.problemCount * 10 + unsolvedCount;
         }) ?? 0;
 
-    final currentHash = storeHash + cardsHash * 10000 + statusHash * 100 + metadataHash + problemHash + businessHoursHash;
+    final currentHash = storeHash + cardsHash * 10000 + statusHash * 100 + metadataHash + problemHash + coverageGapHash;
 
     // Return cached result if inputs haven't changed
     if (_cachedAttentionItems != null && _lastAttentionInputsHash == currentHash) {
@@ -647,104 +647,34 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       }
     }
 
-    // 2. Coverage Gap Detection (replaces old understaffed logic)
-    // Compare business hours vs approved shift coverage
-    // Only shows gap when no approved shift covers that time
-    // Note: 'now' already defined above for problem filtering
+    // 2. Coverage Gap Detection - Uses CENTRALIZED coverageGapProvider
+    // This ensures consistent data between Overview and Schedule tabs
+    // The provider handles:
+    // - Fetching business hours (no default value fallback during loading)
+    // - Approved shift coverage calculation
+    // - TODAY time-based filtering (only show gaps AFTER current time)
+    // - Caching for performance
     //
-    // OPTIMIZATION:
-    // - Only check dates that exist in RPC data (들어온 데이터만)
-    // - Skip past dates
-    // - For TODAY: only check gaps AFTER current time (현재 시간 이후만)
+    // NOTE: coverageGapState is passed in from _buildNeedAttentionTimeline
+    //       to avoid duplicate provider watch calls
+    if (coverageGapState != null && !coverageGapState.isLoading) {
+      for (final entry in coverageGapState.gapsByDate.entries) {
+        final gapInfo = entry.value;
+        if (!gapInfo.hasGap) continue;
 
-    if (businessHours != null && businessHours.isNotEmpty && monthlyStatusState != null) {
-      final today = DateTime(now.year, now.month, now.day);
+        final normalizedDate = entry.key;
 
-      // Get current time in minutes from midnight (for today's time-based filtering)
-      final currentTimeMinutes = now.hour * 60 + now.minute;
-
-      // Collect all dates from RPC data and their coverage
-      final Map<String, List<TimeRange>> approvedCoverageByDate = {};
-      final Set<String> allDatesInData = {};
-
-      for (final monthlyStatus in monthlyStatusState.allMonthlyStatuses) {
-        for (final dailyData in monthlyStatus.dailyShifts) {
-          // Record this date exists in data
-          allDatesInData.add(dailyData.date);
-
-          for (final shiftWithReqs in dailyData.shifts) {
-            // Only count shifts with at least 1 approved employee
-            if (shiftWithReqs.approvedRequests.isEmpty) continue;
-
-            final shift = shiftWithReqs.shift;
-            final startTime = _extractTimeStr(shift.planStartTime);
-            final endTime = _extractTimeStr(shift.planEndTime);
-
-            if (startTime != null && endTime != null) {
-              approvedCoverageByDate
-                  .putIfAbsent(dailyData.date, () => [])
-                  .add(TimeRange.fromTimeStrings(startTime, endTime));
-            }
-          }
-        }
-      }
-
-      // Check each date that exists in RPC data (들어온 데이터만 체크)
-      for (final dateStr in allDatesInData) {
-        final parsedDate = DateTime.tryParse(dateStr);
-        if (parsedDate == null) continue;
-
-        final normalizedDate = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
-
-        // Skip past dates
-        if (normalizedDate.isBefore(today)) continue;
-
-        // Get business hours for this day
-        final dayHours = BusinessHours.getForDate(businessHours, normalizedDate);
-        if (dayHours == null || !dayHours.isOpen) continue;
-
-        final businessRange = dayHours.toTimeRange();
-        if (businessRange == null) continue;
-
-        // Get approved coverage for this date
-        final coverage = approvedCoverageByDate[dateStr] ?? [];
-
-        // Calculate gaps
-        var gaps = TimeRange.findGaps(businessRange, coverage);
-
-        // For TODAY: filter out gaps that end before current time
-        // Only show gaps that are still relevant (after current time)
-        final isToday = normalizedDate.year == today.year &&
-            normalizedDate.month == today.month &&
-            normalizedDate.day == today.day;
-
-        if (isToday && gaps.isNotEmpty) {
-          gaps = gaps.where((gap) {
-            // Keep gap if its end time is after current time
-            // gap.endMinutes can exceed 1440 for overnight, so normalize
-            final gapEndMinutes = gap.endMinutes % 1440;
-            return gapEndMinutes > currentTimeMinutes || gap.endMinutes > 1440;
-          }).toList();
-        }
-
-        if (gaps.isNotEmpty) {
-          // Format gap summary
-          final gapSummary = gaps.map((g) =>
-            '${g.toTimeString()}-${g.toEndTimeString()}'
-          ).join(', ');
-
-          items.add(AttentionItemData(
-            type: AttentionType.understaffed,
-            title: 'Schedule Gap',
-            date: _formatDate(normalizedDate),
-            time: '${businessRange.toTimeString()} – ${businessRange.toEndTimeString()}',
-            subtext: 'Uncovered: $gapSummary',
-            isShiftProblem: true,
-            shiftDate: normalizedDate,
-            shiftName: 'Coverage Gap',
-            shiftTimeRange: '${businessRange.toTimeString()} – ${businessRange.toEndTimeString()}',
-          ));
-        }
+        items.add(AttentionItemData(
+          type: AttentionType.understaffed,
+          title: 'Schedule Gap',
+          date: _formatDate(normalizedDate),
+          time: gapInfo.gapSummary,
+          subtext: 'Uncovered: ${gapInfo.gapSummary}',
+          isShiftProblem: true,
+          shiftDate: normalizedDate,
+          shiftName: 'Coverage Gap',
+          shiftTimeRange: gapInfo.gapSummary,
+        ));
       }
     }
 
@@ -755,32 +685,55 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     return items;
   }
 
-  /// Extract HH:mm time string from DateTime
-  String? _extractTimeStr(DateTime dateTime) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
   /// Build Need Attention Timeline (new design)
   ///
   /// Shows a 5-day timeline with:
   /// - Orange dots = Coverage gaps (tap → Schedule tab)
   /// - Red dots = Staff problems (tap → Problems tab)
   /// - Pagination: `< 7 more` and `5 more >` buttons
+  ///
+  /// OPTIMIZATION: Uses centralized coverageGapProvider for consistent data
+  /// across Overview and Schedule tabs. Single source of truth for:
+  /// - Business hours (no default value fallback during loading)
+  /// - Coverage gap calculation
+  /// - TODAY time-based filtering
   Widget _buildNeedAttentionTimeline(
     ManagerShiftCardsState? managerCardsState,
     MonthlyShiftStatusState? monthlyStatusState,
     ShiftMetadata? shiftMetadata,
   ) {
-    // Watch business hours from store_shift feature
-    // This is already cached by the provider, so no additional RPC call
-    final businessHoursAsync = ref.watch(businessHoursProvider);
-    final businessHours = businessHoursAsync.valueOrNull ?? BusinessHours.defaultHours();
+    // Use centralized coverage gap provider for consistent data across tabs
+    // This provider handles business hours fetching internally and waits for loading
+    CoverageGapState? coverageGapState;
+    if (widget.selectedStoreId != null) {
+      final now = DateTime.now();
+      final state = ref.watch(monthCoverageGapProvider(MonthCoverageGapKey(
+        storeId: widget.selectedStoreId!,
+        year: now.year,
+        month: now.month,
+      )));
+
+      // If coverage gap provider is still loading, show loading state
+      if (state.isLoading) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        );
+      }
+      coverageGapState = state;
+    }
 
     final attentionItems = _getAttentionItems(
       managerCardsState,
       monthlyStatusState,
       shiftMetadata,
-      businessHours: businessHours,
+      coverageGapState: coverageGapState,
     );
 
     // Get pre-computed problem count from problemStatusProvider (O(1) - already cached)
