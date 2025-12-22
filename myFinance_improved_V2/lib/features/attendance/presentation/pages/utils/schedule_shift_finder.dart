@@ -36,20 +36,24 @@ class ScheduleShiftFinder {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // PRIORITY 1: Use unified chain detection
+    // PRIORITY 1: In-progress shift (checked in but not checked out)
+    // This has highest priority - always show the shift user is currently working on
     final chain = ScheduleDateUtils.detectContinuousChain(shiftCards, currentTime: now);
 
-    if (chain.hasChain && chain.shouldCheckout) {
-      final checkoutShift = ScheduleDateUtils.findClosestCheckoutShift(chain, currentTime: now);
-      if (checkoutShift != null) {
-        // Chain shift: might not have isCheckedIn=true itself
-        final isChainShift = checkoutShift.shiftRequestId != chain.inProgressShift?.shiftRequestId;
-        return CurrentShiftResult(
-          shift: checkoutShift,
-          isPartOfInProgressChain: isChainShift,
-        );
+    if (chain.hasChain) {
+      // If shouldCheckout is true, find the best shift in the chain for checkout
+      if (chain.shouldCheckout) {
+        final checkoutShift = ScheduleDateUtils.findClosestCheckoutShift(chain, currentTime: now);
+        if (checkoutShift != null) {
+          // Chain shift: might not have isCheckedIn=true itself
+          final isChainShift = checkoutShift.shiftRequestId != chain.inProgressShift?.shiftRequestId;
+          return CurrentShiftResult(
+            shift: checkoutShift,
+            isPartOfInProgressChain: isChainShift,
+          );
+        }
       }
-      // Fallback to in-progress shift
+      // Always return in-progress shift if it exists (even if shouldCheckout is false)
       if (chain.inProgressShift != null) {
         return CurrentShiftResult(shift: chain.inProgressShift);
       }
@@ -68,9 +72,9 @@ class ScheduleShiftFinder {
       if (startTime == null || endTime == null) continue;
 
       final startDate = DateTime(startTime.year, startTime.month, startTime.day);
-      final endDate = DateTime(endTime.year, endTime.month, endTime.day);
-      final isToday = ScheduleDateUtils.isSameDay(startDate, today) ||
-          ScheduleDateUtils.isSameDay(endDate, today);
+      // Shift date is determined by start_time only (not end_time)
+      // e.g., Night shift 23:00-03:00 on Dec 21 is a "Dec 21 shift"
+      final isToday = ScheduleDateUtils.isSameDay(startDate, today);
 
       if (isToday) {
         if (excludeCompleted && card.isCheckedIn && card.isCheckedOut) continue;
@@ -165,31 +169,29 @@ class ScheduleShiftFinder {
   /// Find today's shift from the shift cards list
   /// @deprecated Use findCurrentShift() instead for unified logic
   /// - Only returns approved shifts
-  /// - Handles night shifts: checks if today matches start_date OR end_date
+  /// - Shift date is determined by start_time only (not end_time)
   /// - When multiple shifts match today, returns the one closest to current time
   static ShiftCard? findTodayShift(List<ShiftCard> shiftCards) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // First filter: collect all shifts that match today (start_date OR end_date)
+    // First filter: collect all shifts that start today
+    // Shift date = start_time date (e.g., Night 23:00-03:00 on Dec 21 = Dec 21 shift)
     final todayShifts = <ShiftCard>[];
 
     for (final card in shiftCards) {
       // Only consider approved shifts
       if (!card.isApproved) continue;
 
-      // Parse start and end datetime to check both dates (for night shifts)
       final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
       final endDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime);
 
       if (startDateTime == null || endDateTime == null) continue;
 
       final startDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
-      final endDate = DateTime(endDateTime.year, endDateTime.month, endDateTime.day);
 
-      // Check if today matches start_date OR end_date (for night shifts)
-      if (ScheduleDateUtils.isSameDay(startDate, today) ||
-          ScheduleDateUtils.isSameDay(endDate, today)) {
+      // Shift date is determined by start_time only
+      if (ScheduleDateUtils.isSameDay(startDate, today)) {
         todayShifts.add(card);
       }
     }
@@ -247,7 +249,7 @@ class ScheduleShiftFinder {
 
   /// Find the closest upcoming shift from actual data
   /// - Returns the specific ShiftCard (not just date) to handle multiple shifts on same day
-  /// - Uses shift_start_time/shift_end_time instead of request_date
+  /// - Shift date is determined by start_time only (not end_time)
   static ShiftCard? findClosestUpcomingShift(List<ShiftCard> shiftCards) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -258,18 +260,14 @@ class ScheduleShiftFinder {
       // Only consider approved shifts that haven't started
       if (!card.isApproved || card.actualStartTime != null) continue;
 
-      // Parse start and end datetime
       final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
-      final endDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime);
-      if (startDateTime == null || endDateTime == null) continue;
+      if (startDateTime == null) continue;
 
       final startDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
-      final endDate = DateTime(endDateTime.year, endDateTime.month, endDateTime.day);
 
-      // Skip if this is today's shift (start_date or end_date matches today)
-      // This function only finds FUTURE shifts, not today's
-      if (ScheduleDateUtils.isSameDay(startDate, today) ||
-          ScheduleDateUtils.isSameDay(endDate, today)) {
+      // Skip today's shifts - this function only finds FUTURE shifts
+      // Shift date = start_time date
+      if (ScheduleDateUtils.isSameDay(startDate, today)) {
         continue;
       }
 

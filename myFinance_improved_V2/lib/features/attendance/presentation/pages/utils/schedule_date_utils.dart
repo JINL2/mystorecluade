@@ -142,9 +142,9 @@ class ScheduleDateUtils {
     }
 
     // Step 4: Determine if we should be in CHECKOUT mode
-    // Condition: chain's last shift hasn't ended yet (end_time > now)
-    // No date comparison needed - just check if end_time is in the future
-    final shouldCheckout = chainLastEndTime != null && chainLastEndTime.isAfter(now);
+    // Condition: inProgressShift exists (checked in but not out)
+    // Time doesn't matter - user should be able to checkout even after shift ended
+    final shouldCheckout = inProgressShift != null;
 
     return ChainDetectionResult(
       inProgressShift: inProgressShift,
@@ -155,11 +155,18 @@ class ScheduleDateUtils {
     );
   }
 
-  /// Find the shift with end_time closest to current time from chain
+  /// Find the correct shift for checkout from chain
   /// Used for both UI display and QR scan checkout
   ///
-  /// No date filtering - just finds the shift with end_time closest to now.
-  /// This correctly handles night shifts that cross midnight (e.g., 20:00-02:00).
+  /// Logic: Find the earliest shift that hasn't ended yet (end_time > now)
+  /// If all shifts ended, return the last shift (allows late checkout)
+  ///
+  /// Example: 08:00~13:00, 13:00~19:00, 19:00~02:00 chain
+  /// - At 10:00 → Morning (end 13:00 > 10:00)
+  /// - At 15:00 → Afternoon (Morning ended, Afternoon end 19:00 > 15:00)
+  /// - At 21:00 → Night (Morning/Afternoon ended, Night end 02:00 > 21:00)
+  /// - At 01:00 → Night (end 02:00 > 01:00)
+  /// - At 02:30 → Night (all ended, fallback to last) ✅ Late checkout works!
   static ShiftCard? findClosestCheckoutShift(
     ChainDetectionResult chain, {
     DateTime? currentTime,
@@ -169,16 +176,26 @@ class ScheduleDateUtils {
 
     final now = currentTime ?? DateTime.now();
 
-    // Sort by distance to now (closest end_time first)
-    // No date filtering needed - chain detection already validated the shifts
+    // Sort shifts by start_time (chronological order)
     final sorted = [...chain.chainShifts]..sort((a, b) {
-      final aEnd = parseShiftDateTime(a.shiftEndTime);
-      final bEnd = parseShiftDateTime(b.shiftEndTime);
-      if (aEnd == null || bEnd == null) return 0;
-      return aEnd.difference(now).abs().compareTo(bEnd.difference(now).abs());
+      final aStart = parseShiftDateTime(a.shiftStartTime);
+      final bStart = parseShiftDateTime(b.shiftStartTime);
+      if (aStart == null || bStart == null) return 0;
+      return aStart.compareTo(bStart);
     });
 
-    return sorted.first;
+    // Find the earliest shift that hasn't ended yet (end_time > now)
+    for (final shift in sorted) {
+      final endTime = parseShiftDateTime(shift.shiftEndTime);
+      if (endTime == null) continue;
+
+      if (endTime.isAfter(now)) {
+        return shift;
+      }
+    }
+
+    // Fallback: return the last shift in chain (all ended - for display purposes)
+    return sorted.last;
   }
 
   /// Find the shift with start_time closest to current time for check-in

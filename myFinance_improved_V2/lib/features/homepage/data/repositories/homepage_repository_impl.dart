@@ -11,6 +11,8 @@ import '../datasources/homepage_data_source.dart';
 ///
 /// Coordinates data fetching from Supabase via DataSource and converts
 /// Models to domain entities (Model = DTO + Mapper consolidated).
+///
+/// Revenue: Uses get_dashboard_revenue_v3 RPC which returns both totals and chart data.
 class HomepageRepositoryImpl implements HomepageRepository {
   final HomepageDataSource _dataSource;
 
@@ -27,14 +29,62 @@ class HomepageRepositoryImpl implements HomepageRepository {
     required RevenuePeriod period,
   }) async {
     try {
-      final revenueModel = await _dataSource.getRevenue(
+      // Use v3 RPC which includes totals
+      final response = await _dataSource.getRevenueChartData(
         companyId: companyId,
+        timeFilter: period.apiValue,
+        timezone: 'Asia/Ho_Chi_Minh', // TODO: Get from device
         storeId: storeId,
-        period: period.name, // Convert enum to string
       );
 
-      final revenue = revenueModel.toEntity();
-      return revenue;
+      // Extract totals from v3 response
+      final totals = response['totals'] as Map<String, dynamic>? ?? {};
+      final currencySymbol = response['currency_symbol'] as String? ?? '\$';
+
+      // Get current and previous amounts based on period
+      double currentAmount = 0.0;
+      double previousAmount = 0.0;
+
+      switch (period) {
+        case RevenuePeriod.today:
+          currentAmount = (totals['today'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (totals['yesterday'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case RevenuePeriod.yesterday:
+          currentAmount = (totals['yesterday'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // No day before yesterday in totals
+          break;
+        case RevenuePeriod.thisWeek:
+          currentAmount = (totals['this_week'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (totals['last_week'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case RevenuePeriod.lastWeek:
+          currentAmount = (totals['last_week'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0;
+          break;
+        case RevenuePeriod.thisMonth:
+          currentAmount = (totals['this_month'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = (totals['last_month'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case RevenuePeriod.lastMonth:
+          currentAmount = (totals['last_month'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0;
+          break;
+        case RevenuePeriod.thisYear:
+          currentAmount = (totals['this_year'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // No previous year in totals
+          break;
+      }
+
+      return Revenue(
+        amount: currentAmount,
+        currencyCode: currencySymbol,
+        period: period,
+        previousAmount: previousAmount,
+        lastUpdated: DateTime.now(),
+        storeId: storeId,
+        companyId: companyId,
+      );
     } catch (e) {
       throw Exception('Failed to fetch revenue: $e');
     }

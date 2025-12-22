@@ -84,6 +84,7 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
     required String storeId,
     required String locationId,
   }) async {
+    if (!mounted) return false;
     if (data is! VaultTransaction) {
       throw ArgumentError('Expected VaultTransaction, got ${data.runtimeType}');
     }
@@ -94,7 +95,8 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
       // ✅ UseCase handles validation and save
       await _saveVaultTransactionUseCase.execute(data);
 
-      state = state.copyWith(isSaving: false);
+      if (!mounted) return true;
+      safeSetState(state.copyWith(isSaving: false));
 
       // Reload stock flows after save
       if (locationId.isNotEmpty) {
@@ -107,10 +109,10 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
 
       return true;
     } catch (e) {
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         isSaving: false,
         errorMessage: e.toString(),
-      );
+      ));
       return false;
     }
   }
@@ -136,13 +138,15 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   ///
   /// ✅ Uses RecountVaultUseCase (Clean Architecture compliant)
   Future<Map<String, dynamic>> recountVault(VaultRecount recount) async {
+    if (!mounted) return {'success': false, 'error': 'Notifier disposed'};
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
       // ✅ UseCase handles validation and recount
       final result = await _recountVaultUseCase.execute(recount);
 
-      state = state.copyWith(isSaving: false);
+      if (!mounted) return result;
+      safeSetState(state.copyWith(isSaving: false));
 
       // Reload stock flows after recount
       if (recount.locationId.isNotEmpty) {
@@ -164,10 +168,10 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
           'currencyId': recount.currencyId,
         },
       );
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         isSaving: false,
         errorMessage: e.toString(),
-      );
+      ));
       rethrow; // Re-throw to let caller handle the error
     }
   }
@@ -181,15 +185,16 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   Future<void> submitVaultEnding({
     required String locationId,
   }) async {
+    if (!mounted) return;
     try {
       // ✅ UseCase handles validation and fetches balance summary
       final balanceSummary = await _getBalanceSummaryUseCase.execute(locationId);
 
       // Update state with balance summary and show dialog
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         balanceSummary: balanceSummary,
         showBalanceDialog: true,
-      );
+      ));
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -197,18 +202,19 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
         hint: 'VaultTabNotifier.submitVaultEnding failed',
         extra: {'locationId': locationId},
       );
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         errorMessage: 'Failed to get balance summary: $e',
-      );
+      ));
     }
   }
 
   /// Close balance summary dialog
   void closeBalanceDialog() {
-    state = state.copyWith(
+    if (!mounted) return;
+    safeSetState(state.copyWith(
       showBalanceDialog: false,
       balanceSummary: null,
-    );
+    ));
   }
 
   /// Execute multi-currency RECOUNT (all currencies in one RPC call)
@@ -216,13 +222,15 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
   /// ✅ Uses ExecuteMultiCurrencyRecountUseCase (Clean Architecture compliant)
   /// ✅ Now accepts MultiCurrencyRecount entity instead of Map
   Future<void> executeMultiCurrencyRecount(MultiCurrencyRecount recount) async {
+    if (!mounted) return;
     state = state.copyWith(isSaving: true, errorMessage: null);
 
     try {
       // ✅ UseCase handles validation and RPC execution
       await _executeMultiCurrencyRecountUseCase.execute(recount);
 
-      state = state.copyWith(isSaving: false);
+      if (!mounted) return;
+      safeSetState(state.copyWith(isSaving: false));
 
       // Reload stock flows after recount
       if (recount.locationId.isNotEmpty) {
@@ -242,27 +250,29 @@ class VaultTabNotifier extends BaseTabNotifier<VaultTabState> {
           'currencyCount': recount.currencyRecounts.length,
         },
       );
-      state = state.copyWith(
+      safeSetState(state.copyWith(
         isSaving: false,
         errorMessage: e.toString(),
-      );
+      ));
       rethrow;
     }
   }
 
   /// Reset vault tab state (including isSaving flag)
   void reset() {
-    state = state.copyWith(
+    if (!mounted) return;
+    safeSetState(state.copyWith(
       isSaving: false,
       errorMessage: null,
       showBalanceDialog: false,
       balanceSummary: null,
-    );
+    ));
   }
 
   /// Set saving state immediately (for double-tap prevention)
   /// Call this at the START of onSave callback to prevent rapid taps
   void setSaving(bool value) {
-    state = state.copyWith(isSaving: value);
+    if (!mounted) return;
+    safeSetState(state.copyWith(isSaving: value));
   }
 }

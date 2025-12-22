@@ -65,10 +65,15 @@ class AttendanceDatasource {
 
   /// Update shift request (check-in or check-out) via QR scan
   ///
-  /// Uses update_shift_requests_v7 RPC with shift_request_id
+  /// Uses update_shift_requests_v8 RPC with shift_request_id
   /// - p_shift_request_id: Target shift request UUID (required)
   /// - p_time: Local timestamp without timezone offset (e.g., "2024-11-15 10:30:25")
   /// - p_timezone: User's local timezone (e.g., "Asia/Ho_Chi_Minh")
+  ///
+  /// v8 Changes:
+  /// - Full backward chain detection (doesn't stop at unchecked shifts)
+  /// - Finds first checked-in shift in chain
+  /// - Processes from checked-in shift to requested shift
   ///
   /// RPC returns: {'status': 'attend'|'check_out'|'error', 'message': '...'}
   /// Maps to: {'action': 'check_in'|'check_out', 'timestamp': '...', ...}
@@ -82,7 +87,7 @@ class AttendanceDatasource {
   }) async {
     try {
       final response = await _supabase.rpc<dynamic>(
-        'update_shift_requests_v7',
+        'update_shift_requests_v8',
         params: {
           'p_shift_request_id': shiftRequestId,
           'p_user_id': userId,
