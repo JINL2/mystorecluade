@@ -14,25 +14,13 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-BaseCurrency _$BaseCurrencyFromJson(Map<String, dynamic> json) {
-  return _BaseCurrency.fromJson(json);
-}
-
 /// @nodoc
 mixin _$BaseCurrency {
-  @JsonKey(name: 'currency_id')
   String get currencyId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'currency_code')
   String get currencyCode => throw _privateConstructorUsedError;
-  @JsonKey(name: 'currency_name')
   String get currencyName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'symbol')
   String get symbol => throw _privateConstructorUsedError;
-  @JsonKey(name: 'flag_emoji')
   String? get flagEmoji => throw _privateConstructorUsedError;
-
-  /// Serializes this BaseCurrency to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of BaseCurrency
   /// with the given fields replaced by the non-null parameter values.
@@ -48,11 +36,11 @@ abstract class $BaseCurrencyCopyWith<$Res> {
       _$BaseCurrencyCopyWithImpl<$Res, BaseCurrency>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'currency_id') String currencyId,
-      @JsonKey(name: 'currency_code') String currencyCode,
-      @JsonKey(name: 'currency_name') String currencyName,
-      @JsonKey(name: 'symbol') String symbol,
-      @JsonKey(name: 'flag_emoji') String? flagEmoji});
+      {String currencyId,
+      String currencyCode,
+      String currencyName,
+      String symbol,
+      String? flagEmoji});
 }
 
 /// @nodoc
@@ -110,11 +98,11 @@ abstract class _$$BaseCurrencyImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'currency_id') String currencyId,
-      @JsonKey(name: 'currency_code') String currencyCode,
-      @JsonKey(name: 'currency_name') String currencyName,
-      @JsonKey(name: 'symbol') String symbol,
-      @JsonKey(name: 'flag_emoji') String? flagEmoji});
+      {String currencyId,
+      String currencyCode,
+      String currencyName,
+      String symbol,
+      String? flagEmoji});
 }
 
 /// @nodoc
@@ -162,33 +150,25 @@ class __$$BaseCurrencyImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$BaseCurrencyImpl extends _BaseCurrency {
   const _$BaseCurrencyImpl(
-      {@JsonKey(name: 'currency_id') required this.currencyId,
-      @JsonKey(name: 'currency_code') required this.currencyCode,
-      @JsonKey(name: 'currency_name') required this.currencyName,
-      @JsonKey(name: 'symbol') required this.symbol,
-      @JsonKey(name: 'flag_emoji') this.flagEmoji})
+      {required this.currencyId,
+      required this.currencyCode,
+      required this.currencyName,
+      required this.symbol,
+      this.flagEmoji})
       : super._();
 
-  factory _$BaseCurrencyImpl.fromJson(Map<String, dynamic> json) =>
-      _$$BaseCurrencyImplFromJson(json);
-
   @override
-  @JsonKey(name: 'currency_id')
   final String currencyId;
   @override
-  @JsonKey(name: 'currency_code')
   final String currencyCode;
   @override
-  @JsonKey(name: 'currency_name')
   final String currencyName;
   @override
-  @JsonKey(name: 'symbol')
   final String symbol;
   @override
-  @JsonKey(name: 'flag_emoji')
   final String? flagEmoji;
 
   @override
@@ -212,7 +192,6 @@ class _$BaseCurrencyImpl extends _BaseCurrency {
                 other.flagEmoji == flagEmoji));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, currencyId, currencyCode, currencyName, symbol, flagEmoji);
@@ -224,42 +203,26 @@ class _$BaseCurrencyImpl extends _BaseCurrency {
   @pragma('vm:prefer-inline')
   _$$BaseCurrencyImplCopyWith<_$BaseCurrencyImpl> get copyWith =>
       __$$BaseCurrencyImplCopyWithImpl<_$BaseCurrencyImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$BaseCurrencyImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _BaseCurrency extends BaseCurrency {
   const factory _BaseCurrency(
-          {@JsonKey(name: 'currency_id') required final String currencyId,
-          @JsonKey(name: 'currency_code') required final String currencyCode,
-          @JsonKey(name: 'currency_name') required final String currencyName,
-          @JsonKey(name: 'symbol') required final String symbol,
-          @JsonKey(name: 'flag_emoji') final String? flagEmoji}) =
-      _$BaseCurrencyImpl;
+      {required final String currencyId,
+      required final String currencyCode,
+      required final String currencyName,
+      required final String symbol,
+      final String? flagEmoji}) = _$BaseCurrencyImpl;
   const _BaseCurrency._() : super._();
 
-  factory _BaseCurrency.fromJson(Map<String, dynamic> json) =
-      _$BaseCurrencyImpl.fromJson;
-
   @override
-  @JsonKey(name: 'currency_id')
   String get currencyId;
   @override
-  @JsonKey(name: 'currency_code')
   String get currencyCode;
   @override
-  @JsonKey(name: 'currency_name')
   String get currencyName;
   @override
-  @JsonKey(name: 'symbol')
   String get symbol;
   @override
-  @JsonKey(name: 'flag_emoji')
   String? get flagEmoji;
 
   /// Create a copy of BaseCurrency

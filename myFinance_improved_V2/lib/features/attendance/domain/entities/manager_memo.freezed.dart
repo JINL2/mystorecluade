@@ -14,21 +14,12 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-ManagerMemo _$ManagerMemoFromJson(Map<String, dynamic> json) {
-  return _ManagerMemo.fromJson(json);
-}
-
 /// @nodoc
 mixin _$ManagerMemo {
   String? get id => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_by')
   String? get createdBy => throw _privateConstructorUsedError;
-
-  /// Serializes this ManagerMemo to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of ManagerMemo
   /// with the given fields replaced by the non-null parameter values.
@@ -43,11 +34,7 @@ abstract class $ManagerMemoCopyWith<$Res> {
           ManagerMemo value, $Res Function(ManagerMemo) then) =
       _$ManagerMemoCopyWithImpl<$Res, ManagerMemo>;
   @useResult
-  $Res call(
-      {String? id,
-      String content,
-      @JsonKey(name: 'created_at') String? createdAt,
-      @JsonKey(name: 'created_by') String? createdBy});
+  $Res call({String? id, String content, String? createdAt, String? createdBy});
 }
 
 /// @nodoc
@@ -99,11 +86,7 @@ abstract class _$$ManagerMemoImplCopyWith<$Res>
       __$$ManagerMemoImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String? id,
-      String content,
-      @JsonKey(name: 'created_at') String? createdAt,
-      @JsonKey(name: 'created_by') String? createdBy});
+  $Res call({String? id, String content, String? createdAt, String? createdBy});
 }
 
 /// @nodoc
@@ -146,17 +129,11 @@ class __$$ManagerMemoImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$ManagerMemoImpl extends _ManagerMemo {
   const _$ManagerMemoImpl(
-      {this.id,
-      this.content = '',
-      @JsonKey(name: 'created_at') this.createdAt,
-      @JsonKey(name: 'created_by') this.createdBy})
+      {this.id, this.content = '', this.createdAt, this.createdBy})
       : super._();
-
-  factory _$ManagerMemoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ManagerMemoImplFromJson(json);
 
   @override
   final String? id;
@@ -164,10 +141,8 @@ class _$ManagerMemoImpl extends _ManagerMemo {
   @JsonKey()
   final String content;
   @override
-  @JsonKey(name: 'created_at')
   final String? createdAt;
   @override
-  @JsonKey(name: 'created_by')
   final String? createdBy;
 
   @override
@@ -188,7 +163,6 @@ class _$ManagerMemoImpl extends _ManagerMemo {
                 other.createdBy == createdBy));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, content, createdAt, createdBy);
@@ -200,36 +174,23 @@ class _$ManagerMemoImpl extends _ManagerMemo {
   @pragma('vm:prefer-inline')
   _$$ManagerMemoImplCopyWith<_$ManagerMemoImpl> get copyWith =>
       __$$ManagerMemoImplCopyWithImpl<_$ManagerMemoImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ManagerMemoImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _ManagerMemo extends ManagerMemo {
   const factory _ManagerMemo(
-          {final String? id,
-          final String content,
-          @JsonKey(name: 'created_at') final String? createdAt,
-          @JsonKey(name: 'created_by') final String? createdBy}) =
-      _$ManagerMemoImpl;
+      {final String? id,
+      final String content,
+      final String? createdAt,
+      final String? createdBy}) = _$ManagerMemoImpl;
   const _ManagerMemo._() : super._();
-
-  factory _ManagerMemo.fromJson(Map<String, dynamic> json) =
-      _$ManagerMemoImpl.fromJson;
 
   @override
   String? get id;
   @override
   String get content;
   @override
-  @JsonKey(name: 'created_at')
   String? get createdAt;
   @override
-  @JsonKey(name: 'created_by')
   String? get createdBy;
 
   /// Create a copy of ManagerMemo

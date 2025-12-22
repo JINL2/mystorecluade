@@ -1409,7 +1409,7 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
       );
 
       // Execute update
-      final success = await ref.read(templateProvider.notifier).updateTemplate(command);
+      final success = await ref.read(templateNotifierProvider.notifier).updateTemplate(command);
 
       if (mounted) {
         setState(() {
@@ -1429,7 +1429,7 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
           );
           return true;
         } else {
-          final errorMessage = ref.read(templateProvider).errorMessage ?? 'Failed to update template';
+          final errorMessage = ref.read(templateNotifierProvider).errorMessage ?? 'Failed to update template';
           await showDialog(
             context: context,
             barrierDismissible: true,

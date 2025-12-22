@@ -1,13 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/utils/datetime_utils.dart';
-// ✅ Clean Architecture: Import from Domain layer only
 import '../../domain/entities/base_currency.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/user_shift_stats.dart';
-import '../../domain/providers/attendance_repository_provider.dart';
 import '../../domain/usecases/check_in_shift.dart';
 import '../../domain/usecases/delete_shift_request.dart';
 import '../../domain/usecases/get_base_currency.dart';
@@ -19,85 +18,94 @@ import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
 import '../../domain/usecases/update_shift_card_after_scan.dart';
 
-// ========================================
-// Re-export Repository Provider (for complex operations)
-// ========================================
+import 'repository_providers.dart';
 
-/// Re-export repository provider from Domain layer
-/// Use this ONLY for complex operations that combine multiple use cases
-/// Prefer individual use case providers for simple operations
-export '../../domain/providers/attendance_repository_provider.dart' show attendanceRepositoryProvider;
+// Re-export repository provider
+export 'repository_providers.dart' show attendanceRepositoryProvider;
+
+part 'attendance_providers.g.dart';
 
 // ========================================
-// Use Case Providers
+// Use Case Providers (@riverpod)
 // ========================================
 
 /// Check in shift use case provider
-final checkInShiftProvider = Provider<CheckInShift>((ref) {
+@riverpod
+CheckInShift checkInShift(CheckInShiftRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return CheckInShift(repository);
-});
+}
 
 /// Register shift request use case provider
-final registerShiftRequestProvider = Provider<RegisterShiftRequest>((ref) {
+@riverpod
+RegisterShiftRequest registerShiftRequest(RegisterShiftRequestRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return RegisterShiftRequest(repository);
-});
+}
 
 /// Get shift metadata use case provider
-final getShiftMetadataProvider = Provider<GetShiftMetadata>((ref) {
+@riverpod
+GetShiftMetadata getShiftMetadata(GetShiftMetadataRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetShiftMetadata(repository);
-});
+}
 
 /// Get monthly shift status use case provider
-final getMonthlyShiftStatusProvider = Provider<GetMonthlyShiftStatus>((ref) {
+@riverpod
+GetMonthlyShiftStatus getMonthlyShiftStatus(GetMonthlyShiftStatusRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetMonthlyShiftStatus(repository);
-});
+}
 
 /// Delete shift request use case provider
-final deleteShiftRequestProvider = Provider<DeleteShiftRequest>((ref) {
+@riverpod
+DeleteShiftRequest deleteShiftRequest(DeleteShiftRequestRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return DeleteShiftRequest(repository);
-});
+}
 
 /// Report shift issue use case provider
-final reportShiftIssueProvider = Provider<ReportShiftIssue>((ref) {
+@riverpod
+ReportShiftIssue reportShiftIssue(ReportShiftIssueRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return ReportShiftIssue(repository);
-});
+}
 
 /// Get user shift cards use case provider
-final getUserShiftCardsProvider = Provider<GetUserShiftCards>((ref) {
+@riverpod
+GetUserShiftCards getUserShiftCards(GetUserShiftCardsRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetUserShiftCards(repository);
-});
+}
 
 /// Update shift card after scan use case provider
-final updateShiftCardAfterScanProvider = Provider<UpdateShiftCardAfterScan>((ref) {
+@riverpod
+UpdateShiftCardAfterScan updateShiftCardAfterScan(UpdateShiftCardAfterScanRef ref) {
   return UpdateShiftCardAfterScan();
-});
+}
 
 /// Get base currency use case provider
-final getBaseCurrencyUseCaseProvider = Provider<GetBaseCurrency>((ref) {
+@riverpod
+GetBaseCurrency getBaseCurrencyUseCase(GetBaseCurrencyUseCaseRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetBaseCurrency(repository);
-});
+}
 
 /// Get user shift stats use case provider
-final getUserShiftStatsUseCaseProvider = Provider<GetUserShiftStats>((ref) {
+@riverpod
+GetUserShiftStats getUserShiftStatsUseCase(GetUserShiftStatsUseCaseRef ref) {
   final repository = ref.watch(attendanceRepositoryProvider);
   return GetUserShiftStats(repository);
-});
+}
 
 // ========================================
-// Presentation Layer Providers
+// Presentation Layer Providers (@riverpod)
 // ========================================
 
 /// Provider for current shift status
-final currentShiftProvider =
-    FutureProvider<ShiftCard?>((ref) async {
+/// Uses Either pattern - throws exception on Left for AsyncValue.error handling
+@riverpod
+Future<ShiftCard?> currentShift(CurrentShiftRef ref) async {
   final getUserShiftCards = ref.read(getUserShiftCardsProvider);
   final authStateAsync = ref.read(authStateProvider);
   final appState = ref.read(appStateProvider);
@@ -115,7 +123,7 @@ final currentShiftProvider =
   final requestTime = DateTimeUtils.toLocalWithOffset(now);
   final timezone = DateTimeUtils.getLocalTimezone();
 
-  final shiftCards = await getUserShiftCards(
+  final result = await getUserShiftCards(
     requestTime: requestTime,
     userId: userId,
     companyId: companyId,
@@ -123,17 +131,24 @@ final currentShiftProvider =
     timezone: timezone,
   );
 
-  // Return the first shift that is currently active (checked in but not checked out)
-  if (shiftCards.isEmpty) return null;
+  // Either pattern: fold Left to throw, Right to return data
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (shiftCards) {
+      // Return the first shift that is currently active (checked in but not checked out)
+      if (shiftCards.isEmpty) return null;
 
-  return shiftCards.firstWhere(
-    (card) => card.isCheckedIn && !card.isCheckedOut,
-    orElse: () => shiftCards.first,
+      return shiftCards.firstWhere(
+        (card) => card.isCheckedIn && !card.isCheckedOut,
+        orElse: () => shiftCards.first,
+      );
+    },
   );
-});
+}
 
 /// Provider for checking if user is currently working
-final isWorkingProvider = Provider<bool>((ref) {
+@riverpod
+bool isWorking(IsWorkingRef ref) {
   final currentShift = ref.watch(currentShiftProvider);
 
   return currentShift.when(
@@ -145,13 +160,17 @@ final isWorkingProvider = Provider<bool>((ref) {
     loading: () => false,
     error: (_, __) => false,
   );
-});
+}
 
 /// Provider for monthly shift cards (Week/Month view용)
 /// Parameter: String (년-월 형식, e.g., "2025-11")
 /// DateTime 대신 String을 사용하여 동일한 월에 대해 캐싱 및 리빌드 방지
-final monthlyShiftCardsProvider =
-    FutureProvider.family<List<ShiftCard>, String>((ref, yearMonth) async {
+/// Uses Either pattern - throws exception on Left for AsyncValue.error handling
+@riverpod
+Future<List<ShiftCard>> monthlyShiftCards(
+  MonthlyShiftCardsRef ref,
+  String yearMonth,
+) async {
   final getUserShiftCards = ref.read(getUserShiftCardsProvider);
   final authStateAsync = ref.read(authStateProvider);
   final appState = ref.read(appStateProvider);
@@ -176,7 +195,7 @@ final monthlyShiftCardsProvider =
   final requestTime = DateTimeUtils.toLocalWithOffset(lastDayOfMonth);
   final timezone = DateTimeUtils.getLocalTimezone();
 
-  final shiftCards = await getUserShiftCards(
+  final result = await getUserShiftCards(
     requestTime: requestTime,
     userId: userId,
     companyId: companyId,
@@ -184,12 +203,18 @@ final monthlyShiftCardsProvider =
     timezone: timezone,
   );
 
-  return shiftCards;
-});
+  // Either pattern: fold Left to throw, Right to return data
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (shiftCards) => shiftCards,
+  );
+}
 
 /// Provider for base currency (fetches company's base currency symbol)
 /// Used to display currency symbol in salary and payment sections
-final baseCurrencyProvider = FutureProvider<BaseCurrency?>((ref) async {
+/// Uses Either pattern - returns null on Left for graceful degradation
+@riverpod
+Future<BaseCurrency?> baseCurrency(BaseCurrencyRef ref) async {
   final getBaseCurrency = ref.read(getBaseCurrencyUseCaseProvider);
   final appState = ref.read(appStateProvider);
 
@@ -199,17 +224,20 @@ final baseCurrencyProvider = FutureProvider<BaseCurrency?>((ref) async {
     return null;
   }
 
-  try {
-    return await getBaseCurrency(companyId: companyId);
-  } catch (e) {
-    // Return null on error, UI can show default symbol
-    return null;
-  }
-});
+  final result = await getBaseCurrency(companyId: companyId);
+
+  // Either pattern: fold Left to null (graceful degradation), Right to return data
+  return result.fold(
+    (failure) => null, // Return null on error, UI can show default symbol
+    (currency) => currency,
+  );
+}
 
 /// Provider for user shift stats (Stats tab data)
 /// Fetches salary info, period stats, and weekly payments from user_shift_stats RPC
-final userShiftStatsProvider = FutureProvider<UserShiftStats?>((ref) async {
+/// Uses Either pattern - throws exception on Left for AsyncValue.error handling
+@riverpod
+Future<UserShiftStats?> userShiftStats(UserShiftStatsRef ref) async {
   final getUserShiftStats = ref.read(getUserShiftStatsUseCaseProvider);
   final authStateAsync = ref.read(authStateProvider);
   final appState = ref.read(appStateProvider);
@@ -226,14 +254,20 @@ final userShiftStatsProvider = FutureProvider<UserShiftStats?>((ref) async {
   final requestTime = DateTimeUtils.toLocalWithOffset(DateTime.now());
   final timezone = DateTimeUtils.getLocalTimezone();
 
-  return await getUserShiftStats(
+  final result = await getUserShiftStats(
     requestTime: requestTime,
     userId: userId,
     companyId: companyId,
     storeId: storeId,
     timezone: timezone,
   );
-});
+
+  // Either pattern: fold Left to throw, Right to return data
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (stats) => stats,
+  );
+}
 
 /// Provider for tracking store change loading state
 /// When true, show loading overlay in attendance main page

@@ -221,11 +221,17 @@ class ReportIssueDialog {
 
     try {
       final reportShiftIssue = ref.read(reportShiftIssueProvider);
-      final success = await reportShiftIssue(
+      final result = await reportShiftIssue(
         shiftRequestId: shiftRequestId,
         reportReason: reason,
         time: DateTimeUtils.toLocalWithOffset(DateTime.now()),
         timezone: DateTimeUtils.getLocalTimezone(),
+      );
+
+      // Either pattern: fold to get success value
+      final success = result.fold(
+        (failure) => false,
+        (data) => data,
       );
 
       if (!success) {

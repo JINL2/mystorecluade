@@ -58,7 +58,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
 
     if (companyId.isNotEmpty) {
       // Load templates using templateProvider
-      ref.read(templateProvider.notifier).loadTemplates(
+      ref.read(templateNotifierProvider.notifier).loadTemplates(
         companyId: companyId,
         storeId: storeId,
         includeInactive: false,
@@ -86,7 +86,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
 
   @override
   Widget build(BuildContext context) {
-    final templateState = ref.watch(templateProvider);
+    final templateState = ref.watch(templateNotifierProvider);
     final filteredTemplates = ref.watch(filteredTemplatesProvider);
     final companyChoosen = ref.watch(appStateProvider).companyChoosen;
     final storeChoosen = ref.watch(appStateProvider).storeChoosen;
@@ -96,7 +96,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       appStateProvider.select((s) => '${s.companyChoosen}_${s.storeChoosen}'),
       (prev, next) {
         if (companyChoosen.isNotEmpty && storeChoosen.isNotEmpty) {
-          ref.read(templateProvider.notifier).loadTemplates(
+          ref.read(templateNotifierProvider.notifier).loadTemplates(
             companyId: companyChoosen,
             storeId: storeChoosen,
           );
@@ -661,7 +661,7 @@ class _TemplateCard extends ConsumerWidget {
                           );
 
                           // Call delete template
-                          await ref.read(templateProvider.notifier).deleteTemplate(command);
+                          await ref.read(templateNotifierProvider.notifier).deleteTemplate(command);
                         },
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),

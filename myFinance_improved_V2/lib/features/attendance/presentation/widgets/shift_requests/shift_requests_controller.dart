@@ -82,14 +82,25 @@ class ShiftRequestsController {
       // Get user's local timezone from device
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      final response = await getMonthlyShiftStatus(
+      final result = await getMonthlyShiftStatus(
         storeId: storeId,
         companyId: companyId,
         requestTime: requestTime,
         timezone: timezone,
       );
 
-      return response;
+      // Either pattern: fold to handle success/failure
+      return result.fold(
+        (failure) {
+          final errorMessage = failure.message;
+          // If it's a NOT_FOUND error, return empty list instead of null
+          if (errorMessage.contains('NOT_FOUND') || errorMessage.contains('No matching shift request')) {
+            return <MonthlyShiftStatus>[];
+          }
+          return null;
+        },
+        (data) => data,
+      );
     } catch (e, stackTrace) {
       final errorMessage = e.toString();
 
@@ -118,12 +129,16 @@ class ShiftRequestsController {
     try {
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
       final timezone = DateTimeUtils.getLocalTimezone();
-      final response = await getShiftMetadata(
+      final result = await getShiftMetadata(
         storeId: storeId,
         timezone: timezone,
       );
 
-      return response;
+      // Either pattern: fold to handle success/failure
+      return result.fold(
+        (failure) => <ShiftMetadata>[],
+        (data) => data,
+      );
     } catch (_) {
       return [];
     }

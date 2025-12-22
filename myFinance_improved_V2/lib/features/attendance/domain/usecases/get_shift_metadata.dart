@@ -1,15 +1,20 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../core/errors/failures.dart';
 import '../entities/shift_metadata.dart';
 import '../repositories/attendance_repository.dart';
 
 /// Get shift metadata for a store
 ///
 /// Matches RPC: get_shift_metadata_v2_utc
+///
+/// Clean Architecture: Returns Either<Failure, List<ShiftMetadata>>
 class GetShiftMetadata {
   final AttendanceRepository _repository;
 
   GetShiftMetadata(this._repository);
 
-  Future<List<ShiftMetadata>> call({
+  Future<Either<Failure, List<ShiftMetadata>>> call({
     required String storeId,
     required String timezone,
   }) {

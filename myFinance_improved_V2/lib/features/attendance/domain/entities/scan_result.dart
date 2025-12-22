@@ -1,12 +1,13 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'scan_result.freezed.dart';
-part 'scan_result.g.dart';
 
 /// QR Scan Result Entity
 ///
 /// Represents data received from QR code scanning.
 /// This is a Domain entity that encapsulates QR scan data structure.
+///
+/// Note: If JSON serialization is needed, create ScanResultModel in data layer
 @freezed
 class ScanResult with _$ScanResult {
   const ScanResult._();
@@ -39,9 +40,6 @@ class ScanResult with _$ScanResult {
     /// User ID
     String? userId,
   }) = _ScanResult;
-
-  factory ScanResult.fromJson(Map<String, dynamic> json) =>
-      _$ScanResultFromJson(json);
 
   /// Get formatted shift time range
   String get shiftTimeRange => '$shiftStartTime ~ $shiftEndTime';

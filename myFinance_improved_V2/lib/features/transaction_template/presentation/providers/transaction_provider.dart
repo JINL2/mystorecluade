@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
 import '../../domain/repositories/transaction_repository.dart';
@@ -7,21 +8,26 @@ import '../../domain/value_objects/transaction_context.dart';
 import 'states/transaction_state.dart';
 import 'validator_providers.dart';
 
+part 'transaction_provider.g.dart';
+
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Transaction Creation Notifier - 트랜잭션 생성 상태 관리
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ///
 /// Flutter 표준 구조: Notifier가 직접 UseCase/Repository 호출
-class TransactionCreationNotifier extends StateNotifier<TransactionCreationState> {
-  final CreateTransactionUseCase _createUseCase;
-  final TransactionRepository _repository;
+///
+/// ✅ 2025 Riverpod: @riverpod 어노테이션 사용
+@riverpod
+class TransactionCreationNotifier extends _$TransactionCreationNotifier {
+  late final CreateTransactionUseCase _createUseCase;
+  late final TransactionRepository _repository;
 
-  TransactionCreationNotifier({
-    required CreateTransactionUseCase createUseCase,
-    required TransactionRepository repository,
-  })  : _createUseCase = createUseCase,
-        _repository = repository,
-        super(const TransactionCreationState());
+  @override
+  TransactionCreationState build() {
+    _createUseCase = ref.read(createTransactionUseCaseProvider);
+    _repository = ref.read(transactionRepositoryProvider);
+    return const TransactionCreationState();
+  }
 
   /// 템플릿에서 트랜잭션 생성 (직접 UseCase 호출)
   Future<bool> createFromTemplate({
@@ -175,14 +181,9 @@ class TransactionCreationNotifier extends StateNotifier<TransactionCreationState
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Providers (DI)
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-/// Transaction Creation Provider
-final transactionCreationProvider = StateNotifierProvider<TransactionCreationNotifier, TransactionCreationState>((ref) {
-  return TransactionCreationNotifier(
-    createUseCase: ref.read(createTransactionUseCaseProvider),
-    repository: ref.read(transactionRepositoryProvider),
-  );
-});
+///
+/// ✅ 2025 Riverpod: @riverpod 어노테이션으로 자동 생성됨
+/// - transactionCreationNotifierProvider (from @riverpod TransactionCreationNotifier)
 
 /// UseCase Providers (Domain Layer DI)
 final createTransactionUseCaseProvider = Provider<CreateTransactionUseCase>((ref) {

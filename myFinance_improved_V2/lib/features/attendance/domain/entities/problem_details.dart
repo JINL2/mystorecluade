@@ -1,37 +1,35 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'problem_details.freezed.dart';
-part 'problem_details.g.dart';
 
 /// ProblemDetails Entity - 시프트 문제 상세 정보
 ///
 /// problem_details_v2 JSONB에서 매핑됨
 /// 모든 문제 관련 정보를 하나의 객체로 통합
+///
+/// Note: JSON serialization is handled by ProblemDetailsModel in data layer
 @freezed
 class ProblemDetails with _$ProblemDetails {
   const ProblemDetails._();
 
   const factory ProblemDetails({
     // 빠른 필터링용 플래그
-    @JsonKey(name: 'has_late') @Default(false) bool hasLate,
-    @JsonKey(name: 'has_absence') @Default(false) bool hasAbsence,
-    @JsonKey(name: 'has_overtime') @Default(false) bool hasOvertime,
-    @JsonKey(name: 'has_early_leave') @Default(false) bool hasEarlyLeave,
-    @JsonKey(name: 'has_no_checkout') @Default(false) bool hasNoCheckout,
-    @JsonKey(name: 'has_location_issue') @Default(false) bool hasLocationIssue,
-    @JsonKey(name: 'has_reported') @Default(false) bool hasReported,
+    @Default(false) bool hasLate,
+    @Default(false) bool hasAbsence,
+    @Default(false) bool hasOvertime,
+    @Default(false) bool hasEarlyLeave,
+    @Default(false) bool hasNoCheckout,
+    @Default(false) bool hasLocationIssue,
+    @Default(false) bool hasReported,
 
     // 상태
-    @JsonKey(name: 'is_solved') @Default(false) bool isSolved,
-    @JsonKey(name: 'problem_count') @Default(0) int problemCount,
-    @JsonKey(name: 'detected_at') String? detectedAt,
+    @Default(false) bool isSolved,
+    @Default(0) int problemCount,
+    String? detectedAt,
 
     // 상세 문제 목록
     @Default([]) List<Problem> problems,
   }) = _ProblemDetails;
-
-  factory ProblemDetails.fromJson(Map<String, dynamic> json) =>
-      _$ProblemDetailsFromJson(json);
 
   /// 문제가 있는지 확인
   bool get hasProblem => problemCount > 0;
@@ -96,55 +94,47 @@ class ProblemDetails with _$ProblemDetails {
 }
 
 /// Problem 베이스 클래스 (Sealed class)
-@Freezed(unionKey: 'type')
+///
+/// Note: JSON serialization is handled by ProblemItemModel in data layer
+@Freezed()
 sealed class Problem with _$Problem {
   const Problem._();
 
-  @FreezedUnionValue('late')
   const factory Problem.late({
-    @JsonKey(name: 'actual_minutes') @Default(0) int actualMinutes,
-    @JsonKey(name: 'payroll_minutes') @Default(0) int payrollMinutes,
-    @JsonKey(name: 'is_payroll_adjusted') @Default(false) bool isPayrollAdjusted,
+    @Default(0) int actualMinutes,
+    @Default(0) int payrollMinutes,
+    @Default(false) bool isPayrollAdjusted,
   }) = LateProblem;
 
-  @FreezedUnionValue('overtime')
   const factory Problem.overtime({
-    @JsonKey(name: 'actual_minutes') @Default(0) int actualMinutes,
-    @JsonKey(name: 'payroll_minutes') @Default(0) int payrollMinutes,
-    @JsonKey(name: 'is_payroll_adjusted') @Default(false) bool isPayrollAdjusted,
+    @Default(0) int actualMinutes,
+    @Default(0) int payrollMinutes,
+    @Default(false) bool isPayrollAdjusted,
   }) = OvertimeProblem;
 
-  @FreezedUnionValue('early_leave')
   const factory Problem.earlyLeave({
-    @JsonKey(name: 'actual_minutes') @Default(0) int actualMinutes,
-    @JsonKey(name: 'payroll_minutes') @Default(0) int payrollMinutes,
-    @JsonKey(name: 'is_payroll_adjusted') @Default(false) bool isPayrollAdjusted,
+    @Default(0) int actualMinutes,
+    @Default(0) int payrollMinutes,
+    @Default(false) bool isPayrollAdjusted,
   }) = EarlyLeaveProblem;
 
-  @FreezedUnionValue('absence')
   const factory Problem.absence() = AbsenceProblem;
 
-  @FreezedUnionValue('no_checkout')
   const factory Problem.noCheckout() = NoCheckoutProblem;
 
-  @FreezedUnionValue('invalid_checkin')
   const factory Problem.invalidCheckin({
     @Default(0) int distance,
   }) = InvalidCheckinProblem;
 
-  @FreezedUnionValue('invalid_checkout')
   const factory Problem.invalidCheckout({
     @Default(0) int distance,
   }) = InvalidCheckoutProblem;
 
-  @FreezedUnionValue('reported')
   const factory Problem.reported({
     @Default('') String reason,
-    @JsonKey(name: 'reported_at') String? reportedAt,
-    @JsonKey(name: 'is_report_solved') @Default(false) bool isReportSolved,
+    String? reportedAt,
+    @Default(false) bool isReportSolved,
   }) = ReportedProblem;
-
-  factory Problem.fromJson(Map<String, dynamic> json) => _$ProblemFromJson(json);
 }
 
 /// LocationProblem 헬퍼 (invalid_checkin, invalid_checkout 통합)

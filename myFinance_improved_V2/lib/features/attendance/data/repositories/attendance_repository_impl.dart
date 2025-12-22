@@ -1,3 +1,7 @@
+import 'package:dartz/dartz.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../../core/errors/failures.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../../domain/entities/base_currency.dart';
 import '../../domain/entities/check_in_result.dart';
@@ -19,6 +23,7 @@ import '../models/user_shift_stats_model.dart';
 /// Attendance Repository Implementation
 ///
 /// Implements the AttendanceRepository interface using AttendanceDatasource.
+/// Uses Either<Failure, T> pattern for error handling.
 class AttendanceRepositoryImpl implements AttendanceRepository {
   final AttendanceDatasource _datasource;
 
@@ -26,7 +31,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       : _datasource = datasource;
 
   @override
-  Future<CheckInResult> updateShiftRequest({
+  Future<Either<Failure, CheckInResult>> updateShiftRequest({
     required String shiftRequestId,
     required String userId,
     required String storeId,
@@ -34,87 +39,152 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required AttendanceLocation location,
     required String timezone,
   }) async {
-    final json = await _datasource.updateShiftRequest(
-      shiftRequestId: shiftRequestId,
-      userId: userId,
-      storeId: storeId,
-      timestamp: timestamp,
-      location: location,
-      timezone: timezone,
-    );
+    try {
+      final json = await _datasource.updateShiftRequest(
+        shiftRequestId: shiftRequestId,
+        userId: userId,
+        storeId: storeId,
+        timestamp: timestamp,
+        location: location,
+        timezone: timezone,
+      );
 
-    // ✅ Clean Architecture: Convert Map to Entity using Model
-    return CheckInResultModel.fromJson(json ?? {}).toEntity();
+      return Right(CheckInResultModel.fromJson(json ?? {}).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'UPDATE_SHIFT_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<List<ShiftCard>> getUserShiftCards({
+  Future<Either<Failure, List<ShiftCard>>> getUserShiftCards({
     required String requestTime,
     required String userId,
     required String companyId,
-    String? storeId,  // Optional: null이면 회사 전체
+    String? storeId,
     required String timezone,
   }) async {
-    final jsonList = await _datasource.getUserShiftCards(
-      requestTime: requestTime,
-      userId: userId,
-      companyId: companyId,
-      storeId: storeId,
-      timezone: timezone,
-    );
+    try {
+      final jsonList = await _datasource.getUserShiftCards(
+        requestTime: requestTime,
+        userId: userId,
+        companyId: companyId,
+        storeId: storeId,
+        timezone: timezone,
+      );
 
-    // ✅ Clean Architecture: Convert Map to Entity using Model
-    return jsonList.map((json) => ShiftCardModel.fromJson(json).toEntity()).toList();
+      return Right(
+        jsonList.map((json) => ShiftCardModel.fromJson(json).toEntity()).toList(),
+      );
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'GET_SHIFT_CARDS_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<bool> reportShiftIssue({
+  Future<Either<Failure, bool>> reportShiftIssue({
     required String shiftRequestId,
     required String reportReason,
     required String time,
     required String timezone,
   }) async {
-    return await _datasource.reportShiftIssue(
-      shiftRequestId: shiftRequestId,
-      reportReason: reportReason,
-      time: time,
-      timezone: timezone,
-    );
+    try {
+      final result = await _datasource.reportShiftIssue(
+        shiftRequestId: shiftRequestId,
+        reportReason: reportReason,
+        time: time,
+        timezone: timezone,
+      );
+
+      return Right(result);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'REPORT_ISSUE_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<List<ShiftMetadata>> getShiftMetadata({
+  Future<Either<Failure, List<ShiftMetadata>>> getShiftMetadata({
     required String storeId,
     required String timezone,
   }) async {
-    final jsonList = await _datasource.getShiftMetadata(
-      storeId: storeId,
-      timezone: timezone,
-    );
-    // ✅ Clean Architecture: Convert Map to Entity using Model
-    return jsonList.map((json) => ShiftMetadataModel.fromJson(json).toEntity()).toList();
+    try {
+      final jsonList = await _datasource.getShiftMetadata(
+        storeId: storeId,
+        timezone: timezone,
+      );
+
+      return Right(
+        jsonList.map((json) => ShiftMetadataModel.fromJson(json).toEntity()).toList(),
+      );
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'GET_METADATA_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<List<MonthlyShiftStatus>> getMonthlyShiftStatusManager({
+  Future<Either<Failure, List<MonthlyShiftStatus>>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
     required String requestTime,
     required String timezone,
   }) async {
-    final jsonList = await _datasource.getMonthlyShiftStatusManager(
-      storeId: storeId,
-      companyId: companyId,
-      requestTime: requestTime,
-      timezone: timezone,
-    );
-    return jsonList
-        .map((json) => MonthlyShiftStatusModel.fromJson(json).toEntity())
-        .toList();
+    try {
+      final jsonList = await _datasource.getMonthlyShiftStatusManager(
+        storeId: storeId,
+        companyId: companyId,
+        requestTime: requestTime,
+        timezone: timezone,
+      );
+
+      return Right(
+        jsonList.map((json) => MonthlyShiftStatusModel.fromJson(json).toEntity()).toList(),
+      );
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'GET_MONTHLY_STATUS_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<ShiftRequest?> insertShiftRequest({
+  Future<Either<Failure, ShiftRequest?>> insertShiftRequest({
     required String userId,
     required String shiftId,
     required String storeId,
@@ -122,59 +192,112 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String endTime,
     required String timezone,
   }) async {
-    final json = await _datasource.insertShiftRequest(
-      userId: userId,
-      shiftId: shiftId,
-      storeId: storeId,
-      startTime: startTime,
-      endTime: endTime,
-      timezone: timezone,
-    );
-    return json != null ? ShiftRequestModel.fromJson(json).toEntity() : null;
+    try {
+      final json = await _datasource.insertShiftRequest(
+        userId: userId,
+        shiftId: shiftId,
+        storeId: storeId,
+        startTime: startTime,
+        endTime: endTime,
+        timezone: timezone,
+      );
+
+      return Right(json != null ? ShiftRequestModel.fromJson(json).toEntity() : null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'INSERT_SHIFT_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<void> deleteShiftRequest({
+  Future<Either<Failure, Unit>> deleteShiftRequest({
     required String userId,
     required String shiftId,
     required String startTime,
     required String endTime,
     required String timezone,
   }) async {
-    return await _datasource.deleteShiftRequest(
-      userId: userId,
-      shiftId: shiftId,
-      startTime: startTime,
-      endTime: endTime,
-      timezone: timezone,
-    );
+    try {
+      await _datasource.deleteShiftRequest(
+        userId: userId,
+        shiftId: shiftId,
+        startTime: startTime,
+        endTime: endTime,
+        timezone: timezone,
+      );
+
+      return const Right(unit);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'DELETE_SHIFT_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<BaseCurrency> getBaseCurrency({
+  Future<Either<Failure, BaseCurrency>> getBaseCurrency({
     required String companyId,
   }) async {
-    final json = await _datasource.getBaseCurrency(
-      companyId: companyId,
-    );
-    return BaseCurrencyModel.fromRpcResponse(json).toEntity();
+    try {
+      final json = await _datasource.getBaseCurrency(
+        companyId: companyId,
+      );
+
+      return Right(BaseCurrencyModel.fromRpcResponse(json).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'GET_CURRENCY_ERROR',
+      ));
+    }
   }
 
   @override
-  Future<UserShiftStats> getUserShiftStats({
+  Future<Either<Failure, UserShiftStats>> getUserShiftStats({
     required String requestTime,
     required String userId,
     required String companyId,
     required String storeId,
     required String timezone,
   }) async {
-    final json = await _datasource.getUserShiftStats(
-      requestTime: requestTime,
-      userId: userId,
-      companyId: companyId,
-      storeId: storeId,
-      timezone: timezone,
-    );
-    return UserShiftStatsModel.fromJson(json).toEntity();
+    try {
+      final json = await _datasource.getUserShiftStats(
+        requestTime: requestTime,
+        userId: userId,
+        companyId: companyId,
+        storeId: storeId,
+        timezone: timezone,
+      );
+
+      return Right(UserShiftStatsModel.fromJson(json).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        code: e.code ?? 'POSTGREST_ERROR',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(
+        message: e.toString(),
+        code: 'GET_STATS_ERROR',
+      ));
+    }
   }
 }

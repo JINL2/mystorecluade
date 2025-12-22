@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../core/errors/failures.dart';
 import '../entities/attendance_location.dart';
 import '../entities/check_in_result.dart';
 import '../repositories/attendance_repository.dart';
@@ -6,7 +9,7 @@ import '../repositories/attendance_repository.dart';
 ///
 /// Matches RPC: update_shift_requests_v7
 ///
-/// ✅ Clean Architecture: Returns Domain Entity (CheckInResult) instead of Map
+/// Clean Architecture: Returns Either<Failure, CheckInResult>
 class CheckInShift {
   final AttendanceRepository _repository;
 
@@ -15,8 +18,8 @@ class CheckInShift {
   /// Perform check-in or check-out action
   ///
   /// [shiftRequestId] - Shift request ID (from user_shift_cards_v4)
-  /// Returns [CheckInResult] with action details and timestamp
-  Future<CheckInResult> call({
+  /// Returns Either<Failure, CheckInResult> with action details and timestamp
+  Future<Either<Failure, CheckInResult>> call({
     required String shiftRequestId,
     required String userId,
     required String storeId,

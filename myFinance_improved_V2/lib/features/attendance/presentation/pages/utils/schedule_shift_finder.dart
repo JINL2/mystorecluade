@@ -84,37 +84,68 @@ class ScheduleShiftFinder {
       }
     }
 
-    // Find best today shift: completed (most recent) → not-started (earliest)
+    // Find best today shift by TIME DISTANCE to now
+    // Compare: completed's end_time vs not-started's start_time
+    // Show whichever is closest to current time
     if (todayShifts.isNotEmpty) {
       ShiftCard? notStarted;
+      DateTime? notStartedStartTime;
       ShiftCard? completed;
-      DateTime? completedStartTime;
+      DateTime? completedEndTime;
 
       for (final card in todayShifts) {
         final startTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime)!;
         final endTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime)!;
 
         if (!card.isCheckedIn) {
+          // Not-started shift: use start_time for distance calculation
           if (!now.isAfter(endTime)) {
             if (notStarted == null) {
               notStarted = card;
+              notStartedStartTime = startTime;
             } else {
-              final existingStart = ScheduleDateUtils.parseShiftDateTime(notStarted.shiftStartTime)!;
-              if (startTime.isBefore(existingStart)) {
+              // Pick the one with start_time closest to now
+              final existingDistance = (notStartedStartTime!.difference(now)).abs();
+              final newDistance = (startTime.difference(now)).abs();
+              if (newDistance < existingDistance) {
                 notStarted = card;
+                notStartedStartTime = startTime;
               }
             }
           }
         } else if (card.isCheckedIn && card.isCheckedOut) {
-          if (completed == null || startTime.isAfter(completedStartTime!)) {
+          // Completed shift: use end_time for distance calculation
+          if (completed == null) {
             completed = card;
-            completedStartTime = startTime;
+            completedEndTime = endTime;
+          } else {
+            // Pick the one with end_time closest to now (most recent)
+            final existingDistance = (completedEndTime!.difference(now)).abs();
+            final newDistance = (endTime.difference(now)).abs();
+            if (newDistance < existingDistance) {
+              completed = card;
+              completedEndTime = endTime;
+            }
           }
         }
       }
 
-      if (completed != null) return CurrentShiftResult(shift: completed);
+      // Compare time distances: completed's end_time vs notStarted's start_time
+      if (notStarted != null && completed != null) {
+        final notStartedDistance = (notStartedStartTime!.difference(now)).abs();
+        final completedDistance = (completedEndTime!.difference(now)).abs();
+
+        // Return the shift closest to current time
+        if (notStartedDistance <= completedDistance) {
+          return CurrentShiftResult(shift: notStarted);
+        } else {
+          return CurrentShiftResult(shift: completed);
+        }
+      }
+
+      // Only one type exists
       if (notStarted != null) return CurrentShiftResult(shift: notStarted);
+      if (completed != null) return CurrentShiftResult(shift: completed);
     }
 
     // PRIORITY 3: Next upcoming shift

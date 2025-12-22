@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-ScanResult _$ScanResultFromJson(Map<String, dynamic> json) {
-  return _ScanResult.fromJson(json);
-}
-
 /// @nodoc
 mixin _$ScanResult {
   /// Date of the shift (yyyy-MM-dd format)
@@ -46,9 +42,6 @@ mixin _$ScanResult {
 
   /// User ID
   String? get userId => throw _privateConstructorUsedError;
-
-  /// Serializes this ScanResult to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of ScanResult
   /// with the given fields replaced by the non-null parameter values.
@@ -226,7 +219,7 @@ class __$$ScanResultImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$ScanResultImpl extends _ScanResult {
   const _$ScanResultImpl(
       {required this.requestDate,
@@ -239,9 +232,6 @@ class _$ScanResultImpl extends _ScanResult {
       this.storeId,
       this.userId})
       : super._();
-
-  factory _$ScanResultImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ScanResultImplFromJson(json);
 
   /// Date of the shift (yyyy-MM-dd format)
   @override
@@ -306,7 +296,6 @@ class _$ScanResultImpl extends _ScanResult {
             (identical(other.userId, userId) || other.userId == userId));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -327,13 +316,6 @@ class _$ScanResultImpl extends _ScanResult {
   @pragma('vm:prefer-inline')
   _$$ScanResultImplCopyWith<_$ScanResultImpl> get copyWith =>
       __$$ScanResultImplCopyWithImpl<_$ScanResultImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ScanResultImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _ScanResult extends ScanResult {
@@ -348,9 +330,6 @@ abstract class _ScanResult extends ScanResult {
       final String? storeId,
       final String? userId}) = _$ScanResultImpl;
   const _ScanResult._() : super._();
-
-  factory _ScanResult.fromJson(Map<String, dynamic> json) =
-      _$ScanResultImpl.fromJson;
 
   /// Date of the shift (yyyy-MM-dd format)
   @override

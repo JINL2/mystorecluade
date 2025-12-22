@@ -42,15 +42,26 @@ class ShiftRegisterController {
     try {
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
       final timezone = DateTimeUtils.getLocalTimezone();
-      final response = await getShiftMetadata(
+      final result = await getShiftMetadata(
         storeId: storeId,
         timezone: timezone,
       );
 
-      setState(() {
-        shiftMetadata = response;
-        isLoadingMetadata = false;
-      });
+      // Either pattern: fold to handle success/failure
+      result.fold(
+        (failure) {
+          setState(() {
+            isLoadingMetadata = false;
+            shiftMetadata = [];
+          });
+        },
+        (data) {
+          setState(() {
+            shiftMetadata = data;
+            isLoadingMetadata = false;
+          });
+        },
+      );
     } catch (_) {
       setState(() {
         isLoadingMetadata = false;
@@ -74,17 +85,28 @@ class ShiftRegisterController {
       final companyId = appState.companyChoosen;
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      final response = await getMonthlyShiftStatus(
+      final result = await getMonthlyShiftStatus(
         storeId: selectedStoreId!,
         companyId: companyId,
         requestTime: requestTime,
         timezone: timezone,
       );
 
-      setState(() {
-        monthlyShiftStatus = response;
-        isLoadingShiftStatus = false;
-      });
+      // Either pattern: fold to handle success/failure
+      result.fold(
+        (failure) {
+          setState(() {
+            isLoadingShiftStatus = false;
+            monthlyShiftStatus = [];
+          });
+        },
+        (data) {
+          setState(() {
+            monthlyShiftStatus = data;
+            isLoadingShiftStatus = false;
+          });
+        },
+      );
     } catch (e) {
       setState(() {
         isLoadingShiftStatus = false;

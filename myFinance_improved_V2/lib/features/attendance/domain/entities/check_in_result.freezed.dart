@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CheckInResult _$CheckInResultFromJson(Map<String, dynamic> json) {
-  return _CheckInResult.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CheckInResult {
   /// Action performed: 'check_in' or 'check_out'
@@ -37,9 +33,6 @@ mixin _$CheckInResult {
 
   /// Whether the action was successful
   bool get success => throw _privateConstructorUsedError;
-
-  /// Serializes this CheckInResult to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CheckInResult
   /// with the given fields replaced by the non-null parameter values.
@@ -181,7 +174,7 @@ class __$$CheckInResultImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CheckInResultImpl extends _CheckInResult {
   const _$CheckInResultImpl(
       {required this.action,
@@ -191,9 +184,6 @@ class _$CheckInResultImpl extends _CheckInResult {
       this.message,
       this.success = true})
       : super._();
-
-  factory _$CheckInResultImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CheckInResultImplFromJson(json);
 
   /// Action performed: 'check_in' or 'check_out'
   @override
@@ -241,7 +231,6 @@ class _$CheckInResultImpl extends _CheckInResult {
             (identical(other.success, success) || other.success == success));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, action, requestDate, timestamp,
       shiftRequestId, message, success);
@@ -253,13 +242,6 @@ class _$CheckInResultImpl extends _CheckInResult {
   @pragma('vm:prefer-inline')
   _$$CheckInResultImplCopyWith<_$CheckInResultImpl> get copyWith =>
       __$$CheckInResultImplCopyWithImpl<_$CheckInResultImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CheckInResultImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CheckInResult extends CheckInResult {
@@ -271,9 +253,6 @@ abstract class _CheckInResult extends CheckInResult {
       final String? message,
       final bool success}) = _$CheckInResultImpl;
   const _CheckInResult._() : super._();
-
-  factory _CheckInResult.fromJson(Map<String, dynamic> json) =
-      _$CheckInResultImpl.fromJson;
 
   /// Action performed: 'check_in' or 'check_out'
   @override

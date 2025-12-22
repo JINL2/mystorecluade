@@ -85,8 +85,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
   /// 에러 다이얼로그 표시 (안전한 버전)
   Future<void> _showErrorDialog(String message) async {
-    final notifier = ref.read(qrScannerProvider.notifier);
-    final state = ref.read(qrScannerProvider);
+    final notifier = ref.read(qrScannerNotifierProvider.notifier);
+    final state = ref.read(qrScannerNotifierProvider);
 
     // 이미 다이얼로그가 표시 중이면 무시
     if (state.isShowingDialog) return;
@@ -114,7 +114,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
   /// 성공 다이얼로그 표시 (안전한 버전 - 이중 pop 방지)
   void _showSuccessDialog(String message, Map<String, dynamic> resultData) {
-    final notifier = ref.read(qrScannerProvider.notifier);
+    final notifier = ref.read(qrScannerNotifierProvider.notifier);
 
     notifier.showDialog();
     notifier.setSuccess(resultData);
@@ -151,7 +151,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     BuildContext dialogContext, {
     Map<String, dynamic>? resultData,
   }) {
-    final notifier = ref.read(qrScannerProvider.notifier);
+    final notifier = ref.read(qrScannerNotifierProvider.notifier);
 
     // tryDismissDialog가 false를 반환하면 이미 닫힌 것이므로 무시
     if (!notifier.tryDismissDialog()) {
@@ -179,7 +179,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scannerState = ref.watch(qrScannerProvider);
+    final scannerState = ref.watch(qrScannerNotifierProvider);
 
     return TossScaffold(
       appBar: AppBar(
@@ -193,7 +193,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
             controller: cameraController,
             onDetect: (capture) async {
               // Riverpod 상태로 중복 스캔 방지
-              final state = ref.read(qrScannerProvider);
+              final state = ref.read(qrScannerNotifierProvider);
               if (state.isProcessing || state.hasScanned) return;
 
               final List<Barcode> barcodes = capture.barcodes;
@@ -203,7 +203,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               if (code == null || code.isEmpty) return;
 
               // 스캔 시작 상태로 변경
-              ref.read(qrScannerProvider.notifier).startScanning();
+              ref.read(qrScannerNotifierProvider.notifier).startScanning();
 
               // Stop the camera to prevent further scans
               await cameraController.stop();
@@ -265,12 +265,18 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 // Fetch shift cards for the scanned store (QR store_id)
                 // QR 스캔한 store_id로 필터링 - update_shift_requests_v7과 일관성 유지
                 final getUserShiftCards = ref.read(getUserShiftCardsProvider);
-                final shiftCards = await getUserShiftCards(
+                final shiftCardsResult = await getUserShiftCards(
                   requestTime: currentTime,
                   userId: userId,
                   companyId: companyId,
                   storeId: storeId,  // QR에서 읽은 store_id 사용
                   timezone: timezone,
+                );
+
+                // Either pattern: handle failure or extract data
+                final shiftCards = shiftCardsResult.fold(
+                  (failure) => throw Exception(failure.message),
+                  (data) => data,
                 );
 
                 // Find the closest shift's request ID
@@ -288,7 +294,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
                 // Submit attendance using check in use case
                 final checkInShift = ref.read(checkInShiftProvider);
-                final result = await checkInShift(
+                final checkInResult = await checkInShift(
                   shiftRequestId: shiftRequestId,
                   userId: userId,
                   storeId: storeId,
@@ -298,6 +304,12 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     longitude: position.longitude,
                   ),
                   timezone: timezone,
+                );
+
+                // Either pattern: handle failure or extract data
+                final result = checkInResult.fold(
+                  (failure) => throw Exception(failure.message),
+                  (data) => data,
                 );
 
                 // Check if the RPC call was successful

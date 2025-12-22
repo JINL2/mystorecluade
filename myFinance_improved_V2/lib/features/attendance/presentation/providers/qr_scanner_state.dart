@@ -1,7 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'qr_scanner_state.freezed.dart';
+part 'qr_scanner_state.g.dart';
 
 /// QR Scanner 상태를 안전하게 관리하는 Freezed State
 @freezed
@@ -48,9 +49,11 @@ enum QrScanResult {
   completed,
 }
 
-/// QR Scanner 상태를 관리하는 StateNotifier
-class QrScannerNotifier extends StateNotifier<QrScannerState> {
-  QrScannerNotifier() : super(const QrScannerState());
+/// QR Scanner 상태를 관리하는 Notifier (@riverpod)
+@riverpod
+class QrScannerNotifier extends _$QrScannerNotifier {
+  @override
+  QrScannerState build() => const QrScannerState();
 
   /// 스캔 시작
   void startScanning() {
@@ -125,9 +128,3 @@ class QrScannerNotifier extends StateNotifier<QrScannerState> {
     );
   }
 }
-
-/// QR Scanner State Provider
-final qrScannerProvider =
-    StateNotifierProvider.autoDispose<QrScannerNotifier, QrScannerState>(
-  (ref) => QrScannerNotifier(),
-);

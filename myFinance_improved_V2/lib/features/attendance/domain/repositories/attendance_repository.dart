@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../core/errors/failures.dart';
 import '../entities/attendance_location.dart';
 import '../entities/base_currency.dart';
 import '../entities/check_in_result.dart';
@@ -11,6 +14,10 @@ import '../entities/user_shift_stats.dart';
 ///
 /// Defines the contract for attendance data operations.
 /// Implementations should handle data source communication.
+///
+/// Uses Either<Failure, T> pattern for error handling:
+/// - Left(Failure): Operation failed with error details
+/// - Right(T): Operation succeeded with result
 abstract class AttendanceRepository {
   /// Update shift request (check-in or check-out)
   ///
@@ -23,8 +30,8 @@ abstract class AttendanceRepository {
   /// [location] - GPS location
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns CheckInResult entity with action details
-  Future<CheckInResult> updateShiftRequest({
+  /// Returns Either<Failure, CheckInResult> entity with action details
+  Future<Either<Failure, CheckInResult>> updateShiftRequest({
     required String shiftRequestId,
     required String userId,
     required String storeId,
@@ -43,12 +50,12 @@ abstract class AttendanceRepository {
   /// [storeId] - Store ID (Optional - null이면 회사 전체 조회)
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of ShiftCard filtered by start_time_utc (actual shift date)
-  Future<List<ShiftCard>> getUserShiftCards({
+  /// Returns Either<Failure, List<ShiftCard>> filtered by start_time_utc (actual shift date)
+  Future<Either<Failure, List<ShiftCard>>> getUserShiftCards({
     required String requestTime,
     required String userId,
     required String companyId,
-    String? storeId,  // Optional: null이면 회사 전체
+    String? storeId,
     required String timezone,
   });
 
@@ -61,8 +68,8 @@ abstract class AttendanceRepository {
   /// [time] - Local time string (e.g., "2024-11-15 10:30:25")
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul")
   ///
-  /// Returns true if successful
-  Future<bool> reportShiftIssue({
+  /// Returns Either<Failure, bool> - true if successful
+  Future<Either<Failure, bool>> reportShiftIssue({
     required String shiftRequestId,
     required String reportReason,
     required String time,
@@ -76,8 +83,8 @@ abstract class AttendanceRepository {
   /// [storeId] - Store ID
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of shift metadata with times in user's local timezone
-  Future<List<ShiftMetadata>> getShiftMetadata({
+  /// Returns Either<Failure, List<ShiftMetadata>> with times in user's local timezone
+  Future<Either<Failure, List<ShiftMetadata>>> getShiftMetadata({
     required String storeId,
     required String timezone,
   });
@@ -91,8 +98,8 @@ abstract class AttendanceRepository {
   /// [requestTime] - User's LOCAL timestamp in format 'yyyy-MM-dd HH:mm:ss' (no timezone)
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns list of shift status data for 3 months
-  Future<List<MonthlyShiftStatus>> getMonthlyShiftStatusManager({
+  /// Returns Either<Failure, List<MonthlyShiftStatus>> for 3 months
+  Future<Either<Failure, List<MonthlyShiftStatus>>> getMonthlyShiftStatusManager({
     required String storeId,
     required String companyId,
     required String requestTime,
@@ -111,8 +118,8 @@ abstract class AttendanceRepository {
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   /// NOTE: All timestamps must be WITHOUT timezone offset
   ///
-  /// Returns created ShiftRequest
-  Future<ShiftRequest?> insertShiftRequest({
+  /// Returns Either<Failure, ShiftRequest?> created ShiftRequest
+  Future<Either<Failure, ShiftRequest?>> insertShiftRequest({
     required String userId,
     required String shiftId,
     required String storeId,
@@ -131,7 +138,7 @@ abstract class AttendanceRepository {
   /// [endTime] - Shift end time as local timestamp (e.g., "2025-12-06 18:00:00")
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   /// NOTE: All timestamps must be WITHOUT timezone offset
-  Future<void> deleteShiftRequest({
+  Future<Either<Failure, Unit>> deleteShiftRequest({
     required String userId,
     required String shiftId,
     required String startTime,
@@ -145,8 +152,8 @@ abstract class AttendanceRepository {
   ///
   /// [companyId] - Company ID
   ///
-  /// Returns [BaseCurrency] with currency symbol and details
-  Future<BaseCurrency> getBaseCurrency({
+  /// Returns Either<Failure, BaseCurrency> with currency symbol and details
+  Future<Either<Failure, BaseCurrency>> getBaseCurrency({
     required String companyId,
   });
 
@@ -160,8 +167,8 @@ abstract class AttendanceRepository {
   /// [storeId] - Store ID
   /// [timezone] - User's local timezone (e.g., "Asia/Seoul", "Asia/Ho_Chi_Minh")
   ///
-  /// Returns [UserShiftStats] with salary info, period stats, and weekly payments
-  Future<UserShiftStats> getUserShiftStats({
+  /// Returns Either<Failure, UserShiftStats> with salary info, period stats, and weekly payments
+  Future<Either<Failure, UserShiftStats>> getUserShiftStats({
     required String requestTime,
     required String userId,
     required String companyId,

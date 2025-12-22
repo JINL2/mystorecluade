@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart'; // Import appStateProvider
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
 import '../../domain/constants/permission_constants.dart';
@@ -14,28 +15,31 @@ import 'states/template_state.dart';
 import 'use_case_providers.dart';
 import 'validator_providers.dart';
 
+part 'template_provider.g.dart';
+
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Template Notifier - 상태 관리 + 비즈니스 로직 조율
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ///
 /// Flutter 표준 구조: Notifier가 직접 UseCase/Repository 호출
 /// Controller 레이어 없이 Domain Layer와 직접 통신
-class TemplateNotifier extends StateNotifier<TemplateState> {
-  final CreateTemplateUseCase _createUseCase;
-  final DeleteTemplateUseCase _deleteUseCase;
-  final UpdateTemplateUseCase _updateUseCase;
-  final TemplateRepository _repository;
+///
+/// ✅ 2025 Riverpod: @riverpod 어노테이션 사용
+@riverpod
+class TemplateNotifier extends _$TemplateNotifier {
+  late final CreateTemplateUseCase _createUseCase;
+  late final DeleteTemplateUseCase _deleteUseCase;
+  late final UpdateTemplateUseCase _updateUseCase;
+  late final TemplateRepository _repository;
 
-  TemplateNotifier({
-    required CreateTemplateUseCase createUseCase,
-    required DeleteTemplateUseCase deleteUseCase,
-    required UpdateTemplateUseCase updateUseCase,
-    required TemplateRepository repository,
-  })  : _createUseCase = createUseCase,
-        _deleteUseCase = deleteUseCase,
-        _updateUseCase = updateUseCase,
-        _repository = repository,
-        super(const TemplateState());
+  @override
+  TemplateState build() {
+    _createUseCase = ref.read(createTemplateUseCaseProvider);
+    _deleteUseCase = ref.read(deleteTemplateUseCaseProvider);
+    _updateUseCase = ref.read(updateTemplateUseCaseProvider);
+    _repository = ref.read(templateRepositoryProvider);
+    return const TemplateState();
+  }
 
   /// 템플릿 목록 로드 (직접 Repository 호출)
   Future<void> loadTemplates({
@@ -252,13 +256,17 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Template Creation Notifier - 템플릿 생성 전용 상태 관리
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-class TemplateCreationNotifier extends StateNotifier<TemplateCreationState> {
-  final CreateTemplateUseCase _createUseCase;
+///
+/// ✅ 2025 Riverpod: @riverpod 어노테이션 사용
+@riverpod
+class TemplateCreationNotifier extends _$TemplateCreationNotifier {
+  late final CreateTemplateUseCase _createUseCase;
 
-  TemplateCreationNotifier({
-    required CreateTemplateUseCase createUseCase,
-  })  : _createUseCase = createUseCase,
-        super(const TemplateCreationState());
+  @override
+  TemplateCreationState build() {
+    _createUseCase = ref.read(createTemplateUseCaseProvider);
+    return const TemplateCreationState();
+  }
 
   /// 템플릿 생성
   Future<bool> createTemplate(CreateTemplateCommand command) async {
@@ -318,8 +326,12 @@ class TemplateCreationNotifier extends StateNotifier<TemplateCreationState> {
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Template Filter Notifier - 필터 상태 관리
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-class TemplateFilterNotifier extends StateNotifier<TemplateFilterState> {
-  TemplateFilterNotifier() : super(const TemplateFilterState());
+///
+/// ✅ 2025 Riverpod: @riverpod 어노테이션 사용
+@riverpod
+class TemplateFilterNotifier extends _$TemplateFilterNotifier {
+  @override
+  TemplateFilterState build() => const TemplateFilterState();
 
   /// 가시성 필터 업데이트
   void updateVisibilityFilter(String filter) {
@@ -396,28 +408,11 @@ class TemplateFilterNotifier extends StateNotifier<TemplateFilterState> {
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Providers (DI)
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-/// Template Provider - 메인 템플릿 상태 관리
-final templateProvider = StateNotifierProvider<TemplateNotifier, TemplateState>((ref) {
-  return TemplateNotifier(
-    createUseCase: ref.read(createTemplateUseCaseProvider),
-    deleteUseCase: ref.read(deleteTemplateUseCaseProvider),
-    updateUseCase: ref.read(updateTemplateUseCaseProvider),
-    repository: ref.read(templateRepositoryProvider),
-  );
-});
-
-/// Template Creation Provider - 템플릿 생성 전용
-final templateCreationProvider = StateNotifierProvider<TemplateCreationNotifier, TemplateCreationState>((ref) {
-  return TemplateCreationNotifier(
-    createUseCase: ref.read(createTemplateUseCaseProvider),
-  );
-});
-
-/// Template Filter Provider - 필터 상태
-final templateFilterProvider = StateNotifierProvider<TemplateFilterNotifier, TemplateFilterState>((ref) {
-  return TemplateFilterNotifier();
-});
+///
+/// ✅ 2025 Riverpod: @riverpod 어노테이션으로 자동 생성됨
+/// - templateNotifierProvider (from @riverpod TemplateNotifier)
+/// - templateCreationNotifierProvider (from @riverpod TemplateCreationNotifier)
+/// - templateFilterNotifierProvider (from @riverpod TemplateFilterNotifier)
 
 /// UseCase Providers (Domain Layer DI)
 final createTemplateUseCaseProvider = Provider<CreateTemplateUseCase>((ref) {
@@ -441,9 +436,10 @@ final deleteTemplateUseCaseProvider = Provider<DeleteTemplateUseCase>((ref) {
 /// Filtered Templates Provider - 필터가 적용된 템플릿 목록
 ///
 /// TemplateState와 TemplateFilterState를 결합하여 필터링된 템플릿 반환
-final filteredTemplatesProvider = Provider<List<TransactionTemplate>>((ref) {
-  final templateState = ref.watch(templateProvider);
-  final filterState = ref.watch(templateFilterProvider);
+@riverpod
+List<TransactionTemplate> filteredTemplates(Ref ref) {
+  final templateState = ref.watch(templateNotifierProvider);
+  final filterState = ref.watch(templateFilterNotifierProvider);
 
   // Start with all templates
   var filtered = templateState.templates;
@@ -512,7 +508,7 @@ final filteredTemplatesProvider = Provider<List<TransactionTemplate>>((ref) {
   }
 
   return filtered;
-});
+}
 
 /// Can Delete Templates Provider - 템플릿 삭제 권한 확인
 ///
@@ -522,7 +518,8 @@ final filteredTemplatesProvider = Provider<List<TransactionTemplate>>((ref) {
 /// Checks user permissions from appStateProvider:
 /// - Has adminPermission UUID → true (can access Admin tab and delete any templates)
 /// - No adminPermission UUID → false (can only access General tab and delete own templates)
-final canDeleteTemplatesProvider = Provider<bool>((ref) {
+@riverpod
+bool canDeleteTemplates(Ref ref) {
   final appState = ref.watch(appStateProvider);
   final user = appState.user;
 
@@ -558,14 +555,15 @@ final canDeleteTemplatesProvider = Provider<bool>((ref) {
   final hasAdminPermission = PermissionChecker.hasAdminPermission(permissions);
 
   return hasAdminPermission;
-});
+}
 
 /// Can Edit Template Provider - 특정 템플릿 수정 권한 확인
 ///
 /// 현재 사용자가 특정 템플릿을 수정할 수 있는지 확인
 /// - Admin 권한 보유자: 모든 템플릿 수정 가능
 /// - 일반 사용자: 본인이 생성한 템플릿만 수정 가능
-final canEditTemplateProvider = Provider.family<bool, String?>((ref, createdBy) {
+@riverpod
+bool canEditTemplate(Ref ref, String? createdBy) {
   // Admin은 모든 템플릿 수정 가능
   final hasAdminPermission = ref.watch(canDeleteTemplatesProvider);
   if (hasAdminPermission) return true;
@@ -577,20 +575,21 @@ final canEditTemplateProvider = Provider.family<bool, String?>((ref, createdBy) 
   final currentUserId = appState.user['user_id'] as String?;
 
   return currentUserId != null && currentUserId == createdBy;
-});
+}
 
 /// Refresh Templates Provider - 템플릿 새로고침 함수
 ///
 /// UI에서 pull-to-refresh 등에 사용할 수 있는 새로고침 함수 제공
-final refreshTemplatesProvider = Provider<Future<void> Function()>((ref) {
+@riverpod
+Future<void> Function() refreshTemplates(Ref ref) {
   return () async {
     // Get company and store from app state
     final appState = ref.read(appStateProvider);
-    final notifier = ref.read(templateProvider.notifier);
+    final notifier = ref.read(templateNotifierProvider.notifier);
 
     await notifier.loadTemplates(
       companyId: appState.companyChoosen,
       storeId: appState.storeChoosen,
     );
   };
-});
+}

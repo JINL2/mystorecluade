@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/entities/employee_monthly_detail.dart';
-import '../../../di/dependency_injection.dart';
+import '../repository_providers.dart';
 
 // ============================================================================
 // State Class

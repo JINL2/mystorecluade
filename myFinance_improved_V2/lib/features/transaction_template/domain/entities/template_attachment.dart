@@ -22,8 +22,8 @@ class TemplateAttachment with _$TemplateAttachment {
     /// Journal ID this attachment belongs to (null before journal is created)
     String? journalId,
 
-    /// Local file for pending uploads
-    @JsonKey(includeFromJson: false, includeToJson: false) XFile? localFile,
+    /// Local file for pending uploads (not serialized)
+    XFile? localFile,
 
     /// Storage URL after upload
     String? fileUrl,

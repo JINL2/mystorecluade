@@ -1,12 +1,13 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'check_in_result.freezed.dart';
-part 'check_in_result.g.dart';
 
 /// Check-In/Check-Out Result Entity
 ///
 /// Represents the result of a QR scan check-in or check-out operation.
 /// This is a Domain entity that encapsulates the business concept of attendance action result.
+///
+/// Note: JSON serialization is handled by CheckInResultModel in data layer
 @freezed
 class CheckInResult with _$CheckInResult {
   const CheckInResult._();
@@ -30,9 +31,6 @@ class CheckInResult with _$CheckInResult {
     /// Whether the action was successful
     @Default(true) bool success,
   }) = _CheckInResult;
-
-  factory CheckInResult.fromJson(Map<String, dynamic> json) =>
-      _$CheckInResultFromJson(json);
 
   /// Check if this was a check-in action
   bool get isCheckIn => action == 'check_in';

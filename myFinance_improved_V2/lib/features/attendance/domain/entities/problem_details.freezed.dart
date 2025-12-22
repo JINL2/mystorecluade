@@ -14,37 +14,20 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-ProblemDetails _$ProblemDetailsFromJson(Map<String, dynamic> json) {
-  return _ProblemDetails.fromJson(json);
-}
-
 /// @nodoc
 mixin _$ProblemDetails {
 // 빠른 필터링용 플래그
-  @JsonKey(name: 'has_late')
   bool get hasLate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'has_absence')
   bool get hasAbsence => throw _privateConstructorUsedError;
-  @JsonKey(name: 'has_overtime')
   bool get hasOvertime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'has_early_leave')
   bool get hasEarlyLeave => throw _privateConstructorUsedError;
-  @JsonKey(name: 'has_no_checkout')
   bool get hasNoCheckout => throw _privateConstructorUsedError;
-  @JsonKey(name: 'has_location_issue')
   bool get hasLocationIssue => throw _privateConstructorUsedError;
-  @JsonKey(name: 'has_reported')
   bool get hasReported => throw _privateConstructorUsedError; // 상태
-  @JsonKey(name: 'is_solved')
   bool get isSolved => throw _privateConstructorUsedError;
-  @JsonKey(name: 'problem_count')
   int get problemCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'detected_at')
   String? get detectedAt => throw _privateConstructorUsedError; // 상세 문제 목록
   List<Problem> get problems => throw _privateConstructorUsedError;
-
-  /// Serializes this ProblemDetails to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of ProblemDetails
   /// with the given fields replaced by the non-null parameter values.
@@ -60,16 +43,16 @@ abstract class $ProblemDetailsCopyWith<$Res> {
       _$ProblemDetailsCopyWithImpl<$Res, ProblemDetails>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'has_late') bool hasLate,
-      @JsonKey(name: 'has_absence') bool hasAbsence,
-      @JsonKey(name: 'has_overtime') bool hasOvertime,
-      @JsonKey(name: 'has_early_leave') bool hasEarlyLeave,
-      @JsonKey(name: 'has_no_checkout') bool hasNoCheckout,
-      @JsonKey(name: 'has_location_issue') bool hasLocationIssue,
-      @JsonKey(name: 'has_reported') bool hasReported,
-      @JsonKey(name: 'is_solved') bool isSolved,
-      @JsonKey(name: 'problem_count') int problemCount,
-      @JsonKey(name: 'detected_at') String? detectedAt,
+      {bool hasLate,
+      bool hasAbsence,
+      bool hasOvertime,
+      bool hasEarlyLeave,
+      bool hasNoCheckout,
+      bool hasLocationIssue,
+      bool hasReported,
+      bool isSolved,
+      int problemCount,
+      String? detectedAt,
       List<Problem> problems});
 }
 
@@ -158,16 +141,16 @@ abstract class _$$ProblemDetailsImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'has_late') bool hasLate,
-      @JsonKey(name: 'has_absence') bool hasAbsence,
-      @JsonKey(name: 'has_overtime') bool hasOvertime,
-      @JsonKey(name: 'has_early_leave') bool hasEarlyLeave,
-      @JsonKey(name: 'has_no_checkout') bool hasNoCheckout,
-      @JsonKey(name: 'has_location_issue') bool hasLocationIssue,
-      @JsonKey(name: 'has_reported') bool hasReported,
-      @JsonKey(name: 'is_solved') bool isSolved,
-      @JsonKey(name: 'problem_count') int problemCount,
-      @JsonKey(name: 'detected_at') String? detectedAt,
+      {bool hasLate,
+      bool hasAbsence,
+      bool hasOvertime,
+      bool hasEarlyLeave,
+      bool hasNoCheckout,
+      bool hasLocationIssue,
+      bool hasReported,
+      bool isSolved,
+      int problemCount,
+      String? detectedAt,
       List<Problem> problems});
 }
 
@@ -246,57 +229,53 @@ class __$$ProblemDetailsImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$ProblemDetailsImpl extends _ProblemDetails {
   const _$ProblemDetailsImpl(
-      {@JsonKey(name: 'has_late') this.hasLate = false,
-      @JsonKey(name: 'has_absence') this.hasAbsence = false,
-      @JsonKey(name: 'has_overtime') this.hasOvertime = false,
-      @JsonKey(name: 'has_early_leave') this.hasEarlyLeave = false,
-      @JsonKey(name: 'has_no_checkout') this.hasNoCheckout = false,
-      @JsonKey(name: 'has_location_issue') this.hasLocationIssue = false,
-      @JsonKey(name: 'has_reported') this.hasReported = false,
-      @JsonKey(name: 'is_solved') this.isSolved = false,
-      @JsonKey(name: 'problem_count') this.problemCount = 0,
-      @JsonKey(name: 'detected_at') this.detectedAt,
+      {this.hasLate = false,
+      this.hasAbsence = false,
+      this.hasOvertime = false,
+      this.hasEarlyLeave = false,
+      this.hasNoCheckout = false,
+      this.hasLocationIssue = false,
+      this.hasReported = false,
+      this.isSolved = false,
+      this.problemCount = 0,
+      this.detectedAt,
       final List<Problem> problems = const []})
       : _problems = problems,
         super._();
 
-  factory _$ProblemDetailsImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ProblemDetailsImplFromJson(json);
-
 // 빠른 필터링용 플래그
   @override
-  @JsonKey(name: 'has_late')
+  @JsonKey()
   final bool hasLate;
   @override
-  @JsonKey(name: 'has_absence')
+  @JsonKey()
   final bool hasAbsence;
   @override
-  @JsonKey(name: 'has_overtime')
+  @JsonKey()
   final bool hasOvertime;
   @override
-  @JsonKey(name: 'has_early_leave')
+  @JsonKey()
   final bool hasEarlyLeave;
   @override
-  @JsonKey(name: 'has_no_checkout')
+  @JsonKey()
   final bool hasNoCheckout;
   @override
-  @JsonKey(name: 'has_location_issue')
+  @JsonKey()
   final bool hasLocationIssue;
   @override
-  @JsonKey(name: 'has_reported')
+  @JsonKey()
   final bool hasReported;
 // 상태
   @override
-  @JsonKey(name: 'is_solved')
+  @JsonKey()
   final bool isSolved;
   @override
-  @JsonKey(name: 'problem_count')
+  @JsonKey()
   final int problemCount;
   @override
-  @JsonKey(name: 'detected_at')
   final String? detectedAt;
 // 상세 문제 목록
   final List<Problem> _problems;
@@ -341,7 +320,6 @@ class _$ProblemDetailsImpl extends _ProblemDetails {
             const DeepCollectionEquality().equals(other._problems, _problems));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -365,63 +343,43 @@ class _$ProblemDetailsImpl extends _ProblemDetails {
   _$$ProblemDetailsImplCopyWith<_$ProblemDetailsImpl> get copyWith =>
       __$$ProblemDetailsImplCopyWithImpl<_$ProblemDetailsImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ProblemDetailsImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _ProblemDetails extends ProblemDetails {
   const factory _ProblemDetails(
-      {@JsonKey(name: 'has_late') final bool hasLate,
-      @JsonKey(name: 'has_absence') final bool hasAbsence,
-      @JsonKey(name: 'has_overtime') final bool hasOvertime,
-      @JsonKey(name: 'has_early_leave') final bool hasEarlyLeave,
-      @JsonKey(name: 'has_no_checkout') final bool hasNoCheckout,
-      @JsonKey(name: 'has_location_issue') final bool hasLocationIssue,
-      @JsonKey(name: 'has_reported') final bool hasReported,
-      @JsonKey(name: 'is_solved') final bool isSolved,
-      @JsonKey(name: 'problem_count') final int problemCount,
-      @JsonKey(name: 'detected_at') final String? detectedAt,
+      {final bool hasLate,
+      final bool hasAbsence,
+      final bool hasOvertime,
+      final bool hasEarlyLeave,
+      final bool hasNoCheckout,
+      final bool hasLocationIssue,
+      final bool hasReported,
+      final bool isSolved,
+      final int problemCount,
+      final String? detectedAt,
       final List<Problem> problems}) = _$ProblemDetailsImpl;
   const _ProblemDetails._() : super._();
 
-  factory _ProblemDetails.fromJson(Map<String, dynamic> json) =
-      _$ProblemDetailsImpl.fromJson;
-
 // 빠른 필터링용 플래그
   @override
-  @JsonKey(name: 'has_late')
   bool get hasLate;
   @override
-  @JsonKey(name: 'has_absence')
   bool get hasAbsence;
   @override
-  @JsonKey(name: 'has_overtime')
   bool get hasOvertime;
   @override
-  @JsonKey(name: 'has_early_leave')
   bool get hasEarlyLeave;
   @override
-  @JsonKey(name: 'has_no_checkout')
   bool get hasNoCheckout;
   @override
-  @JsonKey(name: 'has_location_issue')
   bool get hasLocationIssue;
   @override
-  @JsonKey(name: 'has_reported')
   bool get hasReported; // 상태
   @override
-  @JsonKey(name: 'is_solved')
   bool get isSolved;
   @override
-  @JsonKey(name: 'problem_count')
   int get problemCount;
   @override
-  @JsonKey(name: 'detected_at')
   String? get detectedAt; // 상세 문제 목록
   @override
   List<Problem> get problems;
@@ -434,114 +392,63 @@ abstract class _ProblemDetails extends ProblemDetails {
       throw _privateConstructorUsedError;
 }
 
-Problem _$ProblemFromJson(Map<String, dynamic> json) {
-  switch (json['type']) {
-    case 'late':
-      return LateProblem.fromJson(json);
-    case 'overtime':
-      return OvertimeProblem.fromJson(json);
-    case 'early_leave':
-      return EarlyLeaveProblem.fromJson(json);
-    case 'absence':
-      return AbsenceProblem.fromJson(json);
-    case 'no_checkout':
-      return NoCheckoutProblem.fromJson(json);
-    case 'invalid_checkin':
-      return InvalidCheckinProblem.fromJson(json);
-    case 'invalid_checkout':
-      return InvalidCheckoutProblem.fromJson(json);
-    case 'reported':
-      return ReportedProblem.fromJson(json);
-
-    default:
-      throw CheckedFromJsonException(
-          json, 'type', 'Problem', 'Invalid union type "${json['type']}"!');
-  }
-}
-
 /// @nodoc
 mixin _$Problem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) =>
@@ -583,9 +490,6 @@ mixin _$Problem {
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
-
-  /// Serializes this Problem to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -614,10 +518,7 @@ abstract class _$$LateProblemImplCopyWith<$Res> {
           _$LateProblemImpl value, $Res Function(_$LateProblemImpl) then) =
       __$$LateProblemImplCopyWithImpl<$Res>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'actual_minutes') int actualMinutes,
-      @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-      @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted});
+  $Res call({int actualMinutes, int payrollMinutes, bool isPayrollAdjusted});
 }
 
 /// @nodoc
@@ -655,31 +556,23 @@ class __$$LateProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$LateProblemImpl extends LateProblem {
   const _$LateProblemImpl(
-      {@JsonKey(name: 'actual_minutes') this.actualMinutes = 0,
-      @JsonKey(name: 'payroll_minutes') this.payrollMinutes = 0,
-      @JsonKey(name: 'is_payroll_adjusted') this.isPayrollAdjusted = false,
-      final String? $type})
-      : $type = $type ?? 'late',
-        super._();
-
-  factory _$LateProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$LateProblemImplFromJson(json);
+      {this.actualMinutes = 0,
+      this.payrollMinutes = 0,
+      this.isPayrollAdjusted = false})
+      : super._();
 
   @override
-  @JsonKey(name: 'actual_minutes')
+  @JsonKey()
   final int actualMinutes;
   @override
-  @JsonKey(name: 'payroll_minutes')
+  @JsonKey()
   final int payrollMinutes;
   @override
-  @JsonKey(name: 'is_payroll_adjusted')
+  @JsonKey()
   final bool isPayrollAdjusted;
-
-  @JsonKey(name: 'type')
-  final String $type;
 
   @override
   String toString() {
@@ -699,7 +592,6 @@ class _$LateProblemImpl extends LateProblem {
                 other.isPayrollAdjusted == isPayrollAdjusted));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -716,28 +608,20 @@ class _$LateProblemImpl extends LateProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return late(actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -747,28 +631,19 @@ class _$LateProblemImpl extends LateProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return late?.call(actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -778,28 +653,19 @@ class _$LateProblemImpl extends LateProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -857,31 +723,17 @@ class _$LateProblemImpl extends LateProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$LateProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class LateProblem extends Problem {
   const factory LateProblem(
-          {@JsonKey(name: 'actual_minutes') final int actualMinutes,
-          @JsonKey(name: 'payroll_minutes') final int payrollMinutes,
-          @JsonKey(name: 'is_payroll_adjusted') final bool isPayrollAdjusted}) =
-      _$LateProblemImpl;
+      {final int actualMinutes,
+      final int payrollMinutes,
+      final bool isPayrollAdjusted}) = _$LateProblemImpl;
   const LateProblem._() : super._();
 
-  factory LateProblem.fromJson(Map<String, dynamic> json) =
-      _$LateProblemImpl.fromJson;
-
-  @JsonKey(name: 'actual_minutes')
   int get actualMinutes;
-  @JsonKey(name: 'payroll_minutes')
   int get payrollMinutes;
-  @JsonKey(name: 'is_payroll_adjusted')
   bool get isPayrollAdjusted;
 
   /// Create a copy of Problem
@@ -897,10 +749,7 @@ abstract class _$$OvertimeProblemImplCopyWith<$Res> {
           $Res Function(_$OvertimeProblemImpl) then) =
       __$$OvertimeProblemImplCopyWithImpl<$Res>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'actual_minutes') int actualMinutes,
-      @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-      @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted});
+  $Res call({int actualMinutes, int payrollMinutes, bool isPayrollAdjusted});
 }
 
 /// @nodoc
@@ -938,31 +787,23 @@ class __$$OvertimeProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$OvertimeProblemImpl extends OvertimeProblem {
   const _$OvertimeProblemImpl(
-      {@JsonKey(name: 'actual_minutes') this.actualMinutes = 0,
-      @JsonKey(name: 'payroll_minutes') this.payrollMinutes = 0,
-      @JsonKey(name: 'is_payroll_adjusted') this.isPayrollAdjusted = false,
-      final String? $type})
-      : $type = $type ?? 'overtime',
-        super._();
-
-  factory _$OvertimeProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OvertimeProblemImplFromJson(json);
+      {this.actualMinutes = 0,
+      this.payrollMinutes = 0,
+      this.isPayrollAdjusted = false})
+      : super._();
 
   @override
-  @JsonKey(name: 'actual_minutes')
+  @JsonKey()
   final int actualMinutes;
   @override
-  @JsonKey(name: 'payroll_minutes')
+  @JsonKey()
   final int payrollMinutes;
   @override
-  @JsonKey(name: 'is_payroll_adjusted')
+  @JsonKey()
   final bool isPayrollAdjusted;
-
-  @JsonKey(name: 'type')
-  final String $type;
 
   @override
   String toString() {
@@ -982,7 +823,6 @@ class _$OvertimeProblemImpl extends OvertimeProblem {
                 other.isPayrollAdjusted == isPayrollAdjusted));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -1000,28 +840,20 @@ class _$OvertimeProblemImpl extends OvertimeProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return overtime(actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -1031,28 +863,19 @@ class _$OvertimeProblemImpl extends OvertimeProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return overtime?.call(actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -1062,28 +885,19 @@ class _$OvertimeProblemImpl extends OvertimeProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -1141,31 +955,17 @@ class _$OvertimeProblemImpl extends OvertimeProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OvertimeProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class OvertimeProblem extends Problem {
   const factory OvertimeProblem(
-          {@JsonKey(name: 'actual_minutes') final int actualMinutes,
-          @JsonKey(name: 'payroll_minutes') final int payrollMinutes,
-          @JsonKey(name: 'is_payroll_adjusted') final bool isPayrollAdjusted}) =
-      _$OvertimeProblemImpl;
+      {final int actualMinutes,
+      final int payrollMinutes,
+      final bool isPayrollAdjusted}) = _$OvertimeProblemImpl;
   const OvertimeProblem._() : super._();
 
-  factory OvertimeProblem.fromJson(Map<String, dynamic> json) =
-      _$OvertimeProblemImpl.fromJson;
-
-  @JsonKey(name: 'actual_minutes')
   int get actualMinutes;
-  @JsonKey(name: 'payroll_minutes')
   int get payrollMinutes;
-  @JsonKey(name: 'is_payroll_adjusted')
   bool get isPayrollAdjusted;
 
   /// Create a copy of Problem
@@ -1181,10 +981,7 @@ abstract class _$$EarlyLeaveProblemImplCopyWith<$Res> {
           $Res Function(_$EarlyLeaveProblemImpl) then) =
       __$$EarlyLeaveProblemImplCopyWithImpl<$Res>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'actual_minutes') int actualMinutes,
-      @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-      @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted});
+  $Res call({int actualMinutes, int payrollMinutes, bool isPayrollAdjusted});
 }
 
 /// @nodoc
@@ -1222,31 +1019,23 @@ class __$$EarlyLeaveProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$EarlyLeaveProblemImpl extends EarlyLeaveProblem {
   const _$EarlyLeaveProblemImpl(
-      {@JsonKey(name: 'actual_minutes') this.actualMinutes = 0,
-      @JsonKey(name: 'payroll_minutes') this.payrollMinutes = 0,
-      @JsonKey(name: 'is_payroll_adjusted') this.isPayrollAdjusted = false,
-      final String? $type})
-      : $type = $type ?? 'early_leave',
-        super._();
-
-  factory _$EarlyLeaveProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$EarlyLeaveProblemImplFromJson(json);
+      {this.actualMinutes = 0,
+      this.payrollMinutes = 0,
+      this.isPayrollAdjusted = false})
+      : super._();
 
   @override
-  @JsonKey(name: 'actual_minutes')
+  @JsonKey()
   final int actualMinutes;
   @override
-  @JsonKey(name: 'payroll_minutes')
+  @JsonKey()
   final int payrollMinutes;
   @override
-  @JsonKey(name: 'is_payroll_adjusted')
+  @JsonKey()
   final bool isPayrollAdjusted;
-
-  @JsonKey(name: 'type')
-  final String $type;
 
   @override
   String toString() {
@@ -1266,7 +1055,6 @@ class _$EarlyLeaveProblemImpl extends EarlyLeaveProblem {
                 other.isPayrollAdjusted == isPayrollAdjusted));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -1284,28 +1072,20 @@ class _$EarlyLeaveProblemImpl extends EarlyLeaveProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return earlyLeave(actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -1315,28 +1095,19 @@ class _$EarlyLeaveProblemImpl extends EarlyLeaveProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return earlyLeave?.call(actualMinutes, payrollMinutes, isPayrollAdjusted);
@@ -1346,28 +1117,19 @@ class _$EarlyLeaveProblemImpl extends EarlyLeaveProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -1425,31 +1187,17 @@ class _$EarlyLeaveProblemImpl extends EarlyLeaveProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$EarlyLeaveProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class EarlyLeaveProblem extends Problem {
   const factory EarlyLeaveProblem(
-          {@JsonKey(name: 'actual_minutes') final int actualMinutes,
-          @JsonKey(name: 'payroll_minutes') final int payrollMinutes,
-          @JsonKey(name: 'is_payroll_adjusted') final bool isPayrollAdjusted}) =
-      _$EarlyLeaveProblemImpl;
+      {final int actualMinutes,
+      final int payrollMinutes,
+      final bool isPayrollAdjusted}) = _$EarlyLeaveProblemImpl;
   const EarlyLeaveProblem._() : super._();
 
-  factory EarlyLeaveProblem.fromJson(Map<String, dynamic> json) =
-      _$EarlyLeaveProblemImpl.fromJson;
-
-  @JsonKey(name: 'actual_minutes')
   int get actualMinutes;
-  @JsonKey(name: 'payroll_minutes')
   int get payrollMinutes;
-  @JsonKey(name: 'is_payroll_adjusted')
   bool get isPayrollAdjusted;
 
   /// Create a copy of Problem
@@ -1479,17 +1227,9 @@ class __$$AbsenceProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$AbsenceProblemImpl extends AbsenceProblem {
-  const _$AbsenceProblemImpl({final String? $type})
-      : $type = $type ?? 'absence',
-        super._();
-
-  factory _$AbsenceProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$AbsenceProblemImplFromJson(json);
-
-  @JsonKey(name: 'type')
-  final String $type;
+  const _$AbsenceProblemImpl() : super._();
 
   @override
   String toString() {
@@ -1502,7 +1242,6 @@ class _$AbsenceProblemImpl extends AbsenceProblem {
         (other.runtimeType == runtimeType && other is _$AbsenceProblemImpl);
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => runtimeType.hashCode;
 
@@ -1510,28 +1249,20 @@ class _$AbsenceProblemImpl extends AbsenceProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return absence();
@@ -1541,28 +1272,19 @@ class _$AbsenceProblemImpl extends AbsenceProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return absence?.call();
@@ -1572,28 +1294,19 @@ class _$AbsenceProblemImpl extends AbsenceProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -1651,21 +1364,11 @@ class _$AbsenceProblemImpl extends AbsenceProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$AbsenceProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class AbsenceProblem extends Problem {
   const factory AbsenceProblem() = _$AbsenceProblemImpl;
   const AbsenceProblem._() : super._();
-
-  factory AbsenceProblem.fromJson(Map<String, dynamic> json) =
-      _$AbsenceProblemImpl.fromJson;
 }
 
 /// @nodoc
@@ -1688,17 +1391,9 @@ class __$$NoCheckoutProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$NoCheckoutProblemImpl extends NoCheckoutProblem {
-  const _$NoCheckoutProblemImpl({final String? $type})
-      : $type = $type ?? 'no_checkout',
-        super._();
-
-  factory _$NoCheckoutProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$NoCheckoutProblemImplFromJson(json);
-
-  @JsonKey(name: 'type')
-  final String $type;
+  const _$NoCheckoutProblemImpl() : super._();
 
   @override
   String toString() {
@@ -1711,7 +1406,6 @@ class _$NoCheckoutProblemImpl extends NoCheckoutProblem {
         (other.runtimeType == runtimeType && other is _$NoCheckoutProblemImpl);
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => runtimeType.hashCode;
 
@@ -1719,28 +1413,20 @@ class _$NoCheckoutProblemImpl extends NoCheckoutProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return noCheckout();
@@ -1750,28 +1436,19 @@ class _$NoCheckoutProblemImpl extends NoCheckoutProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return noCheckout?.call();
@@ -1781,28 +1458,19 @@ class _$NoCheckoutProblemImpl extends NoCheckoutProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -1860,21 +1528,11 @@ class _$NoCheckoutProblemImpl extends NoCheckoutProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$NoCheckoutProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class NoCheckoutProblem extends Problem {
   const factory NoCheckoutProblem() = _$NoCheckoutProblemImpl;
   const NoCheckoutProblem._() : super._();
-
-  factory NoCheckoutProblem.fromJson(Map<String, dynamic> json) =
-      _$NoCheckoutProblemImpl.fromJson;
 }
 
 /// @nodoc
@@ -1912,21 +1570,13 @@ class __$$InvalidCheckinProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
-class _$InvalidCheckinProblemImpl extends InvalidCheckinProblem {
-  const _$InvalidCheckinProblemImpl({this.distance = 0, final String? $type})
-      : $type = $type ?? 'invalid_checkin',
-        super._();
 
-  factory _$InvalidCheckinProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$InvalidCheckinProblemImplFromJson(json);
+class _$InvalidCheckinProblemImpl extends InvalidCheckinProblem {
+  const _$InvalidCheckinProblemImpl({this.distance = 0}) : super._();
 
   @override
   @JsonKey()
   final int distance;
-
-  @JsonKey(name: 'type')
-  final String $type;
 
   @override
   String toString() {
@@ -1942,7 +1592,6 @@ class _$InvalidCheckinProblemImpl extends InvalidCheckinProblem {
                 other.distance == distance));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, distance);
 
@@ -1959,28 +1608,20 @@ class _$InvalidCheckinProblemImpl extends InvalidCheckinProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return invalidCheckin(distance);
@@ -1990,28 +1631,19 @@ class _$InvalidCheckinProblemImpl extends InvalidCheckinProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return invalidCheckin?.call(distance);
@@ -2021,28 +1653,19 @@ class _$InvalidCheckinProblemImpl extends InvalidCheckinProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -2100,22 +1723,12 @@ class _$InvalidCheckinProblemImpl extends InvalidCheckinProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$InvalidCheckinProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class InvalidCheckinProblem extends Problem {
   const factory InvalidCheckinProblem({final int distance}) =
       _$InvalidCheckinProblemImpl;
   const InvalidCheckinProblem._() : super._();
-
-  factory InvalidCheckinProblem.fromJson(Map<String, dynamic> json) =
-      _$InvalidCheckinProblemImpl.fromJson;
 
   int get distance;
 
@@ -2162,21 +1775,13 @@ class __$$InvalidCheckoutProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
-class _$InvalidCheckoutProblemImpl extends InvalidCheckoutProblem {
-  const _$InvalidCheckoutProblemImpl({this.distance = 0, final String? $type})
-      : $type = $type ?? 'invalid_checkout',
-        super._();
 
-  factory _$InvalidCheckoutProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$InvalidCheckoutProblemImplFromJson(json);
+class _$InvalidCheckoutProblemImpl extends InvalidCheckoutProblem {
+  const _$InvalidCheckoutProblemImpl({this.distance = 0}) : super._();
 
   @override
   @JsonKey()
   final int distance;
-
-  @JsonKey(name: 'type')
-  final String $type;
 
   @override
   String toString() {
@@ -2192,7 +1797,6 @@ class _$InvalidCheckoutProblemImpl extends InvalidCheckoutProblem {
                 other.distance == distance));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, distance);
 
@@ -2209,28 +1813,20 @@ class _$InvalidCheckoutProblemImpl extends InvalidCheckoutProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return invalidCheckout(distance);
@@ -2240,28 +1836,19 @@ class _$InvalidCheckoutProblemImpl extends InvalidCheckoutProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return invalidCheckout?.call(distance);
@@ -2271,28 +1858,19 @@ class _$InvalidCheckoutProblemImpl extends InvalidCheckoutProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -2350,22 +1928,12 @@ class _$InvalidCheckoutProblemImpl extends InvalidCheckoutProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$InvalidCheckoutProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class InvalidCheckoutProblem extends Problem {
   const factory InvalidCheckoutProblem({final int distance}) =
       _$InvalidCheckoutProblemImpl;
   const InvalidCheckoutProblem._() : super._();
-
-  factory InvalidCheckoutProblem.fromJson(Map<String, dynamic> json) =
-      _$InvalidCheckoutProblemImpl.fromJson;
 
   int get distance;
 
@@ -2382,10 +1950,7 @@ abstract class _$$ReportedProblemImplCopyWith<$Res> {
           $Res Function(_$ReportedProblemImpl) then) =
       __$$ReportedProblemImplCopyWithImpl<$Res>;
   @useResult
-  $Res call(
-      {String reason,
-      @JsonKey(name: 'reported_at') String? reportedAt,
-      @JsonKey(name: 'is_report_solved') bool isReportSolved});
+  $Res call({String reason, String? reportedAt, bool isReportSolved});
 }
 
 /// @nodoc
@@ -2423,31 +1988,20 @@ class __$$ReportedProblemImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$ReportedProblemImpl extends ReportedProblem {
   const _$ReportedProblemImpl(
-      {this.reason = '',
-      @JsonKey(name: 'reported_at') this.reportedAt,
-      @JsonKey(name: 'is_report_solved') this.isReportSolved = false,
-      final String? $type})
-      : $type = $type ?? 'reported',
-        super._();
-
-  factory _$ReportedProblemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ReportedProblemImplFromJson(json);
+      {this.reason = '', this.reportedAt, this.isReportSolved = false})
+      : super._();
 
   @override
   @JsonKey()
   final String reason;
   @override
-  @JsonKey(name: 'reported_at')
   final String? reportedAt;
   @override
-  @JsonKey(name: 'is_report_solved')
+  @JsonKey()
   final bool isReportSolved;
-
-  @JsonKey(name: 'type')
-  final String $type;
 
   @override
   String toString() {
@@ -2466,7 +2020,6 @@ class _$ReportedProblemImpl extends ReportedProblem {
                 other.isReportSolved == isReportSolved));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, reason, reportedAt, isReportSolved);
@@ -2484,28 +2037,20 @@ class _$ReportedProblemImpl extends ReportedProblem {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         late,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         overtime,
     required TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)
         earlyLeave,
     required TResult Function() absence,
     required TResult Function() noCheckout,
     required TResult Function(int distance) invalidCheckin,
     required TResult Function(int distance) invalidCheckout,
     required TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)
+            String reason, String? reportedAt, bool isReportSolved)
         reported,
   }) {
     return reported(reason, reportedAt, isReportSolved);
@@ -2515,28 +2060,19 @@ class _$ReportedProblemImpl extends ReportedProblem {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult? Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult? Function()? absence,
     TResult? Function()? noCheckout,
     TResult? Function(int distance)? invalidCheckin,
     TResult? Function(int distance)? invalidCheckout,
-    TResult? Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult? Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
   }) {
     return reported?.call(reason, reportedAt, isReportSolved);
@@ -2546,28 +2082,19 @@ class _$ReportedProblemImpl extends ReportedProblem {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         late,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         overtime,
     TResult Function(
-            @JsonKey(name: 'actual_minutes') int actualMinutes,
-            @JsonKey(name: 'payroll_minutes') int payrollMinutes,
-            @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted)?
+            int actualMinutes, int payrollMinutes, bool isPayrollAdjusted)?
         earlyLeave,
     TResult Function()? absence,
     TResult Function()? noCheckout,
     TResult Function(int distance)? invalidCheckin,
     TResult Function(int distance)? invalidCheckout,
-    TResult Function(
-            String reason,
-            @JsonKey(name: 'reported_at') String? reportedAt,
-            @JsonKey(name: 'is_report_solved') bool isReportSolved)?
+    TResult Function(String reason, String? reportedAt, bool isReportSolved)?
         reported,
     required TResult orElse(),
   }) {
@@ -2625,30 +2152,17 @@ class _$ReportedProblemImpl extends ReportedProblem {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ReportedProblemImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class ReportedProblem extends Problem {
   const factory ReportedProblem(
-          {final String reason,
-          @JsonKey(name: 'reported_at') final String? reportedAt,
-          @JsonKey(name: 'is_report_solved') final bool isReportSolved}) =
-      _$ReportedProblemImpl;
+      {final String reason,
+      final String? reportedAt,
+      final bool isReportSolved}) = _$ReportedProblemImpl;
   const ReportedProblem._() : super._();
 
-  factory ReportedProblem.fromJson(Map<String, dynamic> json) =
-      _$ReportedProblemImpl.fromJson;
-
   String get reason;
-  @JsonKey(name: 'reported_at')
   String? get reportedAt;
-  @JsonKey(name: 'is_report_solved')
   bool get isReportSolved;
 
   /// Create a copy of Problem

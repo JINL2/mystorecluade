@@ -138,16 +138,27 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
     try {
       final getShiftMetadata = ref.read(getShiftMetadataProvider);
       final timezone = DateTimeUtils.getLocalTimezone();
-      final metadata = await getShiftMetadata(
+      final result = await getShiftMetadata(
         storeId: storeId,
         timezone: timezone,
       );
 
       if (mounted) {
-        setState(() {
-          _shiftMetadata = metadata;
-          _isLoadingMetadata = false;
-        });
+        // Either pattern: fold to handle success/failure
+        result.fold(
+          (failure) {
+            setState(() {
+              _shiftMetadata = [];
+              _isLoadingMetadata = false;
+            });
+          },
+          (data) {
+            setState(() {
+              _shiftMetadata = data;
+              _isLoadingMetadata = false;
+            });
+          },
+        );
       }
     } catch (e, stackTrace) {
       _isLoadingMetadata = false;
@@ -188,7 +199,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       final targetDate = DateTime(date.year, date.month, 15, 12, 0, 0);
       final requestTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDate);
 
-      final result = await getMonthlyShiftStatus(
+      final eitherResult = await getMonthlyShiftStatus(
         storeId: storeId,
         companyId: companyId,
         requestTime: requestTime,
@@ -196,31 +207,41 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       );
 
       if (mounted) {
-        // Cache the result by month
-        final monthData = result.where((r) {
-          if (r.requestDate.length >= 7) {
-            return r.requestDate.substring(0, 7) == monthKey;
-          }
-          return false;
-        }).toList();
+        // Either pattern: fold to handle success/failure
+        eitherResult.fold(
+          (failure) {
+            // On failure, cache empty list to avoid repeated calls
+            _monthlyShiftStatusCache[monthKey] = [];
+            setState(() {});
+          },
+          (result) {
+            // Cache the result by month
+            final monthData = result.where((r) {
+              if (r.requestDate.length >= 7) {
+                return r.requestDate.substring(0, 7) == monthKey;
+              }
+              return false;
+            }).toList();
 
-        _monthlyShiftStatusCache[monthKey] = monthData;
+            _monthlyShiftStatusCache[monthKey] = monthData;
 
-        // Also cache data for other months that came in the response
-        final otherMonths = <String, List<MonthlyShiftStatus>>{};
-        for (final r in result) {
-          if (r.requestDate.length >= 7) {
-            final rMonth = r.requestDate.substring(0, 7);
-            if (rMonth != monthKey && !_monthlyShiftStatusCache.containsKey(rMonth)) {
-              otherMonths.putIfAbsent(rMonth, () => []).add(r);
+            // Also cache data for other months that came in the response
+            final otherMonths = <String, List<MonthlyShiftStatus>>{};
+            for (final r in result) {
+              if (r.requestDate.length >= 7) {
+                final rMonth = r.requestDate.substring(0, 7);
+                if (rMonth != monthKey && !_monthlyShiftStatusCache.containsKey(rMonth)) {
+                  otherMonths.putIfAbsent(rMonth, () => []).add(r);
+                }
+              }
             }
-          }
-        }
-        for (final entry in otherMonths.entries) {
-          _monthlyShiftStatusCache[entry.key] = entry.value;
-        }
+            for (final entry in otherMonths.entries) {
+              _monthlyShiftStatusCache[entry.key] = entry.value;
+            }
 
-        setState(() {});
+            setState(() {});
+          },
+        );
       }
     } catch (e, stackTrace) {
       SentryConfig.captureException(

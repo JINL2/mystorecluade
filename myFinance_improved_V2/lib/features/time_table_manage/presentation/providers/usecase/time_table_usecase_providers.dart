@@ -8,7 +8,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../di/dependency_injection.dart';
+import '../repository_providers.dart';
 import '../../../domain/usecases/calculate_attendance_status.dart';
 import '../../../domain/usecases/delete_shift_tag.dart';
 import '../../../domain/usecases/find_consecutive_shift_chain.dart';

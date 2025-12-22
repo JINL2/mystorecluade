@@ -11,10 +11,7 @@ import 'core/monitoring/sentry_config.dart';
 import 'core/services/revenuecat_service.dart';
 import 'core/notifications/config/firebase_options.dart';
 import 'core/notifications/services/badge_service.dart';
-import 'features/attendance/data/providers/attendance_data_providers.dart'
-    as attendance_data;
-import 'features/attendance/domain/providers/attendance_repository_provider.dart'
-    as attendance_domain;
+// Attendance now uses direct provider pattern (no override needed)
 import 'features/journal_input/data/repositories/repository_providers.dart'
     as journal_data;
 import 'features/journal_input/domain/providers/repository_providers.dart'
@@ -114,9 +111,6 @@ Future<void> main() async {
       ProviderScope(
         overrides: [
           // Override domain layer provider with data layer implementation
-          // Attendance feature
-          attendance_domain.attendanceRepositoryProvider
-              .overrideWithProvider(attendance_data.attendanceRepositoryProviderImpl),
           // Journal Input feature
           journal_domain.journalEntryRepositoryProvider
               .overrideWithProvider(journal_data.journalEntryRepositoryProvider),

@@ -5,21 +5,17 @@ import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/features/attendance/domain/entities/shift_card.dart';
 import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
 import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 
+import '../widgets/shift_detail/shift_info_card.dart';
+import '../widgets/shift_detail/payment_summary_card.dart';
+import '../widgets/shift_detail/activity_log_section.dart';
+import '../widgets/shift_detail/report_response_card.dart';
+
 /// Shift Detail Page - Shows detailed information about a specific shift
-///
-/// Displays:
-/// - Shift info (date, time, type, status)
-/// - Recorded attendance (check-in/out from actual records)
-/// - Confirmed attendance (manager-approved times)
-/// - Payment breakdown (base pay, bonus, total)
-/// - Report issue action
 class ShiftDetailPage extends ConsumerStatefulWidget {
   final ShiftCard shift;
 
@@ -35,23 +31,9 @@ class ShiftDetailPage extends ConsumerStatefulWidget {
 class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   bool _recordedAttendanceExpanded = false;
   bool _confirmedAttendanceExpanded = false;
-  bool _reportAndResponseExpanded = true; // 기본 열림
-  bool _activityLogExpanded = false; // Activity Log 기본 접힘
-
-  // 🔒 Prevent double submission
+  bool _reportAndResponseExpanded = true;
   bool _isSubmittingReport = false;
 
-  /// Format date from "2025-11-24" to "Mon, 24 Nov 2025"
-  String _formatDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr);
-      return DateFormat('EEE, d MMM yyyy').format(date);
-    } catch (e) {
-      return dateStr;
-    }
-  }
-
-  /// Format time from "14:30:00" to "14:30:00" (with seconds)
   String _formatTime(String? timeStr, {bool includeSeconds = false}) {
     if (timeStr == null || timeStr.isEmpty) return '--:--';
     try {
@@ -67,147 +49,57 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
     }
   }
 
-  /// Format hours to "8h 2m"
-  String _formatHours(double hours) {
-    final h = hours.floor();
-    final m = ((hours - h) * 60).round();
-    return '${h}h ${m}m';
-  }
-
-  /// Format money with currency symbol from baseCurrencyProvider
-  /// - Removes decimal places (.00)
-  /// - Adds thousand separators (40,000)
-  String _formatMoney(double amount, String currencySymbol) {
-    final formatter = NumberFormat('#,###', 'en_US');
-    return '$currencySymbol${formatter.format(amount.round())}';
-  }
-
-  /// Get status text from shift
-  /// Uses same logic as ScheduleShiftFinder.determineStatus()
-  String _getStatusText() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // Parse shift date
-    DateTime? shiftDate;
-    try {
-      shiftDate = DateTime.parse(widget.shift.shiftStartTime);
-      shiftDate = DateTime(shiftDate.year, shiftDate.month, shiftDate.day);
-    } catch (e) {
-      shiftDate = null;
-    }
-
-    // Future shift
-    if (shiftDate != null && shiftDate.isAfter(today)) {
-      return 'Upcoming';
-    }
-
-    // Currently working (checked in but not out)
-    if (widget.shift.actualStartTime != null && widget.shift.actualEndTime == null) {
-      return 'In Progress';
-    }
-
-    // Check problem_details for status
-    final pd = widget.shift.problemDetails;
-    if (pd != null && pd.problemCount > 0) {
-      if (pd.hasReported) {
-        final isResolved = pd.isSolved || widget.shift.managerMemos.isNotEmpty;
-        return isResolved ? 'Resolved' : 'Reported';
-      }
-      if (pd.hasAbsence) return 'Absent';
-      if (pd.hasNoCheckout) return 'No Checkout';
-      if (pd.hasEarlyLeave) return 'Early Leave';
-      if (pd.hasLate) return 'Late';
-    }
-
-    // Completed (checked in and out)
-    if (widget.shift.actualStartTime != null && widget.shift.actualEndTime != null) {
-      return 'On-time';
-    }
-
-    // Past date but no check-in
-    if (shiftDate != null && shiftDate.isBefore(today)) {
-      return 'Undone';
-    }
-
-    return 'Upcoming';
-  }
-
-  /// Get confirmed start time (use scheduled time from shift, not actual check-in)
-  /// Confirmed times should always be whole hours from shift settings
   String? _getConfirmedStartTime() {
-    // Priority 1: Parse from shiftStartTime field (format: "2025-06-01T09:00:00")
     try {
       final startDateTime = DateTime.parse(widget.shift.shiftStartTime);
       return '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
     } catch (e) {
-      // Priority 2: Fall back to confirm_start_time from database
       return widget.shift.confirmStartTime;
     }
   }
 
-  /// Get confirmed end time (use scheduled time from shift, not actual check-out)
-  /// Confirmed times should always be whole hours from shift settings
   String? _getConfirmedEndTime() {
-    // Priority 1: Parse from shiftEndTime field (format: "2025-06-01T18:00:00")
     try {
       final endDateTime = DateTime.parse(widget.shift.shiftEndTime);
       return '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
     } catch (e) {
-      // Priority 2: Fall back to confirm_end_time from database
       return widget.shift.confirmEndTime;
     }
   }
 
-  /// Get check-in time color based on confirmation status
-  /// - Red: late and not yet confirmed by manager
-  /// - Blue: confirmed by manager
-  /// - Black: normal (not late)
   TextStyle? _getCheckInTimeColor() {
     final isConfirmedByManager = widget.shift.confirmStartTime != null;
-
     if (widget.shift.isLate && !isConfirmedByManager) {
-      // Late but not confirmed - needs manager attention
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.error,
         fontWeight: FontWeight.w600,
       );
     } else if (isConfirmedByManager) {
-      // Manager confirmed
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.primary,
         fontWeight: FontWeight.w600,
       );
     }
-    return null; // Default black - normal case
+    return null;
   }
 
-  /// Get check-out time color based on confirmation status
-  /// - Red: overtime and not yet confirmed by manager
-  /// - Blue: confirmed by manager
-  /// - Black: normal (no overtime)
   TextStyle? _getCheckOutTimeColor() {
     final isConfirmedByManager = widget.shift.confirmEndTime != null;
-
     if (widget.shift.isExtratime && !isConfirmedByManager) {
-      // Overtime but not confirmed - needs manager attention
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.error,
         fontWeight: FontWeight.w600,
       );
     } else if (isConfirmedByManager) {
-      // Manager confirmed
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.primary,
         fontWeight: FontWeight.w600,
       );
     }
-    return null; // Default black - normal case
+    return null;
   }
 
-  /// Submit report to server via RPC
   Future<void> _submitReport(String reason) async {
-    // 🔒 Prevent double submission
     if (_isSubmittingReport) return;
 
     setState(() {
@@ -220,7 +112,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final reportShiftIssue = ref.read(reportShiftIssueProvider);
-      final success = await reportShiftIssue(
+      final result = await reportShiftIssue(
         shiftRequestId: widget.shift.shiftRequestId,
         reportReason: reason,
         time: time,
@@ -229,14 +121,18 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
 
       if (!mounted) return;
 
+      // Either pattern: fold to get success value
+      final success = result.fold(
+        (failure) => false,
+        (data) => data,
+      );
+
       if (success) {
-        // Refresh shift cards data
         final requestDate = DateTime.parse(widget.shift.requestDate);
         final yearMonth =
             '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}';
         ref.invalidate(monthlyShiftCardsProvider(yearMonth));
 
-        // Show success message and close page
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Report submitted successfully'),
@@ -245,7 +141,6 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
         );
         Navigator.pop(context);
       } else {
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Failed to submit report. Please try again.'),
@@ -262,7 +157,6 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
     }
   }
 
-  /// Show report issue bottom sheet
   void _showReportBottomSheet(BuildContext context) {
     final TextEditingController reasonController = TextEditingController();
     bool isSubmitting = false;
@@ -289,7 +183,6 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
                   Text(
                     'Report Issue',
                     style: TossTextStyles.titleMedium.copyWith(
@@ -305,8 +198,6 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Text Input
                   Container(
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
@@ -335,8 +226,6 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Action Buttons
                   Row(
                     children: [
                       Expanded(
@@ -344,7 +233,9 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                           text: 'Cancel',
                           fullWidth: true,
                           isEnabled: !isSubmitting,
-                          onPressed: isSubmitting ? null : () => Navigator.pop(bottomSheetContext),
+                          onPressed: isSubmitting
+                              ? null
+                              : () => Navigator.pop(bottomSheetContext),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -353,28 +244,25 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                           text: isSubmitting ? 'Submitting...' : 'OK',
                           fullWidth: true,
                           isEnabled: !isSubmitting,
-                          onPressed: isSubmitting ? null : () async {
-                            final reason = reasonController.text.trim();
-                            if (reason.isEmpty) {
-                              // Show validation message
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please enter a reason'),
-                                  backgroundColor: TossColors.error,
-                                ),
-                              );
-                              return;
-                            }
-
-                            // 🔒 Show loading state in bottom sheet
-                            setBottomSheetState(() {
-                              isSubmitting = true;
-                            });
-
-                            // Close bottom sheet first, then submit
-                            Navigator.pop(bottomSheetContext);
-                            await _submitReport(reason);
-                          },
+                          onPressed: isSubmitting
+                              ? null
+                              : () async {
+                                  final reason = reasonController.text.trim();
+                                  if (reason.isEmpty) {
+                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Please enter a reason'),
+                                        backgroundColor: TossColors.error,
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  setBottomSheetState(() {
+                                    isSubmitting = true;
+                                  });
+                                  Navigator.pop(bottomSheetContext);
+                                  await _submitReport(reason);
+                                },
                         ),
                       ),
                     ],
@@ -385,6 +273,32 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildInfoRow({
+    required String label,
+    required String value,
+    TextStyle? valueStyle,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TossTextStyles.bodyLarge.copyWith(
+            color: TossColors.gray600,
+          ),
+        ),
+        Text(
+          value,
+          style: valueStyle ??
+              TossTextStyles.bodyLarge.copyWith(
+                color: TossColors.gray900,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ],
     );
   }
 
@@ -418,48 +332,46 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top section with padding
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Shift Info Card
-                        _buildShiftInfoCard(),
+                        ShiftInfoCard(shift: widget.shift),
                         const SizedBox(height: 16),
-
-                        // Recorded Attendance Card
                         TossExpandableCard(
                           title: 'Recorded attendance',
                           isExpanded: _recordedAttendanceExpanded,
                           onToggle: () {
                             setState(() {
-                              _recordedAttendanceExpanded = !_recordedAttendanceExpanded;
+                              _recordedAttendanceExpanded =
+                                  !_recordedAttendanceExpanded;
                             });
                           },
                           content: Column(
                             children: [
                               _buildInfoRow(
                                 label: 'Recorded check-in',
-                                value: _formatTime(widget.shift.actualStartTime, includeSeconds: true),
+                                value: _formatTime(widget.shift.actualStartTime,
+                                    includeSeconds: true),
                               ),
                               const SizedBox(height: 12),
                               _buildInfoRow(
                                 label: 'Recorded check-out',
-                                value: _formatTime(widget.shift.actualEndTime, includeSeconds: true),
+                                value: _formatTime(widget.shift.actualEndTime,
+                                    includeSeconds: true),
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(height: 16),
-
-                        // Confirmed Attendance Card
                         TossExpandableCard(
                           title: 'Confirmed attendance',
                           isExpanded: _confirmedAttendanceExpanded,
                           onToggle: () {
                             setState(() {
-                              _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded;
+                              _confirmedAttendanceExpanded =
+                                  !_confirmedAttendanceExpanded;
                             });
                           },
                           content: Column(
@@ -478,34 +390,33 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                             ],
                           ),
                         ),
-
-                        // Report & Response Card (expandable, unified style)
-                        if (widget.shift.isReported || widget.shift.managerMemos.isNotEmpty) ...[
+                        if (widget.shift.isReported ||
+                            widget.shift.managerMemos.isNotEmpty) ...[
                           const SizedBox(height: 16),
-                          _buildReportAndResponseCard(),
+                          ReportResponseCard(
+                            shift: widget.shift,
+                            isExpanded: _reportAndResponseExpanded,
+                            onToggle: () {
+                              setState(() {
+                                _reportAndResponseExpanded =
+                                    !_reportAndResponseExpanded;
+                              });
+                            },
+                          ),
                         ],
                       ],
                     ),
                   ),
-
-                  // Gray Divider - full width
                   const GrayDividerSpace(),
-
-                  // Bottom section with padding
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Payment Summary Card
-                        _buildPaymentSummaryCard(),
+                        PaymentSummaryCard(shift: widget.shift),
                         const SizedBox(height: 20),
-
-                        // Activity Log Section (접고 열 수 있음)
-                        _buildActivityLogSection(),
+                        ActivityLogSection(shift: widget.shift),
                         const SizedBox(height: 20),
-
-                        // Helper Text
                         Text(
                           'Recorded attendance is based on your check-in/out records.\nConfirmed attendance is the manager-approved time used for salary.',
                           style: TossTextStyles.caption.copyWith(
@@ -522,16 +433,8 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
               ),
             ),
           ),
-
-          // Footer Action - Report Button
-          // Blue (enabled) when isReported=false, Gray (disabled) when isReported=true
           Container(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              48, // 48px bottom padding for safe area
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
             decoration: BoxDecoration(
               color: TossColors.white,
               border: Border(
@@ -561,459 +464,4 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
       ),
     );
   }
-
-  /// Builds shift info card with date, type, time, and status badge
-  Widget _buildShiftInfoCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: TossColors.gray100, width: 1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _formatDate(widget.shift.requestDate),
-                  style: TossTextStyles.label.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  widget.shift.shiftName ?? 'Shift',
-                  style: TossTextStyles.titleMedium.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${_formatHours(widget.shift.scheduledHours)} scheduled',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray600,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _buildStatusBadge(_getStatusText()),
-        ],
-      ),
-    );
-  }
-
-  /// Builds status badge based on shift status
-  Widget _buildStatusBadge(String status) {
-    // Map status string to badge colors
-    Color backgroundColor;
-    Color textColor;
-
-    switch (status.toLowerCase()) {
-      case 'on-time':
-        backgroundColor = TossColors.success;
-        textColor = TossColors.white;
-        break;
-      case 'late':
-      case 'absent':
-      case 'no checkout':
-      case 'early leave':
-        backgroundColor = TossColors.error;
-        textColor = TossColors.white;
-        break;
-      case 'reported':
-        backgroundColor = TossColors.warning;
-        textColor = TossColors.white;
-        break;
-      case 'resolved':
-        backgroundColor = TossColors.success;
-        textColor = TossColors.white;
-        break;
-      case 'in progress':
-        backgroundColor = TossColors.primary;
-        textColor = TossColors.white;
-        break;
-      case 'upcoming':
-        backgroundColor = TossColors.primarySurface;
-        textColor = TossColors.primary;
-        break;
-      case 'undone':
-        backgroundColor = TossColors.gray200;
-        textColor = TossColors.gray600;
-        break;
-      default:
-        backgroundColor = TossColors.gray100;
-        textColor = TossColors.gray700;
-    }
-
-    return TossBadge(
-      label: status,
-      backgroundColor: backgroundColor,
-      textColor: textColor,
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: TossSpacing.space1,
-      ),
-      borderRadius: 12,
-    );
-  }
-
-  /// Builds payment summary card with all payment details
-  Widget _buildPaymentSummaryCard() {
-    // Get currency symbol from provider
-    final baseCurrencyAsync = ref.watch(baseCurrencyProvider);
-    final currencySymbol = baseCurrencyAsync.when(
-      data: (currency) => currency?.symbol ?? '\$',
-      loading: () => '\$',
-      error: (_, __) => '\$',
-    );
-
-    return Column(
-        children: [
-          _buildInfoRow(
-            label: 'Total confirmed time',
-            value: _formatHours(widget.shift.paidHours),
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            label: widget.shift.salaryType == 'monthly' ? 'Monthly salary' : 'Hourly salary',
-            value: _formatMoney(widget.shift.salaryAmountValue, currencySymbol),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            height: 1,
-            color: TossColors.gray100,
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            label: 'Base pay',
-            value: _formatMoney(widget.shift.basePayAmount, currencySymbol),
-          ),
-          // Bonus pay - 0이 아닐 때만 표시, 음수면 빨간색
-          if (widget.shift.bonusAmount != 0) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              label: 'Bonus pay',
-              value: _formatMoney(widget.shift.bonusAmount, currencySymbol),
-              valueStyle: widget.shift.bonusAmount < 0
-                  ? TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.error,
-                      fontWeight: FontWeight.w600,
-                    )
-                  : null,
-            ),
-          ],
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            label: 'Total payment',
-            value: _formatMoney(widget.shift.totalPayAmount, currencySymbol),
-            labelStyle: TossTextStyles.titleMedium.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
-            valueStyle: TossTextStyles.titleMedium.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-    );
-  }
-
-  /// Builds info row with label and value
-  Widget _buildInfoRow({
-    required String label,
-    required String value,
-    TextStyle? labelStyle,
-    TextStyle? valueStyle,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: labelStyle ??
-              TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-        ),
-        Text(
-          value,
-          style: valueStyle ??
-              TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-      ],
-    );
-  }
-
-  /// Builds a vertical info row for long text content
-  /// Label on top, value below (with optional color)
-  Widget _buildVerticalInfoRow({
-    required String label,
-    required String value,
-    TextStyle? valueStyle,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.bodyLarge.copyWith(
-            color: TossColors.gray600,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: valueStyle ?? TossTextStyles.bodyLarge.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w500,
-          ),
-          maxLines: 5,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-
-  /// Builds Report & Response Card - expandable unified style
-  /// Matches the design of Recorded/Confirmed attendance cards
-  Widget _buildReportAndResponseCard() {
-    final reportedProblem = widget.shift.problemDetails?.reportedProblem;
-    final reportReason = reportedProblem?.reason ?? '';
-    final hasReport = reportReason.isNotEmpty;
-    final hasManagerMemo = widget.shift.managerMemos.isNotEmpty;
-    final managerMemoContent = hasManagerMemo ? widget.shift.managerMemos.first.content : '';
-
-    // 매니저 메모가 있으면 해결된 것으로 간주
-    final isSolved = (reportedProblem?.isReportSolved ?? false) || hasManagerMemo;
-
-    return TossExpandableCard(
-      title: 'Report & Response',
-      isExpanded: _reportAndResponseExpanded,
-      onToggle: () {
-        setState(() {
-          _reportAndResponseExpanded = !_reportAndResponseExpanded;
-        });
-      },
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Your Report (vertical layout for long text)
-          if (hasReport) ...[
-            _buildVerticalInfoRow(
-              label: 'Your report',
-              value: reportReason,
-            ),
-          ],
-          // 2. Manager Response (vertical, 파란색)
-          if (hasManagerMemo) ...[
-            if (hasReport) const SizedBox(height: 16),
-            _buildVerticalInfoRow(
-              label: 'Manager response',
-              value: managerMemoContent,
-              valueStyle: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-          // 3. Status row (horizontal, 맨 아래)
-          if (hasReport) ...[
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              label: 'Status',
-              value: isSolved ? 'Resolved' : 'Pending',
-              valueStyle: TossTextStyles.bodyLarge.copyWith(
-                color: isSolved ? TossColors.success : TossColors.warning,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  /// Build Activity Log Section - 접고 열 수 있는 형태
-  Widget _buildActivityLogSection() {
-    // 현재 데이터로 Activity 항목 생성
-    final activities = <_ActivityItem>[];
-
-    // 1. Check-in
-    if (widget.shift.actualStartTime != null) {
-      activities.add(_ActivityItem(
-        icon: Icons.login,
-        color: TossColors.success,
-        label: 'Check-in',
-        time: widget.shift.actualStartTime!,
-      ));
-    }
-
-    // 2. Check-out
-    if (widget.shift.actualEndTime != null) {
-      activities.add(_ActivityItem(
-        icon: Icons.logout,
-        color: TossColors.primary,
-        label: 'Check-out',
-        time: widget.shift.actualEndTime!,
-      ));
-    }
-
-    // 3. Report submitted
-    final reportedAt = widget.shift.problemDetails?.reportedProblem?.reportedAt;
-    if (reportedAt != null) {
-      activities.add(_ActivityItem(
-        icon: Icons.report_outlined,
-        color: TossColors.warning,
-        label: 'Report submitted',
-        time: reportedAt,
-      ));
-    }
-
-    // 4. Manager memo
-    for (final memo in widget.shift.managerMemos) {
-      if (memo.createdAt != null) {
-        activities.add(_ActivityItem(
-          icon: Icons.comment_outlined,
-          color: TossColors.primary,
-          label: 'Manager response',
-          time: memo.createdAt!,
-        ));
-      }
-    }
-
-    // 활동이 없으면 표시 안함
-    if (activities.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header with toggle
-        InkWell(
-          onTap: () {
-            setState(() {
-              _activityLogExpanded = !_activityLogExpanded;
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Activity',
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        color: TossColors.gray700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${activities.length}',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                  ],
-                ),
-                Icon(
-                  _activityLogExpanded
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: TossColors.gray500,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Activity list (expanded)
-        if (_activityLogExpanded) ...[
-          const SizedBox(height: 8),
-          ...activities.map((activity) => _buildActivityItem(activity)),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildActivityItem(_ActivityItem activity) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icon
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: activity.color.withValues(alpha: 0.1),
-            ),
-            child: Icon(
-              activity.icon,
-              size: 14,
-              color: activity.color,
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Label and time
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activity.label,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  activity.time,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Activity item data class
-class _ActivityItem {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final String time;
-
-  const _ActivityItem({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.time,
-  });
 }

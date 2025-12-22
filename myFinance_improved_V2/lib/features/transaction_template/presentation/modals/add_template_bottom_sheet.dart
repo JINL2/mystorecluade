@@ -347,7 +347,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         if (result.isSuccess) {
           // ✅ FIX: Reload templates to show the newly created template
           final appState = ref.read(appStateProvider);
-          final notifier = ref.read(templateProvider.notifier);
+          final notifier = ref.read(templateNotifierProvider.notifier);
           await notifier.loadTemplates(
             companyId: command.companyId,
             storeId: command.storeId,

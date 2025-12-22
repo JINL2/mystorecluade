@@ -11,7 +11,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../di/dependency_injection.dart';
+import '../repository_providers.dart';
 import '../../../domain/entities/store_employee.dart';
 
 /// Store Employees Provider

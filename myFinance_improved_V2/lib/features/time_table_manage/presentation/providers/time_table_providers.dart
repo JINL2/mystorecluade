@@ -6,8 +6,7 @@
 /// Architecture:
 /// ```
 /// presentation/providers/
-/// ├── di/ (Dependency Injection)
-/// │   └── dependency_injection.dart
+/// ├── repository_providers.dart (DI)
 /// ├── usecase/ (Domain Layer)
 /// │   └── time_table_usecase_providers.dart
 /// ├── state/ (Presentation State)
@@ -33,9 +32,9 @@
 library;
 
 // ============================================================================
-// Dependency Injection Layer
+// Repository Providers (Dependency Injection)
 // ============================================================================
-export '../../di/dependency_injection.dart';
+export 'repository_providers.dart';
 
 // ============================================================================
 // UseCase Providers (Domain Layer)

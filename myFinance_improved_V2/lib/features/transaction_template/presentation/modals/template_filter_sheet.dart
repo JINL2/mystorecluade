@@ -33,7 +33,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
   @override
   void initState() {
     super.initState();
-    final filterState = ref.read(templateFilterProvider);
+    final filterState = ref.read(templateFilterNotifierProvider);
     // TemplateFilterState에서 기존 필터값 복원
     _selectedAccountIds = filterState.accountIds;
     _selectedCounterpartyId = filterState.counterpartyId;
@@ -221,7 +221,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
       _searchController.clear();
     });
 
-    ref.read(templateFilterProvider.notifier).clearFilter();
+    ref.read(templateFilterNotifierProvider.notifier).clearFilter();
     Navigator.pop(context);
   }
 
@@ -233,7 +233,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
       searchQuery: _searchController.text.trim().isEmpty ? null : _searchController.text.trim(),
     );
 
-    ref.read(templateFilterProvider.notifier).updateFilter(newFilter);
+    ref.read(templateFilterNotifierProvider.notifier).updateFilter(newFilter);
     Navigator.pop(context);
   }
 }
