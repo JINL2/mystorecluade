@@ -263,7 +263,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 }
 
                 // Fetch shift cards for the scanned store (QR store_id)
-                // QR 스캔한 store_id로 필터링 - update_shift_requests_v7과 일관성 유지
+                // QR 스캔한 store_id로 필터링 - update_shift_requests_v8과 일관성 유지
                 final getUserShiftCards = ref.read(getUserShiftCardsProvider);
                 final shiftCardsResult = await getUserShiftCards(
                   requestTime: currentTime,

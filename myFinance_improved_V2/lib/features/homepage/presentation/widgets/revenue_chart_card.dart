@@ -473,7 +473,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
   }
 
   /// Format label for display based on selected period
-  /// - this_week/last_week: "2025-12-20" -> "M" (day of week)
+  /// - past_7_days: "2025-12-20" -> "M" (day of week)
   /// - this_month/last_month: "2025-12-20" -> "20" (day number)
   /// - this_year: "2025-12" -> "Dec" (month name)
   String _formatLabel(String label, RevenuePeriod period) {
@@ -491,8 +491,8 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
 
     // Daily format: "2025-12-20"
     if (label.length == 10) {
-      // For weekly periods, show day of week (M, T, W, T, F, S, S)
-      if (period == RevenuePeriod.thisWeek || period == RevenuePeriod.lastWeek) {
+      // For past 7 days, show day of week (M, T, W, T, F, S, S)
+      if (period == RevenuePeriod.past7Days) {
         try {
           final date = DateTime.parse(label);
           const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];

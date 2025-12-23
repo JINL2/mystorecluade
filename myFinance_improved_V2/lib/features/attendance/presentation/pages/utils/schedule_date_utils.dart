@@ -200,24 +200,55 @@ class ScheduleDateUtils {
 
   /// Find the shift with start_time closest to current time for check-in
   ///
-  /// Search range: past 24 hours ~ future
-  /// This prevents checking into shifts from days ago that were forgotten.
+  /// CRITICAL: Uses midpoint logic for night shift transitions!
+  ///
+  /// Problem: At 01:04 on Dec 23, the Dec 22 Night shift (20:00~01:00) has ended,
+  /// but the Dec 23 Night shift (20:00~01:00) shouldn't allow check-in yet.
+  ///
+  /// Solution: Calculate midpoint between previous shift's end and next shift's start.
+  /// - Before midpoint: Still in checkout mode for previous shift
+  /// - After midpoint: Can check into next shift
+  ///
+  /// Example:
+  /// - Dec 22 Night ends: 01:00 (Dec 23)
+  /// - Dec 23 Morning starts: 10:00
+  /// - Midpoint: (01:00 + 10:00) / 2 = 05:30
+  /// - At 03:00 → Dec 22 Night (checkout mode)
+  /// - At 06:00 → Dec 23 Morning (checkin mode)
+  ///
+  /// Edge case: No next shift → Default grace period of 3 hours after end_time
   static ShiftCard? findClosestCheckinShift(
     List<ShiftCard> shiftCards, {
     DateTime? currentTime,
   }) {
     final now = currentTime ?? DateTime.now();
-    final past24Hours = now.subtract(const Duration(hours: 24));
+    final today = DateTime(now.year, now.month, now.day);
 
-    // Filter: approved, not checked in, start_time within past 24 hours or future
+    // Step 1: Find if there's an in-progress shift that should still be shown
+    // (checked in but not out, or recently ended)
+    final inProgressOrRecentShift = _findInProgressOrRecentShift(shiftCards, now);
+    if (inProgressOrRecentShift != null) {
+      // User should checkout this shift, not check into a new one
+      return null;
+    }
+
+    // Step 2: Filter check-in candidates
+    // - Approved, not checked in
+    // - Start time is today OR within valid check-in window
     final checkinCandidates = shiftCards.where((c) {
       if (!c.isApproved || c.isCheckedIn) return false;
 
       final shiftStartTime = parseShiftDateTime(c.shiftStartTime);
       if (shiftStartTime == null) return false;
 
-      // Only include shifts starting within past 24 hours or in the future
-      return !shiftStartTime.isBefore(past24Hours);
+      final shiftDate = DateTime(shiftStartTime.year, shiftStartTime.month, shiftStartTime.day);
+
+      // Allow check-in for TODAY's shifts
+      if (isSameDay(shiftDate, today)) return true;
+
+      // Also allow if we're past the midpoint and this is the next upcoming shift
+      // This handles the case where it's 06:00 and the next shift starts at 10:00
+      return false;
     }).toList();
 
     if (checkinCandidates.isEmpty) return null;
@@ -231,6 +262,111 @@ class ScheduleDateUtils {
     });
 
     return checkinCandidates.first;
+  }
+
+  /// Find in-progress shift OR recently ended shift that should still show checkout
+  ///
+  /// Returns the shift if:
+  /// 1. Shift is in-progress (checked in, not out)
+  /// 2. Shift ended but we're before the midpoint to next shift
+  ///
+  /// Returns null if user can proceed to check into a new shift
+  static ShiftCard? _findInProgressOrRecentShift(
+    List<ShiftCard> shiftCards,
+    DateTime now,
+  ) {
+    // First priority: Find in-progress shift (checked in but not out)
+    for (final card in shiftCards) {
+      if (card.isApproved && card.isCheckedIn && !card.isCheckedOut) {
+        return card;
+      }
+    }
+
+    // Second priority: Find recently ended shift (before midpoint)
+    // This handles the case where night shift ended at 01:00 and it's now 03:00
+    final recentlyEndedShift = _findRecentlyEndedShiftBeforeMidpoint(shiftCards, now);
+    if (recentlyEndedShift != null) {
+      return recentlyEndedShift;
+    }
+
+    return null;
+  }
+
+  /// Find a shift that ended recently but user should still checkout
+  /// (We're before the midpoint to the next shift)
+  ///
+  /// Grace period: 3 hours after end_time if no next shift
+  static ShiftCard? _findRecentlyEndedShiftBeforeMidpoint(
+    List<ShiftCard> shiftCards,
+    DateTime now,
+  ) {
+    const defaultGraceHours = 3;
+
+    // Find completed shifts that ended within the last 12 hours
+    // (reasonable window for checking)
+    final recentlyCompleted = <ShiftCard>[];
+    for (final card in shiftCards) {
+      if (!card.isApproved) continue;
+      // Only consider shifts that have check-in but no check-out
+      // (actual_end_time is null means no checkout yet)
+      if (!card.isCheckedIn || card.isCheckedOut) continue;
+
+      final endTime = parseShiftDateTime(card.shiftEndTime);
+      if (endTime == null) continue;
+
+      // Check if shift ended within last 12 hours
+      final hoursSinceEnd = now.difference(endTime).inHours;
+      if (hoursSinceEnd >= 0 && hoursSinceEnd <= 12) {
+        recentlyCompleted.add(card);
+      }
+    }
+
+    if (recentlyCompleted.isEmpty) return null;
+
+    // Sort by end_time (most recent first)
+    recentlyCompleted.sort((a, b) {
+      final aEnd = parseShiftDateTime(a.shiftEndTime);
+      final bEnd = parseShiftDateTime(b.shiftEndTime);
+      if (aEnd == null || bEnd == null) return 0;
+      return bEnd.compareTo(aEnd); // Descending
+    });
+
+    final mostRecentShift = recentlyCompleted.first;
+    final mostRecentEndTime = parseShiftDateTime(mostRecentShift.shiftEndTime)!;
+
+    // Find the next upcoming shift (not checked in, start_time > mostRecentEndTime)
+    ShiftCard? nextShift;
+    DateTime? nextShiftStart;
+    for (final card in shiftCards) {
+      if (!card.isApproved || card.isCheckedIn) continue;
+
+      final startTime = parseShiftDateTime(card.shiftStartTime);
+      if (startTime == null || !startTime.isAfter(mostRecentEndTime)) continue;
+
+      if (nextShift == null || startTime.isBefore(nextShiftStart!)) {
+        nextShift = card;
+        nextShiftStart = startTime;
+      }
+    }
+
+    // Calculate midpoint
+    DateTime midpoint;
+    if (nextShiftStart != null) {
+      // Midpoint = (previous_end + next_start) / 2
+      final totalMinutes = nextShiftStart.difference(mostRecentEndTime).inMinutes;
+      midpoint = mostRecentEndTime.add(Duration(minutes: totalMinutes ~/ 2));
+    } else {
+      // No next shift: use default grace period
+      midpoint = mostRecentEndTime.add(const Duration(hours: defaultGraceHours));
+    }
+
+    // If we're before midpoint, return the recently ended shift (checkout mode)
+    if (now.isBefore(midpoint)) {
+      return mostRecentShift;
+    }
+
+    // We're past midpoint, user can check into next shift
+    return null;
   }
 
   /// Get week range (Monday to Sunday) for a given date

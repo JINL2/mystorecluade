@@ -7,7 +7,7 @@ import '../repositories/attendance_repository.dart';
 
 /// Check in to shift via QR code
 ///
-/// Matches RPC: update_shift_requests_v7
+/// Matches RPC: update_shift_requests_v8
 ///
 /// Clean Architecture: Returns Either<Failure, CheckInResult>
 class CheckInShift {

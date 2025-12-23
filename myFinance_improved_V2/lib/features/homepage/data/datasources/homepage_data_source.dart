@@ -309,8 +309,7 @@ class HomepageDataSource {
   /// Time filter options:
   /// - today: Single day total
   /// - yesterday: Previous day total
-  /// - this_week: Daily data Mon~Today
-  /// - last_week: Daily data Mon~Sun of previous week
+  /// - past_7_days: Daily data for rolling 7 days (today - 6 days)
   /// - this_month: Daily data 1st~Today
   /// - last_month: Daily data for full previous month
   /// - this_year: Monthly data Jan~Current month

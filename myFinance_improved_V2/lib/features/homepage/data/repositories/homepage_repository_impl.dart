@@ -54,13 +54,9 @@ class HomepageRepositoryImpl implements HomepageRepository {
           currentAmount = (totals['yesterday'] as num?)?.toDouble() ?? 0.0;
           previousAmount = 0.0; // No day before yesterday in totals
           break;
-        case RevenuePeriod.thisWeek:
-          currentAmount = (totals['this_week'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (totals['last_week'] as num?)?.toDouble() ?? 0.0;
-          break;
-        case RevenuePeriod.lastWeek:
-          currentAmount = (totals['last_week'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = 0.0;
+        case RevenuePeriod.past7Days:
+          currentAmount = (totals['past_7_days'] as num?)?.toDouble() ?? 0.0;
+          previousAmount = 0.0; // No previous 7 days comparison in current RPC
           break;
         case RevenuePeriod.thisMonth:
           currentAmount = (totals['this_month'] as num?)?.toDouble() ?? 0.0;

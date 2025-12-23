@@ -21,7 +21,7 @@ import '../entities/user_shift_stats.dart';
 abstract class AttendanceRepository {
   /// Update shift request (check-in or check-out)
   ///
-  /// Matches RPC: update_shift_requests_v7
+  /// Matches RPC: update_shift_requests_v8
   ///
   /// [shiftRequestId] - Shift request ID (from user_shift_cards_v4)
   /// [userId] - User ID
