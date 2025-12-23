@@ -34,11 +34,11 @@ class Invoice extends Equatable {
   final String paymentStatus;
   final InvoiceAmounts amounts;
   final ItemsSummary itemsSummary;
+  final String? aiDescription;
   final String? createdById;
   final String? createdByName;
   final String? createdByEmail;
   final DateTime createdAt;
-  final String? aiDescription;
 
   const Invoice({
     required this.invoiceId,
@@ -54,16 +54,12 @@ class Invoice extends Equatable {
     required this.paymentStatus,
     required this.amounts,
     required this.itemsSummary,
+    this.aiDescription,
     this.createdById,
     this.createdByName,
     this.createdByEmail,
     required this.createdAt,
-    this.aiDescription,
   });
-
-  /// Check if has AI description
-  bool get hasAiDescription =>
-      aiDescription != null && aiDescription!.isNotEmpty;
 
   /// Helper getters for status checking
   bool get isCompleted => status == 'completed';
@@ -118,10 +114,10 @@ class Invoice extends Equatable {
         paymentStatus,
         amounts,
         itemsSummary,
+        aiDescription,
         createdById,
         createdByName,
         createdByEmail,
         createdAt,
-        aiDescription,
       ];
 }

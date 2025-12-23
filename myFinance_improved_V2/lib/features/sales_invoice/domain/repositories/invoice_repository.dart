@@ -1,3 +1,4 @@
+import '../entities/cash_location.dart';
 import '../entities/invoice.dart';
 import '../entities/invoice_detail.dart';
 import '../value_objects/invoice_filter.dart';
@@ -16,11 +17,6 @@ abstract class InvoiceRepository {
     required String invoiceId,
   });
 
-  /// Get invoice detail with items
-  Future<InvoiceDetail> getInvoiceDetail({
-    required String invoiceId,
-  });
-
   /// Refresh invoice data
   Future<InvoicePageResult> refresh({
     required String companyId,
@@ -33,6 +29,18 @@ abstract class InvoiceRepository {
     required List<String> invoiceIds,
     required String userId,
     String? notes,
+  });
+
+  /// Get cash locations for filtering
+  Future<List<CashLocation>> getCashLocations({
+    required String companyId,
+    String? storeId,
+  });
+
+  /// Get invoice detail by ID using get_invoice_detail RPC
+  Future<InvoiceDetail> getInvoiceDetail({
+    required String invoiceId,
+    String? timezone,
   });
 }
 

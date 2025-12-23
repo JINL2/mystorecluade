@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/repositories/invoice_repository.dart';
 import '../../domain/value_objects/invoice_filter.dart';
@@ -28,10 +29,6 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
   Future<void> loadInvoices() async {
     if (state.isLoading) return;
 
-    debugPrint('📋 [InvoiceList] loadInvoices() START');
-    debugPrint('📋 [InvoiceList] Current page: ${state.currentPage}');
-    debugPrint('📋 [InvoiceList] Current invoices count: ${state.invoices.length}');
-
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -39,11 +36,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
-      debugPrint('📋 [InvoiceList] companyId: $companyId');
-      debugPrint('📋 [InvoiceList] storeId: $storeId');
-
       if (companyId.isEmpty || storeId.isEmpty) {
-        debugPrint('❌ [InvoiceList] Error: Company or store not selected');
         state = state.copyWith(
           isLoading: false,
           error: 'Company or store not selected',
@@ -57,9 +50,9 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         sortAscending: state.sortAscending,
         searchQuery: state.searchQuery.isEmpty ? null : state.searchQuery,
         page: state.currentPage,
+        dateFilter: state.dateFilter,
+        amountFilter: state.amountFilter,
       );
-
-      debugPrint('📋 [InvoiceList] Filter: period=${state.selectedPeriod}, sortBy=${state.sortBy}, page=${state.currentPage}');
 
       final result = await _repository.getInvoices(
         companyId: companyId,
@@ -67,26 +60,13 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         filter: filter,
       );
 
-      debugPrint('📋 [InvoiceList] Result: ${result.invoices.length} invoices');
-      debugPrint('📋 [InvoiceList] Pagination: page=${result.pagination.page}, total=${result.pagination.total}, hasNext=${result.pagination.hasNext}');
-
-      // Debug: Log each invoice
-      for (int i = 0; i < result.invoices.length; i++) {
-        final inv = result.invoices[i];
-        debugPrint('📋 [InvoiceList] Invoice[$i]: ${inv.invoiceNumber} - ${inv.dateString} - status=${inv.status}');
-      }
-
       state = state.copyWith(
         isLoading: false,
         invoices: result.invoices,
         response: result,
         error: null,
       );
-
-      debugPrint('📋 [InvoiceList] State updated: ${state.invoices.length} invoices');
-      debugPrint('📋 [InvoiceList] loadInvoices() END');
     } catch (e) {
-      debugPrint('❌ [InvoiceList] Error: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -117,6 +97,85 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     loadInvoices();
   }
 
+  /// Update server-side sorting (for get_invoice_page_v3)
+  ///
+  /// - dateFilter: 'newest' or 'oldest' (default: newest)
+  /// - amountFilter: 'high' or 'low' (takes priority over dateFilter)
+  void updateServerSort({String? dateFilter, String? amountFilter}) {
+    state = state.copyWith(
+      dateFilter: dateFilter,
+      amountFilter: amountFilter,
+      currentPage: 1,
+    );
+    loadInvoices();
+  }
+
+  /// Clear server-side sorting (reset to default)
+  void clearServerSort() {
+    state = state.copyWith(
+      dateFilter: null,
+      amountFilter: null,
+      currentPage: 1,
+    );
+    loadInvoices();
+  }
+
+  /// Load cash locations for filter
+  Future<void> loadCashLocations() async {
+    if (state.isLoadingCashLocations) return;
+
+    state = state.copyWith(isLoadingCashLocations: true);
+
+    try {
+      final appState = _ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+
+      if (companyId.isEmpty) {
+        state = state.copyWith(isLoadingCashLocations: false);
+        return;
+      }
+
+      final cashLocations = await _repository.getCashLocations(
+        companyId: companyId,
+        storeId: storeId,
+      );
+
+      debugPrint('💰 [CashLocations] Loaded ${cashLocations.length} cash locations');
+
+      state = state.copyWith(
+        isLoadingCashLocations: false,
+        cashLocations: cashLocations,
+      );
+    } catch (e) {
+      debugPrint('❌ [CashLocations] Error loading: $e');
+      state = state.copyWith(isLoadingCashLocations: false);
+    }
+  }
+
+  /// Update cash location filter
+  void updateCashLocation(CashLocation? cashLocation) {
+    state = state.copyWith(selectedCashLocation: cashLocation, currentPage: 1);
+    loadInvoices();
+  }
+
+  /// Clear cash location filter
+  void clearCashLocationFilter() {
+    state = state.copyWith(selectedCashLocation: null, currentPage: 1);
+    loadInvoices();
+  }
+
+  /// Update status filter (null = All, 'completed', 'refunded')
+  void updateStatus(String? status) {
+    state = state.copyWith(selectedStatus: status);
+    // Note: Status filter is client-side only, no need to reload
+  }
+
+  /// Clear status filter
+  void clearStatusFilter() {
+    state = state.copyWith(selectedStatus: null);
+  }
+
   /// Load next page (infinite scroll - appends data)
   Future<void> loadNextPage() async {
     if (state.isLoadingMore || !state.canLoadMore) return;
@@ -140,6 +199,8 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         sortAscending: state.sortAscending,
         searchQuery: state.searchQuery.isEmpty ? null : state.searchQuery,
         page: nextPage,
+        dateFilter: state.dateFilter,
+        amountFilter: state.amountFilter,
       );
 
       final result = await _repository.getInvoices(
@@ -164,6 +225,21 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
   /// Refresh (reset to page 1)
   Future<void> refresh() async {
     state = state.copyWith(currentPage: 1, invoices: []);
+    await loadInvoices();
+  }
+
+  /// Go to previous page
+  Future<void> previousPage() async {
+    if (state.currentPage <= 1) return;
+    state = state.copyWith(currentPage: state.currentPage - 1, invoices: []);
+    await loadInvoices();
+  }
+
+  /// Go to next page
+  Future<void> nextPage() async {
+    final pagination = state.response?.pagination;
+    if (pagination == null || !pagination.hasNext) return;
+    state = state.copyWith(currentPage: state.currentPage + 1, invoices: []);
     await loadInvoices();
   }
 
@@ -204,7 +280,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     }
 
     // 1. Process the inventory refund
-    debugPrint('📤 [Refund] Step 1: Calling inventory_refund_invoice_v3 RPC...');
+    debugPrint('📤 [Refund] Step 1: Calling inventory_refund_invoice_v2 RPC...');
     final result = await _repository.refundInvoice(
       invoiceIds: [invoice.invoiceId],
       userId: userId,
@@ -220,7 +296,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     debugPrint('🔄 [Refund] - result.success: ${result.success}');
 
     if (result.success) {
-      debugPrint('📤 [Refund] Step 2: Calling insert_journal_with_everything_v2 RPC...');
+      debugPrint('📤 [Refund] Step 2: Calling insert_journal_with_everything_utc RPC...');
       debugPrint('📤 [Refund] Journal Params:');
       debugPrint('📤 [Refund] - companyId: $companyId');
       debugPrint('📤 [Refund] - storeId: $storeId');
@@ -232,7 +308,6 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       debugPrint('📤 [Refund] - cogsAccountId: $_cogsAccountId');
       debugPrint('📤 [Refund] - inventoryAccountId: $_inventoryAccountId');
       debugPrint('📤 [Refund] - totalCost: ${invoice.amounts.totalCost}');
-      debugPrint('📤 [Refund] - invoiceId: ${invoice.invoiceId}');
 
       try {
         final journalRepository = _ref.read(salesJournalRepositoryProvider);
@@ -250,7 +325,6 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
           cogsAccountId: _cogsAccountId,
           inventoryAccountId: _inventoryAccountId,
           totalCost: invoice.amounts.totalCost,
-          invoiceId: invoice.invoiceId,
         );
         debugPrint('✅ [Refund] Step 2: Journal entries created successfully (Refund + COGS Reversal)');
       } catch (e) {
@@ -275,10 +349,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
 }
 
 /// Invoice list provider
-///
-/// Uses autoDispose to automatically clear cached data when no longer in use.
-/// This prevents stale data from showing when user switches store/company.
-final invoiceListProvider = StateNotifierProvider.autoDispose<InvoiceListNotifier, InvoiceListState>((ref) {
+final invoiceListProvider = StateNotifierProvider<InvoiceListNotifier, InvoiceListState>((ref) {
   final repository = ref.watch(invoiceRepositoryProvider);
   return InvoiceListNotifier(repository, ref);
 });

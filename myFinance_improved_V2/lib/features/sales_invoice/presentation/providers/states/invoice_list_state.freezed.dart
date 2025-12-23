@@ -25,7 +25,17 @@ mixin _$InvoiceListState {
   InvoiceSortOption get sortBy => throw _privateConstructorUsedError;
   bool get sortAscending => throw _privateConstructorUsedError;
   String get searchQuery => throw _privateConstructorUsedError;
-  int get currentPage => throw _privateConstructorUsedError;
+  int get currentPage =>
+      throw _privateConstructorUsedError; // Cash location filter
+  List<CashLocation> get cashLocations => throw _privateConstructorUsedError;
+  bool get isLoadingCashLocations => throw _privateConstructorUsedError;
+  CashLocation? get selectedCashLocation =>
+      throw _privateConstructorUsedError; // Status filter: null = All, 'completed', 'refunded'
+  String? get selectedStatus =>
+      throw _privateConstructorUsedError; // Server-side sorting for get_invoice_page_v3
+  String? get dateFilter =>
+      throw _privateConstructorUsedError; // 'newest' or 'oldest'
+  String? get amountFilter => throw _privateConstructorUsedError;
 
   /// Create a copy of InvoiceListState
   /// with the given fields replaced by the non-null parameter values.
@@ -50,7 +60,13 @@ abstract class $InvoiceListStateCopyWith<$Res> {
       InvoiceSortOption sortBy,
       bool sortAscending,
       String searchQuery,
-      int currentPage});
+      int currentPage,
+      List<CashLocation> cashLocations,
+      bool isLoadingCashLocations,
+      CashLocation? selectedCashLocation,
+      String? selectedStatus,
+      String? dateFilter,
+      String? amountFilter});
 }
 
 /// @nodoc
@@ -78,6 +94,12 @@ class _$InvoiceListStateCopyWithImpl<$Res, $Val extends InvoiceListState>
     Object? sortAscending = null,
     Object? searchQuery = null,
     Object? currentPage = null,
+    Object? cashLocations = null,
+    Object? isLoadingCashLocations = null,
+    Object? selectedCashLocation = freezed,
+    Object? selectedStatus = freezed,
+    Object? dateFilter = freezed,
+    Object? amountFilter = freezed,
   }) {
     return _then(_value.copyWith(
       invoices: null == invoices
@@ -120,6 +142,30 @@ class _$InvoiceListStateCopyWithImpl<$Res, $Val extends InvoiceListState>
           ? _value.currentPage
           : currentPage // ignore: cast_nullable_to_non_nullable
               as int,
+      cashLocations: null == cashLocations
+          ? _value.cashLocations
+          : cashLocations // ignore: cast_nullable_to_non_nullable
+              as List<CashLocation>,
+      isLoadingCashLocations: null == isLoadingCashLocations
+          ? _value.isLoadingCashLocations
+          : isLoadingCashLocations // ignore: cast_nullable_to_non_nullable
+              as bool,
+      selectedCashLocation: freezed == selectedCashLocation
+          ? _value.selectedCashLocation
+          : selectedCashLocation // ignore: cast_nullable_to_non_nullable
+              as CashLocation?,
+      selectedStatus: freezed == selectedStatus
+          ? _value.selectedStatus
+          : selectedStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      dateFilter: freezed == dateFilter
+          ? _value.dateFilter
+          : dateFilter // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amountFilter: freezed == amountFilter
+          ? _value.amountFilter
+          : amountFilter // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -142,7 +188,13 @@ abstract class _$$InvoiceListStateImplCopyWith<$Res>
       InvoiceSortOption sortBy,
       bool sortAscending,
       String searchQuery,
-      int currentPage});
+      int currentPage,
+      List<CashLocation> cashLocations,
+      bool isLoadingCashLocations,
+      CashLocation? selectedCashLocation,
+      String? selectedStatus,
+      String? dateFilter,
+      String? amountFilter});
 }
 
 /// @nodoc
@@ -168,6 +220,12 @@ class __$$InvoiceListStateImplCopyWithImpl<$Res>
     Object? sortAscending = null,
     Object? searchQuery = null,
     Object? currentPage = null,
+    Object? cashLocations = null,
+    Object? isLoadingCashLocations = null,
+    Object? selectedCashLocation = freezed,
+    Object? selectedStatus = freezed,
+    Object? dateFilter = freezed,
+    Object? amountFilter = freezed,
   }) {
     return _then(_$InvoiceListStateImpl(
       invoices: null == invoices
@@ -210,6 +268,30 @@ class __$$InvoiceListStateImplCopyWithImpl<$Res>
           ? _value.currentPage
           : currentPage // ignore: cast_nullable_to_non_nullable
               as int,
+      cashLocations: null == cashLocations
+          ? _value._cashLocations
+          : cashLocations // ignore: cast_nullable_to_non_nullable
+              as List<CashLocation>,
+      isLoadingCashLocations: null == isLoadingCashLocations
+          ? _value.isLoadingCashLocations
+          : isLoadingCashLocations // ignore: cast_nullable_to_non_nullable
+              as bool,
+      selectedCashLocation: freezed == selectedCashLocation
+          ? _value.selectedCashLocation
+          : selectedCashLocation // ignore: cast_nullable_to_non_nullable
+              as CashLocation?,
+      selectedStatus: freezed == selectedStatus
+          ? _value.selectedStatus
+          : selectedStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      dateFilter: freezed == dateFilter
+          ? _value.dateFilter
+          : dateFilter // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amountFilter: freezed == amountFilter
+          ? _value.amountFilter
+          : amountFilter // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -227,8 +309,15 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
       this.sortBy = InvoiceSortOption.date,
       this.sortAscending = false,
       this.searchQuery = '',
-      this.currentPage = 1})
+      this.currentPage = 1,
+      final List<CashLocation> cashLocations = const [],
+      this.isLoadingCashLocations = false,
+      this.selectedCashLocation,
+      this.selectedStatus,
+      this.dateFilter,
+      this.amountFilter})
       : _invoices = invoices,
+        _cashLocations = cashLocations,
         super._();
 
   final List<Invoice> _invoices;
@@ -265,10 +354,35 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
   @override
   @JsonKey()
   final int currentPage;
+// Cash location filter
+  final List<CashLocation> _cashLocations;
+// Cash location filter
+  @override
+  @JsonKey()
+  List<CashLocation> get cashLocations {
+    if (_cashLocations is EqualUnmodifiableListView) return _cashLocations;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_cashLocations);
+  }
+
+  @override
+  @JsonKey()
+  final bool isLoadingCashLocations;
+  @override
+  final CashLocation? selectedCashLocation;
+// Status filter: null = All, 'completed', 'refunded'
+  @override
+  final String? selectedStatus;
+// Server-side sorting for get_invoice_page_v3
+  @override
+  final String? dateFilter;
+// 'newest' or 'oldest'
+  @override
+  final String? amountFilter;
 
   @override
   String toString() {
-    return 'InvoiceListState(invoices: $invoices, isLoading: $isLoading, isLoadingMore: $isLoadingMore, error: $error, response: $response, selectedPeriod: $selectedPeriod, sortBy: $sortBy, sortAscending: $sortAscending, searchQuery: $searchQuery, currentPage: $currentPage)';
+    return 'InvoiceListState(invoices: $invoices, isLoading: $isLoading, isLoadingMore: $isLoadingMore, error: $error, response: $response, selectedPeriod: $selectedPeriod, sortBy: $sortBy, sortAscending: $sortAscending, searchQuery: $searchQuery, currentPage: $currentPage, cashLocations: $cashLocations, isLoadingCashLocations: $isLoadingCashLocations, selectedCashLocation: $selectedCashLocation, selectedStatus: $selectedStatus, dateFilter: $dateFilter, amountFilter: $amountFilter)';
   }
 
   @override
@@ -292,7 +406,19 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
             (identical(other.searchQuery, searchQuery) ||
                 other.searchQuery == searchQuery) &&
             (identical(other.currentPage, currentPage) ||
-                other.currentPage == currentPage));
+                other.currentPage == currentPage) &&
+            const DeepCollectionEquality()
+                .equals(other._cashLocations, _cashLocations) &&
+            (identical(other.isLoadingCashLocations, isLoadingCashLocations) ||
+                other.isLoadingCashLocations == isLoadingCashLocations) &&
+            (identical(other.selectedCashLocation, selectedCashLocation) ||
+                other.selectedCashLocation == selectedCashLocation) &&
+            (identical(other.selectedStatus, selectedStatus) ||
+                other.selectedStatus == selectedStatus) &&
+            (identical(other.dateFilter, dateFilter) ||
+                other.dateFilter == dateFilter) &&
+            (identical(other.amountFilter, amountFilter) ||
+                other.amountFilter == amountFilter));
   }
 
   @override
@@ -307,7 +433,13 @@ class _$InvoiceListStateImpl extends _InvoiceListState {
       sortBy,
       sortAscending,
       searchQuery,
-      currentPage);
+      currentPage,
+      const DeepCollectionEquality().hash(_cashLocations),
+      isLoadingCashLocations,
+      selectedCashLocation,
+      selectedStatus,
+      dateFilter,
+      amountFilter);
 
   /// Create a copy of InvoiceListState
   /// with the given fields replaced by the non-null parameter values.
@@ -330,7 +462,13 @@ abstract class _InvoiceListState extends InvoiceListState {
       final InvoiceSortOption sortBy,
       final bool sortAscending,
       final String searchQuery,
-      final int currentPage}) = _$InvoiceListStateImpl;
+      final int currentPage,
+      final List<CashLocation> cashLocations,
+      final bool isLoadingCashLocations,
+      final CashLocation? selectedCashLocation,
+      final String? selectedStatus,
+      final String? dateFilter,
+      final String? amountFilter}) = _$InvoiceListStateImpl;
   const _InvoiceListState._() : super._();
 
   @override
@@ -352,7 +490,20 @@ abstract class _InvoiceListState extends InvoiceListState {
   @override
   String get searchQuery;
   @override
-  int get currentPage;
+  int get currentPage; // Cash location filter
+  @override
+  List<CashLocation> get cashLocations;
+  @override
+  bool get isLoadingCashLocations;
+  @override
+  CashLocation?
+      get selectedCashLocation; // Status filter: null = All, 'completed', 'refunded'
+  @override
+  String? get selectedStatus; // Server-side sorting for get_invoice_page_v3
+  @override
+  String? get dateFilter; // 'newest' or 'oldest'
+  @override
+  String? get amountFilter;
 
   /// Create a copy of InvoiceListState
   /// with the given fields replaced by the non-null parameter values.

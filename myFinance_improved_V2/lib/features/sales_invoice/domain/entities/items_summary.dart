@@ -12,20 +12,6 @@ class ItemsSummary extends Equatable {
     this.firstProductName,
   });
 
-  /// Get display name for invoice list
-  /// - 1 product: "루이비통 벨트"
-  /// - N products: "루이비통 벨트 외 N-1건"
-  String get productDisplayName {
-    if (firstProductName == null || firstProductName!.isEmpty) {
-      return '$itemCount products';
-    }
-    final otherCount = itemCount - 1;
-    if (otherCount > 0) {
-      return '$firstProductName 외 $otherCount건';
-    }
-    return firstProductName!;
-  }
-
   @override
   List<Object?> get props => [itemCount, totalQuantity, firstProductName];
 }

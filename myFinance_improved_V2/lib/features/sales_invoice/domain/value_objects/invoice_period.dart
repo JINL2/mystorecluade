@@ -17,8 +17,12 @@ enum InvoicePeriod {
       case InvoicePeriod.today:
         return DateRange(startDate: startOfToday, endDate: today);
       case InvoicePeriod.thisWeek:
+        // Monday = 1, Sunday = 7
+        // weekStart: Go back to Monday of this week
         final weekStart = startOfToday.subtract(Duration(days: startOfToday.weekday - 1));
-        return DateRange(startDate: weekStart, endDate: today);
+        // weekEnd: Go forward to Sunday of this week
+        final weekEnd = weekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+        return DateRange(startDate: weekStart, endDate: weekEnd);
       case InvoicePeriod.thisMonth:
         final monthStart = DateTime(now.year, now.month, 1, 0, 0, 0);
         final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
