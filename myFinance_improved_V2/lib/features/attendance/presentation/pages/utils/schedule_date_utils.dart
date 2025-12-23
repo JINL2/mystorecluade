@@ -39,6 +39,22 @@ class ScheduleDateUtils {
   ScheduleDateUtils._();
 
   // ============================================================
+  // GRACE PERIOD CONSTANTS
+  // ============================================================
+
+  /// 다음 시프트가 없을 때 기본 체크아웃 유예 시간
+  static const int defaultGraceHours = 3;
+
+  /// 최대 체크아웃 유예 시간 (다음 시프트가 아무리 멀어도 이 시간 후에는 체크아웃 불가)
+  static const int maxGraceHours = 6;
+
+  /// 다음 시프트 시작 전 최소 버퍼 (이 시간 전에는 체크아웃 마감)
+  static const int bufferMinutes = 15;
+
+  /// 연속 체인으로 판정하는 시간 차이 (분)
+  static const int chainThresholdMinutes = 5;
+
+  // ============================================================
   // CORE PARSING UTILITIES
   // ============================================================
 
@@ -72,6 +88,100 @@ class ScheduleDateUtils {
   }
 
   // ============================================================
+  // CHECKOUT DEADLINE CALCULATION (SINGLE SOURCE OF TRUTH)
+  // ============================================================
+
+  /// 체크아웃 마감 시간 계산
+  ///
+  /// **규칙 (우선순위 순):**
+  /// 1. 연속 체인 (gap ≤ 5분): 다음 시프트 시작 시간 반환 (체인으로 처리)
+  /// 2. 다음 시프트가 grace period 이내: 다음 시프트 시작 - 15분
+  /// 3. 다음 시프트가 멀거나 없음: min(시프트 끝 + 3시간, 시프트 끝 + 6시간)
+  ///
+  /// **예시:**
+  /// | 시프트 끝 | 다음 시프트 | Gap | 체크아웃 마감 |
+  /// |----------|------------|-----|--------------|
+  /// | 01:00    | 01:05      | 5분 | 01:05 (체인) |
+  /// | 01:00    | 02:00      | 1시간| 01:45 (시작-15분) |
+  /// | 01:00    | 03:00      | 2시간| 02:45 (시작-15분) |
+  /// | 01:00    | 08:00      | 7시간| 04:00 (기본 3시간) |
+  /// | 01:00    | 3일 후     | 72시간| 04:00 (기본 3시간) |
+  /// | 01:00    | 없음       | -   | 04:00 (기본 3시간) |
+  static DateTime calculateCheckoutDeadline(
+    DateTime shiftEnd,
+    DateTime? nextShiftStart,
+  ) {
+    final defaultDeadline = shiftEnd.add(const Duration(hours: defaultGraceHours));
+    final maxDeadline = shiftEnd.add(const Duration(hours: maxGraceHours));
+
+    if (nextShiftStart == null) {
+      // 다음 시프트 없음 → 기본 3시간
+      return defaultDeadline;
+    }
+
+    final gap = nextShiftStart.difference(shiftEnd);
+
+    // 연속 시프트 (5분 이내) → 체인으로 처리 (다음 시프트 시작까지)
+    if (gap.inMinutes <= chainThresholdMinutes) {
+      return nextShiftStart;
+    }
+
+    // 다음 시프트가 grace period 이내 → 시작 15분 전까지
+    if (gap.inHours < defaultGraceHours) {
+      final beforeNextShift = nextShiftStart.subtract(
+        const Duration(minutes: bufferMinutes),
+      );
+      // 최소한 현재보다는 미래여야 함
+      return beforeNextShift.isAfter(shiftEnd) ? beforeNextShift : shiftEnd;
+    }
+
+    // 기본: 3시간 (최대 6시간 상한 적용)
+    return defaultDeadline.isBefore(maxDeadline) ? defaultDeadline : maxDeadline;
+  }
+
+  /// 현재 시간이 체크아웃 가능 시간 내인지 확인
+  ///
+  /// [shiftEnd] 시프트 종료 시간
+  /// [nextShiftStart] 다음 시프트 시작 시간 (없으면 null)
+  /// [currentTime] 현재 시간
+  ///
+  /// Returns: true면 아직 체크아웃 가능, false면 체크아웃 마감됨
+  static bool isWithinCheckoutWindow(
+    DateTime shiftEnd,
+    DateTime? nextShiftStart,
+    DateTime currentTime,
+  ) {
+    final deadline = calculateCheckoutDeadline(shiftEnd, nextShiftStart);
+    return currentTime.isBefore(deadline);
+  }
+
+  /// 다음 시프트 시작 시간 찾기 (헬퍼)
+  ///
+  /// [shiftCards] 전체 시프트 목록
+  /// [afterTime] 이 시간 이후의 시프트만 검색
+  ///
+  /// Returns: 다음 시프트 시작 시간, 없으면 null
+  static DateTime? findNextShiftStartTime(
+    List<ShiftCard> shiftCards,
+    DateTime afterTime,
+  ) {
+    DateTime? nextStart;
+
+    for (final card in shiftCards) {
+      if (!card.isApproved || card.isCheckedIn) continue;
+
+      final startTime = parseShiftDateTime(card.shiftStartTime);
+      if (startTime == null || !startTime.isAfter(afterTime)) continue;
+
+      if (nextStart == null || startTime.isBefore(nextStart)) {
+        nextStart = startTime;
+      }
+    }
+
+    return nextStart;
+  }
+
+  // ============================================================
   // CONTINUOUS CHAIN DETECTION (UNIFIED LOGIC)
   // ============================================================
 
@@ -88,9 +198,6 @@ class ScheduleDateUtils {
     DateTime? currentTime,
   }) {
     if (shiftCards.isEmpty) return ChainDetectionResult.empty;
-
-    final now = currentTime ?? DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
 
     // Step 1: Find in-progress shift (checked in but not out)
     ShiftCard? inProgressShift;
@@ -144,7 +251,8 @@ class ScheduleDateUtils {
     // Step 4: Determine if we should be in CHECKOUT mode
     // Condition: inProgressShift exists (checked in but not out)
     // Time doesn't matter - user should be able to checkout even after shift ended
-    final shouldCheckout = inProgressShift != null;
+    // Note: At this point, inProgressShift is guaranteed to be non-null
+    const shouldCheckout = true;
 
     return ChainDetectionResult(
       inProgressShift: inProgressShift,
@@ -293,30 +401,28 @@ class ScheduleDateUtils {
   }
 
   /// Find a shift that ended recently but user should still checkout
-  /// (We're before the midpoint to the next shift)
+  /// (We're within the checkout window based on grace period rules)
   ///
-  /// Grace period: 3 hours after end_time if no next shift
+  /// Uses [isWithinCheckoutWindow] for consistent deadline calculation.
   static ShiftCard? _findRecentlyEndedShiftBeforeMidpoint(
     List<ShiftCard> shiftCards,
     DateTime now,
   ) {
-    const defaultGraceHours = 3;
-
-    // Find completed shifts that ended within the last 12 hours
-    // (reasonable window for checking)
+    // Find shifts that:
+    // 1. Are approved
+    // 2. Have check-in but no check-out
+    // 3. Ended within the last maxGraceHours (reasonable window)
     final recentlyCompleted = <ShiftCard>[];
     for (final card in shiftCards) {
       if (!card.isApproved) continue;
-      // Only consider shifts that have check-in but no check-out
-      // (actual_end_time is null means no checkout yet)
       if (!card.isCheckedIn || card.isCheckedOut) continue;
 
       final endTime = parseShiftDateTime(card.shiftEndTime);
       if (endTime == null) continue;
 
-      // Check if shift ended within last 12 hours
+      // Check if shift ended within last maxGraceHours
       final hoursSinceEnd = now.difference(endTime).inHours;
-      if (hoursSinceEnd >= 0 && hoursSinceEnd <= 12) {
+      if (hoursSinceEnd >= 0 && hoursSinceEnd <= maxGraceHours) {
         recentlyCompleted.add(card);
       }
     }
@@ -334,38 +440,15 @@ class ScheduleDateUtils {
     final mostRecentShift = recentlyCompleted.first;
     final mostRecentEndTime = parseShiftDateTime(mostRecentShift.shiftEndTime)!;
 
-    // Find the next upcoming shift (not checked in, start_time > mostRecentEndTime)
-    ShiftCard? nextShift;
-    DateTime? nextShiftStart;
-    for (final card in shiftCards) {
-      if (!card.isApproved || card.isCheckedIn) continue;
+    // Find the next upcoming shift start time
+    final nextShiftStart = findNextShiftStartTime(shiftCards, mostRecentEndTime);
 
-      final startTime = parseShiftDateTime(card.shiftStartTime);
-      if (startTime == null || !startTime.isAfter(mostRecentEndTime)) continue;
-
-      if (nextShift == null || startTime.isBefore(nextShiftStart!)) {
-        nextShift = card;
-        nextShiftStart = startTime;
-      }
-    }
-
-    // Calculate midpoint
-    DateTime midpoint;
-    if (nextShiftStart != null) {
-      // Midpoint = (previous_end + next_start) / 2
-      final totalMinutes = nextShiftStart.difference(mostRecentEndTime).inMinutes;
-      midpoint = mostRecentEndTime.add(Duration(minutes: totalMinutes ~/ 2));
-    } else {
-      // No next shift: use default grace period
-      midpoint = mostRecentEndTime.add(const Duration(hours: defaultGraceHours));
-    }
-
-    // If we're before midpoint, return the recently ended shift (checkout mode)
-    if (now.isBefore(midpoint)) {
+    // Use unified checkout window calculation
+    if (isWithinCheckoutWindow(mostRecentEndTime, nextShiftStart, now)) {
       return mostRecentShift;
     }
 
-    // We're past midpoint, user can check into next shift
+    // Past checkout deadline, user can check into next shift
     return null;
   }
 
