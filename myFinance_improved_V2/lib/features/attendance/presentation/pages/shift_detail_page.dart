@@ -50,21 +50,13 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   }
 
   String? _getConfirmedStartTime() {
-    try {
-      final startDateTime = DateTime.parse(widget.shift.shiftStartTime);
-      return '${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return widget.shift.confirmStartTime;
-    }
+    // RPC에서 이미 로컬 타임존으로 변환된 "HH:MM" 형식으로 반환
+    return widget.shift.confirmStartTime;
   }
 
   String? _getConfirmedEndTime() {
-    try {
-      final endDateTime = DateTime.parse(widget.shift.shiftEndTime);
-      return '${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return widget.shift.confirmEndTime;
-    }
+    // RPC에서 이미 로컬 타임존으로 변환된 "HH:MM" 형식으로 반환
+    return widget.shift.confirmEndTime;
   }
 
   TextStyle? _getCheckInTimeColor() {

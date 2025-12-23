@@ -55,6 +55,7 @@ class InventoryMetadataNotifier extends StateNotifier<InventoryMetadataState> {
 
   Future<void> _initialize() async {
     if (companyId == null || storeId == null) {
+      if (!mounted) return;
       state = state.copyWith(
         error: 'Company or store not selected',
         isLoading: false,
@@ -67,6 +68,7 @@ class InventoryMetadataNotifier extends StateNotifier<InventoryMetadataState> {
 
   Future<void> loadMetadata() async {
     if (companyId == null || storeId == null) return;
+    if (!mounted) return;
 
     state = state.copyWith(isLoading: true, error: null);
 
@@ -76,12 +78,14 @@ class InventoryMetadataNotifier extends StateNotifier<InventoryMetadataState> {
         storeId: storeId!,
       );
 
+      if (!mounted) return;
       state = state.copyWith(
         metadata: metadata,
         isLoading: false,
         error: null,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -153,6 +157,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   Future<void> _initialize() async {
     if (companyId == null || storeId == null) {
+      if (!mounted) return;
       state = state.copyWith(
         error: 'Company or store not selected',
         isLoading: false,
@@ -167,12 +172,15 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
   Future<void> loadInitialData() async {
     if (companyId == null || storeId == null) return;
     if (state.isLoading) return;
+    if (!mounted) return;
 
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       // Load base currency first
       await _loadBaseCurrency();
+
+      if (!mounted) return;
 
       final filter = ProductFilter(
         searchQuery: state.searchQuery,
@@ -196,6 +204,8 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         sortOption: sortOption,
       );
 
+      if (!mounted) return;
+
       if (result != null) {
         state = state.copyWith(
           products: result.products,
@@ -213,6 +223,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -226,6 +237,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
     try {
       final result = await repository.getBaseCurrency(companyId: companyId!);
+      if (!mounted) return;
       if (result != null) {
         state = state.copyWith(baseCurrency: result.baseCurrency);
       }
@@ -240,6 +252,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
   Future<void> loadNextPage() async {
     if (companyId == null || storeId == null) return;
     if (state.isLoadingMore || !state.canLoadMore) return;
+    if (!mounted) return;
 
     state = state.copyWith(isLoadingMore: true);
 
@@ -267,6 +280,8 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         sortOption: sortOption,
       );
 
+      if (!mounted) return;
+
       if (result != null) {
         final allProducts = [...state.products, ...result.products];
         state = state.copyWith(
@@ -278,12 +293,14 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         state = state.copyWith(isLoadingMore: false);
       }
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoadingMore: false);
     }
   }
 
   /// Refresh data
   Future<void> refresh() async {
+    if (!mounted) return;
     state = state.copyWith(
       products: [],
       pagination: const PaginationResult(
@@ -300,6 +317,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Add product to list if not already present (for search result navigation)
   void addProductIfNotExists(Product product) {
+    if (!mounted) return;
     final exists = state.products.any((p) => p.id == product.id);
     if (!exists) {
       state = state.copyWith(products: [...state.products, product]);
@@ -308,18 +326,20 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set search query with debounce
   void setSearchQuery(String? query) {
+    if (!mounted) return;
     if (state.searchQuery != query) {
       state = state.copyWith(searchQuery: query);
 
       _searchDebounceTimer?.cancel();
       _searchDebounceTimer = Timer(InventoryConstants.searchDebounceDelay, () {
-        refresh();
+        if (mounted) refresh();
       });
     }
   }
 
   /// Set category filter
   void setCategory(String? categoryId) {
+    if (!mounted) return;
     if (state.selectedCategoryId != categoryId) {
       state = state.copyWith(selectedCategoryId: categoryId);
       refresh();
@@ -328,6 +348,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set brand filter
   void setBrand(String? brandId) {
+    if (!mounted) return;
     if (state.selectedBrandId != brandId) {
       state = state.copyWith(selectedBrandId: brandId);
       refresh();
@@ -336,6 +357,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set stock status filter
   void setStockStatus(String? status) {
+    if (!mounted) return;
     if (state.selectedStockStatus != status) {
       state = state.copyWith(selectedStockStatus: status);
       refresh();
@@ -344,6 +366,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set sorting
   void setSorting(String sortBy, String sortDirection) {
+    if (!mounted) return;
     if (state.sortBy != sortBy || state.sortDirection != sortDirection) {
       state = state.copyWith(
         sortBy: sortBy,
@@ -359,6 +382,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
     String? brandId,
     String? stockStatus,
   }) {
+    if (!mounted) return;
     final hasChanged = state.selectedCategoryId != categoryId ||
         state.selectedBrandId != brandId ||
         state.selectedStockStatus != stockStatus;
@@ -375,6 +399,7 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Clear all filters
   void clearFilters() {
+    if (!mounted) return;
     state = state.copyWith(
       searchQuery: null,
       selectedCategoryId: null,

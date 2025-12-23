@@ -19,7 +19,7 @@ import '../../features/auth/presentation/pages/signup_page.dart';
 import '../../features/auth/presentation/pages/verify_email_otp_page.dart';
 import '../../features/auth/presentation/pages/verify_otp_page.dart';
 import '../../features/auth/presentation/pages/complete_profile_page.dart';
-import '../../features/balance_sheet/presentation/pages/balance_sheet_page.dart';
+import '../../features/balance_sheet/presentation/pages/financial_statements_page.dart';
 import '../../features/cash_ending/presentation/pages/cash_ending_page.dart';
 import '../../features/cash_location/presentation/pages/account_detail_page.dart';
 import '../../features/cash_location/presentation/pages/cash_location_page.dart';
@@ -617,7 +617,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/balanceSheet',
         name: 'balanceSheet',
-        builder: (context, state) => const BalanceSheetPage(),
+        builder: (context, state) => const FinancialStatementsPage(),
       ),
 
       // Counter Party Route

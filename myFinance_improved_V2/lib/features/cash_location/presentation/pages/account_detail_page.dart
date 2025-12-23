@@ -249,6 +249,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
 
   Future<void> _onRefresh() async {
+    if (!mounted) return;
+
     // Reset state and refresh data
     setState(() {
       _allJournalFlows.clear();
@@ -257,13 +259,14 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
       _hasMoreData = true;
       _isLoadingMore = false;
     });
-    
+
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
-    
-    if (widget.locationId == null) return;
-    
+
+    if (widget.locationId == null || widget.locationId!.isEmpty) return;
+    if (companyId.isEmpty || storeId.isEmpty) return;
+
     // Invalidate to force refresh
     ref.invalidate(stockFlowProvider(
       StockFlowParams(
@@ -274,7 +277,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
         limit: _limit,
       ),
     ));
-    
+
     // Also invalidate and refresh cash locations to update balance
     ref.invalidate(allCashLocationsProvider(
       CashLocationQueryParams(
@@ -282,7 +285,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
         storeId: storeId,
       ),
     ));
-    
+
     // Force immediate data refresh by reading the provider
     try {
       final response = await ref.read(stockFlowProvider(
@@ -294,7 +297,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           limit: _limit,
         ),
       ).future);
-      
+
+      if (!mounted) return;
+
       if (response.success && response.data != null) {
         setState(() {
           _allJournalFlows = List.from(response.data!.journalFlows);
@@ -389,12 +394,15 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   }
 
   Future<void> _fetchUpdatedBalance() async {
+    if (!mounted) return;
+
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
-    
-    if (widget.locationId == null) return;
-    
+
+    if (widget.locationId == null || widget.locationId!.isEmpty) return;
+    if (companyId.isEmpty || storeId.isEmpty) return;
+
     try {
       // Fetch all cash locations
       final allLocations = await ref.read(allCashLocationsProvider(
@@ -403,29 +411,27 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
           storeId: storeId,
         ),
       ).future);
-      
-      // Find the current location
-      final currentLocation = allLocations.firstWhere(
-        (location) => location.locationId == widget.locationId,
-        orElse: () => CashLocation(
-          locationId: widget.locationId!,
-          locationName: widget.accountName,
-          locationType: widget.locationType,
-          totalJournalCashAmount: widget.totalJournal?.toDouble() ?? widget.balance.toDouble(),
-          totalRealCashAmount: widget.totalReal?.toDouble() ?? widget.balance.toDouble(),
-          cashDifference: widget.cashDifference?.toDouble() ?? 0,
-          companyId: companyId,
-          storeId: storeId,
-          currencySymbol: widget.currencySymbol ?? '',
-        ),
-      );
-      
-      // Update the balance values
-      setState(() {
-        _updatedTotalJournal = currentLocation.totalJournalCashAmount.round();
-        _updatedTotalReal = currentLocation.totalRealCashAmount.round();
-        _updatedCashDifference = currentLocation.cashDifference.round();
-      });
+
+      if (!mounted) return;
+
+      // Find the current location safely
+      CashLocation? currentLocation;
+      for (final location in allLocations) {
+        if (location.locationId == widget.locationId) {
+          currentLocation = location;
+          break;
+        }
+      }
+
+      // Update the balance values only if location was found
+      if (currentLocation != null) {
+        setState(() {
+          _updatedTotalJournal = currentLocation!.totalJournalCashAmount.round();
+          _updatedTotalReal = currentLocation.totalRealCashAmount.round();
+          _updatedCashDifference = currentLocation.cashDifference.round();
+        });
+      }
+      // If location not found, keep using original widget values (no update needed)
     } catch (e, stackTrace) {
       // Log error but keep using original values
       SentryConfig.captureException(

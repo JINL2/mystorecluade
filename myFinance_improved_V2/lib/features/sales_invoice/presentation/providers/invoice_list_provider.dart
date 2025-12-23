@@ -167,6 +167,20 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     await loadInvoices();
   }
 
+  /// Go to next page (for pagination controls)
+  Future<void> nextPage() async {
+    if (!state.canLoadMore || state.isLoading) return;
+    state = state.copyWith(currentPage: state.currentPage + 1, invoices: []);
+    await loadInvoices();
+  }
+
+  /// Go to previous page (for pagination controls)
+  Future<void> previousPage() async {
+    if (state.currentPage <= 1 || state.isLoading) return;
+    state = state.copyWith(currentPage: state.currentPage - 1, invoices: []);
+    await loadInvoices();
+  }
+
   /// Refund invoice
   ///
   /// This method:

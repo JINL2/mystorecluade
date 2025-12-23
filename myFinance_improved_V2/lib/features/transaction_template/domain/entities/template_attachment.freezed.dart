@@ -22,8 +22,7 @@ mixin _$TemplateAttachment {
   /// Journal ID this attachment belongs to (null before journal is created)
   String? get journalId => throw _privateConstructorUsedError;
 
-  /// Local file for pending uploads
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  /// Local file for pending uploads (not serialized)
   XFile? get localFile => throw _privateConstructorUsedError;
 
   /// Storage URL after upload
@@ -60,7 +59,7 @@ abstract class $TemplateAttachmentCopyWith<$Res> {
   $Res call(
       {String? attachmentId,
       String? journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false) XFile? localFile,
+      XFile? localFile,
       String? fileUrl,
       String fileName,
       int fileSizeBytes,
@@ -146,7 +145,7 @@ abstract class _$$TemplateAttachmentImplCopyWith<$Res>
   $Res call(
       {String? attachmentId,
       String? journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false) XFile? localFile,
+      XFile? localFile,
       String? fileUrl,
       String fileName,
       int fileSizeBytes,
@@ -225,7 +224,7 @@ class _$TemplateAttachmentImpl extends _TemplateAttachment {
   const _$TemplateAttachmentImpl(
       {this.attachmentId,
       this.journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false) this.localFile,
+      this.localFile,
       this.fileUrl,
       required this.fileName,
       this.fileSizeBytes = 0,
@@ -242,9 +241,8 @@ class _$TemplateAttachmentImpl extends _TemplateAttachment {
   @override
   final String? journalId;
 
-  /// Local file for pending uploads
+  /// Local file for pending uploads (not serialized)
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
   final XFile? localFile;
 
   /// Storage URL after upload
@@ -328,7 +326,6 @@ abstract class _TemplateAttachment extends TemplateAttachment {
   const factory _TemplateAttachment(
       {final String? attachmentId,
       final String? journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false)
       final XFile? localFile,
       final String? fileUrl,
       required final String fileName,
@@ -346,9 +343,8 @@ abstract class _TemplateAttachment extends TemplateAttachment {
   @override
   String? get journalId;
 
-  /// Local file for pending uploads
+  /// Local file for pending uploads (not serialized)
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
   XFile? get localFile;
 
   /// Storage URL after upload

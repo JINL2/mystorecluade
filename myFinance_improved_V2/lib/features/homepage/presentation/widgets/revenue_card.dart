@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
 
 import '../../domain/revenue_period.dart';
 import '../providers/homepage_providers.dart';
@@ -37,45 +38,9 @@ class RevenueCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Title with period dropdown
-              PopupMenuButton<RevenuePeriod>(
-                initialValue: selectedPeriod,
-                onSelected: (period) {
-                  ref.read(selectedRevenuePeriodProvider.notifier).state = period;
-                },
-                offset: const Offset(0, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
-                color: TossColors.surface,
-                elevation: 8,
-                itemBuilder: (context) => RevenuePeriod.values.map((period) {
-                  return PopupMenuItem(
-                    value: period,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          period.displayName,
-                          style: TossTextStyles.body.copyWith(
-                            color: period == selectedPeriod
-                                ? TossColors.primary
-                                : TossColors.textPrimary,
-                            fontWeight: period == selectedPeriod
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                          ),
-                        ),
-                        if (period == selectedPeriod)
-                          const Icon(
-                            Icons.check,
-                            color: TossColors.primary,
-                            size: 18,
-                          ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+              // Title with period selector (TossBottomSheet)
+              GestureDetector(
+                onTap: () => _showPeriodSelector(context, ref, selectedPeriod),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -166,6 +131,37 @@ class RevenueCard extends ConsumerWidget {
     return intAmount.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
+    );
+  }
+
+  void _showPeriodSelector(
+    BuildContext context,
+    WidgetRef ref,
+    RevenuePeriod selectedPeriod,
+  ) {
+    // Convert RevenuePeriod enum to TossSelectionItem list
+    final items = RevenuePeriod.values.map((period) {
+      return TossSelectionItem(
+        id: period.name,
+        title: period.displayName,
+      );
+    }).toList();
+
+    TossSelectionBottomSheet.show(
+      context: context,
+      title: 'Select Period',
+      items: items,
+      selectedId: selectedPeriod.name,
+      showIcon: false,
+      showSubtitle: false,
+      maxHeightFraction: 0.55, // 6 items need more space to avoid scrolling
+      onItemSelected: (item) {
+        final period = RevenuePeriod.values.firstWhere(
+          (p) => p.name == item.id,
+          orElse: () => RevenuePeriod.today,
+        );
+        ref.read(selectedRevenuePeriodProvider.notifier).state = period;
+      },
     );
   }
 }
