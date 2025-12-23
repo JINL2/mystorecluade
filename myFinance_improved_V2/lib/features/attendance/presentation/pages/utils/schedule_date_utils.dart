@@ -39,6 +39,22 @@ class ScheduleDateUtils {
   ScheduleDateUtils._();
 
   // ============================================================
+  // GRACE PERIOD CONSTANTS
+  // ============================================================
+
+  /// 다음 시프트가 없을 때 기본 체크아웃 유예 시간
+  static const int defaultGraceHours = 3;
+
+  /// 최대 체크아웃 유예 시간 (다음 시프트가 아무리 멀어도 이 시간 후에는 체크아웃 불가)
+  static const int maxGraceHours = 6;
+
+  /// 다음 시프트 시작 전 최소 버퍼 (이 시간 전에는 체크아웃 마감)
+  static const int bufferMinutes = 15;
+
+  /// 연속 체인으로 판정하는 시간 차이 (분)
+  static const int chainThresholdMinutes = 5;
+
+  // ============================================================
   // CORE PARSING UTILITIES
   // ============================================================
 
@@ -72,6 +88,100 @@ class ScheduleDateUtils {
   }
 
   // ============================================================
+  // CHECKOUT DEADLINE CALCULATION (SINGLE SOURCE OF TRUTH)
+  // ============================================================
+
+  /// 체크아웃 마감 시간 계산
+  ///
+  /// **규칙 (우선순위 순):**
+  /// 1. 연속 체인 (gap ≤ 5분): 다음 시프트 시작 시간 반환 (체인으로 처리)
+  /// 2. 다음 시프트가 grace period 이내: 다음 시프트 시작 - 15분
+  /// 3. 다음 시프트가 멀거나 없음: min(시프트 끝 + 3시간, 시프트 끝 + 6시간)
+  ///
+  /// **예시:**
+  /// | 시프트 끝 | 다음 시프트 | Gap | 체크아웃 마감 |
+  /// |----------|------------|-----|--------------|
+  /// | 01:00    | 01:05      | 5분 | 01:05 (체인) |
+  /// | 01:00    | 02:00      | 1시간| 01:45 (시작-15분) |
+  /// | 01:00    | 03:00      | 2시간| 02:45 (시작-15분) |
+  /// | 01:00    | 08:00      | 7시간| 04:00 (기본 3시간) |
+  /// | 01:00    | 3일 후     | 72시간| 04:00 (기본 3시간) |
+  /// | 01:00    | 없음       | -   | 04:00 (기본 3시간) |
+  static DateTime calculateCheckoutDeadline(
+    DateTime shiftEnd,
+    DateTime? nextShiftStart,
+  ) {
+    final defaultDeadline = shiftEnd.add(const Duration(hours: defaultGraceHours));
+    final maxDeadline = shiftEnd.add(const Duration(hours: maxGraceHours));
+
+    if (nextShiftStart == null) {
+      // 다음 시프트 없음 → 기본 3시간
+      return defaultDeadline;
+    }
+
+    final gap = nextShiftStart.difference(shiftEnd);
+
+    // 연속 시프트 (5분 이내) → 체인으로 처리 (다음 시프트 시작까지)
+    if (gap.inMinutes <= chainThresholdMinutes) {
+      return nextShiftStart;
+    }
+
+    // 다음 시프트가 grace period 이내 → 시작 15분 전까지
+    if (gap.inHours < defaultGraceHours) {
+      final beforeNextShift = nextShiftStart.subtract(
+        const Duration(minutes: bufferMinutes),
+      );
+      // 최소한 현재보다는 미래여야 함
+      return beforeNextShift.isAfter(shiftEnd) ? beforeNextShift : shiftEnd;
+    }
+
+    // 기본: 3시간 (최대 6시간 상한 적용)
+    return defaultDeadline.isBefore(maxDeadline) ? defaultDeadline : maxDeadline;
+  }
+
+  /// 현재 시간이 체크아웃 가능 시간 내인지 확인
+  ///
+  /// [shiftEnd] 시프트 종료 시간
+  /// [nextShiftStart] 다음 시프트 시작 시간 (없으면 null)
+  /// [currentTime] 현재 시간
+  ///
+  /// Returns: true면 아직 체크아웃 가능, false면 체크아웃 마감됨
+  static bool isWithinCheckoutWindow(
+    DateTime shiftEnd,
+    DateTime? nextShiftStart,
+    DateTime currentTime,
+  ) {
+    final deadline = calculateCheckoutDeadline(shiftEnd, nextShiftStart);
+    return currentTime.isBefore(deadline);
+  }
+
+  /// 다음 시프트 시작 시간 찾기 (헬퍼)
+  ///
+  /// [shiftCards] 전체 시프트 목록
+  /// [afterTime] 이 시간 이후의 시프트만 검색
+  ///
+  /// Returns: 다음 시프트 시작 시간, 없으면 null
+  static DateTime? findNextShiftStartTime(
+    List<ShiftCard> shiftCards,
+    DateTime afterTime,
+  ) {
+    DateTime? nextStart;
+
+    for (final card in shiftCards) {
+      if (!card.isApproved || card.isCheckedIn) continue;
+
+      final startTime = parseShiftDateTime(card.shiftStartTime);
+      if (startTime == null || !startTime.isAfter(afterTime)) continue;
+
+      if (nextStart == null || startTime.isBefore(nextStart)) {
+        nextStart = startTime;
+      }
+    }
+
+    return nextStart;
+  }
+
+  // ============================================================
   // CONTINUOUS CHAIN DETECTION (UNIFIED LOGIC)
   // ============================================================
 
@@ -88,9 +198,6 @@ class ScheduleDateUtils {
     DateTime? currentTime,
   }) {
     if (shiftCards.isEmpty) return ChainDetectionResult.empty;
-
-    final now = currentTime ?? DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
 
     // Step 1: Find in-progress shift (checked in but not out)
     ShiftCard? inProgressShift;
@@ -142,9 +249,10 @@ class ScheduleDateUtils {
     }
 
     // Step 4: Determine if we should be in CHECKOUT mode
-    // Condition: chain's last shift hasn't ended yet (end_time > now)
-    // No date comparison needed - just check if end_time is in the future
-    final shouldCheckout = chainLastEndTime != null && chainLastEndTime.isAfter(now);
+    // Condition: inProgressShift exists (checked in but not out)
+    // Time doesn't matter - user should be able to checkout even after shift ended
+    // Note: At this point, inProgressShift is guaranteed to be non-null
+    const shouldCheckout = true;
 
     return ChainDetectionResult(
       inProgressShift: inProgressShift,
@@ -155,11 +263,18 @@ class ScheduleDateUtils {
     );
   }
 
-  /// Find the shift with end_time closest to current time from chain
+  /// Find the correct shift for checkout from chain
   /// Used for both UI display and QR scan checkout
   ///
-  /// No date filtering - just finds the shift with end_time closest to now.
-  /// This correctly handles night shifts that cross midnight (e.g., 20:00-02:00).
+  /// Logic: Find the earliest shift that hasn't ended yet (end_time > now)
+  /// If all shifts ended, return the last shift (allows late checkout)
+  ///
+  /// Example: 08:00~13:00, 13:00~19:00, 19:00~02:00 chain
+  /// - At 10:00 → Morning (end 13:00 > 10:00)
+  /// - At 15:00 → Afternoon (Morning ended, Afternoon end 19:00 > 15:00)
+  /// - At 21:00 → Night (Morning/Afternoon ended, Night end 02:00 > 21:00)
+  /// - At 01:00 → Night (end 02:00 > 01:00)
+  /// - At 02:30 → Night (all ended, fallback to last) ✅ Late checkout works!
   static ShiftCard? findClosestCheckoutShift(
     ChainDetectionResult chain, {
     DateTime? currentTime,
@@ -169,38 +284,79 @@ class ScheduleDateUtils {
 
     final now = currentTime ?? DateTime.now();
 
-    // Sort by distance to now (closest end_time first)
-    // No date filtering needed - chain detection already validated the shifts
+    // Sort shifts by start_time (chronological order)
     final sorted = [...chain.chainShifts]..sort((a, b) {
-      final aEnd = parseShiftDateTime(a.shiftEndTime);
-      final bEnd = parseShiftDateTime(b.shiftEndTime);
-      if (aEnd == null || bEnd == null) return 0;
-      return aEnd.difference(now).abs().compareTo(bEnd.difference(now).abs());
+      final aStart = parseShiftDateTime(a.shiftStartTime);
+      final bStart = parseShiftDateTime(b.shiftStartTime);
+      if (aStart == null || bStart == null) return 0;
+      return aStart.compareTo(bStart);
     });
 
-    return sorted.first;
+    // Find the earliest shift that hasn't ended yet (end_time > now)
+    for (final shift in sorted) {
+      final endTime = parseShiftDateTime(shift.shiftEndTime);
+      if (endTime == null) continue;
+
+      if (endTime.isAfter(now)) {
+        return shift;
+      }
+    }
+
+    // Fallback: return the last shift in chain (all ended - for display purposes)
+    return sorted.last;
   }
 
   /// Find the shift with start_time closest to current time for check-in
   ///
-  /// Search range: past 24 hours ~ future
-  /// This prevents checking into shifts from days ago that were forgotten.
+  /// CRITICAL: Uses midpoint logic for night shift transitions!
+  ///
+  /// Problem: At 01:04 on Dec 23, the Dec 22 Night shift (20:00~01:00) has ended,
+  /// but the Dec 23 Night shift (20:00~01:00) shouldn't allow check-in yet.
+  ///
+  /// Solution: Calculate midpoint between previous shift's end and next shift's start.
+  /// - Before midpoint: Still in checkout mode for previous shift
+  /// - After midpoint: Can check into next shift
+  ///
+  /// Example:
+  /// - Dec 22 Night ends: 01:00 (Dec 23)
+  /// - Dec 23 Morning starts: 10:00
+  /// - Midpoint: (01:00 + 10:00) / 2 = 05:30
+  /// - At 03:00 → Dec 22 Night (checkout mode)
+  /// - At 06:00 → Dec 23 Morning (checkin mode)
+  ///
+  /// Edge case: No next shift → Default grace period of 3 hours after end_time
   static ShiftCard? findClosestCheckinShift(
     List<ShiftCard> shiftCards, {
     DateTime? currentTime,
   }) {
     final now = currentTime ?? DateTime.now();
-    final past24Hours = now.subtract(const Duration(hours: 24));
+    final today = DateTime(now.year, now.month, now.day);
 
-    // Filter: approved, not checked in, start_time within past 24 hours or future
+    // Step 1: Find if there's an in-progress shift that should still be shown
+    // (checked in but not out, or recently ended)
+    final inProgressOrRecentShift = _findInProgressOrRecentShift(shiftCards, now);
+    if (inProgressOrRecentShift != null) {
+      // User should checkout this shift, not check into a new one
+      return null;
+    }
+
+    // Step 2: Filter check-in candidates
+    // - Approved, not checked in
+    // - Start time is today OR within valid check-in window
     final checkinCandidates = shiftCards.where((c) {
       if (!c.isApproved || c.isCheckedIn) return false;
 
       final shiftStartTime = parseShiftDateTime(c.shiftStartTime);
       if (shiftStartTime == null) return false;
 
-      // Only include shifts starting within past 24 hours or in the future
-      return !shiftStartTime.isBefore(past24Hours);
+      final shiftDate = DateTime(shiftStartTime.year, shiftStartTime.month, shiftStartTime.day);
+
+      // Allow check-in for TODAY's shifts
+      if (isSameDay(shiftDate, today)) return true;
+
+      // Also allow if we're past the midpoint and this is the next upcoming shift
+      // This handles the case where it's 06:00 and the next shift starts at 10:00
+      return false;
     }).toList();
 
     if (checkinCandidates.isEmpty) return null;
@@ -214,6 +370,86 @@ class ScheduleDateUtils {
     });
 
     return checkinCandidates.first;
+  }
+
+  /// Find in-progress shift OR recently ended shift that should still show checkout
+  ///
+  /// Returns the shift if:
+  /// 1. Shift is in-progress (checked in, not out)
+  /// 2. Shift ended but we're before the midpoint to next shift
+  ///
+  /// Returns null if user can proceed to check into a new shift
+  static ShiftCard? _findInProgressOrRecentShift(
+    List<ShiftCard> shiftCards,
+    DateTime now,
+  ) {
+    // First priority: Find in-progress shift (checked in but not out)
+    for (final card in shiftCards) {
+      if (card.isApproved && card.isCheckedIn && !card.isCheckedOut) {
+        return card;
+      }
+    }
+
+    // Second priority: Find recently ended shift (before midpoint)
+    // This handles the case where night shift ended at 01:00 and it's now 03:00
+    final recentlyEndedShift = _findRecentlyEndedShiftBeforeMidpoint(shiftCards, now);
+    if (recentlyEndedShift != null) {
+      return recentlyEndedShift;
+    }
+
+    return null;
+  }
+
+  /// Find a shift that ended recently but user should still checkout
+  /// (We're within the checkout window based on grace period rules)
+  ///
+  /// Uses [isWithinCheckoutWindow] for consistent deadline calculation.
+  static ShiftCard? _findRecentlyEndedShiftBeforeMidpoint(
+    List<ShiftCard> shiftCards,
+    DateTime now,
+  ) {
+    // Find shifts that:
+    // 1. Are approved
+    // 2. Have check-in but no check-out
+    // 3. Ended within the last maxGraceHours (reasonable window)
+    final recentlyCompleted = <ShiftCard>[];
+    for (final card in shiftCards) {
+      if (!card.isApproved) continue;
+      if (!card.isCheckedIn || card.isCheckedOut) continue;
+
+      final endTime = parseShiftDateTime(card.shiftEndTime);
+      if (endTime == null) continue;
+
+      // Check if shift ended within last maxGraceHours
+      final hoursSinceEnd = now.difference(endTime).inHours;
+      if (hoursSinceEnd >= 0 && hoursSinceEnd <= maxGraceHours) {
+        recentlyCompleted.add(card);
+      }
+    }
+
+    if (recentlyCompleted.isEmpty) return null;
+
+    // Sort by end_time (most recent first)
+    recentlyCompleted.sort((a, b) {
+      final aEnd = parseShiftDateTime(a.shiftEndTime);
+      final bEnd = parseShiftDateTime(b.shiftEndTime);
+      if (aEnd == null || bEnd == null) return 0;
+      return bEnd.compareTo(aEnd); // Descending
+    });
+
+    final mostRecentShift = recentlyCompleted.first;
+    final mostRecentEndTime = parseShiftDateTime(mostRecentShift.shiftEndTime)!;
+
+    // Find the next upcoming shift start time
+    final nextShiftStart = findNextShiftStartTime(shiftCards, mostRecentEndTime);
+
+    // Use unified checkout window calculation
+    if (isWithinCheckoutWindow(mostRecentEndTime, nextShiftStart, now)) {
+      return mostRecentShift;
+    }
+
+    // Past checkout deadline, user can check into next shift
+    return null;
   }
 
   /// Get week range (Monday to Sunday) for a given date

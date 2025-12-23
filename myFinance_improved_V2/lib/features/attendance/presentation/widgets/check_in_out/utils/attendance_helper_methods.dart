@@ -243,6 +243,30 @@ class AttendanceHelpers {
   /// [now] - Current DateTime (optional, for testing)
   ///
   /// Returns the shift_request_id, or null if no valid shift found
+  ///
+  /// **CRITICAL LOGIC (v10 - Grace Period-based transition)**:
+  ///
+  /// 1. CHECKOUT MODE (highest priority):
+  ///    - If any shift has isCheckedIn=true && isCheckedOut=false
+  ///    - Return that shift for checkout
+  ///
+  /// 2. GRACE PERIOD CHECK (prevents accidental check-in to future shifts):
+  ///    - If there's a recently ended shift (checked in, not out, end_time passed)
+  ///    - Check if within checkout window using [ScheduleDateUtils.isWithinCheckoutWindow]
+  ///    - Within window: Return the ended shift for checkout
+  ///    - Past window: Allow check-in to next shift (ended shift becomes no_checkout)
+  ///
+  /// **Grace Period Rules:**
+  /// - 기본: 시프트 끝 + 3시간
+  /// - 다음 시프트가 3시간 이내: 다음 시프트 시작 - 15분
+  /// - 최대 상한: 6시간 (다음 시프트가 아무리 멀어도)
+  ///
+  /// Example:
+  /// - Dec 22 Night (20:00~01:00): checked in, no checkout
+  /// - Dec 23 Night (20:00~01:00): not checked in (19시간 후)
+  /// - Checkout deadline = 01:00 + 3시간 = 04:00
+  /// - At 01:04: Return Dec 22 Night (checkout mode)
+  /// - At 04:01: Return Dec 23 Night (checkin mode, Dec 22 becomes no_checkout)
   static String? findClosestShiftRequestId(
     List<ShiftCard> shiftCards, {
     DateTime? now,
@@ -250,7 +274,7 @@ class AttendanceHelpers {
     if (shiftCards.isEmpty) return null;
     final currentTime = now ?? DateTime.now();
 
-    // Use unified chain detection
+    // PRIORITY 1: Use unified chain detection for in-progress shifts
     final chain = ScheduleDateUtils.detectContinuousChain(
       shiftCards,
       currentTime: currentTime,
@@ -263,16 +287,52 @@ class AttendanceHelpers {
         currentTime: currentTime,
       );
       if (checkoutShift != null) {
-        SentryConfig.addBreadcrumb(
-          message: 'QR Checkout: ${checkoutShift.shiftRequestId}',
-          category: 'qr_scan',
-          data: {'mode': 'checkout', 'shift_id': checkoutShift.shiftRequestId},
-        );
-        return checkoutShift.shiftRequestId;
+        // Additional check: Is checkout shift's end_time already passed?
+        // If so, check grace period to decide checkout vs checkin
+        final endTime = ScheduleDateUtils.parseShiftDateTime(checkoutShift.shiftEndTime);
+        if (endTime != null && currentTime.isAfter(endTime)) {
+          // Shift has ended - check if within checkout window
+          final shouldStillCheckout = _isWithinCheckoutWindow(
+            shiftCards,
+            checkoutShift,
+            currentTime,
+          );
+
+          if (!shouldStillCheckout) {
+            // Past grace period - skip to checkin mode
+            // The ended shift will be marked as no_checkout by cron job
+            SentryConfig.addBreadcrumb(
+              message: 'QR: Past grace period, skipping ended shift',
+              category: 'qr_scan',
+              data: {
+                'ended_shift_id': checkoutShift.shiftRequestId,
+                'end_time': endTime.toIso8601String(),
+                'current_time': currentTime.toIso8601String(),
+              },
+            );
+            // Fall through to checkin mode
+          } else {
+            SentryConfig.addBreadcrumb(
+              message: 'QR Checkout (within grace period): ${checkoutShift.shiftRequestId}',
+              category: 'qr_scan',
+              data: {'mode': 'checkout', 'shift_id': checkoutShift.shiftRequestId},
+            );
+            return checkoutShift.shiftRequestId;
+          }
+        } else {
+          // Shift hasn't ended yet - normal checkout
+          SentryConfig.addBreadcrumb(
+            message: 'QR Checkout: ${checkoutShift.shiftRequestId}',
+            category: 'qr_scan',
+            data: {'mode': 'checkout', 'shift_id': checkoutShift.shiftRequestId},
+          );
+          return checkoutShift.shiftRequestId;
+        }
       }
     }
 
     // CHECKIN MODE: Find closest check-in shift
+    // findClosestCheckinShift already has midpoint logic built-in
     final checkinShift = ScheduleDateUtils.findClosestCheckinShift(
       shiftCards,
       currentTime: currentTime,
@@ -286,8 +346,7 @@ class AttendanceHelpers {
       return checkinShift.shiftRequestId;
     }
 
-    // ⚠️ CRITICAL: QR scan found no valid shift - this is a potential issue
-    // Could indicate data inconsistency or user scanning at wrong time
+    // ⚠️ CRITICAL: QR scan found no valid shift
     SentryConfig.captureMessage(
       'QR Scan: No valid shift found',
       level: SentryLevel.warning,
@@ -299,5 +358,38 @@ class AttendanceHelpers {
       },
     );
     return null;
+  }
+
+  /// Check if user should still checkout the ended shift
+  ///
+  /// Uses [ScheduleDateUtils.isWithinCheckoutWindow] for consistent deadline calculation.
+  ///
+  /// **Grace Period Rules:**
+  /// 1. 기본: 시프트 끝 + 3시간
+  /// 2. 다음 시프트가 3시간 이내: 다음 시프트 시작 - 15분
+  /// 3. 최대 상한: 6시간
+  ///
+  /// Returns true if user should still checkout the ended shift
+  /// Returns false if checkout deadline passed (shift becomes no_checkout)
+  static bool _isWithinCheckoutWindow(
+    List<ShiftCard> shiftCards,
+    ShiftCard endedShift,
+    DateTime currentTime,
+  ) {
+    final endedShiftEndTime = ScheduleDateUtils.parseShiftDateTime(endedShift.shiftEndTime);
+    if (endedShiftEndTime == null) return true; // Safety fallback
+
+    // Find the next upcoming shift start time
+    final nextShiftStart = ScheduleDateUtils.findNextShiftStartTime(
+      shiftCards,
+      endedShiftEndTime,
+    );
+
+    // Use unified checkout window calculation
+    return ScheduleDateUtils.isWithinCheckoutWindow(
+      endedShiftEndTime,
+      nextShiftStart,
+      currentTime,
+    );
   }
 }

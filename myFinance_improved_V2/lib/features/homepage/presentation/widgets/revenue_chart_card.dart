@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -12,10 +13,9 @@ import '../../domain/revenue_period.dart';
 import '../providers/homepage_providers.dart';
 
 /// Provider for fetching revenue chart data using get_dashboard_revenue_v3 RPC
-///
-/// Uses the same period selection as RevenueCard (selectedRevenuePeriodProvider).
-/// Uses HomepageRepository (Clean Architecture) instead of direct DataSource access.
-final revenueChartDataProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+/// Auto-switches to thisYear if today has no data
+final revenueChartDataProvider =
+    FutureProvider<Map<String, dynamic>>((ref) async {
   final appState = ref.watch(appStateProvider);
   final repository = ref.read(homepageRepositoryProvider);
   final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
@@ -28,18 +28,40 @@ final revenueChartDataProvider = FutureProvider<Map<String, dynamic>>((ref) asyn
     return _defaultChartResponse();
   }
 
-  // Determine storeId based on selected tab
-  final effectiveStoreId = (selectedTab == RevenueViewTab.store && storeId.isNotEmpty)
-      ? storeId
-      : null;
+  final effectiveStoreId =
+      (selectedTab == RevenueViewTab.store && storeId.isNotEmpty)
+          ? storeId
+          : null;
 
   try {
     final response = await repository.getRevenueChartData(
       companyId: companyId,
       timeFilter: selectedPeriod.apiValue,
-      timezone: 'Asia/Ho_Chi_Minh', // TODO: Get from device
+      timezone: 'Asia/Ho_Chi_Minh',
       storeId: effectiveStoreId,
     );
+
+    // Auto-switch to thisYear if today/yesterday has no revenue data
+    if (selectedPeriod == RevenuePeriod.today ||
+        selectedPeriod == RevenuePeriod.yesterday) {
+      final dataList = response['data'] as List<dynamic>? ?? [];
+      final hasRevenue = dataList.any((data) {
+        final revenue = (data['revenue'] as num?)?.toDouble() ?? 0.0;
+        return revenue > 0;
+      });
+
+      if (!hasRevenue) {
+        // Switch to thisYear and fetch new data
+        ref.read(selectedRevenuePeriodProvider.notifier).state =
+            RevenuePeriod.thisYear;
+        return await repository.getRevenueChartData(
+          companyId: companyId,
+          timeFilter: RevenuePeriod.thisYear.apiValue,
+          timezone: 'Asia/Ho_Chi_Minh',
+          storeId: effectiveStoreId,
+        );
+      }
+    }
 
     return response;
   } catch (e) {
@@ -47,7 +69,6 @@ final revenueChartDataProvider = FutureProvider<Map<String, dynamic>>((ref) asyn
   }
 });
 
-/// Default chart response when no data available
 Map<String, dynamic> _defaultChartResponse() {
   return {
     'data': <Map<String, dynamic>>[],
@@ -60,11 +81,7 @@ Map<String, dynamic> _defaultChartResponse() {
   };
 }
 
-/// Revenue Chart Card - Shows revenue & gross profit bar chart
-///
-/// Displayed only for managers with revenue permission.
-/// Shows bar chart with Revenue (blue) and Gross Profit (green).
-/// Uses the same period selection as RevenueCard (no separate dropdown).
+/// Revenue Chart Card - fl_chart based bar chart
 class RevenueChartCard extends ConsumerStatefulWidget {
   const RevenueChartCard({super.key});
 
@@ -73,32 +90,15 @@ class RevenueChartCard extends ConsumerStatefulWidget {
 }
 
 class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
-  int? _selectedBarIndex;
-  _ChartDataPoint? _selectedDataPoint;
-  RevenuePeriod? _lastPeriod;
-  RevenueViewTab? _lastTab;
-  String? _lastStoreId;
+  int _touchedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
     final chartDataAsync = ref.watch(revenueChartDataProvider);
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
-    final selectedTab = ref.watch(selectedRevenueTabProvider);
-    final appState = ref.watch(appStateProvider);
-    final currentStoreId = appState.storeChoosen;
-
-    // Reset selection when period, tab, or store changes
-    if (_lastPeriod != selectedPeriod || _lastTab != selectedTab || _lastStoreId != currentStoreId) {
-      _lastPeriod = selectedPeriod;
-      _lastTab = selectedTab;
-      _lastStoreId = currentStoreId;
-      _selectedBarIndex = null;
-      _selectedDataPoint = null;
-    }
 
     return Container(
       margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -106,21 +106,14 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header title
           _buildHeader(),
-
-          const SizedBox(height: TossSpacing.space5),
-
-          // Legend
-          _buildLegend(),
-
           const SizedBox(height: TossSpacing.space4),
-
-          // Bar Chart with tooltip overlay
+          _buildLegend(),
+          const SizedBox(height: TossSpacing.space4),
           SizedBox(
-            height: 220, // Increased height for tooltip space
+            height: 200,
             child: chartDataAsync.when(
-              data: (chartData) => _buildBarChartWithTooltip(chartData, selectedPeriod),
+              data: (chartData) => _buildBarChart(chartData, selectedPeriod),
               loading: () => _buildLoadingState(),
               error: (error, _) => _buildErrorState(),
             ),
@@ -177,157 +170,249 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
     );
   }
 
-  Widget _buildBarChartWithTooltip(Map<String, dynamic> chartData, RevenuePeriod selectedPeriod) {
+  Widget _buildBarChart(
+      Map<String, dynamic> chartData, RevenuePeriod selectedPeriod) {
     final dataList = chartData['data'] as List<dynamic>? ?? [];
 
     if (dataList.isEmpty) {
       return _buildEmptyState();
     }
 
-    // Convert to chart data points
-    final chartPoints = dataList.asMap().entries.map((entry) {
-      final data = entry.value as Map<String, dynamic>;
-      return _ChartDataPoint(
-        label: _formatLabel(data['label'] as String? ?? '', selectedPeriod),
-        revenue: (data['revenue'] as num?)?.toDouble() ?? 0.0,
-        grossProfit: (data['gross_profit'] as num?)?.toDouble() ?? 0.0,
-        netIncome: (data['net_income'] as num?)?.toDouble() ?? 0.0,
-      );
-    }).toList();
+    // Convert to chart data - filter out days with no data (revenue = 0)
+    final List<_ChartDataPoint> chartPoints = [];
+    for (final data in dataList) {
+      final map = data as Map<String, dynamic>;
+      final revenue = (map['revenue'] as num?)?.toDouble() ?? 0.0;
 
-    // Find max value for scaling
-    final maxValue = chartPoints.fold<double>(
-      0,
-      (max, point) => point.revenue > max ? point.revenue : max,
-    );
+      // Skip days with no revenue data
+      if (revenue <= 0) continue;
 
-    // Calculate nice Y-axis scale
-    final yAxisScale = _calculateYAxisScale(maxValue);
+      chartPoints.add(_ChartDataPoint(
+        label: _formatLabel(map['label'] as String? ?? '', selectedPeriod),
+        revenue: revenue,
+        grossProfit: (map['gross_profit'] as num?)?.toDouble() ?? 0.0,
+      ));
+    }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Reserve space for Y-axis labels
-        const yAxisWidth = 38.0;
-        final barAreaWidth = constraints.maxWidth - yAxisWidth;
-        final barCount = chartPoints.length;
-        final barSlotWidth = barAreaWidth / barCount;
+    // If all data points were filtered out, show empty state
+    if (chartPoints.isEmpty) {
+      return _buildEmptyState();
+    }
 
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Y-axis labels
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 20, // Leave space for X-axis labels
-              child: SizedBox(
-                width: yAxisWidth,
-                child: _buildYAxisLabels(yAxisScale),
-              ),
-            ),
+    // Calculate max value for Y-axis
+    double maxY = 0;
+    for (final point in chartPoints) {
+      if (point.revenue > maxY) maxY = point.revenue;
+    }
+    maxY = _calculateNiceMaxY(maxY);
 
-            // Bar chart row
-            Positioned(
-              left: yAxisWidth,
-              right: 0,
-              bottom: 0,
-              child: SizedBox(
-                height: 180,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: chartPoints.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final point = entry.value;
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 1),
-                        child: _buildBar(point, yAxisScale, chartPoints.length, index),
-                      ),
-                    );
-                  }).toList(),
+    return BarChart(
+      BarChartData(
+        maxY: maxY,
+        minY: 0,
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            fitInsideHorizontally: true, // Prevent tooltip from being cut off
+            fitInsideVertically: true,
+            getTooltipColor: (group) => TossColors.gray800,
+            tooltipPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            tooltipMargin: 8,
+            tooltipRoundedRadius: 8,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final point = chartPoints[group.x.toInt()];
+              final formatter = NumberFormat.compact();
+              return BarTooltipItem(
+                '${point.label}\n',
+                TossTextStyles.caption.copyWith(
+                  color: TossColors.gray400,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
                 ),
-              ),
+                children: [
+                  TextSpan(
+                    text: 'Revenue: ${formatter.format(point.revenue)}\n',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Gross Profit: ${formatter.format(point.grossProfit)}\n',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.success,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Margin: ${point.marginPercent.toStringAsFixed(1)}%',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.warning,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          touchCallback: (FlTouchEvent event, barTouchResponse) {
+            setState(() {
+              if (!event.isInterestedForInteractions ||
+                  barTouchResponse == null ||
+                  barTouchResponse.spot == null) {
+                _touchedIndex = -1;
+                return;
+              }
+              _touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
+            });
+          },
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index < 0 || index >= chartPoints.length) {
+                  return const SizedBox.shrink();
+                }
+                final isSelected = _touchedIndex == index;
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    chartPoints[index].label,
+                    style: TossTextStyles.caption.copyWith(
+                      fontSize: chartPoints.length > 12 ? 8 : 10,
+                      color: isSelected
+                          ? TossColors.primary
+                          : TossColors.textSecondary,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                );
+              },
+              reservedSize: 28,
             ),
-
-            // Tooltip positioned above selected bar
-            if (_selectedBarIndex != null && _selectedDataPoint != null)
-              Positioned(
-                top: 0,
-                left: yAxisWidth,
-                right: 0,
-                child: _buildPositionedTooltip(
-                  _selectedDataPoint!,
-                  _selectedBarIndex!,
-                  barSlotWidth,
-                  barAreaWidth,
-                ),
-              ),
-          ],
-        );
-      },
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              interval: maxY / 4,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  _formatYAxisLabel(value),
+                  style: TossTextStyles.caption.copyWith(
+                    fontSize: 10,
+                    color: TossColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                );
+              },
+            ),
+          ),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxY / 4,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: TossColors.gray200,
+              strokeWidth: 1,
+              dashArray: [4, 4],
+            );
+          },
+        ),
+        borderData: FlBorderData(show: false),
+        barGroups: _buildBarGroups(chartPoints, maxY),
+        alignment: BarChartAlignment.spaceAround,
+      ),
+      duration: const Duration(milliseconds: 250),
     );
   }
 
-  /// Calculate nice Y-axis scale based on max value
-  /// Returns scale info with max value and tick values
-  _YAxisScale _calculateYAxisScale(double maxValue) {
-    if (maxValue <= 0) {
-      return _YAxisScale(maxValue: 100, tickValues: [0, 25, 50, 75, 100], suffix: '');
-    }
+  List<BarChartGroupData> _buildBarGroups(
+      List<_ChartDataPoint> points, double maxY) {
+    return points.asMap().entries.map((entry) {
+      final index = entry.key;
+      final point = entry.value;
+      final isTouched = _touchedIndex == index;
 
-    // Determine the magnitude and nice interval
+      // Bar width based on data count
+      final barWidth = points.length <= 7
+          ? 20.0
+          : points.length <= 12
+              ? 14.0
+              : 8.0;
+
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: point.revenue,
+            width: barWidth,
+            // Unified bar shape: slightly rounded top only
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(2),
+              topRight: Radius.circular(2),
+            ),
+            rodStackItems: [
+              // Gross Profit (bottom - green)
+              BarChartRodStackItem(
+                0,
+                point.grossProfit,
+                isTouched
+                    ? TossColors.success.withValues(alpha: 0.85)
+                    : TossColors.success,
+              ),
+              // Revenue - Gross Profit (top - blue)
+              BarChartRodStackItem(
+                point.grossProfit,
+                point.revenue,
+                isTouched
+                    ? TossColors.primary.withValues(alpha: 0.85)
+                    : TossColors.primary,
+              ),
+            ],
+          ),
+        ],
+        showingTooltipIndicators: isTouched ? [0] : [],
+      );
+    }).toList();
+  }
+
+  double _calculateNiceMaxY(double maxValue) {
+    if (maxValue <= 0) return 100;
+
+    // Find nice round number
     final magnitude = _getMagnitude(maxValue);
-    final normalizedMax = maxValue / magnitude;
+    final normalized = maxValue / magnitude;
 
-    // Find nice max value (round up to nice number)
     double niceMax;
-    if (normalizedMax <= 1) {
+    if (normalized <= 1) {
       niceMax = 1;
-    } else if (normalizedMax <= 2) {
+    } else if (normalized <= 2) {
       niceMax = 2;
-    } else if (normalizedMax <= 5) {
+    } else if (normalized <= 5) {
       niceMax = 5;
     } else {
       niceMax = 10;
     }
 
-    final actualMax = niceMax * magnitude;
-
-    // Generate 5 tick values (0, 25%, 50%, 75%, 100%)
-    final tickValues = <double>[
-      0,
-      actualMax * 0.25,
-      actualMax * 0.5,
-      actualMax * 0.75,
-      actualMax,
-    ];
-
-    // Determine suffix based on magnitude
-    String suffix;
-    double divisor;
-    if (magnitude >= 1e9) {
-      suffix = 'B';
-      divisor = 1e9;
-    } else if (magnitude >= 1e6) {
-      suffix = 'M';
-      divisor = 1e6;
-    } else if (magnitude >= 1e3) {
-      suffix = 'K';
-      divisor = 1e3;
-    } else {
-      suffix = '';
-      divisor = 1;
-    }
-
-    return _YAxisScale(
-      maxValue: actualMax,
-      tickValues: tickValues,
-      suffix: suffix,
-      divisor: divisor,
-    );
+    return niceMax * magnitude;
   }
 
-  /// Get magnitude (power of 10) for a value
   double _getMagnitude(double value) {
     if (value <= 0) return 1;
     if (value < 10) return 1;
@@ -342,281 +427,48 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
     return 1000000000;
   }
 
-  /// Build Y-axis labels
-  Widget _buildYAxisLabels(_YAxisScale scale) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: scale.tickValues.reversed.map((double value) {
-        final displayValue = scale.divisor > 0 ? value / scale.divisor : value;
-        final label = displayValue == displayValue.roundToDouble()
-            ? '${displayValue.toInt()}${scale.suffix}'
-            : '${displayValue.toStringAsFixed(1)}${scale.suffix}';
-
-        return Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            fontSize: 10,
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-        );
-      }).toList(),
-    );
+  String _formatYAxisLabel(double value) {
+    if (value >= 1e9) {
+      return '${(value / 1e9).toStringAsFixed(value % 1e9 == 0 ? 0 : 1)}B';
+    } else if (value >= 1e6) {
+      return '${(value / 1e6).toStringAsFixed(value % 1e6 == 0 ? 0 : 1)}M';
+    } else if (value >= 1e3) {
+      return '${(value / 1e3).toStringAsFixed(value % 1e3 == 0 ? 0 : 1)}K';
+    }
+    return value.toInt().toString();
   }
 
-  Widget _buildPositionedTooltip(
-    _ChartDataPoint data,
-    int barIndex,
-    double barSlotWidth,
-    double totalWidth,
-  ) {
-    final formatter = NumberFormat.compact();
-
-    // Calculate the center position of the selected bar
-    final barCenterX = (barIndex * barSlotWidth) + (barSlotWidth / 2);
-
-    return Row(
-      children: [
-        // Use Spacer-like approach to position tooltip
-        SizedBox(
-          width: (barCenterX - 70).clamp(0, totalWidth - 140),
-        ),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedBarIndex = null;
-              _selectedDataPoint = null;
-            });
-          },
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 160),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C3E50),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Date label
-                Text(
-                  data.label,
-                  style: TossTextStyles.caption.copyWith(
-                    fontSize: 10,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Revenue
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: TossColors.primary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      formatter.format(data.revenue),
-                      style: TossTextStyles.caption.copyWith(
-                        fontSize: 12,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                // Gross Profit
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: TossColors.success,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      formatter.format(data.grossProfit),
-                      style: TossTextStyles.caption.copyWith(
-                        fontSize: 12,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Format label for display based on selected period
-  /// - this_week/last_week: "2025-12-20" -> "M" (day of week)
-  /// - this_month/last_month: "2025-12-20" -> "20" (day number)
-  /// - this_year: "2025-12" -> "Dec" (month name)
   String _formatLabel(String label, RevenuePeriod period) {
     if (label.isEmpty) return '';
 
-    // Monthly format: "2025-12" -> "Dec" (for this_year)
+    // Monthly format: "2025-12" -> "Dec"
     if (label.length == 7) {
       final month = int.tryParse(label.substring(5, 7)) ?? 1;
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       return months[month - 1];
     }
 
     // Daily format: "2025-12-20"
     if (label.length == 10) {
-      // For weekly periods, show day of week (M, T, W, T, F, S, S)
-      if (period == RevenuePeriod.thisWeek || period == RevenuePeriod.lastWeek) {
-        try {
-          final date = DateTime.parse(label);
-          const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-          return days[date.weekday - 1];
-        } catch (_) {
-          return label.substring(8, 10);
-        }
-      }
-      // For monthly periods, show day number (1, 2, 3, ... 31)
-      else {
-        final day = int.tryParse(label.substring(8, 10)) ?? 0;
-        return day.toString();
-      }
+      // Show day number for all daily periods (e.g., "20", "21", "22")
+      final day = int.tryParse(label.substring(8, 10)) ?? 0;
+      return day.toString();
     }
 
     return label;
-  }
-
-  Widget _buildBar(_ChartDataPoint data, _YAxisScale scale, int dataCount, int index) {
-    // Calculate heights proportionally using Y-axis scale max (max height 140)
-    // Use scale.maxValue to ensure bar height matches Y-axis labels
-    final maxValue = scale.maxValue;
-    final revenueHeight = maxValue > 0 ? (data.revenue / maxValue) * 140 : 0.0;
-    final grossProfitHeight = maxValue > 0 ? (data.grossProfit / maxValue) * 140 : 0.0;
-
-    // Dynamic sizing based on data count
-    // 7 days: wide bars, large font
-    // 12 months: medium bars, medium font
-    // 30+ days: narrow bars, small font
-    final double barWidth;
-    final double fontSize;
-    final double borderRadius;
-
-    if (dataCount <= 7) {
-      barWidth = 28;
-      fontSize = 11;
-      borderRadius = 6;
-    } else if (dataCount <= 12) {
-      barWidth = 20;
-      fontSize = 9;
-      borderRadius = 5;
-    } else {
-      barWidth = 8;
-      fontSize = 7;
-      borderRadius = 3;
-    }
-
-    final isSelected = _selectedBarIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (_selectedBarIndex == index) {
-            // Deselect if same bar tapped
-            _selectedBarIndex = null;
-            _selectedDataPoint = null;
-          } else {
-            _selectedBarIndex = index;
-            _selectedDataPoint = data;
-          }
-        });
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          // Stacked bar (Revenue > Gross Profit)
-          SizedBox(
-            height: 140,
-            child: Stack(
-              alignment: Alignment.bottomCenter,
-              children: [
-                // Revenue bar (full height, blue)
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: barWidth,
-                  height: revenueHeight.clamp(0, 140),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? TossColors.primary.withValues(alpha: 0.8)
-                        : TossColors.primary,
-                    borderRadius: BorderRadius.circular(borderRadius),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: TossColors.primary.withValues(alpha: 0.4),
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : null,
-                  ),
-                ),
-                // Gross Profit bar (green)
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: barWidth,
-                  height: grossProfitHeight.clamp(0, 140),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? TossColors.success.withValues(alpha: 0.8)
-                        : TossColors.success,
-                    borderRadius: BorderRadius.circular(borderRadius),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 4),
-
-          // Day/Month label
-          Text(
-            data.label,
-            style: TossTextStyles.caption.copyWith(
-              fontSize: fontSize,
-              color: isSelected ? TossColors.primary : TossColors.textPrimary,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.visible,
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildLoadingState() {
@@ -673,32 +525,20 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
   }
 }
 
-/// Data point for chart
 class _ChartDataPoint {
   final String label;
   final double revenue;
   final double grossProfit;
-  final double netIncome;
 
   _ChartDataPoint({
     required this.label,
     required this.revenue,
     required this.grossProfit,
-    required this.netIncome,
   });
-}
 
-/// Y-axis scale configuration
-class _YAxisScale {
-  final double maxValue;
-  final List<double> tickValues;
-  final String suffix;
-  final double divisor;
-
-  _YAxisScale({
-    required this.maxValue,
-    required this.tickValues,
-    required this.suffix,
-    this.divisor = 1,
-  });
+  /// Gross Profit Margin = (Gross Profit / Revenue) * 100
+  double get marginPercent {
+    if (revenue <= 0) return 0.0;
+    return (grossProfit / revenue) * 100;
+  }
 }

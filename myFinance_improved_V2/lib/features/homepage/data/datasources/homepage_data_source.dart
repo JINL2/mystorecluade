@@ -4,7 +4,6 @@ import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../models/category_features_model.dart';
 import '../models/homepage_alert_model.dart';
-import '../models/revenue_model.dart';
 import '../models/top_feature_model.dart';
 import '../models/user_companies_model.dart';
 
@@ -12,96 +11,14 @@ import '../models/user_companies_model.dart';
 ///
 /// Handles all Supabase RPC calls for homepage features.
 /// Uses Models (DTO + Mapper consolidated) for data serialization.
+///
+/// Revenue Data:
+/// - Uses get_dashboard_revenue_v3 RPC for ALL revenue data (totals + chart)
+/// - v1 and v2 RPCs are deprecated and should be removed from Supabase
 class HomepageDataSource {
   final SupabaseService _supabaseService;
 
   HomepageDataSource(this._supabaseService);
-
-  // === Revenue Operations ===
-
-  /// Fetch revenue data via get_dashboard_revenue RPC
-  ///
-  /// Calls: rpc('get_dashboard_revenue', {...})
-  /// Returns: Single revenue record
-  Future<RevenueModel> getRevenue({
-    required String companyId,
-    String? storeId,
-    required String period,
-  }) async {
-
-    // Convert period to date for RPC
-    final date = _periodToDate(period);
-
-    try {
-      final response = await _supabaseService.client.rpc(
-        'get_dashboard_revenue',
-        params: {
-          'p_company_id': companyId,
-          'p_store_id': storeId,
-          'p_date': date,  // Changed from p_period to p_date
-        },
-      );
-
-
-      if (response == null) {
-        throw Exception('No revenue data returned from database');
-      }
-
-      // Manually map RPC response to model
-      // RPC returns: total_today, total_yesterday, currency_code, currency_symbol
-      // Model expects: amount, currencySymbol, period, comparisonAmount
-      final data = response as Map<String, dynamic>;
-
-      // Determine which totals to use based on period
-      double currentAmount = 0.0;
-      double previousAmount = 0.0;
-
-      switch (period.toLowerCase()) {
-        case 'today':
-          currentAmount = (data['total_today'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
-          break;
-        case 'yesterday':
-          currentAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = 0.0; // Day before yesterday not available in RPC
-          break;
-        case 'thismonth':
-          currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
-          break;
-        case 'thisyear':
-          currentAmount = (data['total_this_year'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = 0.0; // Previous year data not available in current RPC
-          break;
-        case 'month':
-          currentAmount = (data['total_this_month'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_last_month'] as num?)?.toDouble() ?? 0.0;
-          break;
-        case 'year':
-          currentAmount = (data['total_this_year'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = 0.0; // No previous year data in current RPC
-          break;
-        default:
-          currentAmount = (data['total_today'] as num?)?.toDouble() ?? 0.0;
-          previousAmount = (data['total_yesterday'] as num?)?.toDouble() ?? 0.0;
-      }
-
-      final model = RevenueModel(
-        amount: currentAmount,
-        currencySymbol: (data['currency_symbol'] as String?) ?? '\$',
-        period: period,
-        comparisonAmount: previousAmount,
-        comparisonPeriod: period == 'today' ? 'yesterday' : 'previous $period',
-        lastUpdated: DateTime.now(),
-        storeId: storeId,
-        companyId: companyId,
-      );
-
-      return model;
-    } catch (e) {
-      rethrow;
-    }
-  }
 
   // === User & Company Operations ===
 
@@ -312,37 +229,6 @@ class HomepageDataSource {
     }
   }
 
-  /// Convert period string to date string for RPC
-  ///
-  /// Converts: 'today', 'yesterday', 'thisMonth', 'thisYear' → '2025-11-26'
-  String _periodToDate(String period) {
-    final now = DateTime.now();
-
-    switch (period.toLowerCase()) {
-      case 'today':
-        return _formatDate(now);
-      case 'yesterday':
-        return _formatDate(now.subtract(const Duration(days: 1)));
-      case 'thismonth':
-        return _formatDate(now);
-      case 'thisyear':
-        return _formatDate(now);
-      case 'week':
-        return _formatDate(now.subtract(const Duration(days: 7)));
-      case 'month':
-        return _formatDate(DateTime(now.year, now.month - 1, now.day));
-      case 'year':
-        return _formatDate(DateTime(now.year - 1, now.month, now.day));
-      default:
-        return _formatDate(now);
-    }
-  }
-
-  /// Format DateTime to YYYY-MM-DD
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
   // === User Salary Operations ===
 
   /// Fetch user salary data via homepage_user_salary RPC
@@ -423,8 +309,7 @@ class HomepageDataSource {
   /// Time filter options:
   /// - today: Single day total
   /// - yesterday: Previous day total
-  /// - this_week: Daily data Mon~Today
-  /// - last_week: Daily data Mon~Sun of previous week
+  /// - past_7_days: Daily data for rolling 7 days (today - 6 days)
   /// - this_month: Daily data 1st~Today
   /// - last_month: Daily data for full previous month
   /// - this_year: Monthly data Jan~Current month
