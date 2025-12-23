@@ -63,9 +63,9 @@ class ProductImagePicker extends StatelessWidget {
         width: double.infinity,
         height: _totalImageCount == 0 ? 120 : 180,
         decoration: BoxDecoration(
-          color: TossColors.gray100,
+          color: TossColors.gray50,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: TossColors.gray300),
+          border: Border.all(color: TossColors.gray200),
         ),
         child: _totalImageCount == 0
             ? _buildEmptyState()

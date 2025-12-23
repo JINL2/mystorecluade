@@ -9,6 +9,7 @@ import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/shift_metadata.dart';
@@ -503,10 +504,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
           // ============================================
           // Toss-style section divider (gray background)
           // ============================================
-          Container(
-            height: 8,
-            color: TossColors.gray100,
-          ),
+          const GrayDividerSpace(),
 
           // ============================================
           // Section 2: Week/Month Calendar Management (white background)
@@ -519,8 +517,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
               children: [
                 // Week/Month Navigation with calendar toggle button
                 _isExpanded
-                    ? _buildMonthNavigationWithToggle()
-                    : _buildWeekNavigationWithToggle(),
+                    ? _buildMonthNavigationWithToggle(shiftCards)
+                    : _buildWeekNavigationWithToggle(shiftCards),
                 const SizedBox(height: 12),
 
                 // Week Dates Picker or Month Calendar
@@ -530,11 +528,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
                     selectedDate: _selectedDate,
                     currentMonth: _currentMonth,
                     problemStatusByDate: problemStatusMap,
-                    onDateSelected: (date) {
-                      _handleDateSelected(date);
-                      // Collapse calendar after selecting date
-                      setState(() => _isExpanded = false);
-                    },
+                    onDateSelected: _handleDateSelected,
                   ),
                 ] else ...[
                   // Week Dates Picker (default)
@@ -626,6 +620,21 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
     }
 
     return statusMap;
+  }
+
+  /// Count unsolved problems (red status) from shift cards
+  /// These are shifts with problems that haven't been reported or solved
+  int _countUnsolvedProblems(List<ShiftCard> shiftCards) {
+    int count = 0;
+    for (final card in shiftCards) {
+      if (!card.isApproved) continue;
+      final pd = card.problemDetails;
+      // Count shifts with unsolved problems (not reported, not solved)
+      if (pd != null && pd.problemCount > 0 && !pd.isSolved && !pd.hasReported) {
+        count++;
+      }
+    }
+    return count;
   }
 
   /// Build shift cards for selected date
@@ -753,22 +762,23 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       ShiftCardStatus.onTime => ('On-time', TossColors.success),
       ShiftCardStatus.undone => ('Undone', TossColors.gray500),
       ShiftCardStatus.absent => ('Absent', TossColors.error),
-      ShiftCardStatus.noCheckout => ('No Checkout', TossColors.warning),
-      ShiftCardStatus.earlyLeave => ('Early Leave', TossColors.warning),
+      ShiftCardStatus.noCheckout => ('No Checkout', TossColors.error),
+      ShiftCardStatus.earlyLeave => ('Early Leave', TossColors.error),
       ShiftCardStatus.reported => ('Reported', TossColors.warning),
       ShiftCardStatus.resolved => ('Resolved', TossColors.success),
     };
 
+    // Chip style with solid fill background and white text
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        color: color,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         label,
         style: TossTextStyles.labelSmall.copyWith(
-          color: color,
+          color: TossColors.white,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -781,21 +791,21 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
   Widget _buildProblemBadges(ProblemDetails pd, {bool hasManagerMemo = false}) {
     final badges = <Widget>[];
 
-    // Late with minutes detail (status badge just shows "Late")
+    // Late with minutes detail (status badge just shows "Late") - RED (problem)
     if (pd.hasLate && pd.lateMinutes > 0) {
-      badges.add(_buildBadge('${pd.lateMinutes}m late', TossColors.error));
+      badges.add(_buildProblemBadge('${pd.lateMinutes}m late', isProblem: true));
     }
-    // Location issue
+    // Location issue - RED (problem)
     if (pd.hasLocationIssue) {
-      badges.add(_buildBadge('Location', TossColors.warning));
+      badges.add(_buildProblemBadge('Location', isProblem: true));
     }
-    // Overtime with minutes detail
+    // Overtime with minutes detail - not a problem, neutral style
     if (pd.hasOvertime && pd.overtimeMinutes > 0) {
-      badges.add(_buildBadge('OT ${pd.overtimeMinutes}m', TossColors.primary));
+      badges.add(_buildProblemBadge('OT ${pd.overtimeMinutes}m', isProblem: false));
     }
-    // Early leave with minutes detail
+    // Early leave with minutes detail - RED (problem)
     if (pd.hasEarlyLeave && pd.earlyLeaveMinutes > 0) {
-      badges.add(_buildBadge('${pd.earlyLeaveMinutes}m early', TossColors.warning));
+      badges.add(_buildProblemBadge('${pd.earlyLeaveMinutes}m early', isProblem: true));
     }
 
     if (badges.isEmpty) return const SizedBox.shrink();
@@ -804,23 +814,95 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
     final visibleBadges = badges.take(2).toList();
     final hiddenCount = badges.length - 2;
 
-    return Wrap(
-      spacing: 6,
-      runSpacing: 4,
-      children: [
-        ...visibleBadges,
-        if (hiddenCount > 0)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(4),
+    // Build badges with dot separator between them
+    final List<Widget> badgesWithSeparators = [];
+    for (int i = 0; i < visibleBadges.length; i++) {
+      badgesWithSeparators.add(visibleBadges[i]);
+      // Add dot separator after each badge except the last one
+      if (i < visibleBadges.length - 1) {
+        badgesWithSeparators.add(
+          Text(
+            ' · ',
+            style: TossTextStyles.labelSmall.copyWith(
+              color: TossColors.gray400,
+              fontWeight: FontWeight.w600,
             ),
-            child: Text(
-              '+$hiddenCount',
-              style: TossTextStyles.labelSmall.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
+          ),
+        );
+      }
+    }
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ...badgesWithSeparators,
+        if (hiddenCount > 0)
+          Text(
+            ' +$hiddenCount',
+            style: TossTextStyles.labelSmall.copyWith(
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Build problem badge - text only, no background
+  /// isProblem: true = red text (late, early, location), false = gray text (OT)
+  Widget _buildProblemBadge(String label, {required bool isProblem}) {
+    return Text(
+      label,
+      style: TossTextStyles.labelSmall.copyWith(
+        color: isProblem ? TossColors.error : TossColors.gray600,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  /// Build calendar icon with notification badge for unsolved problems
+  Widget _buildCalendarIconWithBadge({
+    required IconData icon,
+    required Color iconColor,
+    required int badgeCount,
+    required VoidCallback onPressed,
+    required String tooltip,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          onPressed: onPressed,
+          icon: Icon(
+            icon,
+            color: iconColor,
+            size: 24,
+          ),
+          tooltip: tooltip,
+        ),
+        // Badge with problem count
+        if (badgeCount > 0)
+          Positioned(
+            right: 4,
+            top: 4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: TossColors.error,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 18,
+                minHeight: 18,
+              ),
+              child: Text(
+                badgeCount > 99 ? '99+' : '$badgeCount',
+                style: TossTextStyles.labelSmall.copyWith(
+                  color: TossColors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -828,26 +910,11 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TossTextStyles.labelSmall.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
   /// Build week navigation with calendar toggle button
-  Widget _buildWeekNavigationWithToggle() {
+  Widget _buildWeekNavigationWithToggle(List<ShiftCard> shiftCards) {
     final weekRange = _weekRange;
+    final unsolvedCount = _countUnsolvedProblems(shiftCards);
+
     return Row(
       children: [
         Expanded(
@@ -859,14 +926,12 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
             onNextWeek: () => _navigateWeek(1),
           ),
         ),
-        // Calendar toggle button
-        IconButton(
+        // Calendar toggle button with problem count badge
+        _buildCalendarIconWithBadge(
+          icon: Icons.calendar_month,
+          iconColor: TossColors.gray600,
+          badgeCount: unsolvedCount,
           onPressed: _toggleExpanded,
-          icon: const Icon(
-            Icons.calendar_month,
-            color: TossColors.gray600,
-            size: 24,
-          ),
           tooltip: 'Show month calendar',
         ),
       ],
@@ -874,8 +939,10 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
   }
 
   /// Build month navigation with calendar toggle button
-  Widget _buildMonthNavigationWithToggle() {
+  Widget _buildMonthNavigationWithToggle(List<ShiftCard> shiftCards) {
     final monthName = DateFormat.MMMM().format(_currentMonth);
+    final unsolvedCount = _countUnsolvedProblems(shiftCards);
+
     return Row(
       children: [
         Expanded(
@@ -887,14 +954,12 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
             onNextMonth: () => _navigateMonth(1),
           ),
         ),
-        // Calendar toggle button (active state)
-        IconButton(
+        // Calendar toggle button (active state) with problem count badge
+        _buildCalendarIconWithBadge(
+          icon: Icons.calendar_view_week,
+          iconColor: TossColors.primary,
+          badgeCount: unsolvedCount,
           onPressed: _toggleExpanded,
-          icon: const Icon(
-            Icons.calendar_view_week,
-            color: TossColors.primary,
-            size: 24,
-          ),
           tooltip: 'Show week view',
         ),
       ],

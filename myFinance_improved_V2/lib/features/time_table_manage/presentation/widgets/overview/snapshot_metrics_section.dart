@@ -27,17 +27,7 @@ class SnapshotMetricsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(top: TossSpacing.space3),
-      decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: TossColors.gray200,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
+    return Row(
         children: [
           // On-time metric
           _buildMetricItem(
@@ -72,7 +62,6 @@ class SnapshotMetricsSection extends StatelessWidget {
             cards: data.notCheckedIn.cards,
           ),
         ],
-      ),
     );
   }
 

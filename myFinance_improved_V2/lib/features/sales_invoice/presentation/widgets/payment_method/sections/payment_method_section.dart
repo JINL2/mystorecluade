@@ -294,39 +294,120 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
         children: locations.map((location) {
           final isSelected = selectedLocation?.id == location.id;
 
-          return GestureDetector(
+          return _FlashableLocationItem(
+            location: location,
+            isSelected: isSelected,
             onTap: () {
               ref
                   .read(paymentMethodProvider.notifier)
                   .selectCashLocation(location);
             },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    location.name,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 28,
-                    child: isSelected
-                        ? const Icon(
-                            Icons.check,
-                            size: 24,
-                            color: TossColors.primary,
-                          )
-                        : null,
-                  ),
-                ],
-              ),
-            ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+/// A location item that flashes with a light gray background when tapped
+class _FlashableLocationItem extends StatefulWidget {
+  final CashLocation location;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _FlashableLocationItem({
+    required this.location,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_FlashableLocationItem> createState() => _FlashableLocationItemState();
+}
+
+class _FlashableLocationItemState extends State<_FlashableLocationItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Color?> _colorAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _colorAnimation = ColorTween(
+      begin: Colors.transparent,
+      end: TossColors.gray100,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    // Flash animation: forward then reverse
+    _controller.forward().then((_) {
+      _controller.reverse();
+    });
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _colorAnimation,
+      builder: (context, child) {
+        return GestureDetector(
+          onTap: _handleTap,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: TossSpacing.space2,
+              horizontal: TossSpacing.space2,
+            ),
+            margin: const EdgeInsets.symmetric(horizontal: -TossSpacing.space2),
+            decoration: BoxDecoration(
+              color: _colorAnimation.value,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: child,
+          ),
+        );
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              widget.location.name,
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w500,
+                color: TossColors.gray900,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 28,
+            height: 24,
+            child: widget.isSelected
+                ? const Icon(
+                    Icons.check,
+                    size: 24,
+                    color: TossColors.primary,
+                  )
+                : null,
+          ),
+        ],
       ),
     );
   }

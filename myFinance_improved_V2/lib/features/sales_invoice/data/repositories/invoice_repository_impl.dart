@@ -1,3 +1,4 @@
+import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_detail.dart';
 import '../../domain/repositories/invoice_repository.dart';
@@ -34,16 +35,6 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @override
-  Future<InvoiceDetail> getInvoiceDetail({
-    required String invoiceId,
-  }) async {
-    final response = await _remoteDataSource.getInvoiceDetail(
-      invoiceId: invoiceId,
-    );
-    return response.toEntity();
-  }
-
-  @override
   Future<InvoicePageResult> refresh({
     required String companyId,
     required String storeId,
@@ -68,5 +59,27 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       notes: notes,
     );
     return RefundResult.fromJson(response);
+  }
+
+  @override
+  Future<List<CashLocation>> getCashLocations({
+    required String companyId,
+    String? storeId,
+  }) async {
+    return _remoteDataSource.getCashLocations(
+      companyId: companyId,
+      storeId: storeId,
+    );
+  }
+
+  @override
+  Future<InvoiceDetail> getInvoiceDetail({
+    required String invoiceId,
+    String? timezone,
+  }) async {
+    return _remoteDataSource.getInvoiceDetail(
+      invoiceId: invoiceId,
+      timezone: timezone,
+    );
   }
 }
