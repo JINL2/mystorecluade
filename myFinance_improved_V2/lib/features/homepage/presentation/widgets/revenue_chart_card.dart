@@ -13,13 +13,14 @@ import '../../domain/revenue_period.dart';
 import '../providers/homepage_providers.dart';
 
 /// Provider for fetching revenue chart data using get_dashboard_revenue_v3 RPC
-/// Auto-switches to thisYear if today has no data
+/// Auto-switches to thisYear if today has no data (only on initial load)
 final revenueChartDataProvider =
     FutureProvider<Map<String, dynamic>>((ref) async {
   final appState = ref.watch(appStateProvider);
   final repository = ref.read(homepageRepositoryProvider);
   final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
   final selectedTab = ref.watch(selectedRevenueTabProvider);
+  final userManuallySelected = ref.watch(userManuallySelectedPeriodProvider);
 
   final companyId = appState.companyChoosen;
   final storeId = appState.storeChoosen;
@@ -42,8 +43,11 @@ final revenueChartDataProvider =
     );
 
     // Auto-switch to thisYear if today/yesterday has no revenue data
-    if (selectedPeriod == RevenuePeriod.today ||
-        selectedPeriod == RevenuePeriod.yesterday) {
+    // ONLY on initial load (userManuallySelected == false)
+    // Once user manually selects a period, respect their choice
+    if (!userManuallySelected &&
+        (selectedPeriod == RevenuePeriod.today ||
+            selectedPeriod == RevenuePeriod.yesterday)) {
       final dataList = response['data'] as List<dynamic>? ?? [];
       final hasRevenue = dataList.any((data) {
         final revenue = (data['revenue'] as num?)?.toDouble() ?? 0.0;

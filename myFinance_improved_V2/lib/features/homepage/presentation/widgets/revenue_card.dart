@@ -160,6 +160,8 @@ class RevenueCard extends ConsumerWidget {
           (p) => p.name == item.id,
           orElse: () => RevenuePeriod.today,
         );
+        // Mark as user manually selected - disable auto-switch
+        ref.read(userManuallySelectedPeriodProvider.notifier).state = true;
         ref.read(selectedRevenuePeriodProvider.notifier).state = period;
       },
     );

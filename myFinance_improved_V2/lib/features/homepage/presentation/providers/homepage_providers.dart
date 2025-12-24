@@ -429,6 +429,13 @@ final selectedRevenuePeriodProvider = StateProvider<RevenuePeriod>(
   (ref) => RevenuePeriod.today,
 );
 
+/// Flag to track if user manually selected a period
+/// When true, auto-switch to thisYear is disabled
+/// Reset to false when navigating away from homepage
+final userManuallySelectedPeriodProvider = StateProvider<bool>(
+  (ref) => false,
+);
+
 // === Company & Currency Providers ===
 
 /// Company Types FutureProvider for dropdown

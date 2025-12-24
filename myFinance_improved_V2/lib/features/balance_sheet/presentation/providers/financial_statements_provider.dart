@@ -19,12 +19,15 @@ final balanceSheetDataSourceProvider = Provider<BalanceSheetDataSource>((ref) {
 
 enum QuickPeriod { today, thisWeek, thisMonth, thisYear, custom }
 
+enum DataLevel { company, store }
+
 class FinancialStatementsPageState {
   final int selectedTabIndex;
   final QuickPeriod selectedPeriod;
   final DateTime startDate;
   final DateTime endDate;
   final bool showDetail;
+  final DataLevel dataLevel;
 
   const FinancialStatementsPageState({
     this.selectedTabIndex = 0,
@@ -32,6 +35,7 @@ class FinancialStatementsPageState {
     required this.startDate,
     required this.endDate,
     this.showDetail = false,
+    this.dataLevel = DataLevel.company,
   });
 
   factory FinancialStatementsPageState.initial() {
@@ -51,6 +55,7 @@ class FinancialStatementsPageState {
     DateTime? startDate,
     DateTime? endDate,
     bool? showDetail,
+    DataLevel? dataLevel,
   }) {
     return FinancialStatementsPageState(
       selectedTabIndex: selectedTabIndex ?? this.selectedTabIndex,
@@ -58,6 +63,7 @@ class FinancialStatementsPageState {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       showDetail: showDetail ?? this.showDetail,
+      dataLevel: dataLevel ?? this.dataLevel,
     );
   }
 
@@ -123,6 +129,10 @@ class FinancialStatementsPageNotifier
 
   void toggleDetail() {
     state = state.copyWith(showDetail: !state.showDetail);
+  }
+
+  void setDataLevel(DataLevel level) {
+    state = state.copyWith(dataLevel: level);
   }
 }
 

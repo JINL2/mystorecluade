@@ -162,14 +162,24 @@ class BsTabContent extends ConsumerWidget {
 
   void _showExcelView(
       BuildContext context, WidgetRef ref, FinancialStatementsPageState state) {
+    final prevDates = state.prevPeriodDates;
     final params = BsParams(
       companyId: companyId,
       asOfDate: state.endDate,
       storeId: storeId,
+      compareDate: prevDates.end,
     );
 
     final detailAsync = ref.read(bsDetailProvider(params));
     final summaryAsync = ref.read(bsSummaryProvider(params));
+
+    // 데이터가 로드되지 않았으면 로딩 표시
+    if (!detailAsync.hasValue || !summaryAsync.hasValue) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Loading data...')),
+      );
+      return;
+    }
 
     showModalBottomSheet(
       context: context,

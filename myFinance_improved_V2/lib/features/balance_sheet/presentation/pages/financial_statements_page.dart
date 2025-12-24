@@ -57,12 +57,19 @@ class _FinancialStatementsPageState
     final appState = ref.watch(appStateProvider);
     final pageState = ref.watch(financialStatementsPageProvider);
     final companyId = appState.companyChoosen;
-    final storeId =
-        appState.storeChoosen.isEmpty ? null : appState.storeChoosen;
 
-    // Sync tab controller with state
+    // storeId는 DataLevel에 따라 결정
+    final storeId = pageState.dataLevel == DataLevel.store
+        ? (appState.storeChoosen.isEmpty ? null : appState.storeChoosen)
+        : null;
+
+    // Sync tab controller with state (defer to avoid modifying provider during build)
     if (_tabController.index != pageState.selectedTabIndex) {
-      _tabController.animateTo(pageState.selectedTabIndex);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _tabController.index != pageState.selectedTabIndex) {
+          _tabController.animateTo(pageState.selectedTabIndex);
+        }
+      });
     }
 
     // Get currency
@@ -78,8 +85,8 @@ class _FinancialStatementsPageState
       body: SafeArea(
         child: Column(
           children: [
-            // Tab Bar
-            _buildTabBar(),
+            // Data Level Toggle + Tab Bar
+            _buildHeader(pageState, appState.storeName),
 
             // Tab Views
             Expanded(
@@ -115,67 +122,134 @@ class _FinancialStatementsPageState
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildHeader(FinancialStatementsPageState pageState, String storeName) {
     return Container(
       color: TossColors.white,
       child: Column(
         children: [
-          Container(
-            height: 44,
-            margin: const EdgeInsets.symmetric(
+          // Data Level Toggle
+          Padding(
+            padding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space4,
               vertical: TossSpacing.space2,
             ),
-            child: Stack(
+            child: Row(
               children: [
-                // Background
-                Container(
-                  decoration: BoxDecoration(
-                    color: TossColors.gray100,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  ),
+                _buildLevelChip(
+                  label: 'Company',
+                  isSelected: pageState.dataLevel == DataLevel.company,
+                  onTap: () => ref
+                      .read(financialStatementsPageProvider.notifier)
+                      .setDataLevel(DataLevel.company),
                 ),
-                // Tab Bar
-                TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: TossColors.white,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    boxShadow: [
-                      BoxShadow(
-                        color: TossColors.black.withOpacity(0.06),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicatorPadding: const EdgeInsets.all(3),
-                  dividerColor: TossColors.transparent,
-                  labelColor: TossColors.gray900,
-                  unselectedLabelColor: TossColors.gray500,
-                  labelStyle: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  unselectedLabelStyle: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                  tabs: const [
-                    Tab(text: 'P&L'),
-                    Tab(text: 'B/S'),
-                    Tab(text: 'Trend'),
-                  ],
+                const SizedBox(width: TossSpacing.space2),
+                _buildLevelChip(
+                  label: storeName.isEmpty ? 'Store' : storeName,
+                  isSelected: pageState.dataLevel == DataLevel.store,
+                  onTap: () => ref
+                      .read(financialStatementsPageProvider.notifier)
+                      .setDataLevel(DataLevel.store),
                 ),
               ],
             ),
           ),
-          // Divider
-          Container(
-            height: 1,
-            color: TossColors.gray100,
-          ),
+
+          // Tab Bar
+          _buildTabBar(),
         ],
       ),
+    );
+  }
+
+  Widget _buildLevelChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? TossColors.gray900 : TossColors.gray100,
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
+        ),
+        child: Text(
+          label,
+          style: TossTextStyles.caption.copyWith(
+            color: isSelected ? TossColors.white : TossColors.gray600,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Column(
+      children: [
+        Container(
+          height: 44,
+          margin: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space2,
+          ),
+          child: Stack(
+            children: [
+              // Background
+              Container(
+                decoration: BoxDecoration(
+                  color: TossColors.gray100,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                ),
+              ),
+              // Tab Bar
+              TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  color: TossColors.white,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  boxShadow: [
+                    BoxShadow(
+                      color: TossColors.black.withOpacity(0.06),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorPadding: const EdgeInsets.all(3),
+                dividerColor: TossColors.transparent,
+                labelColor: TossColors.gray900,
+                unselectedLabelColor: TossColors.gray500,
+                labelStyle: TossTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                unselectedLabelStyle: TossTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+                tabs: const [
+                  Tab(text: 'P&L'),
+                  Tab(text: 'B/S'),
+                  Tab(text: 'Trend'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        // Divider
+        Container(
+          height: 1,
+          color: TossColors.gray100,
+        ),
+      ],
     );
   }
 }
