@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Cash Control Feature - Enums
 /// 직원용 간편 현금 입출금 시스템
 
@@ -14,6 +16,15 @@ extension CashDirectionX on CashDirection {
         return 'Cash In';
       case CashDirection.cashOut:
         return 'Cash Out';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case CashDirection.cashIn:
+        return Icons.south_west;
+      case CashDirection.cashOut:
+        return Icons.north_east;
     }
   }
 
@@ -61,6 +72,17 @@ extension TransactionTypeX on TransactionType {
         return 'Debt';
       case TransactionType.transfer:
         return 'Transfer';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case TransactionType.expense:
+        return Icons.receipt_long;
+      case TransactionType.debt:
+        return Icons.swap_horiz;
+      case TransactionType.transfer:
+        return Icons.sync_alt;
     }
   }
 

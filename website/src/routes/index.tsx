@@ -40,6 +40,7 @@ import { ShipmentDetailPage } from '@/features/shipment/presentation/pages/Shipm
 import { StoreSettingPage } from '@/features/store-setting/presentation/pages/StoreSettingPage';
 import { TrackingPage } from '@/features/tracking/presentation/pages/TrackingPage';
 import { TransactionHistoryPage } from '@/features/transaction-history/presentation/pages/TransactionHistoryPage';
+import { CashBalancePage } from '@/features/cash-balance/presentation/pages/CashBalancePage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -219,6 +220,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="582171a8-6a92-42e7-99ed-f8233169a652">
             <CashEndingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/cash-balance"
+        element={
+          <ProtectedRoute>
+            <CashBalancePage />
           </ProtectedRoute>
         }
       />

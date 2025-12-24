@@ -1,0 +1,177 @@
+/**
+ * CashBalanceSummary Component Styles
+ */
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* Location Card */
+.locationCard {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.locationCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.locationCard.cash {
+  border-left: 4px solid #00C896;
+}
+
+.locationCard.vault {
+  border-left: 4px solid #0064FF;
+}
+
+.locationCard.bank {
+  border-left: 4px solid #FF9500;
+}
+
+.locationCard.digital_wallet {
+  border-left: 4px solid #9B59B6;
+}
+
+/* Card Header */
+.locationHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.locationIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.locationIcon.cash {
+  background: rgba(0, 200, 150, 0.1);
+}
+
+.locationIcon.vault {
+  background: rgba(0, 100, 255, 0.1);
+}
+
+.locationIcon.bank {
+  background: rgba(255, 149, 0, 0.1);
+}
+
+.locationIcon.digital_wallet {
+  background: rgba(155, 89, 182, 0.1);
+}
+
+.locationInfo {
+  flex: 1;
+}
+
+.locationName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 2px 0;
+}
+
+.locationType {
+  font-size: 12px;
+  color: #6C757D;
+  text-transform: capitalize;
+  margin: 0;
+}
+
+/* Currency Badge */
+.currencyBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #F8F9FA;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6C757D;
+}
+
+/* Balance */
+.locationBalance {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  margin-bottom: 8px;
+}
+
+/* Change Indicator */
+.locationChange {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.locationChange.positive {
+  color: #00C896;
+}
+
+.locationChange.negative {
+  color: #FF5847;
+}
+
+.changeIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Last Updated */
+.lastUpdated {
+  font-size: 11px;
+  color: #ADB5BD;
+  margin-top: 8px;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+  color: #CED4DA;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: #6C757D;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .locationBalance {
+    font-size: 20px;
+  }
+}

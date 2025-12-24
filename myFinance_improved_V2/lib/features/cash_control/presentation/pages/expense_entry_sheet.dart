@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
-import '../../domain/entities/cash_control_enums.dart';
+import '../providers/cash_control_providers.dart';
 import '../widgets/amount_input_keypad.dart';
+import '../widgets/transaction_confirm_dialog.dart';
 
-/// 비용 입력 Bottom Sheet
-/// 2025 트렌드: 단계별 입력, 큰 터치 영역, 시각적 피드백
+/// Expense Entry Bottom Sheet
+/// Flow: Account -> Amount (Cash Location already selected on main page)
+/// Features: Search + Recent usage from top_accounts_by_user
 class ExpenseEntrySheet extends ConsumerStatefulWidget {
   final CashDirection direction;
   final String cashLocationId;
-  final String? cashLocationName;
+  final String cashLocationName;
   final VoidCallback onSuccess;
 
   const ExpenseEntrySheet({
     super.key,
     required this.direction,
     required this.cashLocationId,
-    this.cashLocationName,
+    required this.cashLocationName,
     required this.onSuccess,
   });
 
@@ -36,24 +36,52 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
   String? _selectedAccountName;
   String? _selectedAccountCode;
   double _amount = 0;
-  final _memoController = TextEditingController();
+
+  // Search state
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  final _searchFocusNode = FocusNode();
 
   // UI state
-  int _currentStep = 0; // 0: 계정 선택, 1: 금액 입력
+  int _currentStep = 0; // 0: account, 1: amount
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
   void dispose() {
-    _memoController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
-  void _onAccountSelected(AccountData account) {
+  void _onSearchChanged() {
     setState(() {
-      _selectedAccountId = account.id;
-      _selectedAccountName = account.name;
+      _searchQuery = _searchController.text.toLowerCase().trim();
+    });
+  }
+
+  /// Filter accounts based on search query
+  List<ExpenseAccount> _filterAccounts(List<ExpenseAccount> accounts) {
+    if (_searchQuery.isEmpty) {
+      return []; // Show nothing when not searching (only recent)
+    }
+    return accounts.where((account) {
+      return account.accountName.toLowerCase().contains(_searchQuery) ||
+          account.accountCode.toLowerCase().contains(_searchQuery);
+    }).toList();
+  }
+
+  void _onAccountSelected(ExpenseAccount account) {
+    setState(() {
+      _selectedAccountId = account.accountId;
+      _selectedAccountName = account.accountName;
       _selectedAccountCode = account.accountCode;
-      _currentStep = 1; // Move to amount input
+      _currentStep = 1;
     });
     HapticFeedback.lightImpact();
   }
@@ -65,27 +93,49 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
   }
 
   Future<void> _onSubmit() async {
-    if (_selectedAccountId == null || _amount <= 0) return;
+    if (_selectedAccountId == null || _amount <= 0) {
+      return;
+    }
+
+    // Show confirmation dialog
+    final result = await TransactionConfirmDialog.show(
+      context,
+      TransactionConfirmData(
+        type: ConfirmTransactionType.expense,
+        amount: _amount,
+        fromCashLocationName: widget.cashLocationName,
+        expenseAccountName: _selectedAccountName,
+        expenseAccountCode: _selectedAccountCode,
+      ),
+    );
+
+    if (result == null || !result.confirmed) {
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      // TODO: RPC 호출 구현
-      // journal_insert_with_everything_utc 또는 simple_cash_entry RPC
-      //
-      // 비용 분개 로직:
-      // Cash Out (돈 나감):
-      //   Dr. Expense Account (비용 증가)
-      //   Cr. Cash (현금 감소)
-      //
-      // Cash In (돈 받음 - 비용 환급 등):
-      //   Dr. Cash (현금 증가)
-      //   Cr. Expense Account (비용 감소)
+      final appState = ref.read(appStateProvider);
+      final repository = ref.read(cashControlRepositoryProvider);
 
-      // Simulate API call
-      await Future<void>.delayed(const Duration(milliseconds: 500));
+      // TODO: Upload attachments to storage and get URLs
+      // For now, attachment upload is not implemented
+      final attachmentUrls = <String>[];
+
+      await repository.createExpenseEntry(
+        companyId: appState.companyChoosen,
+        storeId: appState.storeChoosen.isEmpty ? null : appState.storeChoosen,
+        createdBy: appState.userId,
+        cashLocationId: widget.cashLocationId,
+        expenseAccountId: _selectedAccountId!,
+        amount: _amount,
+        entryDate: DateTime.now(),
+        memo: result.memo,
+        attachmentUrls: attachmentUrls.isEmpty ? null : attachmentUrls,
+      );
 
       if (mounted) {
         widget.onSuccess();
@@ -94,8 +144,8 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: TossColors.error,
+            content: Text('Error: $e'),
+            backgroundColor: TossColors.gray900,
           ),
         );
       }
@@ -123,7 +173,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
           maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
         decoration: const BoxDecoration(
-          color: TossColors.surface,
+          color: TossColors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(TossBorderRadius.xxl),
             topRight: Radius.circular(TossBorderRadius.xxl),
@@ -147,91 +197,89 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             // Header
             _buildHeader(),
 
-            // Progress indicator
-            _buildProgressIndicator(),
-
             // Content
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(TossSpacing.space4),
-                child: _currentStep == 0
-                    ? _buildAccountSelection()
-                    : _buildAmountInput(),
+                child: _buildCurrentStepContent(),
               ),
             ),
 
-            // Bottom padding
-            SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space2),
+            // Fixed bottom button for amount input step
+            if (_currentStep == 1) ...[
+              Container(
+                padding: const EdgeInsets.fromLTRB(
+                  TossSpacing.space4,
+                  TossSpacing.space2,
+                  TossSpacing.space4,
+                  TossSpacing.space2,
+                ),
+                decoration: const BoxDecoration(
+                  color: TossColors.white,
+                  border: Border(
+                    top: BorderSide(color: TossColors.gray100),
+                  ),
+                ),
+                child: TossButton.primary(
+                  text: _isSubmitting ? 'Processing...' : 'Record',
+                  onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
+                  isEnabled: _canSubmit && !_isSubmitting,
+                  isLoading: _isSubmitting,
+                  fullWidth: true,
+                  leadingIcon: const Icon(Icons.check),
+                ),
+              ),
+            ],
+
+            SizedBox(
+              height:
+                  MediaQuery.of(context).padding.bottom + TossSpacing.space2,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    final isOut = widget.direction == CashDirection.cashOut;
+  Widget _buildCurrentStepContent() {
+    switch (_currentStep) {
+      case 0:
+        return _buildAccountSelection();
+      case 1:
+        return _buildAmountInput();
+      default:
+        return const SizedBox();
+    }
+  }
 
+  Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         TossSpacing.space4,
-        TossSpacing.space4,
         TossSpacing.space2,
         TossSpacing.space2,
+        0,
       ),
       child: Row(
         children: [
-          // Back button (when on step 1)
+          // Back button
           if (_currentStep > 0)
             IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => setState(() => _currentStep = 0),
+              onPressed: () => setState(() => _currentStep--),
               color: TossColors.gray600,
             )
           else
             const SizedBox(width: 48),
 
           Expanded(
-            child: Column(
-              children: [
-                Text(
-                  '비용 입력',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space2,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isOut
-                            ? TossColors.error.withValues(alpha: 0.1)
-                            : TossColors.success.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                      ),
-                      child: Text(
-                        isOut ? '💸 Cash Out' : '💵 Cash In',
-                        style: TossTextStyles.small.copyWith(
-                          color: isOut ? TossColors.error : TossColors.success,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space2),
-                    Text(
-                      widget.cashLocationName ?? 'Cash Location',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            child: Text(
+              'Expense',
+              textAlign: TextAlign.center,
+              style: TossTextStyles.h3.copyWith(
+                fontWeight: FontWeight.bold,
+                color: TossColors.gray900,
+              ),
             ),
           ),
 
@@ -246,155 +294,288 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     );
   }
 
-  Widget _buildProgressIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Row(
-        children: [
-          _buildProgressStep(0, '계정 선택', _currentStep >= 0),
-          Expanded(
-            child: Container(
-              height: 2,
-              color: _currentStep > 0 ? TossColors.primary : TossColors.gray200,
-            ),
-          ),
-          _buildProgressStep(1, '금액 입력', _currentStep >= 1),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressStep(int step, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: isActive ? TossColors.primary : TossColors.gray200,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: isActive && _currentStep > step
-                ? const Icon(Icons.check, size: 14, color: TossColors.white)
-                : Text(
-                    '${step + 1}',
-                    style: TossTextStyles.small.copyWith(
-                      color: isActive ? TossColors.white : TossColors.gray500,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TossTextStyles.small.copyWith(
-            color: isActive ? TossColors.primary : TossColors.gray400,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildAccountSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final userId = appState.userId;
 
-        Text(
-          '어떤 비용인가요?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          '비용 계정을 선택해주세요',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
+    if (companyId.isEmpty) {
+      return const Center(
+        child: Text('Please select a company first'),
+      );
+    }
 
-        const SizedBox(height: TossSpacing.space4),
-
-        // Account selector (expense accounts only: 5000-9999)
-        EnhancedAccountSelector(
-          selectedAccountId: _selectedAccountId,
-          onAccountSelected: _onAccountSelected,
-          accountType: 'expense', // Filter for expense accounts
-          label: '비용 계정',
-          hint: '비용 항목을 검색하세요',
-          showQuickAccess: true,
-          maxQuickItems: 6,
-          contextType: 'expense',
-        ),
-
-        // Selected account display
-        if (_selectedAccountId != null) ...[
-          const SizedBox(height: TossSpacing.space4),
-          _buildSelectedAccountCard(),
-        ],
-      ],
+    final accountsAsync = ref.watch(
+      expenseAccountsProvider((companyId: companyId, userId: userId)),
     );
-  }
 
-  Widget _buildSelectedAccountCard() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(color: TossColors.primary.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: TossColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+    return accountsAsync.when(
+      data: (accounts) {
+        final filteredAccounts = _filterAccounts(accounts);
+        final hasSearchResults = _searchQuery.isNotEmpty && filteredAccounts.isNotEmpty;
+        final hasNoSearchResults = _searchQuery.isNotEmpty && filteredAccounts.isEmpty;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: TossSpacing.space3),
+
+            // Cash location summary (read-only, from main page)
+            _buildSummaryCard(
+              icon: Icons.account_balance_wallet,
+              label: 'Cash Location',
+              value: widget.cashLocationName,
             ),
-            child: const Center(
-              child: Icon(
-                Icons.receipt_long,
-                color: TossColors.primary,
-                size: 20,
+
+            const SizedBox(height: TossSpacing.space4),
+
+            Text(
+              'Expense Account',
+              style: TossTextStyles.h4.copyWith(
+                fontWeight: FontWeight.bold,
+                color: TossColors.gray900,
               ),
             ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _selectedAccountName ?? '',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: TossColors.gray900,
-                  ),
+            const SizedBox(height: TossSpacing.space1),
+            Text(
+              'Search or select from recent',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray500,
+              ),
+            ),
+
+            const SizedBox(height: TossSpacing.space3),
+
+            // Search field
+            _buildSearchField(),
+
+            const SizedBox(height: TossSpacing.space3),
+
+            // Search results or Recent accounts
+            if (hasSearchResults) ...[
+              Text(
+                'Search Results',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                  fontWeight: FontWeight.w600,
                 ),
-                if (_selectedAccountCode != null)
-                  Text(
-                    'Code: $_selectedAccountCode',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              ...filteredAccounts.map((account) {
+                final isSelected = _selectedAccountId == account.accountId;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+                  child: _buildSelectionCard(
+                    title: account.accountName,
+                    subtitle: 'Code: ${account.accountCode}',
+                    icon: Icons.receipt_long,
+                    isSelected: isSelected,
+                    onTap: () => _onAccountSelected(account),
                   ),
-              ],
+                );
+              }),
+            ] else if (hasNoSearchResults) ...[
+              _buildNoResultsMessage(),
+            ] else ...[
+              // Recent accounts section (showing all accounts from RPC)
+              Text(
+                'Recent',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space2),
+              ...accounts.map((account) {
+                final isSelected = _selectedAccountId == account.accountId;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+                  child: _buildSelectionCard(
+                    title: account.accountName,
+                    subtitle: 'Code: ${account.accountCode}',
+                    icon: Icons.receipt_long,
+                    isSelected: isSelected,
+                    onTap: () => _onAccountSelected(account),
+                    trailing: account.usageCount > 0
+                        ? Text(
+                            '${account.usageCount}x',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray400,
+                            ),
+                          )
+                        : null,
+                  ),
+                );
+              }),
+            ],
+          ],
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(TossSpacing.space4),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          child: Column(
+            children: [
+              const Icon(Icons.error_outline, color: TossColors.gray300, size: 48),
+              const SizedBox(height: TossSpacing.space2),
+              Text(
+                'Error loading accounts',
+                style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(color: TossColors.gray200),
+      ),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        style: TossTextStyles.body.copyWith(color: TossColors.gray900),
+        decoration: InputDecoration(
+          hintText: 'Search by name or code...',
+          hintStyle: TossTextStyles.body.copyWith(color: TossColors.gray400),
+          prefixIcon: const Icon(
+            Icons.search,
+            color: TossColors.gray400,
+            size: 20,
+          ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? GestureDetector(
+                  onTap: () {
+                    _searchController.clear();
+                    _searchFocusNode.unfocus();
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    color: TossColors.gray400,
+                    size: 18,
+                  ),
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3,
+            vertical: TossSpacing.space3,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoResultsMessage() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.search_off,
+            color: TossColors.gray300,
+            size: 40,
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          Text(
+            'No accounts found',
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray500,
             ),
           ),
-          const Icon(
-            Icons.check_circle,
-            color: TossColors.primary,
-            size: 24,
+          const SizedBox(height: TossSpacing.space1),
+          Text(
+            'Try a different search term',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray400,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSelectionCard({
+    required String title,
+    String? subtitle,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(
+            color: isSelected ? TossColors.gray900 : TossColors.gray200,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: TossColors.gray600,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (trailing != null) ...[
+              trailing,
+              const SizedBox(width: TossSpacing.space2),
+            ],
+            Icon(
+              isSelected ? Icons.check : Icons.chevron_right,
+              color: isSelected ? TossColors.gray900 : TossColors.gray300,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -403,48 +584,21 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Summary cards (no top padding - header has enough)
+        _buildSummaryCard(
+          icon: Icons.account_balance_wallet,
+          label: 'Cash Location',
+          value: widget.cashLocationName,
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        _buildSummaryCard(
+          icon: Icons.receipt_long,
+          label: 'Expense',
+          value: _selectedAccountName ?? '',
+          onEdit: () => setState(() => _currentStep = 0),
+        ),
+
         const SizedBox(height: TossSpacing.space3),
-
-        // Selected account summary
-        if (_selectedAccountName != null)
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.receipt_long,
-                  color: TossColors.gray600,
-                  size: 18,
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    _selectedAccountName!,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray700,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => _currentStep = 0),
-                  child: Text(
-                    '변경',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        const SizedBox(height: TossSpacing.space4),
 
         // Amount keypad
         AmountInputKeypad(
@@ -453,28 +607,61 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
           showSubmitButton: false,
         ),
 
-        const SizedBox(height: TossSpacing.space4),
-
-        // Memo field
-        TossTextField(
-          controller: _memoController,
-          hintText: '메모 (선택)',
-          label: '메모',
-          maxLines: 1,
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        // Submit button
-        TossButton.primary(
-          text: _isSubmitting ? '처리 중...' : '기록하기',
-          onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
-          isEnabled: _canSubmit && !_isSubmitting,
-          isLoading: _isSubmitting,
-          fullWidth: true,
-          leadingIcon: const Icon(Icons.check),
-        ),
+        // Bottom padding for fixed button
+        const SizedBox(height: 80),
       ],
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    VoidCallback? onEdit,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: TossColors.gray600, size: 18),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TossTextStyles.small.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onEdit != null)
+            GestureDetector(
+              onTap: onEdit,
+              child: Text(
+                'Change',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray600,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

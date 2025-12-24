@@ -332,12 +332,14 @@ class RealDetailSheet extends StatelessWidget {
                       final currencyCode = firstDenom.currencyCode ?? '';
 
                       // Calculate total stock for this currency
+                      // subtotal = currentQuantity * denominationValue (현재 수량 기준)
                       final currencyTotal = currencyDenominations.fold<double>(
                         0.0,
                         (sum, d) => sum + d.subtotal,
                       );
 
                       // Calculate total flow (change) for this currency
+                      // quantityChange = currentQuantity - previousQuantity (직전 대비 변화량)
                       final currencyFlow = currencyDenominations.fold<double>(
                         0.0,
                         (sum, d) => sum + (d.quantityChange * d.denominationValue),

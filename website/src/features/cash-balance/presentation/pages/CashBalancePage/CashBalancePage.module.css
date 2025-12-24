@@ -1,0 +1,495 @@
+/**
+ * CashBalancePage - Excel-style with left sidebar
+ */
+
+.page {
+  display: flex;
+  min-height: calc(100vh - 60px);
+  background: #fff;
+}
+
+/* Left Sidebar */
+.sidebar {
+  width: 200px;
+  min-width: 200px;
+  border-right: 1px solid #e0e0e0;
+  padding: 20px 16px;
+  background: #fafafa;
+}
+
+.filterSection {
+  margin-bottom: 24px;
+}
+
+.filterSection h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
+
+.filterList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filterList li {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.filterList li:hover {
+  background: #e8e8e8;
+}
+
+.filterList li.active {
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.clearBtn {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #666;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.clearBtn:hover {
+  background: #f5f5f5;
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.dateFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateFilter input {
+  padding: 6px 10px;
+  border: 1px solid #d0d0d0;
+  font-size: 13px;
+  color: #333;
+}
+
+.dateFilter span {
+  color: #666;
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+}
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+}
+
+/* Table */
+.tableWrapper {
+  overflow: auto;
+  border: 1px solid #d0d0d0;
+  max-height: calc(100vh - 180px);
+  position: relative;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.table th,
+.table td {
+  border: 1px solid #d0d0d0;
+  padding: 6px 10px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  vertical-align: bottom;
+  position: sticky;
+  top: 32px;
+  z-index: 1;
+}
+
+/* Store group header row */
+.storeRow th {
+  top: 0;
+  z-index: 2;
+  background: #e8e8e8;
+  border-bottom: 2px solid #999;
+}
+
+.storeHeader {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1976d2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table th .currency {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: #888;
+  margin-top: 2px;
+}
+
+.dateCol {
+  text-align: center !important;
+  background: #fafafa;
+  font-weight: 500;
+  color: #333;
+  width: 60px;
+  position: sticky;
+  left: 0;
+}
+
+.table thead .dateCol {
+  z-index: 2;
+}
+
+.table td {
+  font-family: 'Consolas', 'Monaco', monospace;
+  color: #333;
+}
+
+.table td span {
+  display: block;
+}
+
+.in {
+  color: #0066cc;
+}
+
+.out {
+  color: #c00;
+}
+
+.totalRow {
+  background: #f0f0f0;
+}
+
+.totalRow td {
+  font-weight: 600;
+  border-top: 2px solid #999;
+}
+
+.totalRow .dateCol {
+  background: #e8e8e8;
+}
+
+/* Balance row - current balance */
+.balanceRow {
+  background: #e3f2fd;
+}
+
+.balanceRow td {
+  font-weight: 600;
+  border-top: 1px solid #1976d2;
+}
+
+.balanceRow .dateCol {
+  background: #bbdefb;
+  color: #1565c0;
+}
+
+.balancePositive {
+  color: #1565c0;
+}
+
+.balanceNegative {
+  color: #c00;
+}
+
+.table tbody tr:hover {
+  background: #f8f8f8;
+}
+
+.table tbody tr:hover .dateCol {
+  background: #f0f0f0;
+}
+
+/* Clickable cell */
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: #e8f4fc !important;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.closeBtn:hover {
+  color: #333;
+}
+
+.modalInfo {
+  display: flex;
+  gap: 24px;
+  padding: 12px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 13px;
+  color: #555;
+}
+
+.modalBody {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 20px;
+}
+
+/* Journal Table in Modal */
+.journalTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.journalTable th,
+.journalTable td {
+  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.journalTable th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.journalTable th:nth-child(4),
+.journalTable th:nth-child(5),
+.journalTable td:nth-child(4),
+.journalTable td:nth-child(5) {
+  text-align: right;
+  width: 120px;
+}
+
+.journalTable tbody tr:hover {
+  background: #f8f8f8;
+}
+
+.journalTable tfoot td {
+  background: #f0f0f0;
+  border-top: 2px solid #999;
+}
+
+/* Summary Section - Discrepancy Check */
+.summarySection {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.summarySection h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.summaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.summaryTable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.summaryTable td:first-child {
+  color: #666;
+  width: 60%;
+}
+
+.summaryTable td:last-child {
+  text-align: right;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.summaryTable tr:last-child td {
+  border-bottom: none;
+  padding-top: 12px;
+}
+
+.warningRow td {
+  background: #fff3cd !important;
+  color: #856404 !important;
+}
+
+.okRow td {
+  background: #d4edda !important;
+  color: #155724 !important;
+}
+
+/* Journal Section */
+.journalSection {
+  margin-top: 20px;
+}
+
+.journalSection h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.netRow td {
+  background: #e8f4fc !important;
+  border-top: 2px solid #1976d2 !important;
+}
+
+/* Conversion Section */
+.conversionSection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.conversionSection h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.conversionTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.conversionTable th,
+.conversionTable td {
+  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.conversionTable th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.conversionTable th:nth-child(2),
+.conversionTable th:nth-child(3),
+.conversionTable th:nth-child(4),
+.conversionTable td:nth-child(2),
+.conversionTable td:nth-child(3),
+.conversionTable td:nth-child(4) {
+  text-align: right;
+}
+
+.conversionTable td:nth-child(3) {
+  font-size: 11px;
+  color: #666;
+}
+
+.conversionTable tbody tr:hover {
+  background: #f8f8f8;
+}
+
+.conversionTable tfoot td {
+  background: #f0f0f0;
+  border-top: 2px solid #999;
+}

@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
-/// 금액 입력 키패드
-/// 2025 트렌드: 큰 터치 영역, 햅틱 피드백, 시각적 확인
+/// Amount Input Keypad
+/// Minimal design - gray tones, no colored borders
 class AmountInputKeypad extends StatefulWidget {
   final double initialAmount;
   final String currencySymbol;
@@ -20,7 +20,7 @@ class AmountInputKeypad extends StatefulWidget {
     required this.onAmountChanged,
     this.onSubmit,
     this.showSubmitButton = true,
-    this.submitButtonText = '확인',
+    this.submitButtonText = 'Confirm',
   });
 
   @override
@@ -118,11 +118,11 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
           vertical: TossSpacing.space5,
         ),
         decoration: BoxDecoration(
-          color: TossColors.gray50,
+          color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
-            color: hasAmount ? TossColors.primary : TossColors.gray200,
-            width: hasAmount ? 2 : 1,
+            color: hasAmount ? TossColors.gray900 : TossColors.gray200,
+            width: hasAmount ? 1.5 : 1,
           ),
         ),
         child: Column(
@@ -135,7 +135,7 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
                 Text(
                   widget.currencySymbol,
                   style: TossTextStyles.h2.copyWith(
-                    color: hasAmount ? TossColors.primary : TossColors.gray400,
+                    color: TossColors.gray500,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -170,7 +170,7 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
             if (!hasAmount) ...[
               const SizedBox(height: TossSpacing.space2),
               Text(
-                '금액을 입력하세요',
+                'Enter amount',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray400,
                 ),
@@ -233,9 +233,8 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
             child: Container(
               height: 60,
               decoration: BoxDecoration(
-                color: TossColors.white,
+                color: TossColors.gray50,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(color: TossColors.gray100),
               ),
               child: Center(
                 child: isIcon
@@ -268,7 +267,7 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
       child: ElevatedButton(
         onPressed: isEnabled ? widget.onSubmit : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: TossColors.primary,
+          backgroundColor: TossColors.gray900,
           foregroundColor: TossColors.white,
           disabledBackgroundColor: TossColors.gray200,
           disabledForegroundColor: TossColors.gray400,

@@ -1,21 +1,88 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
+import '../providers/cash_control_providers.dart';
 import '../widgets/amount_input_keypad.dart';
+import '../widgets/transaction_confirm_dialog.dart';
 
-/// 현금 이동 Bottom Sheet
-/// 금고 간 현금 이동을 위한 간편 입력
+const _tag = '[TransferEntrySheet]';
+
+/// Transfer Scope - determines accounting treatment
+enum TransferScope {
+  withinStore,      // 같은 가게 내: Simple cash transfer
+  withinCompany,    // 같은 회사 내 다른 가게: Inter-store debt (A/R, A/P)
+  betweenCompanies, // 다른 회사: Inter-company debt (A/R, A/P)
+}
+
+extension TransferScopeExtension on TransferScope {
+  String get label {
+    switch (this) {
+      case TransferScope.withinStore:
+        return 'Within Store';
+      case TransferScope.withinCompany:
+        return 'Within Company';
+      case TransferScope.betweenCompanies:
+        return 'Between Companies';
+    }
+  }
+
+  String get labelKo {
+    switch (this) {
+      case TransferScope.withinStore:
+        return '가게 내 이동';
+      case TransferScope.withinCompany:
+        return '회사 내 이동';
+      case TransferScope.betweenCompanies:
+        return '다른 회사로 이동';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case TransferScope.withinStore:
+        return 'Move cash between vaults in this store';
+      case TransferScope.withinCompany:
+        return 'Transfer to another store in your company';
+      case TransferScope.betweenCompanies:
+        return 'Transfer to another company you own';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case TransferScope.withinStore:
+        return Icons.swap_horiz;
+      case TransferScope.withinCompany:
+        return Icons.store;
+      case TransferScope.betweenCompanies:
+        return Icons.business;
+    }
+  }
+
+  bool get isDebtTransaction => this != TransferScope.withinStore;
+}
+
+/// Cash Transfer Bottom Sheet
+/// 3 Transfer Scopes:
+/// 1. Within Store: Simple vault-to-vault (no debt)
+/// 2. Within Company: Store-to-store in same company (debt transaction)
+/// 3. Between Companies: Company-to-company (debt transaction)
+///
+/// FROM Cash Location is pre-selected from main page.
 class TransferEntrySheet extends ConsumerStatefulWidget {
+  final String fromCashLocationId;
+  final String fromCashLocationName;
   final VoidCallback onSuccess;
 
   const TransferEntrySheet({
     super.key,
+    required this.fromCashLocationId,
+    required this.fromCashLocationName,
     required this.onSuccess,
   });
 
@@ -24,43 +91,129 @@ class TransferEntrySheet extends ConsumerStatefulWidget {
 }
 
 class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
-  // Form state
-  String? _fromCashLocationId;
-  String? _fromCashLocationName;
+  // Transfer scope
+  TransferScope? _selectedScope;
+
+  // FROM side (pre-set from main page)
+  String? _fromCompanyId;
+  String? _fromCompanyName;
+  String? _fromStoreId;
+  String? _fromStoreName;
+
+  // TO side
+  String? _toCompanyId;
+  String? _toCompanyName;
+  String? _toStoreId;
+  String? _toStoreName;
   String? _toCashLocationId;
   String? _toCashLocationName;
+
+  // Amount
   double _amount = 0;
-  final _memoController = TextEditingController();
 
   // UI state
-  int _currentStep = 0; // 0: 출발지, 1: 도착지, 2: 금액
+  int _currentStep = 0;
   bool _isSubmitting = false;
 
   @override
-  void dispose() {
-    _memoController.dispose();
-    super.dispose();
-  }
-
-  void _onFromLocationSelected(CashLocationData location) {
-    setState(() {
-      _fromCashLocationId = location.id;
-      _fromCashLocationName = location.name;
-      // 같은 위치가 선택되어 있으면 초기화
-      if (_toCashLocationId == location.id) {
-        _toCashLocationId = null;
-        _toCashLocationName = null;
-      }
-      _currentStep = 1;
+  void initState() {
+    super.initState();
+    // Set current context from app state
+    // Note: In real app, this would come from app state
+    // For now we use mock data for the multi-company/store selection
+    // but the actual transfer submission uses real repository
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = ref.read(appStateProvider);
+      setState(() {
+        _fromCompanyId = appState.companyChoosen;
+        _fromCompanyName = 'Current Company'; // Would come from company provider
+        _fromStoreId = appState.storeChoosen;
+        _fromStoreName = 'Current Store'; // Would come from store provider
+      });
     });
-    HapticFeedback.lightImpact();
   }
 
-  void _onToLocationSelected(CashLocationData location) {
+  // ==================== HELPER METHODS FOR DATA ACCESS ====================
+
+  /// Get all companies from user data
+  List<Map<String, dynamic>> _getCompanies() {
+    final appState = ref.read(appStateProvider);
+    final companies = appState.user['companies'] as List<dynamic>? ?? [];
+    return companies.cast<Map<String, dynamic>>();
+  }
+
+  /// Get current company data
+  Map<String, dynamic>? _getCurrentCompany() {
+    final appState = ref.read(appStateProvider);
+    final companies = _getCompanies();
+    for (final company in companies) {
+      if (company['company_id'] == appState.companyChoosen) {
+        return company;
+      }
+    }
+    return null;
+  }
+
+  /// Get stores for current company (excluding current store)
+  List<Map<String, dynamic>> _getOtherStoresInCompany() {
+    final appState = ref.read(appStateProvider);
+    final currentCompany = _getCurrentCompany();
+    if (currentCompany == null) return [];
+
+    final stores = currentCompany['stores'] as List<dynamic>? ?? [];
+    return stores
+        .cast<Map<String, dynamic>>()
+        .where((s) => s['store_id'] != appState.storeChoosen)
+        .toList();
+  }
+
+  /// Get other companies (excluding current company)
+  List<Map<String, dynamic>> _getOtherCompanies() {
+    final appState = ref.read(appStateProvider);
+    return _getCompanies()
+        .where((c) => c['company_id'] != appState.companyChoosen)
+        .toList();
+  }
+
+  /// Get stores for a specific company
+  List<Map<String, dynamic>> _getStoresForCompany(String companyId) {
+    final companies = _getCompanies();
+    for (final company in companies) {
+      if (company['company_id'] == companyId) {
+        final stores = company['stores'] as List<dynamic>? ?? [];
+        return stores.cast<Map<String, dynamic>>();
+      }
+    }
+    return [];
+  }
+
+  // ==================== STEP LOGIC ====================
+
+  /// Get total steps based on scope
+  int get _totalSteps {
+    switch (_selectedScope) {
+      case TransferScope.withinStore:
+        return 4; // scope -> from cash loc -> to cash loc -> amount
+      case TransferScope.withinCompany:
+        return 5; // scope -> from cash loc -> to store -> to cash loc -> amount
+      case TransferScope.betweenCompanies:
+        return 6; // scope -> from cash loc -> to company -> to store -> to cash loc -> amount
+      case null:
+        return 1;
+    }
+  }
+
+  void _onScopeSelected(TransferScope scope) {
     setState(() {
-      _toCashLocationId = location.id;
-      _toCashLocationName = location.name;
-      _currentStep = 2;
+      _selectedScope = scope;
+      // Reset TO selections
+      _toCompanyId = null;
+      _toCompanyName = null;
+      _toStoreId = null;
+      _toStoreName = null;
+      _toCashLocationId = null;
+      _toCashLocationName = null;
+      _currentStep = 1;
     });
     HapticFeedback.lightImpact();
   }
@@ -72,40 +225,127 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   }
 
   Future<void> _onSubmit() async {
-    if (_fromCashLocationId == null ||
-        _toCashLocationId == null ||
-        _amount <= 0) {
+    if (_toCashLocationId == null || _amount <= 0 || _selectedScope == null) {
       return;
     }
+
+    // Determine confirmation type based on scope
+    ConfirmTransactionType confirmType;
+    switch (_selectedScope!) {
+      case TransferScope.withinStore:
+        confirmType = ConfirmTransactionType.transferWithinStore;
+        break;
+      case TransferScope.withinCompany:
+        confirmType = ConfirmTransactionType.transferWithinCompany;
+        break;
+      case TransferScope.betweenCompanies:
+        confirmType = ConfirmTransactionType.transferBetweenCompanies;
+        break;
+    }
+
+    // Show confirmation dialog
+    final result = await TransactionConfirmDialog.show(
+      context,
+      TransactionConfirmData(
+        type: confirmType,
+        amount: _amount,
+        fromCashLocationName: widget.fromCashLocationName,
+        fromStoreName: _fromStoreName,
+        toStoreName: _toStoreName,
+        toCompanyName: _toCompanyName,
+        toCashLocationName: _toCashLocationName,
+      ),
+    );
+
+    if (result == null || !result.confirmed) {
+      debugPrint('$_tag User cancelled confirmation dialog');
+      return;
+    }
+
+    debugPrint('$_tag 🚀 Starting transfer submission...');
+    debugPrint('$_tag   scope: $_selectedScope');
+    debugPrint('$_tag   from: ${widget.fromCashLocationId} (${widget.fromCashLocationName})');
+    debugPrint('$_tag   to: $_toCashLocationId ($_toCashLocationName)');
+    debugPrint('$_tag   amount: $_amount');
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      // TODO: RPC 호출 구현
-      // journal_insert_with_everything_utc 또는 simple_cash_entry RPC
-      //
-      // 현금 이동 분개 로직:
-      // Dr. Cash (도착지 - 현금 증가)
-      // Cr. Cash (출발지 - 현금 감소)
-      //
-      // 두 개의 journal_lines 생성:
-      // 1. debit line: to_cash_location_id
-      // 2. credit line: from_cash_location_id
+      final appState = ref.read(appStateProvider);
+      final repository = ref.read(cashControlRepositoryProvider);
 
-      // Simulate API call
-      await Future<void>.delayed(const Duration(milliseconds: 500));
+      // TODO: Upload attachments to storage and get URLs
+      final attachmentUrls = <String>[];
+
+      String journalId;
+      if (_selectedScope == TransferScope.withinStore) {
+        // Simple within-store transfer
+        debugPrint('$_tag 📤 Calling createTransferWithinStore...');
+        journalId = await repository.createTransferWithinStore(
+          companyId: appState.companyChoosen,
+          storeId: appState.storeChoosen,
+          createdBy: appState.userId,
+          fromCashLocationId: widget.fromCashLocationId,
+          toCashLocationId: _toCashLocationId!,
+          amount: _amount,
+          entryDate: DateTime.now(),
+          memo: result.memo,
+          attachmentUrls: attachmentUrls.isEmpty ? null : attachmentUrls,
+        );
+      } else {
+        // Inter-store or inter-company transfer (creates debt)
+        debugPrint('$_tag 📤 Calling createTransferBetweenEntities...');
+        journalId = await repository.createTransferBetweenEntities(
+          companyId: appState.companyChoosen,
+          storeId: appState.storeChoosen.isEmpty ? null : appState.storeChoosen,
+          createdBy: appState.userId,
+          fromCashLocationId: widget.fromCashLocationId,
+          toCashLocationId: _toCashLocationId!,
+          toStoreId: _toStoreId,
+          toCompanyId: _toCompanyId,
+          counterpartyId: _toCompanyId ?? _toStoreId ?? '', // Use as counterparty
+          amount: _amount,
+          entryDate: DateTime.now(),
+          memo: result.memo,
+          attachmentUrls: attachmentUrls.isEmpty ? null : attachmentUrls,
+        );
+      }
+
+      debugPrint('$_tag ✅ Transfer completed successfully! journal_id: $journalId');
 
       if (mounted) {
-        widget.onSuccess();
+        // Show success feedback before closing
+        HapticFeedback.heavyImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                const Text('Transfer completed!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Wait a moment for user to see success feedback
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+
+        if (mounted) {
+          widget.onSuccess();
+        }
       }
     } catch (e) {
+      debugPrint('$_tag ❌ Transfer FAILED: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: TossColors.error,
+            content: Text('Error: $e'),
+            backgroundColor: TossColors.gray900,
           ),
         );
       }
@@ -119,10 +359,24 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   }
 
   bool get _canSubmit =>
-      _fromCashLocationId != null &&
       _toCashLocationId != null &&
-      _fromCashLocationId != _toCashLocationId &&
+      widget.fromCashLocationId != _toCashLocationId &&
       _amount > 0;
+
+  /// Check if current step is amount input step
+  bool get _isAmountInputStep {
+    if (_selectedScope == null) return false;
+    switch (_selectedScope!) {
+      case TransferScope.withinStore:
+        return _currentStep == 2;
+      case TransferScope.withinCompany:
+        return _currentStep == 3;
+      case TransferScope.betweenCompanies:
+        return _currentStep == 4;
+    }
+  }
+
+  // ==================== BUILD ====================
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +391,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
           maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
         decoration: const BoxDecoration(
-          color: TossColors.surface,
+          color: TossColors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(TossBorderRadius.xxl),
             topRight: Radius.circular(TossBorderRadius.xxl),
@@ -161,9 +415,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
             // Header
             _buildHeader(),
 
-            // Progress indicator
-            _buildProgressIndicator(),
-
             // Content
             Flexible(
               child: SingleChildScrollView(
@@ -172,10 +423,42 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
               ),
             ),
 
-            // Bottom padding
+            // Fixed bottom button for amount input step
+            if (_isAmountInputStep) ...[
+              Container(
+                padding: const EdgeInsets.fromLTRB(
+                  TossSpacing.space4,
+                  TossSpacing.space2,
+                  TossSpacing.space4,
+                  TossSpacing.space2,
+                ),
+                decoration: const BoxDecoration(
+                  color: TossColors.white,
+                  border: Border(
+                    top: BorderSide(color: TossColors.gray100),
+                  ),
+                ),
+                child: TossButton.primary(
+                  text: _isSubmitting
+                      ? 'Processing...'
+                      : _selectedScope?.isDebtTransaction == true
+                          ? 'Create Transfer'
+                          : 'Transfer',
+                  onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
+                  isEnabled: _canSubmit && !_isSubmitting,
+                  isLoading: _isSubmitting,
+                  fullWidth: true,
+                  leadingIcon: Icon(
+                    _selectedScope?.icon ?? Icons.swap_horiz,
+                  ),
+                ),
+              ),
+            ],
+
             SizedBox(
-                height:
-                    MediaQuery.of(context).padding.bottom + TossSpacing.space2),
+              height:
+                  MediaQuery.of(context).padding.bottom + TossSpacing.space2,
+            ),
           ],
         ),
       ),
@@ -183,12 +466,61 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   }
 
   Widget _buildCurrentStepContent() {
+    if (_currentStep == 0) {
+      return _buildScopeSelection();
+    }
+
+    switch (_selectedScope) {
+      case TransferScope.withinStore:
+        return _buildWithinStoreContent();
+      case TransferScope.withinCompany:
+        return _buildWithinCompanyContent();
+      case TransferScope.betweenCompanies:
+        return _buildBetweenCompaniesContent();
+      case null:
+        return _buildScopeSelection();
+    }
+  }
+
+  Widget _buildWithinStoreContent() {
+    // From cash location already selected from main page
+    // Step 1: To cash location, Step 2: Amount
     switch (_currentStep) {
-      case 0:
-        return _buildFromLocationSelection();
       case 1:
-        return _buildToLocationSelection();
+        return _buildToCashLocationSelectionWithinStore();
       case 2:
+        return _buildAmountInput();
+      default:
+        return const SizedBox();
+    }
+  }
+
+  Widget _buildWithinCompanyContent() {
+    // From cash location already selected from main page
+    // Step 1: To store, Step 2: To cash location, Step 3: Amount
+    switch (_currentStep) {
+      case 1:
+        return _buildToStoreSelectionWithinCompany();
+      case 2:
+        return _buildToCashLocationSelection();
+      case 3:
+        return _buildAmountInput();
+      default:
+        return const SizedBox();
+    }
+  }
+
+  Widget _buildBetweenCompaniesContent() {
+    // From cash location already selected from main page
+    // Step 1: To company, Step 2: To store, Step 3: To cash location, Step 4: Amount
+    switch (_currentStep) {
+      case 1:
+        return _buildToCompanySelection();
+      case 2:
+        return _buildToStoreSelectionInCompany();
+      case 3:
+        return _buildToCashLocationSelection();
+      case 4:
         return _buildAmountInput();
       default:
         return const SizedBox();
@@ -199,9 +531,9 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         TossSpacing.space4,
-        TossSpacing.space4,
         TossSpacing.space2,
         TossSpacing.space2,
+        0,
       ),
       child: Row(
         children: [
@@ -219,29 +551,26 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
             child: Column(
               children: [
                 Text(
-                  '현금 이동',
+                  'Cash Transfer',
                   style: TossTextStyles.h3.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: TossColors.gray900,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space2,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                  ),
-                  child: Text(
-                    '🔄 금고 간 이동',
-                    style: TossTextStyles.small.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
+                if (_selectedScope != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _selectedScope!.label,
+                    style: TossTextStyles.caption.copyWith(
+                      color: _selectedScope!.isDebtTransaction
+                          ? TossColors.gray700
+                          : TossColors.gray500,
+                      fontWeight: _selectedScope!.isDebtTransaction
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -257,197 +586,674 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
     );
   }
 
-  Widget _buildProgressIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+  // ==================== STEP 0: SCOPE SELECTION ====================
+
+  Widget _buildScopeSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: TossSpacing.space3),
+
+        Text(
+          'What type of transfer?',
+          style: TossTextStyles.h4.copyWith(
+            fontWeight: FontWeight.bold,
+            color: TossColors.gray900,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space1),
+        Text(
+          'Select where the money is going',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // Scope options
+        ...TransferScope.values.map((scope) {
+          final isSelected = _selectedScope == scope;
+          // Check if option is available
+          final isAvailable = _isScopeAvailable(scope);
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+            child: _buildScopeCard(
+              scope: scope,
+              isSelected: isSelected,
+              isAvailable: isAvailable,
+              onTap: isAvailable ? () => _onScopeSelected(scope) : null,
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  bool _isScopeAvailable(TransferScope scope) {
+    switch (scope) {
+      case TransferScope.withinStore:
+        // Need at least 2 cash locations in current store
+        // For simplicity, always enable - actual check happens in UI
+        return true;
+      case TransferScope.withinCompany:
+        // Need at least 1 other store in company
+        return _getOtherStoresInCompany().isNotEmpty;
+      case TransferScope.betweenCompanies:
+        // Need at least 1 other company
+        return _getOtherCompanies().isNotEmpty;
+    }
+  }
+
+  Widget _buildScopeCard({
+    required TransferScope scope,
+    required bool isSelected,
+    required bool isAvailable,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: isAvailable ? 1.0 : 0.5,
+        child: Container(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          decoration: BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            border: Border.all(
+              color: isSelected ? TossColors.gray900 : TossColors.gray200,
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: scope.isDebtTransaction
+                      ? TossColors.gray200
+                      : TossColors.gray100,
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+                child: Center(
+                  child: Icon(
+                    scope.icon,
+                    color: TossColors.gray600,
+                    size: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      scope.label,
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: TossColors.gray900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      scope.description,
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                    if (scope.isDebtTransaction) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space2,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TossColors.gray100,
+                          borderRadius:
+                              BorderRadius.circular(TossBorderRadius.xs),
+                        ),
+                        child: Text(
+                          'Creates A/R & A/P',
+                          style: TossTextStyles.small.copyWith(
+                            color: TossColors.gray600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                isSelected ? Icons.check : Icons.chevron_right,
+                color: isSelected ? TossColors.gray900 : TossColors.gray300,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==================== WITHIN STORE: TO CASH LOCATION ====================
+
+  Widget _buildToCashLocationSelectionWithinStore() {
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+
+    final cashLocationsAsync = ref.watch(
+      cashLocationsForStoreProvider((companyId: companyId, storeId: storeId)),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: TossSpacing.space3),
+
+        // From summary
+        _buildFromSummary(),
+
+        // Arrow
+        _buildArrow(),
+
+        Text(
+          'Which Cash Location?',
+          style: TossTextStyles.h4.copyWith(
+            fontWeight: FontWeight.bold,
+            color: TossColors.gray900,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space1),
+        Text(
+          'Select destination in ${_fromStoreName}',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        cashLocationsAsync.when(
+          data: (locations) {
+            // Exclude the FROM location
+            final availableLocations = locations
+                .where((loc) => loc.cashLocationId != widget.fromCashLocationId)
+                .toList();
+
+            if (availableLocations.isEmpty) {
+              return Center(
+                child: Text(
+                  'No other cash locations available',
+                  style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+                ),
+              );
+            }
+
+            return Column(
+              children: availableLocations.map((location) {
+                final isSelected = _toCashLocationId == location.cashLocationId;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+                  child: _buildSelectionCard(
+                    title: location.locationName,
+                    icon: Icons.account_balance_wallet,
+                    isSelected: isSelected,
+                    onTap: () => _onToCashLocationSelectedReal(location),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => Center(
+            child: Text(
+              'Error loading locations',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _onToCashLocationSelectedReal(CashLocation location) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _toCashLocationId = location.cashLocationId;
+      _toCashLocationName = location.locationName;
+      // Move to amount step
+      _currentStep = _selectedScope == TransferScope.withinStore ? 2 : 4;
+    });
+  }
+
+  // ==================== WITHIN COMPANY: TO STORE ====================
+
+  Widget _buildToStoreSelectionWithinCompany() {
+    final otherStores = _getOtherStoresInCompany();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: TossSpacing.space3),
+
+        // From summary
+        _buildFromSummary(),
+
+        // Arrow
+        _buildArrow(),
+
+        Text(
+          'To which store?',
+          style: TossTextStyles.h4.copyWith(
+            fontWeight: FontWeight.bold,
+            color: TossColors.gray900,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space1),
+        Text(
+          'Select destination store in ${_fromCompanyName}',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        if (otherStores.isEmpty)
+          Center(
+            child: Text(
+              'No other stores available',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+            ),
+          )
+        else
+          ...otherStores.map((store) {
+            final storeId = store['store_id'] as String? ?? '';
+            final storeName = store['store_name'] as String? ?? 'Unknown Store';
+            final isSelected = _toStoreId == storeId;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+              child: _buildStoreCardReal(
+                storeId: storeId,
+                storeName: storeName,
+                isSelected: isSelected,
+                onTap: () => _onToStoreSelectedReal(storeId, storeName),
+              ),
+            );
+          }),
+
+        const SizedBox(height: TossSpacing.space2),
+        _buildDebtTransactionNotice(),
+      ],
+    );
+  }
+
+  void _onToStoreSelectedReal(String storeId, String storeName) {
+    final appState = ref.read(appStateProvider);
+    HapticFeedback.lightImpact();
+    setState(() {
+      _toStoreId = storeId;
+      _toStoreName = storeName;
+      _toCompanyId = appState.companyChoosen;
+      _toCompanyName = appState.companyName;
+      _toCashLocationId = null;
+      _toCashLocationName = null;
+      _currentStep++;
+    });
+  }
+
+  // ==================== BETWEEN COMPANIES: TO COMPANY ====================
+
+  Widget _buildToCompanySelection() {
+    final otherCompanies = _getOtherCompanies();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: TossSpacing.space3),
+
+        // From summary
+        _buildFromSummary(),
+
+        // Arrow
+        _buildArrow(),
+
+        Text(
+          'To which company?',
+          style: TossTextStyles.h4.copyWith(
+            fontWeight: FontWeight.bold,
+            color: TossColors.gray900,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space1),
+        Text(
+          'Select destination company',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        if (otherCompanies.isEmpty)
+          Center(
+            child: Text(
+              'No other companies available',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+            ),
+          )
+        else
+          ...otherCompanies.map((company) {
+            final companyId = company['company_id'] as String? ?? '';
+            final companyName = company['company_name'] as String? ?? 'Unknown Company';
+            final stores = company['stores'] as List<dynamic>? ?? [];
+            final isSelected = _toCompanyId == companyId;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+              child: _buildCompanyCardReal(
+                companyId: companyId,
+                companyName: companyName,
+                storeCount: stores.length,
+                isSelected: isSelected,
+                onTap: () => _onToCompanySelectedReal(companyId, companyName),
+              ),
+            );
+          }),
+
+        const SizedBox(height: TossSpacing.space2),
+        _buildDebtTransactionNotice(),
+      ],
+    );
+  }
+
+  void _onToCompanySelectedReal(String companyId, String companyName) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _toCompanyId = companyId;
+      _toCompanyName = companyName;
+      _toStoreId = null;
+      _toStoreName = null;
+      _toCashLocationId = null;
+      _toCashLocationName = null;
+      _currentStep++;
+    });
+  }
+
+  // ==================== BETWEEN COMPANIES: TO STORE IN COMPANY ====================
+
+  Widget _buildToStoreSelectionInCompany() {
+    final targetStores = _toCompanyId != null
+        ? _getStoresForCompany(_toCompanyId!)
+        : <Map<String, dynamic>>[];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: TossSpacing.space3),
+
+        // From summary
+        _buildFromSummary(),
+
+        // Arrow
+        _buildArrow(),
+
+        // To company summary
+        _buildSummaryCard(
+          icon: Icons.business,
+          label: 'TO Company',
+          value: _toCompanyName ?? '',
+          onEdit: () => setState(() => _currentStep = 1),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        Text(
+          'To which store?',
+          style: TossTextStyles.h4.copyWith(
+            fontWeight: FontWeight.bold,
+            color: TossColors.gray900,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space1),
+        Text(
+          'Select destination store in ${_toCompanyName}',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        if (targetStores.isEmpty)
+          Center(
+            child: Text(
+              'No stores available in this company',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+            ),
+          )
+        else
+          ...targetStores.map((store) {
+            final storeId = store['store_id'] as String? ?? '';
+            final storeName = store['store_name'] as String? ?? 'Unknown Store';
+            final isSelected = _toStoreId == storeId;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+              child: _buildStoreCardReal(
+                storeId: storeId,
+                storeName: storeName,
+                isSelected: isSelected,
+                onTap: () => _onToStoreSelectedForOtherCompany(storeId, storeName),
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  void _onToStoreSelectedForOtherCompany(String storeId, String storeName) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _toStoreId = storeId;
+      _toStoreName = storeName;
+      _toCashLocationId = null;
+      _toCashLocationName = null;
+      _currentStep++;
+    });
+  }
+
+  // ==================== TO CASH LOCATION (for inter-store/company) ====================
+
+  Widget _buildToCashLocationSelection() {
+    // Get the companyId for the target store
+    // If between companies, use _toCompanyId, otherwise use current company
+    final targetCompanyId = _selectedScope == TransferScope.betweenCompanies
+        ? _toCompanyId ?? ''
+        : ref.read(appStateProvider).companyChoosen;
+
+    // Use provider to fetch cash locations for the target store
+    final cashLocationsAsync = ref.watch(
+      cashLocationsForStoreProvider((
+        companyId: targetCompanyId,
+        storeId: _toStoreId ?? '',
+      )),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: TossSpacing.space3),
+
+        // From summary
+        _buildFromSummary(),
+
+        // Arrow
+        _buildArrow(),
+
+        // To store summary
+        _buildSummaryCard(
+          icon: Icons.store,
+          label: _selectedScope == TransferScope.betweenCompanies
+              ? '$_toCompanyName'
+              : 'TO Store',
+          value: _toStoreName ?? '',
+          onEdit: () => setState(() {
+            _currentStep = _selectedScope == TransferScope.betweenCompanies ? 2 : 1;
+          }),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        Text(
+          'Which Cash Location?',
+          style: TossTextStyles.h4.copyWith(
+            fontWeight: FontWeight.bold,
+            color: TossColors.gray900,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space1),
+        Text(
+          'Select destination in ${_toStoreName}',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray500,
+          ),
+        ),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        cashLocationsAsync.when(
+          data: (locations) {
+            if (locations.isEmpty) {
+              return Center(
+                child: Text(
+                  'No cash locations available in this store',
+                  style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+                ),
+              );
+            }
+
+            return Column(
+              children: locations.map((location) {
+                final isSelected = _toCashLocationId == location.cashLocationId;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+                  child: _buildSelectionCard(
+                    title: location.locationName,
+                    icon: Icons.account_balance_wallet,
+                    isSelected: isSelected,
+                    onTap: () => _onToCashLocationSelectedReal(location),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => Center(
+            child: Text(
+              'Error loading cash locations',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ==================== AMOUNT INPUT ====================
+
+  Widget _buildAmountInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Transfer summary (no top padding - header has enough)
+        _buildTransferSummary(),
+
+        // Debt transaction notice
+        if (_selectedScope?.isDebtTransaction == true) ...[
+          const SizedBox(height: TossSpacing.space2),
+          _buildDebtTransactionNotice(),
+        ],
+
+        const SizedBox(height: TossSpacing.space3),
+
+        // Amount keypad
+        AmountInputKeypad(
+          initialAmount: _amount,
+          onAmountChanged: _onAmountChanged,
+          showSubmitButton: false,
+        ),
+
+        // Bottom padding for fixed button
+        const SizedBox(height: 80),
+      ],
+    );
+  }
+
+  // ==================== HELPER WIDGETS ====================
+
+  Widget _buildContextCard() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray200),
+      ),
       child: Row(
         children: [
-          _buildProgressStep(0, '출발', _currentStep >= 0),
+          const Icon(Icons.store, color: TossColors.gray600, size: 18),
+          const SizedBox(width: TossSpacing.space2),
           Expanded(
-            child: Container(
-              height: 2,
-              color: _currentStep > 0 ? TossColors.primary : TossColors.gray200,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _fromStoreName ?? '',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  _fromCompanyName ?? '',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              ],
             ),
           ),
-          _buildProgressStep(1, '도착', _currentStep >= 1),
-          Expanded(
-            child: Container(
-              height: 2,
-              color: _currentStep > 1 ? TossColors.primary : TossColors.gray200,
-            ),
-          ),
-          _buildProgressStep(2, '금액', _currentStep >= 2),
         ],
       ),
     );
   }
 
-  Widget _buildProgressStep(int step, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: isActive ? TossColors.primary : TossColors.gray200,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: isActive && _currentStep > step
-                ? const Icon(Icons.check, size: 14, color: TossColors.white)
-                : Text(
-                    '${step + 1}',
-                    style: TossTextStyles.small.copyWith(
-                      color: isActive ? TossColors.white : TossColors.gray500,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-          ),
+  Widget _buildArrow() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
+        child: Icon(
+          Icons.arrow_downward,
+          color: TossColors.gray400,
+          size: 24,
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TossTextStyles.small.copyWith(
-            color: isActive ? TossColors.primary : TossColors.gray400,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildFromLocationSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        Text(
-          '어디서 현금을 빼나요?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          '출발 금고를 선택해주세요',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        // From cash location selector
-        AutonomousCashLocationSelector(
-          selectedLocationId: _fromCashLocationId,
-          onCashLocationSelected: _onFromLocationSelected,
-          label: '출발 금고',
-          hint: '현금을 빼는 금고를 선택하세요',
-          showSearch: true,
-          showScopeTabs: true,
-          hideLabel: true,
-        ),
-
-        // Visual transfer indicator
-        if (_fromCashLocationId != null) ...[
-          const SizedBox(height: TossSpacing.space4),
-          _buildLocationCard(
-            name: _fromCashLocationName ?? '',
-            icon: Icons.logout,
-            color: TossColors.error,
-            label: 'FROM',
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildToLocationSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        // From location summary
-        _buildLocationCard(
-          name: _fromCashLocationName ?? '',
-          icon: Icons.logout,
-          color: TossColors.error,
-          label: 'FROM',
-          onEdit: () => setState(() => _currentStep = 0),
-        ),
-
-        // Arrow
-        const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-            child: Icon(
-              Icons.arrow_downward,
-              color: TossColors.primary,
-              size: 28,
-            ),
-          ),
-        ),
-
-        Text(
-          '어디로 현금을 넣나요?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          '도착 금고를 선택해주세요',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        // To cash location selector (block the from location)
-        AutonomousCashLocationSelector(
-          selectedLocationId: _toCashLocationId,
-          onCashLocationSelected: _onToLocationSelected,
-          label: '도착 금고',
-          hint: '현금을 넣는 금고를 선택하세요',
-          showSearch: true,
-          showScopeTabs: true,
-          hideLabel: true,
-          blockedLocationIds: _fromCashLocationId != null
-              ? {_fromCashLocationId!}
-              : null,
-        ),
-
-        // Selected to location
-        if (_toCashLocationId != null) ...[
-          const SizedBox(height: TossSpacing.space4),
-          _buildLocationCard(
-            name: _toCashLocationName ?? '',
-            icon: Icons.login,
-            color: TossColors.success,
-            label: 'TO',
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildLocationCard({
-    required String name,
-    required IconData icon,
-    required Color color,
-    required String label,
-    VoidCallback? onEdit,
-  }) {
+  Widget _buildFromSummary() {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
+        color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Row(
         children: [
@@ -455,11 +1261,15 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
-            child: Center(
-              child: Icon(icon, color: color, size: 20),
+            child: const Center(
+              child: Icon(
+                Icons.logout,
+                color: TossColors.gray600,
+                size: 20,
+              ),
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -468,17 +1278,68 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label,
+                  'FROM',
                   style: TossTextStyles.small.copyWith(
-                    color: color,
+                    color: TossColors.gray500,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  name,
+                  widget.fromCashLocationName,
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.gray900,
                     fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => _currentStep = 1),
+            child: Text(
+              'Change',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    VoidCallback? onEdit,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: TossColors.gray600, size: 18),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TossTextStyles.small.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -488,60 +1349,224 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
             GestureDetector(
               onTap: onEdit,
               child: Text(
-                '변경',
+                'Change',
                 style: TossTextStyles.caption.copyWith(
-                  color: TossColors.primary,
+                  color: TossColors.gray600,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            )
-          else
-            Icon(Icons.check_circle, color: color, size: 22),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildAmountInput() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        // Transfer summary
-        _buildTransferSummary(),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        // Amount keypad
-        AmountInputKeypad(
-          initialAmount: _amount,
-          onAmountChanged: _onAmountChanged,
-          showSubmitButton: false,
+  Widget _buildSelectionCard({
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(
+            color: isSelected ? TossColors.gray900 : TossColors.gray200,
+            width: isSelected ? 1.5 : 1,
+          ),
         ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        // Memo field
-        TossTextField(
-          controller: _memoController,
-          hintText: '메모 (선택)',
-          label: '메모',
-          maxLines: 1,
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: TossColors.gray600,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Text(
+                title,
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: TossColors.gray900,
+                ),
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.check : Icons.chevron_right,
+              color: isSelected ? TossColors.gray900 : TossColors.gray300,
+              size: 20,
+            ),
+          ],
         ),
+      ),
+    );
+  }
 
-        const SizedBox(height: TossSpacing.space4),
-
-        // Submit button
-        TossButton.primary(
-          text: _isSubmitting ? '처리 중...' : '이동하기',
-          onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
-          isEnabled: _canSubmit && !_isSubmitting,
-          isLoading: _isSubmitting,
-          fullWidth: true,
-          leadingIcon: const Icon(Icons.swap_horiz),
+  Widget _buildStoreCardReal({
+    required String storeId,
+    required String storeName,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(
+            color: isSelected ? TossColors.gray900 : TossColors.gray200,
+            width: isSelected ? 1.5 : 1,
+          ),
         ),
-      ],
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.store,
+                  color: TossColors.gray600,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Text(
+                storeName,
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: TossColors.gray900,
+                ),
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.check : Icons.chevron_right,
+              color: isSelected ? TossColors.gray900 : TossColors.gray300,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompanyCardReal({
+    required String companyId,
+    required String companyName,
+    required int storeCount,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(
+            color: isSelected ? TossColors.gray900 : TossColors.gray200,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: TossColors.gray200,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.business,
+                  color: TossColors.gray600,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    companyName,
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  Text(
+                    '$storeCount store${storeCount > 1 ? 's' : ''}',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.check : Icons.chevron_right,
+              color: isSelected ? TossColors.gray900 : TossColors.gray300,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDebtTransactionNotice() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray100,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray300),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.info_outline,
+            color: TossColors.gray600,
+            size: 20,
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Text(
+              'This will create A/R & A/P entries for proper tracking.',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -553,92 +1578,123 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray200),
       ),
-      child: Row(
+      child: Column(
         children: [
           // From
-          Expanded(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(TossSpacing.space2),
-                  decoration: BoxDecoration(
-                    color: TossColors.error.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: TossColors.gray100,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
                     Icons.logout,
-                    color: TossColors.error,
-                    size: 18,
+                    color: TossColors.gray600,
+                    size: 16,
                   ),
                 ),
-                const SizedBox(height: TossSpacing.space1),
-                Text(
-                  'FROM',
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.error,
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'FROM',
+                      style: TossTextStyles.small.copyWith(
+                        color: TossColors.gray500,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_selectedScope != TransferScope.withinStore)
+                      Text(
+                        '$_fromStoreName',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                    Text(
+                      widget.fromCashLocationName,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  _fromCashLocationName ?? '',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
 
           // Arrow
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+            padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
             child: Icon(
-              Icons.arrow_forward,
-              color: TossColors.primary,
-              size: 24,
+              Icons.arrow_downward,
+              color: TossColors.gray400,
+              size: 20,
             ),
           ),
 
           // To
-          Expanded(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(TossSpacing.space2),
-                  decoration: BoxDecoration(
-                    color: TossColors.success.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: TossColors.gray100,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
                     Icons.login,
-                    color: TossColors.success,
-                    size: 18,
+                    color: TossColors.gray600,
+                    size: 16,
                   ),
                 ),
-                const SizedBox(height: TossSpacing.space1),
-                Text(
-                  'TO',
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.success,
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TO',
+                      style: TossTextStyles.small.copyWith(
+                        color: TossColors.gray500,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_selectedScope == TransferScope.betweenCompanies)
+                      Text(
+                        '$_toCompanyName',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                    if (_selectedScope != TransferScope.withinStore)
+                      Text(
+                        '$_toStoreName',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray600,
+                        ),
+                      ),
+                    Text(
+                      _toCashLocationName ?? '',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  _toCashLocationName ?? '',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
