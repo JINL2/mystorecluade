@@ -914,12 +914,19 @@ export const CashBalancePage: React.FC<CashBalancePageProps> = () => {
                             const originalInVal = entry?.originalIn || 0;
                             const originalOutVal = entry?.originalOut || 0;
                             const originalCurrency = entry?.originalCurrency || loc.currencyCode;
-                            const hasData = originalInVal > 0 || originalOutVal > 0;
+                            // Always make cells clickable to show journal data even when no cash entries
+                            const cellEntry = entry || {
+                              in: 0,
+                              out: 0,
+                              originalIn: 0,
+                              originalOut: 0,
+                              originalCurrency: loc.currencyCode,
+                            };
                             return (
                               <td
                                 key={loc.locationId}
-                                className={hasData ? styles.clickable : ''}
-                                onClick={hasData && entry ? () => handleCellClick(date, loc, entry) : undefined}
+                                className={styles.clickable}
+                                onClick={() => handleCellClick(date, loc, cellEntry)}
                               >
                                 {originalInVal > 0 && <span className={styles.in}>{formatNumber(originalInVal, originalCurrency)}</span>}
                                 {originalOutVal > 0 && <span className={styles.out}>{formatNumber(originalOutVal, originalCurrency)}</span>}
