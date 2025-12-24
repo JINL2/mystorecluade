@@ -148,7 +148,7 @@ class TossSelectionBottomSheet extends StatefulWidget {
     this.unselectedFontWeight = FontWeight.w400,
     this.unselectedIconColor = TossColors.gray600,
     this.borderBottomWidth = 0,  // Default: no divider
-    this.checkIcon = LucideIcons.checkCircle,
+    this.checkIcon = LucideIcons.check,
     this.enableHapticFeedback = false,
     this.showIcon = true,
     this.showSelectedBackground = true,
@@ -172,7 +172,7 @@ class TossSelectionBottomSheet extends StatefulWidget {
     FontWeight unselectedFontWeight = FontWeight.w400,
     Color unselectedIconColor = TossColors.gray600,
     double borderBottomWidth = 0,  // Default: no divider
-    IconData checkIcon = LucideIcons.checkCircle,
+    IconData checkIcon = LucideIcons.check,
     bool enableHapticFeedback = false,
     bool showIcon = true,
     bool showSelectedBackground = true,

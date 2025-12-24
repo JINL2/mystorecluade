@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../shared/widgets/selectors/toss_base_selector.dart';
 import '../../domain/entities/store.dart';
 
-/// Store selector widget using TossDropdown
+/// Store selector widget using TossSingleSelector (shared component)
 ///
 /// Displays a dropdown to select store from a list
 /// Uses same simple style as Time Table Manage (store name only, no subtitle/icon)
@@ -49,21 +49,24 @@ class StoreSelector extends StatelessWidget {
       );
     }
 
-    // Build dropdown items - simple style like Time Table Manage (name only)
-    final dropdownItems = stores
-        .map((store) => TossDropdownItem<String>(
-              value: store.storeId,
-              label: store.storeName,
-            ))
-        .toList();
-
-    return TossDropdown<String>(
-      label: label,
-      value: selectedStoreId,
-      items: dropdownItems,
+    return TossSingleSelector<Store>(
+      items: stores,
+      selectedItem: selectedStoreId != null
+          ? stores.firstWhere(
+              (s) => s.storeId == selectedStoreId,
+              orElse: () => stores.first,
+            )
+          : null,
       onChanged: onChanged,
-      hint: 'Select a store',
       isLoading: isLoading,
+      config: SelectorConfig(
+        label: label,
+        hint: 'Select a store',
+        showSearch: false,
+      ),
+      itemIdBuilder: (store) => store.storeId,
+      itemTitleBuilder: (store) => store.storeName,
+      itemSubtitleBuilder: (store) => '',
     );
   }
 }

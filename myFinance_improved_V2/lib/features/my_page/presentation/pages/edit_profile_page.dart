@@ -7,7 +7,10 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_error_view.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
@@ -251,67 +254,36 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const TossScaffold(
-        backgroundColor: TossColors.gray100,
         appBar: TossAppBar1(
           title: 'Edit Profile',
-          backgroundColor: TossColors.gray100,
         ),
-        body: Center(
-          child: CircularProgressIndicator(
-            color: TossColors.primary,
-          ),
+        body: TossLoadingView(
+          message: 'Loading profile...',
         ),
       );
     }
 
     if (_profile == null) {
       return TossScaffold(
-        backgroundColor: TossColors.gray100,
         appBar: const TossAppBar1(
           title: 'Edit Profile',
-          backgroundColor: TossColors.gray100,
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: TossColors.error,
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              Text(
-                'Failed to load profile',
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.gray900,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space6),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  _loadProfileData();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TossColors.primary,
-                  foregroundColor: TossColors.white,
-                ),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        body: TossErrorView(
+          error: Exception('Failed to load profile'),
+          title: 'Failed to load profile',
+          onRetry: () {
+            setState(() {
+              _isLoading = true;
+            });
+            _loadProfileData();
+          },
         ),
       );
     }
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
       appBar: TossAppBar1(
         title: 'Edit Profile',
-        backgroundColor: TossColors.gray100,
         actions: _hasChanges && !_isLoading
             ? [
                 TextButton(
@@ -486,7 +458,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
 
-              const SizedBox(height: TossSpacing.space4),
+              const GrayDividerSpace(),
 
               // Bank Information Section
               Container(
@@ -665,7 +637,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
 
-              const SizedBox(height: TossSpacing.space4),
+              const GrayDividerSpace(),
 
               // Account Information (Read-only)
               Container(
@@ -726,7 +698,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
 
-              const SizedBox(height: TossSpacing.space12),
+              const GrayDividerSpace(),
             ],
           ),
         ),
