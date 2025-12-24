@@ -174,35 +174,43 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           // Right side - edit, history, and more buttons
           Row(
             children: [
-              TossIconButton.edit(
-                size: 26,
-                padding: const EdgeInsets.all(12),
+              // Edit button
+              IconButton(
                 onPressed: () {
                   context.push('/inventoryManagement/editProduct/${widget.productId}');
                 },
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: TossColors.gray900,
+                  size: 22,
+                ),
+                splashRadius: 20,
               ),
               // Transaction history button
-              GestureDetector(
-                onTap: () {
+              IconButton(
+                onPressed: () {
                   Navigator.of(context).push<void>(
                     MaterialPageRoute<void>(
                       builder: (context) => ProductTransactionsPage(product: product),
                     ),
                   );
                 },
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.history,
-                    size: 26,
-                    color: TossColors.gray900,
-                  ),
+                icon: const Icon(
+                  Icons.history,
+                  color: TossColors.gray900,
+                  size: 22,
                 ),
+                splashRadius: 20,
               ),
-              TossIconButton.more(
+              // More options button
+              IconButton(
                 onPressed: () => _showMoreOptions(context, ref, product),
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: TossColors.gray900,
+                  size: 22,
+                ),
+                splashRadius: 20,
               ),
             ],
           ),

@@ -10,10 +10,11 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../shared/widgets/toss/toss_button_1.dart';
-import '../../../../../shared/widgets/toss/toss_dropdown.dart';
+import '../../../../../shared/widgets/selectors/toss_base_selector.dart';
 import '../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/denomination.dart';
+import '../../../domain/entities/location.dart';
 import '../../../domain/entities/stock_flow.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
@@ -382,22 +383,27 @@ class _CashTabState extends ConsumerState<CashTab> {
             ),
           )
         else
-          TossDropdown<String>(
-            label: 'Cash Location',
-            hint: 'Select Cash Location',
-            value: state.selectedCashLocationId,
-            isLoading: false,
-            items: state.cashLocations.map((location) =>
-              TossDropdownItem<String>(
-                value: location.locationId,
-                label: location.locationName,
-              )
-            ).toList(),
+          TossSingleSelector<Location>(
+            items: state.cashLocations,
+            selectedItem: state.selectedCashLocationId != null
+                ? state.cashLocations.firstWhere(
+                    (loc) => loc.locationId == state.selectedCashLocationId,
+                    orElse: () => state.cashLocations.first,
+                  )
+                : null,
             onChanged: (locationId) {
               if (locationId != null) {
                 ref.read(cashEndingProvider.notifier).setSelectedCashLocation(locationId);
               }
             },
+            config: const SelectorConfig(
+              label: 'Cash Location',
+              hint: 'Select Cash Location',
+              showSearch: false,
+            ),
+            itemIdBuilder: (location) => location.locationId,
+            itemTitleBuilder: (location) => location.locationName,
+            itemSubtitleBuilder: (location) => '',
           ),
       ],
     );

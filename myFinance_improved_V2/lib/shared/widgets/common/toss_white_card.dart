@@ -17,7 +17,7 @@ class TossWhiteCard extends StatelessWidget {
     this.margin,
     this.borderRadius,
     this.showBorder = true,
-    this.showShadow = true,
+    this.showShadow = false,
   });
 
   @override

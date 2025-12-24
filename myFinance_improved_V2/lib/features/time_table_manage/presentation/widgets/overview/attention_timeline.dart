@@ -375,10 +375,12 @@ class _TimelineDate extends StatelessWidget {
           child: Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(
-              color: isToday ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray100,
-              borderRadius: BorderRadius.circular(16),
-            ),
+            decoration: isToday
+                ? BoxDecoration(
+                    color: TossColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  )
+                : null,
             alignment: Alignment.center,
             child: Text(
               '${date.day}',

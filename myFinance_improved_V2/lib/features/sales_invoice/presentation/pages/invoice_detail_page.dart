@@ -358,7 +358,6 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
         padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         child: Column(
           children: [
-            const Divider(height: 1, color: TossColors.gray200),
             const SizedBox(height: TossSpacing.space3),
             ...detail.items.map((item) => _buildItemRow(item)),
           ],
@@ -374,7 +373,6 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
         children: [
-          const Divider(height: 1, color: TossColors.gray200),
           const SizedBox(height: TossSpacing.space3),
           Row(
             children: [

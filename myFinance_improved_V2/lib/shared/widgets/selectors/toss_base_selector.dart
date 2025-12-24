@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
+
 /// Configuration for selector widgets
 class SelectorConfig {
   final String label;
@@ -31,6 +32,37 @@ class SelectorConfig {
 }
 
 /// Base single selector widget
+///
+/// Default: No icons in bottom sheet list (simple text only)
+/// With icons: Set [showIcon] to true and provide [itemIconBuilder]
+///
+/// Example (simple - no icons):
+/// ```dart
+/// TossSingleSelector<Store>(
+///   items: stores,
+///   selectedItem: selectedStore,
+///   onChanged: (id) => handleChange(id),
+///   config: SelectorConfig(label: 'Store', hint: 'Select store'),
+///   itemIdBuilder: (s) => s.id,
+///   itemTitleBuilder: (s) => s.name,
+///   itemSubtitleBuilder: (s) => '',
+/// )
+/// ```
+///
+/// Example (with icons):
+/// ```dart
+/// TossSingleSelector<Location>(
+///   items: locations,
+///   selectedItem: selectedLocation,
+///   onChanged: (id) => handleChange(id),
+///   config: SelectorConfig(label: 'Location', hint: 'Select location'),
+///   itemIdBuilder: (l) => l.id,
+///   itemTitleBuilder: (l) => l.name,
+///   itemSubtitleBuilder: (l) => l.type,
+///   showIcon: true,
+///   itemIconBuilder: (l) => Icons.location_on,
+/// )
+/// ```
 class TossSingleSelector<T> extends StatelessWidget {
   final List<T> items;
   final T? selectedItem;
@@ -40,6 +72,15 @@ class TossSingleSelector<T> extends StatelessWidget {
   final String Function(T) itemTitleBuilder;
   final String Function(T) itemSubtitleBuilder;
   final String Function(T) itemIdBuilder;
+
+  /// Whether to show icon in the bottom sheet list (default: false)
+  final bool showIcon;
+
+  /// Builder for item icon (only used when [showIcon] is true)
+  final IconData Function(T)? itemIconBuilder;
+
+  /// Builder for item avatar URL (only used when [showIcon] is true)
+  final String? Function(T)? itemAvatarBuilder;
 
   const TossSingleSelector({
     super.key,
@@ -51,6 +92,9 @@ class TossSingleSelector<T> extends StatelessWidget {
     required this.itemTitleBuilder,
     required this.itemSubtitleBuilder,
     required this.itemIdBuilder,
+    this.showIcon = false,
+    this.itemIconBuilder,
+    this.itemAvatarBuilder,
   });
 
   @override
@@ -97,11 +141,11 @@ class TossSingleSelector<T> extends StatelessWidget {
                     selectedItem != null
                         ? itemTitleBuilder(selectedItem as T)
                         : config.hint,
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.bodyLarge.copyWith(
                       color: selectedItem != null
                           ? TossColors.textPrimary
                           : TossColors.textTertiary,
-                      // No bold for selected item - match TossTextField style
+                      fontWeight: selectedItem != null ? FontWeight.w600 : FontWeight.w400,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -139,20 +183,27 @@ class TossSingleSelector<T> extends StatelessWidget {
             id: itemIdBuilder(item),
             title: itemTitleBuilder(item),
             subtitle: itemSubtitleBuilder(item),
-            isSelected: selectedItem != null && 
+            icon: showIcon && itemIconBuilder != null ? itemIconBuilder!(item) : null,
+            avatarUrl: showIcon && itemAvatarBuilder != null ? itemAvatarBuilder!(item) : null,
+            isSelected: selectedItem != null &&
                 itemIdBuilder(item) == itemIdBuilder(selectedItem as T),
           );
         }).toList(),
+        selectedId: selectedItem != null ? itemIdBuilder(selectedItem as T) : null,
         onItemSelected: (item) {
           onChanged(item.id);
         },
         showSearch: config.showSearch,
+        showIcon: showIcon,
       ),
     );
   }
 }
 
 /// Base multi selector widget
+///
+/// Default: No icons in bottom sheet list (simple text only)
+/// With icons: Set [showIcon] to true and provide [itemIconBuilder]
 class TossMultiSelector<T> extends StatelessWidget {
   final List<T> items;
   final List<String>? selectedIds;
@@ -165,6 +216,15 @@ class TossMultiSelector<T> extends StatelessWidget {
   final String Function(T) itemTitleBuilder;
   final String Function(T) itemSubtitleBuilder;
   final String Function(T) itemIdBuilder;
+
+  /// Whether to show icon in the bottom sheet list (default: false)
+  final bool showIcon;
+
+  /// Builder for item icon (only used when [showIcon] is true)
+  final IconData Function(T)? itemIconBuilder;
+
+  /// Builder for item avatar URL (only used when [showIcon] is true)
+  final String? Function(T)? itemAvatarBuilder;
 
   const TossMultiSelector({
     super.key,
@@ -179,6 +239,9 @@ class TossMultiSelector<T> extends StatelessWidget {
     required this.itemTitleBuilder,
     required this.itemSubtitleBuilder,
     required this.itemIdBuilder,
+    this.showIcon = false,
+    this.itemIconBuilder,
+    this.itemAvatarBuilder,
   });
 
   @override
@@ -225,10 +288,11 @@ class TossMultiSelector<T> extends StatelessWidget {
                     tempSelectedIds.isNotEmpty
                         ? '${tempSelectedIds.length} selected'
                         : config.hint,
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.bodyLarge.copyWith(
                       color: tempSelectedIds.isNotEmpty
                           ? TossColors.textPrimary
                           : TossColors.textTertiary,
+                      fontWeight: tempSelectedIds.isNotEmpty ? FontWeight.w600 : FontWeight.w400,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -258,7 +322,7 @@ class TossMultiSelector<T> extends StatelessWidget {
     // For multi-select, we'd need a different bottom sheet implementation
     // This is a simplified version
     final currentSelectedIds = Set<String>.from(tempSelectedIds);
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -270,6 +334,8 @@ class TossMultiSelector<T> extends StatelessWidget {
             id: itemIdBuilder(item),
             title: itemTitleBuilder(item),
             subtitle: itemSubtitleBuilder(item),
+            icon: showIcon && itemIconBuilder != null ? itemIconBuilder!(item) : null,
+            avatarUrl: showIcon && itemAvatarBuilder != null ? itemAvatarBuilder!(item) : null,
             isSelected: currentSelectedIds.contains(itemIdBuilder(item)),
           );
         }).toList(),
@@ -284,6 +350,7 @@ class TossMultiSelector<T> extends StatelessWidget {
           onTempSelectionChanged(newSelection);
         },
         showSearch: config.showSearch,
+        showIcon: showIcon,
       ),
     );
   }
