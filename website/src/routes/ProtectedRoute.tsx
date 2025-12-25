@@ -32,7 +32,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       // Give some time for loadUserData to complete
       const timer = setTimeout(() => {
         setInitialLoadComplete(true);
-      }, 2000); // 2 second timeout for initial load
+      }, 3000); // 3 second timeout for initial load (increased for slow connections)
       return () => clearTimeout(timer);
     }
   }, [authenticated, loading]);
@@ -70,17 +70,36 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  const hasCompanies = (companies && companies.length > 0) ||
-                       (userData?.companies && userData.companies.length > 0);
+  const hasCompaniesInState = companies && companies.length > 0;
+  const hasCompaniesInStorage = userData?.companies && userData.companies.length > 0;
+  const hasCompanies = hasCompaniesInState || hasCompaniesInStorage;
 
   // If initial load complete and still no companies → redirect to login
   if (initialLoadComplete && !hasCompanies) {
-    console.warn('No companies found for user, redirecting to login');
+    console.warn('No companies found for user after timeout, redirecting to login');
     // Clear localStorage to force fresh login
     localStorage.removeItem('user');
     localStorage.removeItem('companyChoosen');
     localStorage.removeItem('storeChoosen');
     return <Navigate to="/login" replace />;
+  }
+
+  // If localStorage has empty user or user with no companies → redirect immediately
+  const storedUserStr = localStorage.getItem('user');
+  if (storedUserStr) {
+    try {
+      const storedUserData = JSON.parse(storedUserStr);
+      // User data exists but has no companies - redirect to login
+      if (storedUserData && (!storedUserData.companies || storedUserData.companies.length === 0)) {
+        console.warn('User has no companies in localStorage, redirecting to login');
+        localStorage.removeItem('user');
+        localStorage.removeItem('companyChoosen');
+        localStorage.removeItem('storeChoosen');
+        return <Navigate to="/login" replace />;
+      }
+    } catch (e) {
+      // Already handled above
+    }
   }
 
   // Still loading companies data
