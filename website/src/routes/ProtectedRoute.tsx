@@ -20,9 +20,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredFeatureId
 }) => {
   const { authenticated, loading } = useAuth();
-  const { permissions } = useAppState();
+  const { permissions, companies, currentCompany } = useAppState();
   const [showPermissionError, setShowPermissionError] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Wait for initial data load after authentication
+  useEffect(() => {
+    if (authenticated && !loading) {
+      // Give some time for loadUserData to complete
+      const timer = setTimeout(() => {
+        setInitialLoadComplete(true);
+      }, 2000); // 2 second timeout for initial load
+      return () => clearTimeout(timer);
+    }
+  }, [authenticated, loading]);
 
   // Reset states when route changes
   useEffect(() => {
@@ -38,6 +50,26 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Not authenticated → redirect to login
   if (!authenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Check if user has companies - wait for initial load or check localStorage
+  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  const hasCompanies = (companies && companies.length > 0) ||
+                       (userData?.companies && userData.companies.length > 0);
+
+  // If initial load complete and still no companies → redirect to login
+  if (initialLoadComplete && !hasCompanies) {
+    console.warn('No companies found for user, redirecting to login');
+    // Clear localStorage to force fresh login
+    localStorage.removeItem('user');
+    localStorage.removeItem('companyChoosen');
+    localStorage.removeItem('storeChoosen');
+    return <Navigate to="/login" replace />;
+  }
+
+  // Still loading companies data
+  if (!hasCompanies && !initialLoadComplete) {
+    return <LoadingAnimation fullscreen size="large" />;
   }
 
   // Check permission if requiredFeatureId is specified
