@@ -9,6 +9,7 @@ import { useAuth } from '@/shared/hooks/useAuth';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { supabaseService } from '@/core/services/supabase_service';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -28,17 +29,27 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [hasError, setHasError] = useState(false);
   const redirectAttempted = useRef(false);
 
-  // Helper function to clear auth data and redirect
-  const clearAndRedirect = (reason: string) => {
+  // Helper function to fully logout and redirect
+  const forceLogoutAndRedirect = async (reason: string) => {
     if (redirectAttempted.current) return;
     redirectAttempted.current = true;
 
-    console.warn(`${reason}, redirecting to login`);
+    console.warn(`${reason}, forcing logout and redirect to login`);
+
+    // Clear all localStorage
     localStorage.removeItem('user');
     localStorage.removeItem('companyChoosen');
     localStorage.removeItem('storeChoosen');
+    localStorage.removeItem('categoryFeatures');
 
-    // Use window.location for guaranteed redirect
+    // Sign out from Supabase
+    try {
+      await supabaseService.getClient().auth.signOut();
+    } catch (e) {
+      console.error('Error signing out:', e);
+    }
+
+    // Force redirect using window.location
     window.location.href = '/login';
   };
 
@@ -50,10 +61,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         try {
           const storedUserData = JSON.parse(storedUserStr);
           if (storedUserData && (!storedUserData.companies || storedUserData.companies.length === 0)) {
-            clearAndRedirect('User has no companies in localStorage');
+            forceLogoutAndRedirect('User has no companies in localStorage');
           }
         } catch (e) {
-          clearAndRedirect('Failed to parse user data');
+          forceLogoutAndRedirect('Failed to parse user data');
         }
       }
     }
@@ -88,7 +99,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       const hasCompaniesInState = companies && companies.length > 0;
 
       if (!hasCompaniesInState && !hasCompaniesInStorage) {
-        clearAndRedirect('No companies found for user after timeout');
+        forceLogoutAndRedirect('No companies found for user after timeout');
       }
     }
   }, [initialLoadComplete, authenticated, companies]);
