@@ -13,6 +13,8 @@ part 'payment_method_state.freezed.dart';
 class PaymentMethodState with _$PaymentMethodState {
   const factory PaymentMethodState({
     @Default(false) bool isLoading,
+    /// Whether an invoice submission is in progress (prevents duplicate clicks)
+    @Default(false) bool isSubmitting,
     String? error,
     BaseCurrencyResponse? currencyResponse,
     @Default([]) List<CashLocation> cashLocations,

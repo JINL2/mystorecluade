@@ -6,6 +6,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/ai/ai_description_box.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../domain/entities/invoice.dart';
 
@@ -244,6 +245,13 @@ class InvoiceDetailModal extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ],
+
+                  // AI Summary (if available)
+                  if (invoice.aiDescription != null &&
+                      invoice.aiDescription!.isNotEmpty) ...[
+                    const SizedBox(height: TossSpacing.space3),
+                    AiDescriptionBox(text: invoice.aiDescription!),
                   ],
 
                   const SizedBox(height: TossSpacing.space4),

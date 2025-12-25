@@ -305,11 +305,8 @@ class SupabaseAuthDataSource implements AuthDataSource {
   }) async {
     try {
       // Send OTP code for password recovery
-      // shouldCreateUser: false ensures we only send to existing users
-      await _client.auth.signInWithOtp(
-        email: email,
-        shouldCreateUser: false,
-      );
+      // This sends a 6-digit recovery code to the email
+      await _client.auth.resetPasswordForEmail(email);
     } catch (e) {
       throw Exception('Failed to send OTP code: $e');
     }
@@ -322,15 +319,21 @@ class SupabaseAuthDataSource implements AuthDataSource {
   }) async {
     try {
       // Verify OTP and establish recovery session
+      // OtpType.recovery is for password reset flow (not email login)
       final response = await _client.auth.verifyOTP(
         email: email,
         token: token,
-        type: OtpType.email,
+        type: OtpType.recovery,
       );
 
       if (response.session == null) {
         throw Exception('OTP verification failed - no session returned');
       }
+
+      // After successful recovery OTP verification:
+      // - User is now in a "recovery" session state
+      // - User can call updatePassword() to set new password
+      // - User is NOT fully logged in until password is updated
     } catch (e) {
       throw Exception('Failed to verify OTP code: $e');
     }

@@ -192,19 +192,23 @@ export class InvoiceDataSource {
   async refundInvoice(
     invoiceId: string,
     refundReason?: string,
-    createdBy?: string
+    createdBy?: string,
+    timezone: string = 'Asia/Ho_Chi_Minh'
   ): Promise<RefundInvoiceResponse> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('inventory_refund_invoice', {
-      p_invoice_id: invoiceId,
-      p_refund_date: DateTimeUtils.nowUtc(), // Use DateTimeUtils for consistency
-      p_refund_reason: refundReason || null,
+    // v3 uses timestamptz - send ISO 8601 format
+    const refundDate = new Date().toISOString();
+
+    const { data, error } = await supabase.rpc('inventory_refund_invoice_v3' as any, {
+      p_invoice_ids: [invoiceId],
+      p_refund_date: refundDate,
+      p_notes: refundReason || null,
       p_created_by: createdBy || null,
+      p_timezone: timezone,
     });
 
     if (error) {
-      console.error('❌ Error refunding invoice:', error);
       throw new Error(error.message);
     }
 
@@ -219,32 +223,20 @@ export class InvoiceDataSource {
   ): Promise<BulkRefundInvoiceResponse> {
     const supabase = supabaseService.getClient();
 
-    // p_refund_date는 UTC 변환 없이 유저 디바이스의 로컬 시간으로 전송
-    // RPC에서 p_timezone을 사용하여 UTC로 변환함
-    const localDateTime = DateTimeUtils.toRpcFormat(new Date());
+    // v3 uses timestamptz - send ISO 8601 format
+    const refundDate = new Date().toISOString();
 
-    console.log('🔵 InvoiceDataSource.refundInvoices - calling inventory_refund_invoice_v2:', {
+    const { data, error } = await supabase.rpc('inventory_refund_invoice_v3' as any, {
       p_invoice_ids: invoiceIds,
-      p_refund_date: localDateTime,
-      p_notes: notes || null,
-      p_created_by: createdBy,
-      p_timezone: timezone,
-    });
-
-    const { data, error } = await supabase.rpc('inventory_refund_invoice_v2' as any, {
-      p_invoice_ids: invoiceIds,
-      p_refund_date: localDateTime,
+      p_refund_date: refundDate,
       p_notes: notes || null,
       p_created_by: createdBy,
       p_timezone: timezone,
     });
 
     if (error) {
-      console.error('❌ Error refunding invoices:', error);
       throw new Error(error.message);
     }
-
-    console.log('🟢 InvoiceDataSource.refundInvoices - response:', data);
 
     return data as unknown as BulkRefundInvoiceResponse;
   }

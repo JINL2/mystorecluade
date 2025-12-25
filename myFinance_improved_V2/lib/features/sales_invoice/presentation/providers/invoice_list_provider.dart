@@ -243,72 +243,31 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     await loadInvoices();
   }
 
-  /// Refund invoice
-  ///
-  /// This method:
-  /// 1. Calls the inventory refund RPC to process the refund
-  /// 2. Creates a journal entry for the refund (debit: sales, credit: cash)
-  /// 3. Refreshes the invoice list
+  /// Refund invoice using inventory_refund_invoice_v3 RPC
   Future<RefundResult> refundInvoice({
     required Invoice invoice,
     String? notes,
   }) async {
-    debugPrint('🔄 [Refund] Starting refund for invoice: ${invoice.invoiceNumber}');
-    debugPrint('🔄 [Refund] Invoice ID: ${invoice.invoiceId}');
-    debugPrint('🔄 [Refund] Total Amount: ${invoice.amounts.totalAmount}');
-    debugPrint('🔄 [Refund] Total Cost: ${invoice.amounts.totalCost}');
-    debugPrint('🔄 [Refund] Cash Location: ${invoice.cashLocation?.cashLocationId ?? "NULL"}');
-    debugPrint('🔄 [Refund] Cash Location Name: ${invoice.cashLocation?.locationName ?? "NULL"}');
-
     final appState = _ref.read(appStateProvider);
     final userId = appState.userId;
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
 
-    debugPrint('🔄 [Refund] User ID: $userId');
-    debugPrint('🔄 [Refund] Company ID: $companyId');
-    debugPrint('🔄 [Refund] Store ID: $storeId');
-
     if (userId.isEmpty) {
-      debugPrint('❌ [Refund] Error: User not logged in');
       throw Exception('User not logged in');
     }
 
     if (companyId.isEmpty || storeId.isEmpty) {
-      debugPrint('❌ [Refund] Error: Company or store not selected');
       throw Exception('Company or store not selected');
     }
 
-    // 1. Process the inventory refund
-    debugPrint('📤 [Refund] Step 1: Calling inventory_refund_invoice_v2 RPC...');
     final result = await _repository.refundInvoice(
       invoiceIds: [invoice.invoiceId],
       userId: userId,
       notes: notes,
     );
-    debugPrint('📥 [Refund] Step 1 Result: success=${result.success}, refunded=${result.totalAmountRefunded}');
-    if (!result.success) {
-      debugPrint('❌ [Refund] Step 1 Failed: ${result.errorMessage}');
-    }
-
-    // 2. If refund successful, create journal entry (cash location is optional)
-    debugPrint('🔄 [Refund] Step 2: Checking journal entry conditions...');
-    debugPrint('🔄 [Refund] - result.success: ${result.success}');
 
     if (result.success) {
-      debugPrint('📤 [Refund] Step 2: Calling insert_journal_with_everything_utc RPC...');
-      debugPrint('📤 [Refund] Journal Params:');
-      debugPrint('📤 [Refund] - companyId: $companyId');
-      debugPrint('📤 [Refund] - storeId: $storeId');
-      debugPrint('📤 [Refund] - userId: $userId');
-      debugPrint('📤 [Refund] - amount: ${invoice.amounts.totalAmount}');
-      debugPrint('📤 [Refund] - cashLocationId: ${invoice.cashLocation?.cashLocationId ?? "NULL (will be excluded)"}');
-      debugPrint('📤 [Refund] - cashAccountId: $_cashAccountId');
-      debugPrint('📤 [Refund] - salesAccountId: $_salesRevenueAccountId');
-      debugPrint('📤 [Refund] - cogsAccountId: $_cogsAccountId');
-      debugPrint('📤 [Refund] - inventoryAccountId: $_inventoryAccountId');
-      debugPrint('📤 [Refund] - totalCost: ${invoice.amounts.totalCost}');
-
       try {
         final journalRepository = _ref.read(salesJournalRepositoryProvider);
 
@@ -326,24 +285,13 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
           inventoryAccountId: _inventoryAccountId,
           totalCost: invoice.amounts.totalCost,
         );
-        debugPrint('✅ [Refund] Step 2: Journal entries created successfully (Refund + COGS Reversal)');
-      } catch (e) {
-        // Log journal entry error but don't fail the refund
-        // The inventory refund was already successful
-        debugPrint('❌ [Refund] Step 2 Failed: $e');
+      } catch (_) {
+        // Journal entry error doesn't fail the refund
       }
-    } else {
-      debugPrint('⚠️ [Refund] Step 2: Skipped - refund was not successful');
-    }
 
-    // 3. Refresh the invoice list after refund
-    if (result.success) {
-      debugPrint('🔄 [Refund] Step 3: Refreshing invoice list...');
       await refresh();
-      debugPrint('✅ [Refund] Step 3: Invoice list refreshed');
     }
 
-    debugPrint('✅ [Refund] Complete');
     return result;
   }
 }

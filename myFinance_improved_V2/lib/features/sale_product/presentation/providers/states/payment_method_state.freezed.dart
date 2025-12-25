@@ -17,6 +17,9 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$PaymentMethodState {
   bool get isLoading => throw _privateConstructorUsedError;
+
+  /// Whether an invoice submission is in progress (prevents duplicate clicks)
+  bool get isSubmitting => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
   BaseCurrencyResponse? get currencyResponse =>
       throw _privateConstructorUsedError;
@@ -42,6 +45,7 @@ abstract class $PaymentMethodStateCopyWith<$Res> {
   @useResult
   $Res call(
       {bool isLoading,
+      bool isSubmitting,
       String? error,
       BaseCurrencyResponse? currencyResponse,
       List<CashLocation> cashLocations,
@@ -68,6 +72,7 @@ class _$PaymentMethodStateCopyWithImpl<$Res, $Val extends PaymentMethodState>
   @override
   $Res call({
     Object? isLoading = null,
+    Object? isSubmitting = null,
     Object? error = freezed,
     Object? currencyResponse = freezed,
     Object? cashLocations = null,
@@ -81,6 +86,10 @@ class _$PaymentMethodStateCopyWithImpl<$Res, $Val extends PaymentMethodState>
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isSubmitting: null == isSubmitting
+          ? _value.isSubmitting
+          : isSubmitting // ignore: cast_nullable_to_non_nullable
               as bool,
       error: freezed == error
           ? _value.error
@@ -128,6 +137,7 @@ abstract class _$$PaymentMethodStateImplCopyWith<$Res>
   @useResult
   $Res call(
       {bool isLoading,
+      bool isSubmitting,
       String? error,
       BaseCurrencyResponse? currencyResponse,
       List<CashLocation> cashLocations,
@@ -152,6 +162,7 @@ class __$$PaymentMethodStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? isLoading = null,
+    Object? isSubmitting = null,
     Object? error = freezed,
     Object? currencyResponse = freezed,
     Object? cashLocations = null,
@@ -165,6 +176,10 @@ class __$$PaymentMethodStateImplCopyWithImpl<$Res>
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isSubmitting: null == isSubmitting
+          ? _value.isSubmitting
+          : isSubmitting // ignore: cast_nullable_to_non_nullable
               as bool,
       error: freezed == error
           ? _value.error
@@ -207,6 +222,7 @@ class __$$PaymentMethodStateImplCopyWithImpl<$Res>
 class _$PaymentMethodStateImpl implements _PaymentMethodState {
   const _$PaymentMethodStateImpl(
       {this.isLoading = false,
+      this.isSubmitting = false,
       this.error,
       this.currencyResponse,
       final List<CashLocation> cashLocations = const [],
@@ -221,6 +237,11 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
   @override
   @JsonKey()
   final bool isLoading;
+
+  /// Whether an invoice submission is in progress (prevents duplicate clicks)
+  @override
+  @JsonKey()
+  final bool isSubmitting;
   @override
   final String? error;
   @override
@@ -255,7 +276,7 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
 
   @override
   String toString() {
-    return 'PaymentMethodState(isLoading: $isLoading, error: $error, currencyResponse: $currencyResponse, cashLocations: $cashLocations, selectedCashLocation: $selectedCashLocation, selectedCurrency: $selectedCurrency, currencyAmounts: $currencyAmounts, focusedCurrencyId: $focusedCurrencyId, discountAmount: $discountAmount)';
+    return 'PaymentMethodState(isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currencyResponse: $currencyResponse, cashLocations: $cashLocations, selectedCashLocation: $selectedCashLocation, selectedCurrency: $selectedCurrency, currencyAmounts: $currencyAmounts, focusedCurrencyId: $focusedCurrencyId, discountAmount: $discountAmount)';
   }
 
   @override
@@ -265,6 +286,8 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
             other is _$PaymentMethodStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
+            (identical(other.isSubmitting, isSubmitting) ||
+                other.isSubmitting == isSubmitting) &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.currencyResponse, currencyResponse) ||
                 other.currencyResponse == currencyResponse) &&
@@ -286,6 +309,7 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
   int get hashCode => Object.hash(
       runtimeType,
       isLoading,
+      isSubmitting,
       error,
       currencyResponse,
       const DeepCollectionEquality().hash(_cashLocations),
@@ -308,6 +332,7 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
 abstract class _PaymentMethodState implements PaymentMethodState {
   const factory _PaymentMethodState(
       {final bool isLoading,
+      final bool isSubmitting,
       final String? error,
       final BaseCurrencyResponse? currencyResponse,
       final List<CashLocation> cashLocations,
@@ -319,6 +344,10 @@ abstract class _PaymentMethodState implements PaymentMethodState {
 
   @override
   bool get isLoading;
+
+  /// Whether an invoice submission is in progress (prevents duplicate clicks)
+  @override
+  bool get isSubmitting;
   @override
   String? get error;
   @override
