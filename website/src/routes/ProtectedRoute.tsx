@@ -24,6 +24,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [showPermissionError, setShowPermissionError] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   // Wait for initial data load after authentication
   useEffect(() => {
@@ -40,6 +41,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   useEffect(() => {
     setShowPermissionError(false);
     setShouldRedirect(false);
+    setHasError(false);
   }, [requiredFeatureId]);
 
   // Loading state
@@ -52,8 +54,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  // Check if user has companies - wait for initial load or check localStorage
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  // Safe localStorage parsing with error handling
+  let userData: any = {};
+  try {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      userData = JSON.parse(storedUser);
+    }
+  } catch (e) {
+    console.error('Failed to parse user data from localStorage:', e);
+    // Clear corrupted data and redirect to login
+    localStorage.removeItem('user');
+    localStorage.removeItem('companyChoosen');
+    localStorage.removeItem('storeChoosen');
+    return <Navigate to="/login" replace />;
+  }
+
   const hasCompanies = (companies && companies.length > 0) ||
                        (userData?.companies && userData.companies.length > 0);
 
@@ -74,8 +90,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check permission if requiredFeatureId is specified
   if (requiredFeatureId) {
-    // Debug log - 현재 선택된 회사와 그 회사의 권한 확인
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    // Use already parsed userData from above (no duplicate parsing)
     const selectedCompanyId = localStorage.getItem('companyChoosen');
     const selectedCompany = userData?.companies?.find(
       (c: any) => c.company_id === selectedCompanyId
@@ -93,7 +108,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       hasFeature: companyPermissions.includes(requiredFeatureId)
     });
 
-// localStorage의 회사 권한을 우선 사용 (AppState 동기화 문제 해결)
+    // localStorage의 회사 권한을 우선 사용 (AppState 동기화 문제 해결)
     const hasAccess = companyPermissions.includes(requiredFeatureId);
 
     if (!hasAccess) {
