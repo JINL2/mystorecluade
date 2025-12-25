@@ -1,23 +1,26 @@
+import '../../../cash_location/domain/constants/account_ids.dart';
+
 /// Account configuration for sales journal entries
 ///
-/// Contains business rules for account IDs used in sales transactions.
-/// These IDs represent the chart of accounts structure.
+/// DEPRECATED: Use AccountIds directly instead.
+/// This class is kept for backward compatibility.
+/// @see [AccountIds] for centralized account ID constants.
 class AccountConfig {
   AccountConfig._();
 
   /// Cash account ID for debit entries (Asset account)
   /// Increases when cash is received from sales
-  static const String cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
+  static String get cashAccountId => AccountIds.cash;
 
   /// Sales revenue account ID for credit entries (Revenue account)
   /// Increases when sales are made
-  static const String salesRevenueAccountId = 'e45e7d41-7fda-43a1-ac55-9779f3e59697';
+  static String get salesRevenueAccountId => AccountIds.salesRevenue;
 
   /// COGS (Cost of Goods Sold) account ID for debit entries (Expense account)
   /// Increases when goods are sold (records the cost of inventory sold)
-  static const String cogsAccountId = '90565fe4-5bfc-4c5e-8759-af9a64e98cae';
+  static String get cogsAccountId => AccountIds.cogs;
 
   /// Inventory account ID for credit entries (Asset account)
   /// Decreases when goods are sold (reduces inventory on hand)
-  static const String inventoryAccountId = '8babc1b3-47b4-4982-8f50-099ab9cdcaf9';
+  static String get inventoryAccountId => AccountIds.inventory;
 }

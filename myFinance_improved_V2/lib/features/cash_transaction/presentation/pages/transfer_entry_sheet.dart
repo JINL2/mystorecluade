@@ -6,7 +6,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
-import '../providers/cash_control_providers.dart';
+import '../providers/cash_transaction_providers.dart';
 import '../widgets/amount_input_keypad.dart';
 import '../widgets/transaction_confirm_dialog.dart';
 
@@ -204,6 +204,8 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   }
 
   void _onScopeSelected(TransferScope scope) {
+    debugPrint('[TransferSheet] 🎯 _onScopeSelected called with scope: $scope');
+    debugPrint('[TransferSheet] 📋 Before reset - _toStoreId: "$_toStoreId", _currentStep: $_currentStep');
     setState(() {
       _selectedScope = scope;
       // Reset TO selections
@@ -215,6 +217,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       _toCashLocationName = null;
       _currentStep = 1;
     });
+    debugPrint('[TransferSheet] ✅ After reset - _toStoreId: "$_toStoreId", _currentStep: $_currentStep');
     HapticFeedback.lightImpact();
   }
 
@@ -274,7 +277,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
     try {
       final appState = ref.read(appStateProvider);
-      final repository = ref.read(cashControlRepositoryProvider);
+      final repository = ref.read(cashTransactionRepositoryProvider);
 
       // TODO: Upload attachments to storage and get URLs
       final attachmentUrls = <String>[];
@@ -296,7 +299,29 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         );
       } else {
         // Inter-store or inter-company transfer (creates debt)
+        // Both Within Company and Between Companies need counterparty
+        String? counterpartyId;
+
+        if (_selectedScope == TransferScope.withinCompany) {
+          // Within Company: use self-counterparty (company_id = linked_company_id)
+          debugPrint('$_tag 🏢 Within Company transfer - getting self-counterparty...');
+          final selfCounterparty = await repository.getSelfCounterparty(
+            companyId: appState.companyChoosen,
+          );
+          if (selfCounterparty != null) {
+            counterpartyId = selfCounterparty.counterpartyId;
+            debugPrint('$_tag ✅ Found self-counterparty: ${selfCounterparty.name} ($counterpartyId)');
+          } else {
+            debugPrint('$_tag ⚠️ No self-counterparty found, proceeding without counterparty');
+          }
+        } else if (_selectedScope == TransferScope.betweenCompanies) {
+          // Between Companies: need to find counterparty linked to target company
+          // TODO: Implement counterparty lookup for between-companies transfers
+          debugPrint('$_tag 🏢 Between Companies transfer - counterparty lookup not yet implemented');
+        }
+
         debugPrint('$_tag 📤 Calling createTransferBetweenEntities...');
+        debugPrint('$_tag 📤 counterpartyId: $counterpartyId');
         journalId = await repository.createTransferBetweenEntities(
           companyId: appState.companyChoosen,
           storeId: appState.storeChoosen.isEmpty ? null : appState.storeChoosen,
@@ -305,7 +330,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
           toCashLocationId: _toCashLocationId!,
           toStoreId: _toStoreId,
           toCompanyId: _toCompanyId,
-          counterpartyId: _toCompanyId ?? _toStoreId ?? '', // Use as counterparty
+          counterpartyId: counterpartyId,
           amount: _amount,
           entryDate: DateTime.now(),
           memo: result.memo,
@@ -388,6 +413,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       padding: EdgeInsets.only(bottom: keyboardHeight),
       child: Container(
         constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height * 0.5,
           maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
         decoration: const BoxDecoration(
@@ -466,6 +492,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   }
 
   Widget _buildCurrentStepContent() {
+    debugPrint('[TransferSheet] 📍 _buildCurrentStepContent - _currentStep: $_currentStep, _selectedScope: $_selectedScope');
     if (_currentStep == 0) {
       return _buildScopeSelection();
     }
@@ -474,6 +501,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       case TransferScope.withinStore:
         return _buildWithinStoreContent();
       case TransferScope.withinCompany:
+        debugPrint('[TransferSheet] 📍 Calling _buildWithinCompanyContent');
         return _buildWithinCompanyContent();
       case TransferScope.betweenCompanies:
         return _buildBetweenCompaniesContent();
@@ -498,14 +526,19 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   Widget _buildWithinCompanyContent() {
     // From cash location already selected from main page
     // Step 1: To store, Step 2: To cash location, Step 3: Amount
+    debugPrint('[TransferSheet] 📍 _buildWithinCompanyContent - _currentStep: $_currentStep');
     switch (_currentStep) {
       case 1:
+        debugPrint('[TransferSheet] 📍 Step 1 -> _buildToStoreSelectionWithinCompany');
         return _buildToStoreSelectionWithinCompany();
       case 2:
+        debugPrint('[TransferSheet] 📍 Step 2 -> _buildToCashLocationSelection');
         return _buildToCashLocationSelection();
       case 3:
+        debugPrint('[TransferSheet] 📍 Step 3 -> _buildAmountInput');
         return _buildAmountInput();
       default:
+        debugPrint('[TransferSheet] ⚠️ Unknown step: $_currentStep -> SizedBox()');
         return const SizedBox();
     }
   }
@@ -825,18 +858,43 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
   void _onToCashLocationSelectedReal(CashLocation location) {
     HapticFeedback.lightImpact();
+    debugPrint('[TransferSheet] 💰 _onToCashLocationSelectedReal called');
+    debugPrint('[TransferSheet] 📋 location: ${location.locationName} (${location.cashLocationId})');
+    debugPrint('[TransferSheet] 📋 _selectedScope: $_selectedScope');
     setState(() {
       _toCashLocationId = location.cashLocationId;
       _toCashLocationName = location.locationName;
       // Move to amount step
-      _currentStep = _selectedScope == TransferScope.withinStore ? 2 : 4;
+      // withinStore: step 1 = cash loc, step 2 = amount
+      // withinCompany: step 1 = store, step 2 = cash loc, step 3 = amount
+      // betweenCompanies: step 1 = company, step 2 = store, step 3 = cash loc, step 4 = amount
+      switch (_selectedScope) {
+        case TransferScope.withinStore:
+          _currentStep = 2;
+          break;
+        case TransferScope.withinCompany:
+          _currentStep = 3;
+          break;
+        case TransferScope.betweenCompanies:
+          _currentStep = 4;
+          break;
+        case null:
+          break;
+      }
     });
+    debugPrint('[TransferSheet] ✅ After setState - _currentStep: $_currentStep');
   }
 
   // ==================== WITHIN COMPANY: TO STORE ====================
 
   Widget _buildToStoreSelectionWithinCompany() {
     final otherStores = _getOtherStoresInCompany();
+    debugPrint('[TransferSheet] 🏬 _buildToStoreSelectionWithinCompany called');
+    debugPrint('[TransferSheet] 📋 otherStores.length: ${otherStores.length}');
+    debugPrint('[TransferSheet] 📋 _fromCompanyName: "$_fromCompanyName"');
+    for (final store in otherStores) {
+      debugPrint('[TransferSheet]   - ${store['store_name']} (${store['store_id']})');
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -897,6 +955,10 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
   void _onToStoreSelectedReal(String storeId, String storeName) {
     final appState = ref.read(appStateProvider);
+    debugPrint('[TransferSheet] 🏪 _onToStoreSelectedReal called');
+    debugPrint('[TransferSheet] 📋 storeId: "$storeId"');
+    debugPrint('[TransferSheet] 📋 storeName: "$storeName"');
+    debugPrint('[TransferSheet] 📋 appState.companyChoosen: "${appState.companyChoosen}"');
     HapticFeedback.lightImpact();
     setState(() {
       _toStoreId = storeId;
@@ -907,6 +969,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       _toCashLocationName = null;
       _currentStep++;
     });
+    debugPrint('[TransferSheet] ✅ After setState - _toStoreId: "$_toStoreId", _currentStep: $_currentStep');
   }
 
   // ==================== BETWEEN COMPANIES: TO COMPANY ====================
@@ -1077,6 +1140,13 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         ? _toCompanyId ?? ''
         : ref.read(appStateProvider).companyChoosen;
 
+    debugPrint('[TransferSheet] 🔍 _buildToCashLocationSelection called');
+    debugPrint('[TransferSheet] 📋 _selectedScope: $_selectedScope');
+    debugPrint('[TransferSheet] 📋 _toStoreId: "$_toStoreId"');
+    debugPrint('[TransferSheet] 📋 _toStoreName: "$_toStoreName"');
+    debugPrint('[TransferSheet] 📋 targetCompanyId: "$targetCompanyId"');
+    debugPrint('[TransferSheet] 📋 _toCompanyId: "$_toCompanyId"');
+
     // Use provider to fetch cash locations for the target store
     final cashLocationsAsync = ref.watch(
       cashLocationsForStoreProvider((
@@ -1084,6 +1154,9 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         storeId: _toStoreId ?? '',
       )),
     );
+
+    final asyncStr = cashLocationsAsync.toString();
+    debugPrint('[TransferSheet] 📡 cashLocationsAsync state: ${asyncStr.length > 50 ? asyncStr.substring(0, 50) : asyncStr}...');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1129,7 +1202,13 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
         cashLocationsAsync.when(
           data: (locations) {
+            debugPrint('[TransferSheet] 📥 cashLocationsAsync.data received');
+            debugPrint('[TransferSheet] 📥 locations.length: ${locations.length}');
+            for (final loc in locations) {
+              debugPrint('[TransferSheet]   - ${loc.locationName} (storeId: ${loc.storeId})');
+            }
             if (locations.isEmpty) {
+              debugPrint('[TransferSheet] ⚠️ No locations found for _toStoreId: "$_toStoreId"');
               return Center(
                 child: Text(
                   'No cash locations available in this store',
@@ -1153,13 +1232,20 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
               }).toList(),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => Center(
-            child: Text(
-              'Error loading cash locations',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-            ),
-          ),
+          loading: () {
+            debugPrint('[TransferSheet] ⏳ cashLocationsAsync is loading...');
+            return const Center(child: CircularProgressIndicator());
+          },
+          error: (error, stack) {
+            debugPrint('[TransferSheet] ❌ cashLocationsAsync error: $error');
+            debugPrint('[TransferSheet] ❌ stack: $stack');
+            return Center(
+              child: Text(
+                'Error loading cash locations',
+                style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+              ),
+            );
+          },
         ),
       ],
     );

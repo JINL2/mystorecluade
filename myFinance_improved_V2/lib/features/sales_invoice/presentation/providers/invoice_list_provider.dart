@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../cash_location/domain/constants/account_ids.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/repositories/invoice_repository.dart';
@@ -11,12 +12,11 @@ import '../../domain/value_objects/invoice_sort_option.dart';
 import 'invoice_providers.dart';
 import 'states/invoice_list_state.dart';
 
-/// Account IDs for journal entries
-/// These are fixed account IDs for the refund journal entry
-const String _salesRevenueAccountId = 'e45e7d41-7fda-43a1-ac55-9779f3e59697';
-const String _cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
-const String _cogsAccountId = '90565fe4-5bfc-4c5e-8759-af9a64e98cae';
-const String _inventoryAccountId = '8babc1b3-47b4-4982-8f50-099ab9cdcaf9';
+/// Account IDs for journal entries - using centralized AccountIds
+const String _salesRevenueAccountId = AccountIds.salesRevenue;
+const String _cashAccountId = AccountIds.cash;
+const String _cogsAccountId = AccountIds.cogs;
+const String _inventoryAccountId = AccountIds.inventory;
 
 /// Invoice list state notifier
 class InvoiceListNotifier extends StateNotifier<InvoiceListState> {

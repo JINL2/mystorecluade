@@ -1,4 +1,6 @@
 import 'package:intl/intl.dart';
+
+import '../../../cash_location/domain/constants/account_ids.dart';
 import '../repositories/journal_repository.dart';
 
 /// Parameters for creating an error adjustment journal entry
@@ -29,9 +31,9 @@ class CreateErrorAdjustmentUseCase {
   CreateErrorAdjustmentUseCase(this.repository);
 
   Future<Map<String, dynamic>> call(CreateErrorAdjustmentParams params) async {
-    // Constants for account IDs
-    const cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
-    const errorAccountId = 'a45fac5d-010c-4b1b-92e9-ddcf8f3222bf';
+    // Use centralized account IDs
+    const cashAccountId = AccountIds.cash;
+    const errorAccountId = AccountIds.errorAdjustment;
 
     // Get current date
     final now = DateTime.now().toLocal();

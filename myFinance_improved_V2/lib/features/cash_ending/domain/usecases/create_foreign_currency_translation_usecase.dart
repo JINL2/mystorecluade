@@ -1,4 +1,6 @@
 import 'package:intl/intl.dart';
+
+import '../../../cash_location/domain/constants/account_ids.dart';
 import '../repositories/journal_repository.dart';
 
 /// Parameters for creating a foreign currency translation journal entry
@@ -30,9 +32,9 @@ class CreateForeignCurrencyTranslationUseCase {
 
   Future<Map<String, dynamic>> call(
       CreateForeignCurrencyTranslationParams params) async {
-    // Constants for account IDs
-    const cashAccountId = 'd4a7a16e-45a1-47fe-992b-ff807c8673f0';
-    const foreignCurrencyAccountId = '80b311db-f548-46e3-9854-67c5ff6766e8';
+    // Use centralized account IDs
+    const cashAccountId = AccountIds.cash;
+    const foreignCurrencyAccountId = AccountIds.foreignCurrencyTranslation;
 
     // Get current date
     final now = DateTime.now().toLocal();

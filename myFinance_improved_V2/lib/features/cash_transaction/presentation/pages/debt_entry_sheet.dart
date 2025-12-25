@@ -4,7 +4,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
-import '../providers/cash_control_providers.dart';
+import '../providers/cash_transaction_providers.dart';
 import '../widgets/amount_input_keypad.dart';
 import '../widgets/transaction_confirm_dialog.dart';
 
@@ -49,33 +49,56 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
   }
 
   Future<void> _onSubmit() async {
+    // Double-click prevention
+    if (_isSubmitting) {
+      debugPrint('[DebtEntrySheet] ⚠️ Already submitting, ignoring duplicate tap');
+      return;
+    }
+
     if (_amount <= 0) {
       return;
     }
 
-    // Show confirmation dialog
-    final result = await TransactionConfirmDialog.show(
-      context,
-      TransactionConfirmData(
-        type: ConfirmTransactionType.debt,
-        amount: _amount,
-        fromCashLocationName: widget.cashLocationName,
-        debtTypeName: widget.debtSubType.label,
-        counterpartyName: widget.counterpartyName,
-      ),
-    );
-
-    if (result == null || !result.confirmed) {
-      return;
-    }
-
+    // Set submitting state IMMEDIATELY
     setState(() {
       _isSubmitting = true;
     });
 
     try {
+      // Show confirmation dialog
+      final result = await TransactionConfirmDialog.show(
+        context,
+        TransactionConfirmData(
+          type: ConfirmTransactionType.debt,
+          amount: _amount,
+          fromCashLocationName: widget.cashLocationName,
+          debtTypeName: widget.debtSubType.label,
+          counterpartyName: widget.counterpartyName,
+        ),
+      );
+
+      if (result == null || !result.confirmed) {
+        // User cancelled - reset submitting state
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+        return;
+      }
+
       final appState = ref.read(appStateProvider);
-      final repository = ref.read(cashControlRepositoryProvider);
+      final repository = ref.read(cashTransactionRepositoryProvider);
+
+      debugPrint('[DebtEntrySheet] 📝 Creating debt entry:');
+      debugPrint('[DebtEntrySheet]   debtSubType: ${widget.debtSubType.label}');
+      debugPrint('[DebtEntrySheet]   direction: ${widget.direction}');
+      debugPrint('[DebtEntrySheet]   debtDirection: ${widget.debtSubType.debtDirection}');
+      debugPrint('[DebtEntrySheet]   isIncreasing: ${widget.debtSubType.isIncreasing}');
+      debugPrint('[DebtEntrySheet]   counterpartyId: ${widget.counterpartyId}');
+      debugPrint('[DebtEntrySheet]   counterpartyName: ${widget.counterpartyName}');
+      debugPrint('[DebtEntrySheet]   cashLocationId: ${widget.cashLocationId}');
+      debugPrint('[DebtEntrySheet]   amount: $_amount');
 
       // TODO: Upload attachments to storage and get URLs
       final attachmentUrls = <String>[];
@@ -93,10 +116,13 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
         attachmentUrls: attachmentUrls.isEmpty ? null : attachmentUrls,
       );
 
+      debugPrint('[DebtEntrySheet] ✅ Debt entry created successfully!');
+
       if (mounted) {
         widget.onSuccess();
       }
     } catch (e) {
+      debugPrint('[DebtEntrySheet] ❌ Error creating debt entry: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -104,14 +130,13 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
             backgroundColor: TossColors.gray900,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
+        // Reset submitting state on error
         setState(() {
           _isSubmitting = false;
         });
       }
     }
+    // Note: Don't reset _isSubmitting on success - widget will be popped
   }
 
   bool get _canSubmit => _amount > 0;

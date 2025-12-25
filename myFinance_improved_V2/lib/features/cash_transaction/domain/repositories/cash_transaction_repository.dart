@@ -1,4 +1,4 @@
-import '../entities/cash_control_enums.dart';
+import '../entities/cash_transaction_enums.dart';
 import '../entities/cash_location.dart';
 import '../entities/counterparty.dart';
 import '../entities/expense_account.dart';
@@ -7,7 +7,7 @@ import '../entities/expense_account.dart';
 ///
 /// This is the contract that data layer must implement.
 /// NO dependencies on infrastructure or external libraries.
-abstract class CashControlRepository {
+abstract class CashTransactionRepository {
   // ==================== READ ====================
 
   /// Get expense accounts with user's recent usage ranking
@@ -21,10 +21,20 @@ abstract class CashControlRepository {
 
   /// Get all expense accounts for company (for search)
   ///
-  /// Queries: accounts table where account_type = 'expense'
+  /// Uses RPC: get_expense_accounts
+  /// Returns only accounts with account_type = 'expense'
   Future<List<ExpenseAccount>> searchExpenseAccounts({
     required String companyId,
     String? query,
+    int limit = 50,
+  });
+
+  /// Get only expense accounts (no user context, no search)
+  ///
+  /// Uses RPC: get_expense_accounts
+  /// Returns accounts where account_type = 'expense' AND (is_default OR company_id matches)
+  Future<List<ExpenseAccount>> getExpenseAccountsOnly({
+    required String companyId,
     int limit = 50,
   });
 
@@ -35,6 +45,13 @@ abstract class CashControlRepository {
     required String companyId,
     String? query,
     int limit = 50,
+  });
+
+  /// Get self-counterparty for a company
+  /// This is the counterparty where company_id = linked_company_id
+  /// Used for within-company transfers (same company, different stores)
+  Future<Counterparty?> getSelfCounterparty({
+    required String companyId,
   });
 
   /// Get cash locations for store
@@ -54,7 +71,8 @@ abstract class CashControlRepository {
   /// Create expense entry
   ///
   /// Uses RPC: insert_journal_with_everything_utc
-  /// Creates: DR Expense Account, CR Cash Account
+  /// Pay (isRefund=false): DR Expense Account, CR Cash Account
+  /// Refund (isRefund=true): DR Cash Account, CR Expense Account
   Future<String> createExpenseEntry({
     required String companyId,
     required String? storeId,
@@ -63,6 +81,7 @@ abstract class CashControlRepository {
     required String expenseAccountId,
     required double amount,
     required DateTime entryDate,
+    required bool isRefund,
     String? memo,
     List<String>? attachmentUrls,
   });
@@ -106,6 +125,7 @@ abstract class CashControlRepository {
   /// Create transfer entry (between stores/companies - creates debt)
   ///
   /// Uses RPC: insert_journal_with_everything_utc with counterparty
+  /// [counterpartyId] - optional, only needed for between-companies transfers
   Future<String> createTransferBetweenEntities({
     required String companyId,
     required String? storeId,
@@ -114,7 +134,7 @@ abstract class CashControlRepository {
     required String toCashLocationId,
     required String? toStoreId,
     required String? toCompanyId,
-    required String counterpartyId,
+    String? counterpartyId,
     required double amount,
     required DateTime entryDate,
     String? memo,

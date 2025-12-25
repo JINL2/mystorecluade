@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,29 +6,29 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
-import '../../domain/entities/cash_control_enums.dart';
-import '../providers/cash_control_providers.dart';
+import '../providers/cash_transaction_providers.dart';
 import '../widgets/debt_subtype_card.dart';
-import '../widgets/direction_selection_card.dart';
-import '../widgets/transaction_type_card.dart';
 import 'debt_entry_sheet.dart';
 import 'expense_entry_sheet.dart';
 
 import 'transfer_entry_sheet.dart';
 
-const _tag = '[CashControlPage]';
+const _tag = '[CashTransactionPage]';
 
 /// Main Entry Type - first level selection
 enum MainEntryType {
-  cashInOut, // Expense, Debt - requires Direction
-  transfer,  // Transfer - no Direction needed
+  expense,   // Pay or refund expenses
+  debt,      // Lend or borrow money
+  transfer,  // Move cash between locations
 }
 
 extension MainEntryTypeX on MainEntryType {
   String get label {
     switch (this) {
-      case MainEntryType.cashInOut:
-        return 'Cash In/Out';
+      case MainEntryType.expense:
+        return 'Expense';
+      case MainEntryType.debt:
+        return 'Debt';
       case MainEntryType.transfer:
         return 'Transfer';
     }
@@ -37,8 +36,10 @@ extension MainEntryTypeX on MainEntryType {
 
   String get description {
     switch (this) {
-      case MainEntryType.cashInOut:
-        return 'Expense or debt transaction';
+      case MainEntryType.expense:
+        return 'Pay or refund expenses';
+      case MainEntryType.debt:
+        return 'Lend or borrow money';
       case MainEntryType.transfer:
         return 'Move cash between locations';
     }
@@ -46,10 +47,57 @@ extension MainEntryTypeX on MainEntryType {
 
   IconData get icon {
     switch (this) {
-      case MainEntryType.cashInOut:
-        return Icons.monetization_on_outlined;
+      case MainEntryType.expense:
+        return Icons.receipt_long_outlined;
+      case MainEntryType.debt:
+        return Icons.handshake_outlined;
       case MainEntryType.transfer:
         return Icons.sync_alt;
+    }
+  }
+}
+
+/// Expense SubType - Pay or Refund
+enum ExpenseSubType {
+  pay,    // Cash goes out
+  refund, // Cash comes back
+}
+
+extension ExpenseSubTypeX on ExpenseSubType {
+  String get label {
+    switch (this) {
+      case ExpenseSubType.pay:
+        return 'Pay';
+      case ExpenseSubType.refund:
+        return 'Refund';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case ExpenseSubType.pay:
+        return 'Record an expense payment';
+      case ExpenseSubType.refund:
+        return 'Received money back';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case ExpenseSubType.pay:
+        return Icons.arrow_upward;
+      case ExpenseSubType.refund:
+        return Icons.arrow_downward;
+    }
+  }
+
+  /// Convert to CashDirection for the sheet
+  CashDirection get direction {
+    switch (this) {
+      case ExpenseSubType.pay:
+        return CashDirection.cashOut;
+      case ExpenseSubType.refund:
+        return CashDirection.cashIn;
     }
   }
 }
@@ -59,20 +107,18 @@ extension MainEntryTypeX on MainEntryType {
 ///
 /// New Flow:
 /// 1. Cash Location (first - which vault?)
-/// 2. Entry Type: Cash In/Out vs Transfer
-/// 3. For Cash In/Out:
-///    a. Direction (Cash In / Cash Out)
-///    b. Transaction Type (Expense / Debt)
-///    c. For Debt: SubType + Counterparty
-/// 4. For Transfer: Goes directly to Transfer Sheet (with cash location pre-filled)
-class CashControlPage extends ConsumerStatefulWidget {
-  const CashControlPage({super.key});
+/// 2. Entry Type: Expense / Debt / Transfer
+/// 3. For Expense: Pay/Refund selection → goes to Expense Sheet
+/// 4. For Debt: SubType + Counterparty selection → goes to Debt Sheet
+/// 5. For Transfer: Goes directly to Transfer Sheet
+class CashTransactionPage extends ConsumerStatefulWidget {
+  const CashTransactionPage({super.key});
 
   @override
-  ConsumerState<CashControlPage> createState() => _CashControlPageState();
+  ConsumerState<CashTransactionPage> createState() => _CashTransactionPageState();
 }
 
-class _CashControlPageState extends ConsumerState<CashControlPage> {
+class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
   @override
   void initState() {
     super.initState();
@@ -81,7 +127,7 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
-      debugPrint('[CashControlPage] initState - invalidating provider cache');
+      debugPrint('[CashTransactionPage] initState - invalidating provider cache');
       ref.invalidate(cashLocationsForStoreProvider((companyId: companyId, storeId: storeId)));
     });
   }
@@ -91,16 +137,13 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
   String? _selectedCashLocationName;
   IconData? _selectedCashLocationIcon;
 
-  // Step 1: Main Entry Type
+  // Step 1: Main Entry Type (Expense / Debt / Transfer)
   MainEntryType? _selectedEntryType;
 
-  // Step 2 (Cash In/Out): Direction
-  CashDirection? _selectedDirection;
+  // Step 2 (Expense only): Pay or Refund
+  ExpenseSubType? _selectedExpenseSubType;
 
-  // Step 3 (Cash In/Out): Transaction Type (Expense or Debt only)
-  TransactionType? _selectedType;
-
-  // Step 4 (Debt only): SubType and Counterparty
+  // Step 2 (Debt only): SubType and Counterparty
   DebtSubType? _selectedDebtSubType;
   String? _selectedCounterpartyId;
   String? _selectedCounterpartyName;
@@ -108,21 +151,11 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
   // Expansion state for each section
   bool _isCashLocationExpanded = true;
   bool _isEntryTypeExpanded = false;
-  bool _isDirectionExpanded = false;
-  bool _isTypeExpanded = false;
+  bool _isExpenseSubTypeExpanded = false;
   bool _isDebtSubTypeExpanded = false;
   bool _isCounterpartyExpanded = false;
 
-  // Available transaction types for Cash In/Out (no Transfer)
-  List<TransactionType> get _availableTypes => [
-        TransactionType.expense,
-        TransactionType.debt,
-      ];
-
-  List<DebtSubType> get _availableDebtSubTypes {
-    if (_selectedDirection == null) return [];
-    return DebtSubTypeX.forDirection(_selectedDirection!);
-  }
+  List<DebtSubType> get _availableDebtSubTypes => DebtSubType.values;
 
   /// Get icon for cash location type
   IconData _getIconForLocationType(String locationType) {
@@ -150,16 +183,14 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
       _selectedCashLocationIcon = _getIconForLocationType(location.locationType);
       // Reset everything else
       _selectedEntryType = null;
-      _selectedDirection = null;
-      _selectedType = null;
+      _selectedExpenseSubType = null;
       _selectedDebtSubType = null;
       _selectedCounterpartyId = null;
       _selectedCounterpartyName = null;
       // Collapse cash location, expand entry type
       _isCashLocationExpanded = false;
       _isEntryTypeExpanded = true;
-      _isDirectionExpanded = false;
-      _isTypeExpanded = false;
+      _isExpenseSubTypeExpanded = false;
       _isDebtSubTypeExpanded = false;
       _isCounterpartyExpanded = false;
     });
@@ -169,67 +200,40 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
     HapticFeedback.lightImpact();
 
     if (type == MainEntryType.transfer) {
-      // Go directly to Transfer Sheet with pre-selected cash location
+      // Go directly to Transfer Sheet
       _showTransferSheet();
       return;
     }
 
     setState(() {
       _selectedEntryType = type;
-      _selectedDirection = null;
-      _selectedType = null;
+      _selectedExpenseSubType = null;
       _selectedDebtSubType = null;
       _selectedCounterpartyId = null;
       _selectedCounterpartyName = null;
-      // Collapse entry type, expand direction
+      // Collapse entry type
       _isCashLocationExpanded = false;
       _isEntryTypeExpanded = false;
-      _isDirectionExpanded = true;
-      _isTypeExpanded = false;
-      _isDebtSubTypeExpanded = false;
-      _isCounterpartyExpanded = false;
-    });
-  }
 
-  void _onDirectionSelected(CashDirection direction) {
-    HapticFeedback.lightImpact();
-    setState(() {
-      _selectedDirection = direction;
-      _selectedType = null;
-      _selectedDebtSubType = null;
-      _selectedCounterpartyId = null;
-      _selectedCounterpartyName = null;
-      // Collapse direction, expand type
-      _isCashLocationExpanded = false;
-      _isEntryTypeExpanded = false;
-      _isDirectionExpanded = false;
-      _isTypeExpanded = true;
-      _isDebtSubTypeExpanded = false;
-      _isCounterpartyExpanded = false;
-    });
-  }
-
-  void _onTypeSelected(TransactionType type) {
-    HapticFeedback.lightImpact();
-    setState(() {
-      _selectedType = type;
-      // Reset debt-specific selections when type changes
-      if (type != TransactionType.debt) {
-        _selectedDebtSubType = null;
-        _selectedCounterpartyId = null;
-        _selectedCounterpartyName = null;
-      }
-      // Collapse type section
-      _isCashLocationExpanded = false;
-      _isEntryTypeExpanded = false;
-      _isDirectionExpanded = false;
-      _isTypeExpanded = false;
-      // For debt, expand debt subtype section
-      if (type == TransactionType.debt) {
+      // Expand next section based on type
+      if (type == MainEntryType.expense) {
+        _isExpenseSubTypeExpanded = true;
+        _isDebtSubTypeExpanded = false;
+      } else if (type == MainEntryType.debt) {
+        _isExpenseSubTypeExpanded = false;
         _isDebtSubTypeExpanded = true;
-        _isCounterpartyExpanded = false;
       }
+      _isCounterpartyExpanded = false;
     });
+  }
+
+  void _onExpenseSubTypeSelected(ExpenseSubType subType) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _selectedExpenseSubType = subType;
+    });
+    // Go to Expense Sheet with direction
+    _showExpenseSheet();
   }
 
   void _onDebtSubTypeSelected(DebtSubType subType) {
@@ -239,14 +243,17 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
       // Collapse debt subtype, expand counterparty
       _isCashLocationExpanded = false;
       _isEntryTypeExpanded = false;
-      _isDirectionExpanded = false;
-      _isTypeExpanded = false;
+      _isExpenseSubTypeExpanded = false;
       _isDebtSubTypeExpanded = false;
       _isCounterpartyExpanded = true;
     });
   }
 
   void _onCounterpartySelected(Counterparty counterparty) {
+    debugPrint('$_tag 👤 Counterparty selected:');
+    debugPrint('$_tag   - id: ${counterparty.counterpartyId}');
+    debugPrint('$_tag   - name: ${counterparty.name}');
+    debugPrint('$_tag   - isInternal: ${counterparty.isInternal}');
     HapticFeedback.lightImpact();
     setState(() {
       _selectedCounterpartyId = counterparty.counterpartyId;
@@ -261,8 +268,7 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
       _isCashLocationExpanded = !_isCashLocationExpanded;
       if (_isCashLocationExpanded) {
         _isEntryTypeExpanded = false;
-        _isDirectionExpanded = false;
-        _isTypeExpanded = false;
+        _isExpenseSubTypeExpanded = false;
         _isDebtSubTypeExpanded = false;
         _isCounterpartyExpanded = false;
       }
@@ -275,36 +281,20 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
       _isEntryTypeExpanded = !_isEntryTypeExpanded;
       if (_isEntryTypeExpanded) {
         _isCashLocationExpanded = false;
-        _isDirectionExpanded = false;
-        _isTypeExpanded = false;
+        _isExpenseSubTypeExpanded = false;
         _isDebtSubTypeExpanded = false;
         _isCounterpartyExpanded = false;
       }
     });
   }
 
-  void _toggleDirectionExpanded() {
-    if (_selectedEntryType != MainEntryType.cashInOut) return;
+  void _toggleExpenseSubTypeExpanded() {
+    if (_selectedEntryType != MainEntryType.expense) return;
     setState(() {
-      _isDirectionExpanded = !_isDirectionExpanded;
-      if (_isDirectionExpanded) {
+      _isExpenseSubTypeExpanded = !_isExpenseSubTypeExpanded;
+      if (_isExpenseSubTypeExpanded) {
         _isCashLocationExpanded = false;
         _isEntryTypeExpanded = false;
-        _isTypeExpanded = false;
-        _isDebtSubTypeExpanded = false;
-        _isCounterpartyExpanded = false;
-      }
-    });
-  }
-
-  void _toggleTypeExpanded() {
-    if (_selectedDirection == null) return;
-    setState(() {
-      _isTypeExpanded = !_isTypeExpanded;
-      if (_isTypeExpanded) {
-        _isCashLocationExpanded = false;
-        _isEntryTypeExpanded = false;
-        _isDirectionExpanded = false;
         _isDebtSubTypeExpanded = false;
         _isCounterpartyExpanded = false;
       }
@@ -312,64 +302,56 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
   }
 
   void _toggleDebtSubTypeExpanded() {
-    if (_selectedType != TransactionType.debt) return;
+    if (_selectedEntryType != MainEntryType.debt) return;
     setState(() {
       _isDebtSubTypeExpanded = !_isDebtSubTypeExpanded;
       if (_isDebtSubTypeExpanded) {
         _isCashLocationExpanded = false;
         _isEntryTypeExpanded = false;
-        _isDirectionExpanded = false;
-        _isTypeExpanded = false;
+        _isExpenseSubTypeExpanded = false;
         _isCounterpartyExpanded = false;
       }
     });
   }
 
   void _toggleCounterpartyExpanded() {
-    if (_selectedDebtSubType == null) return;
+    debugPrint('$_tag 🔄 _toggleCounterpartyExpanded called');
+    debugPrint('$_tag   - _selectedDebtSubType: $_selectedDebtSubType');
+    if (_selectedDebtSubType == null) {
+      debugPrint('$_tag   ❌ Returning early - no debt subtype selected');
+      return;
+    }
+    debugPrint('$_tag   ✅ Toggling counterparty expanded: $_isCounterpartyExpanded -> ${!_isCounterpartyExpanded}');
     setState(() {
       _isCounterpartyExpanded = !_isCounterpartyExpanded;
       if (_isCounterpartyExpanded) {
         _isCashLocationExpanded = false;
         _isEntryTypeExpanded = false;
-        _isDirectionExpanded = false;
-        _isTypeExpanded = false;
+        _isExpenseSubTypeExpanded = false;
         _isDebtSubTypeExpanded = false;
       }
     });
   }
 
   void _onProceed() {
-    if (_selectedDirection == null || _selectedType == null) return;
-
-    // Debt requires subtype and counterparty
-    if (_selectedType == TransactionType.debt) {
+    // Debt requires counterparty
+    if (_selectedEntryType == MainEntryType.debt) {
       if (_selectedDebtSubType == null || _selectedCounterpartyId == null) {
         return;
       }
-    }
-
-    switch (_selectedType!) {
-      case TransactionType.expense:
-        _showExpenseSheet();
-        break;
-      case TransactionType.debt:
-        _showDebtSheet();
-        break;
-      case TransactionType.transfer:
-        // This shouldn't happen in new flow, but just in case
-        _showTransferSheet();
-        break;
+      _showDebtSheet();
     }
   }
 
   void _showExpenseSheet() {
+    if (_selectedExpenseSubType == null) return;
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => ExpenseEntrySheet(
-        direction: _selectedDirection!,
+        direction: _selectedExpenseSubType!.direction,
         cashLocationId: _selectedCashLocationId!,
         cashLocationName: _selectedCashLocationName!,
         onSuccess: () {
@@ -382,12 +364,14 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
   }
 
   void _showDebtSheet() {
+    if (_selectedDebtSubType == null) return;
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
       builder: (context) => DebtEntrySheet(
-        direction: _selectedDirection!,
+        direction: _selectedDebtSubType!.applicableDirection,
         debtSubType: _selectedDebtSubType!,
         counterpartyId: _selectedCounterpartyId!,
         counterpartyName: _selectedCounterpartyName,
@@ -447,15 +431,13 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
       _selectedCashLocationName = null;
       _selectedCashLocationIcon = null;
       _selectedEntryType = null;
-      _selectedDirection = null;
-      _selectedType = null;
+      _selectedExpenseSubType = null;
       _selectedDebtSubType = null;
       _selectedCounterpartyId = null;
       _selectedCounterpartyName = null;
       _isCashLocationExpanded = true;
       _isEntryTypeExpanded = false;
-      _isDirectionExpanded = false;
-      _isTypeExpanded = false;
+      _isExpenseSubTypeExpanded = false;
       _isDebtSubTypeExpanded = false;
       _isCounterpartyExpanded = false;
     });
@@ -463,22 +445,20 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
 
   bool get _canProceed {
     if (_selectedCashLocationId == null) return false;
-    if (_selectedEntryType != MainEntryType.cashInOut) return false;
-    if (_selectedDirection == null || _selectedType == null) return false;
 
     // Debt requires subtype and counterparty
-    if (_selectedType == TransactionType.debt) {
+    if (_selectedEntryType == MainEntryType.debt) {
       return _selectedDebtSubType != null && _selectedCounterpartyId != null;
     }
 
-    return true;
+    return false; // Expense goes to sheet directly after Pay/Refund selection
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: TossColors.white,
-      appBar: TossAppBar1(
+      appBar: const TossAppBar1(
         title: 'Cash Transaction',
         automaticallyImplyLeading: true,
       ),
@@ -500,7 +480,7 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
                 content: _buildCashLocationSelection(),
               ),
 
-              // Step 1: Entry Type (after cash location selected AND collapsed)
+              // Step 1: Entry Type (Expense / Debt / Transfer)
               if (_selectedCashLocationId != null &&
                   !_isCashLocationExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
@@ -516,49 +496,27 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
                 ),
               ],
 
-              // Step 2: Direction (only for Cash In/Out, when cash location & entry type collapsed)
-              if (_selectedEntryType == MainEntryType.cashInOut &&
+              // Step 2 (Expense only): Pay or Refund
+              if (_selectedEntryType == MainEntryType.expense &&
                   !_isCashLocationExpanded &&
                   !_isEntryTypeExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
                 _buildCollapsibleSection(
-                  title: 'Cash Direction',
-                  subtitle: 'Did money come in or go out?',
-                  isExpanded: _isDirectionExpanded,
-                  hasSelection: _selectedDirection != null,
-                  selectedLabel: _selectedDirection?.label,
-                  selectedIcon: _selectedDirection?.icon,
-                  onToggle: _toggleDirectionExpanded,
-                  content: _buildDirectionSelection(),
+                  title: 'Expense Type',
+                  subtitle: 'Are you paying or getting a refund?',
+                  isExpanded: _isExpenseSubTypeExpanded,
+                  hasSelection: _selectedExpenseSubType != null,
+                  selectedLabel: _selectedExpenseSubType?.label,
+                  selectedIcon: _selectedExpenseSubType?.icon,
+                  onToggle: _toggleExpenseSubTypeExpanded,
+                  content: _buildExpenseSubTypeSelection(),
                 ),
               ],
 
-              // Step 3: Transaction Type (Expense or Debt)
-              if (_selectedDirection != null &&
+              // Step 2 (Debt only): Debt SubType Selection
+              if (_selectedEntryType == MainEntryType.debt &&
                   !_isCashLocationExpanded &&
-                  !_isEntryTypeExpanded &&
-                  !_isDirectionExpanded) ...[
-                const SizedBox(height: TossSpacing.space3),
-                _buildCollapsibleSection(
-                  title: 'Transaction Type',
-                  subtitle: _selectedDirection == CashDirection.cashOut
-                      ? 'Why did money go out?'
-                      : 'Why did money come in?',
-                  isExpanded: _isTypeExpanded,
-                  hasSelection: _selectedType != null,
-                  selectedLabel: _selectedType?.label,
-                  selectedIcon: _selectedType?.icon,
-                  onToggle: _toggleTypeExpanded,
-                  content: _buildTypeSelection(),
-                ),
-              ],
-
-              // Step 4 (Debt only): SubType Selection
-              if (_selectedType == TransactionType.debt &&
-                  !_isCashLocationExpanded &&
-                  !_isEntryTypeExpanded &&
-                  !_isDirectionExpanded &&
-                  !_isTypeExpanded) ...[
+                  !_isEntryTypeExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
                 _buildCollapsibleSection(
                   title: 'Debt Type',
@@ -572,13 +530,11 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
                 ),
               ],
 
-              // Step 5 (Debt only): Counterparty Selection
-              if (_selectedType == TransactionType.debt &&
+              // Step 3 (Debt only): Counterparty Selection
+              if (_selectedEntryType == MainEntryType.debt &&
                   _selectedDebtSubType != null &&
                   !_isCashLocationExpanded &&
                   !_isEntryTypeExpanded &&
-                  !_isDirectionExpanded &&
-                  !_isTypeExpanded &&
                   !_isDebtSubTypeExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
                 _buildCollapsibleSection(
@@ -637,8 +593,11 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
           return Center(
             child: Column(
               children: [
-                const Icon(Icons.account_balance_wallet_outlined,
-                    color: TossColors.gray300, size: 48),
+                const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: TossColors.gray300,
+                  size: 48,
+                ),
                 const SizedBox(height: TossSpacing.space2),
                 Text(
                   'No cash locations found',
@@ -735,11 +694,18 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
   Widget _buildEntryTypeSelection() {
     return Column(
       children: [
-        // Cash In/Out card
+        // Expense card
         _buildEntryTypeCard(
-          type: MainEntryType.cashInOut,
-          isSelected: _selectedEntryType == MainEntryType.cashInOut,
-          onTap: () => _onEntryTypeSelected(MainEntryType.cashInOut),
+          type: MainEntryType.expense,
+          isSelected: _selectedEntryType == MainEntryType.expense,
+          onTap: () => _onEntryTypeSelected(MainEntryType.expense),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        // Debt card
+        _buildEntryTypeCard(
+          type: MainEntryType.debt,
+          isSelected: _selectedEntryType == MainEntryType.debt,
+          onTap: () => _onEntryTypeSelected(MainEntryType.debt),
         ),
         const SizedBox(height: TossSpacing.space2),
         // Transfer card
@@ -749,6 +715,93 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
           onTap: () => _onEntryTypeSelected(MainEntryType.transfer),
         ),
       ],
+    );
+  }
+
+  Widget _buildExpenseSubTypeSelection() {
+    return Column(
+      children: [
+        // Pay card
+        _buildExpenseSubTypeCard(
+          subType: ExpenseSubType.pay,
+          isSelected: _selectedExpenseSubType == ExpenseSubType.pay,
+          onTap: () => _onExpenseSubTypeSelected(ExpenseSubType.pay),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        // Refund card
+        _buildExpenseSubTypeCard(
+          subType: ExpenseSubType.refund,
+          isSelected: _selectedExpenseSubType == ExpenseSubType.refund,
+          onTap: () => _onExpenseSubTypeSelected(ExpenseSubType.refund),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExpenseSubTypeCard({
+    required ExpenseSubType subType,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(
+            color: isSelected ? TossColors.gray900 : TossColors.gray200,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: TossColors.gray100,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Center(
+                child: Icon(
+                  subType.icon,
+                  color: TossColors.gray600,
+                  size: 24,
+                ),
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subType.label,
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subType.description,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: TossColors.gray300,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -981,63 +1034,90 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
     );
   }
 
-  Widget _buildDirectionSelection() {
-    return Row(
+  Widget _buildDebtSubTypeSelection() {
+    // Group by Money In / Money Out
+    final moneyInTypes = _availableDebtSubTypes
+        .where((t) => t.applicableDirection == CashDirection.cashIn)
+        .toList();
+    final moneyOutTypes = _availableDebtSubTypes
+        .where((t) => t.applicableDirection == CashDirection.cashOut)
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: DirectionSelectionCard(
-            direction: CashDirection.cashIn,
-            isSelected: _selectedDirection == CashDirection.cashIn,
-            onTap: () => _onDirectionSelected(CashDirection.cashIn),
-          ),
+        // Money In Section
+        _buildDebtSectionHeader(
+          label: 'Money In',
+          color: const Color(0xFF2E7D32),
+          backgroundColor: const Color(0xFFE8F5E9),
         ),
-        const SizedBox(width: TossSpacing.space3),
-        Expanded(
-          child: DirectionSelectionCard(
-            direction: CashDirection.cashOut,
-            isSelected: _selectedDirection == CashDirection.cashOut,
-            onTap: () => _onDirectionSelected(CashDirection.cashOut),
-          ),
+        const SizedBox(height: TossSpacing.space2),
+        ...moneyInTypes.map((subType) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+            child: DebtSubtypeCard(
+              subType: subType,
+              isSelected: _selectedDebtSubType == subType,
+              onTap: () => _onDebtSubTypeSelected(subType),
+            ),
+          );
+        }),
+
+        const SizedBox(height: TossSpacing.space3),
+
+        // Money Out Section
+        _buildDebtSectionHeader(
+          label: 'Money Out',
+          color: const Color(0xFFC62828),
+          backgroundColor: const Color(0xFFFFEBEE),
         ),
+        const SizedBox(height: TossSpacing.space2),
+        ...moneyOutTypes.map((subType) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+            child: DebtSubtypeCard(
+              subType: subType,
+              isSelected: _selectedDebtSubType == subType,
+              onTap: () => _onDebtSubTypeSelected(subType),
+            ),
+          );
+        }),
       ],
     );
   }
 
-  Widget _buildTypeSelection() {
-    return Column(
-      children: _availableTypes.map((type) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-          child: TransactionTypeCard(
-            type: type,
-            isSelected: _selectedType == type,
-            onTap: () => _onTypeSelected(type),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildDebtSubTypeSelection() {
-    return Column(
-      children: _availableDebtSubTypes.map((subType) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-          child: DebtSubtypeCard(
-            subType: subType,
-            isSelected: _selectedDebtSubType == subType,
-            onTap: () => _onDebtSubTypeSelected(subType),
-          ),
-        );
-      }).toList(),
+  Widget _buildDebtSectionHeader({
+    required String label,
+    required Color color,
+    required Color backgroundColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     );
   }
 
   Widget _buildCounterpartySelector() {
+    debugPrint('$_tag 🏗️ _buildCounterpartySelector called');
     final appState = ref.watch(appStateProvider);
     final companyId = appState.companyChoosen;
 
+    debugPrint('$_tag   - companyId: $companyId');
+
     if (companyId.isEmpty) {
+      debugPrint('$_tag   ❌ No company selected');
       return const Center(
         child: Text('Please select a company first'),
       );
@@ -1047,12 +1127,20 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
 
     return counterpartiesAsync.when(
       data: (counterparties) {
+        debugPrint('$_tag 📋 Counterparties loaded: ${counterparties.length} total');
+        for (final c in counterparties) {
+          debugPrint('$_tag   - ${c.name} (isInternal: ${c.isInternal})');
+        }
+
         if (counterparties.isEmpty) {
           return Center(
             child: Column(
               children: [
-                const Icon(Icons.business_outlined,
-                    color: TossColors.gray300, size: 48),
+                const Icon(
+                  Icons.business_outlined,
+                  color: TossColors.gray300,
+                  size: 48,
+                ),
                 const SizedBox(height: TossSpacing.space2),
                 Text(
                   'No counterparties found',
@@ -1063,14 +1151,45 @@ class _CashControlPageState extends ConsumerState<CashControlPage> {
           );
         }
 
+        // Filter out internal counterparties - they should use Transfer instead
+        final externalCounterparties = counterparties
+            .where((c) => !c.isInternal)
+            .toList();
+
+        debugPrint('$_tag 📋 External counterparties (after filter): ${externalCounterparties.length}');
+
+        if (externalCounterparties.isEmpty) {
+          return Center(
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.business_outlined,
+                  color: TossColors.gray300,
+                  size: 48,
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'No external counterparties',
+                  style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                Text(
+                  'Use Transfer for internal stores',
+                  style: TossTextStyles.caption.copyWith(color: TossColors.gray400),
+                ),
+              ],
+            ),
+          );
+        }
+
         return Column(
-          children: counterparties.map((counterparty) {
+          children: externalCounterparties.map((counterparty) {
             final isSelected = _selectedCounterpartyId == counterparty.counterpartyId;
             return Padding(
               padding: const EdgeInsets.only(bottom: TossSpacing.space2),
               child: _buildSelectionCard(
                 title: counterparty.name,
-                icon: counterparty.isInternal ? Icons.store : Icons.business,
+                icon: Icons.business,
                 isSelected: isSelected,
                 onTap: () => _onCounterpartySelected(counterparty),
               ),

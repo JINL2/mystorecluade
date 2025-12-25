@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import '../../domain/entities/cash_control_enums.dart';
+import '../../domain/entities/cash_transaction_enums.dart';
 
 /// Transaction Type Selection Card (Expense/Debt/Transfer)
 /// Minimal design - simple list item style

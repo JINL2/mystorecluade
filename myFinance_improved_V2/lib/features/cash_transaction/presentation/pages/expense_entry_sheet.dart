@@ -5,7 +5,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
-import '../providers/cash_control_providers.dart';
+import '../providers/cash_transaction_providers.dart';
 import '../widgets/amount_input_keypad.dart';
 import '../widgets/transaction_confirm_dialog.dart';
 
@@ -65,17 +65,6 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     });
   }
 
-  /// Filter accounts based on search query
-  List<ExpenseAccount> _filterAccounts(List<ExpenseAccount> accounts) {
-    if (_searchQuery.isEmpty) {
-      return []; // Show nothing when not searching (only recent)
-    }
-    return accounts.where((account) {
-      return account.accountName.toLowerCase().contains(_searchQuery) ||
-          account.accountCode.toLowerCase().contains(_searchQuery);
-    }).toList();
-  }
-
   void _onAccountSelected(ExpenseAccount account) {
     setState(() {
       _selectedAccountId = account.accountId;
@@ -93,33 +82,50 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
   }
 
   Future<void> _onSubmit() async {
+    // Double-click prevention: check if already submitting
+    if (_isSubmitting) {
+      debugPrint('[ExpenseEntrySheet] ⚠️ Already submitting, ignoring duplicate tap');
+      return;
+    }
+
     if (_selectedAccountId == null || _amount <= 0) {
       return;
     }
 
-    // Show confirmation dialog
-    final result = await TransactionConfirmDialog.show(
-      context,
-      TransactionConfirmData(
-        type: ConfirmTransactionType.expense,
-        amount: _amount,
-        fromCashLocationName: widget.cashLocationName,
-        expenseAccountName: _selectedAccountName,
-        expenseAccountCode: _selectedAccountCode,
-      ),
-    );
-
-    if (result == null || !result.confirmed) {
-      return;
-    }
-
+    // Set submitting state IMMEDIATELY before any async operation
     setState(() {
       _isSubmitting = true;
     });
 
     try {
+      // Show confirmation dialog
+      final result = await TransactionConfirmDialog.show(
+        context,
+        TransactionConfirmData(
+          type: ConfirmTransactionType.expense,
+          amount: _amount,
+          fromCashLocationName: widget.cashLocationName,
+          expenseAccountName: _selectedAccountName,
+          expenseAccountCode: _selectedAccountCode,
+        ),
+      );
+
+      if (result == null || !result.confirmed) {
+        // User cancelled - reset submitting state
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+        return;
+      }
+
       final appState = ref.read(appStateProvider);
-      final repository = ref.read(cashControlRepositoryProvider);
+      final repository = ref.read(cashTransactionRepositoryProvider);
+
+      // Determine if this is a refund based on direction
+      final isRefund = widget.direction == CashDirection.cashIn;
+      debugPrint('[ExpenseEntrySheet] 📝 Creating expense entry, isRefund: $isRefund');
 
       // TODO: Upload attachments to storage and get URLs
       // For now, attachment upload is not implemented
@@ -133,6 +139,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
         expenseAccountId: _selectedAccountId!,
         amount: _amount,
         entryDate: DateTime.now(),
+        isRefund: isRefund,
         memo: result.memo,
         attachmentUrls: attachmentUrls.isEmpty ? null : attachmentUrls,
       );
@@ -148,14 +155,13 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             backgroundColor: TossColors.gray900,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
+        // Reset submitting state on error
         setState(() {
           _isSubmitting = false;
         });
       }
     }
+    // Note: Don't reset _isSubmitting on success - widget will be popped
   }
 
   bool get _canSubmit => _selectedAccountId != null && _amount > 0;
@@ -297,7 +303,6 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
   Widget _buildAccountSelection() {
     final appState = ref.watch(appStateProvider);
     final companyId = appState.companyChoosen;
-    final userId = appState.userId;
 
     if (companyId.isEmpty) {
       return const Center(
@@ -305,15 +310,21 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
       );
     }
 
-    final accountsAsync = ref.watch(
-      expenseAccountsProvider((companyId: companyId, userId: userId)),
-    );
+    // Use expense-only provider (account_type = 'expense')
+    // This ensures only expense accounts are shown, not Cash, Receivable, etc.
+    final accountsAsync = ref.watch(expenseAccountsOnlyProvider(companyId));
+
+    // For search, use the search provider if query is not empty
+    final searchAsync = _searchQuery.isNotEmpty
+        ? ref.watch(searchExpenseAccountsProvider((companyId: companyId, query: _searchQuery)))
+        : null;
 
     return accountsAsync.when(
       data: (accounts) {
-        final filteredAccounts = _filterAccounts(accounts);
-        final hasSearchResults = _searchQuery.isNotEmpty && filteredAccounts.isNotEmpty;
-        final hasNoSearchResults = _searchQuery.isNotEmpty && filteredAccounts.isEmpty;
+        // If searching, use search results; otherwise show all expense accounts
+        final displayAccounts = searchAsync?.valueOrNull ?? accounts;
+        final hasSearchResults = _searchQuery.isNotEmpty && displayAccounts.isNotEmpty;
+        final hasNoSearchResults = _searchQuery.isNotEmpty && displayAccounts.isEmpty;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,7 +362,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
 
             const SizedBox(height: TossSpacing.space3),
 
-            // Search results or Recent accounts
+            // Search results or All expense accounts
             if (hasSearchResults) ...[
               Text(
                 'Search Results',
@@ -361,7 +372,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
                 ),
               ),
               const SizedBox(height: TossSpacing.space2),
-              ...filteredAccounts.map((account) {
+              ...displayAccounts.map((account) {
                 final isSelected = _selectedAccountId == account.accountId;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: TossSpacing.space2),
@@ -377,9 +388,9 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             ] else if (hasNoSearchResults) ...[
               _buildNoResultsMessage(),
             ] else ...[
-              // Recent accounts section (showing all accounts from RPC)
+              // All expense accounts (account_type = 'expense')
               Text(
-                'Recent',
+                'Expense Accounts',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray500,
                   fontWeight: FontWeight.w600,
@@ -396,14 +407,6 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
                     icon: Icons.receipt_long,
                     isSelected: isSelected,
                     onTap: () => _onAccountSelected(account),
-                    trailing: account.usageCount > 0
-                        ? Text(
-                            '${account.usageCount}x',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray400,
-                            ),
-                          )
-                        : null,
                   ),
                 );
               }),
