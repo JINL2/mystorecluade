@@ -268,6 +268,36 @@ class IconMapper {
       'line_chart': LucideIcons.lineChart,
       'circle_help': LucideIcons.helpCircle,
       'bar_chart_3': LucideIcons.barChart3,
+
+      // ===== Trade Management Icons =====
+      // Dashboard
+      'LayoutDashboard': LucideIcons.layoutDashboard,
+      'layoutDashboard': LucideIcons.layoutDashboard,
+
+      // Documents & Invoices
+      'FileText': LucideIcons.fileText,
+      'ClipboardList': LucideIcons.clipboardList,
+      'clipboardList': LucideIcons.clipboardList,
+      'Receipt': LucideIcons.receipt,
+
+      // Banking & Finance
+      'Landmark': LucideIcons.landmark,
+      'landmark': LucideIcons.landmark,
+      'Bank': LucideIcons.landmark,
+      'bank': LucideIcons.landmark,
+
+      // Shipping & Logistics
+      'Ship': LucideIcons.ship,
+      'ship': LucideIcons.ship,
+      'Truck': LucideIcons.truck,
+      'truck': LucideIcons.truck,
+      'Plane': LucideIcons.plane,
+      'plane': LucideIcons.plane,
+      'Container': LucideIcons.container,
+      'container': LucideIcons.container,
+      'Package': LucideIcons.package,
+      'Anchor': LucideIcons.anchor,
+      'anchor': LucideIcons.anchor,
     };
 
     // Return mapped icon or default

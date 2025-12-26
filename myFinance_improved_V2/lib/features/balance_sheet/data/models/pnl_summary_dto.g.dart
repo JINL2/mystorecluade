@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'pnl_summary_model.dart';
+part of 'pnl_summary_dto.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

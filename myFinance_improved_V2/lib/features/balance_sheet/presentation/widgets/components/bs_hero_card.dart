@@ -5,7 +5,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../data/models/bs_summary_model.dart';
+import '../../../data/models/bs_summary_dto.dart';
 
 /// B/S Hero Card - Main balance sheet metrics
 class BsHeroCard extends StatelessWidget {

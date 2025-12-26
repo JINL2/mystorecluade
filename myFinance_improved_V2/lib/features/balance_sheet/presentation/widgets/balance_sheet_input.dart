@@ -31,7 +31,7 @@ class BalanceSheetInput extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pageState = ref.watch(balanceSheetPageProvider);
+    final pageState = ref.watch(balanceSheetPageNotifierProvider);
     final appState = ref.watch(appStateProvider);
     final storesAsync = ref.watch(storesProvider(companyId));
 
@@ -625,7 +625,7 @@ class BalanceSheetInput extends ConsumerWidget {
                               startDate: tempStartDate,
                               endDate: tempEndDate,
                             );
-                            ref.read(balanceSheetPageProvider.notifier).changeDateRange(newDateRange);
+                            ref.read(balanceSheetPageNotifierProvider.notifier).changeDateRange(newDateRange);
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(

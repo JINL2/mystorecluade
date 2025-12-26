@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/auth_providers.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 // Core - Theme System
 import '../../../../shared/themes/toss_colors.dart';
@@ -15,7 +16,6 @@ import '../../domain/exceptions/validation_exception.dart';
 // Homepage - Providers (for userCompaniesProvider)
 import '../../../homepage/presentation/providers/homepage_providers.dart';
 // Presentation - Providers
-import '../providers/current_user_provider.dart';
 import '../providers/usecase_providers.dart';
 
 /// Join Business Page - Clean Architecture Version

@@ -4,8 +4,8 @@ import '../../domain/entities/income_statement.dart';
 import '../../domain/repositories/balance_sheet_repository.dart';
 import '../../domain/value_objects/currency.dart';
 import '../datasources/balance_sheet_data_source.dart';
-import '../models/balance_sheet_model.dart';
-import '../models/income_statement_model.dart';
+import '../models/balance_sheet_dto.dart';
+import '../models/income_statement_dto.dart';
 
 /// Balance sheet repository implementation
 class BalanceSheetRepositoryImpl implements BalanceSheetRepository {

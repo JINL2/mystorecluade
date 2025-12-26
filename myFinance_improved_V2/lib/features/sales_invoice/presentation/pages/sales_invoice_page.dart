@@ -353,7 +353,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                 _buildFilterPill('Time', invoiceState.selectedPeriod.displayName),
                 const SizedBox(width: 8),
                 _buildFilterPill(
-                  'Cash Location',
+                  'Location',
                   invoiceState.selectedCashLocation?.name ?? 'All Locations',
                   isActive: invoiceState.selectedCashLocation != null,
                 ),
@@ -414,37 +414,43 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          width: 110, // 고정 너비로 레이아웃 안정화
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: isActive ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             border: isActive ? Border.all(color: TossColors.primary, width: 1) : null,
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isActive ? TossColors.primary : TossColors.gray900,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: TossTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isActive ? TossColors.primary : TossColors.gray900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: isActive ? TossColors.primary : TossColors.gray600,
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: isActive ? TossColors.primary : TossColors.gray600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 4),
               Icon(
                 Icons.keyboard_arrow_down,
                 size: 16,
@@ -553,7 +559,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   void _showFilterBottomSheet(String filterType) {
     if (filterType == 'Time') {
       _showPeriodFilterSheet();
-    } else if (filterType == 'Cash Location') {
+    } else if (filterType == 'Location') {
       _showCashLocationFilterSheet();
     } else if (filterType == 'Status') {
       _showStatusFilterSheet();
@@ -1076,7 +1082,7 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                 const SizedBox(width: 8),
                 _buildFilterPill(
                   context,
-                  'Cash Location',
+                  'Location',
                   invoiceState.selectedCashLocation?.name ?? 'All Locations',
                   isActive: invoiceState.selectedCashLocation != null,
                 ),
@@ -1136,37 +1142,43 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
         onTap: () => onFilterTap(title),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          width: 110, // 고정 너비로 레이아웃 안정화
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: isActive ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             border: isActive ? Border.all(color: TossColors.primary, width: 1) : null,
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isActive ? TossColors.primary : TossColors.gray900,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: TossTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isActive ? TossColors.primary : TossColors.gray900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: isActive ? TossColors.primary : TossColors.gray600,
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: isActive ? TossColors.primary : TossColors.gray600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 4),
               Icon(
                 Icons.keyboard_arrow_down,
                 size: 16,

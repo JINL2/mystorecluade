@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'pnl_summary_model.freezed.dart';
-part 'pnl_summary_model.g.dart';
+part 'pnl_summary_dto.freezed.dart';
+part 'pnl_summary_dto.g.dart';
 
 /// P&L Summary from get_pnl() RPC
 @freezed

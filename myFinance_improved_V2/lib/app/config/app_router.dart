@@ -63,6 +63,12 @@ import '../../features/test/test_template_mapping_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
 import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
 import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
+import '../../features/trade_dashboard/presentation/pages/trade_dashboard_page.dart';
+import '../../features/proforma_invoice/presentation/pages/proforma_invoice_page.dart';
+import '../../features/purchase_order/presentation/pages/purchase_order_page.dart';
+import '../../features/letter_of_credit/presentation/pages/letter_of_credit_page.dart';
+import '../../features/shipment/presentation/pages/shipment_page.dart';
+import '../../features/commercial_invoice/presentation/pages/commercial_invoice_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
@@ -880,6 +886,67 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/test',
         name: 'test',
         builder: (context, state) => const TestTemplateMapppingPage(),
+      ),
+
+      // ===== Trade Management Routes =====
+      // Trade Dashboard
+      GoRoute(
+        path: '/tradeDashboard',
+        name: 'tradeDashboard',
+        builder: (context, state) {
+          final feature = state.extra;
+          return TradeDashboardPage(feature: feature);
+        },
+      ),
+
+      // Proforma Invoice (PI)
+      GoRoute(
+        path: '/proformaInvoice',
+        name: 'proformaInvoice',
+        builder: (context, state) {
+          final feature = state.extra;
+          return ProformaInvoicePage(feature: feature);
+        },
+      ),
+
+      // Purchase Order (PO)
+      GoRoute(
+        path: '/purchaseOrder',
+        name: 'purchaseOrder',
+        builder: (context, state) {
+          final feature = state.extra;
+          return PurchaseOrderPage(feature: feature);
+        },
+      ),
+
+      // Letter of Credit (L/C)
+      GoRoute(
+        path: '/letterOfCredit',
+        name: 'letterOfCredit',
+        builder: (context, state) {
+          final feature = state.extra;
+          return LetterOfCreditPage(feature: feature);
+        },
+      ),
+
+      // Shipment
+      GoRoute(
+        path: '/shipment',
+        name: 'shipment',
+        builder: (context, state) {
+          final feature = state.extra;
+          return ShipmentPage(feature: feature);
+        },
+      ),
+
+      // Commercial Invoice (CI)
+      GoRoute(
+        path: '/commercialInvoice',
+        name: 'commercialInvoice',
+        builder: (context, state) {
+          final feature = state.extra;
+          return CommercialInvoicePage(feature: feature);
+        },
       ),
     ],
   );

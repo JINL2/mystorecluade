@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/domain/entities/store.dart';
 import '../../di/balance_sheet_injection.dart';
@@ -10,6 +11,8 @@ import 'states/balance_sheet_page_state.dart';
 
 // Re-export repository provider from DI for backward compatibility
 export '../../di/balance_sheet_injection.dart' show balanceSheetRepositoryProvider;
+
+part 'balance_sheet_providers.g.dart';
 
 /// Balance sheet parameters for provider (v2 - no date filter)
 class BalanceSheetParams {
@@ -73,18 +76,18 @@ class IncomeStatementParams {
 }
 
 /// Balance sheet data provider (v2 - no date filter)
-final balanceSheetProvider =
-    FutureProvider.family<BalanceSheet, BalanceSheetParams>((ref, params) async {
+@riverpod
+Future<BalanceSheet> balanceSheet(Ref ref, BalanceSheetParams params) async {
   final repository = ref.read(balanceSheetRepositoryProvider);
   return await repository.getBalanceSheet(
     companyId: params.companyId,
     storeId: params.storeId,
   );
-});
+}
 
 /// Income statement data provider (v3 - with timezone support)
-final incomeStatementProvider =
-    FutureProvider.family<IncomeStatement, IncomeStatementParams>((ref, params) async {
+@riverpod
+Future<IncomeStatement> incomeStatement(Ref ref, IncomeStatementParams params) async {
   final repository = ref.read(balanceSheetRepositoryProvider);
   return await repository.getIncomeStatement(
     companyId: params.companyId,
@@ -93,19 +96,21 @@ final incomeStatementProvider =
     timezone: params.timezone,
     storeId: params.storeId,
   );
-});
+}
 
 /// Stores provider
-final storesProvider = FutureProvider.family<List<Store>, String>((ref, companyId) async {
+@riverpod
+Future<List<Store>> stores(Ref ref, String companyId) async {
   final repository = ref.read(balanceSheetRepositoryProvider);
   return await repository.getStores(companyId);
-});
+}
 
 /// Currency provider
-final currencyProvider = FutureProvider.family<Currency, String>((ref, companyId) async {
+@riverpod
+Future<Currency> currency(Ref ref, String companyId) async {
   final repository = ref.read(balanceSheetRepositoryProvider);
   return await repository.getCurrency(companyId);
-});
+}
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Balance Sheet Page Notifier - 페이지 상태 관리
@@ -117,8 +122,12 @@ final currencyProvider = FutureProvider.family<Currency, String>((ref, companyId
 /// - 데이터 생성 플래그
 ///
 /// 데이터 로딩은 FutureProvider (balanceSheetProvider, incomeStatementProvider)가 담당합니다.
-class BalanceSheetPageNotifier extends StateNotifier<BalanceSheetPageState> {
-  BalanceSheetPageNotifier() : super(BalanceSheetPageState.initial());
+@riverpod
+class BalanceSheetPageNotifier extends _$BalanceSheetPageNotifier {
+  @override
+  BalanceSheetPageState build() {
+    return BalanceSheetPageState.initial();
+  }
 
   /// 탭 변경
   void changeTab(int index) {
@@ -171,13 +180,3 @@ class BalanceSheetPageNotifier extends StateNotifier<BalanceSheetPageState> {
     state = BalanceSheetPageState.initial();
   }
 }
-
-/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-/// 🎯 Provider 정의
-/// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-/// Balance Sheet Page State Provider
-final balanceSheetPageProvider =
-    StateNotifierProvider<BalanceSheetPageNotifier, BalanceSheetPageState>((ref) {
-  return BalanceSheetPageNotifier();
-});

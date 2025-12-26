@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'bs_summary_model.dart';
+part of 'bs_summary_dto.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

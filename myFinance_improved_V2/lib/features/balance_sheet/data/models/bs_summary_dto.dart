@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'bs_summary_model.freezed.dart';
-part 'bs_summary_model.g.dart';
+part 'bs_summary_dto.freezed.dart';
+part 'bs_summary_dto.g.dart';
 
 /// Balance Sheet Summary from get_bs() RPC
 @freezed
