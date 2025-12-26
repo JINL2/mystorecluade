@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CashLocationDetail _$CashLocationDetailFromJson(Map<String, dynamic> json) {
-  return _CashLocationDetail.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CashLocationDetail {
   String get locationId => throw _privateConstructorUsedError;
@@ -31,9 +27,6 @@ mixin _$CashLocationDetail {
   String get companyId => throw _privateConstructorUsedError;
   String? get storeId => throw _privateConstructorUsedError;
   bool get isDeleted => throw _privateConstructorUsedError;
-
-  /// Serializes this CashLocationDetail to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CashLocationDetail
   /// with the given fields replaced by the non-null parameter values.
@@ -235,7 +228,7 @@ class __$$CashLocationDetailImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CashLocationDetailImpl implements _CashLocationDetail {
   const _$CashLocationDetailImpl(
       {required this.locationId,
@@ -249,9 +242,6 @@ class _$CashLocationDetailImpl implements _CashLocationDetail {
       required this.companyId,
       this.storeId,
       this.isDeleted = false});
-
-  factory _$CashLocationDetailImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CashLocationDetailImplFromJson(json);
 
   @override
   final String locationId;
@@ -309,7 +299,6 @@ class _$CashLocationDetailImpl implements _CashLocationDetail {
                 other.isDeleted == isDeleted));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -333,13 +322,6 @@ class _$CashLocationDetailImpl implements _CashLocationDetail {
   _$$CashLocationDetailImplCopyWith<_$CashLocationDetailImpl> get copyWith =>
       __$$CashLocationDetailImplCopyWithImpl<_$CashLocationDetailImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CashLocationDetailImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CashLocationDetail implements CashLocationDetail {
@@ -355,9 +337,6 @@ abstract class _CashLocationDetail implements CashLocationDetail {
       required final String companyId,
       final String? storeId,
       final bool isDeleted}) = _$CashLocationDetailImpl;
-
-  factory _CashLocationDetail.fromJson(Map<String, dynamic> json) =
-      _$CashLocationDetailImpl.fromJson;
 
   @override
   String get locationId;

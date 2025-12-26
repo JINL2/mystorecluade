@@ -1,10 +1,10 @@
 // Domain Entity - Business Object
 // This represents the core business concept, independent of data sources
+// Note: JSON serialization is handled by data/models layer
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'cash_location.freezed.dart';
-part 'cash_location.g.dart';
 
 @freezed
 class CashLocation with _$CashLocation {
@@ -30,7 +30,4 @@ class CashLocation with _$CashLocation {
     if (totalJournalCashAmount == 0) return 0.0;
     return (cashDifference / totalJournalCashAmount) * 100;
   }
-
-  factory CashLocation.fromJson(Map<String, dynamic> json) =>
-      _$CashLocationFromJson(json);
 }

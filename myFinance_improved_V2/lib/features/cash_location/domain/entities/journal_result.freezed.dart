@@ -14,19 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-JournalResult _$JournalResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType']) {
-    case 'success':
-      return JournalSuccess.fromJson(json);
-    case 'failure':
-      return JournalFailure.fromJson(json);
-
-    default:
-      throw CheckedFromJsonException(json, 'runtimeType', 'JournalResult',
-          'Invalid union type "${json['runtimeType']}"!');
-  }
-}
-
 /// @nodoc
 mixin _$JournalResult {
   @optionalTypeArgs
@@ -79,9 +66,6 @@ mixin _$JournalResult {
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
-
-  /// Serializes this JournalResult to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -152,18 +136,13 @@ class __$$JournalSuccessImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$JournalSuccessImpl implements JournalSuccess {
   const _$JournalSuccessImpl(
       {required this.journalId,
       this.message,
-      final Map<String, dynamic>? additionalData,
-      final String? $type})
-      : _additionalData = additionalData,
-        $type = $type ?? 'success';
-
-  factory _$JournalSuccessImpl.fromJson(Map<String, dynamic> json) =>
-      _$$JournalSuccessImplFromJson(json);
+      final Map<String, dynamic>? additionalData})
+      : _additionalData = additionalData;
 
   @override
   final String journalId;
@@ -178,9 +157,6 @@ class _$JournalSuccessImpl implements JournalSuccess {
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(value);
   }
-
-  @JsonKey(name: 'runtimeType')
-  final String $type;
 
   @override
   String toString() {
@@ -199,7 +175,6 @@ class _$JournalSuccessImpl implements JournalSuccess {
                 .equals(other._additionalData, _additionalData));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, journalId, message,
       const DeepCollectionEquality().hash(_additionalData));
@@ -286,13 +261,6 @@ class _$JournalSuccessImpl implements JournalSuccess {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$JournalSuccessImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class JournalSuccess implements JournalResult {
@@ -300,9 +268,6 @@ abstract class JournalSuccess implements JournalResult {
       {required final String journalId,
       final String? message,
       final Map<String, dynamic>? additionalData}) = _$JournalSuccessImpl;
-
-  factory JournalSuccess.fromJson(Map<String, dynamic> json) =
-      _$JournalSuccessImpl.fromJson;
 
   String get journalId;
   String? get message;
@@ -360,18 +325,13 @@ class __$$JournalFailureImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$JournalFailureImpl implements JournalFailure {
   const _$JournalFailureImpl(
       {required this.error,
       this.errorCode,
-      final Map<String, dynamic>? errorDetails,
-      final String? $type})
-      : _errorDetails = errorDetails,
-        $type = $type ?? 'failure';
-
-  factory _$JournalFailureImpl.fromJson(Map<String, dynamic> json) =>
-      _$$JournalFailureImplFromJson(json);
+      final Map<String, dynamic>? errorDetails})
+      : _errorDetails = errorDetails;
 
   @override
   final String error;
@@ -386,9 +346,6 @@ class _$JournalFailureImpl implements JournalFailure {
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(value);
   }
-
-  @JsonKey(name: 'runtimeType')
-  final String $type;
 
   @override
   String toString() {
@@ -407,7 +364,6 @@ class _$JournalFailureImpl implements JournalFailure {
                 .equals(other._errorDetails, _errorDetails));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, error, errorCode,
       const DeepCollectionEquality().hash(_errorDetails));
@@ -494,13 +450,6 @@ class _$JournalFailureImpl implements JournalFailure {
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$JournalFailureImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class JournalFailure implements JournalResult {
@@ -508,9 +457,6 @@ abstract class JournalFailure implements JournalResult {
       {required final String error,
       final String? errorCode,
       final Map<String, dynamic>? errorDetails}) = _$JournalFailureImpl;
-
-  factory JournalFailure.fromJson(Map<String, dynamic> json) =
-      _$JournalFailureImpl.fromJson;
 
   String get error;
   String? get errorCode;

@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-JournalFlow _$JournalFlowFromJson(Map<String, dynamic> json) {
-  return _JournalFlow.fromJson(json);
-}
-
 /// @nodoc
 mixin _$JournalFlow {
   String get flowId => throw _privateConstructorUsedError;
@@ -35,9 +31,6 @@ mixin _$JournalFlow {
   CreatedBy get createdBy => throw _privateConstructorUsedError;
   CounterAccount? get counterAccount => throw _privateConstructorUsedError;
   List<JournalAttachment> get attachments => throw _privateConstructorUsedError;
-
-  /// Serializes this JournalFlow to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of JournalFlow
   /// with the given fields replaced by the non-null parameter values.
@@ -319,7 +312,7 @@ class __$$JournalFlowImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$JournalFlowImpl implements _JournalFlow {
   const _$JournalFlowImpl(
       {required this.flowId,
@@ -338,9 +331,6 @@ class _$JournalFlowImpl implements _JournalFlow {
       this.counterAccount,
       final List<JournalAttachment> attachments = const []})
       : _attachments = attachments;
-
-  factory _$JournalFlowImpl.fromJson(Map<String, dynamic> json) =>
-      _$$JournalFlowImplFromJson(json);
 
   @override
   final String flowId;
@@ -420,7 +410,6 @@ class _$JournalFlowImpl implements _JournalFlow {
                 .equals(other._attachments, _attachments));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -447,13 +436,6 @@ class _$JournalFlowImpl implements _JournalFlow {
   @pragma('vm:prefer-inline')
   _$$JournalFlowImplCopyWith<_$JournalFlowImpl> get copyWith =>
       __$$JournalFlowImplCopyWithImpl<_$JournalFlowImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$JournalFlowImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _JournalFlow implements JournalFlow {
@@ -473,9 +455,6 @@ abstract class _JournalFlow implements JournalFlow {
       required final CreatedBy createdBy,
       final CounterAccount? counterAccount,
       final List<JournalAttachment> attachments}) = _$JournalFlowImpl;
-
-  factory _JournalFlow.fromJson(Map<String, dynamic> json) =
-      _$JournalFlowImpl.fromJson;
 
   @override
   String get flowId;
@@ -516,10 +495,6 @@ abstract class _JournalFlow implements JournalFlow {
       throw _privateConstructorUsedError;
 }
 
-JournalAttachment _$JournalAttachmentFromJson(Map<String, dynamic> json) {
-  return _JournalAttachment.fromJson(json);
-}
-
 /// @nodoc
 mixin _$JournalAttachment {
   String get attachmentId => throw _privateConstructorUsedError;
@@ -528,9 +503,6 @@ mixin _$JournalAttachment {
   String? get fileUrl => throw _privateConstructorUsedError;
   String? get ocrText => throw _privateConstructorUsedError;
   String? get ocrStatus => throw _privateConstructorUsedError;
-
-  /// Serializes this JournalAttachment to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of JournalAttachment
   /// with the given fields replaced by the non-null parameter values.
@@ -672,7 +644,7 @@ class __$$JournalAttachmentImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$JournalAttachmentImpl extends _JournalAttachment {
   const _$JournalAttachmentImpl(
       {required this.attachmentId,
@@ -682,9 +654,6 @@ class _$JournalAttachmentImpl extends _JournalAttachment {
       this.ocrText,
       this.ocrStatus})
       : super._();
-
-  factory _$JournalAttachmentImpl.fromJson(Map<String, dynamic> json) =>
-      _$$JournalAttachmentImplFromJson(json);
 
   @override
   final String attachmentId;
@@ -721,7 +690,6 @@ class _$JournalAttachmentImpl extends _JournalAttachment {
                 other.ocrStatus == ocrStatus));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, attachmentId, fileName, fileType,
       fileUrl, ocrText, ocrStatus);
@@ -734,13 +702,6 @@ class _$JournalAttachmentImpl extends _JournalAttachment {
   _$$JournalAttachmentImplCopyWith<_$JournalAttachmentImpl> get copyWith =>
       __$$JournalAttachmentImplCopyWithImpl<_$JournalAttachmentImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$JournalAttachmentImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _JournalAttachment extends JournalAttachment {
@@ -752,9 +713,6 @@ abstract class _JournalAttachment extends JournalAttachment {
       final String? ocrText,
       final String? ocrStatus}) = _$JournalAttachmentImpl;
   const _JournalAttachment._() : super._();
-
-  factory _JournalAttachment.fromJson(Map<String, dynamic> json) =
-      _$JournalAttachmentImpl.fromJson;
 
   @override
   String get attachmentId;
@@ -777,10 +735,6 @@ abstract class _JournalAttachment extends JournalAttachment {
       throw _privateConstructorUsedError;
 }
 
-ActualFlow _$ActualFlowFromJson(Map<String, dynamic> json) {
-  return _ActualFlow.fromJson(json);
-}
-
 /// @nodoc
 mixin _$ActualFlow {
   String get flowId => throw _privateConstructorUsedError;
@@ -793,9 +747,6 @@ mixin _$ActualFlow {
   CreatedBy get createdBy => throw _privateConstructorUsedError;
   List<DenominationDetail> get currentDenominations =>
       throw _privateConstructorUsedError;
-
-  /// Serializes this ActualFlow to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of ActualFlow
   /// with the given fields replaced by the non-null parameter values.
@@ -1001,7 +952,7 @@ class __$$ActualFlowImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$ActualFlowImpl implements _ActualFlow {
   const _$ActualFlowImpl(
       {required this.flowId,
@@ -1014,9 +965,6 @@ class _$ActualFlowImpl implements _ActualFlow {
       required this.createdBy,
       required final List<DenominationDetail> currentDenominations})
       : _currentDenominations = currentDenominations;
-
-  factory _$ActualFlowImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ActualFlowImplFromJson(json);
 
   @override
   final String flowId;
@@ -1072,7 +1020,6 @@ class _$ActualFlowImpl implements _ActualFlow {
                 .equals(other._currentDenominations, _currentDenominations));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1093,13 +1040,6 @@ class _$ActualFlowImpl implements _ActualFlow {
   @pragma('vm:prefer-inline')
   _$$ActualFlowImplCopyWith<_$ActualFlowImpl> get copyWith =>
       __$$ActualFlowImplCopyWithImpl<_$ActualFlowImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ActualFlowImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _ActualFlow implements ActualFlow {
@@ -1114,9 +1054,6 @@ abstract class _ActualFlow implements ActualFlow {
           required final CreatedBy createdBy,
           required final List<DenominationDetail> currentDenominations}) =
       _$ActualFlowImpl;
-
-  factory _ActualFlow.fromJson(Map<String, dynamic> json) =
-      _$ActualFlowImpl.fromJson;
 
   @override
   String get flowId;
@@ -1145,10 +1082,6 @@ abstract class _ActualFlow implements ActualFlow {
       throw _privateConstructorUsedError;
 }
 
-LocationSummary _$LocationSummaryFromJson(Map<String, dynamic> json) {
-  return _LocationSummary.fromJson(json);
-}
-
 /// @nodoc
 mixin _$LocationSummary {
   String get cashLocationId => throw _privateConstructorUsedError;
@@ -1159,9 +1092,6 @@ mixin _$LocationSummary {
   String get currencyCode => throw _privateConstructorUsedError;
   String get currencyId => throw _privateConstructorUsedError;
   String? get baseCurrencySymbol => throw _privateConstructorUsedError;
-
-  /// Serializes this LocationSummary to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of LocationSummary
   /// with the given fields replaced by the non-null parameter values.
@@ -1327,7 +1257,7 @@ class __$$LocationSummaryImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$LocationSummaryImpl implements _LocationSummary {
   const _$LocationSummaryImpl(
       {required this.cashLocationId,
@@ -1338,9 +1268,6 @@ class _$LocationSummaryImpl implements _LocationSummary {
       required this.currencyCode,
       required this.currencyId,
       this.baseCurrencySymbol});
-
-  factory _$LocationSummaryImpl.fromJson(Map<String, dynamic> json) =>
-      _$$LocationSummaryImplFromJson(json);
 
   @override
   final String cashLocationId;
@@ -1387,7 +1314,6 @@ class _$LocationSummaryImpl implements _LocationSummary {
                 other.baseCurrencySymbol == baseCurrencySymbol));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1408,13 +1334,6 @@ class _$LocationSummaryImpl implements _LocationSummary {
   _$$LocationSummaryImplCopyWith<_$LocationSummaryImpl> get copyWith =>
       __$$LocationSummaryImplCopyWithImpl<_$LocationSummaryImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$LocationSummaryImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _LocationSummary implements LocationSummary {
@@ -1427,9 +1346,6 @@ abstract class _LocationSummary implements LocationSummary {
       required final String currencyCode,
       required final String currencyId,
       final String? baseCurrencySymbol}) = _$LocationSummaryImpl;
-
-  factory _LocationSummary.fromJson(Map<String, dynamic> json) =
-      _$LocationSummaryImpl.fromJson;
 
   @override
   String get cashLocationId;
@@ -1456,10 +1372,6 @@ abstract class _LocationSummary implements LocationSummary {
       throw _privateConstructorUsedError;
 }
 
-CounterAccount _$CounterAccountFromJson(Map<String, dynamic> json) {
-  return _CounterAccount.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CounterAccount {
   String get accountId => throw _privateConstructorUsedError;
@@ -1468,9 +1380,6 @@ mixin _$CounterAccount {
   double get debit => throw _privateConstructorUsedError;
   double get credit => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
-
-  /// Serializes this CounterAccount to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CounterAccount
   /// with the given fields replaced by the non-null parameter values.
@@ -1612,7 +1521,7 @@ class __$$CounterAccountImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CounterAccountImpl implements _CounterAccount {
   const _$CounterAccountImpl(
       {required this.accountId,
@@ -1621,9 +1530,6 @@ class _$CounterAccountImpl implements _CounterAccount {
       required this.debit,
       required this.credit,
       required this.description});
-
-  factory _$CounterAccountImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CounterAccountImplFromJson(json);
 
   @override
   final String accountId;
@@ -1660,7 +1566,6 @@ class _$CounterAccountImpl implements _CounterAccount {
                 other.description == description));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, accountId, accountName,
       accountType, debit, credit, description);
@@ -1673,13 +1578,6 @@ class _$CounterAccountImpl implements _CounterAccount {
   _$$CounterAccountImplCopyWith<_$CounterAccountImpl> get copyWith =>
       __$$CounterAccountImplCopyWithImpl<_$CounterAccountImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CounterAccountImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CounterAccount implements CounterAccount {
@@ -1690,9 +1588,6 @@ abstract class _CounterAccount implements CounterAccount {
       required final double debit,
       required final double credit,
       required final String description}) = _$CounterAccountImpl;
-
-  factory _CounterAccount.fromJson(Map<String, dynamic> json) =
-      _$CounterAccountImpl.fromJson;
 
   @override
   String get accountId;
@@ -1715,19 +1610,12 @@ abstract class _CounterAccount implements CounterAccount {
       throw _privateConstructorUsedError;
 }
 
-CurrencyInfo _$CurrencyInfoFromJson(Map<String, dynamic> json) {
-  return _CurrencyInfo.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CurrencyInfo {
   String get currencyId => throw _privateConstructorUsedError;
   String get currencyCode => throw _privateConstructorUsedError;
   String get currencyName => throw _privateConstructorUsedError;
   String get symbol => throw _privateConstructorUsedError;
-
-  /// Serializes this CurrencyInfo to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CurrencyInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -1845,16 +1733,13 @@ class __$$CurrencyInfoImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CurrencyInfoImpl implements _CurrencyInfo {
   const _$CurrencyInfoImpl(
       {required this.currencyId,
       required this.currencyCode,
       required this.currencyName,
       required this.symbol});
-
-  factory _$CurrencyInfoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CurrencyInfoImplFromJson(json);
 
   @override
   final String currencyId;
@@ -1884,7 +1769,6 @@ class _$CurrencyInfoImpl implements _CurrencyInfo {
             (identical(other.symbol, symbol) || other.symbol == symbol));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, currencyId, currencyCode, currencyName, symbol);
@@ -1896,13 +1780,6 @@ class _$CurrencyInfoImpl implements _CurrencyInfo {
   @pragma('vm:prefer-inline')
   _$$CurrencyInfoImplCopyWith<_$CurrencyInfoImpl> get copyWith =>
       __$$CurrencyInfoImplCopyWithImpl<_$CurrencyInfoImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CurrencyInfoImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CurrencyInfo implements CurrencyInfo {
@@ -1911,9 +1788,6 @@ abstract class _CurrencyInfo implements CurrencyInfo {
       required final String currencyCode,
       required final String currencyName,
       required final String symbol}) = _$CurrencyInfoImpl;
-
-  factory _CurrencyInfo.fromJson(Map<String, dynamic> json) =
-      _$CurrencyInfoImpl.fromJson;
 
   @override
   String get currencyId;
@@ -1932,18 +1806,11 @@ abstract class _CurrencyInfo implements CurrencyInfo {
       throw _privateConstructorUsedError;
 }
 
-CreatedBy _$CreatedByFromJson(Map<String, dynamic> json) {
-  return _CreatedBy.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CreatedBy {
   String get userId => throw _privateConstructorUsedError;
   String get fullName => throw _privateConstructorUsedError;
   String? get profileImage => throw _privateConstructorUsedError;
-
-  /// Serializes this CreatedBy to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CreatedBy
   /// with the given fields replaced by the non-null parameter values.
@@ -2042,13 +1909,10 @@ class __$$CreatedByImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CreatedByImpl implements _CreatedBy {
   const _$CreatedByImpl(
       {required this.userId, required this.fullName, this.profileImage});
-
-  factory _$CreatedByImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CreatedByImplFromJson(json);
 
   @override
   final String userId;
@@ -2074,7 +1938,6 @@ class _$CreatedByImpl implements _CreatedBy {
                 other.profileImage == profileImage));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, userId, fullName, profileImage);
 
@@ -2085,13 +1948,6 @@ class _$CreatedByImpl implements _CreatedBy {
   @pragma('vm:prefer-inline')
   _$$CreatedByImplCopyWith<_$CreatedByImpl> get copyWith =>
       __$$CreatedByImplCopyWithImpl<_$CreatedByImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CreatedByImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CreatedBy implements CreatedBy {
@@ -2099,9 +1955,6 @@ abstract class _CreatedBy implements CreatedBy {
       {required final String userId,
       required final String fullName,
       final String? profileImage}) = _$CreatedByImpl;
-
-  factory _CreatedBy.fromJson(Map<String, dynamic> json) =
-      _$CreatedByImpl.fromJson;
 
   @override
   String get userId;
@@ -2116,10 +1969,6 @@ abstract class _CreatedBy implements CreatedBy {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CreatedByImplCopyWith<_$CreatedByImpl> get copyWith =>
       throw _privateConstructorUsedError;
-}
-
-DenominationDetail _$DenominationDetailFromJson(Map<String, dynamic> json) {
-  return _DenominationDetail.fromJson(json);
 }
 
 /// @nodoc
@@ -2139,9 +1988,6 @@ mixin _$DenominationDetail {
   double? get amount => throw _privateConstructorUsedError;
   double? get exchangeRate => throw _privateConstructorUsedError;
   double? get amountInBaseCurrency => throw _privateConstructorUsedError;
-
-  /// Serializes this DenominationDetail to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of DenominationDetail
   /// with the given fields replaced by the non-null parameter values.
@@ -2379,7 +2225,7 @@ class __$$DenominationDetailImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$DenominationDetailImpl implements _DenominationDetail {
   const _$DenominationDetailImpl(
       {required this.denominationId,
@@ -2396,9 +2242,6 @@ class _$DenominationDetailImpl implements _DenominationDetail {
       this.amount,
       this.exchangeRate,
       this.amountInBaseCurrency});
-
-  factory _$DenominationDetailImpl.fromJson(Map<String, dynamic> json) =>
-      _$$DenominationDetailImplFromJson(json);
 
   @override
   final String denominationId;
@@ -2469,7 +2312,6 @@ class _$DenominationDetailImpl implements _DenominationDetail {
                 other.amountInBaseCurrency == amountInBaseCurrency));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -2496,13 +2338,6 @@ class _$DenominationDetailImpl implements _DenominationDetail {
   _$$DenominationDetailImplCopyWith<_$DenominationDetailImpl> get copyWith =>
       __$$DenominationDetailImplCopyWithImpl<_$DenominationDetailImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$DenominationDetailImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _DenominationDetail implements DenominationDetail {
@@ -2521,9 +2356,6 @@ abstract class _DenominationDetail implements DenominationDetail {
       final double? amount,
       final double? exchangeRate,
       final double? amountInBaseCurrency}) = _$DenominationDetailImpl;
-
-  factory _DenominationDetail.fromJson(Map<String, dynamic> json) =
-      _$DenominationDetailImpl.fromJson;
 
   @override
   String get denominationId;
@@ -2562,18 +2394,11 @@ abstract class _DenominationDetail implements DenominationDetail {
       throw _privateConstructorUsedError;
 }
 
-StockFlowData _$StockFlowDataFromJson(Map<String, dynamic> json) {
-  return _StockFlowData.fromJson(json);
-}
-
 /// @nodoc
 mixin _$StockFlowData {
   LocationSummary? get locationSummary => throw _privateConstructorUsedError;
   List<JournalFlow> get journalFlows => throw _privateConstructorUsedError;
   List<ActualFlow> get actualFlows => throw _privateConstructorUsedError;
-
-  /// Serializes this StockFlowData to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of StockFlowData
   /// with the given fields replaced by the non-null parameter values.
@@ -2698,7 +2523,7 @@ class __$$StockFlowDataImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$StockFlowDataImpl implements _StockFlowData {
   const _$StockFlowDataImpl(
       {this.locationSummary,
@@ -2706,9 +2531,6 @@ class _$StockFlowDataImpl implements _StockFlowData {
       required final List<ActualFlow> actualFlows})
       : _journalFlows = journalFlows,
         _actualFlows = actualFlows;
-
-  factory _$StockFlowDataImpl.fromJson(Map<String, dynamic> json) =>
-      _$$StockFlowDataImplFromJson(json);
 
   @override
   final LocationSummary? locationSummary;
@@ -2746,7 +2568,6 @@ class _$StockFlowDataImpl implements _StockFlowData {
                 .equals(other._actualFlows, _actualFlows));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -2761,13 +2582,6 @@ class _$StockFlowDataImpl implements _StockFlowData {
   @pragma('vm:prefer-inline')
   _$$StockFlowDataImplCopyWith<_$StockFlowDataImpl> get copyWith =>
       __$$StockFlowDataImplCopyWithImpl<_$StockFlowDataImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$StockFlowDataImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _StockFlowData implements StockFlowData {
@@ -2775,9 +2589,6 @@ abstract class _StockFlowData implements StockFlowData {
       {final LocationSummary? locationSummary,
       required final List<JournalFlow> journalFlows,
       required final List<ActualFlow> actualFlows}) = _$StockFlowDataImpl;
-
-  factory _StockFlowData.fromJson(Map<String, dynamic> json) =
-      _$StockFlowDataImpl.fromJson;
 
   @override
   LocationSummary? get locationSummary;
@@ -2794,10 +2605,6 @@ abstract class _StockFlowData implements StockFlowData {
       throw _privateConstructorUsedError;
 }
 
-PaginationInfo _$PaginationInfoFromJson(Map<String, dynamic> json) {
-  return _PaginationInfo.fromJson(json);
-}
-
 /// @nodoc
 mixin _$PaginationInfo {
   int get offset => throw _privateConstructorUsedError;
@@ -2805,9 +2612,6 @@ mixin _$PaginationInfo {
   int get totalJournalFlows => throw _privateConstructorUsedError;
   int get totalActualFlows => throw _privateConstructorUsedError;
   bool get hasMore => throw _privateConstructorUsedError;
-
-  /// Serializes this PaginationInfo to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of PaginationInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -2937,7 +2741,7 @@ class __$$PaginationInfoImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$PaginationInfoImpl implements _PaginationInfo {
   const _$PaginationInfoImpl(
       {required this.offset,
@@ -2945,9 +2749,6 @@ class _$PaginationInfoImpl implements _PaginationInfo {
       required this.totalJournalFlows,
       required this.totalActualFlows,
       required this.hasMore});
-
-  factory _$PaginationInfoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PaginationInfoImplFromJson(json);
 
   @override
   final int offset;
@@ -2979,7 +2780,6 @@ class _$PaginationInfoImpl implements _PaginationInfo {
             (identical(other.hasMore, hasMore) || other.hasMore == hasMore));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, offset, limit, totalJournalFlows, totalActualFlows, hasMore);
@@ -2992,13 +2792,6 @@ class _$PaginationInfoImpl implements _PaginationInfo {
   _$$PaginationInfoImplCopyWith<_$PaginationInfoImpl> get copyWith =>
       __$$PaginationInfoImplCopyWithImpl<_$PaginationInfoImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$PaginationInfoImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _PaginationInfo implements PaginationInfo {
@@ -3008,9 +2801,6 @@ abstract class _PaginationInfo implements PaginationInfo {
       required final int totalJournalFlows,
       required final int totalActualFlows,
       required final bool hasMore}) = _$PaginationInfoImpl;
-
-  factory _PaginationInfo.fromJson(Map<String, dynamic> json) =
-      _$PaginationInfoImpl.fromJson;
 
   @override
   int get offset;
@@ -3031,18 +2821,11 @@ abstract class _PaginationInfo implements PaginationInfo {
       throw _privateConstructorUsedError;
 }
 
-StockFlowResponse _$StockFlowResponseFromJson(Map<String, dynamic> json) {
-  return _StockFlowResponse.fromJson(json);
-}
-
 /// @nodoc
 mixin _$StockFlowResponse {
   bool get success => throw _privateConstructorUsedError;
   StockFlowData? get data => throw _privateConstructorUsedError;
   PaginationInfo? get pagination => throw _privateConstructorUsedError;
-
-  /// Serializes this StockFlowResponse to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of StockFlowResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -3178,13 +2961,10 @@ class __$$StockFlowResponseImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$StockFlowResponseImpl implements _StockFlowResponse {
   const _$StockFlowResponseImpl(
       {required this.success, this.data, this.pagination});
-
-  factory _$StockFlowResponseImpl.fromJson(Map<String, dynamic> json) =>
-      _$$StockFlowResponseImplFromJson(json);
 
   @override
   final bool success;
@@ -3209,7 +2989,6 @@ class _$StockFlowResponseImpl implements _StockFlowResponse {
                 other.pagination == pagination));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, success, data, pagination);
 
@@ -3221,13 +3000,6 @@ class _$StockFlowResponseImpl implements _StockFlowResponse {
   _$$StockFlowResponseImplCopyWith<_$StockFlowResponseImpl> get copyWith =>
       __$$StockFlowResponseImplCopyWithImpl<_$StockFlowResponseImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$StockFlowResponseImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _StockFlowResponse implements StockFlowResponse {
@@ -3235,9 +3007,6 @@ abstract class _StockFlowResponse implements StockFlowResponse {
       {required final bool success,
       final StockFlowData? data,
       final PaginationInfo? pagination}) = _$StockFlowResponseImpl;
-
-  factory _StockFlowResponse.fromJson(Map<String, dynamic> json) =
-      _$StockFlowResponseImpl.fromJson;
 
   @override
   bool get success;

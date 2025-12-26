@@ -3,12 +3,11 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'stock_flow.freezed.dart';
-part 'stock_flow.g.dart';
 
 /// Domain entities for stock flow tracking in cash locations
 /// These classes represent the core business logic for tracking
 /// journal flows and actual cash flows
-/// Note: Formatting methods removed - use presentation layer formatters
+/// Note: JSON serialization is handled by data/models layer
 
 @freezed
 class JournalFlow with _$JournalFlow {
@@ -29,9 +28,6 @@ class JournalFlow with _$JournalFlow {
     CounterAccount? counterAccount,
     @Default([]) List<JournalAttachment> attachments,
   }) = _JournalFlow;
-
-  factory JournalFlow.fromJson(Map<String, dynamic> json) =>
-      _$JournalFlowFromJson(json);
 }
 
 /// Attachment entity for journal flows
@@ -47,9 +43,6 @@ class JournalAttachment with _$JournalAttachment {
     String? ocrText,
     String? ocrStatus,
   }) = _JournalAttachment;
-
-  factory JournalAttachment.fromJson(Map<String, dynamic> json) =>
-      _$JournalAttachmentFromJson(json);
 
   /// Check if this is an image file
   bool get isImage => fileType.startsWith('image/');
@@ -74,9 +67,6 @@ class ActualFlow with _$ActualFlow {
     required CreatedBy createdBy,
     required List<DenominationDetail> currentDenominations,
   }) = _ActualFlow;
-
-  factory ActualFlow.fromJson(Map<String, dynamic> json) =>
-      _$ActualFlowFromJson(json);
 }
 
 @freezed
@@ -91,9 +81,6 @@ class LocationSummary with _$LocationSummary {
     required String currencyId,
     String? baseCurrencySymbol,
   }) = _LocationSummary;
-
-  factory LocationSummary.fromJson(Map<String, dynamic> json) =>
-      _$LocationSummaryFromJson(json);
 }
 
 @freezed
@@ -106,9 +93,6 @@ class CounterAccount with _$CounterAccount {
     required double credit,
     required String description,
   }) = _CounterAccount;
-
-  factory CounterAccount.fromJson(Map<String, dynamic> json) =>
-      _$CounterAccountFromJson(json);
 }
 
 @freezed
@@ -119,9 +103,6 @@ class CurrencyInfo with _$CurrencyInfo {
     required String currencyName,
     required String symbol,
   }) = _CurrencyInfo;
-
-  factory CurrencyInfo.fromJson(Map<String, dynamic> json) =>
-      _$CurrencyInfoFromJson(json);
 }
 
 @freezed
@@ -131,9 +112,6 @@ class CreatedBy with _$CreatedBy {
     required String fullName,
     String? profileImage,
   }) = _CreatedBy;
-
-  factory CreatedBy.fromJson(Map<String, dynamic> json) =>
-      _$CreatedByFromJson(json);
 }
 
 @freezed
@@ -155,9 +133,6 @@ class DenominationDetail with _$DenominationDetail {
     double? exchangeRate,
     double? amountInBaseCurrency,
   }) = _DenominationDetail;
-
-  factory DenominationDetail.fromJson(Map<String, dynamic> json) =>
-      _$DenominationDetailFromJson(json);
 }
 
 @freezed
@@ -167,9 +142,6 @@ class StockFlowData with _$StockFlowData {
     required List<JournalFlow> journalFlows,
     required List<ActualFlow> actualFlows,
   }) = _StockFlowData;
-
-  factory StockFlowData.fromJson(Map<String, dynamic> json) =>
-      _$StockFlowDataFromJson(json);
 }
 
 @freezed
@@ -181,9 +153,6 @@ class PaginationInfo with _$PaginationInfo {
     required int totalActualFlows,
     required bool hasMore,
   }) = _PaginationInfo;
-
-  factory PaginationInfo.fromJson(Map<String, dynamic> json) =>
-      _$PaginationInfoFromJson(json);
 }
 
 @freezed
@@ -193,7 +162,4 @@ class StockFlowResponse with _$StockFlowResponse {
     StockFlowData? data,
     PaginationInfo? pagination,
   }) = _StockFlowResponse;
-
-  factory StockFlowResponse.fromJson(Map<String, dynamic> json) =>
-      _$StockFlowResponseFromJson(json);
 }

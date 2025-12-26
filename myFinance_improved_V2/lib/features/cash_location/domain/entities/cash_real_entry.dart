@@ -1,11 +1,11 @@
 // Domain Entity - Cash Real Entry Business Object
+// Note: JSON serialization is handled by data/models layer
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'bank_real_entry.dart';
 
 part 'cash_real_entry.freezed.dart';
-part 'cash_real_entry.g.dart';
 
 @freezed
 class CashRealEntry with _$CashRealEntry {
@@ -38,7 +38,4 @@ class CashRealEntry with _$CashRealEntry {
       return 'Cash';
     }
   }
-
-  factory CashRealEntry.fromJson(Map<String, dynamic> json) =>
-      _$CashRealEntryFromJson(json);
 }

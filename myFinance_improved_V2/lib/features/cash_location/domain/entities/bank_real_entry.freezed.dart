@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-BankRealEntry _$BankRealEntryFromJson(Map<String, dynamic> json) {
-  return _BankRealEntry.fromJson(json);
-}
-
 /// @nodoc
 mixin _$BankRealEntry {
   String get createdAt => throw _privateConstructorUsedError;
@@ -27,9 +23,6 @@ mixin _$BankRealEntry {
   double get totalAmount => throw _privateConstructorUsedError;
   List<CurrencySummary> get currencySummary =>
       throw _privateConstructorUsedError;
-
-  /// Serializes this BankRealEntry to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of BankRealEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -171,7 +164,7 @@ class __$$BankRealEntryImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$BankRealEntryImpl extends _BankRealEntry {
   const _$BankRealEntryImpl(
       {required this.createdAt,
@@ -182,9 +175,6 @@ class _$BankRealEntryImpl extends _BankRealEntry {
       required final List<CurrencySummary> currencySummary})
       : _currencySummary = currencySummary,
         super._();
-
-  factory _$BankRealEntryImpl.fromJson(Map<String, dynamic> json) =>
-      _$$BankRealEntryImplFromJson(json);
 
   @override
   final String createdAt;
@@ -228,7 +218,6 @@ class _$BankRealEntryImpl extends _BankRealEntry {
                 .equals(other._currencySummary, _currencySummary));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -246,13 +235,6 @@ class _$BankRealEntryImpl extends _BankRealEntry {
   @pragma('vm:prefer-inline')
   _$$BankRealEntryImplCopyWith<_$BankRealEntryImpl> get copyWith =>
       __$$BankRealEntryImplCopyWithImpl<_$BankRealEntryImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$BankRealEntryImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _BankRealEntry extends BankRealEntry {
@@ -265,9 +247,6 @@ abstract class _BankRealEntry extends BankRealEntry {
           required final List<CurrencySummary> currencySummary}) =
       _$BankRealEntryImpl;
   const _BankRealEntry._() : super._();
-
-  factory _BankRealEntry.fromJson(Map<String, dynamic> json) =
-      _$BankRealEntryImpl.fromJson;
 
   @override
   String get createdAt;
@@ -290,10 +269,6 @@ abstract class _BankRealEntry extends BankRealEntry {
       throw _privateConstructorUsedError;
 }
 
-CurrencySummary _$CurrencySummaryFromJson(Map<String, dynamic> json) {
-  return _CurrencySummary.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CurrencySummary {
   String get currencyId => throw _privateConstructorUsedError;
@@ -302,9 +277,6 @@ mixin _$CurrencySummary {
   String get symbol => throw _privateConstructorUsedError;
   double get totalValue => throw _privateConstructorUsedError;
   List<Denomination> get denominations => throw _privateConstructorUsedError;
-
-  /// Serializes this CurrencySummary to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CurrencySummary
   /// with the given fields replaced by the non-null parameter values.
@@ -446,7 +418,7 @@ class __$$CurrencySummaryImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CurrencySummaryImpl implements _CurrencySummary {
   const _$CurrencySummaryImpl(
       {required this.currencyId,
@@ -456,9 +428,6 @@ class _$CurrencySummaryImpl implements _CurrencySummary {
       required this.totalValue,
       required final List<Denomination> denominations})
       : _denominations = denominations;
-
-  factory _$CurrencySummaryImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CurrencySummaryImplFromJson(json);
 
   @override
   final String currencyId;
@@ -501,7 +470,6 @@ class _$CurrencySummaryImpl implements _CurrencySummary {
                 .equals(other._denominations, _denominations));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -520,13 +488,6 @@ class _$CurrencySummaryImpl implements _CurrencySummary {
   _$$CurrencySummaryImplCopyWith<_$CurrencySummaryImpl> get copyWith =>
       __$$CurrencySummaryImplCopyWithImpl<_$CurrencySummaryImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CurrencySummaryImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CurrencySummary implements CurrencySummary {
@@ -537,9 +498,6 @@ abstract class _CurrencySummary implements CurrencySummary {
       required final String symbol,
       required final double totalValue,
       required final List<Denomination> denominations}) = _$CurrencySummaryImpl;
-
-  factory _CurrencySummary.fromJson(Map<String, dynamic> json) =
-      _$CurrencySummaryImpl.fromJson;
 
   @override
   String get currencyId;
@@ -562,10 +520,6 @@ abstract class _CurrencySummary implements CurrencySummary {
       throw _privateConstructorUsedError;
 }
 
-Denomination _$DenominationFromJson(Map<String, dynamic> json) {
-  return _Denomination.fromJson(json);
-}
-
 /// @nodoc
 mixin _$Denomination {
   String get denominationId => throw _privateConstructorUsedError;
@@ -573,9 +527,6 @@ mixin _$Denomination {
   double get denominationValue => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   double get subtotal => throw _privateConstructorUsedError;
-
-  /// Serializes this Denomination to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of Denomination
   /// with the given fields replaced by the non-null parameter values.
@@ -705,7 +656,7 @@ class __$$DenominationImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$DenominationImpl implements _Denomination {
   const _$DenominationImpl(
       {required this.denominationId,
@@ -713,9 +664,6 @@ class _$DenominationImpl implements _Denomination {
       required this.denominationValue,
       required this.quantity,
       required this.subtotal});
-
-  factory _$DenominationImpl.fromJson(Map<String, dynamic> json) =>
-      _$$DenominationImplFromJson(json);
 
   @override
   final String denominationId;
@@ -750,7 +698,6 @@ class _$DenominationImpl implements _Denomination {
                 other.subtotal == subtotal));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, denominationId, denominationType,
       denominationValue, quantity, subtotal);
@@ -762,13 +709,6 @@ class _$DenominationImpl implements _Denomination {
   @pragma('vm:prefer-inline')
   _$$DenominationImplCopyWith<_$DenominationImpl> get copyWith =>
       __$$DenominationImplCopyWithImpl<_$DenominationImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$DenominationImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _Denomination implements Denomination {
@@ -778,9 +718,6 @@ abstract class _Denomination implements Denomination {
       required final double denominationValue,
       required final int quantity,
       required final double subtotal}) = _$DenominationImpl;
-
-  factory _Denomination.fromJson(Map<String, dynamic> json) =
-      _$DenominationImpl.fromJson;
 
   @override
   String get denominationId;

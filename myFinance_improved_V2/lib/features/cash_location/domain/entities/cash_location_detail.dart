@@ -1,10 +1,10 @@
 // Domain Entity - Cash Location Detail
 // Represents detailed cash location information for editing/viewing
+// Note: JSON serialization is handled by data/models layer
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'cash_location_detail.freezed.dart';
-part 'cash_location_detail.g.dart';
 
 @freezed
 class CashLocationDetail with _$CashLocationDetail {
@@ -21,7 +21,4 @@ class CashLocationDetail with _$CashLocationDetail {
     String? storeId,
     @Default(false) bool isDeleted,
   }) = _CashLocationDetail;
-
-  factory CashLocationDetail.fromJson(Map<String, dynamic> json) =>
-      _$CashLocationDetailFromJson(json);
 }

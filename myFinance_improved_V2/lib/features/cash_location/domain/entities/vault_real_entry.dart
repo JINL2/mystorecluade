@@ -1,11 +1,11 @@
 // Domain Entity - Vault Real Entry Business Object
+// Note: JSON serialization is handled by data/models layer
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'bank_real_entry.dart';
 
 part 'vault_real_entry.freezed.dart';
-part 'vault_real_entry.g.dart';
 
 @freezed
 class VaultRealEntry with _$VaultRealEntry {
@@ -37,7 +37,4 @@ class VaultRealEntry with _$VaultRealEntry {
       return 'Vault';
     }
   }
-
-  factory VaultRealEntry.fromJson(Map<String, dynamic> json) =>
-      _$VaultRealEntryFromJson(json);
 }

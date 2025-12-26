@@ -1,10 +1,10 @@
 // Domain Entity - Journal Operation Result
 // Provides type-safe result handling for journal operations
+// Note: JSON serialization is handled by data/models layer
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'journal_result.freezed.dart';
-part 'journal_result.g.dart';
 
 /// Result of journal entry operations
 ///
@@ -32,9 +32,6 @@ sealed class JournalResult with _$JournalResult {
     String? errorCode,
     Map<String, dynamic>? errorDetails,
   }) = JournalFailure;
-
-  factory JournalResult.fromJson(Map<String, dynamic> json) =>
-      _$JournalResultFromJson(json);
 
   /// Helper method to convert from Map<String, dynamic> response
   factory JournalResult.fromResponse(Map<String, dynamic> response) {

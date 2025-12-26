@@ -1,10 +1,10 @@
 // Domain Layer - Journal Entry Entity
 // Pure business object with business logic
+// Note: JSON serialization is handled by data/models layer
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'journal_entry.freezed.dart';
-part 'journal_entry.g.dart';
 
 @freezed
 class JournalEntry with _$JournalEntry {
@@ -52,9 +52,6 @@ class JournalEntry with _$JournalEntry {
       journalEntry: this,
     );
   }
-
-  factory JournalEntry.fromJson(Map<String, dynamic> json) =>
-      _$JournalEntryFromJson(json);
 }
 
 @freezed
@@ -70,9 +67,6 @@ class JournalLine with _$JournalLine {
     required double credit,
     required String description,
   }) = _JournalLine;
-
-  factory JournalLine.fromJson(Map<String, dynamic> json) =>
-      _$JournalLineFromJson(json);
 }
 
 /// Business data for transaction (no UI formatting)
@@ -85,7 +79,4 @@ class TransactionData with _$TransactionData {
     required double amount,
     required JournalEntry journalEntry,
   }) = _TransactionData;
-
-  factory TransactionData.fromJson(Map<String, dynamic> json) =>
-      _$TransactionDataFromJson(json);
 }
