@@ -6,66 +6,14 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
+import '../../domain/entities/transfer_scope.dart';
+import '../formatters/cash_transaction_ui_extensions.dart';
 import '../providers/cash_transaction_providers.dart';
 import '../widgets/amount_input_keypad.dart';
 import '../widgets/transaction_confirm_dialog.dart';
+import '../widgets/transfer_entry/transfer_entry_widgets.dart';
 
 const _tag = '[TransferEntrySheet]';
-
-/// Transfer Scope - determines accounting treatment
-enum TransferScope {
-  withinStore,      // 같은 가게 내: Simple cash transfer
-  withinCompany,    // 같은 회사 내 다른 가게: Inter-store debt (A/R, A/P)
-  betweenCompanies, // 다른 회사: Inter-company debt (A/R, A/P)
-}
-
-extension TransferScopeExtension on TransferScope {
-  String get label {
-    switch (this) {
-      case TransferScope.withinStore:
-        return 'Within Store';
-      case TransferScope.withinCompany:
-        return 'Within Company';
-      case TransferScope.betweenCompanies:
-        return 'Between Companies';
-    }
-  }
-
-  String get labelKo {
-    switch (this) {
-      case TransferScope.withinStore:
-        return '가게 내 이동';
-      case TransferScope.withinCompany:
-        return '회사 내 이동';
-      case TransferScope.betweenCompanies:
-        return '다른 회사로 이동';
-    }
-  }
-
-  String get description {
-    switch (this) {
-      case TransferScope.withinStore:
-        return 'Move cash between vaults in this store';
-      case TransferScope.withinCompany:
-        return 'Transfer to another store in your company';
-      case TransferScope.betweenCompanies:
-        return 'Transfer to another company you own';
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case TransferScope.withinStore:
-        return Icons.swap_horiz;
-      case TransferScope.withinCompany:
-        return Icons.store;
-      case TransferScope.betweenCompanies:
-        return Icons.business;
-    }
-  }
-
-  bool get isDebtTransaction => this != TransferScope.withinStore;
-}
 
 /// Cash Transfer Bottom Sheet
 /// 3 Transfer Scopes:
@@ -652,7 +600,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
           return Padding(
             padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-            child: _buildScopeCard(
+            child: TransferScopeCard(
               scope: scope,
               isSelected: isSelected,
               isAvailable: isAvailable,
@@ -677,101 +625,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         // Need at least 1 other company
         return _getOtherCompanies().isNotEmpty;
     }
-  }
-
-  Widget _buildScopeCard({
-    required TransferScope scope,
-    required bool isSelected,
-    required bool isAvailable,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Opacity(
-        opacity: isAvailable ? 1.0 : 0.5,
-        child: Container(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(
-              color: isSelected ? TossColors.gray900 : TossColors.gray200,
-              width: isSelected ? 1.5 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: scope.isDebtTransaction
-                      ? TossColors.gray200
-                      : TossColors.gray100,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                child: Center(
-                  child: Icon(
-                    scope.icon,
-                    color: TossColors.gray600,
-                    size: 22,
-                  ),
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      scope.label,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      scope.description,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                    if (scope.isDebtTransaction) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space2,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: TossColors.gray100,
-                          borderRadius:
-                              BorderRadius.circular(TossBorderRadius.xs),
-                        ),
-                        child: Text(
-                          'Creates A/R & A/P',
-                          style: TossTextStyles.small.copyWith(
-                            color: TossColors.gray600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Icon(
-                isSelected ? Icons.check : Icons.chevron_right,
-                color: isSelected ? TossColors.gray900 : TossColors.gray300,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   // ==================== WITHIN STORE: TO CASH LOCATION ====================
