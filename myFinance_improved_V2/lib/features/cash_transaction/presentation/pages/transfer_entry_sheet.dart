@@ -647,7 +647,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         _buildFromSummary(),
 
         // Arrow
-        _buildArrow(),
+        const TransferArrow(),
 
         Text(
           'Which Cash Location?',
@@ -687,7 +687,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
                 final isSelected = _toCashLocationId == location.cashLocationId;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: _buildSelectionCard(
+                  child: SelectionCard(
                     title: location.locationName,
                     icon: Icons.account_balance_wallet,
                     isSelected: isSelected,
@@ -758,7 +758,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         _buildFromSummary(),
 
         // Arrow
-        _buildArrow(),
+        const TransferArrow(),
 
         Text(
           'To which store?',
@@ -791,7 +791,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
             final isSelected = _toStoreId == storeId;
             return Padding(
               padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: _buildStoreCardReal(
+              child: StoreSelectionCard(
                 storeId: storeId,
                 storeName: storeName,
                 isSelected: isSelected,
@@ -801,7 +801,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
           }),
 
         const SizedBox(height: TossSpacing.space2),
-        _buildDebtTransactionNotice(),
+        const DebtTransactionNotice(),
       ],
     );
   }
@@ -839,7 +839,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         _buildFromSummary(),
 
         // Arrow
-        _buildArrow(),
+        const TransferArrow(),
 
         Text(
           'To which company?',
@@ -873,7 +873,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
             final isSelected = _toCompanyId == companyId;
             return Padding(
               padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: _buildCompanyCardReal(
+              child: CompanySelectionCard(
                 companyId: companyId,
                 companyName: companyName,
                 storeCount: stores.length,
@@ -884,7 +884,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
           }),
 
         const SizedBox(height: TossSpacing.space2),
-        _buildDebtTransactionNotice(),
+        const DebtTransactionNotice(),
       ],
     );
   }
@@ -918,10 +918,10 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         _buildFromSummary(),
 
         // Arrow
-        _buildArrow(),
+        const TransferArrow(),
 
         // To company summary
-        _buildSummaryCard(
+        SummaryCard(
           icon: Icons.business,
           label: 'TO Company',
           value: _toCompanyName ?? '',
@@ -961,7 +961,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
             final isSelected = _toStoreId == storeId;
             return Padding(
               padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: _buildStoreCardReal(
+              child: StoreSelectionCard(
                 storeId: storeId,
                 storeName: storeName,
                 isSelected: isSelected,
@@ -1020,10 +1020,10 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         _buildFromSummary(),
 
         // Arrow
-        _buildArrow(),
+        const TransferArrow(),
 
         // To store summary
-        _buildSummaryCard(
+        SummaryCard(
           icon: Icons.store,
           label: _selectedScope == TransferScope.betweenCompanies
               ? '$_toCompanyName'
@@ -1075,7 +1075,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
                 final isSelected = _toCashLocationId == location.cashLocationId;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: _buildSelectionCard(
+                  child: SelectionCard(
                     title: location.locationName,
                     icon: Icons.account_balance_wallet,
                     isSelected: isSelected,
@@ -1116,7 +1116,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         // Debt transaction notice
         if (_selectedScope?.isDebtTransaction == true) ...[
           const SizedBox(height: TossSpacing.space2),
-          _buildDebtTransactionNotice(),
+          const DebtTransactionNotice(),
         ],
 
         const SizedBox(height: TossSpacing.space3),
@@ -1135,56 +1135,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   }
 
   // ==================== HELPER WIDGETS ====================
-
-  Widget _buildContextCard() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.store, color: TossColors.gray600, size: 18),
-          const SizedBox(width: TossSpacing.space2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _fromStoreName ?? '',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  _fromCompanyName ?? '',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildArrow() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
-        child: Icon(
-          Icons.arrow_downward,
-          color: TossColors.gray400,
-          size: 24,
-        ),
-      ),
-    );
-  }
 
   Widget _buildFromSummary() {
     return Container(
@@ -1240,267 +1190,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray600,
                 fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    VoidCallback? onEdit,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: TossColors.gray600, size: 18),
-          const SizedBox(width: TossSpacing.space2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (onEdit != null)
-            GestureDetector(
-              onTap: onEdit,
-              child: Text(
-                'Change',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray600,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSelectionCard({
-    required String title,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: Icon(
-                  icon,
-                  color: TossColors.gray600,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Text(
-                title,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: TossColors.gray900,
-                ),
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check : Icons.chevron_right,
-              color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStoreCardReal({
-    required String storeId,
-    required String storeName,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.store,
-                  color: TossColors.gray600,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Text(
-                storeName,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: TossColors.gray900,
-                ),
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check : Icons.chevron_right,
-              color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompanyCardReal({
-    required String companyId,
-    required String companyName,
-    required int storeCount,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: TossColors.gray200,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.business,
-                  color: TossColors.gray600,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    companyName,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  Text(
-                    '$storeCount store${storeCount > 1 ? 's' : ''}',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check : Icons.chevron_right,
-              color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDebtTransactionNotice() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray300),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.info_outline,
-            color: TossColors.gray600,
-            size: 20,
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Expanded(
-            child: Text(
-              'This will create A/R & A/P entries for proper tracking.',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray700,
               ),
             ),
           ),
