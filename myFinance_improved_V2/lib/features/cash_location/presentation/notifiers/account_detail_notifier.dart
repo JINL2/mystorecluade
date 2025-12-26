@@ -1,11 +1,14 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../di/cash_location_providers.dart';
 import '../../domain/entities/journal_result.dart';
 import '../../domain/usecases/create_error_adjustment_use_case.dart';
 import '../../domain/usecases/create_foreign_currency_translation_use_case.dart';
 import '../../domain/usecases/get_stock_flow_use_case.dart';
 import '../../domain/value_objects/stock_flow_params.dart';
 import 'account_detail_state.dart';
+
+part 'account_detail_notifier.g.dart';
 
 /// Notifier for Account Detail page
 ///
@@ -14,22 +17,22 @@ import 'account_detail_state.dart';
 /// - Creating error adjustments
 /// - Creating foreign currency translations
 /// - Refreshing data
-class AccountDetailNotifier extends StateNotifier<AccountDetailState> {
-  final GetStockFlowUseCase _getStockFlowUseCase;
-  final CreateErrorAdjustmentUseCase _createErrorUseCase;
-  final CreateForeignCurrencyTranslationUseCase _createForeignCurrencyUseCase;
-
-  AccountDetailNotifier({
-    required GetStockFlowUseCase getStockFlowUseCase,
-    required CreateErrorAdjustmentUseCase createErrorUseCase,
-    required CreateForeignCurrencyTranslationUseCase createForeignCurrencyUseCase,
-  })  : _getStockFlowUseCase = getStockFlowUseCase,
-        _createErrorUseCase = createErrorUseCase,
-        _createForeignCurrencyUseCase = createForeignCurrencyUseCase,
-        super(const AccountDetailState());
+@riverpod
+class AccountDetailNotifier extends _$AccountDetailNotifier {
+  late final GetStockFlowUseCase _getStockFlowUseCase;
+  late final CreateErrorAdjustmentUseCase _createErrorUseCase;
+  late final CreateForeignCurrencyTranslationUseCase _createForeignCurrencyUseCase;
 
   static const int _pageLimit = 20;
   static const int _maxItemsInMemory = 100;
+
+  @override
+  AccountDetailState build(String locationId) {
+    _getStockFlowUseCase = ref.read(getStockFlowUseCaseProvider);
+    _createErrorUseCase = ref.read(createErrorAdjustmentUseCaseProvider);
+    _createForeignCurrencyUseCase = ref.read(createForeignCurrencyTranslationUseCaseProvider);
+    return const AccountDetailState();
+  }
 
   /// Load initial data
   Future<void> loadInitialData({
