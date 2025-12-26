@@ -25,6 +25,8 @@ class PeriodSelector extends StatelessWidget {
         children: [
           _buildChip(QuickPeriod.today, 'Today'),
           const SizedBox(width: TossSpacing.space2),
+          _buildChip(QuickPeriod.yesterday, 'Yesterday'),
+          const SizedBox(width: TossSpacing.space2),
           _buildChip(QuickPeriod.thisWeek, 'Week'),
           const SizedBox(width: TossSpacing.space2),
           _buildChip(QuickPeriod.thisMonth, 'Month'),

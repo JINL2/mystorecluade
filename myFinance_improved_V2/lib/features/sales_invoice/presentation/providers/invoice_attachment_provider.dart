@@ -115,10 +115,8 @@ class InvoiceAttachmentNotifier extends StateNotifier<InvoiceAttachmentState> {
         isUploading: false,
       );
 
-      debugPrint('✅ [InvoiceAttachment] Uploaded ${files.length} attachments');
       return true;
     } catch (e) {
-      debugPrint('❌ [InvoiceAttachment] Upload failed: $e');
       state = state.copyWith(
         isUploading: false,
         errorMessage: 'Failed to upload images: $e',

@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.storebase.myfinance_improved"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
 
     // 🔧 NDK를 27로 고정 (플러그인 요구 버전)
     ndkVersion = "27.0.12077973"

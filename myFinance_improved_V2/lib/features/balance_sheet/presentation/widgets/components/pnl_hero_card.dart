@@ -86,7 +86,7 @@ class PnlHeroCard extends StatelessWidget {
                 child: _buildMetric(
                   'Revenue',
                   summary.revenue,
-                  null,
+                  100.0, // Base reference for margin calculation
                 ),
               ),
               Expanded(

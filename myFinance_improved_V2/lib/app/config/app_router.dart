@@ -218,6 +218,19 @@ class RouterNotifier extends ChangeNotifier {
   bool get isNavigationLocked => _isNavigationInProgress;
 }
 
+/// Global RouterNotifier instance for navigation lock control
+RouterNotifier? _routerNotifierInstance;
+
+/// Lock navigation to prevent auth state changes from redirecting
+void lockRouterNavigation() {
+  _routerNotifierInstance?.lockNavigation();
+}
+
+/// Unlock navigation
+void unlockRouterNavigation() {
+  _routerNotifierInstance?.unlockNavigation();
+}
+
 /// App Router Provider
 ///
 /// Provides the GoRouter configuration for the entire app.
@@ -225,8 +238,10 @@ class RouterNotifier extends ChangeNotifier {
 ///
 /// IMPORTANT: This must be a regular Provider (not StateProvider)
 /// because GoRouter should only be created once and reused.
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final routerNotifier = RouterNotifier(ref);
+  _routerNotifierInstance = routerNotifier;
 
   final router = GoRouter(
     initialLocation: '/',
@@ -236,18 +251,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       try {
         final currentPath = state.matchedLocation;
 
-        // Skip redirects during active navigation
+        // Skip redirects during active navigation (e.g., password reset flow)
         if (routerNotifier.isNavigationLocked) {
           return null;
         }
 
         // Helper function for safe redirect with loop detection
-        String? safeRedirect(String targetPath, String reason) {
+        String? safeRedirect(String targetPath) {
           if (routerNotifier._checkForRedirectLoop(targetPath)) {
             routerNotifier._clearRedirectHistory();
             return '/';
           }
-
           routerNotifier._trackRedirect(targetPath);
           return targetPath;
         }
@@ -258,6 +272,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         final isOnboardingRoute = currentPath.startsWith('/onboarding');
         final isAuthRoute = currentPath.startsWith('/auth');
         final isCompleteProfileRoute = currentPath == '/auth/complete-profile';
+        final isResetPasswordRoute = currentPath == '/auth/reset-password';
 
         // Get company count from app state
         final userData = appState.user;
@@ -275,7 +290,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
         // Redirect to auth welcome if not authenticated AND trying to access protected pages
         if (!isAuth && !isAuthRoute && !isOnboardingRoute) {
-          return safeRedirect('/auth', 'Not authenticated');
+          return safeRedirect('/auth');
         }
 
         // Allow unauthenticated users to access auth pages (login, signup)
@@ -284,16 +299,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
 
         // Redirect to complete profile if authenticated but profile incomplete
-        // Skip if already on complete-profile page
-        if (isAuth && hasUserData && !hasCompletedProfile && !isCompleteProfileRoute) {
-          return safeRedirect('/auth/complete-profile', 'Profile incomplete');
+        // Skip if already on complete-profile page or reset-password page
+        if (isAuth && hasUserData && !hasCompletedProfile && !isCompleteProfileRoute && !isResetPasswordRoute) {
+          return safeRedirect('/auth/complete-profile');
         }
 
         // Redirect authenticated users away from auth pages
-        if (isAuth && isAuthRoute && !isCompleteProfileRoute) {
+        // Exception: Allow reset-password page (user verified OTP but needs to set new password)
+        if (isAuth && isAuthRoute && !isCompleteProfileRoute && !isResetPasswordRoute) {
           // If user has companies, go straight to home
           if (hasUserData && companyCount > 0) {
-            return safeRedirect('/', 'Authenticated, has companies');
+            return safeRedirect('/');
           }
 
           // If AppState is empty, stay on auth page and wait for data to load
@@ -302,12 +318,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           }
 
           // If user has NO companies (data loaded but empty), go to onboarding
-          return safeRedirect('/onboarding/choose-role', 'Authenticated, needs onboarding');
+          return safeRedirect('/onboarding/choose-role');
         }
 
         // Redirect to onboarding if authenticated but no companies (from homepage)
         if (isAuth && !isOnboardingRoute && hasUserData && companyCount == 0 && hasCompletedProfile) {
-          return safeRedirect('/onboarding/choose-role', 'No companies');
+          return safeRedirect('/onboarding/choose-role');
         }
 
         return null;

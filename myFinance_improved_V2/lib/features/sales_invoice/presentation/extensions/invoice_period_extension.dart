@@ -14,6 +14,8 @@ extension InvoicePeriodDisplay on InvoicePeriod {
     switch (this) {
       case InvoicePeriod.today:
         return 'Today';
+      case InvoicePeriod.yesterday:
+        return 'Yesterday';
       case InvoicePeriod.thisWeek:
         return 'This week';
       case InvoicePeriod.thisMonth:

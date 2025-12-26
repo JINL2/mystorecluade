@@ -2,6 +2,7 @@
 /// Note: displayName is in presentation/extensions/invoice_period_extension.dart
 enum InvoicePeriod {
   today,
+  yesterday,
   thisWeek,
   thisMonth,
   lastMonth,
@@ -16,6 +17,10 @@ enum InvoicePeriod {
     switch (this) {
       case InvoicePeriod.today:
         return DateRange(startDate: startOfToday, endDate: today);
+      case InvoicePeriod.yesterday:
+        final yesterdayStart = startOfToday.subtract(const Duration(days: 1));
+        final yesterdayEnd = today.subtract(const Duration(days: 1));
+        return DateRange(startDate: yesterdayStart, endDate: yesterdayEnd);
       case InvoicePeriod.thisWeek:
         // Monday = 1, Sunday = 7
         // weekStart: Go back to Monday of this week

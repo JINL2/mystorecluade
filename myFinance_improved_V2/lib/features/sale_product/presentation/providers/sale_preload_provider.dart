@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../register_denomination/data/services/exchange_rate_service.dart';
 import '../../di/sale_product_providers.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/exchange_rate_data.dart';
@@ -84,7 +85,7 @@ class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
 
       // Load exchange rates and cash locations in parallel using repositories
       final results = await Future.wait([
-        _loadExchangeRates(companyId),
+        _loadExchangeRates(companyId, storeId),
         _loadCashLocations(companyId, storeId),
       ]);
 
@@ -105,11 +106,52 @@ class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
     }
   }
 
-  /// Load exchange rates using repository
-  Future<ExchangeRateData?> _loadExchangeRates(String companyId) async {
+  /// Load exchange rates using real-time API
+  /// First gets currency list from DB (sorted by store balance), then fetches real-time rates
+  Future<ExchangeRateData?> _loadExchangeRates(
+    String companyId,
+    String storeId,
+  ) async {
     try {
+      // 1. Get currency list from DB (sorted by store balance)
       final repository = ref.read(exchangeRateRepositoryProvider);
-      return await repository.getExchangeRates(companyId: companyId);
+      final dbData = await repository.getExchangeRates(
+        companyId: companyId,
+        storeId: storeId.isNotEmpty ? storeId : null,
+      );
+
+      if (dbData == null) return null;
+
+      // 2. Get real-time exchange rates from API
+      final exchangeRateService = ExchangeRateService();
+      final baseCurrency = dbData.baseCurrency.currencyCode;
+      final targetCurrencies =
+          dbData.rates.map((r) => r.currencyCode).toList();
+
+      if (targetCurrencies.isEmpty) {
+        return dbData;
+      }
+
+      final realTimeRates = await exchangeRateService.getMultipleExchangeRates(
+        baseCurrency,
+        targetCurrencies,
+      );
+
+      // 3. Build new rates with real-time data (keep DB order)
+      final updatedRates = dbData.rates.map((rate) {
+        final realTimeRate = realTimeRates[rate.currencyCode];
+        return ExchangeRate(
+          currencyCode: rate.currencyCode,
+          symbol: rate.symbol,
+          rate: realTimeRate ?? rate.rate, // fallback to DB rate
+          name: rate.name,
+        );
+      }).toList();
+
+      return ExchangeRateData(
+        baseCurrency: dbData.baseCurrency,
+        rates: updatedRates,
+      );
     } catch (e) {
       // Return null on error - exchange rates are optional
       return null;

@@ -307,7 +307,19 @@ class SupabaseAuthDataSource implements AuthDataSource {
       // Send OTP code for password recovery
       // This sends a 6-digit recovery code to the email
       await _client.auth.resetPasswordForEmail(email);
-    } catch (e) {
+
+      SentryConfig.addBreadcrumb(
+        message: 'Password recovery OTP sent',
+        category: 'auth',
+        data: {'email_domain': email.split('@').lastOrNull ?? 'unknown'},
+      );
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Failed to send password recovery OTP',
+        extra: {'email_domain': email.split('@').lastOrNull ?? 'unknown'},
+      );
       throw Exception('Failed to send OTP code: $e');
     }
   }
@@ -330,11 +342,22 @@ class SupabaseAuthDataSource implements AuthDataSource {
         throw Exception('OTP verification failed - no session returned');
       }
 
+      SentryConfig.addBreadcrumb(
+        message: 'Password recovery OTP verified',
+        category: 'auth',
+        data: {'user_id': response.user?.id ?? 'unknown'},
+      );
+
       // After successful recovery OTP verification:
       // - User is now in a "recovery" session state
       // - User can call updatePassword() to set new password
-      // - User is NOT fully logged in until password is updated
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Failed to verify password recovery OTP',
+        extra: {'email_domain': email.split('@').lastOrNull ?? 'unknown'},
+      );
       throw Exception('Failed to verify OTP code: $e');
     }
   }

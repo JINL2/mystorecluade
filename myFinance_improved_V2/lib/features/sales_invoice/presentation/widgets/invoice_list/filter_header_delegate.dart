@@ -28,30 +28,36 @@ class FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Filter pills row
+          // Filter pills row - equal distribution
           SizedBox(
-            height: 56,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
+            height: 52,
+            child: Row(
               children: [
-                _buildFilterPill(
-                  context,
-                  'Time',
-                  invoiceState.selectedPeriod.displayName,
+                Expanded(
+                  child: _buildFilterPill(
+                    context,
+                    'Time',
+                    invoiceState.selectedPeriod.displayName,
+                  ),
                 ),
                 const SizedBox(width: 8),
-                _buildFilterPill(
-                  context,
-                  'Cash Location',
-                  invoiceState.selectedCashLocation?.name ?? 'All Locations',
-                  isActive: invoiceState.selectedCashLocation != null,
+                Expanded(
+                  child: _buildFilterPill(
+                    context,
+                    'Location',
+                    invoiceState.selectedCashLocation?.name ?? 'All',
+                    isActive: invoiceState.selectedCashLocation != null,
+                    filterKey: 'Cash Location',
+                  ),
                 ),
                 const SizedBox(width: 8),
-                _buildFilterPill(
-                  context,
-                  'Status',
-                  invoiceState.statusDisplayText,
-                  isActive: invoiceState.selectedStatus != null,
+                Expanded(
+                  child: _buildFilterPill(
+                    context,
+                    'Status',
+                    invoiceState.statusDisplayText,
+                    isActive: invoiceState.selectedStatus != null,
+                  ),
                 ),
               ],
             ),
@@ -67,7 +73,7 @@ class FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
               children: [
                 const TextSpan(text: 'Total invoice: '),
                 TextSpan(
-                  text: '${invoiceState.invoices.length} invoices',
+                  text: '${invoiceState.filteredInvoices.length} invoices',
                   style: TossTextStyles.caption.copyWith(
                     fontWeight: FontWeight.w700,
                     color: TossColors.gray900,
@@ -100,14 +106,15 @@ class FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
     String title,
     String subtitle, {
     bool isActive = false,
+    String? filterKey,
   }) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
-        onTap: () => onFilterTap(title),
+        onTap: () => onFilterTap(filterKey ?? title),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: isActive
                 ? TossColors.primary.withValues(alpha: 0.1)
@@ -117,30 +124,35 @@ class FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                 isActive ? Border.all(color: TossColors.primary, width: 1) : null,
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isActive ? TossColors.primary : TossColors.gray900,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TossTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isActive ? TossColors.primary : TossColors.gray900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: isActive ? TossColors.primary : TossColors.gray600,
+                    Text(
+                      subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: isActive ? TossColors.primary : TossColors.gray600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 4),
               Icon(
                 Icons.keyboard_arrow_down,
                 size: 16,
@@ -154,7 +166,7 @@ class FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 
   double _calculateTotalAmount() {
-    return invoiceState.invoices
+    return invoiceState.filteredInvoices
         .fold(0.0, (sum, invoice) => sum + invoice.amounts.totalAmount);
   }
 

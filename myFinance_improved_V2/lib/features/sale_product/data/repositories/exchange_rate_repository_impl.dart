@@ -12,8 +12,12 @@ class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
   @override
   Future<ExchangeRateData?> getExchangeRates({
     required String companyId,
+    String? storeId,
   }) async {
-    final response = await _dataSource.getExchangeRates(companyId: companyId);
+    final response = await _dataSource.getExchangeRates(
+      companyId: companyId,
+      storeId: storeId,
+    );
 
     if (response.error != null) {
       return null;

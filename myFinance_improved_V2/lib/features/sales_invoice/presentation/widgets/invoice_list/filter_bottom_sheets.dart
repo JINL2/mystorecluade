@@ -75,12 +75,12 @@ class InvoiceFilterBottomSheets {
               value: 'completed',
               selectedStatus: selectedStatus,
             ),
-            // Refunded option
+            // Cancelled/Refunded option
             _buildStatusOption(
               context,
               ref,
               label: 'Refunded',
-              value: 'refunded',
+              value: 'cancelled',
               selectedStatus: selectedStatus,
             ),
           ],
@@ -126,7 +126,7 @@ class InvoiceFilterBottomSheets {
 
     TossBottomSheet.show<void>(
       context: context,
-      title: 'Filter by Cash Location',
+      title: 'Filter by Location',
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

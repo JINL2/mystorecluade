@@ -42,6 +42,9 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 페이지 진입 시 필터 초기화 (All 상태로)
+      ref.read(invoiceListProvider.notifier).clearCashLocationFilter();
+      ref.read(invoiceListProvider.notifier).clearStatusFilter();
       ref.read(invoiceListProvider.notifier).loadInvoices();
       ref.read(invoiceListProvider.notifier).loadCashLocations();
     });
@@ -347,24 +350,30 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Filter pills row
+          // Filter pills row - equal distribution
           SizedBox(
-            height: 56,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
+            height: 52,
+            child: Row(
               children: [
-                _buildFilterPill('Time', invoiceState.selectedPeriod.displayName),
-                const SizedBox(width: 8),
-                _buildFilterPill(
-                  'Cash Location',
-                  invoiceState.selectedCashLocation?.name ?? 'All Locations',
-                  isActive: invoiceState.selectedCashLocation != null,
+                Expanded(
+                  child: _buildFilterPill('Time', invoiceState.selectedPeriod.displayName),
                 ),
                 const SizedBox(width: 8),
-                _buildFilterPill(
-                  'Status',
-                  invoiceState.statusDisplayText,
-                  isActive: invoiceState.selectedStatus != null,
+                Expanded(
+                  child: _buildFilterPill(
+                    'Location',
+                    invoiceState.selectedCashLocation?.name ?? 'All',
+                    isActive: invoiceState.selectedCashLocation != null,
+                    filterKey: 'Cash Location',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildFilterPill(
+                    'Status',
+                    invoiceState.statusDisplayText,
+                    isActive: invoiceState.selectedStatus != null,
+                  ),
                 ),
               ],
             ),
@@ -380,7 +389,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
               children: [
                 const TextSpan(text: 'Total invoice: '),
                 TextSpan(
-                  text: '${invoiceState.invoices.length} invoices',
+                  text: '${invoiceState.filteredInvoices.length} invoices',
                   style: TossTextStyles.caption.copyWith(
                     fontWeight: FontWeight.w700,
                     color: TossColors.gray900,
@@ -388,7 +397,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
                 ),
                 const TextSpan(text: ' · Total money: '),
                 TextSpan(
-                  text: _formatCurrency(_calculateTotalAmount(invoiceState.invoices)),
+                  text: _formatCurrency(_calculateTotalAmount(invoiceState.filteredInvoices)),
                   style: TossTextStyles.caption.copyWith(
                     fontWeight: FontWeight.w700,
                     color: TossColors.gray900,
@@ -408,46 +417,52 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     );
   }
 
-  Widget _buildFilterPill(String title, String subtitle, {bool isActive = false}) {
+  Widget _buildFilterPill(String title, String subtitle, {bool isActive = false, String? filterKey}) {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
         onTap: () {
-          _showFilterBottomSheet(title);
+          _showFilterBottomSheet(filterKey ?? title);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: isActive ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             border: isActive ? Border.all(color: TossColors.primary, width: 1) : null,
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isActive ? TossColors.primary : TossColors.gray900,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TossTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isActive ? TossColors.primary : TossColors.gray900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: isActive ? TossColors.primary : TossColors.gray600,
+                    Text(
+                      subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: isActive ? TossColors.primary : TossColors.gray600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 4),
               Icon(
                 Icons.keyboard_arrow_down,
                 size: 16,

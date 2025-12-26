@@ -112,8 +112,6 @@ class InvoiceRemoteDataSource {
         },
       );
 
-      debugPrint('💰 [getCashLocations] Response: $response');
-
       return response
           .map((json) => CashLocationModel.fromJson(json as Map<String, dynamic>).toEntity())
           .toList();

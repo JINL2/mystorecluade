@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../../cash_location/domain/constants/account_ids.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';
@@ -66,10 +66,23 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         response: result,
         error: null,
       );
-    } catch (e) {
+
+      SentryConfig.addBreadcrumb(
+        message: 'Loaded ${result.invoices.length} invoices',
+        category: 'invoice',
+        data: {'period': filter.period.toString(), 'page': filter.page},
+      );
+    } catch (e, stackTrace) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+      );
+
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'Failed to load invoices',
+        extra: {'period': state.selectedPeriod.toString()},
       );
     }
   }
@@ -141,14 +154,17 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         storeId: storeId,
       );
 
-      debugPrint('💰 [CashLocations] Loaded ${cashLocations.length} cash locations');
+      SentryConfig.addBreadcrumb(
+        message: 'Loaded ${cashLocations.length} cash locations',
+        category: 'invoice',
+      );
 
       state = state.copyWith(
         isLoadingCashLocations: false,
         cashLocations: cashLocations,
       );
     } catch (e) {
-      debugPrint('❌ [CashLocations] Error loading: $e');
+      // Silent fail - cash locations are optional for filtering
       state = state.copyWith(isLoadingCashLocations: false);
     }
   }
