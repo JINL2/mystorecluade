@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +8,6 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 import '../../domain/entities/transfer_scope.dart';
 import '../formatters/cash_transaction_ui_extensions.dart';
 import '../providers/cash_transaction_providers.dart';
-import '../widgets/amount_input_keypad.dart';
 import '../widgets/transaction_confirm_dialog.dart';
 import '../widgets/transfer_entry/transfer_entry_widgets.dart';
 
@@ -43,9 +41,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   TransferScope? _selectedScope;
 
   // FROM side (pre-set from main page)
-  String? _fromCompanyId;
   String? _fromCompanyName;
-  String? _fromStoreId;
   String? _fromStoreName;
 
   // TO side
@@ -71,11 +67,8 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
     // For now we use mock data for the multi-company/store selection
     // but the actual transfer submission uses real repository
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final appState = ref.read(appStateProvider);
       setState(() {
-        _fromCompanyId = appState.companyChoosen;
         _fromCompanyName = 'Current Company'; // Would come from company provider
-        _fromStoreId = appState.storeChoosen;
         _fromStoreName = 'Current Store'; // Would come from store provider
       });
     });
@@ -136,20 +129,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   }
 
   // ==================== STEP LOGIC ====================
-
-  /// Get total steps based on scope
-  int get _totalSteps {
-    switch (_selectedScope) {
-      case TransferScope.withinStore:
-        return 4; // scope -> from cash loc -> to cash loc -> amount
-      case TransferScope.withinCompany:
-        return 5; // scope -> from cash loc -> to store -> to cash loc -> amount
-      case TransferScope.betweenCompanies:
-        return 6; // scope -> from cash loc -> to company -> to store -> to cash loc -> amount
-      case null:
-        return 1;
-    }
-  }
 
   void _onScopeSelected(TransferScope scope) {
     debugPrint('[TransferSheet] 🎯 _onScopeSelected called with scope: $scope');
@@ -516,45 +495,10 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   // ==================== STEP 0: SCOPE SELECTION ====================
 
   Widget _buildScopeSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        Text(
-          'What type of transfer?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-            color: TossColors.gray900,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          'Select where the money is going',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        // Scope options
-        ...TransferScope.values.map((scope) {
-          final isSelected = _selectedScope == scope;
-          // Check if option is available
-          final isAvailable = _isScopeAvailable(scope);
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-            child: TransferScopeCard(
-              scope: scope,
-              isSelected: isSelected,
-              isAvailable: isAvailable,
-              onTap: isAvailable ? () => _onScopeSelected(scope) : null,
-            ),
-          );
-        }),
-      ],
+    return ScopeSelectionSection(
+      selectedScope: _selectedScope,
+      isScopeAvailable: _isScopeAvailable,
+      onScopeSelected: _onScopeSelected,
     );
   }
 
@@ -577,84 +521,15 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
   Widget _buildToCashLocationSelectionWithinStore() {
     final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-    final storeId = appState.storeChoosen;
-
-    final cashLocationsAsync = ref.watch(
-      cashLocationsForStoreProvider((companyId: companyId, storeId: storeId)),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        // From summary
-        FromSummaryCard(
-          fromCashLocationName: widget.fromCashLocationName,
-          onChangePressed: () => setState(() => _currentStep = 1),
-        ),
-
-        // Arrow
-        const TransferArrow(),
-
-        Text(
-          'Which Cash Location?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-            color: TossColors.gray900,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          'Select destination in ${_fromStoreName}',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        cashLocationsAsync.when(
-          data: (locations) {
-            // Exclude the FROM location
-            final availableLocations = locations
-                .where((loc) => loc.cashLocationId != widget.fromCashLocationId)
-                .toList();
-
-            if (availableLocations.isEmpty) {
-              return Center(
-                child: Text(
-                  'No other cash locations available',
-                  style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-                ),
-              );
-            }
-
-            return Column(
-              children: availableLocations.map((location) {
-                final isSelected = _toCashLocationId == location.cashLocationId;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: SelectionCard(
-                    title: location.locationName,
-                    icon: Icons.account_balance_wallet,
-                    isSelected: isSelected,
-                    onTap: () => _onToCashLocationSelectedReal(location),
-                  ),
-                );
-              }).toList(),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => Center(
-            child: Text(
-              'Error loading locations',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-            ),
-          ),
-        ),
-      ],
+    return WithinStoreCashLocationSection(
+      fromCashLocationId: widget.fromCashLocationId,
+      fromCashLocationName: widget.fromCashLocationName,
+      fromStoreName: _fromStoreName,
+      companyId: appState.companyChoosen,
+      storeId: appState.storeChoosen,
+      selectedCashLocationId: _toCashLocationId,
+      onLocationSelected: _onToCashLocationSelectedReal,
+      onChangeFromPressed: () => setState(() => _currentStep = 1),
     );
   }
 
@@ -690,71 +565,13 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   // ==================== WITHIN COMPANY: TO STORE ====================
 
   Widget _buildToStoreSelectionWithinCompany() {
-    final otherStores = _getOtherStoresInCompany();
-    debugPrint('[TransferSheet] 🏬 _buildToStoreSelectionWithinCompany called');
-    debugPrint('[TransferSheet] 📋 otherStores.length: ${otherStores.length}');
-    debugPrint('[TransferSheet] 📋 _fromCompanyName: "$_fromCompanyName"');
-    for (final store in otherStores) {
-      debugPrint('[TransferSheet]   - ${store['store_name']} (${store['store_id']})');
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        // From summary
-        FromSummaryCard(
-          fromCashLocationName: widget.fromCashLocationName,
-          onChangePressed: () => setState(() => _currentStep = 1),
-        ),
-
-        // Arrow
-        const TransferArrow(),
-
-        Text(
-          'To which store?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-            color: TossColors.gray900,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          'Select destination store in ${_fromCompanyName}',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        if (otherStores.isEmpty)
-          Center(
-            child: Text(
-              'No other stores available',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-            ),
-          )
-        else
-          ...otherStores.map((store) {
-            final storeId = store['store_id'] as String? ?? '';
-            final storeName = store['store_name'] as String? ?? 'Unknown Store';
-            final isSelected = _toStoreId == storeId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: StoreSelectionCard(
-                storeId: storeId,
-                storeName: storeName,
-                isSelected: isSelected,
-                onTap: () => _onToStoreSelectedReal(storeId, storeName),
-              ),
-            );
-          }),
-
-        const SizedBox(height: TossSpacing.space2),
-        const DebtTransactionNotice(),
-      ],
+    return WithinCompanyStoreSection(
+      fromCashLocationName: widget.fromCashLocationName,
+      fromCompanyName: _fromCompanyName,
+      otherStores: _getOtherStoresInCompany(),
+      selectedStoreId: _toStoreId,
+      onStoreSelected: _onToStoreSelectedReal,
+      onChangeFromPressed: () => setState(() => _currentStep = 1),
     );
   }
 
@@ -780,67 +597,12 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   // ==================== BETWEEN COMPANIES: TO COMPANY ====================
 
   Widget _buildToCompanySelection() {
-    final otherCompanies = _getOtherCompanies();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        // From summary
-        FromSummaryCard(
-          fromCashLocationName: widget.fromCashLocationName,
-          onChangePressed: () => setState(() => _currentStep = 1),
-        ),
-
-        // Arrow
-        const TransferArrow(),
-
-        Text(
-          'To which company?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-            color: TossColors.gray900,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          'Select destination company',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        if (otherCompanies.isEmpty)
-          Center(
-            child: Text(
-              'No other companies available',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-            ),
-          )
-        else
-          ...otherCompanies.map((company) {
-            final companyId = company['company_id'] as String? ?? '';
-            final companyName = company['company_name'] as String? ?? 'Unknown Company';
-            final stores = company['stores'] as List<dynamic>? ?? [];
-            final isSelected = _toCompanyId == companyId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: CompanySelectionCard(
-                companyId: companyId,
-                companyName: companyName,
-                storeCount: stores.length,
-                isSelected: isSelected,
-                onTap: () => _onToCompanySelectedReal(companyId, companyName),
-              ),
-            );
-          }),
-
-        const SizedBox(height: TossSpacing.space2),
-        const DebtTransactionNotice(),
-      ],
+    return BetweenCompaniesCompanySection(
+      fromCashLocationName: widget.fromCashLocationName,
+      otherCompanies: _getOtherCompanies(),
+      selectedCompanyId: _toCompanyId,
+      onCompanySelected: _onToCompanySelectedReal,
+      onChangeFromPressed: () => setState(() => _currentStep = 1),
     );
   }
 
@@ -860,74 +622,16 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   // ==================== BETWEEN COMPANIES: TO STORE IN COMPANY ====================
 
   Widget _buildToStoreSelectionInCompany() {
-    final targetStores = _toCompanyId != null
-        ? _getStoresForCompany(_toCompanyId!)
-        : <Map<String, dynamic>>[];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        // From summary
-        FromSummaryCard(
-          fromCashLocationName: widget.fromCashLocationName,
-          onChangePressed: () => setState(() => _currentStep = 1),
-        ),
-
-        // Arrow
-        const TransferArrow(),
-
-        // To company summary
-        SummaryCard(
-          icon: Icons.business,
-          label: 'TO Company',
-          value: _toCompanyName ?? '',
-          onEdit: () => setState(() => _currentStep = 1),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        Text(
-          'To which store?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-            color: TossColors.gray900,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          'Select destination store in ${_toCompanyName}',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        if (targetStores.isEmpty)
-          Center(
-            child: Text(
-              'No stores available in this company',
-              style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-            ),
-          )
-        else
-          ...targetStores.map((store) {
-            final storeId = store['store_id'] as String? ?? '';
-            final storeName = store['store_name'] as String? ?? 'Unknown Store';
-            final isSelected = _toStoreId == storeId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: StoreSelectionCard(
-                storeId: storeId,
-                storeName: storeName,
-                isSelected: isSelected,
-                onTap: () => _onToStoreSelectedForOtherCompany(storeId, storeName),
-              ),
-            );
-          }),
-      ],
+    return BetweenCompaniesStoreSection(
+      fromCashLocationName: widget.fromCashLocationName,
+      toCompanyName: _toCompanyName,
+      targetStores: _toCompanyId != null
+          ? _getStoresForCompany(_toCompanyId!)
+          : <Map<String, dynamic>>[],
+      selectedStoreId: _toStoreId,
+      onStoreSelected: _onToStoreSelectedForOtherCompany,
+      onChangeFromPressed: () => setState(() => _currentStep = 1),
+      onChangeCompanyPressed: () => setState(() => _currentStep = 1),
     );
   }
 
@@ -945,160 +649,38 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   // ==================== TO CASH LOCATION (for inter-store/company) ====================
 
   Widget _buildToCashLocationSelection() {
-    // Get the companyId for the target store
-    // If between companies, use _toCompanyId, otherwise use current company
     final targetCompanyId = _selectedScope == TransferScope.betweenCompanies
         ? _toCompanyId ?? ''
         : ref.read(appStateProvider).companyChoosen;
 
-    debugPrint('[TransferSheet] 🔍 _buildToCashLocationSelection called');
-    debugPrint('[TransferSheet] 📋 _selectedScope: $_selectedScope');
-    debugPrint('[TransferSheet] 📋 _toStoreId: "$_toStoreId"');
-    debugPrint('[TransferSheet] 📋 _toStoreName: "$_toStoreName"');
-    debugPrint('[TransferSheet] 📋 targetCompanyId: "$targetCompanyId"');
-    debugPrint('[TransferSheet] 📋 _toCompanyId: "$_toCompanyId"');
-
-    // Use provider to fetch cash locations for the target store
-    final cashLocationsAsync = ref.watch(
-      cashLocationsForStoreProvider((
-        companyId: targetCompanyId,
-        storeId: _toStoreId ?? '',
-      )),
-    );
-
-    final asyncStr = cashLocationsAsync.toString();
-    debugPrint('[TransferSheet] 📡 cashLocationsAsync state: ${asyncStr.length > 50 ? asyncStr.substring(0, 50) : asyncStr}...');
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TossSpacing.space3),
-
-        // From summary
-        FromSummaryCard(
-          fromCashLocationName: widget.fromCashLocationName,
-          onChangePressed: () => setState(() => _currentStep = 1),
-        ),
-
-        // Arrow
-        const TransferArrow(),
-
-        // To store summary
-        SummaryCard(
-          icon: Icons.store,
-          label: _selectedScope == TransferScope.betweenCompanies
-              ? '$_toCompanyName'
-              : 'TO Store',
-          value: _toStoreName ?? '',
-          onEdit: () => setState(() {
-            _currentStep = _selectedScope == TransferScope.betweenCompanies ? 2 : 1;
-          }),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        Text(
-          'Which Cash Location?',
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-            color: TossColors.gray900,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          'Select destination in ${_toStoreName}',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-
-        cashLocationsAsync.when(
-          data: (locations) {
-            debugPrint('[TransferSheet] 📥 cashLocationsAsync.data received');
-            debugPrint('[TransferSheet] 📥 locations.length: ${locations.length}');
-            for (final loc in locations) {
-              debugPrint('[TransferSheet]   - ${loc.locationName} (storeId: ${loc.storeId})');
-            }
-            if (locations.isEmpty) {
-              debugPrint('[TransferSheet] ⚠️ No locations found for _toStoreId: "$_toStoreId"');
-              return Center(
-                child: Text(
-                  'No cash locations available in this store',
-                  style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-                ),
-              );
-            }
-
-            return Column(
-              children: locations.map((location) {
-                final isSelected = _toCashLocationId == location.cashLocationId;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: SelectionCard(
-                    title: location.locationName,
-                    icon: Icons.account_balance_wallet,
-                    isSelected: isSelected,
-                    onTap: () => _onToCashLocationSelectedReal(location),
-                  ),
-                );
-              }).toList(),
-            );
-          },
-          loading: () {
-            debugPrint('[TransferSheet] ⏳ cashLocationsAsync is loading...');
-            return const Center(child: CircularProgressIndicator());
-          },
-          error: (error, stack) {
-            debugPrint('[TransferSheet] ❌ cashLocationsAsync error: $error');
-            debugPrint('[TransferSheet] ❌ stack: $stack');
-            return Center(
-              child: Text(
-                'Error loading cash locations',
-                style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-              ),
-            );
-          },
-        ),
-      ],
+    return InterEntityCashLocationSection(
+      selectedScope: _selectedScope!,
+      fromCashLocationName: widget.fromCashLocationName,
+      targetCompanyId: targetCompanyId,
+      targetStoreId: _toStoreId ?? '',
+      targetStoreName: _toStoreName,
+      targetCompanyName: _toCompanyName,
+      selectedCashLocationId: _toCashLocationId,
+      onLocationSelected: _onToCashLocationSelectedReal,
+      onChangeFromPressed: () => setState(() => _currentStep = 1),
+      onChangeStorePressed: () => setState(() {
+        _currentStep = _selectedScope == TransferScope.betweenCompanies ? 2 : 1;
+      }),
     );
   }
 
   // ==================== AMOUNT INPUT ====================
 
   Widget _buildAmountInput() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Transfer summary (no top padding - header has enough)
-        TransferSummaryWidget(
-          selectedScope: _selectedScope,
-          fromStoreName: _fromStoreName ?? '',
-          fromCashLocationName: widget.fromCashLocationName,
-          toCompanyName: _toCompanyName,
-          toStoreName: _toStoreName,
-          toCashLocationName: _toCashLocationName,
-        ),
-
-        // Debt transaction notice
-        if (_selectedScope?.isDebtTransaction == true) ...[
-          const SizedBox(height: TossSpacing.space2),
-          const DebtTransactionNotice(),
-        ],
-
-        const SizedBox(height: TossSpacing.space3),
-
-        // Amount keypad
-        AmountInputKeypad(
-          initialAmount: _amount,
-          onAmountChanged: _onAmountChanged,
-          showSubmitButton: false,
-        ),
-
-        // Bottom padding for fixed button
-        const SizedBox(height: 80),
-      ],
+    return AmountInputSection(
+      selectedScope: _selectedScope,
+      fromStoreName: _fromStoreName ?? '',
+      fromCashLocationName: widget.fromCashLocationName,
+      toCompanyName: _toCompanyName,
+      toStoreName: _toStoreName,
+      toCashLocationName: _toCashLocationName,
+      amount: _amount,
+      onAmountChanged: _onAmountChanged,
     );
   }
 

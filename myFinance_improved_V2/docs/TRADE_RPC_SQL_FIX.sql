@@ -24,6 +24,12 @@
 --
 -- counterparties:
 --   id → counterparty_id
+--
+-- trade_activity_logs:
+--   action_type → action
+--   action_description → action_detail
+--   performed_at → created_at_utc
+--   performed_by → created_by
 -- ============================================================
 
 -- ============================================================
@@ -114,22 +120,22 @@ BEGIN
     )
   ) INTO v_alerts;
 
-  -- Recent activities
+  -- Recent activities (FIXED: action_type -> action, action_description -> action_detail, performed_at -> created_at_utc)
   SELECT COALESCE(jsonb_agg(
     jsonb_build_object(
       'entity_type', entity_type,
       'entity_id', entity_id,
-      'action_type', action_type,
-      'action_description', action_description,
-      'performed_at', performed_at
-    ) ORDER BY performed_at DESC
+      'action_type', action,
+      'action_description', action_detail,
+      'performed_at', created_at_utc
+    ) ORDER BY created_at_utc DESC
   ), '[]'::jsonb)
   INTO v_recent_activities
   FROM (
-    SELECT entity_type, entity_id, action_type, action_description, performed_at
+    SELECT entity_type, entity_id, action, action_detail, created_at_utc
     FROM trade_activity_logs
     WHERE company_id = p_company_id
-    ORDER BY performed_at DESC
+    ORDER BY created_at_utc DESC
     LIMIT 10
   ) sub;
 

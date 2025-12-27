@@ -9,8 +9,8 @@ import '../../domain/entities/expense_account.dart';
 import '../../domain/repositories/cash_transaction_repository.dart';
 
 // Export domain entities for use in presentation
-export '../../domain/entities/cash_transaction_enums.dart';
 export '../../domain/entities/cash_location.dart';
+export '../../domain/entities/cash_transaction_enums.dart';
 export '../../domain/entities/counterparty.dart';
 export '../../domain/entities/expense_account.dart';
 
@@ -57,10 +57,10 @@ final expenseAccountsProvider =
 final expenseAccountsOnlyProvider =
     FutureProvider.family<List<ExpenseAccount>, String>(
   (ref, companyId) async {
-    debugPrint('$_tag 📊 expenseAccountsOnlyProvider called with companyId: $companyId');
+    debugPrint('$_tag expenseAccountsOnlyProvider called with companyId: $companyId');
     final repository = ref.watch(cashTransactionRepositoryProvider);
     final accounts = await repository.getExpenseAccountsOnly(companyId: companyId);
-    debugPrint('$_tag ✅ Got ${accounts.length} expense-only accounts');
+    debugPrint('$_tag Got ${accounts.length} expense-only accounts');
     return accounts;
   },
 );
@@ -71,13 +71,13 @@ final expenseAccountsOnlyProvider =
 final searchExpenseAccountsProvider =
     FutureProvider.family<List<ExpenseAccount>, ({String companyId, String query})>(
   (ref, params) async {
-    debugPrint('$_tag 🔍 searchExpenseAccountsProvider called - companyId: ${params.companyId}, query: ${params.query}');
+    debugPrint('$_tag searchExpenseAccountsProvider called - companyId: ${params.companyId}, query: ${params.query}');
     final repository = ref.watch(cashTransactionRepositoryProvider);
     final accounts = await repository.searchExpenseAccounts(
       companyId: params.companyId,
       query: params.query,
     );
-    debugPrint('$_tag ✅ Found ${accounts.length} accounts matching "${params.query}"');
+    debugPrint('$_tag Found ${accounts.length} accounts matching "${params.query}"');
     return accounts;
   },
 );
@@ -98,7 +98,7 @@ final counterpartiesProvider =
 final selfCounterpartyProvider =
     FutureProvider.family<Counterparty?, String>(
   (ref, companyId) async {
-    debugPrint('$_tag 🏢 selfCounterpartyProvider called for companyId: $companyId');
+    debugPrint('$_tag selfCounterpartyProvider called for companyId: $companyId');
     final repository = ref.watch(cashTransactionRepositoryProvider);
     return repository.getSelfCounterparty(companyId: companyId);
   },
@@ -119,30 +119,30 @@ final cashLocationsForCompanyProvider =
 final cashLocationsForStoreProvider =
     FutureProvider.family<List<CashLocation>, ({String companyId, String storeId})>(
   (ref, params) async {
-    debugPrint('$_tag 🏪 cashLocationsForStoreProvider called');
-    debugPrint('$_tag 📋 Params - companyId: "${params.companyId}", storeId: "${params.storeId}"');
-    debugPrint('$_tag 📋 companyId.isEmpty: ${params.companyId.isEmpty}, storeId.isEmpty: ${params.storeId.isEmpty}');
+    debugPrint('$_tag cashLocationsForStoreProvider called');
+    debugPrint('$_tag Params - companyId: "${params.companyId}", storeId: "${params.storeId}"');
+    debugPrint('$_tag companyId.isEmpty: ${params.companyId.isEmpty}, storeId.isEmpty: ${params.storeId.isEmpty}');
 
     final repository = ref.watch(cashTransactionRepositoryProvider);
-    debugPrint('$_tag 📡 Calling repository.getCashLocationsForCompany...');
+    debugPrint('$_tag Calling repository.getCashLocationsForCompany...');
 
     final allLocations = await repository.getCashLocationsForCompany(
       companyId: params.companyId,
     );
 
-    debugPrint('$_tag 📥 Got ${allLocations.length} locations from repository');
+    debugPrint('$_tag Got ${allLocations.length} locations from repository');
 
     for (final loc in allLocations) {
       debugPrint('$_tag   - Location: ${loc.locationName}, storeId: "${loc.storeId}", companyId: "${loc.companyId}"');
     }
 
     // Filter by store
-    debugPrint('$_tag 🔍 Filtering by storeId: "${params.storeId}"');
+    debugPrint('$_tag Filtering by storeId: "${params.storeId}"');
     final filtered = allLocations
         .where((loc) => loc.storeId == params.storeId)
         .toList();
 
-    debugPrint('$_tag ✅ After filter: ${filtered.length} locations');
+    debugPrint('$_tag After filter: ${filtered.length} locations');
 
     return filtered;
   },

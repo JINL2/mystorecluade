@@ -65,6 +65,8 @@ import '../../features/transaction_history/presentation/pages/transaction_histor
 import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
 import '../../features/trade_dashboard/presentation/pages/trade_dashboard_page.dart';
 import '../../features/proforma_invoice/presentation/pages/proforma_invoice_page.dart';
+import '../../features/proforma_invoice/presentation/pages/pi_detail_page.dart';
+import '../../features/proforma_invoice/presentation/pages/pi_form_page.dart';
 import '../../features/purchase_order/presentation/pages/purchase_order_page.dart';
 import '../../features/letter_of_credit/presentation/pages/letter_of_credit_page.dart';
 import '../../features/shipment/presentation/pages/shipment_page.dart';
@@ -906,6 +908,40 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final feature = state.extra;
           return ProformaInvoicePage(feature: feature);
+        },
+      ),
+
+      // PI List (alias for kebab-case URL)
+      GoRoute(
+        path: '/proforma-invoice',
+        name: 'proforma-invoice',
+        builder: (context, state) => const ProformaInvoicePage(),
+      ),
+
+      // PI New - MUST be before :piId route to avoid "new" being matched as piId
+      GoRoute(
+        path: '/proforma-invoice/new',
+        name: 'proforma-invoice-new',
+        builder: (context, state) => const PIFormPage(),
+      ),
+
+      // PI Edit - MUST be before :piId route for same reason
+      GoRoute(
+        path: '/proforma-invoice/:piId/edit',
+        name: 'proforma-invoice-edit',
+        builder: (context, state) {
+          final piId = state.pathParameters['piId']!;
+          return PIFormPage(piId: piId);
+        },
+      ),
+
+      // PI Detail - generic :piId route last
+      GoRoute(
+        path: '/proforma-invoice/:piId',
+        name: 'proforma-invoice-detail',
+        builder: (context, state) {
+          final piId = state.pathParameters['piId']!;
+          return PIDetailPage(piId: piId);
         },
       ),
 
