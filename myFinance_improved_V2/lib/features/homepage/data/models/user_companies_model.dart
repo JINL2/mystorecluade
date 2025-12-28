@@ -68,6 +68,10 @@ class CompanyModel with _$CompanyModel {
     RoleModel? role,  // ✅ Make nullable - some companies may not have role data
     @Default([]) List<StoreModel> stores,  // ✅ Provide default empty list
     SubscriptionModel? subscription,  // ✅ Company subscription plan info
+    // ✅ User salary info for this company
+    String? salaryType,  // hourly or monthly
+    String? currencyCode,  // USD, KRW, THB, etc.
+    String? currencySymbol,  // $, ₩, ฿, etc.
   }) = _CompanyModel;
 
   /// Create from JSON
@@ -83,6 +87,9 @@ class CompanyModel with _$CompanyModel {
       role: role?.toEntity() ?? const UserRole(roleName: 'User', permissions: []),  // ✅ Provide default role
       stores: stores.map((model) => model.toEntity(companyId)).toList(),
       subscription: subscription?.toEntity(),  // ✅ Convert subscription model to entity
+      salaryType: salaryType,
+      currencyCode: currencyCode,
+      currencySymbol: currencySymbol,
     );
   }
 
@@ -97,6 +104,9 @@ class CompanyModel with _$CompanyModel {
       subscription: entity.subscription != null
           ? SubscriptionModel.fromDomain(entity.subscription!)
           : null,
+      salaryType: entity.salaryType,
+      currencyCode: entity.currencyCode,
+      currencySymbol: entity.currencySymbol,
     );
   }
 }

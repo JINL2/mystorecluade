@@ -2,21 +2,16 @@ import 'package:flutter/material.dart' hide DrawerHeader;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../core/domain/entities/company.dart';
 import '../../../../core/domain/entities/store.dart';
-import '../../domain/providers/usecase_providers.dart';
-import '../../domain/usecases/create_company.dart';
-import '../../domain/usecases/create_store.dart';
-import '../../domain/usecases/join_by_code.dart';
 import '../providers/homepage_providers.dart';
+import '../services/company_store_service.dart';
 import 'bottom_sheets/codes_display_sheet.dart';
 import 'bottom_sheets/company_actions_sheet.dart';
 import 'bottom_sheets/input_bottom_sheet.dart';
@@ -24,7 +19,6 @@ import 'bottom_sheets/store_actions_sheet.dart';
 import 'create_company_sheet.dart';
 import 'create_store_sheet.dart';
 import 'drawer_sections/drawer_header.dart' as custom;
-import 'helpers/snackbar_helpers.dart';
 
 /// Modern bottom drawer using bottom sheet pattern
 class ModernBottomDrawer extends ConsumerStatefulWidget {
@@ -146,7 +140,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
   Widget _buildCompaniesSection(
     BuildContext context,
     WidgetRef ref,
-    UserWithCompanies? userData,
+    Map<String, dynamic>? userData,
     Company? selectedCompany,
   ) {
     return Column(
@@ -639,7 +633,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           inputLabel: 'Company Code',
           buttonText: 'Join Company',
           onSubmit: (code) async {
-            await _joinCompany(parentContext, ref, code);
+            await CompanyStoreService.joinCompany(parentContext, ref, code);
           },
         );
       }
@@ -666,7 +660,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           inputLabel: 'Store Code',
           buttonText: 'Join Store',
           onSubmit: (code) async {
-            await _joinStore(parentContext, ref, code);
+            await CompanyStoreService.joinStore(parentContext, ref, code);
           },
         );
       }
@@ -694,357 +688,5 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         companyName: company.companyName,
       ),
     );
-  }
-
-  // API Call Methods (delegate to helpers)
-
-  Future<void> _createCompany(
-    BuildContext context,
-    WidgetRef ref,
-    String name,
-    String companyTypeId,
-    String baseCurrencyId,
-  ) async {
-    // ✅ Capture context-dependent objects before async operations
-    if (!context.mounted) return;
-
-    final navigator = Navigator.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
-
-    SnackbarHelpers.showLoading(scaffoldMessenger, 'Creating company "$name"...');
-
-    try {
-      // Use domain use case
-      final createCompany = ref.read(createCompanyUseCaseProvider);
-      final result = await createCompany(CreateCompanyParams(
-        companyName: name,
-        companyTypeId: companyTypeId,
-        baseCurrencyId: baseCurrencyId,
-      ));
-
-      // ✅ Check mounted after async operation
-      if (!context.mounted) return;
-
-      SnackbarHelpers.dismiss(scaffoldMessenger);
-
-      result.fold(
-        (failure) {
-          SnackbarHelpers.showError(
-            scaffoldMessenger,
-            failure.message,
-            onRetry: () {
-              if (context.mounted) {
-                _createCompany(context, ref, name, companyTypeId, baseCurrencyId);
-              }
-            },
-          );
-        },
-        (company) async {
-          final appStateNotifier = ref.read(appStateProvider.notifier);
-          appStateNotifier.selectCompany(company.id);
-
-          // ✅ Check mounted before navigation
-          if (context.mounted && navigator.canPop()) navigator.pop();
-          if (context.mounted && navigator.canPop()) navigator.pop();
-
-          if (context.mounted) {
-            await SnackbarHelpers.navigateToDashboard(context, ref);
-          }
-
-          SnackbarHelpers.showSuccess(
-            scaffoldMessenger,
-            'Company "${company.name}" created successfully!',
-            actionLabel: 'Share Code',
-            onAction: () {
-              if (context.mounted) {
-                SnackbarHelpers.copyToClipboard(context, company.code, 'Company code');
-              }
-            },
-          );
-        },
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-
-      SnackbarHelpers.dismiss(scaffoldMessenger);
-      SnackbarHelpers.showError(
-        scaffoldMessenger,
-        'Error: ${e.toString().replaceAll('Exception: ', '')}',
-        onRetry: () {
-          if (context.mounted) {
-            _createCompany(context, ref, name, companyTypeId, baseCurrencyId);
-          }
-        },
-      );
-    }
-  }
-
-  Future<void> _joinCompany(BuildContext context, WidgetRef ref, String code) async {
-    // ✅ Capture context-dependent objects before async operations
-    if (!context.mounted) return;
-
-    final navigator = Navigator.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
-
-    SnackbarHelpers.showLoading(scaffoldMessenger, 'Joining company...');
-
-    try {
-      final joinByCode = ref.read(joinByCodeUseCaseProvider);
-      final user = ref.read(currentUserProvider);
-
-      if (user == null) {
-        SnackbarHelpers.dismiss(scaffoldMessenger);
-        SnackbarHelpers.showError(scaffoldMessenger, 'Please log in first');
-        return;
-      }
-
-      final result = await joinByCode(JoinByCodeParams(
-        userId: user.id,
-        code: code,
-      ));
-
-      // ✅ Check mounted after async operation
-      if (!context.mounted) return;
-
-      result.fold(
-        (failure) async {
-          SnackbarHelpers.dismiss(scaffoldMessenger);
-          if (context.mounted) {
-            await TossErrorDialogs.showBusinessJoinFailed(
-              context: context,
-              error: failure.message,
-              onRetry: () {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  _joinCompany(context, ref, code);
-                }
-              },
-            );
-          }
-        },
-        (joinResult) async {
-          if (context.mounted && navigator.canPop()) navigator.pop();
-          if (context.mounted && navigator.canPop()) navigator.pop();
-
-          SnackbarHelpers.dismiss(scaffoldMessenger);
-
-          if (joinResult.companyId != null) {
-            final appStateNotifier = ref.read(appStateProvider.notifier);
-            appStateNotifier.selectCompany(joinResult.companyId!);
-
-            if (joinResult.storeId != null) {
-              appStateNotifier.selectStore(joinResult.storeId!);
-            }
-          }
-
-          if (context.mounted) {
-            await TossSuccessDialogs.showBusinessJoined(
-              context: context,
-              companyName: joinResult.entityName,
-              roleName: joinResult.roleAssigned ?? 'Member',
-              onContinue: () {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  context.go('/');
-                }
-              },
-            );
-          }
-        },
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-
-      SnackbarHelpers.dismiss(scaffoldMessenger);
-      await TossErrorDialogs.showBusinessJoinFailed(
-        context: context,
-        error: e.toString().replaceAll('Exception: ', ''),
-        onRetry: () {
-          if (context.mounted) {
-            Navigator.of(context).pop();
-            _joinCompany(context, ref, code);
-          }
-        },
-      );
-    }
-  }
-
-  Future<void> _createStore(
-    BuildContext context,
-    WidgetRef ref,
-    String name,
-    dynamic company,
-    String? address,
-    String? phone,
-  ) async {
-    // ✅ Capture context-dependent objects before async operations
-    if (!context.mounted) return;
-
-    final navigator = Navigator.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
-
-    SnackbarHelpers.showLoading(scaffoldMessenger, 'Creating store "$name"...');
-
-    try {
-      final createStore = ref.read(createStoreUseCaseProvider);
-      final result = await createStore(CreateStoreParams(
-        storeName: name,
-        companyId: company['company_id'] as String,
-        storeAddress: address,
-        storePhone: phone,
-      ));
-
-      // ✅ Check mounted after async operation
-      if (!context.mounted) return;
-
-      SnackbarHelpers.dismiss(scaffoldMessenger);
-
-      result.fold(
-        (failure) {
-          SnackbarHelpers.showError(
-            scaffoldMessenger,
-            failure.message,
-            onRetry: () {
-              if (context.mounted) {
-                _createStore(context, ref, name, company, address, phone);
-              }
-            },
-          );
-        },
-        (store) async {
-          final appStateNotifier = ref.read(appStateProvider.notifier);
-          appStateNotifier.selectCompany(store.companyId);
-          appStateNotifier.selectStore(store.id);
-
-          // ✅ Check mounted before navigation
-          if (context.mounted && navigator.canPop()) navigator.pop();
-          if (context.mounted && navigator.canPop()) navigator.pop();
-
-          if (context.mounted) {
-            await SnackbarHelpers.navigateToDashboard(context, ref);
-          }
-
-          SnackbarHelpers.showSuccess(
-            scaffoldMessenger,
-            'Store "${store.name}" created successfully!',
-            actionLabel: 'Share Code',
-            onAction: () {
-              if (context.mounted) {
-                SnackbarHelpers.copyToClipboard(context, store.code, 'Store code');
-              }
-            },
-          );
-        },
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-
-      SnackbarHelpers.dismiss(scaffoldMessenger);
-      SnackbarHelpers.showError(
-        scaffoldMessenger,
-        'Error: ${e.toString().replaceAll('Exception: ', '')}',
-        onRetry: () {
-          if (context.mounted) {
-            _createStore(context, ref, name, company, address, phone);
-          }
-        },
-      );
-    }
-  }
-
-  Future<void> _joinStore(BuildContext context, WidgetRef ref, String code) async {
-    // ✅ Capture context-dependent objects before async operations
-    if (!context.mounted) return;
-
-    final navigator = Navigator.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
-
-    SnackbarHelpers.showLoading(scaffoldMessenger, 'Joining store...');
-
-    try {
-      final joinByCode = ref.read(joinByCodeUseCaseProvider);
-      final user = ref.read(currentUserProvider);
-
-      if (user == null) {
-        SnackbarHelpers.dismiss(scaffoldMessenger);
-        SnackbarHelpers.showError(scaffoldMessenger, 'Please log in first');
-        return;
-      }
-
-      final result = await joinByCode(JoinByCodeParams(
-        userId: user.id,
-        code: code,
-      ));
-
-      // ✅ Check mounted after async operation
-      if (!context.mounted) return;
-
-      result.fold(
-        (failure) async {
-          SnackbarHelpers.dismiss(scaffoldMessenger);
-          if (context.mounted) {
-            await TossErrorDialogs.showBusinessJoinFailed(
-              context: context,
-              error: failure.message,
-              onRetry: () {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  _joinStore(context, ref, code);
-                }
-              },
-            );
-          }
-        },
-        (joinResult) async {
-          if (context.mounted && navigator.canPop()) navigator.pop();
-          if (context.mounted && navigator.canPop()) navigator.pop();
-
-          SnackbarHelpers.dismiss(scaffoldMessenger);
-
-          await Future<void>.delayed(const Duration(milliseconds: 300));
-
-          // Force comprehensive data refresh
-          ref.invalidate(userCompaniesProvider);
-          ref.invalidate(categoriesWithFeaturesProvider);
-
-          if (joinResult.companyId != null) {
-            final appStateNotifier = ref.read(appStateProvider.notifier);
-            appStateNotifier.selectCompany(joinResult.companyId!);
-
-            if (joinResult.storeId != null) {
-              appStateNotifier.selectStore(joinResult.storeId!);
-            }
-          }
-
-          if (context.mounted) {
-            await TossSuccessDialogs.showBusinessJoined(
-              context: context,
-              companyName: joinResult.entityName,
-              roleName: joinResult.roleAssigned ?? 'Member',
-              onContinue: () {
-                if (context.mounted) {
-                  Navigator.of(context).pop(true);
-                  context.go('/');
-                }
-              },
-            );
-          }
-        },
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-
-      SnackbarHelpers.dismiss(scaffoldMessenger);
-      await TossErrorDialogs.showBusinessJoinFailed(
-        context: context,
-        error: e.toString().replaceAll('Exception: ', ''),
-        onRetry: () {
-          if (context.mounted) {
-            Navigator.of(context).pop();
-            _joinStore(context, ref, code);
-          }
-        },
-      );
-    }
   }
 }

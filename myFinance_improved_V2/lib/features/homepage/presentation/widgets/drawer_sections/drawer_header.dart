@@ -84,7 +84,7 @@ class DrawerHeader extends StatelessWidget {
                           ),
                           const SizedBox(height: TossSpacing.space1/2),
                           Text(
-                            'View profile • ${userData?.companyCount ?? 0} companies',
+                            'View profile • ${(userData?['companies'] as List?)?.length ?? 0} companies',
                             style: TossTextStyles.caption.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                             ),

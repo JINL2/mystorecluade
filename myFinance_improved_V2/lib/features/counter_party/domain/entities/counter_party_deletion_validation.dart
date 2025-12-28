@@ -1,9 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'counter_party_deletion_validation.freezed.dart';
-part 'counter_party_deletion_validation.g.dart';
 
-/// Validation result for counter party deletion
+/// Validation result for counter party deletion (Pure Domain - No JSON)
 @freezed
 class CounterPartyDeletionValidation with _$CounterPartyDeletionValidation {
   const factory CounterPartyDeletionValidation({
@@ -16,7 +15,4 @@ class CounterPartyDeletionValidation with _$CounterPartyDeletionValidation {
     required int journalLineCount,
     required String reason,
   }) = _CounterPartyDeletionValidation;
-
-  factory CounterPartyDeletionValidation.fromJson(Map<String, dynamic> json) =>
-      _$CounterPartyDeletionValidationFromJson(json);
 }

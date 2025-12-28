@@ -63,9 +63,9 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
 
     try {
       final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen as String?;
+      final companyId = appState.companyChoosen;
 
-      if (companyId == null) {
+      if (companyId.isEmpty) {
         if (!mounted) return;
         await showDialog<bool>(
           context: context,

@@ -22,6 +22,7 @@ import '../widgets/shift_list_item.dart';
 import '../widgets/store_config_section.dart';
 import '../widgets/store_info_card.dart';
 import '../widgets/store_selector_widget.dart';
+import '../widgets/schedule/schedule_tab.dart';
 import 'store_shift_page_dialogs.dart';
 
 /// Store Shift Page
@@ -42,7 +43,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -293,15 +294,15 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       appBar: const TossAppBar1(
-        title: 'Store Shift Settings',
+        title: 'Staff & Store Settings',
         backgroundColor: TossColors.gray100,
       ),
       body: Column(
         children: [
-          // Tab Bar
+          // Tab Bar - Shift (store-level), Schedule (company-level), Store (store-level)
           TossTabBar1(
             controller: _tabController,
-            tabs: const ['Shift Settings', 'Store Settings'],
+            tabs: const ['Shift', 'Schedule', 'Store'],
           ),
 
           // Tab Views
@@ -310,6 +311,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
               controller: _tabController,
               children: [
                 _buildShiftSettingsTab(),
+                const ScheduleTab(), // Company-level work schedule templates
                 _buildStoreSettingsTab(),
               ],
             ),

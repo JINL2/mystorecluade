@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -11,6 +13,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dial
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
+import '../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
 import '../providers/employee_providers.dart';
@@ -33,6 +36,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   late String _selectedPaymentType;
   late String _selectedCurrencyId;
   late DateTime _effectiveDate;
+  String? _selectedTemplateId;
   bool _isSaving = false;
 
   final _formKey = GlobalKey<FormState>();
@@ -46,10 +50,12 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
     );
     _selectedPaymentType = widget.employee.salaryType;
     // Use currency code as fallback if currencyId is not available
-    _selectedCurrencyId = widget.employee.currencyId.isNotEmpty 
-        ? widget.employee.currencyId 
+    _selectedCurrencyId = widget.employee.currencyId.isNotEmpty
+        ? widget.employee.currencyId
         : widget.employee.currencyName;
     _effectiveDate = DateTime.now();
+    // Initialize template selection from current employee data
+    _selectedTemplateId = widget.employee.workScheduleTemplateId;
   }
   
   @override
@@ -178,7 +184,11 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                     ),
                     
                     const SizedBox(height: TossSpacing.space5),
-                    
+
+                    // Work Schedule Template Selection (only for monthly)
+                    if (_selectedPaymentType == 'monthly')
+                      _buildTemplateSelection(),
+
                     // Currency Selection
                     Text(
                       'Currency',
@@ -354,6 +364,142 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
     );
   }
   
+  Widget _buildTemplateSelection() {
+    final templatesAsync = ref.watch(workScheduleTemplatesProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Work Schedule Template',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            // Link to create template if none exist
+            TextButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to Staff & Store Settings > Schedule tab
+                context.push('/store-shift');
+              },
+              icon: const Icon(LucideIcons.settings, size: 14),
+              label: const Text('Manage'),
+              style: TextButton.styleFrom(
+                foregroundColor: TossColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                textStyle: TossTextStyles.bodySmall,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        templatesAsync.when(
+          data: (templates) {
+            if (templates.isEmpty) {
+              return _buildNoTemplatesCard();
+            }
+
+            return TossDropdown<String>(
+              label: 'Work Schedule',
+              value: _selectedTemplateId,
+              items: [
+                const TossDropdownItem(
+                  value: '',
+                  label: 'No template assigned',
+                ),
+                ...templates.map((template) {
+                  return TossDropdownItem(
+                    value: template.templateId,
+                    label: '${template.templateName} (${template.timeRangeText})',
+                  );
+                }),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedTemplateId = value?.isEmpty == true ? null : value;
+                });
+              },
+              hint: 'Select work schedule template',
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (_, __) => _buildNoTemplatesCard(),
+        ),
+        const SizedBox(height: TossSpacing.space5),
+      ],
+    );
+  }
+
+  Widget _buildNoTemplatesCard() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(
+          color: TossColors.warning.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                LucideIcons.alertTriangle,
+                color: TossColors.warning,
+                size: 20,
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  'No work schedule templates',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          Text(
+            'Create a template to define working hours for monthly employees.',
+            style: TossTextStyles.bodySmall.copyWith(
+              color: TossColors.gray600,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space3),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to Staff & Store Settings > Schedule tab
+                context.push('/store-shift');
+              },
+              icon: const Icon(LucideIcons.plus, size: 16),
+              label: const Text('Create Template'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: TossColors.primary,
+                side: const BorderSide(color: TossColors.primary),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBottomActions(List<CurrencyType> currencies) {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -461,6 +607,23 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
 
         if (!success) {
           throw Exception('Failed to update salary');
+        }
+
+        // If monthly and template changed, update template assignment
+        if (_selectedPaymentType == 'monthly') {
+          final originalTemplateId = widget.employee.workScheduleTemplateId;
+          if (_selectedTemplateId != originalTemplateId) {
+            final templateResult = await ref.read(assignWorkScheduleTemplateProvider)(
+              userId: widget.employee.userId,
+              templateId: _selectedTemplateId,
+            );
+
+            if (templateResult['success'] != true) {
+              // Template assignment failed, but salary was updated
+              // Show warning but don't fail the entire operation
+              debugPrint('Template assignment warning: ${templateResult['message']}');
+            }
+          }
         }
 
         // Call the original callback to update local state with new values

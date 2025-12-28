@@ -16,7 +16,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dial
 
 import '../../../../app/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
-import '../providers/user_profile_providers.dart';
+import '../providers/my_page_notifier.dart';
 import '../widgets/profile_avatar_section.dart';
 import '../widgets/profile_header_section.dart';
 import '../widgets/settings_section.dart';
@@ -55,7 +55,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
   Future<void> _loadInitialData() async {
     final authState = await ref.read(authStateProvider.future);
     if (authState != null) {
-      await ref.read(myPageProvider.notifier).loadUserData(authState.id);
+      await ref.read(myPageNotifierProvider.notifier).loadUserData(authState.id);
     }
   }
 
@@ -111,7 +111,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
       );
     }
 
-    final myPageState = ref.watch(myPageProvider);
+    final myPageState = ref.watch(myPageNotifierProvider);
     final userProfile = myPageState.userProfile;
     final businessData = myPageState.businessDashboard;
 
@@ -225,7 +225,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     // Refresh user data using new pattern
     final authState = await ref.read(authStateProvider.future);
     if (authState != null) {
-      await ref.read(myPageProvider.notifier).loadUserData(authState.id);
+      await ref.read(myPageNotifierProvider.notifier).loadUserData(authState.id);
     }
   }
 
@@ -235,7 +235,8 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
   }
 
   void _showAvatarOptions() {
-    final profile = ref.read(currentUserProfileProvider);
+    final myPageState = ref.read(myPageNotifierProvider);
+    final profile = myPageState.userProfile;
     if (profile == null) return;
 
     showModalBottomSheet<void>(
@@ -315,7 +316,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
     try {
       final publicUrl = await ref
-          .read(myPageProvider.notifier)
+          .read(myPageNotifierProvider.notifier)
           .uploadProfileImage(imageFile.path);
 
       if (mounted) {
@@ -328,7 +329,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
         Navigator.pop(context); // Close loading dialog
 
         // Refresh profile
-        ref.invalidate(currentUserProfileProvider);
+        ref.invalidate(myPageNotifierProvider);
 
         // Show success dialog
         await showDialog(
@@ -392,13 +393,13 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     );
 
     try {
-      await ref.read(myPageProvider.notifier).removeProfileImage();
+      await ref.read(myPageNotifierProvider.notifier).removeProfileImage();
 
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
 
         // Refresh profile
-        ref.invalidate(currentUserProfileProvider);
+        ref.invalidate(myPageNotifierProvider);
 
         // Show success dialog
         await showDialog(
@@ -436,7 +437,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     await context.push('/edit-profile');
 
     if (mounted) {
-      ref.invalidate(currentUserProfileProvider);
+      ref.invalidate(myPageNotifierProvider);
     }
   }
 

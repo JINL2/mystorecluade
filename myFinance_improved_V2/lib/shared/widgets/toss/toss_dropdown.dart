@@ -12,6 +12,7 @@ class TossDropdown<T> extends StatelessWidget {
   final String? hint;
   final String? errorText;
   final bool isLoading;
+  final bool isRequired;
 
   // Constants for better maintainability
   static const double _maxBottomSheetHeight = 0.8;
@@ -30,6 +31,7 @@ class TossDropdown<T> extends StatelessWidget {
     this.hint,
     this.errorText,
     this.isLoading = false,
+    this.isRequired = false,
   });
 
   @override
@@ -42,12 +44,26 @@ class TossDropdown<T> extends StatelessWidget {
       children: [
         // Label (only show if not empty)
         if (label.isNotEmpty) ...[
-          Text(
-            label,
-            style: TossTextStyles.label.copyWith(
-              color: hasError ? TossColors.error : TossColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Text(
+                label,
+                style: TossTextStyles.label.copyWith(
+                  color: hasError ? TossColors.error : TossColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (isRequired) ...[
+                const SizedBox(width: 2),
+                Text(
+                  '*',
+                  style: TossTextStyles.label.copyWith(
+                    color: TossColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: TossSpacing.space2),
         ],

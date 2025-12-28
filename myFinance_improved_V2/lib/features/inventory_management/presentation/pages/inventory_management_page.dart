@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state.dart';
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -21,7 +20,9 @@ import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
 import '../providers/states/inventory_page_state.dart';
+import '../widgets/inventory_filter_header.dart';
 import '../widgets/inventory_product_card.dart';
+import '../widgets/inventory_sort_sheet.dart';
 import '../widgets/move_stock_dialog.dart';
 import 'inventory_history_page.dart';
 import 'inventory_search_page.dart';
@@ -42,7 +43,7 @@ class _InventoryManagementPageState
   Timer? _searchDebounceTimer;
 
   // Sorting (client-side only, RPC does not support sorting)
-  _SortOption? _currentSort; // null = database default order
+  InventorySortOption? _currentSort; // null = database default order
 
   // Filter selections
   String _selectedAvailability = 'All products';
@@ -224,7 +225,7 @@ class _InventoryManagementPageState
         // Sticky filter section
         SliverPersistentHeader(
           pinned: true,
-          delegate: _FilterHeaderDelegate(
+          delegate: InventoryFilterHeaderDelegate(
             pageState: pageState,
             selectedAvailability: _selectedAvailability,
             selectedLocation: _selectedLocation,
@@ -268,96 +269,13 @@ class _InventoryManagementPageState
   }
 
   Widget _buildFilterSection(InventoryPageState pageState) {
-    return Container(
-      color: TossColors.white,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Filter pills row
-          SizedBox(
-            height: 56,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildFilterPill('Availability', _selectedAvailability),
-                const SizedBox(width: 8),
-                _buildFilterPill('Location', _selectedLocation),
-                const SizedBox(width: 8),
-                _buildFilterPill('Brand', _selectedBrand),
-                const SizedBox(width: 8),
-                _buildFilterPill('Categories', _selectedCategory),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Summary text - uses server-provided total value from v4 RPC
-          Text(
-            'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
-            style: TossTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w500,
-              color: TossColors.gray600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Divider
-          Container(
-            height: 1,
-            color: TossColors.gray100,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterPill(String title, String subtitle) {
-    return Material(
-      color: TossColors.transparent,
-      child: InkWell(
-        onTap: () {
-          _showFilterBottomSheet(title);
-        },
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              const Icon(
-                Icons.keyboard_arrow_down,
-                size: 16,
-                color: TossColors.gray600,
-              ),
-            ],
-          ),
-        ),
-      ),
+    return InventoryFilterSection(
+      pageState: pageState,
+      selectedAvailability: _selectedAvailability,
+      selectedLocation: _selectedLocation,
+      selectedBrand: _selectedBrand,
+      selectedCategory: _selectedCategory,
+      onFilterTap: _showFilterBottomSheet,
     );
   }
 
@@ -790,21 +708,7 @@ class _InventoryManagementPageState
   }
 
   String _getSortLabel() {
-    if (_currentSort == null) return 'Name (A-Z)';
-
-    final sort = _currentSort!;
-    final isAsc = sort.direction == _SortDirection.asc;
-
-    switch (sort.field) {
-      case _SortField.name:
-        return isAsc ? 'Name (A-Z)' : 'Name (Z-A)';
-      case _SortField.price:
-        return isAsc ? 'Price (Low to High)' : 'Price (High to Low)';
-      case _SortField.stock:
-        return isAsc ? 'Stock (Low to High)' : 'Stock (High to Low)';
-      case _SortField.value:
-        return 'Value (High to Low)';
-    }
+    return InventorySorter.getSortLabel(_currentSort);
   }
 
   /// Apply client-side filtering for brand, category, and stock status
@@ -853,241 +757,18 @@ class _InventoryManagementPageState
   }
 
   List<Product> _applyLocalSort(List<Product> products) {
-    if (_currentSort == null) return products;
-
-    final sorted = List<Product>.from(products);
-    final sort = _currentSort!;
-    final isAsc = sort.direction == _SortDirection.asc;
-
-    switch (sort.field) {
-      case _SortField.name:
-        sorted.sort((a, b) => isAsc
-            ? a.name.compareTo(b.name)
-            : b.name.compareTo(a.name),);
-      case _SortField.price:
-        sorted.sort((a, b) => isAsc
-            ? a.salePrice.compareTo(b.salePrice)
-            : b.salePrice.compareTo(a.salePrice),);
-      case _SortField.stock:
-        sorted.sort((a, b) => isAsc
-            ? a.onHand.compareTo(b.onHand)
-            : b.onHand.compareTo(a.onHand),);
-      case _SortField.value:
-        sorted.sort((a, b) =>
-            (b.onHand * b.salePrice).compareTo(a.onHand * a.salePrice),);
-    }
-
-    return sorted;
+    return InventorySorter.applySort(products, _currentSort);
   }
 
   void _showSortOptionsSheet() {
-    TossBottomSheet.show(
+    InventorySortSheet.show(
       context: context,
-      title: 'Sort By',
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildSortOption('Name (A-Z)', _SortOption.nameAsc),
-            _buildSortOption('Name (Z-A)', _SortOption.nameDesc),
-            _buildSortOption('Price (Low to High)', _SortOption.priceAsc),
-            _buildSortOption('Price (High to Low)', _SortOption.priceDesc),
-            _buildSortOption('Stock (Low to High)', _SortOption.stockAsc),
-            _buildSortOption('Stock (High to Low)', _SortOption.stockDesc),
-            _buildSortOption('Value (High to Low)', _SortOption.valueDesc),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSortOption(String label, _SortOption option) {
-    final isSelected = _currentSort == option;
-    return ListTile(
-      dense: true,
-      visualDensity: VisualDensity.compact,
-      contentPadding: EdgeInsets.zero,
-      title: Text(
-        label,
-        style: TossTextStyles.body.copyWith(
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          color: isSelected ? TossColors.primary : TossColors.gray900,
-        ),
-      ),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: TossColors.primary, size: 20)
-          : null,
-      onTap: () {
+      currentSort: _currentSort,
+      onSortChanged: (newSort) {
         setState(() {
-          if (_currentSort == option) {
-            // Toggle off if same option is selected
-            _currentSort = null;
-          } else {
-            _currentSort = option;
-          }
+          _currentSort = newSort;
         });
-        Navigator.pop(context);
       },
     );
   }
-}
-
-/// Sticky header delegate for filters
-class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final InventoryPageState pageState;
-  final String selectedAvailability;
-  final String selectedLocation;
-  final String selectedBrand;
-  final String selectedCategory;
-  final Function(String) onFilterTap;
-
-  _FilterHeaderDelegate({
-    required this.pageState,
-    required this.selectedAvailability,
-    required this.selectedLocation,
-    required this.selectedBrand,
-    required this.selectedCategory,
-    required this.onFilterTap,
-  });
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: TossColors.white,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Filter pills row
-          SizedBox(
-            height: 56,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildFilterPill('Availability', selectedAvailability),
-                const SizedBox(width: 8),
-                _buildFilterPill('Location', selectedLocation),
-                const SizedBox(width: 8),
-                _buildFilterPill('Brand', selectedBrand),
-                const SizedBox(width: 8),
-                _buildFilterPill('Categories', selectedCategory),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Summary text - uses server-provided total value from v4 RPC
-          Text(
-            'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
-            style: TossTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w500,
-              color: TossColors.gray600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Divider
-          Container(
-            height: 1,
-            color: TossColors.gray100,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterPill(String title, String subtitle) {
-    return Material(
-      color: TossColors.transparent,
-      child: InkWell(
-        onTap: () => onFilterTap(title),
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              const Icon(
-                Icons.keyboard_arrow_down,
-                size: 16,
-                color: TossColors.gray600,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatCurrency(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-  }
-
-  @override
-  double get maxExtent => 120;
-
-  @override
-  double get minExtent => 120;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return true;
-  }
-}
-
-/// Client-side sort options for inventory list
-/// Note: Server RPC does not support sorting, so this is handled locally
-enum _SortField { name, price, stock, value }
-
-enum _SortDirection { asc, desc }
-
-class _SortOption {
-  final _SortField field;
-  final _SortDirection direction;
-
-  const _SortOption(this.field, this.direction);
-
-  static const nameAsc = _SortOption(_SortField.name, _SortDirection.asc);
-  static const nameDesc = _SortOption(_SortField.name, _SortDirection.desc);
-  static const priceAsc = _SortOption(_SortField.price, _SortDirection.asc);
-  static const priceDesc = _SortOption(_SortField.price, _SortDirection.desc);
-  static const stockAsc = _SortOption(_SortField.stock, _SortDirection.asc);
-  static const stockDesc = _SortOption(_SortField.stock, _SortDirection.desc);
-  static const valueDesc = _SortOption(_SortField.value, _SortDirection.desc);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _SortOption && field == other.field && direction == other.direction;
-
-  @override
-  int get hashCode => field.hashCode ^ direction.hashCode;
 }

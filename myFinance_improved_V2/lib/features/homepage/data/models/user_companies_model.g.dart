@@ -47,6 +47,9 @@ _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
           ? null
           : SubscriptionModel.fromJson(
               json['subscription'] as Map<String, dynamic>),
+      salaryType: json['salary_type'] as String?,
+      currencyCode: json['currency_code'] as String?,
+      currencySymbol: json['currency_symbol'] as String?,
     );
 
 Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
@@ -58,6 +61,9 @@ Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
       'role': instance.role,
       'stores': instance.stores,
       'subscription': instance.subscription,
+      'salary_type': instance.salaryType,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
     };
 
 _$StoreModelImpl _$$StoreModelImplFromJson(Map<String, dynamic> json) =>

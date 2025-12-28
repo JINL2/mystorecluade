@@ -303,7 +303,14 @@ mixin _$CompanyModel {
       throw _privateConstructorUsedError; // ✅ Make nullable - some companies may not have role data
   List<StoreModel> get stores =>
       throw _privateConstructorUsedError; // ✅ Provide default empty list
-  SubscriptionModel? get subscription => throw _privateConstructorUsedError;
+  SubscriptionModel? get subscription =>
+      throw _privateConstructorUsedError; // ✅ Company subscription plan info
+// ✅ User salary info for this company
+  String? get salaryType =>
+      throw _privateConstructorUsedError; // hourly or monthly
+  String? get currencyCode =>
+      throw _privateConstructorUsedError; // USD, KRW, THB, etc.
+  String? get currencySymbol => throw _privateConstructorUsedError;
 
   /// Serializes this CompanyModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -328,7 +335,10 @@ abstract class $CompanyModelCopyWith<$Res> {
       int? storeCount,
       RoleModel? role,
       List<StoreModel> stores,
-      SubscriptionModel? subscription});
+      SubscriptionModel? subscription,
+      String? salaryType,
+      String? currencyCode,
+      String? currencySymbol});
 
   $RoleModelCopyWith<$Res>? get role;
   $SubscriptionModelCopyWith<$Res>? get subscription;
@@ -356,6 +366,9 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
     Object? role = freezed,
     Object? stores = null,
     Object? subscription = freezed,
+    Object? salaryType = freezed,
+    Object? currencyCode = freezed,
+    Object? currencySymbol = freezed,
   }) {
     return _then(_value.copyWith(
       companyId: null == companyId
@@ -386,6 +399,18 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
           ? _value.subscription
           : subscription // ignore: cast_nullable_to_non_nullable
               as SubscriptionModel?,
+      salaryType: freezed == salaryType
+          ? _value.salaryType
+          : salaryType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencyCode: freezed == currencyCode
+          ? _value.currencyCode
+          : currencyCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencySymbol: freezed == currencySymbol
+          ? _value.currencySymbol
+          : currencySymbol // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -433,7 +458,10 @@ abstract class _$$CompanyModelImplCopyWith<$Res>
       int? storeCount,
       RoleModel? role,
       List<StoreModel> stores,
-      SubscriptionModel? subscription});
+      SubscriptionModel? subscription,
+      String? salaryType,
+      String? currencyCode,
+      String? currencySymbol});
 
   @override
   $RoleModelCopyWith<$Res>? get role;
@@ -461,6 +489,9 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
     Object? role = freezed,
     Object? stores = null,
     Object? subscription = freezed,
+    Object? salaryType = freezed,
+    Object? currencyCode = freezed,
+    Object? currencySymbol = freezed,
   }) {
     return _then(_$CompanyModelImpl(
       companyId: null == companyId
@@ -491,6 +522,18 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
           ? _value.subscription
           : subscription // ignore: cast_nullable_to_non_nullable
               as SubscriptionModel?,
+      salaryType: freezed == salaryType
+          ? _value.salaryType
+          : salaryType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencyCode: freezed == currencyCode
+          ? _value.currencyCode
+          : currencyCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      currencySymbol: freezed == currencySymbol
+          ? _value.currencySymbol
+          : currencySymbol // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -506,7 +549,10 @@ class _$CompanyModelImpl extends _CompanyModel {
       this.storeCount,
       this.role,
       final List<StoreModel> stores = const [],
-      this.subscription})
+      this.subscription,
+      this.salaryType,
+      this.currencyCode,
+      this.currencySymbol})
       : _stores = stores,
         super._();
 
@@ -537,10 +583,20 @@ class _$CompanyModelImpl extends _CompanyModel {
 // ✅ Provide default empty list
   @override
   final SubscriptionModel? subscription;
+// ✅ Company subscription plan info
+// ✅ User salary info for this company
+  @override
+  final String? salaryType;
+// hourly or monthly
+  @override
+  final String? currencyCode;
+// USD, KRW, THB, etc.
+  @override
+  final String? currencySymbol;
 
   @override
   String toString() {
-    return 'CompanyModel(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, storeCount: $storeCount, role: $role, stores: $stores, subscription: $subscription)';
+    return 'CompanyModel(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, storeCount: $storeCount, role: $role, stores: $stores, subscription: $subscription, salaryType: $salaryType, currencyCode: $currencyCode, currencySymbol: $currencySymbol)';
   }
 
   @override
@@ -559,7 +615,13 @@ class _$CompanyModelImpl extends _CompanyModel {
             (identical(other.role, role) || other.role == role) &&
             const DeepCollectionEquality().equals(other._stores, _stores) &&
             (identical(other.subscription, subscription) ||
-                other.subscription == subscription));
+                other.subscription == subscription) &&
+            (identical(other.salaryType, salaryType) ||
+                other.salaryType == salaryType) &&
+            (identical(other.currencyCode, currencyCode) ||
+                other.currencyCode == currencyCode) &&
+            (identical(other.currencySymbol, currencySymbol) ||
+                other.currencySymbol == currencySymbol));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -572,7 +634,10 @@ class _$CompanyModelImpl extends _CompanyModel {
       storeCount,
       role,
       const DeepCollectionEquality().hash(_stores),
-      subscription);
+      subscription,
+      salaryType,
+      currencyCode,
+      currencySymbol);
 
   /// Create a copy of CompanyModel
   /// with the given fields replaced by the non-null parameter values.
@@ -598,7 +663,10 @@ abstract class _CompanyModel extends CompanyModel {
       final int? storeCount,
       final RoleModel? role,
       final List<StoreModel> stores,
-      final SubscriptionModel? subscription}) = _$CompanyModelImpl;
+      final SubscriptionModel? subscription,
+      final String? salaryType,
+      final String? currencyCode,
+      final String? currencySymbol}) = _$CompanyModelImpl;
   const _CompanyModel._() : super._();
 
   factory _CompanyModel.fromJson(Map<String, dynamic> json) =
@@ -618,7 +686,14 @@ abstract class _CompanyModel extends CompanyModel {
   @override
   List<StoreModel> get stores; // ✅ Provide default empty list
   @override
-  SubscriptionModel? get subscription;
+  SubscriptionModel? get subscription; // ✅ Company subscription plan info
+// ✅ User salary info for this company
+  @override
+  String? get salaryType; // hourly or monthly
+  @override
+  String? get currencyCode; // USD, KRW, THB, etc.
+  @override
+  String? get currencySymbol;
 
   /// Create a copy of CompanyModel
   /// with the given fields replaced by the non-null parameter values.

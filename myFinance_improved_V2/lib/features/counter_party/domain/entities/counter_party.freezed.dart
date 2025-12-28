@@ -14,55 +14,26 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CounterParty _$CounterPartyFromJson(Map<String, dynamic> json) {
-  return _CounterParty.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CounterParty {
-  @JsonKey(name: 'counterparty_id')
   String get counterpartyId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'company_id')
   String get companyId => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: counterPartyTypeFromJson, toJson: counterPartyTypeToJson)
   CounterPartyType get type => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_internal')
   bool get isInternal => throw _privateConstructorUsedError;
-  @JsonKey(name: 'linked_company_id')
   String? get linkedCompanyId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'linked_company_name')
   String? get linkedCompanyName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_by')
   String? get createdBy => throw _privateConstructorUsedError;
-  @JsonKey(
-      name: 'created_at', fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(
-      name: 'updated_at',
-      includeIfNull: false,
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get updatedAt => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_deleted')
-  bool get isDeleted =>
-      throw _privateConstructorUsedError; // Additional fields for enhanced functionality
-  @JsonKey(
-      name: 'last_transaction_date',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
+  bool get isDeleted => throw _privateConstructorUsedError;
   DateTime? get lastTransactionDate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'total_transactions')
   int get totalTransactions => throw _privateConstructorUsedError;
-  @JsonKey(name: 'balance')
   double get balance => throw _privateConstructorUsedError;
-
-  /// Serializes this CounterParty to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CounterParty
   /// with the given fields replaced by the non-null parameter values.
@@ -78,39 +49,24 @@ abstract class $CounterPartyCopyWith<$Res> {
       _$CounterPartyCopyWithImpl<$Res, CounterParty>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'counterparty_id') String counterpartyId,
-      @JsonKey(name: 'company_id') String companyId,
+      {String counterpartyId,
+      String companyId,
       String name,
-      @JsonKey(
-          fromJson: counterPartyTypeFromJson, toJson: counterPartyTypeToJson)
       CounterPartyType type,
       String? email,
       String? phone,
       String? address,
       String? notes,
-      @JsonKey(name: 'is_internal') bool isInternal,
-      @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
-      @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
-      @JsonKey(name: 'created_by') String? createdBy,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJson,
-          toJson: _dateTimeToJson)
+      bool isInternal,
+      String? linkedCompanyId,
+      String? linkedCompanyName,
+      String? createdBy,
       DateTime createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          includeIfNull: false,
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       DateTime? updatedAt,
-      @JsonKey(name: 'is_deleted') bool isDeleted,
-      @JsonKey(
-          name: 'last_transaction_date',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      bool isDeleted,
       DateTime? lastTransactionDate,
-      @JsonKey(name: 'total_transactions') int totalTransactions,
-      @JsonKey(name: 'balance') double balance});
+      int totalTransactions,
+      double balance});
 }
 
 /// @nodoc
@@ -233,39 +189,24 @@ abstract class _$$CounterPartyImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'counterparty_id') String counterpartyId,
-      @JsonKey(name: 'company_id') String companyId,
+      {String counterpartyId,
+      String companyId,
       String name,
-      @JsonKey(
-          fromJson: counterPartyTypeFromJson, toJson: counterPartyTypeToJson)
       CounterPartyType type,
       String? email,
       String? phone,
       String? address,
       String? notes,
-      @JsonKey(name: 'is_internal') bool isInternal,
-      @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
-      @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
-      @JsonKey(name: 'created_by') String? createdBy,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJson,
-          toJson: _dateTimeToJson)
+      bool isInternal,
+      String? linkedCompanyId,
+      String? linkedCompanyName,
+      String? createdBy,
       DateTime createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          includeIfNull: false,
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       DateTime? updatedAt,
-      @JsonKey(name: 'is_deleted') bool isDeleted,
-      @JsonKey(
-          name: 'last_transaction_date',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      bool isDeleted,
       DateTime? lastTransactionDate,
-      @JsonKey(name: 'total_transactions') int totalTransactions,
-      @JsonKey(name: 'balance') double balance});
+      int totalTransactions,
+      double balance});
 }
 
 /// @nodoc
@@ -378,57 +319,36 @@ class __$$CounterPartyImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CounterPartyImpl extends _CounterParty {
   const _$CounterPartyImpl(
-      {@JsonKey(name: 'counterparty_id') required this.counterpartyId,
-      @JsonKey(name: 'company_id') required this.companyId,
+      {required this.counterpartyId,
+      required this.companyId,
       required this.name,
-      @JsonKey(
-          fromJson: counterPartyTypeFromJson, toJson: counterPartyTypeToJson)
       required this.type,
       this.email,
       this.phone,
       this.address,
       this.notes,
-      @JsonKey(name: 'is_internal') this.isInternal = false,
-      @JsonKey(name: 'linked_company_id') this.linkedCompanyId,
-      @JsonKey(name: 'linked_company_name') this.linkedCompanyName,
-      @JsonKey(name: 'created_by') this.createdBy,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJson,
-          toJson: _dateTimeToJson)
+      this.isInternal = false,
+      this.linkedCompanyId,
+      this.linkedCompanyName,
+      this.createdBy,
       required this.createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          includeIfNull: false,
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       this.updatedAt,
-      @JsonKey(name: 'is_deleted') this.isDeleted = false,
-      @JsonKey(
-          name: 'last_transaction_date',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      this.isDeleted = false,
       this.lastTransactionDate,
-      @JsonKey(name: 'total_transactions') this.totalTransactions = 0,
-      @JsonKey(name: 'balance') this.balance = 0.0})
+      this.totalTransactions = 0,
+      this.balance = 0.0})
       : super._();
 
-  factory _$CounterPartyImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CounterPartyImplFromJson(json);
-
   @override
-  @JsonKey(name: 'counterparty_id')
   final String counterpartyId;
   @override
-  @JsonKey(name: 'company_id')
   final String companyId;
   @override
   final String name;
   @override
-  @JsonKey(fromJson: counterPartyTypeFromJson, toJson: counterPartyTypeToJson)
   final CounterPartyType type;
   @override
   final String? email;
@@ -439,43 +359,28 @@ class _$CounterPartyImpl extends _CounterParty {
   @override
   final String? notes;
   @override
-  @JsonKey(name: 'is_internal')
+  @JsonKey()
   final bool isInternal;
   @override
-  @JsonKey(name: 'linked_company_id')
   final String? linkedCompanyId;
   @override
-  @JsonKey(name: 'linked_company_name')
   final String? linkedCompanyName;
   @override
-  @JsonKey(name: 'created_by')
   final String? createdBy;
   @override
-  @JsonKey(
-      name: 'created_at', fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime createdAt;
   @override
-  @JsonKey(
-      name: 'updated_at',
-      includeIfNull: false,
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   final DateTime? updatedAt;
   @override
-  @JsonKey(name: 'is_deleted')
+  @JsonKey()
   final bool isDeleted;
-// Additional fields for enhanced functionality
   @override
-  @JsonKey(
-      name: 'last_transaction_date',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   final DateTime? lastTransactionDate;
   @override
-  @JsonKey(name: 'total_transactions')
+  @JsonKey()
   final int totalTransactions;
   @override
-  @JsonKey(name: 'balance')
+  @JsonKey()
   final double balance;
 
   @override
@@ -519,7 +424,6 @@ class _$CounterPartyImpl extends _CounterParty {
             (identical(other.balance, balance) || other.balance == balance));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -549,65 +453,37 @@ class _$CounterPartyImpl extends _CounterParty {
   @pragma('vm:prefer-inline')
   _$$CounterPartyImplCopyWith<_$CounterPartyImpl> get copyWith =>
       __$$CounterPartyImplCopyWithImpl<_$CounterPartyImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CounterPartyImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CounterParty extends CounterParty {
   const factory _CounterParty(
-      {@JsonKey(name: 'counterparty_id') required final String counterpartyId,
-      @JsonKey(name: 'company_id') required final String companyId,
+      {required final String counterpartyId,
+      required final String companyId,
       required final String name,
-      @JsonKey(
-          fromJson: counterPartyTypeFromJson, toJson: counterPartyTypeToJson)
       required final CounterPartyType type,
       final String? email,
       final String? phone,
       final String? address,
       final String? notes,
-      @JsonKey(name: 'is_internal') final bool isInternal,
-      @JsonKey(name: 'linked_company_id') final String? linkedCompanyId,
-      @JsonKey(name: 'linked_company_name') final String? linkedCompanyName,
-      @JsonKey(name: 'created_by') final String? createdBy,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJson,
-          toJson: _dateTimeToJson)
+      final bool isInternal,
+      final String? linkedCompanyId,
+      final String? linkedCompanyName,
+      final String? createdBy,
       required final DateTime createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          includeIfNull: false,
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       final DateTime? updatedAt,
-      @JsonKey(name: 'is_deleted') final bool isDeleted,
-      @JsonKey(
-          name: 'last_transaction_date',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      final bool isDeleted,
       final DateTime? lastTransactionDate,
-      @JsonKey(name: 'total_transactions') final int totalTransactions,
-      @JsonKey(name: 'balance') final double balance}) = _$CounterPartyImpl;
+      final int totalTransactions,
+      final double balance}) = _$CounterPartyImpl;
   const _CounterParty._() : super._();
 
-  factory _CounterParty.fromJson(Map<String, dynamic> json) =
-      _$CounterPartyImpl.fromJson;
-
   @override
-  @JsonKey(name: 'counterparty_id')
   String get counterpartyId;
   @override
-  @JsonKey(name: 'company_id')
   String get companyId;
   @override
   String get name;
   @override
-  @JsonKey(fromJson: counterPartyTypeFromJson, toJson: counterPartyTypeToJson)
   CounterPartyType get type;
   @override
   String? get email;
@@ -618,42 +494,24 @@ abstract class _CounterParty extends CounterParty {
   @override
   String? get notes;
   @override
-  @JsonKey(name: 'is_internal')
   bool get isInternal;
   @override
-  @JsonKey(name: 'linked_company_id')
   String? get linkedCompanyId;
   @override
-  @JsonKey(name: 'linked_company_name')
   String? get linkedCompanyName;
   @override
-  @JsonKey(name: 'created_by')
   String? get createdBy;
   @override
-  @JsonKey(
-      name: 'created_at', fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime get createdAt;
   @override
-  @JsonKey(
-      name: 'updated_at',
-      includeIfNull: false,
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get updatedAt;
   @override
-  @JsonKey(name: 'is_deleted')
-  bool get isDeleted; // Additional fields for enhanced functionality
+  bool get isDeleted;
   @override
-  @JsonKey(
-      name: 'last_transaction_date',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get lastTransactionDate;
   @override
-  @JsonKey(name: 'total_transactions')
   int get totalTransactions;
   @override
-  @JsonKey(name: 'balance')
   double get balance;
 
   /// Create a copy of CounterParty

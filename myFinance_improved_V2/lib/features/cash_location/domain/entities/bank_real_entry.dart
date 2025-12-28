@@ -1,9 +1,9 @@
 // Domain Entity - Bank Real Entry Business Object
+// Note: JSON serialization is handled by data/models layer
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'bank_real_entry.freezed.dart';
-part 'bank_real_entry.g.dart';
 
 @freezed
 class BankRealEntry with _$BankRealEntry {
@@ -45,9 +45,6 @@ class BankRealEntry with _$BankRealEntry {
       return 'Deposit';
     }
   }
-
-  factory BankRealEntry.fromJson(Map<String, dynamic> json) =>
-      _$BankRealEntryFromJson(json);
 }
 
 @freezed
@@ -60,9 +57,6 @@ class CurrencySummary with _$CurrencySummary {
     required double totalValue,
     required List<Denomination> denominations,
   }) = _CurrencySummary;
-
-  factory CurrencySummary.fromJson(Map<String, dynamic> json) =>
-      _$CurrencySummaryFromJson(json);
 }
 
 @freezed
@@ -74,7 +68,4 @@ class Denomination with _$Denomination {
     required int quantity,
     required double subtotal,
   }) = _Denomination;
-
-  factory Denomination.fromJson(Map<String, dynamic> json) =>
-      _$DenominationFromJson(json);
 }

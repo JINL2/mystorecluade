@@ -43,14 +43,14 @@ class _NotificationStoreSettingsPageState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
-          .read(storeSettingsProvider.notifier)
+          .read(storeSettingsNotifierProvider.notifier)
           .loadSettings(widget.featureId, widget.roleType);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(storeSettingsProvider);
+    final state = ref.watch(storeSettingsNotifierProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
@@ -80,7 +80,7 @@ class _NotificationStoreSettingsPageState
           TextButton(
             onPressed: () {
               ref
-                  .read(storeSettingsProvider.notifier)
+                  .read(storeSettingsNotifierProvider.notifier)
                   .loadSettings(widget.featureId, widget.roleType);
             },
             child: const Text('Retry'),
@@ -212,7 +212,7 @@ class _NotificationStoreSettingsPageState
                   isSelected: settings.allStoresEnabled,
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    ref.read(storeSettingsProvider.notifier).toggleAllStores(true);
+                    ref.read(storeSettingsNotifierProvider.notifier).toggleAllStores(true);
                   },
                 ),
               ),
@@ -224,7 +224,7 @@ class _NotificationStoreSettingsPageState
                   isSelected: !settings.allStoresEnabled,
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    ref.read(storeSettingsProvider.notifier).toggleAllStores(false);
+                    ref.read(storeSettingsNotifierProvider.notifier).toggleAllStores(false);
                   },
                 ),
               ),
@@ -496,7 +496,7 @@ class _NotificationStoreSettingsPageState
                           isEnabled: storeSetting.isEnabled,
                           onChanged: (value) {
                             ref
-                                .read(storeSettingsProvider.notifier)
+                                .read(storeSettingsNotifierProvider.notifier)
                                 .toggleStore(storeSetting.storeId, value);
                           },
                         ),

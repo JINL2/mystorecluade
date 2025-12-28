@@ -39,7 +39,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
     if (_tabController.indexIsChanging) {
       HapticFeedback.selectionClick();
       // Update state when tab changes
-      ref.read(balanceSheetPageProvider.notifier).changeTab(_tabController.index);
+      ref.read(balanceSheetPageNotifierProvider.notifier).changeTab(_tabController.index);
     }
   }
 
@@ -53,7 +53,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
-    final pageState = ref.watch(balanceSheetPageProvider);
+    final pageState = ref.watch(balanceSheetPageNotifierProvider);
     final companyId = appState.companyChoosen;
 
     // Sync tab controller with state
@@ -159,7 +159,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   }
 
   Widget _buildBalanceSheetTab(String companyId, String currencySymbol) {
-    final pageState = ref.watch(balanceSheetPageProvider);
+    final pageState = ref.watch(balanceSheetPageNotifierProvider);
     final appState = ref.watch(appStateProvider);
 
     // Show input UI if no data has been generated yet
@@ -168,7 +168,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         companyId: companyId,
         onGenerate: () {
           // Mark that we want to generate Balance Sheet
-          ref.read(balanceSheetPageProvider.notifier).generateBalanceSheet();
+          ref.read(balanceSheetPageNotifierProvider.notifier).generateBalanceSheet();
         },
       );
     }
@@ -281,7 +281,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           currencySymbol: currencySymbol,
           onEdit: () {
             // Go back to input screen
-            ref.read(balanceSheetPageProvider.notifier).clearBalanceSheetData();
+            ref.read(balanceSheetPageNotifierProvider.notifier).clearBalanceSheetData();
           },
         );
       },
@@ -309,7 +309,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
   }
 
   Widget _buildIncomeStatementTab(String companyId, String currencySymbol) {
-    final pageState = ref.watch(balanceSheetPageProvider);
+    final pageState = ref.watch(balanceSheetPageNotifierProvider);
     final appState = ref.watch(appStateProvider);
 
     // Show input UI if no data has been generated yet
@@ -320,7 +320,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
         buttonText: 'Generate Income Statement',
         onGenerate: () {
           // Mark that we want to generate Income Statement
-          ref.read(balanceSheetPageProvider.notifier).generateIncomeStatement();
+          ref.read(balanceSheetPageNotifierProvider.notifier).generateIncomeStatement();
         },
       );
     }
@@ -378,7 +378,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
           currencySymbol: currencySymbol,
           onEdit: () {
             // Go back to input screen
-            ref.read(balanceSheetPageProvider.notifier).clearIncomeStatementData();
+            ref.read(balanceSheetPageNotifierProvider.notifier).clearIncomeStatementData();
           },
         );
       },

@@ -332,7 +332,7 @@ class AttendanceHelpers {
     }
 
     // CHECKIN MODE: Find closest check-in shift
-    // findClosestCheckinShift already has midpoint logic built-in
+    // findClosestCheckinShift uses grace period logic
     final checkinShift = ScheduleDateUtils.findClosestCheckinShift(
       shiftCards,
       currentTime: currentTime,

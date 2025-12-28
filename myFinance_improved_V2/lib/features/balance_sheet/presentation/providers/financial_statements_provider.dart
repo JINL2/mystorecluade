@@ -1,17 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/datasources/balance_sheet_data_source.dart';
-import '../../data/models/pnl_summary_model.dart';
-import '../../data/models/bs_summary_model.dart';
+import '../../data/models/pnl_summary_dto.dart';
+import '../../data/models/bs_summary_dto.dart';
+
+part 'financial_statements_provider.g.dart';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DATA SOURCE PROVIDER
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-final balanceSheetDataSourceProvider = Provider<BalanceSheetDataSource>((ref) {
+@riverpod
+BalanceSheetDataSource balanceSheetDataSource(Ref ref) {
   return BalanceSheetDataSource(Supabase.instance.client);
-});
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // PAGE STATE
@@ -77,10 +81,12 @@ class FinancialStatementsPageState {
   }
 }
 
-class FinancialStatementsPageNotifier
-    extends StateNotifier<FinancialStatementsPageState> {
-  FinancialStatementsPageNotifier()
-      : super(FinancialStatementsPageState.initial());
+@riverpod
+class FinancialStatementsPageNotifier extends _$FinancialStatementsPageNotifier {
+  @override
+  FinancialStatementsPageState build() {
+    return FinancialStatementsPageState.initial();
+  }
 
   void changeTab(int index) {
     state = state.copyWith(selectedTabIndex: index);
@@ -141,11 +147,6 @@ class FinancialStatementsPageNotifier
   }
 }
 
-final financialStatementsPageProvider = StateNotifierProvider<
-    FinancialStatementsPageNotifier, FinancialStatementsPageState>((ref) {
-  return FinancialStatementsPageNotifier();
-});
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DATA PROVIDERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -184,8 +185,8 @@ class PnlParams {
 }
 
 /// P&L Summary Provider
-final pnlSummaryProvider =
-    FutureProvider.family<PnlSummaryModel, PnlParams>((ref, params) async {
+@riverpod
+Future<PnlSummaryModel> pnlSummary(Ref ref, PnlParams params) async {
   final dataSource = ref.read(balanceSheetDataSourceProvider);
   return dataSource.getPnlSummary(
     companyId: params.companyId,
@@ -195,11 +196,11 @@ final pnlSummaryProvider =
     prevStartDate: params.prevStartDate,
     prevEndDate: params.prevEndDate,
   );
-});
+}
 
 /// P&L Detail Provider
-final pnlDetailProvider =
-    FutureProvider.family<List<PnlDetailRowModel>, PnlParams>((ref, params) async {
+@riverpod
+Future<List<PnlDetailRowModel>> pnlDetail(Ref ref, PnlParams params) async {
   final dataSource = ref.read(balanceSheetDataSourceProvider);
   return dataSource.getPnlDetail(
     companyId: params.companyId,
@@ -207,7 +208,7 @@ final pnlDetailProvider =
     endDate: params.endDate,
     storeId: params.storeId,
   );
-});
+}
 
 class BsParams {
   final String companyId;
@@ -237,8 +238,8 @@ class BsParams {
 }
 
 /// B/S Summary Provider
-final bsSummaryProvider =
-    FutureProvider.family<BsSummaryModel, BsParams>((ref, params) async {
+@riverpod
+Future<BsSummaryModel> bsSummary(Ref ref, BsParams params) async {
   final dataSource = ref.read(balanceSheetDataSourceProvider);
   return dataSource.getBsSummary(
     companyId: params.companyId,
@@ -246,18 +247,18 @@ final bsSummaryProvider =
     storeId: params.storeId,
     compareDate: params.compareDate,
   );
-});
+}
 
 /// B/S Detail Provider
-final bsDetailProvider =
-    FutureProvider.family<List<BsDetailRowModel>, BsParams>((ref, params) async {
+@riverpod
+Future<List<BsDetailRowModel>> bsDetail(Ref ref, BsParams params) async {
   final dataSource = ref.read(balanceSheetDataSourceProvider);
   return dataSource.getBsDetail(
     companyId: params.companyId,
     asOfDate: params.asOfDate,
     storeId: params.storeId,
   );
-});
+}
 
 class TrendParams {
   final String companyId;
@@ -286,8 +287,8 @@ class TrendParams {
 }
 
 /// Daily P&L Trend Provider
-final dailyPnlTrendProvider =
-    FutureProvider.family<List<DailyPnlModel>, TrendParams>((ref, params) async {
+@riverpod
+Future<List<DailyPnlModel>> dailyPnlTrend(Ref ref, TrendParams params) async {
   final dataSource = ref.read(balanceSheetDataSourceProvider);
   return dataSource.getDailyPnlTrend(
     companyId: params.companyId,
@@ -295,12 +296,12 @@ final dailyPnlTrendProvider =
     endDate: params.endDate,
     storeId: params.storeId,
   );
-});
+}
 
 /// Currency Provider
-final companyCurrencyProvider =
-    FutureProvider.family<String, String>((ref, companyId) async {
+@riverpod
+Future<String> companyCurrency(Ref ref, String companyId) async {
   final dataSource = ref.read(balanceSheetDataSourceProvider);
   final currency = await dataSource.getCurrencyRaw(companyId);
   return currency['symbol'] as String? ?? '₫';
-});
+}

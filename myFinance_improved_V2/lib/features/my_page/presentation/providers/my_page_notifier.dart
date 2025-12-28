@@ -1,29 +1,37 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../app/providers/auth_providers.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import 'states/my_page_state.dart';
+import 'user_profile_providers.dart';
+
+part 'my_page_notifier.g.dart';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-/// 🎯 My Page Notifier - 상태 관리 + 비즈니스 로직 조율
+/// My Page Notifier - 상태 관리 + 비즈니스 로직 조율
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ///
 /// Flutter 표준 구조: Notifier가 직접 Repository 호출
 /// Controller 레이어 없이 Domain Layer와 직접 통신
-class MyPageNotifier extends StateNotifier<MyPageState> {
-  final UserProfileRepository _repository;
+@riverpod
+class MyPageNotifier extends _$MyPageNotifier {
+  late final UserProfileRepository _repository;
 
-  MyPageNotifier({
-    required UserProfileRepository repository,
-  })  : _repository = repository,
-        super(const MyPageState());
+  @override
+  MyPageState build() {
+    _repository = ref.watch(userProfileRepositoryProvider);
+    return const MyPageState();
+  }
+
+  /// 현재 사용자 ID 가져오기 (Auth Provider 통해)
+  String? get _currentUserId => ref.read(currentUserIdProvider);
 
   /// 사용자 프로필 및 비즈니스 대시보드 로드 (직접 Repository 호출)
   Future<void> loadUserData(String userId) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      // ✅ Flutter 표준: Repository 직접 호출 (Controller 없음)
+      // Flutter 표준: Repository 직접 호출 (Controller 없음)
       final userProfile = await _repository.getUserProfile(userId);
       final businessDashboard = await _repository.getBusinessDashboard(userId);
 
@@ -52,10 +60,10 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
     state = state.copyWith(isUpdating: true, errorMessage: null);
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = _currentUserId;
       if (userId == null) throw Exception('User not authenticated');
 
-      // ✅ Flutter 표준: Repository 직접 호출
+      // Flutter 표준: Repository 직접 호출
       await _repository.updateUserProfile(
         userId: userId,
         firstName: firstName,
@@ -89,7 +97,7 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
     state = state.copyWith(isUpdating: true, errorMessage: null);
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = _currentUserId;
       if (userId == null) throw Exception('User not authenticated');
 
       await _repository.saveUserBankAccount(
@@ -114,7 +122,7 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
   /// 은행 계좌 정보 조회
   Future<Map<String, dynamic>?> getBankAccount(String companyId) async {
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = _currentUserId;
       if (userId == null) return null;
 
       return await _repository.getUserBankAccount(
@@ -131,10 +139,10 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
     state = state.copyWith(isUpdating: true, errorMessage: null);
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = _currentUserId;
       if (userId == null) throw Exception('User not authenticated');
 
-      // ✅ Flutter 표준: Repository 직접 호출
+      // Flutter 표준: Repository 직접 호출
       final publicUrl = await _repository.uploadProfileImage(userId, filePath);
 
       state = state.copyWith(isUpdating: false);
@@ -153,10 +161,10 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
     state = state.copyWith(isUpdating: true, errorMessage: null);
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = _currentUserId;
       if (userId == null) throw Exception('User not authenticated');
 
-      // ✅ Flutter 표준: Repository 직접 호출
+      // Flutter 표준: Repository 직접 호출
       await _repository.removeProfileImage(userId);
 
       // 프로필 재로드
@@ -185,15 +193,17 @@ class MyPageNotifier extends StateNotifier<MyPageState> {
 }
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-/// 🎯 Profile Edit Notifier - 프로필 편집 전용 상태 관리
+/// Profile Edit Notifier - 프로필 편집 전용 상태 관리
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
-  final UserProfileRepository _repository;
+@riverpod
+class ProfileEditNotifier extends _$ProfileEditNotifier {
+  late final UserProfileRepository _repository;
 
-  ProfileEditNotifier({
-    required UserProfileRepository repository,
-  })  : _repository = repository,
-        super(const ProfileEditState());
+  @override
+  ProfileEditState build() {
+    _repository = ref.watch(userProfileRepositoryProvider);
+    return const ProfileEditState();
+  }
 
   /// 편집 모드 시작
   void startEditing() {
@@ -221,7 +231,7 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
     );
 
     try {
-      // ✅ Flutter 표준: Repository 직접 호출
+      // Flutter 표준: Repository 직접 호출
       await _repository.updateUserProfile(
         userId: userId,
         firstName: firstName,
@@ -281,7 +291,7 @@ class ProfileEditNotifier extends StateNotifier<ProfileEditState> {
     state = state.copyWith(isUploadingImage: true, errorMessage: null);
 
     try {
-      // ✅ Flutter 표준: Repository 직접 호출
+      // Flutter 표준: Repository 직접 호출
       final publicUrl = await _repository.uploadProfileImage(userId, filePath);
 
       state = state.copyWith(isUploadingImage: false);

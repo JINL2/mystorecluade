@@ -63,6 +63,17 @@ import '../../features/test/test_template_mapping_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
 import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
 import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
+import '../../features/trade_dashboard/presentation/pages/trade_dashboard_page.dart';
+import '../../features/trade_dashboard/presentation/pages/activity_list_page.dart';
+import '../../features/proforma_invoice/presentation/pages/proforma_invoice_page.dart';
+import '../../features/proforma_invoice/presentation/pages/pi_detail_page.dart';
+import '../../features/proforma_invoice/presentation/pages/pi_form_page.dart';
+import '../../features/purchase_order/presentation/pages/purchase_order_page.dart';
+import '../../features/purchase_order/presentation/pages/po_list_page.dart';
+import '../../features/purchase_order/presentation/pages/po_detail_page.dart';
+import '../../features/letter_of_credit/presentation/pages/letter_of_credit_page.dart';
+import '../../features/shipment/presentation/pages/shipment_page.dart';
+import '../../features/commercial_invoice/presentation/pages/commercial_invoice_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
@@ -896,6 +907,141 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/test',
         name: 'test',
         builder: (context, state) => const TestTemplateMapppingPage(),
+      ),
+
+      // ===== Trade Management Routes =====
+      // Trade Dashboard
+      GoRoute(
+        path: '/tradeDashboard',
+        name: 'tradeDashboard',
+        builder: (context, state) {
+          final feature = state.extra;
+          return TradeDashboardPage(feature: feature);
+        },
+      ),
+
+      // Trade Activity List
+      GoRoute(
+        path: '/trade/activities',
+        name: 'trade-activities',
+        builder: (context, state) => const ActivityListPage(),
+      ),
+
+      // Proforma Invoice (PI)
+      GoRoute(
+        path: '/proformaInvoice',
+        name: 'proformaInvoice',
+        builder: (context, state) {
+          final feature = state.extra;
+          return ProformaInvoicePage(feature: feature);
+        },
+      ),
+
+      // PI List (alias for kebab-case URL)
+      GoRoute(
+        path: '/proforma-invoice',
+        name: 'proforma-invoice',
+        builder: (context, state) => const ProformaInvoicePage(),
+      ),
+
+      // PI New - MUST be before :piId route to avoid "new" being matched as piId
+      GoRoute(
+        path: '/proforma-invoice/new',
+        name: 'proforma-invoice-new',
+        builder: (context, state) => const PIFormPage(),
+      ),
+
+      // PI Edit - MUST be before :piId route for same reason
+      GoRoute(
+        path: '/proforma-invoice/:piId/edit',
+        name: 'proforma-invoice-edit',
+        builder: (context, state) {
+          final piId = state.pathParameters['piId']!;
+          return PIFormPage(piId: piId);
+        },
+      ),
+
+      // PI Detail - generic :piId route last
+      GoRoute(
+        path: '/proforma-invoice/:piId',
+        name: 'proforma-invoice-detail',
+        builder: (context, state) {
+          final piId = state.pathParameters['piId']!;
+          return PIDetailPage(piId: piId);
+        },
+      ),
+
+      // Purchase Order (PO) - main route from features database
+      GoRoute(
+        path: '/purchaseOrder',
+        name: 'purchaseOrder',
+        builder: (context, state) => const POListPage(),
+      ),
+
+      // PO List (kebab-case URL alias)
+      GoRoute(
+        path: '/purchase-order',
+        name: 'purchase-order',
+        builder: (context, state) => const POListPage(),
+      ),
+
+      // PO New - MUST be before :poId route
+      GoRoute(
+        path: '/purchase-order/new',
+        name: 'purchase-order-new',
+        builder: (context, state) => const PurchaseOrderPage(),
+      ),
+
+      // PO Edit - MUST be before :poId route
+      // TODO: Create POFormPage similar to PIFormPage for edit functionality
+      GoRoute(
+        path: '/purchase-order/:poId/edit',
+        name: 'purchase-order-edit',
+        builder: (context, state) {
+          // final poId = state.pathParameters['poId']!;
+          // For now, use placeholder page. Will create POFormPage later.
+          return const PurchaseOrderPage();
+        },
+      ),
+
+      // PO Detail
+      GoRoute(
+        path: '/purchase-order/:poId',
+        name: 'purchase-order-detail',
+        builder: (context, state) {
+          final poId = state.pathParameters['poId']!;
+          return PODetailPage(poId: poId);
+        },
+      ),
+
+      // Letter of Credit (L/C)
+      GoRoute(
+        path: '/letterOfCredit',
+        name: 'letterOfCredit',
+        builder: (context, state) {
+          final feature = state.extra;
+          return LetterOfCreditPage(feature: feature);
+        },
+      ),
+
+      // Shipment
+      GoRoute(
+        path: '/shipment',
+        name: 'shipment',
+        builder: (context, state) {
+          final feature = state.extra;
+          return ShipmentPage(feature: feature);
+        },
+      ),
+
+      // Commercial Invoice (CI)
+      GoRoute(
+        path: '/commercialInvoice',
+        name: 'commercialInvoice',
+        builder: (context, state) {
+          final feature = state.extra;
+          return CommercialInvoicePage(feature: feature);
+        },
       ),
     ],
   );

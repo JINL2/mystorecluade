@@ -27,7 +27,7 @@ class BsTabContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pageState = ref.watch(financialStatementsPageProvider);
+    final pageState = ref.watch(financialStatementsPageNotifierProvider);
 
     // B/S uses end date as "as of" date
     final asOfDate = pageState.endDate;

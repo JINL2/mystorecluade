@@ -297,3 +297,47 @@ class EmployeeAuditLogParams {
   int get hashCode =>
       userId.hashCode ^ companyId.hashCode ^ limit.hashCode ^ offset.hashCode;
 }
+
+// ============================================================================
+// Work Schedule Template Assignment Provider
+// ============================================================================
+
+/// Assign or unassign a work schedule template to an employee
+/// Returns a function that can be called with userId and templateId
+final assignWorkScheduleTemplateProvider = Provider.autoDispose<
+    Future<Map<String, dynamic>> Function({
+      required String userId,
+      String? templateId,
+    })>((ref) {
+  return ({
+    required String userId,
+    String? templateId,
+  }) async {
+    final repository = ref.read(employeeRepositoryProvider);
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      return {
+        'success': false,
+        'error': 'NO_COMPANY',
+        'message': 'No company selected',
+      };
+    }
+
+    final result = await repository.assignWorkScheduleTemplate(
+      userId: userId,
+      companyId: companyId,
+      templateId: templateId,
+    );
+
+    // Invalidate employee list to refresh with new template data
+    if (result['success'] == true) {
+      ref.invalidate(employeeSalaryListProvider);
+      // Also clear mutable list to force refresh
+      ref.read(mutableEmployeeListProvider.notifier).state = null;
+    }
+
+    return result;
+  };
+});

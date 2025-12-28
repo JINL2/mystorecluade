@@ -28,7 +28,7 @@ class PnlTabContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pageState = ref.watch(financialStatementsPageProvider);
+    final pageState = ref.watch(financialStatementsPageNotifierProvider);
     final prevDates = pageState.prevPeriodDates;
 
     final params = PnlParams(
@@ -114,7 +114,7 @@ class PnlTabContent extends ConsumerWidget {
               selectedPeriod: state.selectedPeriod,
               onPeriodChanged: (period) {
                 ref
-                    .read(financialStatementsPageProvider.notifier)
+                    .read(financialStatementsPageNotifierProvider.notifier)
                     .changePeriod(period);
               },
             ),

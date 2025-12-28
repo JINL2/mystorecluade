@@ -1,5 +1,6 @@
 import '../entities/business_hours.dart';
 import '../entities/store_shift.dart';
+import '../entities/work_schedule_template.dart';
 
 /// Store Shift Repository Interface
 ///
@@ -137,4 +138,77 @@ abstract class StoreShiftRepository {
     required String storeId,
     required List<BusinessHours> hours,
   });
+
+  /// ========================================
+  /// Work Schedule Template Operations (Company-level)
+  /// ========================================
+
+  /// Get all work schedule templates for a company
+  ///
+  /// Parameters:
+  /// - [companyId]: The ID of the company
+  ///
+  /// Returns a list of [WorkScheduleTemplate] entities
+  /// Throws an exception if the operation fails
+  Future<List<WorkScheduleTemplate>> getWorkScheduleTemplates(String companyId);
+
+  /// Create a new work schedule template
+  ///
+  /// Parameters:
+  /// - [companyId]: The ID of the company
+  /// - [templateName]: Name of the template
+  /// - [workStartTime]: Start time in HH:mm format
+  /// - [workEndTime]: End time in HH:mm format
+  /// - [monday] - [sunday]: Working days
+  /// - [isDefault]: Whether this is the default template
+  ///
+  /// Returns a Map with success status and template_id
+  /// Throws an exception if the operation fails
+  Future<Map<String, dynamic>> createWorkScheduleTemplate({
+    required String companyId,
+    required String templateName,
+    String workStartTime,
+    String workEndTime,
+    bool monday,
+    bool tuesday,
+    bool wednesday,
+    bool thursday,
+    bool friday,
+    bool saturday,
+    bool sunday,
+    bool isDefault,
+  });
+
+  /// Update an existing work schedule template
+  ///
+  /// Parameters:
+  /// - [templateId]: The ID of the template to update
+  /// - Other parameters are optional and only non-null values will be updated
+  ///
+  /// Returns a Map with success status
+  /// Throws an exception if the operation fails
+  Future<Map<String, dynamic>> updateWorkScheduleTemplate({
+    required String templateId,
+    String? templateName,
+    String? workStartTime,
+    String? workEndTime,
+    bool? monday,
+    bool? tuesday,
+    bool? wednesday,
+    bool? thursday,
+    bool? friday,
+    bool? saturday,
+    bool? sunday,
+    bool? isDefault,
+  });
+
+  /// Delete a work schedule template
+  ///
+  /// Parameters:
+  /// - [templateId]: The ID of the template to delete
+  ///
+  /// Returns a Map with success status
+  /// Will fail if any employees are assigned to this template
+  /// Throws an exception if the operation fails
+  Future<Map<String, dynamic>> deleteWorkScheduleTemplate(String templateId);
 }

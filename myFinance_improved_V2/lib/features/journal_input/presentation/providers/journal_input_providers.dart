@@ -6,14 +6,36 @@
 // ✅ No direct imports from Data layer
 // ✅ Repository implementation is provided via dependency injection
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../domain/entities/journal_attachment.dart';
 import '../../domain/entities/journal_entry.dart';
-import '../../domain/providers/repository_providers.dart';
+import '../../domain/repositories/journal_entry_repository.dart';
 import 'journal_entry_notifier.dart';
 import 'states/journal_entry_state.dart';
+
+// =============================================================================
+// Repository Provider (moved from domain/providers - Clean Architecture fix)
+// =============================================================================
+
+/// Journal Entry Repository Provider (Interface)
+///
+/// This is a presentation-layer provider that defines the contract.
+/// The actual implementation is provided by the data layer via overrideWith().
+///
+/// Usage in Presentation Layer:
+/// ```dart
+/// final repository = ref.watch(journalEntryRepositoryProvider);
+/// await repository.getAccounts();
+/// ```
+final journalEntryRepositoryProvider = Provider<JournalEntryRepository>((ref) {
+  throw UnimplementedError(
+    'JournalEntryRepository implementation must be provided by the data layer. '
+    'Make sure to override this provider with the actual implementation.',
+  );
+});
 
 // =============================================================================
 // State Management Providers
@@ -138,11 +160,18 @@ final exchangeRatesProvider = FutureProvider.family<Map<String, dynamic>, String
 final submitJournalEntryProvider = Provider<Future<String> Function(JournalEntry, String, String, String?)>(
   (ref) {
     return (JournalEntry journalEntry, String userId, String companyId, String? storeId) async {
+      debugPrint('🔵 [5] submitJournalEntryProvider called');
+      debugPrint('   userId: $userId, companyId: $companyId, storeId: $storeId');
+      debugPrint('   lines: ${journalEntry.transactionLines.length}');
+
       if (!journalEntry.canSubmit()) {
+        debugPrint('🔴 [5.1] canSubmit() returned false');
         throw Exception('Journal entry is not balanced or incomplete');
       }
+      debugPrint('🟢 [5.2] canSubmit() passed');
 
       final repository = ref.read(journalEntryRepositoryProvider);
+      debugPrint('🔵 [6] Got repository, calling submitJournalEntry');
 
       // Step 1: Create journal entry and get journal_id
       final journalId = await repository.submitJournalEntry(
@@ -151,6 +180,7 @@ final submitJournalEntryProvider = Provider<Future<String> Function(JournalEntry
         companyId: companyId,
         storeId: storeId,
       );
+      debugPrint('🟢 [6.1] submitJournalEntry completed, journalId: $journalId');
 
       // Step 2: Upload attachments if any
       final pendingFiles = journalEntry.pendingAttachments
@@ -159,6 +189,7 @@ final submitJournalEntryProvider = Provider<Future<String> Function(JournalEntry
           .toList();
 
       if (pendingFiles.isNotEmpty) {
+        debugPrint('🔵 [7] Uploading ${pendingFiles.length} attachments');
         await repository.uploadAttachments(
           companyId: companyId,
           journalId: journalId,

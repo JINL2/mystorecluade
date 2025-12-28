@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CashRealEntry _$CashRealEntryFromJson(Map<String, dynamic> json) {
-  return _CashRealEntry.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CashRealEntry {
   String get createdAt => throw _privateConstructorUsedError;
@@ -28,9 +24,6 @@ mixin _$CashRealEntry {
   double get totalAmount => throw _privateConstructorUsedError;
   List<CurrencySummary> get currencySummary =>
       throw _privateConstructorUsedError;
-
-  /// Serializes this CashRealEntry to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CashRealEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -184,7 +177,7 @@ class __$$CashRealEntryImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CashRealEntryImpl extends _CashRealEntry {
   const _$CashRealEntryImpl(
       {required this.createdAt,
@@ -196,9 +189,6 @@ class _$CashRealEntryImpl extends _CashRealEntry {
       required final List<CurrencySummary> currencySummary})
       : _currencySummary = currencySummary,
         super._();
-
-  factory _$CashRealEntryImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CashRealEntryImplFromJson(json);
 
   @override
   final String createdAt;
@@ -246,7 +236,6 @@ class _$CashRealEntryImpl extends _CashRealEntry {
                 .equals(other._currencySummary, _currencySummary));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -265,13 +254,6 @@ class _$CashRealEntryImpl extends _CashRealEntry {
   @pragma('vm:prefer-inline')
   _$$CashRealEntryImplCopyWith<_$CashRealEntryImpl> get copyWith =>
       __$$CashRealEntryImplCopyWithImpl<_$CashRealEntryImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CashRealEntryImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CashRealEntry extends CashRealEntry {
@@ -285,9 +267,6 @@ abstract class _CashRealEntry extends CashRealEntry {
           required final List<CurrencySummary> currencySummary}) =
       _$CashRealEntryImpl;
   const _CashRealEntry._() : super._();
-
-  factory _CashRealEntry.fromJson(Map<String, dynamic> json) =
-      _$CashRealEntryImpl.fromJson;
 
   @override
   String get createdAt;

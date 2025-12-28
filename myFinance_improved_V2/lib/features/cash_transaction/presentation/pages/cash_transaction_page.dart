@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
 import '../providers/cash_transaction_providers.dart';
+import '../widgets/cash_transaction/cash_transaction_widgets.dart';
 import '../widgets/debt_subtype_card.dart';
 import 'debt_entry_sheet.dart';
 import 'expense_entry_sheet.dart';
@@ -469,7 +470,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Step 0: Cash Location (always first)
-              _buildCollapsibleSection(
+              CollapsibleSection(
                 title: 'Cash Location',
                 subtitle: 'Which vault is involved?',
                 isExpanded: _isCashLocationExpanded,
@@ -484,7 +485,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
               if (_selectedCashLocationId != null &&
                   !_isCashLocationExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
-                _buildCollapsibleSection(
+                CollapsibleSection(
                   title: 'What do you want to do?',
                   subtitle: 'Select transaction type',
                   isExpanded: _isEntryTypeExpanded,
@@ -501,7 +502,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
                   !_isCashLocationExpanded &&
                   !_isEntryTypeExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
-                _buildCollapsibleSection(
+                CollapsibleSection(
                   title: 'Expense Type',
                   subtitle: 'Are you paying or getting a refund?',
                   isExpanded: _isExpenseSubTypeExpanded,
@@ -518,7 +519,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
                   !_isCashLocationExpanded &&
                   !_isEntryTypeExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
-                _buildCollapsibleSection(
+                CollapsibleSection(
                   title: 'Debt Type',
                   subtitle: 'What kind of debt transaction?',
                   isExpanded: _isDebtSubTypeExpanded,
@@ -537,7 +538,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
                   !_isEntryTypeExpanded &&
                   !_isDebtSubTypeExpanded) ...[
                 const SizedBox(height: TossSpacing.space3),
-                _buildCollapsibleSection(
+                CollapsibleSection(
                   title: 'Counterparty',
                   subtitle: 'Who is involved?',
                   isExpanded: _isCounterpartyExpanded,
@@ -613,9 +614,10 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
             final isSelected = _selectedCashLocationId == location.cashLocationId;
             return Padding(
               padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: _buildCashLocationCard(
+              child: CashLocationCard(
                 location: location,
                 isSelected: isSelected,
+                icon: _getIconForLocationType(location.locationType),
                 onTap: () => _onCashLocationSelected(location),
               ),
             );
@@ -634,84 +636,34 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     );
   }
 
-  Widget _buildCashLocationCard({
-    required CashLocation location,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final icon = _getIconForLocationType(location.locationType);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: Icon(
-                  icon,
-                  color: TossColors.gray600,
-                  size: 22,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Text(
-                location.locationName,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: TossColors.gray900,
-                ),
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check : Icons.chevron_right,
-              color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildEntryTypeSelection() {
     return Column(
       children: [
         // Expense card
-        _buildEntryTypeCard(
-          type: MainEntryType.expense,
+        EntryTypeCard(
+          label: MainEntryType.expense.label,
+          description: MainEntryType.expense.description,
+          icon: MainEntryType.expense.icon,
           isSelected: _selectedEntryType == MainEntryType.expense,
           onTap: () => _onEntryTypeSelected(MainEntryType.expense),
         ),
         const SizedBox(height: TossSpacing.space2),
         // Debt card
-        _buildEntryTypeCard(
-          type: MainEntryType.debt,
+        EntryTypeCard(
+          label: MainEntryType.debt.label,
+          description: MainEntryType.debt.description,
+          icon: MainEntryType.debt.icon,
           isSelected: _selectedEntryType == MainEntryType.debt,
           onTap: () => _onEntryTypeSelected(MainEntryType.debt),
         ),
         const SizedBox(height: TossSpacing.space2),
         // Transfer card
-        _buildEntryTypeCard(
-          type: MainEntryType.transfer,
+        EntryTypeCard(
+          label: MainEntryType.transfer.label,
+          description: MainEntryType.transfer.description,
+          icon: MainEntryType.transfer.icon,
           isSelected: false, // Never shows as selected since it goes to sheet
+          isHighlighted: true,
           onTap: () => _onEntryTypeSelected(MainEntryType.transfer),
         ),
       ],
@@ -722,315 +674,23 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     return Column(
       children: [
         // Pay card
-        _buildExpenseSubTypeCard(
-          subType: ExpenseSubType.pay,
+        ExpenseSubTypeCard(
+          label: ExpenseSubType.pay.label,
+          description: ExpenseSubType.pay.description,
+          icon: ExpenseSubType.pay.icon,
           isSelected: _selectedExpenseSubType == ExpenseSubType.pay,
           onTap: () => _onExpenseSubTypeSelected(ExpenseSubType.pay),
         ),
         const SizedBox(height: TossSpacing.space2),
         // Refund card
-        _buildExpenseSubTypeCard(
-          subType: ExpenseSubType.refund,
+        ExpenseSubTypeCard(
+          label: ExpenseSubType.refund.label,
+          description: ExpenseSubType.refund.description,
+          icon: ExpenseSubType.refund.icon,
           isSelected: _selectedExpenseSubType == ExpenseSubType.refund,
           onTap: () => _onExpenseSubTypeSelected(ExpenseSubType.refund),
         ),
       ],
-    );
-  }
-
-  Widget _buildExpenseSubTypeCard({
-    required ExpenseSubType subType,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: Icon(
-                  subType.icon,
-                  color: TossColors.gray600,
-                  size: 24,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    subType.label,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subType.description,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right,
-              color: TossColors.gray300,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEntryTypeCard({
-    required MainEntryType type,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: type == MainEntryType.transfer
-                    ? TossColors.gray200
-                    : TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: Icon(
-                  type.icon,
-                  color: TossColors.gray600,
-                  size: 24,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    type.label,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    type.description,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check : Icons.chevron_right,
-              color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCollapsibleSection({
-    required String title,
-    required String subtitle,
-    required bool isExpanded,
-    required bool hasSelection,
-    String? selectedLabel,
-    IconData? selectedIcon,
-    required VoidCallback onToggle,
-    required Widget content,
-  }) {
-    return AnimatedContainer(
-      duration: TossAnimations.normal,
-      curve: Curves.easeInOut,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          GestureDetector(
-            onTap: onToggle,
-            child: hasSelection && !isExpanded
-                ? _buildCollapsedHeader(
-                    title: title,
-                    selectedLabel: selectedLabel ?? '',
-                    selectedIcon: selectedIcon,
-                  )
-                : _buildExpandedHeader(
-                    title: title,
-                    subtitle: subtitle,
-                    hasSelection: hasSelection,
-                    isExpanded: isExpanded,
-                  ),
-          ),
-
-          // Content
-          AnimatedCrossFade(
-            duration: TossAnimations.normal,
-            crossFadeState:
-                isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.only(top: TossSpacing.space3),
-              child: content,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExpandedHeader({
-    required String title,
-    required String subtitle,
-    required bool hasSelection,
-    required bool isExpanded,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space1,
-        vertical: TossSpacing.space2,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TossTextStyles.h4.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (hasSelection)
-            Icon(
-              isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-              color: TossColors.gray400,
-              size: 24,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCollapsedHeader({
-    required String title,
-    required String selectedLabel,
-    IconData? selectedIcon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Row(
-        children: [
-          // Icon
-          if (selectedIcon != null)
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: Icon(
-                  selectedIcon,
-                  color: TossColors.gray600,
-                  size: 18,
-                ),
-              ),
-            ),
-          if (selectedIcon != null) const SizedBox(width: TossSpacing.space3),
-
-          // Title and selection
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-                Text(
-                  selectedLabel,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Arrow only
-          const Icon(
-            Icons.keyboard_arrow_down,
-            color: TossColors.gray400,
-            size: 24,
-          ),
-        ],
-      ),
     );
   }
 

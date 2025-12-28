@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../domain/providers/usecase_providers.dart';
+import '../providers/usecase_providers.dart';
 import '../../domain/usecases/create_company.dart';
 import '../../domain/usecases/create_store.dart';
 import '../../domain/usecases/join_by_code.dart';

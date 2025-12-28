@@ -44,14 +44,30 @@ final authStateProvider = StreamProvider<User?>((ref) {
 /// Check if user is authenticated
 ///
 /// Derived from authStateProvider
+/// IMPORTANT: During loading, check existing session to prevent premature redirect
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return authState.when(
     data: (user) => user != null,
-    loading: () => false,
+    // During loading, check if there's an existing session
+    // This prevents redirect to login while checking stored session
+    loading: () {
+      try {
+        final session = Supabase.instance.client.auth.currentSession;
+        return session != null;
+      } catch (_) {
+        return false;
+      }
+    },
     error: (_, __) => false,
   );
+});
+
+/// Check if auth state is still loading
+final isAuthLoadingProvider = Provider<bool>((ref) {
+  final authState = ref.watch(authStateProvider);
+  return authState.isLoading;
 });
 
 /// Get current user

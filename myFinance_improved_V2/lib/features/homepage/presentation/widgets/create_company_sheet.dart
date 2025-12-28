@@ -10,6 +10,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../core/homepage_logger.dart';
+import '../providers/company_providers.dart';
 import '../providers/homepage_providers.dart';
 import '../providers/notifier_providers.dart';
 import '../providers/states/company_state.dart';

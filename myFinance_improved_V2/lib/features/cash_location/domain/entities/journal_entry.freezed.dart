@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-JournalEntry _$JournalEntryFromJson(Map<String, dynamic> json) {
-  return _JournalEntry.fromJson(json);
-}
-
 /// @nodoc
 mixin _$JournalEntry {
   String get journalId => throw _privateConstructorUsedError;
@@ -25,9 +21,6 @@ mixin _$JournalEntry {
   String get entryDate => throw _privateConstructorUsedError;
   DateTime get transactionDate => throw _privateConstructorUsedError;
   List<JournalLine> get lines => throw _privateConstructorUsedError;
-
-  /// Serializes this JournalEntry to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of JournalEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -157,7 +150,7 @@ class __$$JournalEntryImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$JournalEntryImpl extends _JournalEntry {
   const _$JournalEntryImpl(
       {required this.journalId,
@@ -167,9 +160,6 @@ class _$JournalEntryImpl extends _JournalEntry {
       required final List<JournalLine> lines})
       : _lines = lines,
         super._();
-
-  factory _$JournalEntryImpl.fromJson(Map<String, dynamic> json) =>
-      _$$JournalEntryImplFromJson(json);
 
   @override
   final String journalId;
@@ -208,7 +198,6 @@ class _$JournalEntryImpl extends _JournalEntry {
             const DeepCollectionEquality().equals(other._lines, _lines));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, journalId, journalDescription,
       entryDate, transactionDate, const DeepCollectionEquality().hash(_lines));
@@ -220,13 +209,6 @@ class _$JournalEntryImpl extends _JournalEntry {
   @pragma('vm:prefer-inline')
   _$$JournalEntryImplCopyWith<_$JournalEntryImpl> get copyWith =>
       __$$JournalEntryImplCopyWithImpl<_$JournalEntryImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$JournalEntryImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _JournalEntry extends JournalEntry {
@@ -237,9 +219,6 @@ abstract class _JournalEntry extends JournalEntry {
       required final DateTime transactionDate,
       required final List<JournalLine> lines}) = _$JournalEntryImpl;
   const _JournalEntry._() : super._();
-
-  factory _JournalEntry.fromJson(Map<String, dynamic> json) =
-      _$JournalEntryImpl.fromJson;
 
   @override
   String get journalId;
@@ -260,10 +239,6 @@ abstract class _JournalEntry extends JournalEntry {
       throw _privateConstructorUsedError;
 }
 
-JournalLine _$JournalLineFromJson(Map<String, dynamic> json) {
-  return _JournalLine.fromJson(json);
-}
-
 /// @nodoc
 mixin _$JournalLine {
   String get lineId => throw _privateConstructorUsedError;
@@ -275,9 +250,6 @@ mixin _$JournalLine {
   double get debit => throw _privateConstructorUsedError;
   double get credit => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
-
-  /// Serializes this JournalLine to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of JournalLine
   /// with the given fields replaced by the non-null parameter values.
@@ -455,7 +427,7 @@ class __$$JournalLineImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$JournalLineImpl implements _JournalLine {
   const _$JournalLineImpl(
       {required this.lineId,
@@ -467,9 +439,6 @@ class _$JournalLineImpl implements _JournalLine {
       required this.debit,
       required this.credit,
       required this.description});
-
-  factory _$JournalLineImpl.fromJson(Map<String, dynamic> json) =>
-      _$$JournalLineImplFromJson(json);
 
   @override
   final String lineId;
@@ -517,7 +486,6 @@ class _$JournalLineImpl implements _JournalLine {
                 other.description == description));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -538,13 +506,6 @@ class _$JournalLineImpl implements _JournalLine {
   @pragma('vm:prefer-inline')
   _$$JournalLineImplCopyWith<_$JournalLineImpl> get copyWith =>
       __$$JournalLineImplCopyWithImpl<_$JournalLineImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$JournalLineImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _JournalLine implements JournalLine {
@@ -558,9 +519,6 @@ abstract class _JournalLine implements JournalLine {
       required final double debit,
       required final double credit,
       required final String description}) = _$JournalLineImpl;
-
-  factory _JournalLine.fromJson(Map<String, dynamic> json) =
-      _$JournalLineImpl.fromJson;
 
   @override
   String get lineId;
@@ -589,10 +547,6 @@ abstract class _JournalLine implements JournalLine {
       throw _privateConstructorUsedError;
 }
 
-TransactionData _$TransactionDataFromJson(Map<String, dynamic> json) {
-  return _TransactionData.fromJson(json);
-}
-
 /// @nodoc
 mixin _$TransactionData {
   JournalLine get cashLine => throw _privateConstructorUsedError;
@@ -600,9 +554,6 @@ mixin _$TransactionData {
   bool get isIncome => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   JournalEntry get journalEntry => throw _privateConstructorUsedError;
-
-  /// Serializes this TransactionData to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of TransactionData
   /// with the given fields replaced by the non-null parameter values.
@@ -773,7 +724,7 @@ class __$$TransactionDataImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$TransactionDataImpl implements _TransactionData {
   const _$TransactionDataImpl(
       {required this.cashLine,
@@ -781,9 +732,6 @@ class _$TransactionDataImpl implements _TransactionData {
       required this.isIncome,
       required this.amount,
       required this.journalEntry});
-
-  factory _$TransactionDataImpl.fromJson(Map<String, dynamic> json) =>
-      _$$TransactionDataImplFromJson(json);
 
   @override
   final JournalLine cashLine;
@@ -817,7 +765,6 @@ class _$TransactionDataImpl implements _TransactionData {
                 other.journalEntry == journalEntry));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, cashLine, counterpartLine, isIncome, amount, journalEntry);
@@ -830,13 +777,6 @@ class _$TransactionDataImpl implements _TransactionData {
   _$$TransactionDataImplCopyWith<_$TransactionDataImpl> get copyWith =>
       __$$TransactionDataImplCopyWithImpl<_$TransactionDataImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$TransactionDataImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _TransactionData implements TransactionData {
@@ -846,9 +786,6 @@ abstract class _TransactionData implements TransactionData {
       required final bool isIncome,
       required final double amount,
       required final JournalEntry journalEntry}) = _$TransactionDataImpl;
-
-  factory _TransactionData.fromJson(Map<String, dynamic> json) =
-      _$TransactionDataImpl.fromJson;
 
   @override
   JournalLine get cashLine;

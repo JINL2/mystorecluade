@@ -22,8 +22,7 @@ mixin _$JournalAttachment {
   /// Journal ID this attachment belongs to (null before journal is created)
   String? get journalId => throw _privateConstructorUsedError;
 
-  /// Local file for pending uploads
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  /// Local file for pending uploads (runtime only, not serialized)
   XFile? get localFile => throw _privateConstructorUsedError;
 
   /// Storage URL after upload
@@ -60,7 +59,7 @@ abstract class $JournalAttachmentCopyWith<$Res> {
   $Res call(
       {String? attachmentId,
       String? journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false) XFile? localFile,
+      XFile? localFile,
       String? fileUrl,
       String fileName,
       int fileSizeBytes,
@@ -146,7 +145,7 @@ abstract class _$$JournalAttachmentImplCopyWith<$Res>
   $Res call(
       {String? attachmentId,
       String? journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false) XFile? localFile,
+      XFile? localFile,
       String? fileUrl,
       String fileName,
       int fileSizeBytes,
@@ -225,7 +224,7 @@ class _$JournalAttachmentImpl extends _JournalAttachment {
   const _$JournalAttachmentImpl(
       {this.attachmentId,
       this.journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false) this.localFile,
+      this.localFile,
       this.fileUrl,
       required this.fileName,
       this.fileSizeBytes = 0,
@@ -242,9 +241,8 @@ class _$JournalAttachmentImpl extends _JournalAttachment {
   @override
   final String? journalId;
 
-  /// Local file for pending uploads
+  /// Local file for pending uploads (runtime only, not serialized)
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
   final XFile? localFile;
 
   /// Storage URL after upload
@@ -328,7 +326,6 @@ abstract class _JournalAttachment extends JournalAttachment {
   const factory _JournalAttachment(
       {final String? attachmentId,
       final String? journalId,
-      @JsonKey(includeFromJson: false, includeToJson: false)
       final XFile? localFile,
       final String? fileUrl,
       required final String fileName,
@@ -346,9 +343,8 @@ abstract class _JournalAttachment extends JournalAttachment {
   @override
   String? get journalId;
 
-  /// Local file for pending uploads
+  /// Local file for pending uploads (runtime only, not serialized)
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
   XFile? get localFile;
 
   /// Storage URL after upload

@@ -47,6 +47,19 @@ class EmployeeSalary {
   final String? bankName;
   final String? bankAccountNumber;
 
+  // Work Schedule Template (for monthly employees)
+  final String? workScheduleTemplateId;
+  final String? workScheduleTemplateName;
+  final String? workStartTime; // HH:mm format
+  final String? workEndTime;   // HH:mm format
+  final bool? workMonday;
+  final bool? workTuesday;
+  final bool? workWednesday;
+  final bool? workThursday;
+  final bool? workFriday;
+  final bool? workSaturday;
+  final bool? workSunday;
+
   const EmployeeSalary({
     this.salaryId,
     required this.userId,
@@ -91,6 +104,19 @@ class EmployeeSalary {
     // Bank information
     this.bankName,
     this.bankAccountNumber,
+
+    // Work Schedule Template
+    this.workScheduleTemplateId,
+    this.workScheduleTemplateName,
+    this.workStartTime,
+    this.workEndTime,
+    this.workMonday,
+    this.workTuesday,
+    this.workWednesday,
+    this.workThursday,
+    this.workFriday,
+    this.workSaturday,
+    this.workSunday,
   });
 
   EmployeeSalary copyWith({
@@ -129,6 +155,17 @@ class EmployeeSalary {
     DateTime? lastActivityAt,
     String? bankName,
     String? bankAccountNumber,
+    String? workScheduleTemplateId,
+    String? workScheduleTemplateName,
+    String? workStartTime,
+    String? workEndTime,
+    bool? workMonday,
+    bool? workTuesday,
+    bool? workWednesday,
+    bool? workThursday,
+    bool? workFriday,
+    bool? workSaturday,
+    bool? workSunday,
   }) {
     return EmployeeSalary(
       salaryId: salaryId ?? this.salaryId,
@@ -166,6 +203,17 @@ class EmployeeSalary {
       lastActivityAt: lastActivityAt ?? this.lastActivityAt,
       bankName: bankName ?? this.bankName,
       bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
+      workScheduleTemplateId: workScheduleTemplateId ?? this.workScheduleTemplateId,
+      workScheduleTemplateName: workScheduleTemplateName ?? this.workScheduleTemplateName,
+      workStartTime: workStartTime ?? this.workStartTime,
+      workEndTime: workEndTime ?? this.workEndTime,
+      workMonday: workMonday ?? this.workMonday,
+      workTuesday: workTuesday ?? this.workTuesday,
+      workWednesday: workWednesday ?? this.workWednesday,
+      workThursday: workThursday ?? this.workThursday,
+      workFriday: workFriday ?? this.workFriday,
+      workSaturday: workSaturday ?? this.workSaturday,
+      workSunday: workSunday ?? this.workSunday,
     );
   }
 
@@ -247,5 +295,97 @@ class EmployeeSalary {
   bool get isInactive {
     if (lastActivityAt == null) return true;
     return DateTime.now().difference(lastActivityAt!).inDays > 7;
+  }
+
+  // ========================================
+  // Work Schedule Template convenience methods
+  // ========================================
+
+  /// Returns true if this employee has a work schedule template assigned
+  bool get hasWorkScheduleTemplate => workScheduleTemplateId != null;
+
+  /// Returns true if this is a monthly (salary-based) employee
+  bool get isMonthlyEmployee => salaryType == 'monthly';
+
+  /// Returns formatted work time range (e.g., "09:00 - 18:00")
+  String get workTimeRangeText {
+    if (workStartTime == null || workEndTime == null) return 'Not set';
+    return '$workStartTime - $workEndTime';
+  }
+
+  /// Returns list of working days as short names (e.g., ["Mon", "Tue", "Wed"])
+  List<String> get workingDayNames {
+    final days = <String>[];
+    if (workMonday == true) days.add('Mon');
+    if (workTuesday == true) days.add('Tue');
+    if (workWednesday == true) days.add('Wed');
+    if (workThursday == true) days.add('Thu');
+    if (workFriday == true) days.add('Fri');
+    if (workSaturday == true) days.add('Sat');
+    if (workSunday == true) days.add('Sun');
+    return days;
+  }
+
+  /// Returns formatted working days text (e.g., "Mon-Fri" or "Mon, Wed, Fri")
+  String get workingDaysText {
+    if (!hasWorkScheduleTemplate) return 'No template';
+
+    final days = workingDayNames;
+    if (days.isEmpty) return 'No working days';
+    if (days.length == 7) return 'Every day';
+
+    // Check for consecutive weekdays (Mon-Fri)
+    if (workMonday == true &&
+        workTuesday == true &&
+        workWednesday == true &&
+        workThursday == true &&
+        workFriday == true &&
+        workSaturday != true &&
+        workSunday != true) {
+      return 'Mon-Fri';
+    }
+
+    // Check for Mon-Sat
+    if (workMonday == true &&
+        workTuesday == true &&
+        workWednesday == true &&
+        workThursday == true &&
+        workFriday == true &&
+        workSaturday == true &&
+        workSunday != true) {
+      return 'Mon-Sat';
+    }
+
+    return days.join(', ');
+  }
+
+  /// Returns total working days per week
+  int get workingDaysCount {
+    int count = 0;
+    if (workMonday == true) count++;
+    if (workTuesday == true) count++;
+    if (workWednesday == true) count++;
+    if (workThursday == true) count++;
+    if (workFriday == true) count++;
+    if (workSaturday == true) count++;
+    if (workSunday == true) count++;
+    return count;
+  }
+
+  /// Returns true if today is a working day for this employee
+  bool get isTodayWorkingDay {
+    if (!hasWorkScheduleTemplate) return true; // Default to working day if no template
+
+    final weekday = DateTime.now().weekday; // 1=Mon, 7=Sun
+    switch (weekday) {
+      case 1: return workMonday == true;
+      case 2: return workTuesday == true;
+      case 3: return workWednesday == true;
+      case 4: return workThursday == true;
+      case 5: return workFriday == true;
+      case 6: return workSaturday == true;
+      case 7: return workSunday == true;
+      default: return false;
+    }
   }
 }

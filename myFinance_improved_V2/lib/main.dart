@@ -14,8 +14,8 @@ import 'core/notifications/services/badge_service.dart';
 // Attendance now uses direct provider pattern (no override needed)
 import 'features/journal_input/data/repositories/repository_providers.dart'
     as journal_data;
-import 'features/journal_input/domain/providers/repository_providers.dart'
-    as journal_domain;
+import 'features/journal_input/presentation/providers/journal_input_providers.dart'
+    as journal_presentation;
 import 'features/store_shift/data/repositories/repository_providers.dart'
     as store_shift_data;
 import 'features/store_shift/domain/providers/repository_provider.dart'
@@ -110,9 +110,9 @@ Future<void> main() async {
     runApp(
       ProviderScope(
         overrides: [
-          // Override domain layer provider with data layer implementation
+          // Override presentation layer provider with data layer implementation
           // Journal Input feature
-          journal_domain.journalEntryRepositoryProvider
+          journal_presentation.journalEntryRepositoryProvider
               .overrideWithProvider(journal_data.journalEntryRepositoryProvider),
           // Store Shift feature
           store_shift_domain.storeShiftRepositoryProvider

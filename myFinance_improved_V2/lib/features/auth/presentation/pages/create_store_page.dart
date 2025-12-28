@@ -5,6 +5,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 
 // App - Providers
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/auth_providers.dart';
 // Core - Constants & Navigation
 import '../../../../core/constants/auth_constants.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
@@ -14,7 +15,6 @@ import '../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
 // Presentation - Providers
-import '../providers/current_user_provider.dart';
 import '../providers/store_service.dart';
 import '../providers/usecase_providers.dart';
 

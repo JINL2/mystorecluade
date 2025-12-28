@@ -96,4 +96,17 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
     );
     return models.map((model) => model.toEntity()).toList();
   }
+
+  @override
+  Future<Map<String, dynamic>> assignWorkScheduleTemplate({
+    required String userId,
+    required String companyId,
+    String? templateId,
+  }) async {
+    return _remoteDataSource.assignWorkScheduleTemplate(
+      userId: userId,
+      companyId: companyId,
+      templateId: templateId,
+    );
+  }
 }

@@ -40,7 +40,7 @@ class _FinancialStatementsPageState
     if (_tabController.indexIsChanging) {
       HapticFeedback.selectionClick();
       ref
-          .read(financialStatementsPageProvider.notifier)
+          .read(financialStatementsPageNotifierProvider.notifier)
           .changeTab(_tabController.index);
     }
   }
@@ -55,7 +55,7 @@ class _FinancialStatementsPageState
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
-    final pageState = ref.watch(financialStatementsPageProvider);
+    final pageState = ref.watch(financialStatementsPageNotifierProvider);
     final companyId = appState.companyChoosen;
 
     // storeId는 DataLevel에 따라 결정
@@ -139,7 +139,7 @@ class _FinancialStatementsPageState
                   label: 'Company',
                   isSelected: pageState.dataLevel == DataLevel.company,
                   onTap: () => ref
-                      .read(financialStatementsPageProvider.notifier)
+                      .read(financialStatementsPageNotifierProvider.notifier)
                       .setDataLevel(DataLevel.company),
                 ),
                 const SizedBox(width: TossSpacing.space2),
@@ -147,7 +147,7 @@ class _FinancialStatementsPageState
                   label: storeName.isEmpty ? 'Store' : storeName,
                   isSelected: pageState.dataLevel == DataLevel.store,
                   onTap: () => ref
-                      .read(financialStatementsPageProvider.notifier)
+                      .read(financialStatementsPageNotifierProvider.notifier)
                       .setDataLevel(DataLevel.store),
                 ),
               ],

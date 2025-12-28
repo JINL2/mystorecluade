@@ -1,8 +1,10 @@
 import '../../domain/entities/business_hours.dart';
 import '../../domain/entities/store_shift.dart';
+import '../../domain/entities/work_schedule_template.dart';
 import '../../domain/repositories/store_shift_repository.dart';
 import '../datasources/store_shift_data_source.dart';
 import '../models/store_shift_model.dart';
+import '../models/work_schedule_template_model.dart';
 
 /// Store Shift Repository Implementation
 ///
@@ -164,5 +166,89 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     );
 
     return success;
+  }
+
+  /// ========================================
+  /// Work Schedule Template Operations (Company-level)
+  /// ========================================
+
+  @override
+  Future<List<WorkScheduleTemplate>> getWorkScheduleTemplates(
+    String companyId,
+  ) async {
+    final templatesData = await _dataSource.getWorkScheduleTemplates(companyId);
+
+    return templatesData
+        .map((json) => WorkScheduleTemplateModel.fromJson(json).toEntity())
+        .toList();
+  }
+
+  @override
+  Future<Map<String, dynamic>> createWorkScheduleTemplate({
+    required String companyId,
+    required String templateName,
+    String workStartTime = '09:00',
+    String workEndTime = '18:00',
+    bool monday = true,
+    bool tuesday = true,
+    bool wednesday = true,
+    bool thursday = true,
+    bool friday = true,
+    bool saturday = false,
+    bool sunday = false,
+    bool isDefault = false,
+  }) async {
+    return await _dataSource.createWorkScheduleTemplate(
+      companyId: companyId,
+      templateName: templateName,
+      workStartTime: workStartTime,
+      workEndTime: workEndTime,
+      monday: monday,
+      tuesday: tuesday,
+      wednesday: wednesday,
+      thursday: thursday,
+      friday: friday,
+      saturday: saturday,
+      sunday: sunday,
+      isDefault: isDefault,
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateWorkScheduleTemplate({
+    required String templateId,
+    String? templateName,
+    String? workStartTime,
+    String? workEndTime,
+    bool? monday,
+    bool? tuesday,
+    bool? wednesday,
+    bool? thursday,
+    bool? friday,
+    bool? saturday,
+    bool? sunday,
+    bool? isDefault,
+  }) async {
+    return await _dataSource.updateWorkScheduleTemplate(
+      templateId: templateId,
+      templateName: templateName,
+      workStartTime: workStartTime,
+      workEndTime: workEndTime,
+      monday: monday,
+      tuesday: tuesday,
+      wednesday: wednesday,
+      thursday: thursday,
+      friday: friday,
+      saturday: saturday,
+      sunday: sunday,
+      isDefault: isDefault,
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> deleteWorkScheduleTemplate(
+    String templateId,
+  ) async {
+    return await _dataSource.deleteWorkScheduleTemplate(templateId);
   }
 }

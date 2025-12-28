@@ -3,9 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
@@ -13,71 +12,10 @@ import 'package:myfinance_improved/shared/widgets/common/toss_error_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/user_profile.dart';
 import '../providers/user_profile_providers.dart';
-
-/// Uppercase text formatter: auto-converts input to uppercase
-class UpperCaseTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    return TextEditingValue(
-      text: newValue.text.toUpperCase(),
-      selection: newValue.selection,
-    );
-  }
-}
-
-/// Smart bank account formatter: allows letters only for IBAN format
-class BankAccountFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text.toUpperCase();
-
-    // If empty or just starting, allow any input
-    if (text.isEmpty) {
-      return TextEditingValue(
-        text: text,
-        selection: newValue.selection,
-      );
-    }
-
-    // Check if user is typing IBAN format (starts with 2 letters)
-    final startsWithTwoLetters = RegExp(r'^[A-Z]{1,2}$').hasMatch(text);
-    final isIBANFormat = text.length >= 2 && RegExp(r'^[A-Z]{2}').hasMatch(text);
-
-    // If starting with letters (IBAN), allow alphanumeric + spaces
-    if (startsWithTwoLetters || isIBANFormat) {
-      // IBAN format: allow letters, digits, and spaces
-      if (RegExp(r'^[A-Z0-9\s]*$').hasMatch(text)) {
-        return TextEditingValue(
-          text: text,
-          selection: newValue.selection,
-        );
-      }
-    } else {
-      // Regular account number: digits only
-      if (RegExp(r'^[0-9]*$').hasMatch(text)) {
-        return TextEditingValue(
-          text: text,
-          selection: newValue.selection,
-        );
-      }
-    }
-
-    // If invalid, keep old value
-    return oldValue;
-  }
-}
+import '../widgets/edit_profile/edit_profile_widgets.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -131,7 +69,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   Future<void> _loadProfileData() async {
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
+      final currentUser = ref.read(currentUserProvider);
 
       if (userId == null) {
         setState(() {
@@ -188,27 +127,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _bankDescriptionController.text = _originalBankDescription ?? '';
 
         // Add listeners
-        _firstNameController.addListener(_onFieldChanged);
-        _lastNameController.addListener(_onFieldChanged);
-        _phoneNumberController.addListener(_onFieldChanged);
-        _bankNameController.addListener(_onFieldChanged);
-        _bankAccountController.addListener(_onFieldChanged);
-        _bankDescriptionController.addListener(_onFieldChanged);
+        _addControllerListeners();
       } else {
         // Create minimal profile
         _profile = UserProfile(
           userId: userId,
-          email: Supabase.instance.client.auth.currentUser?.email ?? '',
+          email: currentUser?.email ?? '',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
 
-        _firstNameController.addListener(_onFieldChanged);
-        _lastNameController.addListener(_onFieldChanged);
-        _phoneNumberController.addListener(_onFieldChanged);
-        _bankNameController.addListener(_onFieldChanged);
-        _bankAccountController.addListener(_onFieldChanged);
-        _bankDescriptionController.addListener(_onFieldChanged);
+        _addControllerListeners();
       }
 
       setState(() {
@@ -219,6 +148,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         _isLoading = false;
       });
     }
+  }
+
+  void _addControllerListeners() {
+    _firstNameController.addListener(_onFieldChanged);
+    _lastNameController.addListener(_onFieldChanged);
+    _phoneNumberController.addListener(_onFieldChanged);
+    _bankNameController.addListener(_onFieldChanged);
+    _bankAccountController.addListener(_onFieldChanged);
+    _bankDescriptionController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -306,397 +244,29 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Personal Information Section
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: TossWhiteCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      // Section Header
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: TossColors.gray100,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.person_outline,
-                              color: TossColors.primary,
-                              size: TossSpacing.iconSM,
-                            ),
-                            const SizedBox(width: TossSpacing.space2),
-                            Text(
-                              'Personal Information',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Form fields
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space5),
-                        child: Column(
-                          children: [
-                            TossEnhancedTextField(
-                              controller: _firstNameController,
-                              label: 'First Name',
-                              hintText: 'Enter your first name',
-                              showKeyboardToolbar: true,
-                              textInputAction: TextInputAction.next,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
-                                LengthLimitingTextInputFormatter(50),
-                              ],
-                              validator: (value) {
-                                if (value?.trim().isEmpty ?? true) {
-                                  return 'Please enter your first name';
-                                }
-                                if (value!.trim().length < 2) {
-                                  return 'First name must be at least 2 characters';
-                                }
-                                if (RegExp(r'[0-9]').hasMatch(value)) {
-                                  return 'First name must not contain numbers';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: TossSpacing.space4),
-                            TossEnhancedTextField(
-                              controller: _lastNameController,
-                              label: 'Last Name',
-                              hintText: 'Enter your last name',
-                              showKeyboardToolbar: true,
-                              textInputAction: TextInputAction.next,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
-                                LengthLimitingTextInputFormatter(50),
-                              ],
-                              validator: (value) {
-                                if (value?.trim().isEmpty ?? true) {
-                                  return 'Please enter your last name';
-                                }
-                                if (value!.trim().length < 2) {
-                                  return 'Last name must be at least 2 characters';
-                                }
-                                if (RegExp(r'[0-9]').hasMatch(value)) {
-                                  return 'Last name must not contain numbers';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: TossSpacing.space4),
-                            _buildDatePickerField(),
-                            const SizedBox(height: TossSpacing.space4),
-                            TossEnhancedTextField(
-                              controller: _phoneNumberController,
-                              label: 'Phone Number',
-                              hintText: 'Enter phone number',
-                              keyboardType: TextInputType.phone,
-                              showKeyboardToolbar: true,
-                              textInputAction: TextInputAction.next,
-                              inputFormatters: [
-                                // Allow digits, +, -, (, ), and spaces for international formats
-                                FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-() ]')),
-                                LengthLimitingTextInputFormatter(20),
-                              ],
-                              validator: (value) {
-                                if (value?.isNotEmpty == true) {
-                                  // Remove all formatting characters to validate
-                                  final digitsOnly = value!.replaceAll(RegExp(r'[^\d+]'), '');
-
-                                  // Must have at least some digits
-                                  if (digitsOnly.isEmpty) {
-                                    return 'Phone number must contain digits';
-                                  }
-
-                                  // International phone numbers: 8-15 digits (most countries)
-                                  // Count only actual digits, not + symbol
-                                  final digitCount = digitsOnly.replaceAll('+', '').length;
-
-                                  if (digitCount < 8) {
-                                    return 'Phone number must be at least 8 digits';
-                                  }
-
-                                  if (digitCount > 15) {
-                                    return 'Phone number must be at most 15 digits';
-                                  }
-
-                                  // Valid formats: +XXXXXXXXXXXX, XXXXXXXXXX, (XXX) XXX-XXXX
-                                  final validPattern = RegExp(r'^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$');
-                                  if (!validPattern.hasMatch(value)) {
-                                    return 'Invalid phone number format';
-                                  }
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                // Real-time validation
-                                if (value.isNotEmpty) {
-                                  Future.delayed(const Duration(milliseconds: 300), () {
-                                    if (mounted) {
-                                      _formKey.currentState?.validate();
-                                    }
-                                  });
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              PersonalInfoSection(
+                firstNameController: _firstNameController,
+                lastNameController: _lastNameController,
+                phoneNumberController: _phoneNumberController,
+                selectedDateOfBirth: _selectedDateOfBirth,
+                formKey: _formKey,
+                onDatePickerTap: _showDatePicker,
               ),
 
               const GrayDividerSpace(),
 
               // Bank Information Section
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: TossWhiteCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      // Section Header
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: TossColors.gray100,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.account_balance_outlined,
-                              color: TossColors.primary,
-                              size: TossSpacing.iconSM,
-                            ),
-                            const SizedBox(width: TossSpacing.space2),
-                            Text(
-                              'Bank Information',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space5),
-                        child: Column(
-                          children: [
-                            TossEnhancedTextField(
-                              controller: _bankNameController,
-                              label: 'Bank Name',
-                              hintText: 'Enter your bank name',
-                              showKeyboardToolbar: true,
-                              textInputAction: TextInputAction.next,
-                              inputFormatters: [
-                                // Allow letters, spaces, hyphens, apostrophes, periods, ampersands, and accented characters
-                                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z\s\-'.&\u00C0-\u017F]")),
-                                LengthLimitingTextInputFormatter(100),
-                              ],
-                              validator: (value) {
-                                if (value?.isNotEmpty == true) {
-                                  // Must contain at least some letters
-                                  if (!RegExp(r'[a-zA-Z]').hasMatch(value!)) {
-                                    return 'Bank name must contain letters';
-                                  }
-
-                                  // Minimum length check
-                                  if (value.trim().length < 2) {
-                                    return 'Bank name must be at least 2 characters';
-                                  }
-
-                                  // Check for valid characters only (letters, spaces, and common punctuation)
-                                  if (!RegExp(r"^[a-zA-Z\s\-'.&\u00C0-\u017F]+$").hasMatch(value)) {
-                                    return 'Invalid characters in bank name';
-                                  }
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                // Real-time validation
-                                if (value.isNotEmpty) {
-                                  Future.delayed(const Duration(milliseconds: 300), () {
-                                    if (mounted) {
-                                      _formKey.currentState?.validate();
-                                    }
-                                  });
-                                }
-                              },
-                            ),
-                            const SizedBox(height: TossSpacing.space4),
-                            TossEnhancedTextField(
-                              controller: _bankAccountController,
-                              label: 'Bank Account Number',
-                              hintText: 'Digits only (or IBAN starting with letters)',
-                              keyboardType: TextInputType.text,
-                              showKeyboardToolbar: true,
-                              textInputAction: TextInputAction.next,
-                              inputFormatters: [
-                                BankAccountFormatter(),
-                                LengthLimitingTextInputFormatter(34),
-                              ],
-                              validator: (value) {
-                                if (value?.isNotEmpty == true) {
-                                  final cleanValue = value!.replaceAll(' ', '').toUpperCase();
-
-                                  // International bank account formats:
-                                  // - Pure digits: 8-20 characters (USA, Vietnam, Korea, Japan, etc.)
-                                  // - IBAN: 15-34 alphanumeric (Europe)
-
-                                  if (cleanValue.length < 8) {
-                                    return 'Account number must be at least 8 characters';
-                                  }
-
-                                  if (cleanValue.length > 34) {
-                                    return 'Account number must be at most 34 characters';
-                                  }
-
-                                  // Check if it's IBAN format (starts with 2 letters + 2 digits)
-                                  final isIBAN = RegExp(r'^[A-Z]{2}[0-9]{2}[A-Z0-9]+$').hasMatch(cleanValue);
-                                  // Check if it's pure digits (most Asian countries)
-                                  final isDigitsOnly = RegExp(r'^[0-9]+$').hasMatch(cleanValue);
-                                  // Check if it's alphanumeric (some banks)
-                                  final isAlphanumeric = RegExp(r'^[A-Z0-9]+$').hasMatch(cleanValue);
-
-                                  if (!isIBAN && !isDigitsOnly && !isAlphanumeric) {
-                                    return 'Invalid account number format';
-                                  }
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                // Real-time validation
-                                if (value.isNotEmpty) {
-                                  Future.delayed(const Duration(milliseconds: 300), () {
-                                    if (mounted) {
-                                      _formKey.currentState?.validate();
-                                    }
-                                  });
-                                }
-                              },
-                            ),
-                            const SizedBox(height: TossSpacing.space4),
-                            TossEnhancedTextField(
-                              controller: _bankDescriptionController,
-                              label: 'Account Holder Name',
-                              hintText: 'Full name as shown on bank account',
-                              showKeyboardToolbar: true,
-                              textInputAction: TextInputAction.done,
-                              autocorrect: false,
-                              inputFormatters: [
-                                UpperCaseTextFormatter(),
-                                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                              ],
-                              validator: (value) {
-                                if (value?.isNotEmpty == true) {
-                                  // Must contain only letters and spaces
-                                  if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value!)) {
-                                    return 'Name must contain only letters and spaces';
-                                  }
-                                  if (value.trim().length < 2) {
-                                    return 'Name must be at least 2 characters';
-                                  }
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                // Real-time validation
-                                if (value.isNotEmpty) {
-                                  Future.delayed(const Duration(milliseconds: 300), () {
-                                    if (mounted) {
-                                      _formKey.currentState?.validate();
-                                    }
-                                  });
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              BankInfoSection(
+                bankNameController: _bankNameController,
+                bankAccountController: _bankAccountController,
+                bankDescriptionController: _bankDescriptionController,
+                formKey: _formKey,
               ),
 
               const GrayDividerSpace(),
 
               // Account Information (Read-only)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: TossWhiteCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space4),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: TossColors.gray100,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.info_outline,
-                              color: TossColors.primary,
-                              size: TossSpacing.iconSM,
-                            ),
-                            const SizedBox(width: TossSpacing.space2),
-                            Text(
-                              'Account Information',
-                              style: TossTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: TossColors.gray900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(TossSpacing.space5),
-                        child: Column(
-                          children: [
-                            _buildReadOnlyField('Email', _profile!.email),
-                            const SizedBox(height: TossSpacing.space4),
-                            _buildReadOnlyField('Role', _profile!.displayRole),
-                            if (_profile!.companyName?.isNotEmpty == true) ...[
-                              const SizedBox(height: TossSpacing.space4),
-                              _buildReadOnlyField('Company', _profile!.companyName!),
-                            ],
-                            if (_profile!.storeName?.isNotEmpty == true) ...[
-                              const SizedBox(height: TossSpacing.space4),
-                              _buildReadOnlyField('Store', _profile!.storeName!),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              AccountInfoSection(profile: _profile!),
 
               const GrayDividerSpace(),
             ],
@@ -706,37 +276,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 
-  Widget _buildReadOnlyField(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.labelLarge.copyWith(
-            color: TossColors.gray700,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            vertical: TossSpacing.space3,
-            horizontal: TossSpacing.space4,
-          ),
-          decoration: BoxDecoration(
-            color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            border: Border.all(color: TossColors.gray100),
-          ),
-          child: Text(
-            value,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-        ),
-      ],
+  void _showDatePicker() {
+    showDatePickerBottomSheet(
+      context: context,
+      initialDate: _selectedDateOfBirth,
+      onDateSelected: (date) {
+        setState(() {
+          _selectedDateOfBirth = date;
+        });
+        _onFieldChanged();
+      },
     );
   }
 
@@ -748,7 +297,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     });
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final userId = ref.read(currentUserIdProvider);
       if (userId == null) throw Exception('User not authenticated');
 
       final appState = ref.read(appStateProvider);
@@ -762,12 +311,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           _lastNameController.text.trim() != (_originalLastName ?? '') ||
           _phoneNumberController.text.trim() != (_originalPhoneNumber ?? '') ||
           currentDob != (_originalDateOfBirth ?? '')) {
-
         await repository.updateUserProfile(
           userId: userId,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
-          phoneNumber: _phoneNumberController.text.trim().isEmpty ? null : _phoneNumberController.text.trim(),
+          phoneNumber: _phoneNumberController.text.trim().isEmpty
+              ? null
+              : _phoneNumberController.text.trim(),
           dateOfBirth: currentDob.isEmpty ? null : currentDob,
         );
       }
@@ -843,239 +393,5 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         });
       }
     }
-  }
-
-  Widget _buildDatePickerField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Date of Birth',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.gray700,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        InkWell(
-          onTap: () => _showDatePickerBottomSheet(),
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space4,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              border: Border.all(
-                color: TossColors.gray100,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _selectedDateOfBirth != null
-                      ? _formatDate(_selectedDateOfBirth!)
-                      : 'Select date',
-                  style: TossTextStyles.body.copyWith(
-                    color: _selectedDateOfBirth != null
-                        ? TossColors.gray900
-                        : TossColors.gray500,
-                    fontWeight: _selectedDateOfBirth != null
-                        ? FontWeight.w500
-                        : FontWeight.w400,
-                  ),
-                ),
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 20,
-                  color: TossColors.gray600,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
-
-  void _showDatePickerBottomSheet() {
-    final now = DateTime.now();
-    final initialDate = _selectedDateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
-
-    DateTime tempSelectedDate = initialDate;
-    int selectedYear = tempSelectedDate.year;
-    int selectedMonth = tempSelectedDate.month;
-    int selectedDay = tempSelectedDate.day;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final daysInMonth = DateTime(selectedYear, selectedMonth + 1, 0).day;
-            if (selectedDay > daysInMonth) {
-              selectedDay = daysInMonth;
-            }
-
-            return Container(
-              height: 400,
-              padding: const EdgeInsets.all(TossSpacing.space6),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          'Cancel',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        'Select Date',
-                        style: TossTextStyles.h3.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedDateOfBirth = DateTime(selectedYear, selectedMonth, selectedDay);
-                          });
-                          _onFieldChanged();
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Done',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: TossSpacing.space4),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildDropdown(
-                            items: List.generate(100, (i) => now.year - i)
-                                .map((y) => y.toString())
-                                .toList(),
-                            selectedValue: selectedYear.toString(),
-                            onChanged: (value) {
-                              setModalState(() {
-                                selectedYear = int.parse(value!);
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: TossSpacing.space2),
-                        Expanded(
-                          child: _buildDropdown(
-                            items: [
-                              'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                            ],
-                            selectedValue: [
-                              'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                            ][selectedMonth - 1],
-                            onChanged: (value) {
-                              setModalState(() {
-                                selectedMonth = [
-                                  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                                ].indexOf(value!) + 1;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: TossSpacing.space2),
-                        Expanded(
-                          child: _buildDropdown(
-                            items: List.generate(daysInMonth, (i) => (i + 1).toString()),
-                            selectedValue: selectedDay.toString(),
-                            onChanged: (value) {
-                              setModalState(() {
-                                selectedDay = int.parse(value!);
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDropdown({
-    required List<String> items,
-    required String selectedValue,
-    required void Function(String?) onChanged,
-  }) {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        border: Border.all(color: TossColors.gray200),
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: ListWheelScrollView.useDelegate(
-        itemExtent: 40,
-        physics: const FixedExtentScrollPhysics(),
-        diameterRatio: 1.5,
-        perspective: 0.002,
-        controller: FixedExtentScrollController(
-          initialItem: items.indexOf(selectedValue),
-        ),
-        onSelectedItemChanged: (index) {
-          onChanged(items[index]);
-        },
-        childDelegate: ListWheelChildBuilderDelegate(
-          builder: (context, index) {
-            if (index < 0 || index >= items.length) return null;
-            final isSelected = items[index] == selectedValue;
-            return Center(
-              child: Text(
-                items[index],
-                style: TossTextStyles.body.copyWith(
-                  fontSize: isSelected ? 18 : 16,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? TossColors.gray900 : TossColors.gray500,
-                ),
-              ),
-            );
-          },
-          childCount: items.length,
-        ),
-      ),
-    );
   }
 }

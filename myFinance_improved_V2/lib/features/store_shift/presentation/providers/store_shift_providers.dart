@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/business_hours.dart';
 import '../../domain/entities/store_shift.dart';
+import '../../domain/entities/work_schedule_template.dart';
 import '../../domain/providers/repository_provider.dart';
 import '../../domain/usecases/create_shift.dart';
 import '../../domain/usecases/delete_shift.dart';
@@ -329,5 +330,152 @@ final updateBusinessHoursProvider = Provider.autoDispose<
     }
 
     return success;
+  };
+});
+
+/// ========================================
+/// Work Schedule Template Providers
+/// ========================================
+/// For monthly (salary-based) employees
+
+/// Provider to fetch work schedule templates for the current company
+final workScheduleTemplatesProvider =
+    FutureProvider.autoDispose<List<WorkScheduleTemplate>>((ref) async {
+  final appState = ref.watch(appStateProvider);
+
+  // If no company is selected, return empty list
+  if (appState.companyChoosen.isEmpty) {
+    return [];
+  }
+
+  final repository = ref.watch(storeShiftRepositoryProvider);
+  return await repository.getWorkScheduleTemplates(appState.companyChoosen);
+});
+
+/// Create a new work schedule template
+final createWorkScheduleTemplateProvider = Provider.autoDispose<
+    Future<Map<String, dynamic>> Function({
+      required String templateName,
+      String workStartTime,
+      String workEndTime,
+      bool monday,
+      bool tuesday,
+      bool wednesday,
+      bool thursday,
+      bool friday,
+      bool saturday,
+      bool sunday,
+      bool isDefault,
+    })>((ref) {
+  return ({
+    required String templateName,
+    String workStartTime = '09:00',
+    String workEndTime = '18:00',
+    bool monday = true,
+    bool tuesday = true,
+    bool wednesday = true,
+    bool thursday = true,
+    bool friday = true,
+    bool saturday = false,
+    bool sunday = false,
+    bool isDefault = false,
+  }) async {
+    final appState = ref.read(appStateProvider);
+    final repository = ref.read(storeShiftRepositoryProvider);
+
+    final result = await repository.createWorkScheduleTemplate(
+      companyId: appState.companyChoosen,
+      templateName: templateName,
+      workStartTime: workStartTime,
+      workEndTime: workEndTime,
+      monday: monday,
+      tuesday: tuesday,
+      wednesday: wednesday,
+      thursday: thursday,
+      friday: friday,
+      saturday: saturday,
+      sunday: sunday,
+      isDefault: isDefault,
+    );
+
+    // Invalidate to refresh list
+    if (result['success'] == true) {
+      ref.invalidate(workScheduleTemplatesProvider);
+    }
+
+    return result;
+  };
+});
+
+/// Update an existing work schedule template
+final updateWorkScheduleTemplateProvider = Provider.autoDispose<
+    Future<Map<String, dynamic>> Function({
+      required String templateId,
+      String? templateName,
+      String? workStartTime,
+      String? workEndTime,
+      bool? monday,
+      bool? tuesday,
+      bool? wednesday,
+      bool? thursday,
+      bool? friday,
+      bool? saturday,
+      bool? sunday,
+      bool? isDefault,
+    })>((ref) {
+  return ({
+    required String templateId,
+    String? templateName,
+    String? workStartTime,
+    String? workEndTime,
+    bool? monday,
+    bool? tuesday,
+    bool? wednesday,
+    bool? thursday,
+    bool? friday,
+    bool? saturday,
+    bool? sunday,
+    bool? isDefault,
+  }) async {
+    final repository = ref.read(storeShiftRepositoryProvider);
+
+    final result = await repository.updateWorkScheduleTemplate(
+      templateId: templateId,
+      templateName: templateName,
+      workStartTime: workStartTime,
+      workEndTime: workEndTime,
+      monday: monday,
+      tuesday: tuesday,
+      wednesday: wednesday,
+      thursday: thursday,
+      friday: friday,
+      saturday: saturday,
+      sunday: sunday,
+      isDefault: isDefault,
+    );
+
+    // Invalidate to refresh list
+    if (result['success'] == true) {
+      ref.invalidate(workScheduleTemplatesProvider);
+    }
+
+    return result;
+  };
+});
+
+/// Delete a work schedule template
+final deleteWorkScheduleTemplateProvider = Provider.autoDispose<
+    Future<Map<String, dynamic>> Function(String templateId)>((ref) {
+  return (String templateId) async {
+    final repository = ref.read(storeShiftRepositoryProvider);
+
+    final result = await repository.deleteWorkScheduleTemplate(templateId);
+
+    // Invalidate to refresh list
+    if (result['success'] == true) {
+      ref.invalidate(workScheduleTemplatesProvider);
+    }
+
+    return result;
   };
 });

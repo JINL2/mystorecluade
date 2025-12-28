@@ -22,17 +22,18 @@ class HomepageDataSource {
 
   // === User & Company Operations ===
 
-  /// Fetch user companies and stores via get_user_companies_with_subscription RPC
+  /// Fetch user companies and stores via get_user_companies_with_salary RPC
   ///
-  /// Calls: rpc('get_user_companies_with_subscription', {...})
-  /// Returns: User with companies, stores, and subscription info
+  /// Calls: rpc('get_user_companies_with_salary', {...})
+  /// Returns: User with companies, stores, subscription, and salary info
   ///
   /// ✅ Uses new RPC that includes subscription data for each company
+  /// ✅ Includes salary info (salary_type, currency_code, currency_symbol)
   /// ✅ Filters out deleted companies and stores before parsing
   Future<UserCompaniesModel> getUserCompanies(String userId) async {
 
     final response = await _supabaseService.client.rpc(
-      'get_user_companies_with_subscription',
+      'get_user_companies_with_salary',
       params: {
         'p_user_id': userId,
       },

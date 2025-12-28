@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CashLocation _$CashLocationFromJson(Map<String, dynamic> json) {
-  return _CashLocation.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CashLocation {
   String get locationId => throw _privateConstructorUsedError;
@@ -30,9 +26,6 @@ mixin _$CashLocation {
   String? get storeId => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
   bool get isDeleted => throw _privateConstructorUsedError;
-
-  /// Serializes this CashLocation to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CashLocation
   /// with the given fields replaced by the non-null parameter values.
@@ -222,7 +215,7 @@ class __$$CashLocationImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CashLocationImpl extends _CashLocation {
   const _$CashLocationImpl(
       {required this.locationId,
@@ -236,9 +229,6 @@ class _$CashLocationImpl extends _CashLocation {
       required this.currencySymbol,
       this.isDeleted = false})
       : super._();
-
-  factory _$CashLocationImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CashLocationImplFromJson(json);
 
   @override
   final String locationId;
@@ -293,7 +283,6 @@ class _$CashLocationImpl extends _CashLocation {
                 other.isDeleted == isDeleted));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -315,13 +304,6 @@ class _$CashLocationImpl extends _CashLocation {
   @pragma('vm:prefer-inline')
   _$$CashLocationImplCopyWith<_$CashLocationImpl> get copyWith =>
       __$$CashLocationImplCopyWithImpl<_$CashLocationImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CashLocationImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CashLocation extends CashLocation {
@@ -337,9 +319,6 @@ abstract class _CashLocation extends CashLocation {
       required final String currencySymbol,
       final bool isDeleted}) = _$CashLocationImpl;
   const _CashLocation._() : super._();
-
-  factory _CashLocation.fromJson(Map<String, dynamic> json) =
-      _$CashLocationImpl.fromJson;
 
   @override
   String get locationId;

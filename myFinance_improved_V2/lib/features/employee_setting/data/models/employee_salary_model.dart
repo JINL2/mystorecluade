@@ -42,6 +42,18 @@ class EmployeeSalaryModel extends EmployeeSalary {
     super.lastActivityAt,
     super.bankName,
     super.bankAccountNumber,
+    // Work Schedule Template fields
+    super.workScheduleTemplateId,
+    super.workScheduleTemplateName,
+    super.workStartTime,
+    super.workEndTime,
+    super.workMonday,
+    super.workTuesday,
+    super.workWednesday,
+    super.workThursday,
+    super.workFriday,
+    super.workSaturday,
+    super.workSunday,
   });
 
   /// Create model from domain entity
@@ -82,6 +94,18 @@ class EmployeeSalaryModel extends EmployeeSalary {
       lastActivityAt: entity.lastActivityAt,
       bankName: entity.bankName,
       bankAccountNumber: entity.bankAccountNumber,
+      // Work Schedule Template fields
+      workScheduleTemplateId: entity.workScheduleTemplateId,
+      workScheduleTemplateName: entity.workScheduleTemplateName,
+      workStartTime: entity.workStartTime,
+      workEndTime: entity.workEndTime,
+      workMonday: entity.workMonday,
+      workTuesday: entity.workTuesday,
+      workWednesday: entity.workWednesday,
+      workThursday: entity.workThursday,
+      workFriday: entity.workFriday,
+      workSaturday: entity.workSaturday,
+      workSunday: entity.workSunday,
     );
   }
 
@@ -131,7 +155,49 @@ class EmployeeSalaryModel extends EmployeeSalary {
       // Bank information
       bankName: json['bank_name'] as String?,
       bankAccountNumber: json['bank_account_number'] as String?,
+
+      // Work Schedule Template fields (from v_user_salary view)
+      workScheduleTemplateId: json['work_schedule_template_id'] as String?,
+      workScheduleTemplateName: json['work_schedule_template_name'] as String?,
+      workStartTime: _parseTimeString(json['work_start_time'] as String?),
+      workEndTime: _parseTimeString(json['work_end_time'] as String?),
+      workMonday: json['work_monday'] as bool?,
+      workTuesday: json['work_tuesday'] as bool?,
+      workWednesday: json['work_wednesday'] as bool?,
+      workThursday: json['work_thursday'] as bool?,
+      workFriday: json['work_friday'] as bool?,
+      workSaturday: json['work_saturday'] as bool?,
+      workSunday: json['work_sunday'] as bool?,
     );
+  }
+
+  /// Parse time string and return in HH:mm format
+  /// Handles: "09:00:00", "09:00", "09:00:00+09:00"
+  static String? _parseTimeString(String? timeString) {
+    if (timeString == null) return null;
+
+    try {
+      // Remove timezone offset if present
+      String cleanedTime = timeString;
+      if (timeString.contains('+') || timeString.contains('-')) {
+        final plusIndex = timeString.indexOf('+');
+        final minusIndex = timeString.lastIndexOf('-');
+        final offsetIndex = plusIndex != -1 ? plusIndex : minusIndex;
+        if (offsetIndex > 0) {
+          cleanedTime = timeString.substring(0, offsetIndex);
+        }
+      }
+
+      // Extract HH:mm from HH:mm:ss
+      final parts = cleanedTime.split(':');
+      if (parts.length >= 2) {
+        return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+      }
+
+      return cleanedTime;
+    } catch (e) {
+      return timeString;
+    }
   }
 
   /// Convert model to JSON (for Supabase requests)
@@ -180,6 +246,19 @@ class EmployeeSalaryModel extends EmployeeSalary {
       // Bank information
       'bank_name': bankName,
       'bank_account_number': bankAccountNumber,
+
+      // Work Schedule Template fields
+      'work_schedule_template_id': workScheduleTemplateId,
+      'work_schedule_template_name': workScheduleTemplateName,
+      'work_start_time': workStartTime,
+      'work_end_time': workEndTime,
+      'work_monday': workMonday,
+      'work_tuesday': workTuesday,
+      'work_wednesday': workWednesday,
+      'work_thursday': workThursday,
+      'work_friday': workFriday,
+      'work_saturday': workSaturday,
+      'work_sunday': workSunday,
     };
   }
 
@@ -221,6 +300,18 @@ class EmployeeSalaryModel extends EmployeeSalary {
       lastActivityAt: lastActivityAt,
       bankName: bankName,
       bankAccountNumber: bankAccountNumber,
+      // Work Schedule Template fields
+      workScheduleTemplateId: workScheduleTemplateId,
+      workScheduleTemplateName: workScheduleTemplateName,
+      workStartTime: workStartTime,
+      workEndTime: workEndTime,
+      workMonday: workMonday,
+      workTuesday: workTuesday,
+      workWednesday: workWednesday,
+      workThursday: workThursday,
+      workFriday: workFriday,
+      workSaturday: workSaturday,
+      workSunday: workSunday,
     );
   }
 }

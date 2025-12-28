@@ -1,30 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/auth_providers.dart';
 import '../../data/datasources/notification_settings_datasource.dart';
 
+part 'notification_settings_provider.g.dart';
+
 // =============================================================================
-// Helper Class
+// Type Aliases
 // =============================================================================
 
-/// Role 정보를 담는 내부 클래스
-class _RoleInfo {
-  final String roleId;
-  final String roleType;
-
-  _RoleInfo({required this.roleId, required this.roleType});
-}
+/// Role 정보 타입 (DataSource에서 반환하는 Record 타입)
+typedef RoleInfo = ({String roleId, String roleType});
 
 // =============================================================================
 // DataSource Provider
 // =============================================================================
 
 /// NotificationSettingsDataSource Provider
-final notificationSettingsDataSourceProvider =
-    Provider<NotificationSettingsDataSource>((ref) {
+@Riverpod(keepAlive: true)
+NotificationSettingsDataSource notificationSettingsDataSource(Ref ref) {
   return NotificationSettingsDataSource();
-});
+}
 
 // =============================================================================
 // State Classes
@@ -99,22 +97,27 @@ class StoreSettingsState {
 // =============================================================================
 
 /// Notification Settings Notifier (메인 화면)
-class NotificationSettingsNotifier
-    extends StateNotifier<NotificationSettingsState> {
-  final NotificationSettingsDataSource _dataSource;
-  final Ref _ref;
-  _RoleInfo? _cachedRoleInfo;
+@riverpod
+class NotificationSettingsNotifier extends _$NotificationSettingsNotifier {
+  late final NotificationSettingsDataSource _dataSource;
+  RoleInfo? _cachedRoleInfo;
 
-  NotificationSettingsNotifier(this._dataSource, this._ref)
-      : super(const NotificationSettingsState());
+  @override
+  NotificationSettingsState build() {
+    _dataSource = ref.watch(notificationSettingsDataSourceProvider);
+    return const NotificationSettingsState();
+  }
+
+  /// 현재 사용자 ID 가져오기 (Auth Provider 통해)
+  String? get _currentUserId => ref.read(currentUserIdProvider);
 
   /// 알림 설정 로드
   Future<void> loadSettings() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      final appState = _ref.read(appStateProvider);
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final appState = ref.read(appStateProvider);
+      final userId = _currentUserId;
       final companyId = appState.companyChoosen;
 
       // ignore: avoid_print
@@ -130,8 +133,11 @@ class NotificationSettingsNotifier
         return;
       }
 
-      // user_roles에서 현재 유저의 role_id, role_type 가져오기
-      final roleInfo = await _getCurrentUserRoleInfo(userId, companyId);
+      // user_roles에서 현재 유저의 role_id, role_type 가져오기 (DataSource 통해)
+      final roleInfo = await _dataSource.getCurrentUserRoleInfo(
+        userId: userId,
+        companyId: companyId,
+      );
       // ignore: avoid_print
       print('[NotificationSettings] roleInfo: $roleInfo');
 
@@ -179,43 +185,14 @@ class NotificationSettingsNotifier
     }
   }
 
-  /// 현재 유저의 role_id, role_type 가져오기
-  Future<_RoleInfo?> _getCurrentUserRoleInfo(
-    String userId,
-    String companyId,
-  ) async {
-    try {
-      final supabase = Supabase.instance.client;
-
-      final result = await supabase
-          .from('user_roles')
-          .select('role_id, roles!inner(company_id, role_type)')
-          .eq('user_id', userId)
-          .eq('roles.company_id', companyId)
-          .eq('is_deleted', false)
-          .limit(1)
-          .maybeSingle();
-
-      if (result == null) return null;
-
-      final roleId = result['role_id'] as String;
-      final roles = result['roles'] as Map<String, dynamic>;
-      final roleType = roles['role_type'] as String? ?? 'employee';
-
-      return _RoleInfo(roleId: roleId, roleType: roleType);
-    } catch (e) {
-      return null;
-    }
-  }
-
   /// Master Push 토글
   Future<void> toggleMasterPush(bool value) async {
     // 낙관적 업데이트 (UI 먼저 반영)
     state = state.copyWith(masterPushEnabled: value);
 
     try {
-      final appState = _ref.read(appStateProvider);
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final appState = ref.read(appStateProvider);
+      final userId = _currentUserId;
       final companyId = appState.companyChoosen;
 
       if (userId == null || companyId.isEmpty) return;
@@ -237,8 +214,8 @@ class NotificationSettingsNotifier
   /// 개별 알림 토글 (All Stores)
   Future<void> toggleNotification(String featureId, bool newValue) async {
     try {
-      final appState = _ref.read(appStateProvider);
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final appState = ref.read(appStateProvider);
+      final userId = _currentUserId;
       final companyId = appState.companyChoosen;
 
       if (userId == null || companyId.isEmpty) return;
@@ -282,13 +259,19 @@ class NotificationSettingsNotifier
 // =============================================================================
 
 /// Store 상세 설정 Notifier
-class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
-  final NotificationSettingsDataSource _dataSource;
-  final Ref _ref;
+@riverpod
+class StoreSettingsNotifier extends _$StoreSettingsNotifier {
+  late final NotificationSettingsDataSource _dataSource;
   String? _currentFeatureId;
 
-  StoreSettingsNotifier(this._dataSource, this._ref)
-      : super(const StoreSettingsState());
+  @override
+  StoreSettingsState build() {
+    _dataSource = ref.watch(notificationSettingsDataSourceProvider);
+    return const StoreSettingsState();
+  }
+
+  /// 현재 사용자 ID 가져오기 (Auth Provider 통해)
+  String? get _currentUserId => ref.read(currentUserIdProvider);
 
   /// Store 설정 로드
   Future<void> loadSettings(String featureId, String roleType) async {
@@ -296,8 +279,8 @@ class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      final appState = _ref.read(appStateProvider);
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final appState = ref.read(appStateProvider);
+      final userId = _currentUserId;
       final companyId = appState.companyChoosen;
 
       if (userId == null || companyId.isEmpty) {
@@ -332,8 +315,8 @@ class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
     if (state.settings == null || _currentFeatureId == null) return;
 
     try {
-      final appState = _ref.read(appStateProvider);
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final appState = ref.read(appStateProvider);
+      final userId = _currentUserId;
       final companyId = appState.companyChoosen;
 
       if (userId == null || companyId.isEmpty) return;
@@ -379,8 +362,8 @@ class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
     if (state.settings == null || _currentFeatureId == null) return;
 
     try {
-      final appState = _ref.read(appStateProvider);
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final appState = ref.read(appStateProvider);
+      final userId = _currentUserId;
       final companyId = appState.companyChoosen;
 
       if (userId == null || companyId.isEmpty) return;
@@ -428,21 +411,3 @@ class StoreSettingsNotifier extends StateNotifier<StoreSettingsState> {
     state = state.copyWith(errorMessage: null);
   }
 }
-
-// =============================================================================
-// Providers
-// =============================================================================
-
-/// Notification Settings Provider (메인 화면)
-final notificationSettingsProvider = StateNotifierProvider.autoDispose<
-    NotificationSettingsNotifier, NotificationSettingsState>((ref) {
-  final dataSource = ref.watch(notificationSettingsDataSourceProvider);
-  return NotificationSettingsNotifier(dataSource, ref);
-});
-
-/// Store Settings Provider (상세 화면)
-final storeSettingsProvider = StateNotifierProvider.autoDispose<
-    StoreSettingsNotifier, StoreSettingsState>((ref) {
-  final dataSource = ref.watch(notificationSettingsDataSourceProvider);
-  return StoreSettingsNotifier(dataSource, ref);
-});

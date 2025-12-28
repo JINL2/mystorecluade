@@ -14,45 +14,22 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-AccountMapping _$AccountMappingFromJson(Map<String, dynamic> json) {
-  return _AccountMapping.fromJson(json);
-}
-
 /// @nodoc
 mixin _$AccountMapping {
-  @JsonKey(name: 'mapping_id')
   String get mappingId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'my_company_id')
   String get myCompanyId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'my_account_id')
   String get myAccountId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'counterparty_id')
   String get counterpartyId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'linked_account_id')
   String get linkedAccountId => throw _privateConstructorUsedError;
-  String get direction =>
-      throw _privateConstructorUsedError; // 'bidirectional' by default
-  @JsonKey(name: 'created_by')
+  String get direction => throw _privateConstructorUsedError;
   String? get createdBy => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
-  DateTime? get createdAt =>
-      throw _privateConstructorUsedError; // From counterparties table via join
-  @JsonKey(name: 'linked_company_id')
-  String? get linkedCompanyId =>
-      throw _privateConstructorUsedError; // Display fields (for UI) from RPC joins
-  @JsonKey(name: 'my_account_name')
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  String? get linkedCompanyId => throw _privateConstructorUsedError;
   String? get myAccountName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'linked_account_name')
   String? get linkedAccountName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'linked_company_name')
   String? get linkedCompanyName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'my_account_type')
   String? get myAccountType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'linked_account_type')
   String? get linkedAccountType => throw _privateConstructorUsedError;
-
-  /// Serializes this AccountMapping to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of AccountMapping
   /// with the given fields replaced by the non-null parameter values.
@@ -68,20 +45,20 @@ abstract class $AccountMappingCopyWith<$Res> {
       _$AccountMappingCopyWithImpl<$Res, AccountMapping>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'mapping_id') String mappingId,
-      @JsonKey(name: 'my_company_id') String myCompanyId,
-      @JsonKey(name: 'my_account_id') String myAccountId,
-      @JsonKey(name: 'counterparty_id') String counterpartyId,
-      @JsonKey(name: 'linked_account_id') String linkedAccountId,
+      {String mappingId,
+      String myCompanyId,
+      String myAccountId,
+      String counterpartyId,
+      String linkedAccountId,
       String direction,
-      @JsonKey(name: 'created_by') String? createdBy,
-      @JsonKey(name: 'created_at') DateTime? createdAt,
-      @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
-      @JsonKey(name: 'my_account_name') String? myAccountName,
-      @JsonKey(name: 'linked_account_name') String? linkedAccountName,
-      @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
-      @JsonKey(name: 'my_account_type') String? myAccountType,
-      @JsonKey(name: 'linked_account_type') String? linkedAccountType});
+      String? createdBy,
+      DateTime? createdAt,
+      String? linkedCompanyId,
+      String? myAccountName,
+      String? linkedAccountName,
+      String? linkedCompanyName,
+      String? myAccountType,
+      String? linkedAccountType});
 }
 
 /// @nodoc
@@ -184,20 +161,20 @@ abstract class _$$AccountMappingImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'mapping_id') String mappingId,
-      @JsonKey(name: 'my_company_id') String myCompanyId,
-      @JsonKey(name: 'my_account_id') String myAccountId,
-      @JsonKey(name: 'counterparty_id') String counterpartyId,
-      @JsonKey(name: 'linked_account_id') String linkedAccountId,
+      {String mappingId,
+      String myCompanyId,
+      String myAccountId,
+      String counterpartyId,
+      String linkedAccountId,
       String direction,
-      @JsonKey(name: 'created_by') String? createdBy,
-      @JsonKey(name: 'created_at') DateTime? createdAt,
-      @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
-      @JsonKey(name: 'my_account_name') String? myAccountName,
-      @JsonKey(name: 'linked_account_name') String? linkedAccountName,
-      @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
-      @JsonKey(name: 'my_account_type') String? myAccountType,
-      @JsonKey(name: 'linked_account_type') String? linkedAccountType});
+      String? createdBy,
+      DateTime? createdAt,
+      String? linkedCompanyId,
+      String? myAccountName,
+      String? linkedAccountName,
+      String? linkedCompanyName,
+      String? myAccountType,
+      String? linkedAccountType});
 }
 
 /// @nodoc
@@ -290,70 +267,52 @@ class __$$AccountMappingImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
-class _$AccountMappingImpl implements _AccountMapping {
-  const _$AccountMappingImpl(
-      {@JsonKey(name: 'mapping_id') required this.mappingId,
-      @JsonKey(name: 'my_company_id') required this.myCompanyId,
-      @JsonKey(name: 'my_account_id') required this.myAccountId,
-      @JsonKey(name: 'counterparty_id') required this.counterpartyId,
-      @JsonKey(name: 'linked_account_id') required this.linkedAccountId,
-      required this.direction,
-      @JsonKey(name: 'created_by') this.createdBy,
-      @JsonKey(name: 'created_at') this.createdAt,
-      @JsonKey(name: 'linked_company_id') this.linkedCompanyId,
-      @JsonKey(name: 'my_account_name') this.myAccountName,
-      @JsonKey(name: 'linked_account_name') this.linkedAccountName,
-      @JsonKey(name: 'linked_company_name') this.linkedCompanyName,
-      @JsonKey(name: 'my_account_type') this.myAccountType,
-      @JsonKey(name: 'linked_account_type') this.linkedAccountType});
 
-  factory _$AccountMappingImpl.fromJson(Map<String, dynamic> json) =>
-      _$$AccountMappingImplFromJson(json);
+class _$AccountMappingImpl extends _AccountMapping {
+  const _$AccountMappingImpl(
+      {required this.mappingId,
+      required this.myCompanyId,
+      required this.myAccountId,
+      required this.counterpartyId,
+      required this.linkedAccountId,
+      required this.direction,
+      this.createdBy,
+      this.createdAt,
+      this.linkedCompanyId,
+      this.myAccountName,
+      this.linkedAccountName,
+      this.linkedCompanyName,
+      this.myAccountType,
+      this.linkedAccountType})
+      : super._();
 
   @override
-  @JsonKey(name: 'mapping_id')
   final String mappingId;
   @override
-  @JsonKey(name: 'my_company_id')
   final String myCompanyId;
   @override
-  @JsonKey(name: 'my_account_id')
   final String myAccountId;
   @override
-  @JsonKey(name: 'counterparty_id')
   final String counterpartyId;
   @override
-  @JsonKey(name: 'linked_account_id')
   final String linkedAccountId;
   @override
   final String direction;
-// 'bidirectional' by default
   @override
-  @JsonKey(name: 'created_by')
   final String? createdBy;
   @override
-  @JsonKey(name: 'created_at')
   final DateTime? createdAt;
-// From counterparties table via join
   @override
-  @JsonKey(name: 'linked_company_id')
   final String? linkedCompanyId;
-// Display fields (for UI) from RPC joins
   @override
-  @JsonKey(name: 'my_account_name')
   final String? myAccountName;
   @override
-  @JsonKey(name: 'linked_account_name')
   final String? linkedAccountName;
   @override
-  @JsonKey(name: 'linked_company_name')
   final String? linkedCompanyName;
   @override
-  @JsonKey(name: 'my_account_type')
   final String? myAccountType;
   @override
-  @JsonKey(name: 'linked_account_type')
   final String? linkedAccountType;
 
   @override
@@ -396,7 +355,6 @@ class _$AccountMappingImpl implements _AccountMapping {
                 other.linkedAccountType == linkedAccountType));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -423,76 +381,53 @@ class _$AccountMappingImpl implements _AccountMapping {
   _$$AccountMappingImplCopyWith<_$AccountMappingImpl> get copyWith =>
       __$$AccountMappingImplCopyWithImpl<_$AccountMappingImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$AccountMappingImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _AccountMapping implements AccountMapping {
+abstract class _AccountMapping extends AccountMapping {
   const factory _AccountMapping(
-      {@JsonKey(name: 'mapping_id') required final String mappingId,
-      @JsonKey(name: 'my_company_id') required final String myCompanyId,
-      @JsonKey(name: 'my_account_id') required final String myAccountId,
-      @JsonKey(name: 'counterparty_id') required final String counterpartyId,
-      @JsonKey(name: 'linked_account_id') required final String linkedAccountId,
+      {required final String mappingId,
+      required final String myCompanyId,
+      required final String myAccountId,
+      required final String counterpartyId,
+      required final String linkedAccountId,
       required final String direction,
-      @JsonKey(name: 'created_by') final String? createdBy,
-      @JsonKey(name: 'created_at') final DateTime? createdAt,
-      @JsonKey(name: 'linked_company_id') final String? linkedCompanyId,
-      @JsonKey(name: 'my_account_name') final String? myAccountName,
-      @JsonKey(name: 'linked_account_name') final String? linkedAccountName,
-      @JsonKey(name: 'linked_company_name') final String? linkedCompanyName,
-      @JsonKey(name: 'my_account_type') final String? myAccountType,
-      @JsonKey(name: 'linked_account_type')
+      final String? createdBy,
+      final DateTime? createdAt,
+      final String? linkedCompanyId,
+      final String? myAccountName,
+      final String? linkedAccountName,
+      final String? linkedCompanyName,
+      final String? myAccountType,
       final String? linkedAccountType}) = _$AccountMappingImpl;
-
-  factory _AccountMapping.fromJson(Map<String, dynamic> json) =
-      _$AccountMappingImpl.fromJson;
+  const _AccountMapping._() : super._();
 
   @override
-  @JsonKey(name: 'mapping_id')
   String get mappingId;
   @override
-  @JsonKey(name: 'my_company_id')
   String get myCompanyId;
   @override
-  @JsonKey(name: 'my_account_id')
   String get myAccountId;
   @override
-  @JsonKey(name: 'counterparty_id')
   String get counterpartyId;
   @override
-  @JsonKey(name: 'linked_account_id')
   String get linkedAccountId;
   @override
-  String get direction; // 'bidirectional' by default
+  String get direction;
   @override
-  @JsonKey(name: 'created_by')
   String? get createdBy;
   @override
-  @JsonKey(name: 'created_at')
-  DateTime? get createdAt; // From counterparties table via join
+  DateTime? get createdAt;
   @override
-  @JsonKey(name: 'linked_company_id')
-  String? get linkedCompanyId; // Display fields (for UI) from RPC joins
+  String? get linkedCompanyId;
   @override
-  @JsonKey(name: 'my_account_name')
   String? get myAccountName;
   @override
-  @JsonKey(name: 'linked_account_name')
   String? get linkedAccountName;
   @override
-  @JsonKey(name: 'linked_company_name')
   String? get linkedCompanyName;
   @override
-  @JsonKey(name: 'my_account_type')
   String? get myAccountType;
   @override
-  @JsonKey(name: 'linked_account_type')
   String? get linkedAccountType;
 
   /// Create a copy of AccountMapping

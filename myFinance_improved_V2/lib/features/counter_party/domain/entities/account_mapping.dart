@@ -1,37 +1,31 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'account_mapping.freezed.dart';
-part 'account_mapping.g.dart';
 
-/// Account Mapping Entity
+/// Account Mapping Entity (Pure Domain - No JSON)
 ///
 /// Maps accounts between internal companies for automatic debt synchronization.
 /// When company A records a receivable, company B automatically records a payable.
 @freezed
 class AccountMapping with _$AccountMapping {
+  const AccountMapping._();
+
   const factory AccountMapping({
-    @JsonKey(name: 'mapping_id') required String mappingId,
-    @JsonKey(name: 'my_company_id') required String myCompanyId,
-    @JsonKey(name: 'my_account_id') required String myAccountId,
-    @JsonKey(name: 'counterparty_id') required String counterpartyId,
-    @JsonKey(name: 'linked_account_id') required String linkedAccountId,
-    required String direction, // 'bidirectional' by default
-    @JsonKey(name: 'created_by') String? createdBy,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-
-    // From counterparties table via join
-    @JsonKey(name: 'linked_company_id') String? linkedCompanyId,
-
-    // Display fields (for UI) from RPC joins
-    @JsonKey(name: 'my_account_name') String? myAccountName,
-    @JsonKey(name: 'linked_account_name') String? linkedAccountName,
-    @JsonKey(name: 'linked_company_name') String? linkedCompanyName,
-    @JsonKey(name: 'my_account_type') String? myAccountType,
-    @JsonKey(name: 'linked_account_type') String? linkedAccountType,
+    required String mappingId,
+    required String myCompanyId,
+    required String myAccountId,
+    required String counterpartyId,
+    required String linkedAccountId,
+    required String direction,
+    String? createdBy,
+    DateTime? createdAt,
+    String? linkedCompanyId,
+    String? myAccountName,
+    String? linkedAccountName,
+    String? linkedCompanyName,
+    String? myAccountType,
+    String? linkedAccountType,
   }) = _AccountMapping;
-
-  factory AccountMapping.fromJson(Map<String, dynamic> json) =>
-      _$AccountMappingFromJson(json);
 }
 
 /// Helper extension for AccountMapping

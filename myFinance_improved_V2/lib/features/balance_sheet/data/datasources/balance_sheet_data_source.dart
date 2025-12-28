@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/pnl_summary_model.dart';
-import '../models/bs_summary_model.dart';
+import '../models/pnl_summary_dto.dart';
+import '../models/bs_summary_dto.dart';
 
 /// Balance sheet data source
 class BalanceSheetDataSource {

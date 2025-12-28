@@ -1,15 +1,20 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/join_by_code.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/states/join_state.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-/// StateNotifier for managing join operations
+import '../../domain/usecases/join_by_code.dart';
+import 'states/join_state.dart';
+import 'usecase_providers.dart';
+
+part 'join_notifier.g.dart';
+
+/// Notifier for managing join operations
 ///
-/// Handles the state flow for joining companies/stores by code
+/// Migrated from StateNotifier to @riverpod Notifier pattern.
+/// Handles the state flow for joining companies/stores by code.
 /// States: Initial → Loading → Success/Error
-class JoinNotifier extends StateNotifier<JoinState> {
-  JoinNotifier(this._joinByCode) : super(const JoinState.initial());
-
-  final JoinByCode _joinByCode;
+@riverpod
+class JoinNotifier extends _$JoinNotifier {
+  @override
+  JoinState build() => const JoinState.initial();
 
   /// Join a company or store by code
   ///
@@ -19,12 +24,16 @@ class JoinNotifier extends StateNotifier<JoinState> {
     required String userId,
     required String code,
   }) async {
+    final joinByCode = ref.read(joinByCodeUseCaseProvider);
+
     state = const JoinState.loading();
 
-    final result = await _joinByCode(JoinByCodeParams(
-      userId: userId,
-      code: code,
-    ),);
+    final result = await joinByCode(
+      JoinByCodeParams(
+        userId: userId,
+        code: code,
+      ),
+    );
 
     result.fold(
       (failure) {

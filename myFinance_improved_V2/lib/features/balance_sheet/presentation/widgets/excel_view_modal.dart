@@ -5,8 +5,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../data/models/pnl_summary_model.dart';
-import '../../data/models/bs_summary_model.dart';
+import '../../data/models/pnl_summary_dto.dart';
+import '../../data/models/bs_summary_dto.dart';
 
 enum ExcelViewType { pnl, bs }
 

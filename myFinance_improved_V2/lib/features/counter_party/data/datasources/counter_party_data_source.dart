@@ -222,8 +222,9 @@ class CounterPartyDataSource {
     }).eq('counterparty_id', counterpartyId);
   }
 
-  /// Get all linkable companies with linked status
-  /// Shows all companies the user has access to, marking already linked ones
+  /// Get all linkable internal companies with linked status
+  /// Shows only companies owned by the same owner as the current company
+  /// (True "internal" companies - same owner, different entities)
   /// Already linked companies are sorted to the bottom
   Future<List<Map<String, dynamic>>> getUnlinkedCompanies({
     required String userId,
@@ -232,16 +233,38 @@ class CounterPartyDataSource {
     try {
       debugPrint('🔍 [getUnlinkedCompanies] Fetching with userId: $userId, companyId: $companyId');
 
-      // Get all companies the user has access to
-      final userCompanies = await _client
-          .from('user_companies')
-          .select('company_id, companies!inner(company_id, company_name)')
-          .eq('user_id', userId)
-          .eq('is_deleted', false);
+      // Step 1: Get the current company's owner_id
+      final currentCompany = await _client
+          .from('companies')
+          .select('owner_id')
+          .eq('company_id', companyId)
+          .eq('is_deleted', false)
+          .maybeSingle();
 
-      debugPrint('🔍 [getUnlinkedCompanies] User companies: ${userCompanies.length}');
+      if (currentCompany == null) {
+        debugPrint('❌ [getUnlinkedCompanies] Current company not found');
+        return [];
+      }
 
-      // Get already linked company IDs for current company's counterparties
+      final ownerId = currentCompany['owner_id'] as String?;
+      if (ownerId == null) {
+        debugPrint('❌ [getUnlinkedCompanies] Current company has no owner');
+        return [];
+      }
+
+      debugPrint('🔍 [getUnlinkedCompanies] Current company owner: $ownerId');
+
+      // Step 2: Get all companies owned by the same owner (true internal companies)
+      final ownedCompanies = await _client
+          .from('companies')
+          .select('company_id, company_name')
+          .eq('owner_id', ownerId)
+          .eq('is_deleted', false)
+          .neq('company_id', companyId); // Exclude current company
+
+      debugPrint('🔍 [getUnlinkedCompanies] Same-owner companies: ${ownedCompanies.length}');
+
+      // Step 3: Get already linked company IDs for current company's counterparties
       final linkedCounterparties = await _client
           .from('counterparties')
           .select('linked_company_id')
@@ -255,21 +278,12 @@ class CounterPartyDataSource {
 
       debugPrint('🔍 [getUnlinkedCompanies] Already linked IDs: $linkedIds');
 
-      // Build result with all companies, marking linked status
-      // Exclude current company (can't link to itself)
+      // Step 4: Build result with owned companies, marking linked status
       final availableCompanies = <Map<String, dynamic>>[];
       final linkedCompanies = <Map<String, dynamic>>[];
 
-      for (final uc in userCompanies) {
-        final company = uc['companies'] as Map<String, dynamic>;
+      for (final company in ownedCompanies) {
         final cid = company['company_id'] as String;
-
-        // Skip current company - can't link to itself
-        if (cid == companyId) {
-          debugPrint('🔍 [getUnlinkedCompanies] Skipping current company: $cid');
-          continue;
-        }
-
         final isAlreadyLinked = linkedIds.contains(cid);
 
         final companyData = {
@@ -288,7 +302,7 @@ class CounterPartyDataSource {
       // Sort: available companies first, then linked companies at the bottom
       final result = [...availableCompanies, ...linkedCompanies];
 
-      debugPrint('✅ [getUnlinkedCompanies] Returning ${result.length} companies (${linkedCompanies.length} already linked)');
+      debugPrint('✅ [getUnlinkedCompanies] Returning ${result.length} internal companies (${linkedCompanies.length} already linked)');
       return result;
     } catch (e, stack) {
       debugPrint('❌ [getUnlinkedCompanies] Error: $e');

@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-VaultRealEntry _$VaultRealEntryFromJson(Map<String, dynamic> json) {
-  return _VaultRealEntry.fromJson(json);
-}
-
 /// @nodoc
 mixin _$VaultRealEntry {
   String get createdAt => throw _privateConstructorUsedError;
@@ -27,9 +23,6 @@ mixin _$VaultRealEntry {
   double get totalAmount => throw _privateConstructorUsedError;
   List<CurrencySummary> get currencySummary =>
       throw _privateConstructorUsedError;
-
-  /// Serializes this VaultRealEntry to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of VaultRealEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -171,7 +164,7 @@ class __$$VaultRealEntryImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$VaultRealEntryImpl extends _VaultRealEntry {
   const _$VaultRealEntryImpl(
       {required this.createdAt,
@@ -182,9 +175,6 @@ class _$VaultRealEntryImpl extends _VaultRealEntry {
       required final List<CurrencySummary> currencySummary})
       : _currencySummary = currencySummary,
         super._();
-
-  factory _$VaultRealEntryImpl.fromJson(Map<String, dynamic> json) =>
-      _$$VaultRealEntryImplFromJson(json);
 
   @override
   final String createdAt;
@@ -228,7 +218,6 @@ class _$VaultRealEntryImpl extends _VaultRealEntry {
                 .equals(other._currencySummary, _currencySummary));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -247,13 +236,6 @@ class _$VaultRealEntryImpl extends _VaultRealEntry {
   _$$VaultRealEntryImplCopyWith<_$VaultRealEntryImpl> get copyWith =>
       __$$VaultRealEntryImplCopyWithImpl<_$VaultRealEntryImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$VaultRealEntryImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _VaultRealEntry extends VaultRealEntry {
@@ -266,9 +248,6 @@ abstract class _VaultRealEntry extends VaultRealEntry {
           required final List<CurrencySummary> currencySummary}) =
       _$VaultRealEntryImpl;
   const _VaultRealEntry._() : super._();
-
-  factory _VaultRealEntry.fromJson(Map<String, dynamic> json) =
-      _$VaultRealEntryImpl.fromJson;
 
   @override
   String get createdAt;

@@ -13,8 +13,8 @@ import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../auth/di/auth_providers.dart';
 import '../widgets/common_widgets.dart';
 
 class PrivacySecurityPage extends ConsumerStatefulWidget {
@@ -342,10 +342,9 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
     });
 
     try {
-      await Supabase.instance.client.auth.updateUser(
-        UserAttributes(
-          password: _newPasswordController.text,
-        ),
+      final authDataSource = ref.read(authDataSourceProvider);
+      await authDataSource.updatePassword(
+        newPassword: _newPasswordController.text,
       );
 
       if (mounted) {

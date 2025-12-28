@@ -73,9 +73,9 @@ class _CategoryCreationDialogState
 
     try {
       final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen as String?;
+      final companyId = appState.companyChoosen;
 
-      if (companyId == null) {
+      if (companyId.isEmpty) {
         throw Exception('Company not selected');
       }
 

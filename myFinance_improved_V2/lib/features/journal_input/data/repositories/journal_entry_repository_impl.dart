@@ -1,6 +1,7 @@
 // Repository Implementation: JournalEntryRepositoryImpl
 // Implements the repository interface using the datasource
 
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../domain/entities/journal_attachment.dart';
@@ -65,16 +66,23 @@ class JournalEntryRepositoryImpl implements JournalEntryRepository {
     required String companyId,
     String? storeId,
   }) async {
+    debugPrint('🔵 [7] JournalEntryRepositoryImpl.submitJournalEntry called');
+    debugPrint('   userId: $userId, companyId: $companyId, storeId: $storeId');
+
     // Convert domain entity to data model
     final journalEntryModel = JournalEntryModel.fromEntity(journalEntry);
+    debugPrint('🔵 [7.1] Converted to model, lines: ${journalEntryModel.transactionLines.length}');
 
     // Submit through datasource and return journal_id
-    return await _dataSource.submitJournalEntry(
+    debugPrint('🔵 [8] Calling _dataSource.submitJournalEntry');
+    final result = await _dataSource.submitJournalEntry(
       journalEntry: journalEntryModel,
       userId: userId,
       companyId: companyId,
       storeId: storeId,
     );
+    debugPrint('🟢 [8.1] DataSource returned journalId: $result');
+    return result;
   }
 
   // =============================================================================

@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CurrencyType _$CurrencyTypeFromJson(Map<String, dynamic> json) {
-  return _CurrencyType.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CurrencyType {
   String? get currencyId => throw _privateConstructorUsedError;
@@ -26,9 +22,6 @@ mixin _$CurrencyType {
   String get symbol => throw _privateConstructorUsedError;
   int get decimalPlaces => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
-
-  /// Serializes this CurrencyType to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CurrencyType
   /// with the given fields replaced by the non-null parameter values.
@@ -170,7 +163,7 @@ class __$$CurrencyTypeImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CurrencyTypeImpl implements _CurrencyType {
   const _$CurrencyTypeImpl(
       {this.currencyId,
@@ -179,9 +172,6 @@ class _$CurrencyTypeImpl implements _CurrencyType {
       required this.symbol,
       this.decimalPlaces = 2,
       this.isActive = true});
-
-  factory _$CurrencyTypeImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CurrencyTypeImplFromJson(json);
 
   @override
   final String? currencyId;
@@ -221,7 +211,6 @@ class _$CurrencyTypeImpl implements _CurrencyType {
                 other.isActive == isActive));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, currencyId, currencyCode,
       currencyName, symbol, decimalPlaces, isActive);
@@ -233,13 +222,6 @@ class _$CurrencyTypeImpl implements _CurrencyType {
   @pragma('vm:prefer-inline')
   _$$CurrencyTypeImplCopyWith<_$CurrencyTypeImpl> get copyWith =>
       __$$CurrencyTypeImplCopyWithImpl<_$CurrencyTypeImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CurrencyTypeImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CurrencyType implements CurrencyType {
@@ -250,9 +232,6 @@ abstract class _CurrencyType implements CurrencyType {
       required final String symbol,
       final int decimalPlaces,
       final bool isActive}) = _$CurrencyTypeImpl;
-
-  factory _CurrencyType.fromJson(Map<String, dynamic> json) =
-      _$CurrencyTypeImpl.fromJson;
 
   @override
   String? get currencyId;
