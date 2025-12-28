@@ -326,6 +326,35 @@ class EmployeeRemoteDataSource {
     }
   }
 
+  /// Assign or unassign a work schedule template to an employee
+  ///
+  /// Uses RPC function 'assign_work_schedule_template'
+  /// Pass null for templateId to unassign the current template
+  Future<Map<String, dynamic>> assignWorkScheduleTemplate({
+    required String userId,
+    required String companyId,
+    String? templateId,
+  }) async {
+    try {
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'assign_work_schedule_template',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_template_id': templateId,
+        },
+      );
+
+      return response;
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'ASSIGN_FAILED',
+        'message': 'Failed to assign work schedule template: $e',
+      };
+    }
+  }
+
   /// Helper: Get default currencies
   List<CurrencyTypeModel> _getDefaultCurrencies() {
     return [

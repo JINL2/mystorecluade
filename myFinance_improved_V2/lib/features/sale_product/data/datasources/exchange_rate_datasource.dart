@@ -119,13 +119,16 @@ class ExchangeRateDataSource {
   ExchangeRateDataSource(this._client);
 
   /// Get exchange rates from RPC
+  /// v3 supports store-based currency sorting by foreign currency balance
   Future<ExchangeRateResponse> getExchangeRates({
     required String companyId,
+    String? storeId,
   }) async {
     final response = await _client.rpc<Map<String, dynamic>>(
-      'get_exchange_rate_v2',
+      'get_exchange_rate_v3',
       params: {
         'p_company_id': companyId,
+        if (storeId != null) 'p_store_id': storeId,
       },
     ).single();
 

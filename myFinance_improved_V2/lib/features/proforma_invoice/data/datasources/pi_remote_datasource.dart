@@ -2,6 +2,98 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/pi_model.dart';
 import '../../domain/repositories/pi_repository.dart';
 
+/// Counterparty model for dropdown
+class CounterpartyDropdownItem {
+  final String id;
+  final String name;
+  final String? address;
+  final String? city;
+  final String? country;
+  final String? email;
+  final String? phone;
+
+  CounterpartyDropdownItem({
+    required this.id,
+    required this.name,
+    this.address,
+    this.city,
+    this.country,
+    this.email,
+    this.phone,
+  });
+
+  factory CounterpartyDropdownItem.fromJson(Map<String, dynamic> json) {
+    return CounterpartyDropdownItem(
+      id: json['counterparty_id'] as String,
+      name: json['name'] as String? ?? '',
+      address: json['address'] as String?,
+      city: json['city'] as String?,
+      country: json['country'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
+    );
+  }
+
+  String get fullAddress {
+    final parts = <String>[];
+    if (address != null && address!.isNotEmpty) parts.add(address!);
+    if (city != null && city!.isNotEmpty) parts.add(city!);
+    if (country != null && country!.isNotEmpty) parts.add(country!);
+    return parts.join(', ');
+  }
+}
+
+/// Currency model for dropdown
+class CurrencyDropdownItem {
+  final String currencyId;
+  final String currencyCode;
+  final String symbol;
+  final String? currencyName;
+
+  CurrencyDropdownItem({
+    required this.currencyId,
+    required this.currencyCode,
+    required this.symbol,
+    this.currencyName,
+  });
+
+  factory CurrencyDropdownItem.fromJson(Map<String, dynamic> json) {
+    return CurrencyDropdownItem(
+      currencyId: json['currency_id'] as String,
+      currencyCode: json['currency_code'] as String? ?? '',
+      symbol: json['symbol'] as String? ?? '',
+      currencyName: json['currency_name'] as String?,
+    );
+  }
+}
+
+/// Terms template model for dropdown
+class TermsTemplateItem {
+  final String templateId;
+  final String templateName;
+  final String content;
+  final bool isDefault;
+  final int sortOrder;
+
+  TermsTemplateItem({
+    required this.templateId,
+    required this.templateName,
+    required this.content,
+    this.isDefault = false,
+    this.sortOrder = 0,
+  });
+
+  factory TermsTemplateItem.fromJson(Map<String, dynamic> json) {
+    return TermsTemplateItem(
+      templateId: json['template_id'] as String,
+      templateName: json['template_name'] as String? ?? '',
+      content: json['content'] as String? ?? '',
+      isDefault: json['is_default'] as bool? ?? false,
+      sortOrder: json['sort_order'] as int? ?? 0,
+    );
+  }
+}
+
 /// PI Remote Datasource - handles all Supabase queries
 abstract class PIRemoteDatasource {
   Future<PaginatedPIResponse> getList(PIListParams params);
@@ -15,6 +107,17 @@ abstract class PIRemoteDatasource {
   Future<String> convertToPO(String piId);
   Future<PIModel> duplicate(String piId);
   Future<String> generateNumber(String companyId);
+
+  // Dropdown data methods
+  Future<List<CounterpartyDropdownItem>> getCounterparties(String companyId);
+  Future<List<CurrencyDropdownItem>> getCompanyCurrencies(String companyId);
+  Future<List<TermsTemplateItem>> getTermsTemplates(String companyId);
+  Future<TermsTemplateItem> saveTermsTemplate({
+    required String companyId,
+    required String templateName,
+    required String content,
+    bool isDefault = false,
+  });
 }
 
 class PIRemoteDatasourceImpl implements PIRemoteDatasource {
@@ -24,14 +127,17 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
 
   @override
   Future<PaginatedPIResponse> getList(PIListParams params) async {
-    // Build query with joins for currency and counterparty
+    // Build query - just get PI data, we'll add currency/counterparty from JSONB
+    // Note: We include records where store_id matches OR store_id is NULL
+    // This ensures PI created without store assignment are still visible
     var query = _supabase
         .from('trade_proforma_invoices')
-        .select('*, currency_types(currency_code), counterparties(name)')
+        .select('*')
         .eq('company_id', params.companyId);
 
     if (params.storeId != null) {
-      query = query.eq('store_id', params.storeId!);
+      // Include records that match store_id OR have NULL store_id
+      query = query.or('store_id.eq.${params.storeId},store_id.is.null');
     }
 
     if (params.statuses != null && params.statuses!.isNotEmpty) {
@@ -46,11 +152,26 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
       query = query.ilike('pi_number', '%${params.searchQuery}%');
     }
 
-    // Get total count first
-    final countResponse = await _supabase
+    // Get total count first (must apply same filters as main query)
+    var countQuery = _supabase
         .from('trade_proforma_invoices')
         .select('pi_id')
         .eq('company_id', params.companyId);
+
+    if (params.storeId != null) {
+      countQuery = countQuery.or('store_id.eq.${params.storeId},store_id.is.null');
+    }
+    if (params.statuses != null && params.statuses!.isNotEmpty) {
+      countQuery = countQuery.inFilter('status', params.statuses!.map((e) => e.name).toList());
+    }
+    if (params.counterpartyId != null) {
+      countQuery = countQuery.eq('counterparty_id', params.counterpartyId!);
+    }
+    if (params.searchQuery != null && params.searchQuery!.isNotEmpty) {
+      countQuery = countQuery.ilike('pi_number', '%${params.searchQuery}%');
+    }
+
+    final countResponse = await countQuery;
     final totalCount = (countResponse as List).length;
 
     // Get paginated data
@@ -60,14 +181,63 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
         .range(offset, offset + params.pageSize - 1);
 
     final data = response as List;
+
+    // Get all unique currency IDs to fetch currency codes
+    final currencyIds = data
+        .map((e) => (e as Map<String, dynamic>)['currency_id'] as String?)
+        .where((id) => id != null)
+        .toSet()
+        .toList();
+
+    // Fetch currency codes
+    Map<String, String> currencyCodeMap = {};
+    if (currencyIds.isNotEmpty) {
+      final currencyResponse = await _supabase
+          .from('currency_types')
+          .select('currency_id, currency_code')
+          .inFilter('currency_id', currencyIds);
+      for (final c in currencyResponse as List) {
+        currencyCodeMap[c['currency_id'] as String] = c['currency_code'] as String;
+      }
+    }
+
+    // Get all unique counterparty IDs to fetch names
+    final counterpartyIds = data
+        .map((e) => (e as Map<String, dynamic>)['counterparty_id'] as String?)
+        .where((id) => id != null)
+        .toSet()
+        .toList();
+
+    // Fetch counterparty names
+    Map<String, String> counterpartyNameMap = {};
+    if (counterpartyIds.isNotEmpty) {
+      final counterpartyResponse = await _supabase
+          .from('counterparties')
+          .select('counterparty_id, name')
+          .inFilter('counterparty_id', counterpartyIds);
+      for (final c in counterpartyResponse as List) {
+        counterpartyNameMap[c['counterparty_id'] as String] = c['name'] as String;
+      }
+    }
+
     final items = data.map((e) {
       final map = e as Map<String, dynamic>;
-      // Extract currency code from joined table
-      final currencyData = map['currency_types'] as Map<String, dynamic>?;
-      map['currency_code'] = currencyData?['currency_code'] ?? 'USD';
-      // Extract counterparty name from joined table
-      final counterpartyData = map['counterparties'] as Map<String, dynamic>?;
-      map['counterparty_name'] = counterpartyData?['name'];
+      // counterparty_info contains the name in JSONB
+      final counterpartyInfo = map['counterparty_info'] as Map<String, dynamic>?;
+      String? counterpartyName = counterpartyInfo?['name'] as String?;
+      // Fallback to counterparty table if name not in JSONB
+      if (counterpartyName == null) {
+        final counterpartyId = map['counterparty_id'] as String?;
+        if (counterpartyId != null && counterpartyNameMap.containsKey(counterpartyId)) {
+          counterpartyName = counterpartyNameMap[counterpartyId];
+        }
+      }
+      map['counterparty_name'] = counterpartyName;
+      // Get currency code from map
+      final currencyId = map['currency_id'] as String?;
+      if (currencyId != null && currencyCodeMap.containsKey(currencyId)) {
+        map['currency_code'] = currencyCodeMap[currencyId];
+      }
       return PIModel.fromJson(map);
     }).toList();
 
@@ -82,18 +252,62 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
 
   @override
   Future<PIModel> getById(String piId) async {
-    // Get PI with joins
+    // Get PI data
     final piResponse = await _supabase
         .from('trade_proforma_invoices')
-        .select('*, currency_types(currency_code), counterparties(name)')
+        .select('*')
         .eq('pi_id', piId)
         .single();
 
-    final piMap = piResponse as Map<String, dynamic>;
-    final currencyData = piMap['currency_types'] as Map<String, dynamic>?;
-    piMap['currency_code'] = currencyData?['currency_code'] ?? 'USD';
-    final counterpartyData = piMap['counterparties'] as Map<String, dynamic>?;
-    piMap['counterparty_name'] = counterpartyData?['name'];
+    final piMap = piResponse;
+    // counterparty_info contains the name in JSONB
+    final counterpartyInfo = piMap['counterparty_info'] as Map<String, dynamic>?;
+    String? counterpartyName = counterpartyInfo?['name'] as String?;
+
+    // If name not in counterparty_info, fetch from counterparties table
+    final counterpartyId = piMap['counterparty_id'] as String?;
+    if (counterpartyName == null && counterpartyId != null) {
+      final counterpartyResponse = await _supabase
+          .from('counterparties')
+          .select('name')
+          .eq('counterparty_id', counterpartyId)
+          .maybeSingle();
+      if (counterpartyResponse != null) {
+        counterpartyName = counterpartyResponse['name'] as String?;
+      }
+    }
+    piMap['counterparty_name'] = counterpartyName;
+
+    // Ensure seller_info has company name (fallback for existing records)
+    var sellerInfo = piMap['seller_info'] as Map<String, dynamic>?;
+    if (sellerInfo == null || sellerInfo['name'] == null) {
+      final companyId = piMap['company_id'] as String?;
+      if (companyId != null) {
+        final companyResponse = await _supabase
+            .from('companies')
+            .select('company_name')
+            .eq('company_id', companyId)
+            .maybeSingle();
+        if (companyResponse != null) {
+          sellerInfo = sellerInfo ?? {};
+          sellerInfo['name'] = companyResponse['company_name'] as String?;
+          piMap['seller_info'] = sellerInfo;
+        }
+      }
+    }
+
+    // Get currency code
+    final currencyId = piMap['currency_id'] as String?;
+    if (currencyId != null) {
+      final currencyResponse = await _supabase
+          .from('currency_types')
+          .select('currency_code')
+          .eq('currency_id', currencyId)
+          .maybeSingle();
+      if (currencyResponse != null) {
+        piMap['currency_code'] = currencyResponse['currency_code'];
+      }
+    }
 
     // Get items from trade_pi_items table
     final itemsResponse = await _supabase
@@ -102,7 +316,52 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
         .eq('pi_id', piId)
         .order('sort_order', ascending: true);
 
-    piMap['items'] = itemsResponse as List;
+    final itemsList = itemsResponse as List;
+
+    // Get product image URLs for items that have product_id
+    final productIds = itemsList
+        .map((e) => (e as Map<String, dynamic>)['product_id'] as String?)
+        .where((id) => id != null)
+        .toSet()
+        .toList();
+
+    Map<String, String?> productImageMap = {};
+    if (productIds.isNotEmpty) {
+      final productsResponse = await _supabase
+          .from('inventory_products')
+          .select('product_id, image_urls')
+          .inFilter('product_id', productIds);
+
+      for (final p in productsResponse as List) {
+        final productId = p['product_id'] as String;
+        final imageUrls = p['image_urls'];
+        // image_urls is JSONB - extract first image URL
+        String? firstImageUrl;
+        if (imageUrls != null) {
+          if (imageUrls is List && imageUrls.isNotEmpty) {
+            firstImageUrl = imageUrls[0] as String?;
+          } else if (imageUrls is Map && imageUrls['urls'] is List) {
+            final urls = imageUrls['urls'] as List;
+            if (urls.isNotEmpty) {
+              firstImageUrl = urls[0] as String?;
+            }
+          }
+        }
+        productImageMap[productId] = firstImageUrl;
+      }
+    }
+
+    // Add image_url to each item
+    final itemsWithImages = itemsList.map((e) {
+      final item = Map<String, dynamic>.from(e as Map<String, dynamic>);
+      final productId = item['product_id'] as String?;
+      if (productId != null && productImageMap.containsKey(productId)) {
+        item['image_url'] = productImageMap[productId];
+      }
+      return item;
+    }).toList();
+
+    piMap['items'] = itemsWithImages;
 
     return PIModel.fromJson(piMap);
   }
@@ -111,6 +370,19 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
   Future<PIModel> create(PICreateParams params) async {
     // Generate PI number
     final piNumber = await generateNumber(params.companyId);
+
+    // Fetch company info for seller_info
+    Map<String, dynamic>? sellerInfo;
+    final companyResponse = await _supabase
+        .from('companies')
+        .select('company_name')
+        .eq('company_id', params.companyId)
+        .maybeSingle();
+    if (companyResponse != null) {
+      sellerInfo = {
+        'name': companyResponse['company_name'] as String?,
+      };
+    }
 
     // Calculate totals
     double subtotal = 0;
@@ -130,6 +402,7 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
           'store_id': params.storeId,
           'counterparty_id': params.counterpartyId,
           'counterparty_info': params.counterpartyInfo,
+          'seller_info': sellerInfo,
           'currency_id': params.currencyId,
           'subtotal': subtotal,
           'discount_amount': discountAmount,
@@ -457,5 +730,74 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
     final now = DateTime.now();
     final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
     return 'PI-$dateStr-${nextNumber.toString().padLeft(4, '0')}';
+  }
+
+  @override
+  Future<List<CounterpartyDropdownItem>> getCounterparties(String companyId) async {
+    final response = await _supabase
+        .from('counterparties')
+        .select('counterparty_id, name, address, city, country, email, phone')
+        .eq('company_id', companyId)
+        .eq('is_active', true)
+        .order('name', ascending: true);
+
+    final data = response as List;
+    return data
+        .map((e) => CounterpartyDropdownItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<List<CurrencyDropdownItem>> getCompanyCurrencies(String companyId) async {
+    // Use view_company_currency to get company-specific currencies
+    final response = await _supabase
+        .from('view_company_currency')
+        .select('currency_id, currency_code, symbol, currency_name')
+        .eq('company_id', companyId)
+        .order('currency_code', ascending: true);
+
+    final data = response as List;
+    return data
+        .map((e) => CurrencyDropdownItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<List<TermsTemplateItem>> getTermsTemplates(String companyId) async {
+    final response = await _supabase
+        .from('trade_terms_templates')
+        .select('template_id, template_name, content, is_default, sort_order')
+        .eq('company_id', companyId)
+        .eq('is_active', true)
+        .order('sort_order', ascending: true);
+
+    final data = response as List;
+    return data
+        .map((e) => TermsTemplateItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<TermsTemplateItem> saveTermsTemplate({
+    required String companyId,
+    required String templateName,
+    required String content,
+    bool isDefault = false,
+  }) async {
+    final response = await _supabase
+        .from('trade_terms_templates')
+        .insert({
+          'company_id': companyId,
+          'template_name': templateName,
+          'content': content,
+          'is_default': isDefault,
+          'is_active': true,
+          'created_at_utc': DateTime.now().toUtc().toIso8601String(),
+          'updated_at_utc': DateTime.now().toUtc().toIso8601String(),
+        })
+        .select()
+        .single();
+
+    return TermsTemplateItem.fromJson(response as Map<String, dynamic>);
   }
 }

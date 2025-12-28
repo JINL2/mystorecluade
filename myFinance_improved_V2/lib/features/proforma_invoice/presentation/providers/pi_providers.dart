@@ -7,6 +7,10 @@ import '../../domain/entities/proforma_invoice.dart';
 import '../../domain/repositories/pi_repository.dart';
 import '../../../../app/providers/app_state_provider.dart';
 
+// Re-export existing providers for use in PI feature
+export '../../../../app/providers/counterparty_provider.dart';
+export '../../../register_denomination/presentation/providers/currency_providers.dart';
+
 // === Datasource & Repository ===
 final piDatasourceProvider = Provider<PIRemoteDatasource>((ref) {
   return PIRemoteDatasourceImpl(Supabase.instance.client);
@@ -396,4 +400,89 @@ final piFormProvider =
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
   return PIFormNotifier(repository, companyId);
+});
+
+// === Dropdown Data Providers ===
+// NOTE: Counterparty and Currency use existing global providers:
+// - counterpartyListProvider from counterparty_provider.dart (uses 'get_counterparties' RPC)
+// - companyCurrenciesProvider from currency_providers.dart (uses existing currency system)
+
+/// Terms template state
+class TermsTemplateState {
+  final List<TermsTemplateItem> items;
+  final bool isLoading;
+  final bool isSaving;
+  final String? error;
+
+  const TermsTemplateState({
+    this.items = const [],
+    this.isLoading = false,
+    this.isSaving = false,
+    this.error,
+  });
+
+  TermsTemplateState copyWith({
+    List<TermsTemplateItem>? items,
+    bool? isLoading,
+    bool? isSaving,
+    String? error,
+  }) {
+    return TermsTemplateState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      isSaving: isSaving ?? this.isSaving,
+      error: error,
+    );
+  }
+}
+
+class TermsTemplateNotifier extends StateNotifier<TermsTemplateState> {
+  final PIRemoteDatasource _datasource;
+  final String? _companyId;
+
+  TermsTemplateNotifier(this._datasource, this._companyId)
+      : super(const TermsTemplateState());
+
+  Future<void> load() async {
+    if (_companyId == null) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final items = await _datasource.getTermsTemplates(_companyId!);
+      state = state.copyWith(items: items, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
+  }
+
+  Future<TermsTemplateItem?> saveAsTemplate(String templateName, String content) async {
+    if (_companyId == null) return null;
+
+    state = state.copyWith(isSaving: true, error: null);
+
+    try {
+      final newTemplate = await _datasource.saveTermsTemplate(
+        companyId: _companyId!,
+        templateName: templateName,
+        content: content,
+      );
+      state = state.copyWith(
+        items: [...state.items, newTemplate],
+        isSaving: false,
+      );
+      return newTemplate;
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isSaving: false);
+      return null;
+    }
+  }
+}
+
+final termsTemplateProvider =
+    StateNotifierProvider<TermsTemplateNotifier, TermsTemplateState>((ref) {
+  final datasource = ref.watch(piDatasourceProvider);
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
+  return TermsTemplateNotifier(datasource, companyId);
 });

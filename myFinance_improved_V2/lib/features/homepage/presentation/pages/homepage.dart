@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
@@ -10,19 +9,15 @@ import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/notifications/services/production_token_service.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_badge.dart';
 import '../../../attendance/presentation/providers/attendance_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
-import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../domain/providers/repository_providers.dart';
 import '../providers/homepage_providers.dart';
-import '../widgets/company_store_selector.dart';
+import '../widgets/dialogs/homepage_alert_dialog.dart';
 import '../widgets/feature_grid.dart';
+import '../widgets/homepage/homepage_widgets.dart';
 import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
 import '../widgets/revenue_chart_card.dart';
@@ -50,22 +45,12 @@ class _HomepageState extends ConsumerState<Homepage> {
 
     // Show loading view during logout
     if (_isLoggingOut) {
-      return const Scaffold(
-        backgroundColor: TossColors.surface,
-        body: TossLoadingView(
-          message: 'Logging out...',
-        ),
-      );
+      return const LogoutLoadingView();
     }
 
     // Show loading view during refresh
     if (_isRefreshing) {
-      return const Scaffold(
-        backgroundColor: TossColors.surface,
-        body: TossLoadingView(
-          message: 'Refreshing...',
-        ),
-      );
+      return const RefreshLoadingView();
     }
     // Watch user companies provider to ensure AppState is initialized
     final userCompaniesAsync = ref.watch(userCompaniesProvider);
@@ -207,7 +192,13 @@ class _HomepageState extends ConsumerState<Homepage> {
           child: CustomScrollView(
             slivers: [
               // App Header (Non-pinned)
-              _buildAppHeader(),
+              HomepageHeader(
+                onProfileMenuTap: () => showProfileMenu(
+                  context: context,
+                  onLogout: _handleLogout,
+                ),
+                onLogout: _handleLogout,
+              ),
 
               // Revenue Card or Salary Card (based on permission)
               if (appState.companyChoosen.isNotEmpty)
@@ -259,348 +250,6 @@ class _HomepageState extends ConsumerState<Homepage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAppHeader() {
-    final appState = ref.watch(appStateProvider);
-
-    // Get company and store names
-    final companyName = appState.companyName.isNotEmpty
-        ? appState.companyName
-        : 'Select Company';
-    final storeName = appState.storeName.isNotEmpty
-        ? appState.storeName
-        : 'Select Store';
-
-    return SliverToBoxAdapter(
-      child: Container(
-        height: 83,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          border: Border(
-            bottom: BorderSide(
-              color: TossColors.borderLight,
-              width: 1,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Left: Avatar + Company/Store selector (tappable area)
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque, // Makes entire area tappable including transparent parts
-                onTap: () => _showCompanyStoreDrawer(),
-                child: Row(
-                  children: [
-                    // Square avatar with rounded corners
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      child: _buildSquareAvatar(),
-                    ),
-
-                    const SizedBox(width: 13),
-
-                    // Company name (top) and Store name (bottom) with chevron
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Company name (large, on top) with subscription badge
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        companyName,
-                                        style: TossTextStyles.bodyLarge.copyWith(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: TossColors.textPrimary,
-                                          height: 1.2,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    // Subscription Badge
-                                    SubscriptionBadge.fromPlanType(
-                                      appState.planType,
-                                      compact: true,
-                                    ),
-                                  ],
-                                ),
-
-                                // Store name (small, on bottom)
-                                Text(
-                                  storeName,
-                                  style: TossTextStyles.caption.copyWith(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: TossColors.textSecondary,
-                                    height: 1.2,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Up arrow
-                          Padding(
-                            padding: const EdgeInsets.only(left: 5),
-                            child: Icon(
-                              Icons.keyboard_arrow_up_rounded,
-                              size: 20,
-                              color: TossColors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 13),
-
-            // Right: Notification + Menu
-            Row(
-              children: [
-                // Notification bell with badge
-                Consumer(
-                  builder: (context, ref, child) {
-                    final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
-                    final unreadCount = unreadCountAsync.when(
-                      data: (count) => count,
-                      loading: () => 0,
-                      error: (_, __) => 0,
-                    );
-
-                    return _buildIconGhost(
-                      icon: Icons.notifications_none_rounded,
-                      showBadge: unreadCount > 0,
-                      badgeCount: unreadCount,
-                      onTap: () {
-                        context.push('/notifications');
-                      },
-                    );
-                  },
-                ),
-
-                const SizedBox(width: 13),
-
-                // More menu
-                _buildIconGhost(
-                  icon: Icons.more_horiz_rounded,
-                  showBadge: false,
-                  onTap: () => _showProfileMenu(),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSquareAvatar() {
-    final appState = ref.watch(appStateProvider);
-    final profileImage = appState.user['profile_image'] as String? ?? '';
-
-    if (profileImage.isNotEmpty) {
-      return Image.network(
-        profileImage,
-        width: 33,
-        height: 33,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildAvatarFallback();
-        },
-      );
-    }
-
-    return _buildAvatarFallback();
-  }
-
-  Widget _buildAvatarFallback() {
-    return Container(
-      width: 33,
-      height: 33,
-      decoration: BoxDecoration(
-        color: TossColors.primarySurface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Center(
-        child: Text(
-          _getUserInitials(),
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.primary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIconGhost({
-    required IconData icon,
-    required bool showBadge,
-    int badgeCount = 0,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: Icon(
-              icon,
-              size: 24,
-              color: TossColors.textPrimary,
-            ),
-          ),
-          if (showBadge && badgeCount > 0)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                constraints: const BoxConstraints(minWidth: 15),
-                height: 15,
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                decoration: BoxDecoration(
-                  color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Center(
-                  child: Text(
-                    badgeCount.toString(),
-                    style: TossTextStyles.caption.copyWith(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.white,
-                      height: 1,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _showProfileMenu() {
-    showMenu<String>(
-      context: context,
-      position: RelativeRect.fromLTRB(
-        MediaQuery.of(context).size.width - 200,
-        80,
-        16,
-        0,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TossSpacing.space3),
-      ),
-      color: TossColors.surface,
-      elevation: 2,
-      items: [
-        PopupMenuItem<String>(
-          value: 'profile',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.person_outline,
-                color: TossColors.textSecondary,
-                size: 20,
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Text(
-                'My Profile',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem<String>(
-          value: 'logout',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.logout_rounded,
-                color: TossColors.error,
-                size: 20,
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Text(
-                'Logout',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.error,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ).then((value) async {
-      if (value == 'logout') {
-        await _handleLogout();
-      } else if (value == 'profile') {
-        if (mounted) {
-          context.push('/my-page');
-        }
-      }
-    });
-  }
-
-
-  String _getUserInitials() {
-    final appState = ref.watch(appStateProvider);
-    final firstName = appState.user['user_first_name'] as String? ?? '';
-    final lastName = appState.user['user_last_name'] as String? ?? '';
-
-    if (firstName.isEmpty && lastName.isEmpty) return 'U';
-
-    // Get first character of first name and last name
-    final firstInitial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '';
-    final lastInitial = lastName.isNotEmpty ? lastName[0].toUpperCase() : '';
-
-    if (firstInitial.isNotEmpty && lastInitial.isNotEmpty) {
-      return '$firstInitial$lastInitial';
-    } else if (firstInitial.isNotEmpty) {
-      return firstInitial;
-    } else if (lastInitial.isNotEmpty) {
-      return lastInitial;
-    }
-
-    return 'U';
-  }
-
-  /// Show company & store selector drawer
-  void _showCompanyStoreDrawer() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: true,
-      builder: (context) => const CompanyStoreSelector(),
     );
   }
 
@@ -723,7 +372,7 @@ class _HomepageState extends ConsumerState<Homepage> {
             showDialog<void>(
               context: context,
               barrierDismissible: true,
-              builder: (_) => _HomepageAlertDialog(
+              builder: (_) => HomepageAlertDialog(
                 message: alert.content ?? '',
                 onDontShowAgain: (bool isChecked) {
                   // Call RPC to update is_checked (true = don't show again, false = show again)
@@ -829,73 +478,3 @@ class _HomepageState extends ConsumerState<Homepage> {
     }
   }
 }
-
-/// Homepage Alert Dialog with "Don't show again" checkbox
-class _HomepageAlertDialog extends StatefulWidget {
-  final String message;
-  final void Function(bool dontShow) onDontShowAgain;
-
-  const _HomepageAlertDialog({
-    required this.message,
-    required this.onDontShowAgain,
-  });
-
-  @override
-  State<_HomepageAlertDialog> createState() => _HomepageAlertDialogState();
-}
-
-class _HomepageAlertDialogState extends State<_HomepageAlertDialog> {
-  bool _dontShowAgain = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return TossDialog(
-      title: 'Notice',
-      message: widget.message,
-      type: TossDialogType.info,
-      icon: Icons.info_outline,
-      iconColor: TossColors.info,
-      primaryButtonText: 'OK',
-      onPrimaryPressed: () {
-        widget.onDontShowAgain(_dontShowAgain);
-        Navigator.of(context).pop();
-      },
-      customContent: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 24,
-            height: 24,
-            child: Checkbox(
-              value: _dontShowAgain,
-              onChanged: (value) {
-                setState(() {
-                  _dontShowAgain = value ?? false;
-                });
-              },
-              activeColor: TossColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _dontShowAgain = !_dontShowAgain;
-              });
-            },
-            child: Text(
-              "Don't show again",
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-

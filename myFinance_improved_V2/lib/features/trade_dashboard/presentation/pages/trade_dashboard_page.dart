@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
@@ -26,6 +27,8 @@ class TradeDashboardPage extends ConsumerStatefulWidget {
 }
 
 class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
+  DateRangeState? _previousDateRange;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +75,15 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
     final summaryState = ref.watch(dashboardSummaryProvider);
     final activitiesState = ref.watch(recentActivitiesProvider);
     final alertsState = ref.watch(tradeAlertsProvider);
+    final dateRange = ref.watch(dateRangeProvider);
+
+    // Reload data when date range changes
+    if (_previousDateRange != null && _previousDateRange!.label != dateRange.label) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadDashboardData();
+      });
+    }
+    _previousDateRange = dateRange;
 
     return TossScaffold(
       appBar: AppBar(
@@ -342,7 +354,7 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
             activities: activitiesState.activities,
             isLoading: activitiesState.isLoading,
             onViewAll: () {
-              // TODO: Navigate to full activity list
+              context.push('/trade/activities');
             },
           ),
         ),

@@ -1,1029 +1,881 @@
-# 🧪 AI SQL Generator 테스트 워크플로우 가이드
+# 🤖 AI SQL Generator 완벽 가이드
 
-## 📋 개요
-
-이 문서는 LuxApp AI SQL Generator (`ai-respond-user` Edge Function)의 테스트 방법을 설명합니다.
-
-### 테스트 목적
-1. AI가 생성하는 SQL이 올바른 테이블/뷰를 사용하는지 검증
-2. deprecated 컬럼 사용 여부 확인
-3. 하드코딩된 값(timezone, 연도 등) 검출
-4. SQL 실행 성공률 측정
+> **버전:** v4.0 (Final)  
+> **프로젝트:** Storebase AI Query System  
+> **마지막 업데이트:** 2025-12-25  
 
 ---
 
-## 🏗️ 아키텍처
+## 📋 목차
+
+1. [프로젝트 개요](#1-프로젝트-개요)
+2. [시스템 아키텍처](#2-시스템-아키텍처)
+3. [테이블 구조 (상세)](#3-테이블-구조-상세)
+4. [모니터링 뷰 (실시간 대시보드)](#4-모니터링-뷰-실시간-대시보드)
+5. [RPC 함수](#5-rpc-함수)
+6. [Edge Functions](#6-edge-functions)
+7. [테스트 방법](#7-테스트-방법)
+8. [트러블슈팅](#8-트러블슈팅)
+9. [유지보수](#9-유지보수)
+10. [부록: SQL 쿼리 모음](#10-부록-sql-쿼리-모음)
+
+---
+
+## 1. 프로젝트 개요
+
+### 🎯 우리가 하고 있는 것
+
+**AI SQL Generator**는 Storebase 앱에서 사용자의 자연어 질문을 SQL로 변환하여 데이터베이스에서 정보를 조회하는 시스템입니다.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      테스트 흐름                             │
+│                    사용자 → AI → 데이터                       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│   [테스터]                                                   │
-│      │                                                      │
-│      │ 1. INSERT 질문                                        │
-│      ▼                                                      │
-│   ┌──────────────────┐                                      │
-│   │ ai_test_queue    │  ◀── 질문 저장                        │
-│   └────────┬─────────┘                                      │
-│            │                                                │
-│            │ 2. 트리거 자동 실행                              │
-│            ▼                                                │
-│   ┌──────────────────┐     HTTP POST      ┌──────────────┐  │
-│   │ pg_net 트리거     │ ────────────────▶ │ai-respond-user│  │
-│   └──────────────────┘                    └──────┬───────┘  │
-│                                                  │          │
-│                                                  │ 3. 결과   │
-│                                                  ▼          │
-│   [테스터]                                  ┌──────────────┐ │
-│      │                                     │ ai_sql_logs  │ │
-│      │ 4. SELECT 결과 확인                  └──────────────┘ │
-│      ▼                                                      │
-│   결과 분석 및 리포트                                         │
+│   👤 "이번 달 지각한 직원 누구야?"                             │
+│                    ↓                                        │
+│   🤖 AI (Grok-4-fast + Knowledge Graph)                     │
+│                    ↓                                        │
+│   📝 SELECT user_name, COUNT(*) as late_count               │
+│      FROM v_shift_request_ai                                │
+│      WHERE problem_details_v2->>'is_late' = 'true'          │
+│      AND start_time_utc >= (월초 계산)...                    │
+│                    ↓                                        │
+│   💬 "이번 달 지각한 직원:                                    │
+│       - Nha Xink: 13회                                      │
+│       - Tu Thanh: 5회                                       │
+│       - Van Tran: 3회"                                      │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+### 🔑 핵심 구성 요소
 
-## 🚀 빠른 시작 (5분)
+| 구성 요소 | 역할 | 위치 |
+|----------|------|------|
+| **온톨로지** | 비즈니스 개념/동의어/규칙 저장 | ontology_* 테이블 |
+| **Knowledge Graph** | 개념 간 관계 탐색 | v_ontology_graph_* 뷰 |
+| **벡터 임베딩** | 질문-개념 유사도 매칭 | ontology_embeddings |
+| **Edge Function** | AI 호출 + SQL 실행 | ai-respond-user |
+| **로그 시스템** | 모든 쿼리 기록 | ai_sql_logs |
 
-### Step 1: 테스트 질문 INSERT
+### 📊 현재 성능 (2025-12-25 기준)
 
-```sql
--- 단일 질문 테스트
-INSERT INTO ai_test_queue (session_id, question) 
-VALUES ('my-test-001', '오늘 지각한 직원 누구야?');
-
--- 여러 질문 한번에 테스트
-INSERT INTO ai_test_queue (session_id, question) VALUES
-('my-test-002', '이번 달 초과근무 총 시간'),
-('my-test-003', '매장별 인건비'),
-('my-test-004', '지각률 가장 높은 직원 TOP 5');
-```
-
-### Step 2: 결과 확인 (10~30초 후)
-
-```sql
-SELECT 
-  session_id,
-  question,
-  success,
-  row_count,
-  error_message
-FROM ai_sql_logs 
-WHERE session_id LIKE 'my-test-%'
-ORDER BY created_at DESC;
-```
-
-### Step 3: 품질 체크
-
-```sql
-SELECT 
-  session_id,
-  question,
-  success,
-  -- 핵심 품질 지표
-  CASE WHEN generated_sql ILIKE '%v_shift_request_ai%' THEN '✅' ELSE '❌' END AS "AI뷰 사용",
-  CASE WHEN generated_sql ILIKE '%problem_details_v2%' THEN '✅' ELSE '➖' END AS "JSONB 사용",
-  CASE WHEN generated_sql ILIKE '%SELECT timezone FROM companies%' THEN '✅' ELSE '➖' END AS "동적TZ",
-  CASE WHEN generated_sql ILIKE '%is_late_v2%' OR generated_sql ILIKE '%is_extratime_v2%' THEN '❌' ELSE '✅' END AS "deprecated 없음"
-FROM ai_sql_logs 
-WHERE session_id LIKE 'my-test-%'
-ORDER BY session_id;
-```
+| 지표 | 값 |
+|------|-----|
+| 총 누적 쿼리 | 2,069건 |
+| 7일 평균 성공률 | 85.7% |
+| P50 응답시간 | 13.8초 |
+| P90 응답시간 | 21.5초 |
+| 온톨로지 개념 수 | 168개 |
+| 동의어 수 | 776개 |
+| 벡터 임베딩 수 | 1,332개 |
 
 ---
 
-## 📝 상세 테스트 방법
+## 2. 시스템 아키텍처
 
-### 방법 1: 개별 질문 테스트 (권장)
-
-가장 간단한 방법입니다. `ai_test_queue` 테이블에 INSERT하면 트리거가 자동으로 Edge Function을 호출합니다.
-
-```sql
--- 테스트 질문 추가
-INSERT INTO ai_test_queue (session_id, question) 
-VALUES 
-  ('test-2024-001', '오늘 출근한 직원 몇 명이야?');
-
--- 10~30초 후 결과 확인
-SELECT * FROM ai_sql_logs WHERE session_id = 'test-2024-001';
-```
-
-#### session_id 네이밍 규칙 (권장)
+### 2.1 전체 데이터 흐름
 
 ```
-{카테고리}-{날짜}-{번호}
-
-예시:
-- basic-1214-001      : 기본 질문 테스트
-- hard-1214-001       : 어려운 질문 테스트
-- payroll-1214-001    : 급여 관련 테스트
-- regression-1214-001 : 회귀 테스트
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         🔄 AI SQL Generator 전체 흐름                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  [Flutter 앱 / 테스트]                                                   │
+│         │                                                               │
+│         │ 1. POST /ai-respond-user                                      │
+│         │    { question, company_id, user_id, session_id }              │
+│         ▼                                                               │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    Edge Function: ai-respond-user (v29)          │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐ │   │
+│  │  │ Step 1: 벡터 검색                                            │ │   │
+│  │  │  - 질문 임베딩 생성 (OpenAI text-embedding-3-small)          │ │   │
+│  │  │  - search_ontology_vector() 호출                             │ │   │
+│  │  │  - 상위 5개 유사 개념 추출                                    │ │   │
+│  │  └─────────────────────────────────────────────────────────────┘ │   │
+│  │                         ↓                                        │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐ │   │
+│  │  │ Step 2: Knowledge Graph 경로 탐색                            │ │   │
+│  │  │  - get_ontology_paths_v2() 호출                              │ │   │
+│  │  │  - 매칭된 개념 → 관련 테이블/컬럼/규칙 추출                   │ │   │
+│  │  │  - main_tables, main_columns, constraints, rules 반환        │ │   │
+│  │  └─────────────────────────────────────────────────────────────┘ │   │
+│  │                         ↓                                        │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐ │   │
+│  │  │ Step 3: AI SQL 생성                                          │ │   │
+│  │  │  - 시스템 프롬프트 + 온톨로지 컨텍스트 구성                   │ │   │
+│  │  │  - Grok-4-fast API 호출                                      │ │   │
+│  │  │  - SQL + 해석 반환                                           │ │   │
+│  │  └─────────────────────────────────────────────────────────────┘ │   │
+│  │                         ↓                                        │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐ │   │
+│  │  │ Step 4: SQL 실행 + 검증                                      │ │   │
+│  │  │  - execute_sql() RPC 호출                                    │ │   │
+│  │  │  - 에러 시 자동 재시도 (최대 2회)                             │ │   │
+│  │  │  - 결과 + AI 응답 스트리밍                                    │ │   │
+│  │  └─────────────────────────────────────────────────────────────┘ │   │
+│  │                         ↓                                        │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐ │   │
+│  │  │ Step 5: 로깅                                                 │ │   │
+│  │  │  - ai_sql_logs 저장 (question, sql, result, graph_paths)     │ │   │
+│  │  │  - ai_chat_history 저장 (대화 기록)                          │ │   │
+│  │  └─────────────────────────────────────────────────────────────┘ │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                         ↓                                               │
+│  [Flutter 앱] ← SSE 스트리밍 응답                                        │
+│    - 데이터 테이블 렌더링                                                │
+│    - AI 자연어 응답 표시                                                 │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 방법 2: 배치 테스트
+### 2.2 테스트 시스템 흐름
 
-여러 질문을 한번에 테스트할 때 사용합니다.
-
-```sql
--- 20개 질문 배치 테스트
-INSERT INTO ai_test_queue (session_id, question) VALUES
--- 기본 질문
-('batch-001-01', '오늘 출근한 직원'),
-('batch-001-02', '이번 주 지각자'),
-('batch-001-03', '이번 달 급여 총액'),
--- 문제 유형별
-('batch-001-04', '지각한 직원 목록'),
-('batch-001-05', '초과근무한 직원'),
-('batch-001-06', '조퇴한 직원'),
-('batch-001-07', '결근자 현황'),
--- 복잡한 질문
-('batch-001-08', '지각도 하고 야근도 한 직원'),
-('batch-001-09', '지난달 대비 이번달 지각률'),
-('batch-001-10', '매장별 가장 많이 야근한 직원');
-
--- 배치 결과 요약
-SELECT 
-  COUNT(*) as total,
-  SUM(CASE WHEN success THEN 1 ELSE 0 END) as success_count,
-  ROUND(AVG(CASE WHEN success THEN 1.0 ELSE 0.0 END) * 100, 1) as success_rate
-FROM ai_sql_logs 
-WHERE session_id LIKE 'batch-001-%';
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         🧪 테스트 시스템 흐름                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  [테스터 / Claude]                                                       │
+│         │                                                               │
+│         │ 1. INSERT INTO ai_test_queue                                  │
+│         ▼                                                               │
+│  ┌──────────────────────┐                                               │
+│  │ ai_test_queue        │ ← 질문 저장                                   │
+│  │ (session_id, question, company_id, user_id)                          │
+│  └──────────┬───────────┘                                               │
+│             │                                                           │
+│             │ 2. 트리거 자동 실행: trigger_ai_test_on_insert             │
+│             ▼                                                           │
+│  ┌──────────────────────┐      HTTP POST       ┌─────────────────────┐ │
+│  │ pg_net.http_post     │ ─────────────────▶   │ ai-respond-user     │ │
+│  │ (Bearer anon_key)    │                      │ Edge Function       │ │
+│  └──────────────────────┘                      └──────────┬──────────┘ │
+│                                                           │            │
+│             3. 응답 저장                                   │            │
+│             ▼                                             ▼            │
+│  ┌──────────────────────┐                      ┌─────────────────────┐ │
+│  │ net._http_response   │                      │ ai_sql_logs         │ │
+│  │ (status_code,        │                      │ (question, sql,     │ │
+│  │  content: SSE응답)   │                      │  success, result)   │ │
+│  └──────────────────────┘                      └─────────────────────┘ │
+│             │                                                          │
+│             ▼                                                          │
+│  [결과 분석]                                                            │
+│    - 성공률 계산                                                        │
+│    - 에러 유형 분석                                                     │
+│    - 실패 질문 개선                                                     │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 방법 3: 기존 테스트 케이스 활용
+### 2.3 Knowledge Graph 구조
 
-`ontology_test_cases` 테이블에 저장된 테스트 케이스를 활용합니다.
-
-```sql
--- 활성화된 테스트 케이스 목록 확인
-SELECT test_id, question_ko, domain, tags 
-FROM ontology_test_cases 
-WHERE is_active = true
-ORDER BY test_id;
-
--- 특정 도메인 테스트 케이스를 큐에 추가
-INSERT INTO ai_test_queue (session_id, question)
-SELECT 
-  'domain-shift-' || test_id,
-  question_ko
-FROM ontology_test_cases 
-WHERE is_active = true AND domain = 'shift';
 ```
-
----
-
-## 📊 결과 분석 쿼리
-
-### 1. 기본 결과 확인
-
-```sql
-SELECT 
-  session_id,
-  question,
-  success,
-  row_count,
-  ROUND(execution_time_ms / 1000.0, 2) as exec_sec,
-  LEFT(error_message, 50) as error_short
-FROM ai_sql_logs 
-WHERE session_id LIKE 'my-test-%'
-ORDER BY created_at DESC;
-```
-
-### 2. 품질 점수 계산
-
-```sql
-WITH quality AS (
-  SELECT 
-    session_id,
-    question,
-    success,
-    -- 각 항목별 점수 (20점씩)
-    CASE WHEN generated_sql ILIKE '%v_shift_request_ai%' THEN 20 ELSE 0 END as ai_view_score,
-    CASE WHEN generated_sql NOT ILIKE '%is_late_v2%' 
-         AND generated_sql NOT ILIKE '%is_extratime_v2%' THEN 20 ELSE 0 END as no_deprecated_score,
-    CASE WHEN generated_sql NOT ILIKE '%''Asia/Ho_Chi_Minh''%' THEN 20 ELSE 0 END as no_hardcode_tz_score,
-    CASE WHEN generated_sql ILIKE '%SELECT timezone FROM companies%' THEN 20 ELSE 0 END as dynamic_tz_score,
-    CASE WHEN success THEN 20 ELSE 0 END as execution_score
-  FROM ai_sql_logs 
-  WHERE session_id LIKE 'my-test-%'
-)
-SELECT 
-  session_id,
-  question,
-  ai_view_score + no_deprecated_score + no_hardcode_tz_score + dynamic_tz_score + execution_score as total_score,
-  CASE 
-    WHEN ai_view_score + no_deprecated_score + no_hardcode_tz_score + dynamic_tz_score + execution_score >= 80 THEN '🟢 PASS'
-    WHEN ai_view_score + no_deprecated_score + no_hardcode_tz_score + dynamic_tz_score + execution_score >= 60 THEN '🟡 WARN'
-    ELSE '🔴 FAIL'
-  END as grade
-FROM quality
-ORDER BY total_score DESC;
-```
-
-### 3. 전체 통계 요약
-
-```sql
-WITH stats AS (
-  SELECT 
-    COUNT(*) as total,
-    SUM(CASE WHEN success THEN 1 ELSE 0 END) as success_cnt,
-    SUM(CASE WHEN generated_sql ILIKE '%v_shift_request_ai%' THEN 1 ELSE 0 END) as ai_view_cnt,
-    SUM(CASE WHEN generated_sql ILIKE '%problem_details_v2%' THEN 1 ELSE 0 END) as jsonb_cnt,
-    SUM(CASE WHEN generated_sql ILIKE '%is_late_v2%' OR generated_sql ILIKE '%is_extratime_v2%' THEN 1 ELSE 0 END) as deprecated_cnt,
-    SUM(CASE WHEN generated_sql ILIKE '%''Asia/Ho_Chi_Minh''%' THEN 1 ELSE 0 END) as hardcode_tz_cnt,
-    SUM(CASE WHEN generated_sql ILIKE '%SELECT timezone FROM companies%' THEN 1 ELSE 0 END) as dynamic_tz_cnt
-  FROM ai_sql_logs 
-  WHERE session_id LIKE 'my-test-%'
-)
-SELECT 
-  '총 테스트' as metric, total || '개' as value FROM stats
-UNION ALL SELECT '실행 성공률', ROUND(success_cnt * 100.0 / NULLIF(total, 0), 1) || '%' FROM stats
-UNION ALL SELECT '---', '---'
-UNION ALL SELECT '✅ AI뷰 사용률', ROUND(ai_view_cnt * 100.0 / NULLIF(total, 0), 1) || '%' FROM stats
-UNION ALL SELECT '✅ JSONB 사용률', ROUND(jsonb_cnt * 100.0 / NULLIF(total, 0), 1) || '%' FROM stats
-UNION ALL SELECT '❌ deprecated 사용', deprecated_cnt || '건' FROM stats
-UNION ALL SELECT '❌ TZ 하드코딩', hardcode_tz_cnt || '건' FROM stats
-UNION ALL SELECT '✅ 동적 TZ 사용률', ROUND(dynamic_tz_cnt * 100.0 / NULLIF(total, 0), 1) || '%' FROM stats;
-```
-
-### 4. 실패 원인 분석
-
-```sql
-SELECT 
-  CASE 
-    WHEN error_message ILIKE '%timezone(character varying, interval)%' THEN 'INTERVAL AT TIME ZONE 문법 오류'
-    WHEN error_message ILIKE '%syntax error%' THEN 'SQL 문법 오류'
-    WHEN error_message ILIKE '%column%does not exist%' THEN '존재하지 않는 컬럼'
-    WHEN error_message ILIKE '%relation%does not exist%' THEN '존재하지 않는 테이블'
-    WHEN error_message ILIKE '%window function%' THEN '윈도우 함수 오류'
-    ELSE '기타'
-  END as error_type,
-  COUNT(*) as count,
-  ARRAY_AGG(DISTINCT LEFT(question, 30)) as sample_questions
-FROM ai_sql_logs 
-WHERE session_id LIKE 'my-test-%' 
-  AND success = false
-GROUP BY 1
-ORDER BY count DESC;
-```
-
-### 5. 생성된 SQL 상세 보기
-
-```sql
-SELECT 
-  session_id,
-  question,
-  generated_sql
-FROM ai_sql_logs 
-WHERE session_id = 'my-test-001';
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     📊 Knowledge Graph 구조                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   [동의어 노드]        [개념 노드]         [테이블 노드]                   │
+│   ┌──────────┐        ┌──────────┐        ┌──────────────┐             │
+│   │ 지각     │───▶    │ late     │───▶    │ v_shift_     │             │
+│   │ late     │        │ (개념)   │        │ request_ai   │             │
+│   │ trễ      │        └────┬─────┘        └──────┬───────┘             │
+│   └──────────┘             │                     │                     │
+│                            │                     ▼                     │
+│                            │              [컬럼 노드]                   │
+│                            │              ┌──────────────┐             │
+│                            └─────────▶    │ problem_     │             │
+│                                           │ details_v2   │             │
+│                                           └──────────────┘             │
+│                                                                         │
+│   Edge Types (759개):                                                   │
+│   - synonym_to_concept (318) : 동의어 → 개념                            │
+│   - table_has_column (211)   : 테이블 → 컬럼                            │
+│   - concept_maps_to_table (46): 개념 → 테이블                           │
+│   - table_joins_* (53)       : 테이블 ↔ 테이블 (JOIN)                   │
+│   - constraint_applies (39)  : 제약조건 → 테이블                        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ✅ 품질 기준
+## 3. 테이블 구조 (상세)
 
-### 필수 통과 항목 (0점이면 FAIL)
+### 3.1 테이블 분류 개요
 
-| 항목 | 체크 방법 | 기준 |
-|------|----------|------|
-| AI 뷰 사용 | `v_shift_request_ai` 포함 | 시프트 관련 질문에서 반드시 사용 |
-| deprecated 컬럼 배제 | `is_late_v2`, `is_extratime_v2` 미포함 | 절대 사용 금지 |
-| TZ 하드코딩 배제 | `'Asia/Ho_Chi_Minh'` 미포함 | 절대 사용 금지 |
-
-### 권장 항목
-
-| 항목 | 체크 방법 | 비고 |
-|------|----------|------|
-| JSONB 사용 | `problem_details_v2` 포함 | 지각/초과근무 등 문제 유형 질문에서 |
-| 동적 TZ 사용 | `SELECT timezone FROM companies` 포함 | 시간 관련 질문에서 |
-| SQL 실행 성공 | `success = true` | 80% 이상 권장 |
-
-### 점수 기준
-
-| 점수 | 등급 | 의미 |
-|------|------|------|
-| 80-100 | 🟢 PASS | 우수 |
-| 60-79 | 🟡 WARN | 개선 필요 |
-| 0-59 | 🔴 FAIL | 문제 있음 |
-
----
-
-## 🔧 문제 해결
-
-### 질문 INSERT 후 결과가 안 보일 때
-
-1. **10~30초 대기**: Edge Function 실행에 시간이 걸립니다.
-2. **트리거 확인**:
-```sql
-SELECT * FROM ai_test_queue WHERE session_id = 'your-session-id';
--- status가 'sent'인지 확인
 ```
-3. **Edge Function 로그 확인**: Supabase Dashboard > Edge Functions > ai-respond-user > Logs
-
-### deprecated 컬럼이 사용되고 있을 때
-
-1. 온톨로지 테이블 확인:
-```sql
-SELECT * FROM ontology_columns 
-WHERE column_name IN ('is_late_v2', 'is_extratime_v2', 'late_minutes_v2');
+📁 AI SQL Generator 테이블 구조
+│
+├── 🟢 온톨로지 (Source of Truth) ─ 9개
+│   ├── ontology_concepts      (168 rows) - 비즈니스 개념
+│   ├── ontology_synonyms      (776 rows) - 다국어 동의어
+│   ├── ontology_columns       (323 rows) - 컬럼 메타데이터
+│   ├── ontology_entities      (51 rows)  - 테이블/뷰 정보
+│   ├── ontology_relationships (57 rows)  - JOIN 관계
+│   ├── ontology_constraints   (60 rows)  - SQL 규칙
+│   ├── ontology_calculation_rules (30 rows) - 계산 공식
+│   ├── ontology_event_types   (8 rows)   - 이벤트 타입
+│   └── ontology_embeddings    (1,332 rows) - 벡터 저장
+│
+├── 🟢 Knowledge Graph 뷰 ─ 2개
+│   ├── v_ontology_graph_nodes (783 rows) - 모든 노드
+│   └── v_ontology_graph_edges (759 rows) - 모든 관계
+│
+├── 🟢 로그/모니터링 ─ 3개
+│   ├── ai_sql_logs      (2,069 rows) - SQL 생성 로그 (핵심!)
+│   ├── ai_chat_history  (657 rows)   - 대화 기록
+│   └── ai_test_queue    (1,888 rows) - 테스트 큐
+│
+├── 🟡 테스트/분석 ─ 4개
+│   ├── ai_test_runs           (1 row)
+│   ├── ontology_test_cases    (24 rows)
+│   ├── ontology_test_results  (14 rows)
+│   └── ontology_concept_relations (42 rows)
+│
+└── 🔴 미사용 (삭제 권장) ─ 6개
+    ├── ai_intents             (36 rows) - 2개월간 미사용
+    ├── ai_intent_vectors      (8 rows)
+    ├── ai_schema_rules        (8 rows)
+    ├── ai_templates           (8 rows)
+    ├── ai_conversation_state  (0 rows)
+    └── ontology_kpi_rules     (5 rows)
 ```
-2. `v_shift_request_ai` 뷰에서 해당 컬럼 제거 필요
 
-### 하드코딩된 timezone이 발견될 때
+### 3.2 핵심 테이블 상세
 
-1. 온톨로지 concepts 확인:
+#### 📊 ontology_concepts (비즈니스 개념 정의)
+
+| 컬럼 | 타입 | 설명 | 예시 |
+|------|------|------|------|
+| `concept_id` | uuid | PK | - |
+| `concept_name` | text | 개념 이름 | '지각', '급여', '초과근무' |
+| `concept_category` | text | 카테고리 | 'time', 'payment', 'status' |
+| `mapped_table` | text | 매핑 테이블 | 'v_shift_request_ai' |
+| `mapped_column` | text | 매핑 컬럼 | 'problem_details_v2' |
+| `calculation_rule` | text | 계산 규칙 참조 | 'calc_late_minutes' |
+| `definition_ko` | text | 한국어 정의 | - |
+| `definition_en` | text | 영어 정의 | - |
+| `definition_vi` | text | 베트남어 정의 | - |
+| `ai_usage_hint` | text | AI 힌트 | '지각 조회 시 problem_details_v2->''is_late'' 사용' |
+| `is_active` | boolean | 활성 여부 | true |
+
 ```sql
-SELECT concept_name, ai_usage_hint 
+-- 주요 개념 확인
+SELECT concept_name, mapped_table, mapped_column, ai_usage_hint
 FROM ontology_concepts 
-WHERE ai_usage_hint ILIKE '%Asia/Ho_Chi_Minh%';
+WHERE concept_category = 'time' AND is_active = true;
 ```
-2. 동적 timezone으로 수정:
+
+#### 📊 ontology_synonyms (다국어 동의어)
+
+| 컬럼 | 타입 | 설명 | 예시 |
+|------|------|------|------|
+| `synonym_id` | uuid | PK | - |
+| `concept_id` | uuid | FK → concepts | - |
+| `synonym_text` | text | 동의어 텍스트 | '지각', 'late', 'trễ', '늦음' |
+| `language_code` | text | 언어 코드 | 'ko', 'en', 'vi' |
+| `search_weight` | float | 검색 가중치 | 1.0 |
+| `is_active` | boolean | 활성 여부 | true |
+
 ```sql
-UPDATE ontology_concepts
-SET ai_usage_hint = REPLACE(ai_usage_hint, '''Asia/Ho_Chi_Minh''', 
-    '(SELECT timezone FROM companies WHERE company_id = $company_id)')
-WHERE ai_usage_hint ILIKE '%Asia/Ho_Chi_Minh%';
+-- "지각" 관련 모든 동의어
+SELECT s.synonym_text, s.language_code, c.concept_name
+FROM ontology_synonyms s
+JOIN ontology_concepts c ON s.concept_id = c.concept_id
+WHERE c.concept_name = '지각';
+-- 결과: 지각(ko), late(en), trễ(vi), 늦음(ko), 출근지각(ko)...
 ```
 
----
+#### 📊 ontology_columns (컬럼 메타데이터)
 
-## 📁 관련 테이블 구조
+| 컬럼 | 타입 | 설명 | 예시 |
+|------|------|------|------|
+| `column_id` | uuid | PK | - |
+| `table_name` | text | 테이블명 | 'v_shift_request_ai' |
+| `column_name` | text | 컬럼명 | 'problem_details_v2' |
+| `data_type` | text | 데이터 타입 | 'jsonb', 'timestamptz' |
+| `display_name_ko` | text | 한국어 표시명 | '문제상세' |
+| `description_ko` | text | 한국어 설명 | - |
+| `ai_usage_hint` | text | AI 힌트 | 'is_late, is_early_leave 등 포함' |
+| `is_deprecated` | boolean | ⚠️ 사용금지 | false |
+| `replacement_column` | text | 대체 컬럼 | 'problem_details_v2' |
+| `is_utc` | boolean | UTC 시간 여부 | true |
+| `is_active` | boolean | 활성 여부 | true |
 
-### ai_test_queue (테스트 입력)
+```sql
+-- v_shift_request_ai 주요 컬럼
+SELECT column_name, data_type, is_deprecated, ai_usage_hint
+FROM ontology_columns 
+WHERE table_name = 'v_shift_request_ai' AND is_active = true
+ORDER BY is_deprecated, column_name;
+```
+
+#### 📊 ontology_constraints (SQL 생성 규칙) ⭐중요
+
+| 컬럼 | 타입 | 설명 | 예시 |
+|------|------|------|------|
+| `constraint_id` | uuid | PK | - |
+| `constraint_name` | text | 규칙 이름 | 'use_dynamic_timezone' |
+| `constraint_type` | text | 유형 | 'must', 'must_not', 'prefer' |
+| `applies_to_table` | text | 적용 테이블 | 'v_shift_request_ai' |
+| `validation_rule` | text | 검증 규칙 | 'AT TIME ZONE (SELECT timezone FROM companies...)' |
+| `severity` | text | 심각도 | 'critical', 'error', 'warning' |
+| `ai_usage_hint` | text | AI 힌트 | '하드코딩 금지, 동적 타임존 사용' |
+
+```sql
+-- Critical 제약조건 확인
+SELECT constraint_name, validation_rule, ai_usage_hint
+FROM ontology_constraints 
+WHERE severity = 'critical' AND is_active = true;
+```
+
+#### 📊 ai_sql_logs (SQL 생성 로그) ⭐가장 중요
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
-| id | UUID | PK |
-| session_id | TEXT | 테스트 식별자 (필수) |
-| question | TEXT | 테스트 질문 (필수) |
-| company_id | UUID | 기본값: ebd66ba7-... |
-| user_id | UUID | 기본값: 0d2e61ad-... |
-| status | TEXT | pending → sent |
-| created_at | TIMESTAMPTZ | 생성 시각 |
-| sent_at | TIMESTAMPTZ | 전송 시각 |
-
-### ai_sql_logs (테스트 결과)
-
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | UUID | PK |
-| session_id | TEXT | 테스트 식별자 |
-| question | TEXT | 질문 |
-| generated_sql | TEXT | AI가 생성한 SQL |
-| success | BOOLEAN | 실행 성공 여부 |
-| row_count | INTEGER | 결과 행 수 |
-| error_message | TEXT | 에러 메시지 (실패 시) |
-| execution_time_ms | INTEGER | 실행 시간 (ms) |
-| created_at | TIMESTAMPTZ | 생성 시각 |
-
----
-
-## 🏷️ 도메인별 테스트 가이드
-
-현재 시스템은 여러 도메인을 지원합니다. 각 도메인별로 테스트 방법이 다릅니다.
-
-### 도메인 현황
-
-| 도메인 | 엔티티 수 | 주요 테이블 |
-|--------|----------|------------|
-| 재무/회계 | 11개 | accounts, journal_entries, cash_amount_entries, v_cash_location |
-| 근태/시프트 | 4개 | v_shift_request_ai, store_shifts |
-| 직원/사용자 | 6개 | users, user_salaries |
-| 재고 | 2개 | current_stock, products |
-
----
-
-### 💰 재무/회계 도메인 테스트
-
-#### 테스트 질문 예시
+| `log_id` | uuid | PK |
+| `company_id` | uuid | 회사 ID |
+| `user_id` | uuid | 사용자 ID |
+| `session_id` | text | 세션 ID |
+| `question` | text | 사용자 질문 |
+| `question_language` | text | 질문 언어 (ko/en/vi) |
+| `question_category` | text | 질문 카테고리 |
+| `generated_sql` | text | 생성된 SQL |
+| `interpretation` | text | AI 해석 |
+| `success` | boolean | 실행 성공 여부 |
+| `row_count` | integer | 결과 행 수 |
+| `result_sample` | jsonb | 결과 샘플 (최대 5행) |
+| `tables_used` | text[] | 사용된 테이블 목록 |
+| `matched_concepts` | text[] | 매칭된 개념 |
+| `graph_paths` | jsonb | Knowledge Graph 경로 |
+| `error_type` | text | 에러 유형 |
+| `error_message` | text | 에러 메시지 |
+| `error_detail` | jsonb | 에러 상세 |
+| `execution_time_ms` | int | 전체 실행 시간 |
+| `context_load_time_ms` | int | 컨텍스트 로드 시간 |
+| `ai_call_time_ms` | int | AI API 호출 시간 |
+| `sql_execution_time_ms` | int | SQL 실행 시간 |
+| `ai_model` | text | 사용 모델 |
+| `ai_tokens_used` | int | 토큰 사용량 |
+| `created_at` | timestamptz | 생성 시각 |
+| `local_date` | date | 로컬 날짜 |
+| `local_hour` | int | 로컬 시간 |
 
 ```sql
-INSERT INTO ai_test_queue (session_id, question) VALUES
--- 현금 관련
-('finance-01', '오늘 금고 잔액 얼마야?'),
-('finance-02', '이번 달 현금 입출금 내역'),
-('finance-03', '캐셔별 시재 현황'),
--- 회계 관련
-('finance-04', '이번 달 매출 총액'),
-('finance-05', '비용 항목별 지출 내역'),
-('finance-06', '계정과목별 잔액'),
--- 복잡한 질문
-('finance-07', '지난달 대비 매출 증감'),
-('finance-08', '매장별 수익성 비교'),
-('finance-09', '현금 흐름 이상 감지');
+-- 최근 로그 확인
+SELECT 
+  created_at,
+  question,
+  success,
+  row_count,
+  execution_time_ms,
+  tables_used
+FROM ai_sql_logs
+ORDER BY created_at DESC
+LIMIT 10;
 ```
 
-#### 품질 체크 기준
+---
+
+## 4. 모니터링 뷰 (실시간 대시보드)
+
+### 4.1 뷰 목록 요약
+
+| 뷰 이름 | 용도 | 핵심 지표 |
+|---------|------|----------|
+| `v_ai_sql_daily_stats` | 📈 일별 통계 | 쿼리 수, 성공률, 평균 시간 |
+| `v_ai_sql_error_stats` | ❌ 에러 분석 | 에러 유형별 집계 |
+| `v_ai_sql_failed_questions` | 🔍 실패 상세 | 실패한 질문 전체 |
+| `v_ai_sql_table_usage` | 📊 테이블 사용 | 테이블별 사용 빈도 |
+| `v_ai_sql_user_stats` | 👤 유저 통계 | 유저별 쿼리 수 |
+| `v_ai_sql_category_stats` | 📁 카테고리별 | 질문 유형별 성공률 |
+| `v_ai_sql_hourly_stats` | ⏰ 시간대별 | 시간별 쿼리 분포 |
+| `v_ai_sql_performance_percentiles` | ⚡ 성능 분석 | P50, P90, P99 |
+| `v_ai_sql_problem_columns` | ⚠️ 문제 컬럼 | 에러 유발 컬럼 |
+| `v_ontology_deprecated_columns` | ⛔ deprecated | 사용 금지 컬럼 |
+| `v_ontology_health_check` | 🏥 헬스체크 | 온톨로지 정합성 |
+
+### 4.2 대시보드 쿼리
+
+#### 📈 일별 성공률 대시보드
+
+```sql
+SELECT * FROM v_ai_sql_daily_stats ORDER BY local_date DESC LIMIT 7;
+
+-- 결과 예시:
+-- local_date | total_queries | success_count | success_rate | avg_time_ms
+-- 2025-12-25 | 4             | 4             | 100.0        | 13863
+-- 2025-12-23 | 7             | 7             | 100.0        | 12634
+-- 2025-12-22 | 11            | 9             | 81.8         | 17651
+```
+
+#### ❌ 에러 유형 분석
+
+```sql
+SELECT * FROM v_ai_sql_error_stats;
+
+-- 결과 예시:
+-- error_type | error_count | sample_errors
+-- unknown    | 4           | ["function timezone() does not exist", ...]
+```
+
+#### 📊 테이블 사용 빈도
+
+```sql
+SELECT * FROM v_ai_sql_table_usage ORDER BY usage_count DESC LIMIT 5;
+
+-- 결과 예시:
+-- table_name         | usage_count | success_rate
+-- companies          | 1780        | 79.8
+-- v_shift_request_ai | 1619        | 82.8
+-- stores             | 500         | 78.6
+```
+
+#### ⚡ 성능 분석
+
+```sql
+SELECT * FROM v_ai_sql_performance_percentiles;
+
+-- 결과 예시:
+-- p50_total | p90_total | p99_total | p50_ai  | p90_ai  | p50_sql | p90_sql
+-- 13857     | 21495     | 24969     | 10071   | 16326   | 234     | 611
+```
+
+#### 🔍 최근 실패한 질문
 
 ```sql
 SELECT 
-  session_id,
+  created_at::date as date,
   question,
-  success,
-  -- 재무 도메인 체크 항목
-  CASE WHEN generated_sql ILIKE '%journal_entries%' 
-       OR generated_sql ILIKE '%cash_amount_entries%'
-       OR generated_sql ILIKE '%v_cash_location%'
-       OR generated_sql ILIKE '%accounts%' 
-       THEN '✅' ELSE '➖' END AS "재무테이블 사용",
-  -- deprecated 체크 (재무 도메인용)
-  CASE WHEN generated_sql ILIKE '%old_balance%' 
-       OR generated_sql ILIKE '%legacy_amount%' 
-       THEN '❌' ELSE '✅' END AS "deprecated 없음",
-  -- 동적 TZ (공통)
-  CASE WHEN generated_sql ILIKE '%SELECT timezone FROM companies%' THEN '✅' ELSE '➖' END AS "동적TZ"
-FROM ai_sql_logs 
-WHERE session_id LIKE 'finance-%'
-ORDER BY session_id;
+  error_type,
+  LEFT(error_message, 60) as error
+FROM v_ai_sql_failed_questions
+ORDER BY created_at DESC
+LIMIT 5;
 ```
 
-#### 재무 도메인 핵심 테이블 관계
+#### 🏥 온톨로지 헬스체크
 
-```
-┌─────────────────┐     ┌─────────────────┐
-│ journal_entries │────▶│ journal_lines   │
-│ (거래 헤더)      │     │ (차변/대변)      │
-└────────┬────────┘     └────────┬────────┘
-         │                       │
-         │                       ▼
-         │              ┌─────────────────┐
-         │              │ accounts        │
-         │              │ (계정과목)       │
-         │              └─────────────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│cash_amount_entries│──▶│ v_cash_location │
-│ (현금 거래)       │    │ (현금 위치 뷰)   │
-└─────────────────┘     └─────────────────┘
+```sql
+SELECT * FROM v_ontology_health_check;
+
+-- 결과 해석:
+-- PHANTOM: ontology에 있지만 DB에 없음 → 삭제 필요
+-- MISSING: DB에 있지만 ontology에 없음 → 추가 필요
 ```
 
 ---
 
-### 👷 근태/시프트 도메인 테스트
+## 5. RPC 함수
 
-#### 테스트 질문 예시
+### 5.1 핵심 함수
 
-```sql
-INSERT INTO ai_test_queue (session_id, question) VALUES
-('shift-01', '오늘 출근한 직원'),
-('shift-02', '이번 주 지각자'),
-('shift-03', '초과근무 현황'),
-('shift-04', '매장별 인건비');
-```
+| 함수 | 용도 | Input | Output |
+|------|------|-------|--------|
+| `search_ontology_vector` | 벡터 유사도 검색 | query_embedding[], threshold, max_results | 매칭된 concepts |
+| `get_ontology_paths_v2` | Knowledge Graph 경로 탐색 | start_node_names[], max_depth | main_tables, columns, constraints, rules |
+| `execute_sql` | SQL 실행 | query_text | 결과 rows |
 
-#### 품질 체크 기준
+### 5.2 사용 예시
 
 ```sql
-SELECT 
-  session_id,
-  question,
-  success,
-  -- 근태 도메인 체크 항목
-  CASE WHEN generated_sql ILIKE '%v_shift_request_ai%' THEN '✅' ELSE '❌' END AS "AI뷰 사용",
-  CASE WHEN generated_sql ILIKE '%problem_details_v2%' THEN '✅' ELSE '➖' END AS "JSONB 사용",
-  -- deprecated 체크 (근태 도메인용)
-  CASE WHEN generated_sql ILIKE '%is_late_v2%' 
-       OR generated_sql ILIKE '%is_extratime_v2%' 
-       OR generated_sql ILIKE '%late_minutes_v2%' 
-       THEN '❌' ELSE '✅' END AS "deprecated 없음",
-  -- 동적 TZ
-  CASE WHEN generated_sql ILIKE '%SELECT timezone FROM companies%' THEN '✅' ELSE '➖' END AS "동적TZ"
-FROM ai_sql_logs 
-WHERE session_id LIKE 'shift-%'
-ORDER BY session_id;
-```
-
----
-
-### 📦 재고 도메인 테스트
-
-#### 테스트 질문 예시
-
-```sql
-INSERT INTO ai_test_queue (session_id, question) VALUES
-('inventory-01', '재고 부족 상품 목록'),
-('inventory-02', '상품별 현재 재고'),
-('inventory-03', '매장별 재고 현황');
-```
-
-#### 품질 체크 기준
-
-```sql
-SELECT 
-  session_id,
-  question,
-  success,
-  CASE WHEN generated_sql ILIKE '%current_stock%' 
-       OR generated_sql ILIKE '%products%' 
-       THEN '✅' ELSE '➖' END AS "재고테이블 사용"
-FROM ai_sql_logs 
-WHERE session_id LIKE 'inventory-%';
-```
-
----
-
-### 🔄 범용 품질 체크 함수
-
-모든 도메인에서 사용할 수 있는 품질 체크 함수:
-
-```sql
--- 범용 품질 체크 함수
-CREATE OR REPLACE FUNCTION check_domain_quality(
-  p_session_pattern TEXT,
-  p_domain TEXT  -- 'finance', 'shift', 'inventory', 'user'
-)
-RETURNS TABLE (
-  session_id TEXT,
-  question TEXT,
-  success BOOLEAN,
-  uses_correct_table BOOLEAN,
-  has_deprecated BOOLEAN,
-  has_dynamic_tz BOOLEAN,
-  quality_score INT
-) AS $$
-DECLARE
-  v_required_tables TEXT[];
-  v_deprecated_cols TEXT[];
-BEGIN
-  -- 도메인별 설정
-  CASE p_domain
-    WHEN 'finance' THEN
-      v_required_tables := ARRAY['journal_entries', 'cash_amount_entries', 'v_cash_location', 'accounts'];
-      v_deprecated_cols := ARRAY['old_balance', 'legacy_amount'];
-    WHEN 'shift' THEN
-      v_required_tables := ARRAY['v_shift_request_ai'];
-      v_deprecated_cols := ARRAY['is_late_v2', 'is_extratime_v2', 'late_minutes_v2', 'overtime_minutes_v2'];
-    WHEN 'inventory' THEN
-      v_required_tables := ARRAY['current_stock', 'products'];
-      v_deprecated_cols := ARRAY['old_qty'];
-    WHEN 'user' THEN
-      v_required_tables := ARRAY['users', 'user_salaries'];
-      v_deprecated_cols := ARRAY['old_salary'];
-    ELSE
-      v_required_tables := ARRAY[]::TEXT[];
-      v_deprecated_cols := ARRAY[]::TEXT[];
-  END CASE;
-
-  RETURN QUERY
-  SELECT 
-    l.session_id,
-    l.question,
-    l.success,
-    -- 올바른 테이블 사용 여부
-    EXISTS (
-      SELECT 1 FROM unnest(v_required_tables) tbl 
-      WHERE l.generated_sql ILIKE '%' || tbl || '%'
-    ),
-    -- deprecated 컬럼 사용 여부
-    EXISTS (
-      SELECT 1 FROM unnest(v_deprecated_cols) col 
-      WHERE l.generated_sql ILIKE '%' || col || '%'
-    ),
-    -- 동적 TZ 사용
-    l.generated_sql ILIKE '%SELECT timezone FROM companies%',
-    -- 품질 점수 계산
-    (
-      CASE WHEN EXISTS (
-        SELECT 1 FROM unnest(v_required_tables) tbl 
-        WHERE l.generated_sql ILIKE '%' || tbl || '%'
-      ) THEN 30 ELSE 0 END +
-      CASE WHEN NOT EXISTS (
-        SELECT 1 FROM unnest(v_deprecated_cols) col 
-        WHERE l.generated_sql ILIKE '%' || col || '%'
-      ) THEN 30 ELSE 0 END +
-      CASE WHEN l.generated_sql NOT ILIKE '%''Asia/Ho_Chi_Minh''%' THEN 20 ELSE 0 END +
-      CASE WHEN l.success THEN 20 ELSE 0 END
-    )::INT
-  FROM ai_sql_logs l
-  WHERE l.session_id LIKE p_session_pattern;
-END;
-$$ LANGUAGE plpgsql;
-
--- 사용 예시
-SELECT * FROM check_domain_quality('finance-%', 'finance');
-SELECT * FROM check_domain_quality('shift-%', 'shift');
-SELECT * FROM check_domain_quality('inventory-%', 'inventory');
-```
-
----
-
-## 📌 자주 사용하는 테스트 질문
-
-### 기본 질문 (쉬움)
-
-```sql
-INSERT INTO ai_test_queue (session_id, question) VALUES
-('basic-01', '오늘 출근한 직원'),
-('basic-02', '이번 주 지각자'),
-('basic-03', '이번 달 급여 총액'),
-('basic-04', '직원별 근무시간');
-```
-
-### 문제 유형별 (중간)
-
-```sql
-INSERT INTO ai_test_queue (session_id, question) VALUES
-('type-01', '지각한 직원 목록'),
-('type-02', '초과근무한 직원'),
-('type-03', '조퇴한 직원'),
-('type-04', '결근자 현황'),
-('type-05', '미퇴근 기록');
-```
-
-### 복잡한 질문 (어려움)
-
-```sql
-INSERT INTO ai_test_queue (session_id, question) VALUES
-('hard-01', '지각도 하고 야근도 한 직원'),
-('hard-02', '지난달 대비 이번달 지각률 변화'),
-('hard-03', '매장별 가장 많이 야근한 직원'),
-('hard-04', '연속 3일 이상 야근한 직원'),
-('hard-05', '지각 차감액이 보너스보다 큰 직원');
-```
-
-### 모호한 질문 (AI 해석력 테스트)
-
-```sql
-INSERT INTO ai_test_queue (session_id, question) VALUES
-('vague-01', '문제 있는 직원'),
-('vague-02', '요즘 근태 어때?'),
-('vague-03', '일 잘하는 직원'),
-('vague-04', '출퇴근 이상한 사람');
-```
-
----
-
-## 🔄 정기 테스트 체크리스트
-
-### 배포 전 테스트
-
-- [ ] 기본 질문 10개 성공률 90% 이상
-- [ ] deprecated 컬럼 사용 0건
-- [ ] TZ 하드코딩 0건
-- [ ] v_shift_request_ai 사용률 100%
-
-### 주간 회귀 테스트
-
-- [ ] ontology_test_cases 전체 실행
-- [ ] 실패율 20% 이하
-- [ ] 품질 점수 평균 70점 이상
-
----
-
-## 📞 문의
-
-- 온톨로지 관련: ontology_* 테이블 수정
-- Edge Function 관련: ai-respond-user 로그 확인
-- 테스트 인프라: ai_test_queue 트리거 확인
-
----
-
-## ⚙️ 커스터마이징 가이드
-
-다른 회사, 다른 테이블, 다른 프로젝트에서 테스트하려면 아래 항목들을 수정해야 합니다.
-
-### 1. 다른 회사/사용자로 테스트
-
-#### 방법 A: INSERT 시 직접 지정
-
-```sql
--- 다른 회사/사용자로 테스트
-INSERT INTO ai_test_queue (session_id, question, company_id, user_id) 
-VALUES (
-  'other-company-test-001', 
-  '오늘 출근한 직원',
-  'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',  -- 다른 company_id
-  'ffffffff-gggg-hhhh-iiii-jjjjjjjjjjjj'   -- 다른 user_id
+-- Knowledge Graph 경로 탐색
+SELECT * FROM get_ontology_paths_v2(
+  ARRAY['지각', '직원'], -- 시작 노드
+  3                       -- 최대 탐색 깊이
 );
-```
 
-#### 방법 B: 테이블 기본값 변경
-
-```sql
--- ai_test_queue 테이블의 기본값 변경
-ALTER TABLE ai_test_queue 
-ALTER COLUMN company_id SET DEFAULT 'new-company-uuid'::uuid;
-
-ALTER TABLE ai_test_queue 
-ALTER COLUMN user_id SET DEFAULT 'new-user-uuid'::uuid;
-```
-
-#### 회사/사용자 ID 찾기
-
-```sql
--- 회사 목록 확인
-SELECT company_id, company_name, timezone FROM companies;
-
--- 특정 회사의 사용자 목록
-SELECT user_id, first_name, last_name, email 
-FROM users 
-WHERE company_id = 'your-company-id';
+-- 결과:
+-- {
+--   "main_tables": ["v_shift_request_ai"],
+--   "main_columns": ["problem_details_v2", "user_name"],
+--   "constraints": ["use_dynamic_timezone"],
+--   "rules": ["calc_late_minutes"]
+-- }
 ```
 
 ---
 
-### 2. 다른 Supabase 프로젝트로 변경
+## 6. Edge Functions
 
-트리거 함수에서 Edge Function URL과 인증 토큰을 수정해야 합니다.
+### 6.1 함수 목록
+
+| 함수 | 버전 | 용도 | verify_jwt |
+|------|------|------|------------|
+| `ai-respond-user` | v29 | 메인 AI 응답 | ✅ ON |
+| `ai-sql-generator` | v31 | SQL만 생성 | ✅ ON |
+| `embed-single-row` | v4 | 트리거용 임베딩 | ✅ ON |
+| `generate-ontology-embeddings` | v7 | 전체 임베딩 | ✅ ON |
+| `ai-test-runner` | v2 | 배치 테스트 | ❌ OFF |
+
+### 6.2 ai-respond-user API
+
+**Endpoint:**
+```
+POST https://atkekzwgukdvucqntryo.supabase.co/functions/v1/ai-respond-user
+```
+
+**Headers:**
+```
+Content-Type: application/json
+Authorization: Bearer {anon_key}
+```
+
+**Request Body:**
+```json
+{
+  "question": "이번 달 지각한 직원",
+  "company_id": "563ad9ff-e17b-49f3-8f4b-de137f025f03",
+  "user_id": "0d2e61ad-b169-41de-b637-1d034ca9f75d",
+  "store_id": "d7fe7c6b-099e-4c80-bd4b-b6fec1d598e7",
+  "session_id": "test-001",
+  "role_type": "owner",
+  "timezone": "Asia/Ho_Chi_Minh"
+}
+```
+
+**Response (SSE Stream):**
+```
+data: {"type":"result","success":true,"data":[{"user_name":"Nha Xink","count":13}],"row_count":3}
+data: {"type":"stream","content":"이번"}
+data: {"type":"stream","content":" 달"}
+data: {"type":"stream","content":" 지각한..."}
+data: {"type":"done","session_id":"test-001","execution_time_ms":10234}
+```
+
+---
+
+## 7. 테스트 방법
+
+### 7.1 테스트 전 필수 체크 ⚠️
+
+#### Step 1: Anon Key 확인 (매번!)
 
 ```sql
--- 트리거 함수 수정
+-- 트리거에 저장된 키 확인
+SELECT substring(prosrc from 'Bearer ([^'']+)') as stored_key
+FROM pg_proc WHERE proname = 'trigger_ai_test_on_insert';
+```
+
+**Dashboard 확인:** Settings → API → `anon` `public` 키
+
+**키가 다르면 업데이트:**
+```sql
 CREATE OR REPLACE FUNCTION trigger_ai_test_on_insert()
 RETURNS TRIGGER AS $$
 DECLARE
   request_id bigint;
 BEGIN
   SELECT net.http_post(
-    -- ✅ 1. Edge Function URL 변경
-    url := 'https://[YOUR_PROJECT_REF].supabase.co/functions/v1/ai-respond-user',
+    url := 'https://atkekzwgukdvucqntryo.supabase.co/functions/v1/ai-respond-user',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      -- ✅ 2. Anon Key 변경
-      'Authorization', 'Bearer [YOUR_ANON_KEY]'
+      'Authorization', 'Bearer [새_ANON_KEY]'  -- ⬅️ 여기 교체
     ),
     body := jsonb_build_object(
       'question', NEW.question,
       'company_id', NEW.company_id,
       'user_id', NEW.user_id,
-      'session_id', NEW.session_id
-    )
+      'session_id', NEW.session_id,
+      'store_id', 'd7fe7c6b-099e-4c80-bd4b-b6fec1d598e7',
+      'role_type', 'owner',
+      'timezone', 'Asia/Ho_Chi_Minh'
+    ),
+    timeout_milliseconds := 30000
   ) INTO request_id;
   
-  UPDATE ai_test_queue 
-  SET status = 'sent', sent_at = NOW()
-  WHERE id = NEW.id;
-  
+  UPDATE ai_test_queue SET status = 'sent', sent_at = NOW() WHERE id = NEW.id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
-#### 필요한 정보 찾기
-
-| 항목 | 위치 |
-|------|------|
-| Project Ref | Supabase Dashboard > Settings > General > Reference ID |
-| Anon Key | Supabase Dashboard > Settings > API > anon public |
-| Service Role Key | Supabase Dashboard > Settings > API > service_role (비공개) |
-
----
-
-### 3. 다른 테이블/뷰 품질 체크
-
-시프트가 아닌 다른 도메인(예: 재고, 매출, 고객)을 테스트할 때 품질 체크 기준을 수정합니다.
-
-#### 예시: 재고 테이블 테스트
+#### Step 2: 단일 테스트 (Ping)
 
 ```sql
--- 재고 관련 품질 체크
+-- 1건 INSERT
+INSERT INTO ai_test_queue (session_id, question, company_id, user_id) 
+VALUES (
+  'ping-001', 
+  '오늘 지각한 직원',
+  '563ad9ff-e17b-49f3-8f4b-de137f025f03',
+  '0d2e61ad-b169-41de-b637-1d034ca9f75d'
+);
+
+-- 10초 후 확인
 SELECT 
-  session_id,
-  question,
-  success,
-  -- 재고 전용 뷰 사용 체크
-  CASE WHEN generated_sql ILIKE '%v_inventory_ai%' THEN '✅' ELSE '❌' END AS "재고AI뷰",
-  -- 재고 deprecated 컬럼 체크
-  CASE WHEN generated_sql ILIKE '%old_stock_qty%' THEN '❌' ELSE '✅' END AS "deprecated 없음",
-  -- 동적 TZ (공통)
-  CASE WHEN generated_sql ILIKE '%SELECT timezone FROM companies%' THEN '✅' ELSE '➖' END AS "동적TZ"
-FROM ai_sql_logs 
-WHERE session_id LIKE 'inventory-test-%';
+  status_code,
+  CASE 
+    WHEN status_code = 200 THEN '✅ 성공 - 배치 테스트 진행 가능'
+    WHEN status_code = 401 THEN '❌ 401 - Anon Key 업데이트 필요!'
+    WHEN status_code = 503 THEN '⚠️ 503 - 서버 과부하'
+    ELSE '❓ 기타'
+  END as status
+FROM net._http_response
+WHERE created >= NOW() - INTERVAL '30 seconds'
+ORDER BY id DESC LIMIT 1;
 ```
 
-#### 품질 체크 템플릿 함수
+### 7.2 배치 테스트
+
+> ⚠️ **주의:** 30개 동시 요청 시 503 에러!  
+> **10개씩 나눠서** 30초 간격으로 실행
 
 ```sql
--- 재사용 가능한 품질 체크 함수
-CREATE OR REPLACE FUNCTION check_sql_quality(
-  p_session_pattern TEXT,
-  p_required_view TEXT DEFAULT 'v_shift_request_ai',
-  p_deprecated_cols TEXT[] DEFAULT ARRAY['is_late_v2', 'is_extratime_v2']
-)
-RETURNS TABLE (
-  session_id TEXT,
-  question TEXT,
-  success BOOLEAN,
-  uses_view BOOLEAN,
-  has_deprecated BOOLEAN,
-  has_hardcoded_tz BOOLEAN,
-  has_dynamic_tz BOOLEAN,
-  quality_score INT
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    l.session_id,
-    l.question,
-    l.success,
-    l.generated_sql ILIKE '%' || p_required_view || '%',
-    EXISTS (
-      SELECT 1 FROM unnest(p_deprecated_cols) col 
-      WHERE l.generated_sql ILIKE '%' || col || '%'
-    ),
-    l.generated_sql ILIKE '%''Asia/Ho_Chi_Minh''%',
-    l.generated_sql ILIKE '%SELECT timezone FROM companies%',
-    (
-      CASE WHEN l.generated_sql ILIKE '%' || p_required_view || '%' THEN 25 ELSE 0 END +
-      CASE WHEN NOT EXISTS (
-        SELECT 1 FROM unnest(p_deprecated_cols) col 
-        WHERE l.generated_sql ILIKE '%' || col || '%'
-      ) THEN 25 ELSE 0 END +
-      CASE WHEN l.generated_sql NOT ILIKE '%''Asia/Ho_Chi_Minh''%' THEN 25 ELSE 0 END +
-      CASE WHEN l.success THEN 25 ELSE 0 END
-    )::INT
-  FROM ai_sql_logs l
-  WHERE l.session_id LIKE p_session_pattern;
-END;
-$$ LANGUAGE plpgsql;
+-- 배치 1 (1~10)
+INSERT INTO ai_test_queue (session_id, question, company_id, user_id) VALUES
+('emp-1225-01', '전체 직원 목록', '563ad9ff-e17b-49f3-8f4b-de137f025f03', '0d2e61ad-b169-41de-b637-1d034ca9f75d'),
+('emp-1225-02', '이번 달 지각한 직원', '563ad9ff-e17b-49f3-8f4b-de137f025f03', '0d2e61ad-b169-41de-b637-1d034ca9f75d'),
+('emp-1225-03', '오늘 근무 예정인 직원', '563ad9ff-e17b-49f3-8f4b-de137f025f03', '0d2e61ad-b169-41de-b637-1d034ca9f75d')
+-- ... 10개까지
+;
 
--- 사용 예시
-SELECT * FROM check_sql_quality(
-  'inventory-test-%',           -- 세션 패턴
-  'v_inventory_ai',             -- 필수 뷰
-  ARRAY['old_stock_qty', 'deprecated_col']  -- deprecated 컬럼 목록
-);
+-- ⏳ 30초 대기 후 배치 2 실행
+```
+
+### 7.3 결과 확인
+
+#### pg_net 응답 확인 (즉시)
+
+```sql
+SELECT 
+  id,
+  status_code,
+  CASE 
+    WHEN content::text LIKE '%"success":true%' THEN '✅ SQL성공'
+    WHEN content::text LIKE '%"success":false%' THEN '❌ SQL실패'
+    ELSE '?'
+  END as result,
+  (regexp_match(content::text, '"row_count":(\d+)'))[1] as rows,
+  (regexp_match(content::text, '"session_id":"([^"]+)"'))[1] as session_id
+FROM net._http_response
+WHERE created >= NOW() - INTERVAL '10 minutes'
+  AND status_code = 200
+ORDER BY id DESC;
+```
+
+#### 성공률 요약
+
+```sql
+SELECT 
+  status_code,
+  COUNT(*) as cnt,
+  ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as pct
+FROM net._http_response
+WHERE created >= NOW() - INTERVAL '10 minutes'
+GROUP BY status_code;
+```
+
+### 7.4 Session ID 네이밍 규칙
+
+```
+{카테고리}-{날짜}-{번호}
+
+emp-1225-01     : 직원 관련 (12/25)
+salary-1225-01  : 급여 관련
+shift-1225-01   : 근무 관련
+finance-1225-01 : 재무 관련
+ping-001        : 연결 확인
 ```
 
 ---
 
-### 4. 새로운 도메인 온톨로지 추가
+## 8. 트러블슈팅
 
-AI가 새로운 테이블/뷰를 올바르게 사용하도록 온톨로지를 추가해야 합니다.
+### 8.1 에러 코드별 대응
 
-#### Step 1: 엔티티 추가
+| 에러 | 원인 | 해결 |
+|------|------|------|
+| **401** | Anon Key 만료/변경 | 트리거 함수 키 업데이트 |
+| **503** | 동시 요청 과부하 | 10개씩 나눠서 요청 |
+| **unknown** | AI 간헐적 실패 | 자동 재시도됨 |
+| **column_not_found** | 잘못된 컬럼 사용 | 온톨로지 확인/수정 |
+| **syntax_error** | SQL 문법 오류 | AI 프롬프트 개선 |
+
+### 8.2 흔한 문제 해결
+
+#### 문제: 특정 동의어 인식 실패
 
 ```sql
--- 새 테이블/뷰 등록
-INSERT INTO ontology_entities (
-  entity_name,
-  table_name,
-  description,
-  ai_usage_hint,
-  is_active
-) VALUES (
-  'InventoryAI',
-  'v_inventory_ai',
-  '재고 관리용 AI 전용 뷰',
-  '## v_inventory_ai - 재고 조회용
-  
-### 필수 사용 상황
-- 재고 수량 질문
-- 입출고 내역 질문
-- 재고 부족 알림
-
-### 주요 컬럼
-- current_qty: 현재 재고
-- min_qty: 최소 재고
-- last_inbound_at: 마지막 입고일
-
-### 사용 금지 컬럼
-- old_stock_qty (deprecated)',
-  true
-);
+-- 예: "사람"이 "직원"으로 인식 안됨
+INSERT INTO ontology_synonyms (concept_id, synonym_text, language_code)
+SELECT concept_id, '사람', 'ko'
+FROM ontology_concepts WHERE concept_name = '직원';
 ```
 
-#### Step 2: 컬럼 정보 추가
+#### 문제: deprecated 컬럼 사용
 
 ```sql
--- 주요 컬럼 등록
-INSERT INTO ontology_columns (entity_name, column_name, data_type, description, ai_usage_hint)
-VALUES 
-  ('InventoryAI', 'current_qty', 'numeric', '현재 재고 수량', '재고 수량 질문에 사용'),
-  ('InventoryAI', 'min_qty', 'numeric', '최소 재고 수량', '재고 부족 판단에 사용'),
-  ('InventoryAI', 'product_name', 'text', '상품명', '상품 검색에 사용');
+-- deprecated 컬럼 확인
+SELECT * FROM v_ontology_deprecated_columns;
+
+-- 대체 컬럼 확인
+SELECT column_name, replacement_column 
+FROM ontology_columns 
+WHERE is_deprecated = true;
 ```
 
-#### Step 3: 개념(Concept) 추가
+#### 문제: ai_sql_logs에 저장 안됨
+
+- pg_net 응답의 `content`에서 직접 확인
 
 ```sql
--- AI 힌트 개념 추가
-INSERT INTO ontology_concepts (
-  concept_name,
-  description,
-  ai_usage_hint,
-  is_active
-) VALUES (
-  'inventory_query_rules',
-  '재고 조회 규칙',
-  '## 재고 질문 처리 규칙
-
-### 필수 테이블
-- v_inventory_ai 사용 (inventory 테이블 직접 사용 금지)
-
-### 재고 부족 판단
-WHERE current_qty < min_qty
-
-### 시간대 처리
-- 항상 동적 timezone 사용
-- AT TIME ZONE (SELECT timezone FROM companies WHERE company_id = $company_id)',
-  true
-);
-```
-
-#### Step 4: 테스트 케이스 추가
-
-```sql
--- 새 도메인 테스트 케이스
-INSERT INTO ontology_test_cases (
-  question_ko,
-  domain,
-  tags,
-  expected_tables,
-  is_active
-) VALUES 
-  ('재고 부족한 상품 목록', 'inventory', ARRAY['stock', 'alert'], ARRAY['v_inventory_ai'], true),
-  ('오늘 입고된 상품', 'inventory', ARRAY['inbound'], ARRAY['v_inventory_ai'], true),
-  ('상품별 재고 현황', 'inventory', ARRAY['stock', 'summary'], ARRAY['v_inventory_ai'], true);
+SELECT id, LEFT(content::text, 500) as response
+FROM net._http_response
+WHERE created >= NOW() - INTERVAL '5 minutes'
+ORDER BY id DESC;
 ```
 
 ---
 
-### 5. 전체 설정 체크리스트
+## 9. 유지보수
 
-새로운 환경에서 테스트 시스템을 설정할 때:
-
-#### 필수 설정
-
-- [ ] `ai_test_queue` 테이블 생성
-- [ ] `trigger_ai_test_on_insert` 트리거 함수 생성
-- [ ] 트리거 함수에 올바른 URL/Auth 설정
-- [ ] `pg_net` 확장 활성화 확인
-
-#### 선택 설정
-
-- [ ] 기본 company_id/user_id 설정
-- [ ] 품질 체크 함수 생성
-- [ ] 온톨로지 테이블에 새 도메인 추가
-- [ ] 테스트 케이스 추가
-
-#### 확인 쿼리
+### 9.1 일일 체크
 
 ```sql
--- 1. pg_net 확장 확인
-SELECT * FROM pg_extension WHERE extname = 'pg_net';
+-- 오늘 성공률
+SELECT 
+  COUNT(*) as total,
+  SUM(CASE WHEN success THEN 1 ELSE 0 END) as success_cnt,
+  ROUND(100.0 * SUM(CASE WHEN success THEN 1 ELSE 0 END) / COUNT(*), 1) as success_rate
+FROM ai_sql_logs
+WHERE local_date = CURRENT_DATE;
+```
 
--- 2. 트리거 확인
-SELECT trigger_name, event_manipulation, action_statement
-FROM information_schema.triggers
-WHERE trigger_name = 'auto_test_on_insert';
+### 9.2 주간 체크
 
--- 3. 테이블 확인
-SELECT table_name FROM information_schema.tables 
-WHERE table_name IN ('ai_test_queue', 'ai_sql_logs', 'ontology_test_cases');
+```sql
+-- 에러 유형별 분석
+SELECT * FROM v_ai_sql_error_stats;
 
--- 4. 온톨로지 엔티티 확인
-SELECT entity_name, table_name, is_active 
-FROM ontology_entities 
-WHERE is_active = true;
+-- 문제 컬럼 확인
+SELECT * FROM v_ai_sql_problem_columns;
+
+-- 온톨로지 정합성
+SELECT * FROM v_ontology_health_check;
+```
+
+### 9.3 월간 정리
+
+```sql
+-- 30일 이전 pg_net 응답 삭제
+DELETE FROM net._http_response
+WHERE created < NOW() - INTERVAL '30 days';
+
+-- 완료된 테스트 큐 정리
+DELETE FROM ai_test_queue
+WHERE status = 'sent' AND sent_at < NOW() - INTERVAL '7 days';
+```
+
+### 9.4 미사용 테이블 삭제 (선택)
+
+```sql
+-- FK 의존 테이블 먼저 삭제
+DROP TABLE IF EXISTS ai_conversation_state CASCADE;
+DROP TABLE IF EXISTS ai_schema_rules CASCADE;
+DROP TABLE IF EXISTS ai_templates CASCADE;
+DROP TABLE IF EXISTS ai_intent_vectors CASCADE;
+DROP TABLE IF EXISTS ai_intents CASCADE;
+
+-- 관련 함수 삭제
+DROP FUNCTION IF EXISTS search_intent;
+DROP FUNCTION IF EXISTS search_intent_unified;
+DROP FUNCTION IF EXISTS get_intent_config;
+DROP FUNCTION IF EXISTS get_intent_template;
+DROP FUNCTION IF EXISTS get_intent_schema;
+DROP FUNCTION IF EXISTS match_documents;
 ```
 
 ---
 
-### 6. 환경별 설정 예시
+## 10. 부록: SQL 쿼리 모음
 
-#### 개발 환경
+### 10.1 모니터링 쿼리
 
 ```sql
--- 개발용 설정
-ALTER TABLE ai_test_queue 
-ALTER COLUMN company_id SET DEFAULT 'dev-company-uuid'::uuid;
+-- 📊 일별 통계
+SELECT * FROM v_ai_sql_daily_stats LIMIT 7;
 
--- 트리거에서 개발 Edge Function URL 사용
--- url := 'https://dev-project.supabase.co/functions/v1/ai-respond-user'
+-- ❌ 에러 분석
+SELECT * FROM v_ai_sql_error_stats;
+
+-- 🔍 실패 질문
+SELECT * FROM v_ai_sql_failed_questions LIMIT 10;
+
+-- 📈 테이블 사용
+SELECT * FROM v_ai_sql_table_usage ORDER BY usage_count DESC LIMIT 10;
+
+-- ⚡ 성능 분석
+SELECT * FROM v_ai_sql_performance_percentiles;
+
+-- 🏥 온톨로지 헬스체크
+SELECT * FROM v_ontology_health_check;
+
+-- ⛔ deprecated 컬럼
+SELECT * FROM v_ontology_deprecated_columns;
 ```
 
-#### 스테이징 환경
+### 10.2 테스트 쿼리
 
 ```sql
--- 스테이징용 설정
-ALTER TABLE ai_test_queue 
-ALTER COLUMN company_id SET DEFAULT 'staging-company-uuid'::uuid;
+-- Ping 테스트
+INSERT INTO ai_test_queue (session_id, question, company_id, user_id) 
+VALUES ('ping-001', '오늘 지각한 직원', '563ad9ff-e17b-49f3-8f4b-de137f025f03', '0d2e61ad-b169-41de-b637-1d034ca9f75d');
 
--- 트리거에서 스테이징 Edge Function URL 사용
--- url := 'https://staging-project.supabase.co/functions/v1/ai-respond-user'
+-- 결과 확인
+SELECT status_code, LEFT(content::text, 200)
+FROM net._http_response
+WHERE created >= NOW() - INTERVAL '30 seconds'
+ORDER BY id DESC LIMIT 1;
 ```
 
-#### 프로덕션 환경
+### 10.3 온톨로지 관리 쿼리
 
 ```sql
--- 프로덕션은 직접 테스트 금지!
--- 별도의 테스트 회사 계정 사용 권장
-ALTER TABLE ai_test_queue 
-ALTER COLUMN company_id SET DEFAULT 'test-company-in-prod-uuid'::uuid;
+-- 동의어 추가
+INSERT INTO ontology_synonyms (concept_id, synonym_text, language_code)
+SELECT concept_id, '새동의어', 'ko'
+FROM ontology_concepts WHERE concept_name = '개념명';
+
+-- deprecated 마킹
+UPDATE ontology_columns 
+SET is_deprecated = true, replacement_column = '대체컬럼'
+WHERE table_name = '테이블명' AND column_name = '컬럼명';
+
+-- constraint 추가
+INSERT INTO ontology_constraints (constraint_name, constraint_type, applies_to_table, validation_rule, severity, ai_usage_hint)
+VALUES ('rule_name', 'must', 'table_name', 'rule_text', 'critical', 'AI에게 전달할 힌트');
 ```
 
 ---
 
-## 📞 문의
+## 📎 현재 설정 정보
 
-- 온톨로지 관련: ontology_* 테이블 수정
-- Edge Function 관련: ai-respond-user 로그 확인
-- 테스트 인프라: ai_test_queue 트리거 확인
+| 항목 | 값 |
+|------|-----|
+| Project Ref | `atkekzwgukdvucqntryo` |
+| Edge Function | `ai-respond-user` v29 |
+| AI Model | `grok-4-fast` |
+| 기본 Company ID | `563ad9ff-e17b-49f3-8f4b-de137f025f03` |
+| 기본 User ID | `0d2e61ad-b169-41de-b637-1d034ca9f75d` |
+| 기본 Store ID | `d7fe7c6b-099e-4c80-bd4b-b6fec1d598e7` |
+| Anon Key 마지막 업데이트 | 2025-12-25 |
 
 ---
 
-*마지막 업데이트: 2025-12-14*
+## 📝 변경 이력
+
+| 날짜 | 버전 | 변경 내용 |
+|------|------|----------|
+| 2025-12-25 | v4.0 | 완벽 종합 가이드 작성 |
+| 2025-12-25 | v3.0 | 테이블 구조 상세 추가 |
+| 2025-12-25 | v2.0 | 테스트 가이드 개선 |
+| 2025-12-14 | v1.0 | 최초 작성 |
+
+---
+
+*이 문서는 AI SQL Generator 시스템의 전체 구조, 운영, 테스트, 유지보수 방법을 담고 있습니다.*

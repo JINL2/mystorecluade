@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/config/app_router.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -79,17 +80,27 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
     });
 
     try {
+      // Lock router BEFORE verifying OTP to prevent auth state redirect
+      lockRouterNavigation();
+
       final authService = ref.read(authServiceProvider);
       await authService.verifyPasswordOtp(
         email: widget.email!,
         token: _otpCode,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        unlockRouterNavigation();
+        return;
+      }
 
       // Navigate to reset password page
-      context.pushReplacement('/auth/reset-password');
+      context.go('/auth/reset-password');
+
+      // Unlock after a delay to ensure navigation completes
+      Future.delayed(const Duration(milliseconds: 500), unlockRouterNavigation);
     } catch (e) {
+      unlockRouterNavigation();
       if (mounted) {
         setState(() {
           _errorMessage = e.toString().replaceFirst('Exception: ', '');

@@ -12,6 +12,9 @@ class Company {
     required this.role,
     required this.stores,
     this.subscription,
+    this.salaryType,
+    this.currencyCode,
+    this.currencySymbol,
   });
 
   final String id;
@@ -20,6 +23,11 @@ class Company {
   final UserRole role;
   final List<Store> stores;
   final Subscription? subscription;
+
+  // User salary info for this company
+  final String? salaryType;  // hourly or monthly
+  final String? currencyCode;  // USD, KRW, THB, etc.
+  final String? currencySymbol;  // $, ₩, ฿, etc.
 
   // ============================================================================
   // Factory Constructors
@@ -38,6 +46,9 @@ class Company {
       subscription: map['subscription'] != null
           ? Subscription.fromMap(map['subscription'] as Map<String, dynamic>)
           : null,
+      salaryType: map['salary_type'] as String?,
+      currencyCode: map['currency_code'] as String?,
+      currencySymbol: map['currency_symbol'] as String?,
     );
   }
 
@@ -139,6 +150,25 @@ class Company {
 
   /// Get subscription plan name for display
   String get planDisplayName => currentSubscription.displayName;
+
+  // ============================================================================
+  // Salary-related Methods
+  // ============================================================================
+
+  /// Check if user has salary info for this company
+  bool get hasSalaryInfo => salaryType != null;
+
+  /// Check if user is hourly paid
+  bool get isHourlyPaid => salaryType == 'hourly';
+
+  /// Check if user is monthly paid
+  bool get isMonthlyPaid => salaryType == 'monthly';
+
+  /// Get formatted currency display (e.g., "$ USD")
+  String get currencyDisplay =>
+      currencySymbol != null && currencyCode != null
+          ? '$currencySymbol $currencyCode'
+          : currencyCode ?? '';
 }
 
 class UserRole {

@@ -31,6 +31,7 @@ mixin _$PIItem {
   double get discountAmount => throw _privateConstructorUsedError;
   double get totalAmount => throw _privateConstructorUsedError;
   String? get packingInfo => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
   int get sortOrder => throw _privateConstructorUsedError;
   DateTime? get createdAtUtc => throw _privateConstructorUsedError;
 
@@ -61,6 +62,7 @@ abstract class $PIItemCopyWith<$Res> {
       double discountAmount,
       double totalAmount,
       String? packingInfo,
+      String? imageUrl,
       int sortOrder,
       DateTime? createdAtUtc});
 }
@@ -95,6 +97,7 @@ class _$PIItemCopyWithImpl<$Res, $Val extends PIItem>
     Object? discountAmount = null,
     Object? totalAmount = null,
     Object? packingInfo = freezed,
+    Object? imageUrl = freezed,
     Object? sortOrder = null,
     Object? createdAtUtc = freezed,
   }) {
@@ -159,6 +162,10 @@ class _$PIItemCopyWithImpl<$Res, $Val extends PIItem>
           ? _value.packingInfo
           : packingInfo // ignore: cast_nullable_to_non_nullable
               as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       sortOrder: null == sortOrder
           ? _value.sortOrder
           : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -194,6 +201,7 @@ abstract class _$$PIItemImplCopyWith<$Res> implements $PIItemCopyWith<$Res> {
       double discountAmount,
       double totalAmount,
       String? packingInfo,
+      String? imageUrl,
       int sortOrder,
       DateTime? createdAtUtc});
 }
@@ -226,6 +234,7 @@ class __$$PIItemImplCopyWithImpl<$Res>
     Object? discountAmount = null,
     Object? totalAmount = null,
     Object? packingInfo = freezed,
+    Object? imageUrl = freezed,
     Object? sortOrder = null,
     Object? createdAtUtc = freezed,
   }) {
@@ -290,6 +299,10 @@ class __$$PIItemImplCopyWithImpl<$Res>
           ? _value.packingInfo
           : packingInfo // ignore: cast_nullable_to_non_nullable
               as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       sortOrder: null == sortOrder
           ? _value.sortOrder
           : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -321,6 +334,7 @@ class _$PIItemImpl extends _PIItem {
       this.discountAmount = 0,
       required this.totalAmount,
       this.packingInfo,
+      this.imageUrl,
       this.sortOrder = 0,
       this.createdAtUtc})
       : super._();
@@ -358,6 +372,8 @@ class _$PIItemImpl extends _PIItem {
   @override
   final String? packingInfo;
   @override
+  final String? imageUrl;
+  @override
   @JsonKey()
   final int sortOrder;
   @override
@@ -365,7 +381,7 @@ class _$PIItemImpl extends _PIItem {
 
   @override
   String toString() {
-    return 'PIItem(itemId: $itemId, piId: $piId, productId: $productId, description: $description, sku: $sku, barcode: $barcode, hsCode: $hsCode, countryOfOrigin: $countryOfOrigin, quantity: $quantity, unit: $unit, unitPrice: $unitPrice, discountPercent: $discountPercent, discountAmount: $discountAmount, totalAmount: $totalAmount, packingInfo: $packingInfo, sortOrder: $sortOrder, createdAtUtc: $createdAtUtc)';
+    return 'PIItem(itemId: $itemId, piId: $piId, productId: $productId, description: $description, sku: $sku, barcode: $barcode, hsCode: $hsCode, countryOfOrigin: $countryOfOrigin, quantity: $quantity, unit: $unit, unitPrice: $unitPrice, discountPercent: $discountPercent, discountAmount: $discountAmount, totalAmount: $totalAmount, packingInfo: $packingInfo, imageUrl: $imageUrl, sortOrder: $sortOrder, createdAtUtc: $createdAtUtc)';
   }
 
   @override
@@ -397,6 +413,8 @@ class _$PIItemImpl extends _PIItem {
                 other.totalAmount == totalAmount) &&
             (identical(other.packingInfo, packingInfo) ||
                 other.packingInfo == packingInfo) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder) &&
             (identical(other.createdAtUtc, createdAtUtc) ||
@@ -421,6 +439,7 @@ class _$PIItemImpl extends _PIItem {
       discountAmount,
       totalAmount,
       packingInfo,
+      imageUrl,
       sortOrder,
       createdAtUtc);
 
@@ -450,6 +469,7 @@ abstract class _PIItem extends PIItem {
       final double discountAmount,
       required final double totalAmount,
       final String? packingInfo,
+      final String? imageUrl,
       final int sortOrder,
       final DateTime? createdAtUtc}) = _$PIItemImpl;
   const _PIItem._() : super._();
@@ -484,6 +504,8 @@ abstract class _PIItem extends PIItem {
   double get totalAmount;
   @override
   String? get packingInfo;
+  @override
+  String? get imageUrl;
   @override
   int get sortOrder;
   @override

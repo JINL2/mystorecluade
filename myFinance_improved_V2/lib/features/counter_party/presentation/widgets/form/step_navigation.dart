@@ -69,6 +69,7 @@ class StepNavigation extends StatelessWidget {
               child: TossButton1.primary(
                 text: _getNextButtonText(),
                 onPressed: !isCurrentStepValid ? null : onNext,
+                isEnabled: isCurrentStepValid && !isLoading,
                 isLoading: isLoading,
                 leadingIcon: Icon(
                   _getNextButtonIcon(),

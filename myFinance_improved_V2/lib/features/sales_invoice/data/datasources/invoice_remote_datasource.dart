@@ -56,22 +56,23 @@ class InvoiceRemoteDataSource {
 
   /// Refund invoice(s)
   ///
-  /// Calls the `inventory_refund_invoice_v2` RPC function
+  /// Calls the `inventory_refund_invoice_v3` RPC function
+  /// v3 uses timestamptz and supports inventory_logs
   Future<Map<String, dynamic>> refundInvoice({
     required List<String> invoiceIds,
     required String userId,
     String? notes,
   }) async {
     try {
-      // Get current local time for refund date
-      final refundDateStr = DateTimeUtils.formatLocalTimestamp();
+      // v3 uses timestamptz - send ISO 8601 format with timezone
+      final refundDate = DateTime.now().toIso8601String();
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_refund_invoice_v2',
+        'inventory_refund_invoice_v3',
         params: {
           'p_invoice_ids': invoiceIds,
-          'p_refund_date': refundDateStr,
+          'p_refund_date': refundDate,
           'p_notes': notes,
           'p_created_by': userId,
           'p_timezone': timezone,
@@ -110,8 +111,6 @@ class InvoiceRemoteDataSource {
           'p_store_id': storeId,
         },
       );
-
-      debugPrint('💰 [getCashLocations] Response: $response');
 
       return response
           .map((json) => CashLocationModel.fromJson(json as Map<String, dynamic>).toEntity())

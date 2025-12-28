@@ -4,6 +4,8 @@ import '../../domain/repositories/counter_party_repository.dart';
 import '../../domain/value_objects/counter_party_filter.dart';
 import '../../domain/value_objects/counter_party_type.dart';
 import '../datasources/counter_party_data_source.dart';
+import '../models/counter_party_deletion_validation_dto.dart';
+import '../models/counter_party_dto.dart';
 
 /// Counter Party Repository Implementation
 class CounterPartyRepositoryImpl implements CounterPartyRepository {
@@ -30,7 +32,9 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
         ascending: filter?.ascending ?? false,
       );
 
-      return data.map((json) => CounterParty.fromJson(json)).toList();
+      return data
+          .map((json) => CounterPartyDto.fromJson(json).toEntity())
+          .toList();
     } catch (e) {
       throw Exception('Failed to load counterparties: $e');
     }
@@ -41,7 +45,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
     try {
       final data = await _dataSource.getCounterPartyById(counterpartyId);
       if (data == null) return null;
-      return CounterParty.fromJson(data);
+      return CounterPartyDto.fromJson(data).toEntity();
     } catch (e) {
       throw Exception('Failed to load counter party: $e');
     }
@@ -72,7 +76,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
         linkedCompanyId: linkedCompanyId,
       );
 
-      return CounterParty.fromJson(data);
+      return CounterPartyDto.fromJson(data).toEntity();
     } catch (e) {
       throw Exception('Failed to create counter party: $e');
     }
@@ -105,7 +109,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
         linkedCompanyId: linkedCompanyId,
       );
 
-      return CounterParty.fromJson(data);
+      return CounterPartyDto.fromJson(data).toEntity();
     } catch (e) {
       throw Exception('Failed to update counter party: $e');
     }
@@ -117,7 +121,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
   ) async {
     try {
       final data = await _dataSource.validateDeletion(counterpartyId);
-      return CounterPartyDeletionValidation.fromJson(data);
+      return CounterPartyDeletionValidationDto.fromJson(data).toEntity();
     } catch (e) {
       throw Exception('Failed to validate counter party deletion: $e');
     }

@@ -1,13 +1,20 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/features/homepage/core/homepage_logger.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/create_company.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/states/company_state.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-/// StateNotifier for managing Company creation state
-class CompanyNotifier extends StateNotifier<CompanyState> {
-  CompanyNotifier(this._createCompany) : super(const CompanyState.initial());
+import '../../core/homepage_logger.dart';
+import '../../domain/usecases/create_company.dart';
+import 'states/company_state.dart';
+import 'usecase_providers.dart';
 
-  final CreateCompany _createCompany;
+part 'company_notifier.g.dart';
+
+/// Notifier for managing Company creation state
+///
+/// Migrated from StateNotifier to @riverpod Notifier pattern.
+/// Uses CompanyState (freezed) for type-safe state management.
+@riverpod
+class CompanyNotifier extends _$CompanyNotifier {
+  @override
+  CompanyState build() => const CompanyState.initial();
 
   /// Create a new company
   Future<void> createCompany({
@@ -15,16 +22,23 @@ class CompanyNotifier extends StateNotifier<CompanyState> {
     required String companyTypeId,
     required String baseCurrencyId,
   }) async {
-    homepageLogger.d('createCompany called - companyName: $companyName, companyTypeId: $companyTypeId, baseCurrencyId: $baseCurrencyId');
+    final createCompany = ref.read(createCompanyUseCaseProvider);
+
+    homepageLogger.d(
+      'createCompany called - companyName: $companyName, '
+      'companyTypeId: $companyTypeId, baseCurrencyId: $baseCurrencyId',
+    );
 
     state = const CompanyState.loading();
     homepageLogger.d('State set to CompanyLoading');
 
-    final result = await _createCompany(CreateCompanyParams(
-      companyName: companyName,
-      companyTypeId: companyTypeId,
-      baseCurrencyId: baseCurrencyId,
-    ),);
+    final result = await createCompany(
+      CreateCompanyParams(
+        companyName: companyName,
+        companyTypeId: companyTypeId,
+        baseCurrencyId: baseCurrencyId,
+      ),
+    );
 
     homepageLogger.d('Result received from use case');
     result.fold(

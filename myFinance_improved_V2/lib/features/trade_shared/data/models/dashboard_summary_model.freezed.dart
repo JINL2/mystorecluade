@@ -1107,7 +1107,7 @@ mixin _$RecentActivityModel {
   @JsonKey(name: 'user_name')
   String? get userName => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
-  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this RecentActivityModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1136,7 +1136,7 @@ abstract class $RecentActivityModelCopyWith<$Res> {
       @JsonKey(name: 'new_status') String? newStatus,
       @JsonKey(name: 'user_id') String? userId,
       @JsonKey(name: 'user_name') String? userName,
-      @JsonKey(name: 'created_at') DateTime createdAt});
+      @JsonKey(name: 'created_at') DateTime? createdAt});
 }
 
 /// @nodoc
@@ -1164,7 +1164,7 @@ class _$RecentActivityModelCopyWithImpl<$Res, $Val extends RecentActivityModel>
     Object? newStatus = freezed,
     Object? userId = freezed,
     Object? userName = freezed,
-    Object? createdAt = null,
+    Object? createdAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -1207,10 +1207,10 @@ class _$RecentActivityModelCopyWithImpl<$Res, $Val extends RecentActivityModel>
           ? _value.userName
           : userName // ignore: cast_nullable_to_non_nullable
               as String?,
-      createdAt: null == createdAt
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -1234,7 +1234,7 @@ abstract class _$$RecentActivityModelImplCopyWith<$Res>
       @JsonKey(name: 'new_status') String? newStatus,
       @JsonKey(name: 'user_id') String? userId,
       @JsonKey(name: 'user_name') String? userName,
-      @JsonKey(name: 'created_at') DateTime createdAt});
+      @JsonKey(name: 'created_at') DateTime? createdAt});
 }
 
 /// @nodoc
@@ -1260,7 +1260,7 @@ class __$$RecentActivityModelImplCopyWithImpl<$Res>
     Object? newStatus = freezed,
     Object? userId = freezed,
     Object? userName = freezed,
-    Object? createdAt = null,
+    Object? createdAt = freezed,
   }) {
     return _then(_$RecentActivityModelImpl(
       id: null == id
@@ -1303,10 +1303,10 @@ class __$$RecentActivityModelImplCopyWithImpl<$Res>
           ? _value.userName
           : userName // ignore: cast_nullable_to_non_nullable
               as String?,
-      createdAt: null == createdAt
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as DateTime?,
     ));
   }
 }
@@ -1315,23 +1315,24 @@ class __$$RecentActivityModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$RecentActivityModelImpl extends _RecentActivityModel {
   const _$RecentActivityModelImpl(
-      {required this.id,
-      @JsonKey(name: 'entity_type') required this.entityType,
-      @JsonKey(name: 'entity_id') required this.entityId,
+      {this.id = '',
+      @JsonKey(name: 'entity_type') this.entityType = '',
+      @JsonKey(name: 'entity_id') this.entityId = '',
       @JsonKey(name: 'entity_number') this.entityNumber,
-      required this.action,
+      this.action = '',
       @JsonKey(name: 'action_detail') this.actionDetail,
       @JsonKey(name: 'previous_status') this.previousStatus,
       @JsonKey(name: 'new_status') this.newStatus,
       @JsonKey(name: 'user_id') this.userId,
       @JsonKey(name: 'user_name') this.userName,
-      @JsonKey(name: 'created_at') required this.createdAt})
+      @JsonKey(name: 'created_at') this.createdAt})
       : super._();
 
   factory _$RecentActivityModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$RecentActivityModelImplFromJson(json);
 
   @override
+  @JsonKey()
   final String id;
   @override
   @JsonKey(name: 'entity_type')
@@ -1343,6 +1344,7 @@ class _$RecentActivityModelImpl extends _RecentActivityModel {
   @JsonKey(name: 'entity_number')
   final String? entityNumber;
   @override
+  @JsonKey()
   final String action;
   @override
   @JsonKey(name: 'action_detail')
@@ -1361,7 +1363,7 @@ class _$RecentActivityModelImpl extends _RecentActivityModel {
   final String? userName;
   @override
   @JsonKey(name: 'created_at')
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   @override
   String toString() {
@@ -1429,17 +1431,17 @@ class _$RecentActivityModelImpl extends _RecentActivityModel {
 
 abstract class _RecentActivityModel extends RecentActivityModel {
   const factory _RecentActivityModel(
-          {required final String id,
-          @JsonKey(name: 'entity_type') required final String entityType,
-          @JsonKey(name: 'entity_id') required final String entityId,
+          {final String id,
+          @JsonKey(name: 'entity_type') final String entityType,
+          @JsonKey(name: 'entity_id') final String entityId,
           @JsonKey(name: 'entity_number') final String? entityNumber,
-          required final String action,
+          final String action,
           @JsonKey(name: 'action_detail') final String? actionDetail,
           @JsonKey(name: 'previous_status') final String? previousStatus,
           @JsonKey(name: 'new_status') final String? newStatus,
           @JsonKey(name: 'user_id') final String? userId,
           @JsonKey(name: 'user_name') final String? userName,
-          @JsonKey(name: 'created_at') required final DateTime createdAt}) =
+          @JsonKey(name: 'created_at') final DateTime? createdAt}) =
       _$RecentActivityModelImpl;
   const _RecentActivityModel._() : super._();
 
@@ -1476,7 +1478,7 @@ abstract class _RecentActivityModel extends RecentActivityModel {
   String? get userName;
   @override
   @JsonKey(name: 'created_at')
-  DateTime get createdAt;
+  DateTime? get createdAt;
 
   /// Create a copy of RecentActivityModel
   /// with the given fields replaced by the non-null parameter values.

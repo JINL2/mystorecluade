@@ -14,66 +14,29 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-UserProfile _$UserProfileFromJson(Map<String, dynamic> json) {
-  return _UserProfile.fromJson(json);
-}
-
 /// @nodoc
 mixin _$UserProfile {
-  @JsonKey(name: 'user_id')
   String get userId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'first_name')
   String? get firstName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'last_name')
   String? get lastName => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
-  @JsonKey(name: 'user_phone_number')
   String? get phoneNumber => throw _privateConstructorUsedError;
-  @JsonKey(name: 'date_of_birth')
   String? get dateOfBirth => throw _privateConstructorUsedError;
-  @JsonKey(name: 'profile_image')
   String? get profileImage => throw _privateConstructorUsedError;
-  @JsonKey(name: 'bank_name')
   String? get bankName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'bank_account_number')
   String? get bankAccountNumber => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_deleted')
   bool get isDeleted => throw _privateConstructorUsedError;
-  @JsonKey(
-      name: 'deleted_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get deletedAt => throw _privateConstructorUsedError;
-  @JsonKey(
-      name: 'created_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(
-      name: 'updated_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get updatedAt =>
       throw _privateConstructorUsedError; // Additional fields from relationships
-  @JsonKey(name: 'company_name')
   String? get companyName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'store_name')
   String? get storeName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'role_name')
   String? get roleName =>
-      throw _privateConstructorUsedError; // Subscription info (can be extended later)
-  @JsonKey(name: 'subscription_plan')
+      throw _privateConstructorUsedError; // Subscription info
   String get subscriptionPlan => throw _privateConstructorUsedError;
-  @JsonKey(name: 'subscription_status')
   String get subscriptionStatus => throw _privateConstructorUsedError;
-  @JsonKey(
-      name: 'subscription_expires_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get subscriptionExpiresAt => throw _privateConstructorUsedError;
-
-  /// Serializes this UserProfile to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of UserProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -89,40 +52,24 @@ abstract class $UserProfileCopyWith<$Res> {
       _$UserProfileCopyWithImpl<$Res, UserProfile>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'user_id') String userId,
-      @JsonKey(name: 'first_name') String? firstName,
-      @JsonKey(name: 'last_name') String? lastName,
+      {String userId,
+      String? firstName,
+      String? lastName,
       String email,
-      @JsonKey(name: 'user_phone_number') String? phoneNumber,
-      @JsonKey(name: 'date_of_birth') String? dateOfBirth,
-      @JsonKey(name: 'profile_image') String? profileImage,
-      @JsonKey(name: 'bank_name') String? bankName,
-      @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
-      @JsonKey(name: 'is_deleted') bool isDeleted,
-      @JsonKey(
-          name: 'deleted_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      String? phoneNumber,
+      String? dateOfBirth,
+      String? profileImage,
+      String? bankName,
+      String? bankAccountNumber,
+      bool isDeleted,
       DateTime? deletedAt,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       DateTime? createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       DateTime? updatedAt,
-      @JsonKey(name: 'company_name') String? companyName,
-      @JsonKey(name: 'store_name') String? storeName,
-      @JsonKey(name: 'role_name') String? roleName,
-      @JsonKey(name: 'subscription_plan') String subscriptionPlan,
-      @JsonKey(name: 'subscription_status') String subscriptionStatus,
-      @JsonKey(
-          name: 'subscription_expires_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      String? companyName,
+      String? storeName,
+      String? roleName,
+      String subscriptionPlan,
+      String subscriptionStatus,
       DateTime? subscriptionExpiresAt});
 }
 
@@ -251,40 +198,24 @@ abstract class _$$UserProfileImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'user_id') String userId,
-      @JsonKey(name: 'first_name') String? firstName,
-      @JsonKey(name: 'last_name') String? lastName,
+      {String userId,
+      String? firstName,
+      String? lastName,
       String email,
-      @JsonKey(name: 'user_phone_number') String? phoneNumber,
-      @JsonKey(name: 'date_of_birth') String? dateOfBirth,
-      @JsonKey(name: 'profile_image') String? profileImage,
-      @JsonKey(name: 'bank_name') String? bankName,
-      @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
-      @JsonKey(name: 'is_deleted') bool isDeleted,
-      @JsonKey(
-          name: 'deleted_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      String? phoneNumber,
+      String? dateOfBirth,
+      String? profileImage,
+      String? bankName,
+      String? bankAccountNumber,
+      bool isDeleted,
       DateTime? deletedAt,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       DateTime? createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       DateTime? updatedAt,
-      @JsonKey(name: 'company_name') String? companyName,
-      @JsonKey(name: 'store_name') String? storeName,
-      @JsonKey(name: 'role_name') String? roleName,
-      @JsonKey(name: 'subscription_plan') String subscriptionPlan,
-      @JsonKey(name: 'subscription_status') String subscriptionStatus,
-      @JsonKey(
-          name: 'subscription_expires_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      String? companyName,
+      String? storeName,
+      String? roleName,
+      String subscriptionPlan,
+      String subscriptionStatus,
       DateTime? subscriptionExpiresAt});
 }
 
@@ -403,118 +334,72 @@ class __$$UserProfileImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$UserProfileImpl extends _UserProfile {
   const _$UserProfileImpl(
-      {@JsonKey(name: 'user_id') required this.userId,
-      @JsonKey(name: 'first_name') this.firstName,
-      @JsonKey(name: 'last_name') this.lastName,
+      {required this.userId,
+      this.firstName,
+      this.lastName,
       required this.email,
-      @JsonKey(name: 'user_phone_number') this.phoneNumber,
-      @JsonKey(name: 'date_of_birth') this.dateOfBirth,
-      @JsonKey(name: 'profile_image') this.profileImage,
-      @JsonKey(name: 'bank_name') this.bankName,
-      @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
-      @JsonKey(name: 'is_deleted') this.isDeleted = false,
-      @JsonKey(
-          name: 'deleted_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      this.phoneNumber,
+      this.dateOfBirth,
+      this.profileImage,
+      this.bankName,
+      this.bankAccountNumber,
+      this.isDeleted = false,
       this.deletedAt,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       this.createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       this.updatedAt,
-      @JsonKey(name: 'company_name') this.companyName,
-      @JsonKey(name: 'store_name') this.storeName,
-      @JsonKey(name: 'role_name') this.roleName,
-      @JsonKey(name: 'subscription_plan') this.subscriptionPlan = 'Free',
-      @JsonKey(name: 'subscription_status') this.subscriptionStatus = 'active',
-      @JsonKey(
-          name: 'subscription_expires_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      this.companyName,
+      this.storeName,
+      this.roleName,
+      this.subscriptionPlan = 'Free',
+      this.subscriptionStatus = 'active',
       this.subscriptionExpiresAt})
       : super._();
 
-  factory _$UserProfileImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UserProfileImplFromJson(json);
-
   @override
-  @JsonKey(name: 'user_id')
   final String userId;
   @override
-  @JsonKey(name: 'first_name')
   final String? firstName;
   @override
-  @JsonKey(name: 'last_name')
   final String? lastName;
   @override
   final String email;
   @override
-  @JsonKey(name: 'user_phone_number')
   final String? phoneNumber;
   @override
-  @JsonKey(name: 'date_of_birth')
   final String? dateOfBirth;
   @override
-  @JsonKey(name: 'profile_image')
   final String? profileImage;
   @override
-  @JsonKey(name: 'bank_name')
   final String? bankName;
   @override
-  @JsonKey(name: 'bank_account_number')
   final String? bankAccountNumber;
   @override
-  @JsonKey(name: 'is_deleted')
+  @JsonKey()
   final bool isDeleted;
   @override
-  @JsonKey(
-      name: 'deleted_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   final DateTime? deletedAt;
   @override
-  @JsonKey(
-      name: 'created_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   final DateTime? createdAt;
   @override
-  @JsonKey(
-      name: 'updated_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   final DateTime? updatedAt;
 // Additional fields from relationships
   @override
-  @JsonKey(name: 'company_name')
   final String? companyName;
   @override
-  @JsonKey(name: 'store_name')
   final String? storeName;
   @override
-  @JsonKey(name: 'role_name')
   final String? roleName;
-// Subscription info (can be extended later)
+// Subscription info
   @override
-  @JsonKey(name: 'subscription_plan')
+  @JsonKey()
   final String subscriptionPlan;
   @override
-  @JsonKey(name: 'subscription_status')
+  @JsonKey()
   final String subscriptionStatus;
   @override
-  @JsonKey(
-      name: 'subscription_expires_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   final DateTime? subscriptionExpiresAt;
 
   @override
@@ -565,7 +450,6 @@ class _$UserProfileImpl extends _UserProfile {
                 other.subscriptionExpiresAt == subscriptionExpiresAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -597,124 +481,68 @@ class _$UserProfileImpl extends _UserProfile {
   @pragma('vm:prefer-inline')
   _$$UserProfileImplCopyWith<_$UserProfileImpl> get copyWith =>
       __$$UserProfileImplCopyWithImpl<_$UserProfileImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$UserProfileImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _UserProfile extends UserProfile {
   const factory _UserProfile(
-      {@JsonKey(name: 'user_id') required final String userId,
-      @JsonKey(name: 'first_name') final String? firstName,
-      @JsonKey(name: 'last_name') final String? lastName,
+      {required final String userId,
+      final String? firstName,
+      final String? lastName,
       required final String email,
-      @JsonKey(name: 'user_phone_number') final String? phoneNumber,
-      @JsonKey(name: 'date_of_birth') final String? dateOfBirth,
-      @JsonKey(name: 'profile_image') final String? profileImage,
-      @JsonKey(name: 'bank_name') final String? bankName,
-      @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
-      @JsonKey(name: 'is_deleted') final bool isDeleted,
-      @JsonKey(
-          name: 'deleted_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      final String? phoneNumber,
+      final String? dateOfBirth,
+      final String? profileImage,
+      final String? bankName,
+      final String? bankAccountNumber,
+      final bool isDeleted,
       final DateTime? deletedAt,
-      @JsonKey(
-          name: 'created_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       final DateTime? createdAt,
-      @JsonKey(
-          name: 'updated_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
       final DateTime? updatedAt,
-      @JsonKey(name: 'company_name') final String? companyName,
-      @JsonKey(name: 'store_name') final String? storeName,
-      @JsonKey(name: 'role_name') final String? roleName,
-      @JsonKey(name: 'subscription_plan') final String subscriptionPlan,
-      @JsonKey(name: 'subscription_status') final String subscriptionStatus,
-      @JsonKey(
-          name: 'subscription_expires_at',
-          fromJson: _dateTimeFromJsonNullable,
-          toJson: _dateTimeToJsonNullable)
+      final String? companyName,
+      final String? storeName,
+      final String? roleName,
+      final String subscriptionPlan,
+      final String subscriptionStatus,
       final DateTime? subscriptionExpiresAt}) = _$UserProfileImpl;
   const _UserProfile._() : super._();
 
-  factory _UserProfile.fromJson(Map<String, dynamic> json) =
-      _$UserProfileImpl.fromJson;
-
   @override
-  @JsonKey(name: 'user_id')
   String get userId;
   @override
-  @JsonKey(name: 'first_name')
   String? get firstName;
   @override
-  @JsonKey(name: 'last_name')
   String? get lastName;
   @override
   String get email;
   @override
-  @JsonKey(name: 'user_phone_number')
   String? get phoneNumber;
   @override
-  @JsonKey(name: 'date_of_birth')
   String? get dateOfBirth;
   @override
-  @JsonKey(name: 'profile_image')
   String? get profileImage;
   @override
-  @JsonKey(name: 'bank_name')
   String? get bankName;
   @override
-  @JsonKey(name: 'bank_account_number')
   String? get bankAccountNumber;
   @override
-  @JsonKey(name: 'is_deleted')
   bool get isDeleted;
   @override
-  @JsonKey(
-      name: 'deleted_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get deletedAt;
   @override
-  @JsonKey(
-      name: 'created_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get createdAt;
   @override
-  @JsonKey(
-      name: 'updated_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get updatedAt; // Additional fields from relationships
   @override
-  @JsonKey(name: 'company_name')
   String? get companyName;
   @override
-  @JsonKey(name: 'store_name')
   String? get storeName;
   @override
-  @JsonKey(name: 'role_name')
-  String? get roleName; // Subscription info (can be extended later)
+  String? get roleName; // Subscription info
   @override
-  @JsonKey(name: 'subscription_plan')
   String get subscriptionPlan;
   @override
-  @JsonKey(name: 'subscription_status')
   String get subscriptionStatus;
   @override
-  @JsonKey(
-      name: 'subscription_expires_at',
-      fromJson: _dateTimeFromJsonNullable,
-      toJson: _dateTimeToJsonNullable)
   DateTime? get subscriptionExpiresAt;
 
   /// Create a copy of UserProfile

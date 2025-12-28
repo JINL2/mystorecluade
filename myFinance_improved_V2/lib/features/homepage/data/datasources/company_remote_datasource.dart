@@ -84,16 +84,10 @@ class CompanyRemoteDataSourceImpl implements CompanyRemoteDataSource {
       final companyCode = companyResponse['company_code'] as String;
       homepageLogger.i('Step 1 SUCCESS: companyId=$companyId, companyCode=$companyCode');
 
-      // Step 2: Add user to company
-      homepageLogger.d('Step 2: Adding user to company...');
-      await supabaseClient.from('user_companies').insert({
-        'user_id': userId,
-        'company_id': companyId,
-      });
-      homepageLogger.i('Step 2 SUCCESS: User added to company');
-
-      // Note: All remaining steps (role creation, permissions, user_roles, company_currency)
-      // are handled automatically by database triggers
+      // Note: Step 2 (user_companies) is handled automatically by DB trigger 'set_user_company'
+      // which calls add_user_to_user_companies() on companies INSERT.
+      // All remaining steps (role creation, permissions, user_roles, company_currency)
+      // are also handled automatically by database triggers
 
       // Return created company
       homepageLogger.i('ALL STEPS SUCCESSFUL! Returning company model');

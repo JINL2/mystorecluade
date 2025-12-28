@@ -39,6 +39,10 @@ Map<String, dynamic> convertCompanyToMap(Company company) {
     },
     if (company.subscription != null)
       'subscription': company.subscription!.toMap(),
+    // User salary info for this company
+    'salary_type': company.salaryType,
+    'currency_code': company.currencyCode,
+    'currency_symbol': company.currencySymbol,
   };
 }
 

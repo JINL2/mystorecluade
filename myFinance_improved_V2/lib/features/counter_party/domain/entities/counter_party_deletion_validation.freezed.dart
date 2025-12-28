@@ -14,11 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CounterPartyDeletionValidation _$CounterPartyDeletionValidationFromJson(
-    Map<String, dynamic> json) {
-  return _CounterPartyDeletionValidation.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CounterPartyDeletionValidation {
   bool get canDelete => throw _privateConstructorUsedError;
@@ -29,9 +24,6 @@ mixin _$CounterPartyDeletionValidation {
   int get journalEntryCount => throw _privateConstructorUsedError;
   int get journalLineCount => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
-
-  /// Serializes this CounterPartyDeletionValidation to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CounterPartyDeletionValidation
   /// with the given fields replaced by the non-null parameter values.
@@ -203,7 +195,7 @@ class __$$CounterPartyDeletionValidationImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CounterPartyDeletionValidationImpl
     implements _CounterPartyDeletionValidation {
   const _$CounterPartyDeletionValidationImpl(
@@ -215,10 +207,6 @@ class _$CounterPartyDeletionValidationImpl
       required this.journalEntryCount,
       required this.journalLineCount,
       required this.reason});
-
-  factory _$CounterPartyDeletionValidationImpl.fromJson(
-          Map<String, dynamic> json) =>
-      _$$CounterPartyDeletionValidationImplFromJson(json);
 
   @override
   final bool canDelete;
@@ -264,7 +252,6 @@ class _$CounterPartyDeletionValidationImpl
             (identical(other.reason, reason) || other.reason == reason));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -286,13 +273,6 @@ class _$CounterPartyDeletionValidationImpl
           _$CounterPartyDeletionValidationImpl>
       get copyWith => __$$CounterPartyDeletionValidationImplCopyWithImpl<
           _$CounterPartyDeletionValidationImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CounterPartyDeletionValidationImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CounterPartyDeletionValidation
@@ -306,9 +286,6 @@ abstract class _CounterPartyDeletionValidation
       required final int journalEntryCount,
       required final int journalLineCount,
       required final String reason}) = _$CounterPartyDeletionValidationImpl;
-
-  factory _CounterPartyDeletionValidation.fromJson(Map<String, dynamic> json) =
-      _$CounterPartyDeletionValidationImpl.fromJson;
 
   @override
   bool get canDelete;

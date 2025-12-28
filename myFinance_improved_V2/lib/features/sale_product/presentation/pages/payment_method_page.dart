@@ -156,8 +156,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     // Determine if invoice can be completed
     // - finalTotal >= 0 (allow free/gift, but not negative)
     // - cash location must be selected
+    // - not currently submitting (prevents duplicate clicks)
     final bool canCompleteInvoice = finalTotal >= 0 &&
-        paymentState.selectedCashLocation != null;
+        paymentState.selectedCashLocation != null &&
+        !paymentState.isSubmitting;
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -250,9 +252,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             child: Padding(
               padding: const EdgeInsets.all(TossSpacing.space3),
               child: TossButton.primary(
-                text: 'Complete Invoice',
+                text: paymentState.isSubmitting ? 'Processing...' : 'Complete Invoice',
                 onPressed: _proceedToInvoice,
                 isEnabled: canCompleteInvoice,
+                isLoading: paymentState.isSubmitting,
                 fullWidth: true,
               ),
             ),
@@ -306,6 +309,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   Future<void> _proceedToInvoice() async {
     print('🚀 [INVOICE] _proceedToInvoice() START');
 
+    // Prevent duplicate submissions - this is the critical guard
+    final notifier = ref.read(paymentMethodProvider.notifier);
+    if (!notifier.startSubmitting()) {
+      print('⚠️ [INVOICE] BLOCKED: Already submitting, ignoring duplicate click');
+      return;
+    }
+    print('🔒 [INVOICE] Submission lock acquired');
+
     final paymentState = ref.read(paymentMethodProvider);
     print('📋 [INVOICE] paymentState: selectedCashLocation=${paymentState.selectedCashLocation?.name}, discountAmount=${paymentState.discountAmount}');
 
@@ -321,6 +332,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     // Validate required fields
     if (companyId.isEmpty || storeId.isEmpty || userId == null) {
       print('❌ [INVOICE] VALIDATION FAILED: Missing IDs');
+      notifier.endSubmitting();
       _showErrorDialog(
         'Missing Information',
         'Please ensure you are logged in and have selected a company and store.',
@@ -331,6 +343,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     // Validate cash location is selected
     if (paymentState.selectedCashLocation == null) {
       print('❌ [INVOICE] VALIDATION FAILED: No cash location selected');
+      notifier.endSubmitting();
       _showErrorDialog(
         'Payment Method Required',
         'Please select a cash location before completing the invoice.',
@@ -360,6 +373,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
     if (items.isEmpty) {
       print('❌ [INVOICE] VALIDATION FAILED: No items');
+      notifier.endSubmitting();
       _showErrorDialog('No Items', 'No valid items to invoice');
       return;
     }
@@ -459,6 +473,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         );
       } else {
         print('❌ [INVOICE] Invoice FAILED: ${result.message}');
+        notifier.endSubmitting();
         _showErrorDialog(
           'Invoice Creation Failed',
           result.message ?? 'Failed to create invoice',
@@ -467,6 +482,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     } catch (e, stackTrace) {
       print('💥 [INVOICE] EXCEPTION: $e');
       print('📚 [INVOICE] StackTrace: $stackTrace');
+
+      // Release submission lock on error
+      notifier.endSubmitting();
 
       // Close loading dialog if still open
       if (mounted) {

@@ -97,17 +97,19 @@ Map<String, dynamic> _$$DashboardAlertSummaryModelImplToJson(
 _$RecentActivityModelImpl _$$RecentActivityModelImplFromJson(
         Map<String, dynamic> json) =>
     _$RecentActivityModelImpl(
-      id: json['id'] as String,
-      entityType: json['entity_type'] as String,
-      entityId: json['entity_id'] as String,
+      id: json['id'] as String? ?? '',
+      entityType: json['entity_type'] as String? ?? '',
+      entityId: json['entity_id'] as String? ?? '',
       entityNumber: json['entity_number'] as String?,
-      action: json['action'] as String,
+      action: json['action'] as String? ?? '',
       actionDetail: json['action_detail'] as String?,
       previousStatus: json['previous_status'] as String?,
       newStatus: json['new_status'] as String?,
       userId: json['user_id'] as String?,
       userName: json['user_name'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
     );
 
 Map<String, dynamic> _$$RecentActivityModelImplToJson(
@@ -123,5 +125,5 @@ Map<String, dynamic> _$$RecentActivityModelImplToJson(
       'new_status': instance.newStatus,
       'user_id': instance.userId,
       'user_name': instance.userName,
-      'created_at': instance.createdAt.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
     };

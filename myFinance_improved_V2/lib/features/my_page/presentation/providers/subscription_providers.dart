@@ -1,9 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/services/revenuecat_service.dart';
+import '../../data/datasources/subscription_datasource.dart';
+
+part 'subscription_providers.g.dart';
+
+// =============================================================================
+// DataSource Provider
+// =============================================================================
+
+/// SubscriptionDataSource Provider
+@Riverpod(keepAlive: true)
+SubscriptionDataSource subscriptionDataSource(Ref ref) {
+  return SubscriptionDataSource();
+}
 
 /// Subscription Plan model from database
 class SubscriptionPlan {
@@ -85,8 +98,10 @@ class SubscriptionState {
 }
 
 /// Subscription notifier for managing subscription state
-class SubscriptionNotifier extends StateNotifier<SubscriptionState> {
-  SubscriptionNotifier() : super(const SubscriptionState());
+@riverpod
+class SubscriptionNotifier extends _$SubscriptionNotifier {
+  @override
+  SubscriptionState build() => const SubscriptionState();
 
   /// Check current subscription status
   Future<void> checkSubscriptionStatus() async {
@@ -126,12 +141,6 @@ class SubscriptionNotifier extends StateNotifier<SubscriptionState> {
   }
 }
 
-/// Provider for subscription state
-final subscriptionProvider =
-    StateNotifierProvider<SubscriptionNotifier, SubscriptionState>((ref) {
-  return SubscriptionNotifier();
-});
-
 /// Simple provider to check if user is Pro
 ///
 /// Use this provider to conditionally show Pro features:
@@ -141,21 +150,23 @@ final subscriptionProvider =
 ///   // Show Pro feature
 /// }
 /// ```
-final isProProvider = Provider<bool>((ref) {
-  final subscriptionState = ref.watch(subscriptionProvider);
+@riverpod
+bool isPro(Ref ref) {
+  final subscriptionState = ref.watch(subscriptionNotifierProvider);
   return subscriptionState.isPro;
-});
+}
 
 /// FutureProvider to fetch Pro status from RevenueCat
 ///
 /// Automatically fetches and caches the Pro status.
 /// Use ref.invalidate(proStatusProvider) to refresh.
-final proStatusProvider = FutureProvider<bool>((ref) async {
+@riverpod
+Future<bool> proStatus(Ref ref) async {
   try {
     final isPro = await RevenueCatService().checkProStatus();
 
     // Update the subscription state provider too
-    ref.read(subscriptionProvider.notifier).updateProStatus(
+    ref.read(subscriptionNotifierProvider.notifier).updateProStatus(
       isPro,
       await RevenueCatService().getCustomerInfo(),
     );
@@ -165,44 +176,42 @@ final proStatusProvider = FutureProvider<bool>((ref) async {
     debugPrint('❌ [proStatusProvider] Error: $e');
     return false;
   }
-});
+}
 
 /// Provider for available packages (subscription options)
-final availablePackagesProvider = FutureProvider<List<Package>>((ref) async {
+@riverpod
+Future<List<Package>> availablePackages(Ref ref) async {
   try {
     return await RevenueCatService().getAvailablePackages();
   } catch (e) {
     debugPrint('❌ [availablePackagesProvider] Error: $e');
     return [];
   }
-});
+}
 
 /// Provider for customer info
-final customerInfoProvider = FutureProvider<CustomerInfo?>((ref) async {
+@riverpod
+Future<CustomerInfo?> customerInfo(Ref ref) async {
   try {
     return await RevenueCatService().getCustomerInfo();
   } catch (e) {
     debugPrint('❌ [customerInfoProvider] Error: $e');
     return null;
   }
-});
+}
 
 /// Provider for subscription plans from database
 ///
 /// Fetches all active subscription plans from Supabase.
 /// Automatically caches the result. Use ref.invalidate() to refresh.
-final subscriptionPlansProvider =
-    FutureProvider<List<SubscriptionPlan>>((ref) async {
+@riverpod
+Future<List<SubscriptionPlan>> subscriptionPlans(Ref ref) async {
   try {
-    final supabase = Supabase.instance.client;
-    final response = await supabase
-        .from('subscription_plans')
-        .select()
-        .eq('is_active', true)
-        .order('sort_order');
+    final dataSource = ref.watch(subscriptionDataSourceProvider);
+    final response = await dataSource.getActiveSubscriptionPlans();
 
-    final plans = (response as List)
-        .map((json) => SubscriptionPlan.fromJson(json as Map<String, dynamic>))
+    final plans = response
+        .map((json) => SubscriptionPlan.fromJson(json))
         .toList();
 
     debugPrint('✅ [subscriptionPlansProvider] Loaded ${plans.length} plans');
@@ -211,25 +220,27 @@ final subscriptionPlansProvider =
     debugPrint('❌ [subscriptionPlansProvider] Error: $e');
     return [];
   }
-});
+}
 
 /// Provider for a specific plan by name
-final subscriptionPlanByNameProvider =
-    FutureProvider.family<SubscriptionPlan?, String>((ref, planName) async {
+@riverpod
+Future<SubscriptionPlan?> subscriptionPlanByName(Ref ref, String planName) async {
   final plans = await ref.watch(subscriptionPlansProvider.future);
   try {
     return plans.firstWhere((p) => p.planName == planName);
   } catch (e) {
     return null;
   }
-});
+}
 
 /// Provider for Basic plan
-final basicPlanProvider = FutureProvider<SubscriptionPlan?>((ref) async {
+@riverpod
+Future<SubscriptionPlan?> basicPlan(Ref ref) async {
   return ref.watch(subscriptionPlanByNameProvider('basic').future);
-});
+}
 
 /// Provider for Pro plan
-final proPlanProvider = FutureProvider<SubscriptionPlan?>((ref) async {
+@riverpod
+Future<SubscriptionPlan?> proPlan(Ref ref) async {
   return ref.watch(subscriptionPlanByNameProvider('pro').future);
-});
+}

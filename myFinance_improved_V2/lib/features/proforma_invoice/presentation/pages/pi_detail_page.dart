@@ -8,6 +8,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../trade_shared/presentation/services/trade_pdf_service.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 import '../../domain/entities/proforma_invoice.dart';
 import '../providers/pi_providers.dart';
@@ -22,6 +23,8 @@ class PIDetailPage extends ConsumerStatefulWidget {
 }
 
 class _PIDetailPageState extends ConsumerState<PIDetailPage> {
+  bool _hasChanges = false;
+
   @override
   void initState() {
     super.initState();
@@ -30,12 +33,28 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
     });
   }
 
+  void _markAsChanged() {
+    _hasChanges = true;
+    // 리스트를 바로 새로고침하여 UI에 상태 변경 반영
+    ref.read(piListProvider.notifier).refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(piDetailProvider);
 
     return TossScaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop(_hasChanges);
+            } else {
+              context.go('/proforma-invoice');
+            }
+          },
+        ),
         title: Text(state.pi?.piNumber ?? 'PI Detail'),
         actions: [
           if (state.pi != null && state.pi!.isEditable)
@@ -49,6 +68,19 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
             itemBuilder: (context) => [
               if (state.pi?.canSend == true)
                 const PopupMenuItem(value: 'send', child: Text('Send to Buyer')),
+              if (state.pi?.status == PIStatus.sent)
+                const PopupMenuItem(
+                  value: 'accept',
+                  child: Text('Mark as Accepted', style: TextStyle(color: Colors.green)),
+                ),
+              if (state.pi?.status == PIStatus.sent)
+                const PopupMenuItem(
+                  value: 'reject',
+                  child: Text('Mark as Rejected', style: TextStyle(color: Colors.red)),
+                ),
+              const PopupMenuItem(value: 'share_pdf', child: Text('Share PDF')),
+              const PopupMenuItem(value: 'print', child: Text('Print')),
+              const PopupMenuDivider(),
               if (state.pi?.canConvertToPO == true)
                 const PopupMenuItem(value: 'convert', child: Text('Convert to PO')),
               const PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
@@ -359,12 +391,214 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
 
     switch (action) {
       case 'send':
+        // Show option to share PDF before marking as sent
+        final shareOption = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Send to Buyer'),
+            content: const Text(
+              'Would you like to generate a PDF and share it with the buyer?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'skip'),
+                child: const Text('Skip PDF'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'share'),
+                child: const Text('Share PDF'),
+              ),
+            ],
+          ),
+        );
+
+        if (shareOption == 'share') {
+          await _generateAndSharePdf(pi);
+        }
+
+        // Mark as sent
         await ref.read(piDetailProvider.notifier).send();
         if (mounted) {
+          _markAsChanged();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('PI sent successfully')),
           );
         }
+        break;
+
+      case 'accept':
+        final confirmAccept = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Accept PI'),
+            content: const Text(
+              'Mark this PI as accepted by the buyer? You can then convert it to a Purchase Order.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Accept', style: TextStyle(color: Colors.green)),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmAccept == true) {
+          // Show loading
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    ),
+                    SizedBox(width: 12),
+                    Text('Processing...'),
+                  ],
+                ),
+                duration: Duration(seconds: 10),
+              ),
+            );
+          }
+
+          await ref.read(piDetailProvider.notifier).accept();
+
+          // Check for errors
+          final detailState = ref.read(piDetailProvider);
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            if (detailState.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error: ${detailState.error}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            } else {
+              _markAsChanged();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text('PI marked as Accepted!'),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+        }
+        break;
+
+      case 'reject':
+        final rejectReason = await showDialog<String>(
+          context: context,
+          builder: (context) {
+            final controller = TextEditingController();
+            return AlertDialog(
+              title: const Text('Reject PI'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Please provide a reason for rejection (optional):'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter rejection reason...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, controller.text),
+                  child: const Text('Reject', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (rejectReason != null) {
+          // Show loading
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    ),
+                    SizedBox(width: 12),
+                    Text('Processing...'),
+                  ],
+                ),
+                duration: Duration(seconds: 10),
+              ),
+            );
+          }
+
+          await ref.read(piDetailProvider.notifier).reject(rejectReason.isNotEmpty ? rejectReason : null);
+
+          // Check for errors
+          final detailState = ref.read(piDetailProvider);
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            if (detailState.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error: ${detailState.error}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            } else {
+              _markAsChanged();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(Icons.cancel, color: Colors.white),
+                      SizedBox(width: 12),
+                      Text('PI marked as Rejected'),
+                    ],
+                  ),
+                  backgroundColor: Colors.orange,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+        }
+        break;
+
+      case 'share_pdf':
+        await _generateAndSharePdf(pi);
+        break;
+
+      case 'print':
+        await _generateAndPrintPdf(pi);
         break;
 
       case 'convert':
@@ -410,6 +644,52 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
           }
         }
         break;
+    }
+  }
+
+  Future<void> _generateAndSharePdf(ProformaInvoice pi) async {
+    try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Generating PDF...')),
+        );
+      }
+
+      // Generate PDF
+      final pdfBytes = await TradePdfService.generateProformaInvoicePdf(pi);
+
+      // Share PDF
+      await TradePdfService.sharePdf(pdfBytes, '${pi.piNumber}.pdf');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate PDF: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _generateAndPrintPdf(ProformaInvoice pi) async {
+    try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preparing print...')),
+        );
+      }
+
+      // Generate PDF
+      final pdfBytes = await TradePdfService.generateProformaInvoicePdf(pi);
+
+      // Print PDF
+      await TradePdfService.printPdf(pdfBytes);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to print: $e')),
+        );
+      }
     }
   }
 }

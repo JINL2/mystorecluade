@@ -19,6 +19,7 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../providers/attendance_providers.dart';
+import '../providers/monthly_attendance_providers.dart';
 import '../providers/qr_scanner_state.dart';
 import '../widgets/check_in_out/utils/attendance_helper_methods.dart';
 
@@ -146,6 +147,91 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     });
   }
 
+  /// Monthly 직원 체크인/체크아웃 처리
+  Future<void> _processMonthlyCheckIn({
+    required String storeId,
+    required String companyId,
+    required String userId,
+  }) async {
+    // 오늘 출석 상태 확인
+    final todayAttendance = await ref.read(todayMonthlyAttendanceProvider.future);
+
+    final notifier = ref.read(monthlyCheckNotifierProvider.notifier);
+
+    if (todayAttendance?.status == 'checked_in') {
+      // 이미 체크인했으면 체크아웃
+      final result = await notifier.checkOut();
+
+      if (mounted) {
+        if (result.success) {
+          // ✅ Provider invalidate (UI 즉시 업데이트)
+          _invalidateMonthlyProviders();
+
+          final message = result.isEarlyLeave
+              ? 'Check-out Complete (Early Leave)'
+              : 'Check-out Complete';
+
+          _showSuccessDialog(message, {
+            'success': true,
+            'message': message,
+            'action': 'check_out',
+            'is_early_leave': result.isEarlyLeave,
+          });
+        } else {
+          await _showErrorDialog(result.message ?? 'Check-out failed');
+        }
+      }
+    } else if (todayAttendance?.status == 'completed') {
+      // 이미 완료됨
+      await _showErrorDialog('You have already completed attendance for today.');
+    } else {
+      // 체크인
+      final result = await notifier.checkIn(storeId: storeId);
+
+      if (mounted) {
+        if (result.success) {
+          // ✅ Provider invalidate (UI 즉시 업데이트)
+          _invalidateMonthlyProviders();
+
+          final message = result.isLate
+              ? 'Check-in Complete (Late)'
+              : 'Check-in Complete';
+
+          _showSuccessDialog(message, {
+            'success': true,
+            'message': message,
+            'action': 'check_in',
+            'is_late': result.isLate,
+          });
+        } else {
+          // 에러 메시지에 따라 처리
+          String errorMessage = result.message ?? 'Check-in failed';
+
+          // RPC 에러 코드에 따른 친절한 메시지
+          if (result.error == 'NOT_WORKDAY') {
+            errorMessage = 'Today is not a workday.\nCheck your schedule template.';
+          } else if (result.error == 'NO_TEMPLATE') {
+            errorMessage = 'No work schedule assigned.\nPlease contact your manager.';
+          } else if (result.error == 'ALREADY_CHECKED_IN') {
+            errorMessage = 'You have already checked in today.';
+          }
+
+          await _showErrorDialog(errorMessage);
+        }
+      }
+    }
+  }
+
+  /// Monthly provider들 invalidate (UI 즉시 업데이트)
+  void _invalidateMonthlyProviders() {
+    final now = DateTime.now();
+    final yearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+
+    ref.invalidate(todayMonthlyAttendanceProvider);
+    ref.invalidate(monthlyAttendanceStatsProvider(yearMonth));
+    ref.invalidate(monthlyAttendanceListProvider(yearMonth));
+  }
+
   /// 안전하게 다이얼로그와 페이지를 닫는 메서드 (이중 pop 방지)
   void _safeDismissAndPop(
     BuildContext dialogContext, {
@@ -261,6 +347,27 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     'Please scan the QR code for your current store.',
                   );
                 }
+
+                // ========================================
+                // 급여 타입에 따라 분기
+                // ========================================
+                final salaryType = await ref.read(userSalaryTypeProvider.future);
+
+                if (salaryType == 'monthly') {
+                  // ========================================
+                  // Monthly 직원 처리
+                  // ========================================
+                  await _processMonthlyCheckIn(
+                    storeId: storeId,
+                    companyId: companyId,
+                    userId: userId,
+                  );
+                  return;
+                }
+
+                // ========================================
+                // Hourly 직원 처리 (기존 로직)
+                // ========================================
 
                 // Fetch shift cards for the scanned store (QR store_id)
                 // QR 스캔한 store_id로 필터링 - update_shift_requests_v8과 일관성 유지

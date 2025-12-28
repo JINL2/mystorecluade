@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/ai/ai_description_row.dart';
 import '../../../domain/entities/invoice.dart';
 import '../../pages/invoice_detail_page.dart';
 import '../../providers/invoice_list_provider.dart';
@@ -131,6 +132,12 @@ class InvoiceListItem extends ConsumerWidget {
                     height: 1.4,
                   ),
                 ),
+                // AI Summary (if available)
+                if (invoice.aiDescription != null &&
+                    invoice.aiDescription!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  AiDescriptionRow(text: invoice.aiDescription!),
+                ],
               ],
             ),
           ),

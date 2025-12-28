@@ -183,19 +183,26 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   }
 
   Future<void> _submitJournalEntry() async {
+    debugPrint('🔵 [1] _submitJournalEntry() called');
+
     // Validate entry
     if (!_validateJournalEntry()) {
+      debugPrint('🔴 [1.1] Validation failed, returning');
       return;
     }
+    debugPrint('🟢 [1.2] Validation passed');
 
     setState(() => _isSubmitting = true);
 
     try {
+      debugPrint('🔵 [2] Calling _performSubmission()');
       await _performSubmission();
+      debugPrint('🟢 [2.1] _performSubmission() completed');
       if (mounted) {
         await _handleSubmissionSuccess();
       }
     } catch (e) {
+      debugPrint('🔴 [2.2] _performSubmission() error: $e');
       if (mounted) {
         _handleSubmissionError(e);
       }
@@ -231,16 +238,25 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
   /// Perform journal entry submission
   Future<void> _performSubmission() async {
+    debugPrint('🔵 [3] _performSubmission() started');
     final appState = ref.read(appStateProvider);
     final notifier = ref.read(journalEntryStateProvider.notifier);
 
     // Validate user authentication
     if (appState.userId.isEmpty) {
+      debugPrint('🔴 [3.1] User not authenticated');
       throw Exception('User not authenticated');
     }
+    debugPrint('🟢 [3.2] User authenticated: ${appState.userId}');
 
     // Build journal entry with description
     final currentEntry = notifier.getCurrentJournalEntry();
+    debugPrint('🔵 [3.3] Current entry lines: ${currentEntry.transactionLines.length}');
+    for (int i = 0; i < currentEntry.transactionLines.length; i++) {
+      final line = currentEntry.transactionLines[i];
+      debugPrint('   Line $i: account=${line.accountId}, isDebit=${line.isDebit}, amount=${line.amount}, categoryTag=${line.categoryTag}');
+    }
+
     final updatedJournalEntry = currentEntry.copyWith(
       overallDescription: _descriptionController.text.isNotEmpty
         ? _descriptionController.text
@@ -248,6 +264,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     );
 
     // Submit to repository
+    debugPrint('🔵 [4] Calling submitJournalEntryProvider');
     final submitFunction = ref.read(submitJournalEntryProvider);
     await submitFunction(
       updatedJournalEntry,
@@ -255,6 +272,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       appState.companyChoosen,
       appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
     );
+    debugPrint('🟢 [4.1] submitJournalEntryProvider completed');
 
     // Clear form after successful submission
     _descriptionController.clear();

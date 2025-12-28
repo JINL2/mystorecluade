@@ -308,23 +308,18 @@ class ScheduleDateUtils {
 
   /// Find the shift with start_time closest to current time for check-in
   ///
-  /// CRITICAL: Uses midpoint logic for night shift transitions!
+  /// Uses Grace Period logic for shift transitions.
   ///
-  /// Problem: At 01:04 on Dec 23, the Dec 22 Night shift (20:00~01:00) has ended,
-  /// but the Dec 23 Night shift (20:00~01:00) shouldn't allow check-in yet.
-  ///
-  /// Solution: Calculate midpoint between previous shift's end and next shift's start.
-  /// - Before midpoint: Still in checkout mode for previous shift
-  /// - After midpoint: Can check into next shift
+  /// **Grace Period Rules:**
+  /// 1. 기본: 시프트 끝 + 3시간
+  /// 2. 다음 시프트가 3시간 이내: 다음 시프트 시작 - 15분
+  /// 3. 최대 상한: 6시간
   ///
   /// Example:
-  /// - Dec 22 Night ends: 01:00 (Dec 23)
-  /// - Dec 23 Morning starts: 10:00
-  /// - Midpoint: (01:00 + 10:00) / 2 = 05:30
+  /// - Dec 22 Night ends: 01:00
+  /// - Checkout deadline: 01:00 + 3시간 = 04:00
   /// - At 03:00 → Dec 22 Night (checkout mode)
-  /// - At 06:00 → Dec 23 Morning (checkin mode)
-  ///
-  /// Edge case: No next shift → Default grace period of 3 hours after end_time
+  /// - At 04:01 → Dec 23 shift (checkin mode)
   static ShiftCard? findClosestCheckinShift(
     List<ShiftCard> shiftCards, {
     DateTime? currentTime,
@@ -354,8 +349,6 @@ class ScheduleDateUtils {
       // Allow check-in for TODAY's shifts
       if (isSameDay(shiftDate, today)) return true;
 
-      // Also allow if we're past the midpoint and this is the next upcoming shift
-      // This handles the case where it's 06:00 and the next shift starts at 10:00
       return false;
     }).toList();
 
@@ -376,7 +369,7 @@ class ScheduleDateUtils {
   ///
   /// Returns the shift if:
   /// 1. Shift is in-progress (checked in, not out)
-  /// 2. Shift ended but we're before the midpoint to next shift
+  /// 2. Shift ended but we're within the grace period checkout window
   ///
   /// Returns null if user can proceed to check into a new shift
   static ShiftCard? _findInProgressOrRecentShift(
@@ -390,9 +383,9 @@ class ScheduleDateUtils {
       }
     }
 
-    // Second priority: Find recently ended shift (before midpoint)
+    // Second priority: Find recently ended shift within grace period
     // This handles the case where night shift ended at 01:00 and it's now 03:00
-    final recentlyEndedShift = _findRecentlyEndedShiftBeforeMidpoint(shiftCards, now);
+    final recentlyEndedShift = _findRecentlyEndedShiftWithinGracePeriod(shiftCards, now);
     if (recentlyEndedShift != null) {
       return recentlyEndedShift;
     }
@@ -404,7 +397,7 @@ class ScheduleDateUtils {
   /// (We're within the checkout window based on grace period rules)
   ///
   /// Uses [isWithinCheckoutWindow] for consistent deadline calculation.
-  static ShiftCard? _findRecentlyEndedShiftBeforeMidpoint(
+  static ShiftCard? _findRecentlyEndedShiftWithinGracePeriod(
     List<ShiftCard> shiftCards,
     DateTime now,
   ) {

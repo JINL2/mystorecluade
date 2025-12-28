@@ -25,6 +25,7 @@ class PIItemModel with _$PIItemModel {
     @JsonKey(name: 'discount_amount') @Default(0) double discountAmount,
     @JsonKey(name: 'total_amount') required double totalAmount,
     @JsonKey(name: 'packing_info') String? packingInfo,
+    @JsonKey(name: 'image_url') String? imageUrl,
     @JsonKey(name: 'sort_order') @Default(0) int sortOrder,
     @JsonKey(name: 'created_at_utc') DateTime? createdAtUtc,
   }) = _PIItemModel;
@@ -49,6 +50,7 @@ class PIItemModel with _$PIItemModel {
         discountAmount: discountAmount,
         totalAmount: totalAmount,
         packingInfo: packingInfo,
+        imageUrl: imageUrl,
         sortOrder: sortOrder,
         createdAtUtc: createdAtUtc,
       );

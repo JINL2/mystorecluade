@@ -136,7 +136,23 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
       currencyAmounts: const {},
       focusedCurrencyId: null,
       discountAmount: 0.0,
+      isSubmitting: false,
     );
+  }
+
+  /// Start invoice submission - prevents duplicate clicks
+  /// Returns true if submission can proceed, false if already submitting
+  bool startSubmitting() {
+    if (state.isSubmitting) {
+      return false; // Already submitting, reject this attempt
+    }
+    state = state.copyWith(isSubmitting: true);
+    return true;
+  }
+
+  /// End invoice submission - reset submitting state
+  void endSubmitting() {
+    state = state.copyWith(isSubmitting: false);
   }
 
   // Refresh data

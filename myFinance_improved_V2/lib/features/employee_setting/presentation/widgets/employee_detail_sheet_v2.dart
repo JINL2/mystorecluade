@@ -143,10 +143,9 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
       child: Column(
         children: [
           // Large Avatar
-          Hero(
-            tag: 'employee_${employee.userId}',
-            child: _buildAvatar(employee, size: 80),
-          ),
+          // Note: Hero removed to avoid duplicate tag error with BottomSheet
+          // (BottomSheet doesn't support Hero animation anyway)
+          _buildAvatar(employee, size: 80),
           
           const SizedBox(height: TossSpacing.space4),
           

@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CounterPartyStats _$CounterPartyStatsFromJson(Map<String, dynamic> json) {
-  return _CounterPartyStats.fromJson(json);
-}
-
 /// @nodoc
 mixin _$CounterPartyStats {
   int get total => throw _privateConstructorUsedError;
@@ -29,11 +25,7 @@ mixin _$CounterPartyStats {
   int get others => throw _privateConstructorUsedError;
   int get activeCount => throw _privateConstructorUsedError;
   int get inactiveCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'recent_additions')
   List<CounterParty> get recentAdditions => throw _privateConstructorUsedError;
-
-  /// Serializes this CounterPartyStats to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of CounterPartyStats
   /// with the given fields replaced by the non-null parameter values.
@@ -58,7 +50,7 @@ abstract class $CounterPartyStatsCopyWith<$Res> {
       int others,
       int activeCount,
       int inactiveCount,
-      @JsonKey(name: 'recent_additions') List<CounterParty> recentAdditions});
+      List<CounterParty> recentAdditions});
 }
 
 /// @nodoc
@@ -150,7 +142,7 @@ abstract class _$$CounterPartyStatsImplCopyWith<$Res>
       int others,
       int activeCount,
       int inactiveCount,
-      @JsonKey(name: 'recent_additions') List<CounterParty> recentAdditions});
+      List<CounterParty> recentAdditions});
 }
 
 /// @nodoc
@@ -223,7 +215,7 @@ class __$$CounterPartyStatsImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$CounterPartyStatsImpl implements _CounterPartyStats {
   const _$CounterPartyStatsImpl(
       {required this.total,
@@ -235,12 +227,8 @@ class _$CounterPartyStatsImpl implements _CounterPartyStats {
       required this.others,
       required this.activeCount,
       required this.inactiveCount,
-      @JsonKey(name: 'recent_additions')
       required final List<CounterParty> recentAdditions})
       : _recentAdditions = recentAdditions;
-
-  factory _$CounterPartyStatsImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CounterPartyStatsImplFromJson(json);
 
   @override
   final int total;
@@ -262,7 +250,6 @@ class _$CounterPartyStatsImpl implements _CounterPartyStats {
   final int inactiveCount;
   final List<CounterParty> _recentAdditions;
   @override
-  @JsonKey(name: 'recent_additions')
   List<CounterParty> get recentAdditions {
     if (_recentAdditions is EqualUnmodifiableListView) return _recentAdditions;
     // ignore: implicit_dynamic_type
@@ -299,7 +286,6 @@ class _$CounterPartyStatsImpl implements _CounterPartyStats {
                 .equals(other._recentAdditions, _recentAdditions));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -322,13 +308,6 @@ class _$CounterPartyStatsImpl implements _CounterPartyStats {
   _$$CounterPartyStatsImplCopyWith<_$CounterPartyStatsImpl> get copyWith =>
       __$$CounterPartyStatsImplCopyWithImpl<_$CounterPartyStatsImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CounterPartyStatsImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _CounterPartyStats implements CounterPartyStats {
@@ -342,12 +321,8 @@ abstract class _CounterPartyStats implements CounterPartyStats {
           required final int others,
           required final int activeCount,
           required final int inactiveCount,
-          @JsonKey(name: 'recent_additions')
           required final List<CounterParty> recentAdditions}) =
       _$CounterPartyStatsImpl;
-
-  factory _CounterPartyStats.fromJson(Map<String, dynamic> json) =
-      _$CounterPartyStatsImpl.fromJson;
 
   @override
   int get total;
@@ -368,7 +343,6 @@ abstract class _CounterPartyStats implements CounterPartyStats {
   @override
   int get inactiveCount;
   @override
-  @JsonKey(name: 'recent_additions')
   List<CounterParty> get recentAdditions;
 
   /// Create a copy of CounterPartyStats

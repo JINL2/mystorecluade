@@ -21,7 +21,7 @@ BalanceSheetDataSource balanceSheetDataSource(Ref ref) {
 // PAGE STATE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-enum QuickPeriod { today, thisWeek, thisMonth, thisYear, custom }
+enum QuickPeriod { today, yesterday, thisWeek, thisMonth, thisYear, custom }
 
 enum DataLevel { company, store }
 
@@ -102,6 +102,11 @@ class FinancialStatementsPageNotifier extends _$FinancialStatementsPageNotifier 
     switch (period) {
       case QuickPeriod.today:
         startDate = today;
+        break;
+      case QuickPeriod.yesterday:
+        final yesterday = today.subtract(const Duration(days: 1));
+        startDate = yesterday;
+        endDate = yesterday;
         break;
       case QuickPeriod.thisWeek:
         // Monday start

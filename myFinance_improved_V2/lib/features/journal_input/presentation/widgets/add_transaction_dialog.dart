@@ -12,7 +12,6 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
 import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
@@ -20,11 +19,12 @@ import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
 import '../../../../shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 import '../../../../shared/widgets/common/exchange_rate_calculator.dart';
 import '../../domain/entities/debt_category.dart';
 import '../../domain/entities/transaction_line.dart';
+
+// Extracted widgets
+import 'add_transaction/add_transaction_widgets.dart';
 
 
 
@@ -60,7 +60,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   String? _selectedCashLocationName;  // ✅ NEW: Cash location name
   String? _selectedCashLocationType;  // ✅ NEW: Cash location type
   String? _selectedCounterpartyCashLocationId;
-  String? _selectedCounterpartyCashLocationName;  // ✅ NEW: Counterparty cash location name
   String? _linkedCompanyId;
   bool _isInternal = false;
   
@@ -521,78 +520,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     
     Navigator.of(context).pop(transactionLine);
   }
-  
-  Widget _buildNoStoresInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Counterparty Store',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray700,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Container(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(
-              color: TossColors.gray200,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
-              const SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: Text(
-                  'This counterparty has no stores configured',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildStoreDropdown(List<Map<String, dynamic>> stores) {
-    return TossDropdown<String?>(
-      label: 'Counterparty Store',
-      value: _selectedCounterpartyStoreId,
-      hint: 'Select counterparty store (optional)',
-      items: [
-        const TossDropdownItem(
-          value: null,
-          label: 'No store selected',
-        ),
-        ...stores.map((store) => TossDropdownItem(
-          value: store['store_id'] as String,
-          label: (store['store_name'] ?? 'Unknown Store') as String,
-        ),),
-      ],
-      onChanged: (storeId) {
-        setState(() {
-          _selectedCounterpartyStoreId = storeId;
-          if (storeId != null) {
-            final store = stores.firstWhere((s) => s['store_id'] == storeId);
-            _selectedCounterpartyStoreName = store['store_name'] as String?;
-          } else {
-            _selectedCounterpartyStoreName = null;
-          }
-          // Clear cash location when store changes
-          _selectedCashLocationId = null;
-        });
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -618,42 +545,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            ),
-          ),
-          
           // Header
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.existingLine != null ? 'Edit Transaction' : 'Add Transaction',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close, color: TossColors.gray600),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                ),
-              ],
-            ),
-          ),
-          
-          const Divider(height: 1, color: TossColors.gray200),
-          
+          DialogHeader(isEditing: widget.existingLine != null),
+
           // Content
           Expanded(
             child: SingleChildScrollView(
@@ -664,59 +558,15 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Transaction Type Toggle
-                    _buildSectionTitle('Transaction Type'),
+                    const SectionTitle(title: 'Transaction Type'),
                     const SizedBox(height: TossSpacing.space2),
-                    Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: TossColors.gray50,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                      ),
-                      padding: const EdgeInsets.all(TossSpacing.space1),
-                      child: Stack(
-                        children: [
-                          // Animated selection indicator
-                          AnimatedAlign(
-                            alignment: _isDebit 
-                              ? Alignment.centerLeft 
-                              : Alignment.centerRight,
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                            child: FractionallySizedBox(
-                              widthFactor: 0.5,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 2),
-                                decoration: BoxDecoration(
-                                  color: _isDebit 
-                                    ? TossColors.primary 
-                                    : TossColors.success,
-                                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: (_isDebit 
-                                        ? TossColors.primary 
-                                        : TossColors.success).withValues(alpha: 0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildAnimatedTypeButton('Debit', true),
-                              ),
-                              Expanded(
-                                child: _buildAnimatedTypeButton('Credit', false),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                    DebitCreditToggle(
+                      isDebit: _isDebit,
+                      onChanged: (isDebit) {
+                        setState(() {
+                          _isDebit = isDebit;
+                        });
+                      },
                     ),
                     
                     const SizedBox(height: 20),
@@ -848,155 +698,16 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       // Enhanced Counterparty Store Selection
                       if (_linkedCompanyId != null) ...[
                         const SizedBox(height: 20),
-                        Consumer(
-                          builder: (context, ref, child) {
-                            final storesAsync = ref.watch(journalCounterpartyStoresProvider(_linkedCompanyId));
-                            return storesAsync.when(
-                              data: (stores) {
-                                if (stores.isEmpty) {
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Counterparty Store',
-                                        style: TossTextStyles.body.copyWith(
-                                          color: TossColors.gray700,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: TossSpacing.space2),
-                                      Container(
-                                        padding: const EdgeInsets.all(TossSpacing.space4),
-                                        decoration: BoxDecoration(
-                                          color: TossColors.gray50,
-                                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                          border: Border.all(
-                                            color: TossColors.gray200,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
-                                            const SizedBox(width: TossSpacing.space3),
-                                            Expanded(
-                                              child: Text(
-                                                'This counterparty has no stores configured',
-                                                style: TossTextStyles.body.copyWith(
-                                                  color: TossColors.gray600,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }
-                                
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Counterparty Store',
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.gray700,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: TossSpacing.space2),
-                                    GestureDetector(
-                                      onTap: () {
-                                        _showStoreSelectionBottomSheet(context, stores);
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                                        decoration: BoxDecoration(
-                                          color: TossColors.white,
-                                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                          border: Border.all(
-                                            color: TossColors.gray200,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.store,
-                                              size: 20,
-                                              color: _selectedCounterpartyStoreId != null
-                                                ? TossColors.primary
-                                                : TossColors.gray400,
-                                            ),
-                                            const SizedBox(width: TossSpacing.space3),
-                                            Expanded(
-                                              child: _selectedCounterpartyStoreName != null
-                                                ? Text(
-                                                    _selectedCounterpartyStoreName!,
-                                                    style: TossTextStyles.body.copyWith(
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  )
-                                                : Text(
-                                                    'Select counterparty store (optional)',
-                                                    style: TossTextStyles.body.copyWith(
-                                                      color: TossColors.gray400,
-                                                    ),
-                                                  ),
-                                            ),
-                                            Icon(
-                                              Icons.arrow_drop_down,
-                                              color: _selectedCounterpartyStoreId != null
-                                                ? TossColors.primary
-                                                : TossColors.gray400,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                              loading: () => Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Counterparty Store',
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.gray700,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: TossSpacing.space2),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 20),
-                                    child: const Center(
-                                      child: TossLoadingView(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              error: (_, __) => Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Counterparty Store',
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.error,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: TossSpacing.space2),
-                                  Text(
-                                    'Error loading stores',
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.error,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
+                        CounterpartyStorePicker(
+                          linkedCompanyId: _linkedCompanyId,
+                          selectedStoreId: _selectedCounterpartyStoreId,
+                          selectedStoreName: _selectedCounterpartyStoreName,
+                          onStoreSelected: (storeId, storeName) {
+                            setState(() {
+                              _selectedCounterpartyStoreId = storeId;
+                              _selectedCounterpartyStoreName = storeName;
+                              _selectedCounterpartyCashLocationId = null;
+                            });
                           },
                         ),
                       ],
@@ -1011,7 +722,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                           onCashLocationSelected: (cashLocation) {
                             setState(() {
                               _selectedCounterpartyCashLocationId = cashLocation.id;
-                              _selectedCounterpartyCashLocationName = cashLocation.name;
                             });
                           },
                           // ✅ Legacy callback for null case
@@ -1019,7 +729,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             if (locationId == null) {
                               setState(() {
                                 _selectedCounterpartyCashLocationId = null;
-                                _selectedCounterpartyCashLocationName = null;
                               });
                             }
                           },
@@ -1033,62 +742,11 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       ],
                       
                       // Account Mapping Status
-                      if (_isInternal && _accountMapping != null) ...[
-                        const SizedBox(height: TossSpacing.space4),
-                        Container(
-                          padding: const EdgeInsets.all(TossSpacing.space3),
-                          decoration: BoxDecoration(
-                            color: TossColors.success.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            border: Border.all(
-                              color: TossColors.success.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.check_circle, color: TossColors.success, size: 20),
-                              const SizedBox(width: TossSpacing.space2),
-                              Text(
-                                'Account mapping verified',
-                                style: TossTextStyles.bodySmall.copyWith(
-                                  color: TossColors.success,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      
-                      if (_mappingError != null) ...[
-                        const SizedBox(height: TossSpacing.space4),
-                        Container(
-                          padding: const EdgeInsets.all(TossSpacing.space3),
-                          decoration: BoxDecoration(
-                            color: TossColors.error.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            border: Border.all(
-                              color: TossColors.error.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.warning, color: TossColors.error, size: 20),
-                              const SizedBox(width: TossSpacing.space2),
-                              Expanded(
-                                child: Text(
-                                  _mappingError!,
-                                  style: TossTextStyles.bodySmall.copyWith(
-                                    color: TossColors.error,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      AccountMappingStatus(
+                        isInternal: _isInternal,
+                        accountMapping: _accountMapping,
+                        mappingError: _mappingError,
+                      ),
                       
                       // Debt Information
                       const SizedBox(height: 20),
@@ -1108,7 +766,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                       ),
                       
                       const SizedBox(height: TossSpacing.space4),
-                      _buildSectionTitle('Interest Rate'),
+                      const SectionTitle(title: 'Interest Rate'),
                       const SizedBox(height: TossSpacing.space2),
                       _buildTextField(
                         controller: _interestRateController,
@@ -1128,9 +786,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionTitle('Issue Date'),
+                                const SectionTitle(title: 'Issue Date'),
                                 const SizedBox(height: TossSpacing.space2),
-                                _buildDatePicker(
+                                FormDatePicker(
                                   date: _issueDate,
                                   onChanged: (date) {
                                     setState(() {
@@ -1146,9 +804,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionTitle('Due Date'),
+                                const SectionTitle(title: 'Due Date'),
                                 const SizedBox(height: TossSpacing.space2),
-                                _buildDatePicker(
+                                FormDatePicker(
                                   date: _dueDate,
                                   onChanged: (date) {
                                     setState(() {
@@ -1165,7 +823,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     
                     // Amount
                     const SizedBox(height: 20),
-                    _buildSectionTitle('Amount *'),
+                    const SectionTitle(title: 'Amount *'),
                     const SizedBox(height: TossSpacing.space2),
                     Row(
                       children: [
@@ -1222,7 +880,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     
                     // Description
                     const SizedBox(height: 20),
-                    _buildSectionTitle('Description (Optional)'),
+                    const SectionTitle(title: 'Description (Optional)'),
                     const SizedBox(height: TossSpacing.space2),
                     _buildTextField(
                       controller: _descriptionController,
@@ -1240,86 +898,16 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             ),
             
             // Footer with SafeArea - Hide when keyboard is visible
-            if (MediaQuery.of(context).viewInsets.bottom == 0)
-              Container(
-                decoration: const BoxDecoration(
-                  color: TossColors.white,
-                  border: Border(
-                    top: BorderSide(color: TossColors.gray200, width: 1),
-                  ),
-                ),
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.all(TossSpacing.space5),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TossSecondaryButton(
-                            text: 'Cancel',
-                            onPressed: () => context.pop(),
-                            fullWidth: true,
-                          ),
-                        ),
-                        const SizedBox(width: TossSpacing.space3),
-                        Expanded(
-                          child: TossPrimaryButton(
-                            text: widget.existingLine != null ? 'Update' : 'Add',
-                            onPressed: _saveTransaction,
-                            fullWidth: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            DialogFooter(
+              isEditing: widget.existingLine != null,
+              onSave: _saveTransaction,
+            ),
           ],
         ),
       ),
       ),
     );
   }
-  
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: TossTextStyles.body.copyWith(
-        color: TossColors.gray700,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-  
-  Widget _buildAnimatedTypeButton(String label, bool isDebit) {
-    final isSelected = _isDebit == isDebit;
-    return GestureDetector(
-      onTap: () {
-        if (!isSelected) {
-          setState(() {
-            _isDebit = isDebit;
-          });
-          // Add haptic feedback for better user experience
-          HapticFeedback.lightImpact();
-        }
-      },
-      child: Container(
-        color: TossColors.transparent,
-        child: Center(
-          child: // TODO: Review AnimatedDefaultTextStyle for TossTextStyles usage
-AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: TossTextStyles.body.copyWith(
-              color: isSelected ? TossColors.white : TossColors.gray600,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            ),
-            child: Text(label),
-          ),
-        ),
-      ),
-    );
-  }
-  
   
   Widget _buildTextField({
     required TextEditingController controller,
@@ -1348,129 +936,4 @@ AnimatedDefaultTextStyle(
       enableTapDismiss: false,
     );
   }
-  
-  Widget _buildDatePicker({
-    required DateTime? date,
-    required ValueChanged<DateTime> onChanged,
-  }) {
-    return InkWell(
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: date ?? DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
-        );
-        if (picked != null) {
-          onChanged(picked);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: TossColors.gray200,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_today, size: 18, color: TossColors.gray600),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              date != null ? DateFormat('yyyy-MM-dd').format(date) : 'Select date',
-              style: TossTextStyles.body.copyWith(
-                color: date != null ? TossColors.gray900 : TossColors.gray400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showStoreSelectionBottomSheet(BuildContext context, List<Map<String, dynamic>> stores) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xxl),
-            topRight: Radius.circular(TossBorderRadius.xxl),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: TossSpacing.space3),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(TossSpacing.space4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Select Store', style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600)),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: TossColors.gray500),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                itemCount: stores.length,
-                separatorBuilder: (context, index) => Container(height: 1, color: TossColors.gray100),
-                itemBuilder: (context, index) {
-                  final store = stores[index];
-                  final storeId = store['store_id'] as String?;
-                  final storeName = store['store_name'] as String? ?? 'Unknown Store';
-                  
-                  return InkWell(
-                    onTap: () {
-                      if (storeId != null) {
-                        setState(() {
-                          _selectedCounterpartyStoreId = storeId;
-                          _selectedCounterpartyStoreName = storeName;
-                          _selectedCounterpartyCashLocationId = null;
-                        });
-                      }
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.store, size: 20, color: TossColors.gray500),
-                          const SizedBox(width: TossSpacing.space3),
-                          Expanded(
-                            child: Text(storeName, style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
-          ],
-        ),
-      ),
-    );
-  }
-
 }

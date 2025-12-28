@@ -1,6 +1,7 @@
 import '../../domain/entities/account_mapping.dart';
 import '../../domain/repositories/account_mapping_repository.dart';
 import '../datasources/account_mapping_datasource.dart';
+import '../models/account_mapping_dto.dart';
 
 /// Account Mapping Repository Implementation
 class AccountMappingRepositoryImpl implements AccountMappingRepository {
@@ -17,7 +18,9 @@ class AccountMappingRepositoryImpl implements AccountMappingRepository {
         counterpartyId: counterpartyId,
       );
 
-      return data.map((json) => AccountMapping.fromJson(json)).toList();
+      return data
+          .map((json) => AccountMappingDto.fromJson(json).toEntity())
+          .toList();
     } catch (e) {
       throw Exception('Failed to load account mappings: $e');
     }
@@ -33,7 +36,7 @@ class AccountMappingRepositoryImpl implements AccountMappingRepository {
       );
 
       if (data == null) return null;
-      return AccountMapping.fromJson(data);
+      return AccountMappingDto.fromJson(data).toEntity();
     } catch (e) {
       throw Exception('Failed to load account mapping: $e');
     }
@@ -122,7 +125,7 @@ class AccountMappingRepositoryImpl implements AccountMappingRepository {
         direction: direction,
       );
 
-      return AccountMapping.fromJson(data);
+      return AccountMappingDto.fromJson(data).toEntity();
     } catch (e) {
       throw Exception('Failed to update account mapping: $e');
     }

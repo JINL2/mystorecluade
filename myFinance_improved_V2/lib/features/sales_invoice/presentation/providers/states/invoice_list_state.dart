@@ -71,7 +71,7 @@ class InvoiceListState with _$InvoiceListState {
     switch (selectedStatus) {
       case 'completed':
         return 'Completed';
-      case 'refunded':
+      case 'cancelled':
         return 'Refunded';
       default:
         return 'All';

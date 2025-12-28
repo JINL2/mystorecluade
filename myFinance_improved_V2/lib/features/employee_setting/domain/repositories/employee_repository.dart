@@ -50,4 +50,12 @@ abstract class EmployeeRepository {
     int limit = 20,
     int offset = 0,
   });
+
+  /// Assign or unassign a work schedule template to an employee
+  /// Pass null for templateId to unassign the current template
+  Future<Map<String, dynamic>> assignWorkScheduleTemplate({
+    required String userId,
+    required String companyId,
+    String? templateId,
+  });
 }

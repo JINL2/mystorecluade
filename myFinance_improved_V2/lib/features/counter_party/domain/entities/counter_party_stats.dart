@@ -1,10 +1,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'counter_party.dart';
 
 part 'counter_party_stats.freezed.dart';
-part 'counter_party_stats.g.dart';
 
-/// Counter Party Statistics Entity
+/// Counter Party Statistics Entity (Pure Domain - No JSON)
 @freezed
 class CounterPartyStats with _$CounterPartyStats {
   const factory CounterPartyStats({
@@ -17,11 +17,8 @@ class CounterPartyStats with _$CounterPartyStats {
     required int others,
     required int activeCount,
     required int inactiveCount,
-    @JsonKey(name: 'recent_additions') required List<CounterParty> recentAdditions,
+    required List<CounterParty> recentAdditions,
   }) = _CounterPartyStats;
-
-  factory CounterPartyStats.fromJson(Map<String, dynamic> json) =>
-      _$CounterPartyStatsFromJson(json);
 
   factory CounterPartyStats.empty() => const CounterPartyStats(
     total: 0,

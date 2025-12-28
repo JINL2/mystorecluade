@@ -82,6 +82,11 @@ class TossTodayShiftCard extends StatelessWidget {
   final String? confirmStartTime; // "07:09"
   final String? confirmEndTime;   // "17:30"
 
+  /// V3: Monthly 직원은 Payment Time 불필요 (월급제라 시급 계산 없음)
+  /// true: Hourly - Real Time + Payment Time 표시
+  /// false: Monthly - Schedule Time + Real Time만 표시
+  final bool showPaymentTime;
+
   const TossTodayShiftCard({
     super.key,
     this.shiftType,
@@ -100,6 +105,7 @@ class TossTodayShiftCard extends StatelessWidget {
     this.actualEndTime,
     this.confirmStartTime,
     this.confirmEndTime,
+    this.showPaymentTime = true,
   });
 
   Color _getBadgeColor() {
@@ -523,6 +529,9 @@ class TossTodayShiftCard extends StatelessWidget {
 
   /// Build time section - shows scheduled time before check-in,
   /// Real Time & Payment Time after check-in
+  ///
+  /// V3: showPaymentTime == false (Monthly) → Schedule Time + Real Time만 표시
+  ///     showPaymentTime == true (Hourly)  → Real Time + Payment Time 표시
   Widget _buildTimeSection() {
     // Before check-in: show scheduled time only
     final isCheckedIn = status == ShiftStatus.onTime ||
@@ -552,7 +561,35 @@ class TossTodayShiftCard extends StatelessWidget {
       );
     }
 
-    // After check-in: show Real Time and Payment Time
+    // After check-in: show time comparison
+    // V3: Monthly (showPaymentTime=false) → Schedule Time + Real Time
+    //     Hourly  (showPaymentTime=true)  → Real Time + Payment Time
+    if (!showPaymentTime) {
+      // Monthly: Schedule Time + Real Time (no payment calculation needed)
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Schedule Time row (예정 시간)
+          _buildTimeRow(
+            label: 'Schedule',
+            startTime: _extractTime(timeRange, isStart: true),
+            endTime: _extractTime(timeRange, isStart: false),
+            icon: Icons.event_note_outlined,
+          ),
+          SizedBox(height: TossSpacing.space2),
+          // Real Time row (실제 체크인/아웃 시간)
+          _buildTimeRow(
+            label: 'Real Time',
+            startTime: _formatTimeDisplay(actualStartTime),
+            endTime: _formatTimeDisplay(actualEndTime),
+            icon: Icons.schedule,
+            highlight: true,
+          ),
+        ],
+      );
+    }
+
+    // Hourly: Real Time + Payment Time (for payroll calculation)
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -574,6 +611,14 @@ class TossTodayShiftCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// timeRange에서 시작/종료 시간 추출 (예: "09:00 - 18:00")
+  String _extractTime(String? range, {required bool isStart}) {
+    if (range == null || !range.contains(' - ')) return '--:--';
+    final parts = range.split(' - ');
+    if (parts.length != 2) return '--:--';
+    return isStart ? parts[0].trim() : parts[1].trim();
   }
 
   Widget _buildTimeRow({

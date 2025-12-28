@@ -23,6 +23,7 @@ _$PIItemModelImpl _$$PIItemModelImplFromJson(Map<String, dynamic> json) =>
       discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0,
       totalAmount: (json['total_amount'] as num).toDouble(),
       packingInfo: json['packing_info'] as String?,
+      imageUrl: json['image_url'] as String?,
       sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
       createdAtUtc: json['created_at_utc'] == null
           ? null
@@ -46,6 +47,7 @@ Map<String, dynamic> _$$PIItemModelImplToJson(_$PIItemModelImpl instance) =>
       'discount_amount': instance.discountAmount,
       'total_amount': instance.totalAmount,
       'packing_info': instance.packingInfo,
+      'image_url': instance.imageUrl,
       'sort_order': instance.sortOrder,
       'created_at_utc': instance.createdAtUtc?.toIso8601String(),
     };

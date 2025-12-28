@@ -1,29 +1,28 @@
 /// Store Presentation Layer Providers
 ///
-/// This file contains presentation-specific providers for store feature.
-/// It only imports from Domain layer (Use Cases).
+/// Re-exports @riverpod generated providers for store feature.
+/// All providers are now generated from notifier classes with @riverpod annotation.
 ///
 /// Following Clean Architecture:
 /// - NO imports from Data layer
 /// - Only Domain layer imports allowed
+///
+/// Usage:
+/// ```dart
+/// // Watch state
+/// final storeState = ref.watch(storeNotifierProvider);
+///
+/// // Trigger action
+/// ref.read(storeNotifierProvider.notifier).createStore(
+///   storeName: name,
+///   companyId: companyId,
+/// );
+///
+/// // Reset state
+/// ref.read(storeNotifierProvider.notifier).reset();
+/// ```
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../domain/providers/usecase_providers.dart';
-import 'states/store_state.dart';
-import 'store_notifier.dart';
-
-// ============================================================================
-// Presentation Layer Providers (UI State Management)
-// ============================================================================
-
-/// Store StateNotifier Provider
-///
-/// Manages store creation state for UI.
-/// Uses CreateStore use case from domain layer.
-final storeNotifierProvider =
-    StateNotifierProvider<StoreNotifier, StoreState>((ref) {
-  final createStore = ref.watch(createStoreUseCaseProvider);
-  return StoreNotifier(createStore);
-});
+// Re-export generated provider
+export 'store_notifier.dart';
+export 'states/store_state.dart';

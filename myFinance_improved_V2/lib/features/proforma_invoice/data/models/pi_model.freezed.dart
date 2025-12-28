@@ -45,6 +45,8 @@ mixin _$PIItemModel {
   double get totalAmount => throw _privateConstructorUsedError;
   @JsonKey(name: 'packing_info')
   String? get packingInfo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
+  String? get imageUrl => throw _privateConstructorUsedError;
   @JsonKey(name: 'sort_order')
   int get sortOrder => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at_utc')
@@ -82,6 +84,7 @@ abstract class $PIItemModelCopyWith<$Res> {
       @JsonKey(name: 'discount_amount') double discountAmount,
       @JsonKey(name: 'total_amount') double totalAmount,
       @JsonKey(name: 'packing_info') String? packingInfo,
+      @JsonKey(name: 'image_url') String? imageUrl,
       @JsonKey(name: 'sort_order') int sortOrder,
       @JsonKey(name: 'created_at_utc') DateTime? createdAtUtc});
 }
@@ -116,6 +119,7 @@ class _$PIItemModelCopyWithImpl<$Res, $Val extends PIItemModel>
     Object? discountAmount = null,
     Object? totalAmount = null,
     Object? packingInfo = freezed,
+    Object? imageUrl = freezed,
     Object? sortOrder = null,
     Object? createdAtUtc = freezed,
   }) {
@@ -180,6 +184,10 @@ class _$PIItemModelCopyWithImpl<$Res, $Val extends PIItemModel>
           ? _value.packingInfo
           : packingInfo // ignore: cast_nullable_to_non_nullable
               as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       sortOrder: null == sortOrder
           ? _value.sortOrder
           : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -216,6 +224,7 @@ abstract class _$$PIItemModelImplCopyWith<$Res>
       @JsonKey(name: 'discount_amount') double discountAmount,
       @JsonKey(name: 'total_amount') double totalAmount,
       @JsonKey(name: 'packing_info') String? packingInfo,
+      @JsonKey(name: 'image_url') String? imageUrl,
       @JsonKey(name: 'sort_order') int sortOrder,
       @JsonKey(name: 'created_at_utc') DateTime? createdAtUtc});
 }
@@ -248,6 +257,7 @@ class __$$PIItemModelImplCopyWithImpl<$Res>
     Object? discountAmount = null,
     Object? totalAmount = null,
     Object? packingInfo = freezed,
+    Object? imageUrl = freezed,
     Object? sortOrder = null,
     Object? createdAtUtc = freezed,
   }) {
@@ -312,6 +322,10 @@ class __$$PIItemModelImplCopyWithImpl<$Res>
           ? _value.packingInfo
           : packingInfo // ignore: cast_nullable_to_non_nullable
               as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       sortOrder: null == sortOrder
           ? _value.sortOrder
           : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -343,6 +357,7 @@ class _$PIItemModelImpl extends _PIItemModel {
       @JsonKey(name: 'discount_amount') this.discountAmount = 0,
       @JsonKey(name: 'total_amount') required this.totalAmount,
       @JsonKey(name: 'packing_info') this.packingInfo,
+      @JsonKey(name: 'image_url') this.imageUrl,
       @JsonKey(name: 'sort_order') this.sortOrder = 0,
       @JsonKey(name: 'created_at_utc') this.createdAtUtc})
       : super._();
@@ -391,6 +406,9 @@ class _$PIItemModelImpl extends _PIItemModel {
   @JsonKey(name: 'packing_info')
   final String? packingInfo;
   @override
+  @JsonKey(name: 'image_url')
+  final String? imageUrl;
+  @override
   @JsonKey(name: 'sort_order')
   final int sortOrder;
   @override
@@ -399,7 +417,7 @@ class _$PIItemModelImpl extends _PIItemModel {
 
   @override
   String toString() {
-    return 'PIItemModel(itemId: $itemId, piId: $piId, productId: $productId, description: $description, sku: $sku, barcode: $barcode, hsCode: $hsCode, countryOfOrigin: $countryOfOrigin, quantity: $quantity, unit: $unit, unitPrice: $unitPrice, discountPercent: $discountPercent, discountAmount: $discountAmount, totalAmount: $totalAmount, packingInfo: $packingInfo, sortOrder: $sortOrder, createdAtUtc: $createdAtUtc)';
+    return 'PIItemModel(itemId: $itemId, piId: $piId, productId: $productId, description: $description, sku: $sku, barcode: $barcode, hsCode: $hsCode, countryOfOrigin: $countryOfOrigin, quantity: $quantity, unit: $unit, unitPrice: $unitPrice, discountPercent: $discountPercent, discountAmount: $discountAmount, totalAmount: $totalAmount, packingInfo: $packingInfo, imageUrl: $imageUrl, sortOrder: $sortOrder, createdAtUtc: $createdAtUtc)';
   }
 
   @override
@@ -431,6 +449,8 @@ class _$PIItemModelImpl extends _PIItemModel {
                 other.totalAmount == totalAmount) &&
             (identical(other.packingInfo, packingInfo) ||
                 other.packingInfo == packingInfo) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder) &&
             (identical(other.createdAtUtc, createdAtUtc) ||
@@ -456,6 +476,7 @@ class _$PIItemModelImpl extends _PIItemModel {
       discountAmount,
       totalAmount,
       packingInfo,
+      imageUrl,
       sortOrder,
       createdAtUtc);
 
@@ -492,6 +513,7 @@ abstract class _PIItemModel extends PIItemModel {
           @JsonKey(name: 'discount_amount') final double discountAmount,
           @JsonKey(name: 'total_amount') required final double totalAmount,
           @JsonKey(name: 'packing_info') final String? packingInfo,
+          @JsonKey(name: 'image_url') final String? imageUrl,
           @JsonKey(name: 'sort_order') final int sortOrder,
           @JsonKey(name: 'created_at_utc') final DateTime? createdAtUtc}) =
       _$PIItemModelImpl;
@@ -540,6 +562,9 @@ abstract class _PIItemModel extends PIItemModel {
   @override
   @JsonKey(name: 'packing_info')
   String? get packingInfo;
+  @override
+  @JsonKey(name: 'image_url')
+  String? get imageUrl;
   @override
   @JsonKey(name: 'sort_order')
   int get sortOrder;

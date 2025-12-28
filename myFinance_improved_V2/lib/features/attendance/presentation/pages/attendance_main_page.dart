@@ -8,16 +8,17 @@ import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../providers/attendance_providers.dart';
+import '../providers/monthly_attendance_providers.dart';
+import '../widgets/monthly/monthly_schedule_tab.dart';
 import 'shift_requests_tab.dart';
 import 'my_schedule_tab.dart';
 import 'stats_tab.dart';
 
-/// AttendanceMainPage - Main page with 3 tabs
+/// AttendanceMainPage - Main page with tabs
 ///
-/// Tabs:
-/// - My Schedule: Week/Month view with shift list and calendar
-/// - Requests: Shift registration and management
-/// - Stats: Attendance statistics (placeholder)
+/// Tabs vary by salary type:
+/// - Hourly: My Schedule, Shift Sign Up, Stats (3 tabs)
+/// - Monthly: My Schedule, Stats (2 tabs)
 class AttendanceMainPage extends ConsumerStatefulWidget {
   const AttendanceMainPage({super.key});
 
@@ -27,13 +28,15 @@ class AttendanceMainPage extends ConsumerStatefulWidget {
 
 class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
   String? _selectedStoreId;
+  bool _isMonthly = false;
+  bool _salaryTypeLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    // TabController는 salaryType 로딩 후 생성
 
     // Initialize selected store from app state
     final appState = ref.read(appStateProvider);
@@ -47,8 +50,20 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
+  }
+
+  void _initTabController(bool isMonthly) {
+    if (_salaryTypeLoaded && _isMonthly == isMonthly) return;
+
+    _tabController?.dispose();
+    _tabController = TabController(
+      length: isMonthly ? 2 : 3,
+      vsync: this,
+    );
+    _isMonthly = isMonthly;
+    _salaryTypeLoaded = true;
   }
 
   /// Invalidate all attendance-related providers to force data refresh
@@ -147,50 +162,158 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
   Widget build(BuildContext context) {
     final stores = _extractStores();
     final isLoading = ref.watch(attendanceStoreLoadingProvider);
+    final salaryTypeAsync = ref.watch(userSalaryTypeProvider);
 
-    return TossScaffold(
-      backgroundColor: TossColors.background,
-      appBar: const TossAppBar1(
-        title: 'Attendance',
-        backgroundColor: TossColors.background,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            TossTabBar1(
-              tabs: const ['My Schedule', 'Shift Sign Up', 'Stats'],
-              controller: _tabController,
+    return salaryTypeAsync.when(
+      data: (salaryType) {
+        final isMonthly = salaryType == 'monthly';
+
+        // TabController 초기화 (salaryType에 따라)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _initTabController(isMonthly);
+            setState(() {});
+          }
+        });
+
+        // TabController가 아직 없으면 로딩 표시
+        if (_tabController == null) {
+          return TossScaffold(
+            backgroundColor: TossColors.background,
+            appBar: const TossAppBar1(
+              title: 'Attendance',
+              backgroundColor: TossColors.background,
             ),
-            // Show loading view when changing store (same as Time Table Management)
-            if (isLoading)
-              const Expanded(
-                child: TossLoadingView(
-                  message: 'Loading store data...',
+            body: const TossLoadingView(),
+          );
+        }
+
+        return TossScaffold(
+          backgroundColor: TossColors.background,
+          appBar: const TossAppBar1(
+            title: 'Attendance',
+            backgroundColor: TossColors.background,
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                TossTabBar1(
+                  tabs: isMonthly
+                      ? const ['My Schedule', 'Stats']
+                      : const ['My Schedule', 'Shift Sign Up', 'Stats'],
+                  controller: _tabController!,
                 ),
-              )
-            else
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    MyScheduleTab(
-                      tabController: _tabController,
-                      stores: stores,
-                      selectedStoreId: _selectedStoreId,
-                      onStoreChanged: _handleStoreChange,
+                // Show loading view when changing store
+                if (isLoading)
+                  const Expanded(
+                    child: TossLoadingView(
+                      message: 'Loading store data...',
                     ),
-                    ShiftRequestsTab(
-                      stores: stores,
-                      selectedStoreId: _selectedStoreId,
-                      onStoreChanged: _handleStoreChange,
+                  )
+                else
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController!,
+                      children: isMonthly
+                          ? [
+                              // Monthly: 2 tabs
+                              const MonthlyScheduleTab(),
+                              const StatsTab(),
+                            ]
+                          : [
+                              // Hourly: 3 tabs (기존 로직)
+                              MyScheduleTab(
+                                tabController: _tabController!,
+                                stores: stores,
+                                selectedStoreId: _selectedStoreId,
+                                onStoreChanged: _handleStoreChange,
+                              ),
+                              ShiftRequestsTab(
+                                stores: stores,
+                                selectedStoreId: _selectedStoreId,
+                                onStoreChanged: _handleStoreChange,
+                              ),
+                              const StatsTab(),
+                            ],
                     ),
-                    const StatsTab(),
-                  ],
-                ),
-              ),
-          ],
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => TossScaffold(
+        backgroundColor: TossColors.background,
+        appBar: const TossAppBar1(
+          title: 'Attendance',
+          backgroundColor: TossColors.background,
         ),
+        body: const TossLoadingView(),
       ),
+      error: (e, _) {
+        // 에러 시 기본값 Hourly로 처리
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_salaryTypeLoaded) {
+            _initTabController(false);
+            setState(() {});
+          }
+        });
+
+        if (_tabController == null) {
+          return TossScaffold(
+            backgroundColor: TossColors.background,
+            appBar: const TossAppBar1(
+              title: 'Attendance',
+              backgroundColor: TossColors.background,
+            ),
+            body: const TossLoadingView(),
+          );
+        }
+
+        return TossScaffold(
+          backgroundColor: TossColors.background,
+          appBar: const TossAppBar1(
+            title: 'Attendance',
+            backgroundColor: TossColors.background,
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                TossTabBar1(
+                  tabs: const ['My Schedule', 'Shift Sign Up', 'Stats'],
+                  controller: _tabController!,
+                ),
+                if (isLoading)
+                  const Expanded(
+                    child: TossLoadingView(
+                      message: 'Loading store data...',
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController!,
+                      children: [
+                        MyScheduleTab(
+                          tabController: _tabController!,
+                          stores: stores,
+                          selectedStoreId: _selectedStoreId,
+                          onStoreChanged: _handleStoreChange,
+                        ),
+                        ShiftRequestsTab(
+                          stores: stores,
+                          selectedStoreId: _selectedStoreId,
+                          onStoreChanged: _handleStoreChange,
+                        ),
+                        const StatsTab(),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

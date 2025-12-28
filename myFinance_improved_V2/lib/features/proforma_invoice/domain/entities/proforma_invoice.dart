@@ -74,6 +74,7 @@ class PIItem with _$PIItem {
     @Default(0) double discountAmount,
     required double totalAmount,
     String? packingInfo,
+    String? imageUrl,
     @Default(0) int sortOrder,
     DateTime? createdAtUtc,
   }) = _PIItem;

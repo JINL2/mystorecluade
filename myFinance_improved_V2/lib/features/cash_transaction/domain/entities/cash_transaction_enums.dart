@@ -1,8 +1,8 @@
 /// Cash Control Feature - Enums
 /// 직원용 간편 현금 입출금 시스템
 ///
-/// Note: UI 관련 extension (IconData 등)은
-/// presentation/formatters/cash_transaction_ui_extensions.dart에 정의됨
+/// Note: Icon extensions are in presentation/widgets/cash_transaction_icons.dart
+/// to keep domain layer pure (no Flutter dependencies)
 
 /// 현금 방향 (In/Out)
 enum CashDirection {

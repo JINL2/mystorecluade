@@ -1,14 +1,20 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/features/homepage/domain/usecases/create_store.dart';
-import 'package:myfinance_improved/features/homepage/presentation/providers/states/store_state.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/monitoring/sentry_config.dart';
+import '../../domain/usecases/create_store.dart';
+import 'states/store_state.dart';
+import 'usecase_providers.dart';
 
-/// StateNotifier for managing Store creation state
-class StoreNotifier extends StateNotifier<StoreState> {
-  StoreNotifier(this._createStore) : super(const StoreState.initial());
+part 'store_notifier.g.dart';
 
-  final CreateStore _createStore;
+/// Notifier for managing Store creation state
+///
+/// Migrated from StateNotifier to @riverpod Notifier pattern.
+/// Uses StoreState (freezed) for type-safe state management.
+@riverpod
+class StoreNotifier extends _$StoreNotifier {
+  @override
+  StoreState build() => const StoreState.initial();
 
   /// Create a new store
   Future<void> createStore({
@@ -20,18 +26,22 @@ class StoreNotifier extends StateNotifier<StoreState> {
     int? paymentTime,
     int? allowedDistance,
   }) async {
+    final createStore = ref.read(createStoreUseCaseProvider);
+
     state = const StoreState.loading();
 
     try {
-      final result = await _createStore(CreateStoreParams(
-        storeName: storeName,
-        companyId: companyId,
-        storeAddress: storeAddress,
-        storePhone: storePhone,
-        huddleTime: huddleTime,
-        paymentTime: paymentTime,
-        allowedDistance: allowedDistance,
-      ),);
+      final result = await createStore(
+        CreateStoreParams(
+          storeName: storeName,
+          companyId: companyId,
+          storeAddress: storeAddress,
+          storePhone: storePhone,
+          huddleTime: huddleTime,
+          paymentTime: paymentTime,
+          allowedDistance: allowedDistance,
+        ),
+      );
 
       result.fold(
         (failure) {

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../../../shared/widgets/common/toss_app_bar_1.dart';
+import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -67,15 +69,42 @@ class _PIListPageState extends ConsumerState<PIListPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(piListProvider);
 
-    return TossScaffold(
-      appBar: AppBar(
-        title: const Text('Proforma Invoice'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => context.push('/proforma-invoice/new'),
+    // 초기 로딩 중일 때 전체 화면 로딩 뷰 표시
+    if (state.isLoading && state.items.isEmpty) {
+      return TossScaffold(
+        appBar: TossAppBar1(
+          title: 'Proforma Invoice',
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
           ),
-        ],
+        ),
+        body: const TossLoadingView(message: 'Loading...'),
+      );
+    }
+
+    return TossScaffold(
+      appBar: TossAppBar1(
+        title: 'Proforma Invoice',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
+        ),
+        primaryActionIcon: Icons.add,
+        primaryActionText: 'New',
+        onPrimaryAction: () => context.push('/proforma-invoice/new'),
       ),
       body: Column(
         children: [
@@ -119,10 +148,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
   }
 
   Widget _buildContent(PIListState state) {
-    if (state.isLoading && state.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
+    // 초기 로딩은 build()에서 처리하므로 여기서는 에러만 처리
     if (state.error != null && state.items.isEmpty) {
       return Center(
         child: Column(
@@ -190,7 +216,12 @@ class _PIListPageState extends ConsumerState<PIListPage> {
           final item = state.items[index];
           return PIListItemWidget(
             item: item,
-            onTap: () => context.push('/proforma-invoice/${item.id}'),
+            onTap: () async {
+              final result = await context.push<bool>('/proforma-invoice/${item.id}');
+              if (result == true) {
+                ref.read(piListProvider.notifier).refresh();
+              }
+            },
           );
         },
       ),

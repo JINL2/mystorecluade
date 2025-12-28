@@ -103,26 +103,51 @@ class DashboardAlertSummaryModel with _$DashboardAlertSummaryModel {
 }
 
 /// Recent activity model
+/// Supports multiple field name variations from RPC responses
 @freezed
 class RecentActivityModel with _$RecentActivityModel {
   const RecentActivityModel._();
 
   const factory RecentActivityModel({
-    required String id,
-    @JsonKey(name: 'entity_type') required String entityType,
-    @JsonKey(name: 'entity_id') required String entityId,
+    @Default('') String id,
+    @JsonKey(name: 'entity_type') @Default('') String entityType,
+    @JsonKey(name: 'entity_id') @Default('') String entityId,
     @JsonKey(name: 'entity_number') String? entityNumber,
-    required String action,
+    @Default('') String action,
     @JsonKey(name: 'action_detail') String? actionDetail,
     @JsonKey(name: 'previous_status') String? previousStatus,
     @JsonKey(name: 'new_status') String? newStatus,
     @JsonKey(name: 'user_id') String? userId,
     @JsonKey(name: 'user_name') String? userName,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _RecentActivityModel;
 
   factory RecentActivityModel.fromJson(Map<String, dynamic> json) =>
       _$RecentActivityModelFromJson(json);
+
+  /// Create from RPC response with different field names
+  factory RecentActivityModel.fromRpcJson(Map<String, dynamic> json) {
+    return RecentActivityModel(
+      id: json['id']?.toString() ?? '',
+      entityType: json['entity_type']?.toString() ?? '',
+      entityId: json['entity_id']?.toString() ?? '',
+      entityNumber: json['entity_number']?.toString(),
+      action: json['action']?.toString() ?? json['action_type']?.toString() ?? '',
+      actionDetail: json['action_detail']?.toString() ?? json['action_description']?.toString(),
+      previousStatus: json['previous_status']?.toString(),
+      newStatus: json['new_status']?.toString(),
+      userId: json['user_id']?.toString() ?? json['performed_by']?.toString(),
+      userName: json['user_name']?.toString(),
+      createdAt: _parseDateTime(json['created_at'] ?? json['performed_at']),
+    );
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
 
   RecentActivity toEntity() => RecentActivity(
         id: id,
@@ -135,6 +160,6 @@ class RecentActivityModel with _$RecentActivityModel {
         newStatus: newStatus,
         userId: userId,
         userName: userName,
-        createdAt: createdAt,
+        createdAt: createdAt ?? DateTime.now(),
       );
 }

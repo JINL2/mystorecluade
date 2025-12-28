@@ -1,5 +1,9 @@
 // Domain Entity: JournalAttachment
 // Represents an attachment (image/file) associated with a journal entry
+//
+// Clean Architecture Note:
+// This is a pure domain entity. JSON serialization is handled by
+// JournalAttachmentDto in the data layer.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,7 +15,7 @@ part 'journal_attachment.freezed.dart';
 /// Can be in two states:
 /// 1. Pending upload: [localFile] is set, [fileUrl] is null
 /// 2. Uploaded: [fileUrl] is set, [localFile] may be null
-@freezed
+@Freezed(toJson: false, fromJson: false)
 class JournalAttachment with _$JournalAttachment {
   const JournalAttachment._();
 
@@ -22,8 +26,8 @@ class JournalAttachment with _$JournalAttachment {
     /// Journal ID this attachment belongs to (null before journal is created)
     String? journalId,
 
-    /// Local file for pending uploads
-    @JsonKey(includeFromJson: false, includeToJson: false) XFile? localFile,
+    /// Local file for pending uploads (runtime only, not serialized)
+    XFile? localFile,
 
     /// Storage URL after upload
     String? fileUrl,

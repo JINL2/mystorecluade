@@ -129,7 +129,7 @@ class TradeRemoteDatasourceImpl implements TradeRemoteDatasource {
 
     final data = responseMap['data'] as List<dynamic>? ?? [];
     return data
-        .map((e) => RecentActivityModel.fromJson(e as Map<String, dynamic>))
+        .map((e) => RecentActivityModel.fromRpcJson(e as Map<String, dynamic>))
         .toList();
   }
 

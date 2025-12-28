@@ -6,15 +6,16 @@
 /// Following Clean Architecture:
 /// - NO imports from Data layer
 /// - Only Domain layer imports allowed
+///
+/// Note: companyNotifierProvider is defined in notifier_providers.dart
+/// to keep all StateNotifier providers in one place.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/company_type.dart';
 import '../../domain/entities/currency.dart';
-import '../../domain/providers/usecase_providers.dart';
-import 'company_notifier.dart';
-import 'states/company_state.dart';
+import 'usecase_providers.dart';
 
 // ============================================================================
 // Presentation Layer Providers (UI State Management)
@@ -46,14 +47,4 @@ final currenciesProvider = FutureProvider<List<Currency>>((ref) async {
     (failure) => throw Exception(failure.message),
     (currencies) => currencies,
   );
-});
-
-/// Company StateNotifier Provider
-///
-/// Manages company creation state for UI.
-/// Uses CreateCompany use case from domain layer.
-final companyNotifierProvider =
-    StateNotifierProvider<CompanyNotifier, CompanyState>((ref) {
-  final createCompany = ref.watch(createCompanyUseCaseProvider);
-  return CompanyNotifier(createCompany);
 });

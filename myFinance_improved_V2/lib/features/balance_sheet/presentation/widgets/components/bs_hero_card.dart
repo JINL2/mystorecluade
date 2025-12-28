@@ -119,8 +119,12 @@ class BsHeroCard extends StatelessWidget {
                 child: _buildMetricColumn(
                   'Equity',
                   summary.totalEquity,
-                  [],
+                  [
+                    ('D/E Ratio', summary.totalLiabilities / (summary.totalEquity != 0 ? summary.totalEquity : 1)),
+                    ('Equity %', summary.totalAssets != 0 ? (summary.totalEquity / summary.totalAssets * 100) : 0),
+                  ],
                   compactFormatter,
+                  isRatio: true,
                 ),
               ),
             ],
@@ -252,8 +256,9 @@ class BsHeroCard extends StatelessWidget {
     String title,
     double total,
     List<(String, double)> breakdown,
-    NumberFormat formatter,
-  ) {
+    NumberFormat formatter, {
+    bool isRatio = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
       child: Column(
@@ -277,7 +282,9 @@ class BsHeroCard extends StatelessWidget {
           if (breakdown.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space1),
             ...breakdown.map((item) => Text(
-                  '${item.$1}: ${formatter.format(item.$2)}',
+                  isRatio
+                      ? '${item.$1}: ${item.$2.toStringAsFixed(1)}${item.$1.contains('%') ? '%' : 'x'}'
+                      : '${item.$1}: ${formatter.format(item.$2)}',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray500,
                     fontSize: 9,

@@ -57,8 +57,7 @@ class _InvoiceAttachmentSectionState
         final attachments = await processPickedFiles(images);
         notifier.addAttachments(attachments);
       }
-    } catch (e) {
-      debugPrint('Error picking images: $e');
+    } catch (_) {
       _showError('Failed to pick images');
     } finally {
       notifier.setPickingImages(false);
@@ -86,8 +85,7 @@ class _InvoiceAttachmentSectionState
         final attachments = await processPickedFiles([image]);
         notifier.addAttachments(attachments);
       }
-    } catch (e) {
-      debugPrint('Error taking photo: $e');
+    } catch (_) {
       _showError('Failed to take photo');
     } finally {
       notifier.setPickingImages(false);

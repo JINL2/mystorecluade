@@ -199,6 +199,26 @@ class JournalEntryDataSource {
           .where((line) => line.isDebit)
           .fold(0.0, (sum, line) => sum + line.amount);
 
+      // 🔍 DEBUG: Print JSON being sent to RPC
+      debugPrint('🔵 [9] JournalEntryDataSource.submitJournalEntry');
+      debugPrint('═══════════════════════════════════════════');
+      debugPrint('🔍 insert_journal_with_everything_utc DEBUG');
+      debugPrint('═══════════════════════════════════════════');
+      debugPrint('p_base_amount: $totalDebits');
+      debugPrint('p_company_id: $companyId');
+      debugPrint('p_created_by: $userId');
+      debugPrint('p_description: ${journalEntry.overallDescription}');
+      debugPrint('p_entry_date_utc: $entryDate');
+      debugPrint('p_counterparty_id: $mainCounterpartyId');
+      debugPrint('p_if_cash_location_id: ${journalEntry.counterpartyCashLocationId}');
+      debugPrint('p_store_id: $storeId');
+      debugPrint('───────────────────────────────────────────');
+      debugPrint('p_lines (${pLines.length} lines):');
+      for (int i = 0; i < pLines.length; i++) {
+        debugPrint('  Line $i: ${pLines[i]}');
+      }
+      debugPrint('═══════════════════════════════════════════');
+
       // Call the journal RPC - returns journal_id as String
       final journalId = await _supabase.rpc<String>(
         'insert_journal_with_everything_utc',

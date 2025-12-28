@@ -442,6 +442,37 @@ class NotificationSettingsDataSource {
   }
 
   // ===========================================================================
+  // Role Info (사용자 역할 정보)
+  // ===========================================================================
+
+  /// 현재 유저의 role_id, role_type 가져오기
+  Future<({String roleId, String roleType})?> getCurrentUserRoleInfo({
+    required String userId,
+    required String companyId,
+  }) async {
+    try {
+      final result = await _supabase
+          .from('user_roles')
+          .select('role_id, roles!inner(company_id, role_type)')
+          .eq('user_id', userId)
+          .eq('roles.company_id', companyId)
+          .eq('is_deleted', false)
+          .limit(1)
+          .maybeSingle();
+
+      if (result == null) return null;
+
+      final roleId = result['role_id'] as String;
+      final roles = result['roles'] as Map<String, dynamic>;
+      final roleType = roles['role_type'] as String? ?? 'employee';
+
+      return (roleId: roleId, roleType: roleType);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ===========================================================================
   // Master Push Settings (user_notification_settings)
   // ===========================================================================
 
