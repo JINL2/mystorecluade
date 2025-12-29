@@ -35,7 +35,7 @@ class FilterSortBar extends ConsumerWidget {
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           boxShadow: [
             BoxShadow(
-              color: TossColors.black.withOpacity(0.02),
+              color: TossColors.black.withValues(alpha: 0.02),
               blurRadius: 2,
               offset: const Offset(0, 1),
             ),
