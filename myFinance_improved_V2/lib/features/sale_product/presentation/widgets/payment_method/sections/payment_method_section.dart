@@ -28,7 +28,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
 
   @override
   Widget build(BuildContext context) {
-    final paymentState = ref.watch(paymentMethodProvider);
+    final paymentState = ref.watch(paymentMethodNotifierProvider);
 
     // Auto-select if there's only one cash location total
     if (!_hasAutoSelected &&
@@ -37,7 +37,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
         paymentState.selectedCashLocation == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref
-            .read(paymentMethodProvider.notifier)
+            .read(paymentMethodNotifierProvider.notifier)
             .selectCashLocation(paymentState.cashLocations.first);
       });
       _hasAutoSelected = true;
@@ -129,7 +129,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
         const SizedBox(height: TossSpacing.space2),
         TextButton(
           onPressed: () =>
-              ref.read(paymentMethodProvider.notifier).loadCurrencyData(),
+              ref.read(paymentMethodNotifierProvider.notifier).loadCurrencyData(),
           child: const Text('Retry'),
         ),
       ],
@@ -227,13 +227,13 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
             if (isExpanded) {
               // Collapsing - clear selection
               ref
-                  .read(paymentMethodProvider.notifier)
+                  .read(paymentMethodNotifierProvider.notifier)
                   .selectCashLocation(null);
             } else {
               // Expanding - auto-select first location
               if (locations.isNotEmpty) {
                 ref
-                    .read(paymentMethodProvider.notifier)
+                    .read(paymentMethodNotifierProvider.notifier)
                     .selectCashLocation(locations.first);
                 // Notify parent to scroll down
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -306,7 +306,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
             behavior: HitTestBehavior.opaque,
             onTap: () {
               ref
-                  .read(paymentMethodProvider.notifier)
+                  .read(paymentMethodNotifierProvider.notifier)
                   .selectCashLocation(location);
             },
             child: Container(

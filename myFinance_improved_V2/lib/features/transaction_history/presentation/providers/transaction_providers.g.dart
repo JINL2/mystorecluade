@@ -7,7 +7,7 @@ part of 'transaction_providers.dart';
 // **************************************************************************
 
 String _$groupedTransactionsHash() =>
-    r'0d74314294faf6d63d4b1502a4ca8339bc4e529f';
+    r'66e2545e6567e5f6340c570dc96bab92813c2fff';
 
 /// Provider for grouping transactions by date
 ///
@@ -29,7 +29,7 @@ final groupedTransactionsProvider =
 typedef GroupedTransactionsRef
     = AutoDisposeProviderRef<Map<String, List<Transaction>>>;
 String _$transactionFilterOptionsHash() =>
-    r'8cf8c73c4ae01b5a9eae7e485aae41953de4f4bb';
+    r'e0e401c0538c27cf6ca830465c5ad1b28534a481';
 
 /// Provider for filter options (accounts, cash locations, counterparties, journal types)
 ///

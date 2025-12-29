@@ -155,7 +155,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
               bottom: TossSpacing.space4,
             ),
             decoration: BoxDecoration(
-              color: TossColors.textTertiary.withOpacity(0.3),
+              color: TossColors.textTertiary.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
@@ -256,9 +256,9 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(TossSpacing.space3),
                       decoration: BoxDecoration(
-                        color: TossColors.error.withOpacity(0.1),
+                        color: TossColors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        border: Border.all(color: TossColors.error.withOpacity(0.3)),
+                        border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [

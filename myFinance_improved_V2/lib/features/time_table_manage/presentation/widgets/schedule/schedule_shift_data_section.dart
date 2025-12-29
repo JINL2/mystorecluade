@@ -9,9 +9,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../../domain/usecases/toggle_shift_approval.dart';
-import '../../providers/state/monthly_shift_status_provider.dart';
 import '../../providers/time_table_providers.dart';
-import '../../providers/usecase/time_table_usecase_providers.dart';
 import 'schedule_shift_card.dart';
 
 /// Schedule Shift Data Section
@@ -34,10 +32,6 @@ class ScheduleShiftDataSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get selected shift requests from provider
-    final selectedShiftState = ref.watch(selectedShiftRequestsProvider);
-    final selectedShiftRequests = selectedShiftState.selectedIds;
-
     // Get employee shifts for this date
     final employeeShifts = _getEmployeeShiftsForDate(ref);
 
@@ -64,6 +58,9 @@ class ScheduleShiftDataSection extends ConsumerWidget {
               final startTime = _formatShiftTime(shift.startTime);
               final endTime = _formatShiftTime(shift.endTime);
 
+              // Get max capacity from shift metadata
+              final maxCapacity = shift.capacity ?? 0;
+
               // Get assigned employees for this shift
               final assignedEmployees = _getAssignedEmployeesForShift(
                 shiftId,
@@ -77,17 +74,13 @@ class ScheduleShiftDataSection extends ConsumerWidget {
                 shiftName: shiftName,
                 startTime: startTime,
                 endTime: endTime,
+                maxCapacity: maxCapacity,
                 assignedEmployees: assignedEmployees,
-                selectedShiftRequests: selectedShiftRequests,
-                onEmployeeTap: (shiftRequestId, isApproved, actualRequestId) {
-                  ref.read(selectedShiftRequestsProvider.notifier).toggleSelection(
-                        shiftRequestId,
-                        isApproved,
-                        actualRequestId,
-                      );
+                onApprove: (String shiftRequestId) async {
+                  return await _handleApprove(context, ref, shiftRequestId);
                 },
-                onRemoveApproved: (shiftRequestId) async {
-                  await _handleRemoveApproved(context, ref, shiftRequestId);
+                onRemove: (String shiftRequestId) async {
+                  return await _handleRemove(context, ref, shiftRequestId);
                 },
               );
             }),
@@ -208,8 +201,8 @@ class ScheduleShiftDataSection extends ConsumerWidget {
     return assignedEmployees;
   }
 
-  /// Handle removing an approved employee from shift
-  Future<void> _handleRemoveApproved(
+  /// Handle approving a pending employee
+  Future<bool> _handleApprove(
     BuildContext context,
     WidgetRef ref,
     String shiftRequestId,
@@ -219,7 +212,43 @@ class ScheduleShiftDataSection extends ConsumerWidget {
       final userId = ref.read(appStateProvider).userId;
 
       if (userId.isEmpty) {
-        return;
+        return false;
+      }
+
+      // Call toggle shift approval API (toggles is_approved from false to true)
+      final toggleUseCase = ref.read(toggleShiftApprovalUseCaseProvider);
+      await toggleUseCase(
+        ToggleShiftApprovalParams(
+          shiftRequestIds: [shiftRequestId],
+          userId: userId,
+        ),
+      );
+
+      // Refresh shift data to show updated state
+      if (selectedStoreId != null && selectedStoreId!.isNotEmpty) {
+        // Invalidate the cache to force refresh
+        ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
+      }
+
+      return true;
+    } catch (e) {
+      // Silent fail - error handling can be added if needed
+      return false;
+    }
+  }
+
+  /// Handle removing an approved employee from shift
+  Future<bool> _handleRemove(
+    BuildContext context,
+    WidgetRef ref,
+    String shiftRequestId,
+  ) async {
+    try {
+      // Get current user ID from appStateProvider
+      final userId = ref.read(appStateProvider).userId;
+
+      if (userId.isEmpty) {
+        return false;
       }
 
       // Call toggle shift approval API (toggles is_approved from true to false)
@@ -236,8 +265,11 @@ class ScheduleShiftDataSection extends ConsumerWidget {
         // Invalidate the cache to force refresh
         ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
       }
+
+      return true;
     } catch (e) {
       // Silent fail - error handling can be added if needed
+      return false;
     }
   }
 }

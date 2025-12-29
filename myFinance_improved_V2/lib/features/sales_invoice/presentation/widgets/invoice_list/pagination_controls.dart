@@ -13,7 +13,7 @@ class PaginationControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.watch(invoiceListProvider);
+    final invoiceState = ref.watch(invoiceListNotifierProvider);
     final pagination = invoiceState.response?.pagination;
 
     if (pagination == null || pagination.totalPages <= 1) {
@@ -28,7 +28,7 @@ class PaginationControls extends ConsumerWidget {
           // Previous button
           IconButton(
             onPressed: pagination.hasPrev
-                ? () => ref.read(invoiceListProvider.notifier).previousPage()
+                ? () => ref.read(invoiceListNotifierProvider.notifier).previousPage()
                 : null,
             icon: const Icon(Icons.chevron_left),
             color: TossColors.primary,
@@ -57,7 +57,7 @@ class PaginationControls extends ConsumerWidget {
           // Next button
           IconButton(
             onPressed: pagination.hasNext
-                ? () => ref.read(invoiceListProvider.notifier).nextPage()
+                ? () => ref.read(invoiceListNotifierProvider.notifier).nextPage()
                 : null,
             icon: const Icon(Icons.chevron_right),
             color: TossColors.primary,

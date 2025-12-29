@@ -90,7 +90,7 @@ class _CategoryCreationDialogState
         if (!mounted) return;
 
         // Refresh metadata
-        ref.read(inventoryMetadataProvider.notifier).refresh();
+        ref.read(inventoryMetadataNotifierProvider.notifier).refresh();
 
         // Call the callback
         widget.onCategoryCreated(category);
@@ -174,7 +174,7 @@ class _CategoryCreationDialogState
 
   @override
   Widget build(BuildContext context) {
-    final metadataState = ref.watch(inventoryMetadataProvider);
+    final metadataState = ref.watch(inventoryMetadataNotifierProvider);
     final metadata = metadataState.metadata;
 
     return AlertDialog(

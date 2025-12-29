@@ -1,10 +1,17 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+// lib/features/sales_invoice/presentation/providers/invoice_attachment_provider.dart
+//
+// Invoice Attachment Provider migrated to @riverpod
+// Following Clean Architecture 2025
+//
+// Note: Reuses JournalEntryDataSource from journal_input feature for attachment upload
 
-import '../../../journal_input/data/datasources/journal_entry_datasource.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../journal_input/di/journal_input_providers.dart';
 import '../../../journal_input/domain/entities/journal_attachment.dart';
+
+part 'invoice_attachment_provider.g.dart';
 
 /// State for invoice attachment management
 class InvoiceAttachmentState {
@@ -47,12 +54,11 @@ class InvoiceAttachmentState {
   bool get canAddMoreAttachments => pendingAttachments.length < maxAttachments;
 }
 
-/// Invoice attachment notifier
-class InvoiceAttachmentNotifier extends StateNotifier<InvoiceAttachmentState> {
-  final JournalEntryDataSource _dataSource;
-
-  InvoiceAttachmentNotifier(this._dataSource)
-      : super(const InvoiceAttachmentState());
+/// Invoice attachment notifier using @riverpod
+@riverpod
+class InvoiceAttachmentNotifier extends _$InvoiceAttachmentNotifier {
+  @override
+  InvoiceAttachmentState build() => const InvoiceAttachmentState();
 
   /// Add attachments to pending list
   void addAttachments(List<JournalAttachment> attachments) {
@@ -102,7 +108,9 @@ class InvoiceAttachmentNotifier extends StateNotifier<InvoiceAttachmentState> {
         return true;
       }
 
-      await _dataSource.uploadAttachments(
+      // Use journal_input DataSource via DI
+      final dataSource = ref.read(journalEntryDataSourceProvider);
+      await dataSource.uploadAttachments(
         companyId: companyId,
         journalId: journalId,
         uploadedBy: userId,
@@ -130,25 +138,6 @@ class InvoiceAttachmentNotifier extends StateNotifier<InvoiceAttachmentState> {
     state = const InvoiceAttachmentState();
   }
 }
-
-/// Supabase client provider
-final _supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Journal entry data source provider (reuse from journal_input)
-final _journalEntryDataSourceProvider = Provider<JournalEntryDataSource>((ref) {
-  final client = ref.watch(_supabaseClientProvider);
-  return JournalEntryDataSource(client);
-});
-
-/// Invoice attachment provider
-final invoiceAttachmentProvider =
-    StateNotifierProvider<InvoiceAttachmentNotifier, InvoiceAttachmentState>(
-        (ref) {
-  final dataSource = ref.watch(_journalEntryDataSourceProvider);
-  return InvoiceAttachmentNotifier(dataSource);
-});
 
 /// Helper function to process picked files into JournalAttachment list
 Future<List<JournalAttachment>> processPickedFiles(List<XFile> files) async {

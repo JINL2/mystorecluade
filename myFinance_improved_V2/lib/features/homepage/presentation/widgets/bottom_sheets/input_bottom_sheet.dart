@@ -105,7 +105,7 @@ class _InputBottomSheetState extends State<InputBottomSheet> {
           height: TossSpacing.space1,
           margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),

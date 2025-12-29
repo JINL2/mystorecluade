@@ -1,12 +1,9 @@
-import 'dart:developer' as developer;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
 
@@ -109,11 +106,11 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   const SizedBox(height: TossSpacing.space2),
                   GestureDetector(
                     onTap: () async {
-                      final result = await TossNumberpadModal.show(
+                      await TossNumberpadModal.show(
                         context: context,
                         title: 'Enter Amount',
                         initialValue: _amountController.text,
-                        currency: widget.currency.symbol ?? widget.currency.code,
+                        currency: widget.currency.symbol,
                         allowDecimal: true,
                         maxDecimalPlaces: 2,
                         onConfirm: (value) {

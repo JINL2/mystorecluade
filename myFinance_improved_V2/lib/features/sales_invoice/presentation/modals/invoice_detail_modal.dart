@@ -1,3 +1,15 @@
+// lib/features/sales_invoice/presentation/modals/invoice_detail_modal.dart
+//
+// Invoice Detail Modal - Bottom sheet for invoice details
+// Refactored following Clean Architecture 2025 - Single Responsibility Principle
+//
+// Extracted components:
+// - ModalHeaderSection: Handle bar, invoice info, close button
+// - QuickSummaryCard: Total amount and status display
+// - ModalInfoCard: Reusable info cards (Customer, Items, Payment, Store, Created By)
+// - RefundConfirmationDialog: Refund confirmation dialog
+// - ModalRefundButton: Bottom refund button
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -5,10 +17,14 @@ import 'package:intl/intl.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai/ai_description_box.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../domain/entities/invoice.dart';
+import 'components/modal_header_section.dart';
+import 'components/modal_info_card.dart';
+import 'components/modal_refund_button.dart';
+import 'components/quick_summary_card.dart';
+import 'components/refund_confirmation_dialog.dart';
 
 /// Invoice Detail Modal
 ///
@@ -54,7 +70,6 @@ class InvoiceDetailModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(symbol: '', decimalDigits: 0);
     final symbol = currencySymbol ?? '';
 
     return Container(
@@ -67,54 +82,8 @@ class InvoiceDetailModal extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Handle bar
-          Container(
-            width: 48,
-            height: 4,
-            margin: const EdgeInsets.only(top: TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            ),
-          ),
-
           // Header
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        invoice.invoiceNumber,
-                        style: TossTextStyles.h3.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space1),
-                      Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(invoice.saleDate),
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Close button
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                  color: TossColors.gray600,
-                ),
-              ],
-            ),
-          ),
-
-          const Divider(height: 1, color: TossColors.gray100),
+          ModalHeaderSection(invoice: invoice),
 
           // Content
           Expanded(
@@ -123,128 +92,45 @@ class InvoiceDetailModal extends StatelessWidget {
               child: Column(
                 children: [
                   // Quick Summary
-                  _buildQuickSummary(currencyFormat, symbol),
+                  QuickSummaryCard(
+                    invoice: invoice,
+                    currencySymbol: symbol,
+                  ),
 
                   const SizedBox(height: TossSpacing.space4),
 
                   // Customer Info
-                  _buildInfoCard(
-                    icon: Icons.person,
-                    title: 'Customer',
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          invoice.customer?.name ?? 'Walk-in Customer',
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        if (invoice.customer?.phone != null) ...[
-                          const SizedBox(height: TossSpacing.space1),
-                          Text(
-                            invoice.customer!.phone!,
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray600,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                  CustomerInfoCard(
+                    name: invoice.customer?.name,
+                    phone: invoice.customer?.phone,
                   ),
 
                   const SizedBox(height: TossSpacing.space3),
 
                   // Items Summary
-                  _buildInfoCard(
-                    icon: Icons.shopping_cart,
-                    title: 'Items',
-                    content: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${invoice.itemsSummary.itemCount} products',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        Text(
-                          'Qty: ${invoice.itemsSummary.totalQuantity}',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ],
-                    ),
+                  ItemsSummaryCard(
+                    itemCount: invoice.itemsSummary.itemCount,
+                    totalQuantity: invoice.itemsSummary.totalQuantity,
                   ),
 
                   const SizedBox(height: TossSpacing.space3),
 
                   // Payment Info
-                  _buildInfoCard(
-                    icon: Icons.payment,
-                    title: 'Payment',
-                    content: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          invoice.paymentMethod,
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space2,
-                            vertical: TossSpacing.space1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: invoice.isPaid
-                                ? TossColors.success.withValues(alpha: 0.1)
-                                : TossColors.warning.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                          ),
-                          child: Text(
-                            invoice.paymentStatus,
-                            style: TossTextStyles.caption.copyWith(
-                              color: invoice.isPaid
-                                  ? TossColors.success
-                                  : TossColors.warning,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  PaymentInfoCard(
+                    paymentMethod: invoice.paymentMethod,
+                    paymentStatus: invoice.paymentStatus,
+                    isPaid: invoice.isPaid,
                   ),
 
                   const SizedBox(height: TossSpacing.space3),
 
                   // Store Info
-                  _buildInfoCard(
-                    icon: Icons.store,
-                    title: 'Store',
-                    content: Text(
-                      invoice.storeName,
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                  ),
+                  StoreInfoCard(storeName: invoice.storeName),
 
+                  // Created By
                   if (invoice.createdByName != null) ...[
                     const SizedBox(height: TossSpacing.space3),
-                    _buildInfoCard(
-                      icon: Icons.person_outline,
-                      title: 'Created By',
-                      content: Text(
-                        invoice.createdByName!,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                    ),
+                    CreatedByCard(createdByName: invoice.createdByName!),
                   ],
 
                   // AI Summary (if available)
@@ -262,378 +148,28 @@ class InvoiceDetailModal extends StatelessWidget {
 
           // Refund Button (only for completed invoices)
           if (invoice.isCompleted && onRefundPressed != null)
-            _buildRefundButton(context, currencyFormat, symbol),
+            ModalRefundButton(
+              onPressed: () => _handleRefundPressed(context),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildRefundButton(
-    BuildContext context,
-    NumberFormat formatter,
-    String symbol,
-  ) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        TossSpacing.space4,
-        TossSpacing.space3,
-        TossSpacing.space4,
-        TossSpacing.space3 + MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          top: BorderSide(color: TossColors.gray100),
-        ),
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-            _showRefundConfirmation(context, formatter, symbol);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: TossColors.error,
-            foregroundColor: TossColors.white,
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            elevation: 0,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.replay, size: 20),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                'Refund',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  void _handleRefundPressed(BuildContext context) async {
+    final formatter = NumberFormat.currency(symbol: '', decimalDigits: 0);
+    final symbol = currencySymbol ?? '';
+
+    final confirmed = await RefundConfirmationDialog.show(
+      context,
+      invoice: invoice,
+      currencySymbol: symbol,
+      formatter: formatter,
     );
-  }
 
-  void _showRefundConfirmation(
-    BuildContext context,
-    NumberFormat formatter,
-    String symbol,
-  ) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-        title: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: TossColors.error.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.replay,
-                color: TossColors.error,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            const Text('Refund Invoice'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to refund this invoice?',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray700,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Refund Amount',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space1),
-                  Text(
-                    '$symbol${formatter.format(invoice.amounts.totalAmount)}',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: TossColors.error,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            Text(
-              'Invoice: ${invoice.invoiceNumber}',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray500,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext); // Close dialog
-              Navigator.pop(context); // Close bottom sheet
-              onRefundPressed?.call(invoice);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.error,
-              foregroundColor: TossColors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              ),
-            ),
-            child: const Text('Refund'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickSummary(NumberFormat formatter, String symbol) {
-    Color statusColor;
-    IconData statusIcon;
-    String statusText;
-
-    if (invoice.isCompleted) {
-      statusColor = TossColors.success;
-      statusIcon = Icons.check_circle;
-      statusText = 'Completed';
-    } else if (invoice.isDraft) {
-      statusColor = TossColors.warning;
-      statusIcon = Icons.schedule;
-      statusText = 'Draft';
-    } else if (invoice.isCancelled) {
-      statusColor = TossColors.error;
-      statusIcon = Icons.cancel;
-      statusText = 'Cancelled';
-    } else {
-      statusColor = TossColors.gray600;
-      statusIcon = Icons.info;
-      statusText = invoice.status;
+    if (confirmed == true && context.mounted) {
+      Navigator.pop(context); // Close bottom sheet
+      onRefundPressed?.call(invoice);
     }
-
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            TossColors.primary.withValues(alpha: 0.05),
-            TossColors.primary.withValues(alpha: 0.1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Amount',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space1),
-                  Text(
-                    '$symbol${formatter.format(invoice.amounts.totalAmount)}',
-                    style: TossTextStyles.h2.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: TossColors.primary,
-                    ),
-                  ),
-                  // Total Cost (if available)
-                  if (invoice.amounts.totalCost > 0) ...[
-                    const SizedBox(height: TossSpacing.space2),
-                    Row(
-                      children: [
-                        Text(
-                          'Cost: ',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                        Text(
-                          '$symbol${formatter.format(invoice.amounts.totalCost)}',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space3,
-                  vertical: TossSpacing.space2,
-                ),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      statusIcon,
-                      size: 18,
-                      color: statusColor,
-                    ),
-                    const SizedBox(width: TossSpacing.space1),
-                    Text(
-                      statusText,
-                      style: TossTextStyles.body.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          if (invoice.amounts.discountAmount > 0 || invoice.amounts.taxAmount > 0) ...[
-            const SizedBox(height: TossSpacing.space3),
-            const Divider(height: 1, color: TossColors.gray200),
-            const SizedBox(height: TossSpacing.space3),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildAmountDetail(
-                  'Subtotal',
-                  '$symbol${formatter.format(invoice.amounts.subtotal)}',
-                ),
-                if (invoice.amounts.taxAmount > 0)
-                  _buildAmountDetail(
-                    'Tax',
-                    '$symbol${formatter.format(invoice.amounts.taxAmount)}',
-                  ),
-                if (invoice.amounts.discountAmount > 0)
-                  _buildAmountDetail(
-                    'Discount',
-                    '-$symbol${formatter.format(invoice.amounts.discountAmount)}',
-                    color: TossColors.success,
-                  ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAmountDetail(String label, String value, {Color? color}) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space1),
-        Text(
-          value,
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
-            color: color ?? TossColors.gray900,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required Widget content,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: TossColors.white,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              size: 18,
-              color: TossColors.primary,
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space1),
-                content,
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

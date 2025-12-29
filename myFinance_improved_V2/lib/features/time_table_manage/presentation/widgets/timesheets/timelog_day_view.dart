@@ -45,6 +45,7 @@ class TimelogDayView extends StatelessWidget {
         assignedCount: 3,
         totalCount: 3,
         problemCount: 2,
+        date: selectedDate,
         staffRecords: [
           StaffTimeRecord(
             staffId: '1',
@@ -81,6 +82,7 @@ class TimelogDayView extends StatelessWidget {
         assignedCount: 4,
         totalCount: 5,
         problemCount: 0,
+        date: selectedDate,
         staffRecords: [
           StaffTimeRecord(
             staffId: '4',
@@ -115,6 +117,7 @@ class TimelogDayView extends StatelessWidget {
         assignedCount: 2,
         totalCount: 3,
         problemCount: 0,
+        date: selectedDate,
         staffRecords: [
           StaffTimeRecord(
             staffId: '7',

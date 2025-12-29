@@ -1,0 +1,115 @@
+import 'package:flutter/material.dart';
+
+import '../../../../../../core/constants/icon_mapper.dart';
+import '../../../../../../shared/themes/toss_border_radius.dart';
+import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/widgets/toss/toss_time_picker.dart';
+
+/// Time Settings Section Widget
+///
+/// Displays start and end time pickers in a styled container
+class TimeSettingsSection extends StatelessWidget {
+  final TimeOfDay? selectedStartTime;
+  final TimeOfDay? selectedEndTime;
+  final void Function(TimeOfDay) onStartTimeChanged;
+  final void Function(TimeOfDay) onEndTimeChanged;
+
+  const TimeSettingsSection({
+    super.key,
+    required this.selectedStartTime,
+    required this.selectedEndTime,
+    required this.onStartTimeChanged,
+    required this.onEndTimeChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.primary.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+        border: Border.all(
+          color: TossColors.primary.withValues(alpha: 0.1),
+          width: TossSpacing.space1 / 4,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: TossSpacing.space4),
+          _buildStartTimePicker(),
+          const SizedBox(height: TossSpacing.space4),
+          _buildEndTimePicker(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Icon(
+          IconMapper.getIcon('clock'),
+          color: TossColors.primary,
+          size: TossSpacing.iconSM,
+        ),
+        const SizedBox(width: TossSpacing.space2),
+        Text(
+          'Shift Hours',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray700,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStartTimePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Start Time',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray600,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        TossTimePicker(
+          time: selectedStartTime,
+          placeholder: 'Select start time',
+          onTimeChanged: onStartTimeChanged,
+          use24HourFormat: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEndTimePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'End Time',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray600,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        TossTimePicker(
+          time: selectedEndTime,
+          placeholder: 'Select end time',
+          onTimeChanged: onEndTimeChanged,
+          use24HourFormat: false,
+        ),
+      ],
+    );
+  }
+}

@@ -18,7 +18,7 @@ class CashLocationSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final paymentState = ref.watch(paymentMethodProvider);
+    final paymentState = ref.watch(paymentMethodNotifierProvider);
 
     return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -139,7 +139,7 @@ class CashLocationSection extends ConsumerWidget {
         const SizedBox(height: TossSpacing.space2),
         TextButton(
           onPressed: () =>
-              ref.read(paymentMethodProvider.notifier).loadCurrencyData(),
+              ref.read(paymentMethodNotifierProvider.notifier).loadCurrencyData(),
           child: const Text('Retry'),
         ),
       ],

@@ -5,20 +5,20 @@ import '../data/repositories/session_repository_impl.dart';
 import '../domain/repositories/session_repository.dart';
 import '../domain/usecases/add_session_items.dart';
 import '../domain/usecases/close_session.dart';
+import '../domain/usecases/compare_sessions.dart';
 import '../domain/usecases/create_session.dart';
 import '../domain/usecases/get_inventory_page.dart';
+import '../domain/usecases/get_product_stock_by_store.dart';
 import '../domain/usecases/get_session_history.dart';
 import '../domain/usecases/get_session_list.dart';
 import '../domain/usecases/get_session_review_items.dart';
 import '../domain/usecases/get_shipment_list.dart';
 import '../domain/usecases/get_user_session_items.dart';
 import '../domain/usecases/join_session.dart';
-import '../domain/usecases/compare_sessions.dart';
-import '../domain/usecases/get_product_stock_by_store.dart';
 import '../domain/usecases/merge_sessions.dart';
-import '../domain/usecases/update_session_items.dart';
 import '../domain/usecases/search_products.dart';
 import '../domain/usecases/submit_session.dart';
+import '../domain/usecases/update_session_items.dart';
 
 /// Provider for SessionRepository
 /// DI layer provider - connects Data layer implementation to Domain layer interface

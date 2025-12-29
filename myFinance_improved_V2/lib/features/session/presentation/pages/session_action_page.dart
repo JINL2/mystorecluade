@@ -10,6 +10,7 @@ import '../../../../shared/widgets/toss/toss_badge.dart';
 import '../../domain/entities/inventory_session.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../providers/session_list_provider.dart';
+import '../providers/states/session_list_state.dart';
 import 'create_session_page.dart';
 import 'session_count_detail_page.dart';
 
@@ -44,7 +45,7 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
 
     if (result != null && mounted) {
       // Refresh the session list after creating a new session
-      ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
+      ref.read(sessionListNotifierProvider(widget.sessionType).notifier).refresh();
 
       // Get store ID from app state for navigation
       final appState = ref.read(appStateProvider);
@@ -92,13 +93,13 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
 
     // Refresh the session list when returning from detail page
     if (mounted) {
-      ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
+      ref.read(sessionListNotifierProvider(widget.sessionType).notifier).refresh();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(sessionListProvider(widget.sessionType));
+    final state = ref.watch(sessionListNotifierProvider(widget.sessionType));
     final hasData = !state.isEmpty;
 
     return Scaffold(
@@ -153,7 +154,7 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
       return _ErrorView(
         error: state.error ?? 'Unknown error',
         onRetry: () {
-          ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
+          ref.read(sessionListNotifierProvider(widget.sessionType).notifier).refresh();
         },
       );
     }
@@ -256,7 +257,7 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
   Widget _buildSessionList(List<SessionListItem> sessions) {
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(sessionListProvider(widget.sessionType).notifier).refresh();
+        await ref.read(sessionListNotifierProvider(widget.sessionType).notifier).refresh();
       },
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),

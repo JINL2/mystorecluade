@@ -1,9 +1,9 @@
 // Presentation Providers: Inventory Management
-// Riverpod providers for inventory feature
+// Riverpod providers for inventory feature using @riverpod annotation
 
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/inventory_providers.dart';
@@ -16,76 +16,51 @@ import '../../domain/value_objects/sort_option.dart';
 import 'states/inventory_metadata_state.dart';
 import 'states/inventory_page_state.dart';
 
+part 'inventory_providers.g.dart';
+
 // ============================================================================
 // Metadata Provider
 // ============================================================================
 
-/// Inventory Metadata Provider
-/// Fetches categories, brands, units, etc.
-final inventoryMetadataProvider =
-    StateNotifierProvider.autoDispose<InventoryMetadataNotifier, InventoryMetadataState>(
-  (ref) {
-    final repository = ref.watch(inventoryRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
-
-    return InventoryMetadataNotifier(
-      ref: ref,
-      repository: repository,
-      companyId: appState.companyChoosen as String?,
-      storeId: appState.storeChoosen as String?,
-    );
-  },
-);
-
 /// Inventory Metadata Notifier
-class InventoryMetadataNotifier extends StateNotifier<InventoryMetadataState> {
-  final Ref ref;
-  final InventoryRepository repository;
-  final String? companyId;
-  final String? storeId;
+/// Fetches categories, brands, units, etc.
+@riverpod
+class InventoryMetadataNotifier extends _$InventoryMetadataNotifier {
+  @override
+  InventoryMetadataState build() {
+    // Get dependencies
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen as String?;
+    final storeId = appState.storeChoosen as String?;
 
-  InventoryMetadataNotifier({
-    required this.ref,
-    required this.repository,
-    required this.companyId,
-    required this.storeId,
-  }) : super(const InventoryMetadataState()) {
-    _initialize();
-  }
-
-  Future<void> _initialize() async {
-    if (companyId == null || storeId == null) {
-      if (!mounted) return;
-      state = state.copyWith(
+    // Initialize asynchronously
+    if (companyId != null && storeId != null) {
+      _loadMetadata(companyId, storeId);
+    } else {
+      return const InventoryMetadataState(
         error: 'Company or store not selected',
         isLoading: false,
       );
-      return;
     }
 
-    await loadMetadata();
+    return const InventoryMetadataState(isLoading: true);
   }
 
-  Future<void> loadMetadata() async {
-    if (companyId == null || storeId == null) return;
-    if (!mounted) return;
-
-    state = state.copyWith(isLoading: true, error: null);
+  Future<void> _loadMetadata(String companyId, String storeId) async {
+    final repository = ref.read(inventoryRepositoryProvider);
 
     try {
       final metadata = await repository.getMetadata(
-        companyId: companyId!,
-        storeId: storeId!,
+        companyId: companyId,
+        storeId: storeId,
       );
 
-      if (!mounted) return;
       state = state.copyWith(
         metadata: metadata,
         isLoading: false,
         error: null,
       );
     } catch (e) {
-      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -93,94 +68,72 @@ class InventoryMetadataNotifier extends StateNotifier<InventoryMetadataState> {
     }
   }
 
-  Future<void> refresh() => loadMetadata();
+  Future<void> refresh() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen as String?;
+    final storeId = appState.storeChoosen as String?;
+
+    if (companyId == null || storeId == null) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    await _loadMetadata(companyId, storeId);
+  }
 }
 
 // ============================================================================
 // Main Inventory Page Provider
 // ============================================================================
 
-/// Inventory Page Provider
-/// Manages product list, filters, sorting, and pagination
-final inventoryPageProvider =
-    StateNotifierProvider.autoDispose<InventoryPageNotifier, InventoryPageState>(
-  (ref) {
-    final repository = ref.watch(inventoryRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
-
-    // Watch for company/store changes
-    ref.listen(
-      appStateProvider.select((state) => state.companyChoosen),
-      (_, __) {
-        // Reset and reload when company changes
-      },
-    );
-
-    ref.listen(
-      appStateProvider.select((state) => state.storeChoosen),
-      (_, __) {
-        // Reset and reload when store changes
-      },
-    );
-
-    return InventoryPageNotifier(
-      ref: ref,
-      repository: repository,
-      companyId: appState.companyChoosen as String?,
-      storeId: appState.storeChoosen as String?,
-    );
-  },
-);
-
 /// Inventory Page Notifier
-class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
-  final Ref ref;
-  final InventoryRepository repository;
-  final String? companyId;
-  final String? storeId;
+/// Manages product list, filters, sorting, and pagination
+@riverpod
+class InventoryPageNotifier extends _$InventoryPageNotifier {
   Timer? _searchDebounceTimer;
 
-  InventoryPageNotifier({
-    required this.ref,
-    required this.repository,
-    required this.companyId,
-    required this.storeId,
-  }) : super(const InventoryPageState()) {
-    _initialize();
-  }
-
   @override
-  void dispose() {
-    _searchDebounceTimer?.cancel();
-    super.dispose();
-  }
+  InventoryPageState build() {
+    // Get dependencies
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen as String?;
+    final storeId = appState.storeChoosen as String?;
 
-  Future<void> _initialize() async {
-    if (companyId == null || storeId == null) {
-      if (!mounted) return;
-      state = state.copyWith(
+    // Cancel timer on dispose
+    ref.onDispose(() {
+      _searchDebounceTimer?.cancel();
+    });
+
+    // Initialize asynchronously
+    if (companyId != null && storeId != null) {
+      _initialize(companyId, storeId);
+    } else {
+      return const InventoryPageState(
         error: 'Company or store not selected',
         isLoading: false,
       );
-      return;
     }
 
+    return const InventoryPageState(isLoading: true);
+  }
+
+  Future<void> _initialize(String companyId, String storeId) async {
     await loadInitialData();
   }
 
   /// Load initial products
   Future<void> loadInitialData() async {
+    final repository = ref.read(inventoryRepositoryProvider);
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen as String?;
+    final storeId = appState.storeChoosen as String?;
+
     if (companyId == null || storeId == null) return;
-    if (state.isLoading) return;
-    if (!mounted) return;
+    if (state.isLoading && state.products.isNotEmpty) return;
 
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       // Load base currency first
-      await _loadBaseCurrency();
-
-      if (!mounted) return;
+      await _loadBaseCurrency(repository, companyId);
 
       final filter = ProductFilter(
         searchQuery: state.searchQuery,
@@ -197,14 +150,12 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
           : SortOption.defaultOption;
 
       final result = await repository.getProducts(
-        companyId: companyId!,
-        storeId: storeId!,
-        pagination: const PaginationParams(),  // Uses default page=1, limit=10
+        companyId: companyId,
+        storeId: storeId,
+        pagination: const PaginationParams(),
         filter: filter,
         sortOption: sortOption,
       );
-
-      if (!mounted) return;
 
       if (result != null) {
         state = state.copyWith(
@@ -223,7 +174,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         );
       }
     } catch (e) {
-      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -232,12 +182,12 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
   }
 
   /// Load base currency from get_base_currency RPC
-  Future<void> _loadBaseCurrency() async {
-    if (companyId == null) return;
-
+  Future<void> _loadBaseCurrency(
+    InventoryRepository repository,
+    String companyId,
+  ) async {
     try {
-      final result = await repository.getBaseCurrency(companyId: companyId!);
-      if (!mounted) return;
+      final result = await repository.getBaseCurrency(companyId: companyId);
       if (result != null) {
         state = state.copyWith(baseCurrency: result.baseCurrency);
       }
@@ -250,9 +200,13 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Load next page (pagination)
   Future<void> loadNextPage() async {
+    final repository = ref.read(inventoryRepositoryProvider);
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen as String?;
+    final storeId = appState.storeChoosen as String?;
+
     if (companyId == null || storeId == null) return;
     if (state.isLoadingMore || !state.canLoadMore) return;
-    if (!mounted) return;
 
     state = state.copyWith(isLoadingMore: true);
 
@@ -273,14 +227,12 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
       final nextPage = state.pagination.page + 1;
       final result = await repository.getProducts(
-        companyId: companyId!,
-        storeId: storeId!,
-        pagination: PaginationParams(page: nextPage),  // limit uses default
+        companyId: companyId,
+        storeId: storeId,
+        pagination: PaginationParams(page: nextPage),
         filter: filter,
         sortOption: sortOption,
       );
-
-      if (!mounted) return;
 
       if (result != null) {
         final allProducts = [...state.products, ...result.products];
@@ -293,14 +245,12 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
         state = state.copyWith(isLoadingMore: false);
       }
     } catch (e) {
-      if (!mounted) return;
       state = state.copyWith(isLoadingMore: false);
     }
   }
 
   /// Refresh data
   Future<void> refresh() async {
-    if (!mounted) return;
     state = state.copyWith(
       products: [],
       pagination: const PaginationResult(
@@ -317,7 +267,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Add product to list if not already present (for search result navigation)
   void addProductIfNotExists(Product product) {
-    if (!mounted) return;
     final exists = state.products.any((p) => p.id == product.id);
     if (!exists) {
       state = state.copyWith(products: [...state.products, product]);
@@ -326,20 +275,18 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set search query with debounce
   void setSearchQuery(String? query) {
-    if (!mounted) return;
     if (state.searchQuery != query) {
       state = state.copyWith(searchQuery: query);
 
       _searchDebounceTimer?.cancel();
       _searchDebounceTimer = Timer(InventoryConstants.searchDebounceDelay, () {
-        if (mounted) refresh();
+        refresh();
       });
     }
   }
 
   /// Set category filter
   void setCategory(String? categoryId) {
-    if (!mounted) return;
     if (state.selectedCategoryId != categoryId) {
       state = state.copyWith(selectedCategoryId: categoryId);
       refresh();
@@ -348,7 +295,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set brand filter
   void setBrand(String? brandId) {
-    if (!mounted) return;
     if (state.selectedBrandId != brandId) {
       state = state.copyWith(selectedBrandId: brandId);
       refresh();
@@ -357,7 +303,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set stock status filter
   void setStockStatus(String? status) {
-    if (!mounted) return;
     if (state.selectedStockStatus != status) {
       state = state.copyWith(selectedStockStatus: status);
       refresh();
@@ -366,7 +311,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Set sorting
   void setSorting(String sortBy, String sortDirection) {
-    if (!mounted) return;
     if (state.sortBy != sortBy || state.sortDirection != sortDirection) {
       state = state.copyWith(
         sortBy: sortBy,
@@ -382,7 +326,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
     String? brandId,
     String? stockStatus,
   }) {
-    if (!mounted) return;
     final hasChanged = state.selectedCategoryId != categoryId ||
         state.selectedBrandId != brandId ||
         state.selectedStockStatus != stockStatus;
@@ -399,7 +342,6 @@ class InventoryPageNotifier extends StateNotifier<InventoryPageState> {
 
   /// Clear all filters
   void clearFilters() {
-    if (!mounted) return;
     state = state.copyWith(
       searchQuery: null,
       selectedCategoryId: null,

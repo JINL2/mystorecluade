@@ -14,14 +14,13 @@ import '../../../domain/entities/shift.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../pages/staff_timelog_detail_page.dart';
-import '../../providers/state/coverage_gap_provider.dart';
-import '../../providers/state/problem_status_provider.dart';
 import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
-import 'attention_card.dart';
-import 'attention_timeline.dart';
-import 'shift_info_card.dart';
 import '../timesheets/staff_timelog_card.dart';
+import 'attention_items_builder.dart';
+import 'attention_timeline.dart';
+import 'overview_helpers.dart';
+import 'shift_info_card.dart';
 
 /// Overview Tab
 ///
@@ -52,78 +51,32 @@ class OverviewTab extends ConsumerStatefulWidget {
   ConsumerState<OverviewTab> createState() => _OverviewTabState();
 }
 
-class _OverviewTabState extends ConsumerState<OverviewTab> {
+class _OverviewTabState extends ConsumerState<OverviewTab>
+    with OverviewHelpersMixin {
   /// Center date for the attention timeline (defaults to today)
   late DateTime _timelineCenterDate;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // OPTIMIZATION: Cached computed values to avoid recalculation on each build
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Cached all cards from manager cards state (expensive to compute)
-  List<ShiftCard>? _cachedAllCards;
-  /// Hash of the last manager cards state to detect changes
-  int _lastCardsStateHash = 0;
-
-  /// Cached attention items (expensive to compute)
-  List<AttentionItemData>? _cachedAttentionItems;
-  /// Hash of inputs for attention items cache invalidation
-  int _lastAttentionInputsHash = 0;
-
-  /// Cached cards by shift lookup (Map<"shiftDate_shiftName", List<ShiftCard>>)
-  Map<String, List<ShiftCard>>? _cachedCardsByShift;
+  /// Attention items builder (handles complex attention item logic)
+  late AttentionItemsBuilder _attentionItemsBuilder;
 
   @override
   void initState() {
     super.initState();
     _timelineCenterDate = DateTime.now();
+    _attentionItemsBuilder = AttentionItemsBuilder(
+      selectedStoreId: widget.selectedStoreId,
+    );
   }
 
-  /// Get all cards with caching (avoids repeated .expand() and .toList())
-  ///
-  /// IMPORTANT: Cache is invalidated when:
-  /// 1. Number of months or total cards changes
-  /// 2. Problem status on any card changes (detected via problemHash)
-  List<ShiftCard> _getAllCards(ManagerShiftCardsState? cardsState) {
-    if (cardsState == null) return [];
-
-    // Create a hash that includes:
-    // 1. Number of months and total cards
-    // 2. Problem status (problemCount + unsolved count) for cache invalidation
-    final countHash = cardsState.dataByMonth.length * 1000 +
-        cardsState.dataByMonth.values.fold<int>(0, (sum, m) => sum + m.cards.length);
-
-    // Include problem status in hash to detect isSolved changes
-    final problemHash = cardsState.dataByMonth.values
-        .expand((m) => m.cards)
-        .where((c) => c.isApproved && c.problemDetails != null)
-        .fold<int>(0, (sum, c) {
-          final pd = c.problemDetails!;
-          final unsolvedCount = pd.problems.where((p) => !p.isSolved).length;
-          return sum + pd.problemCount * 10 + unsolvedCount;
-        });
-
-    final currentHash = countHash * 1000 + problemHash;
-
-    if (_cachedAllCards != null && _lastCardsStateHash == currentHash) {
-      return _cachedAllCards!;
+  @override
+  void didUpdateWidget(OverviewTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update builder when store changes
+    if (widget.selectedStoreId != oldWidget.selectedStoreId) {
+      _attentionItemsBuilder = AttentionItemsBuilder(
+        selectedStoreId: widget.selectedStoreId,
+      );
     }
-
-    // Compute and cache
-    _cachedAllCards = cardsState.dataByMonth.values
-        .expand((managerCards) => managerCards.cards)
-        .toList();
-    _lastCardsStateHash = currentHash;
-
-    // Also rebuild the cards-by-shift lookup
-    _cachedCardsByShift = {};
-    for (final card in _cachedAllCards!) {
-      if (!card.isApproved) continue;
-      final key = '${card.shiftDate}_${card.shift.shiftName}';
-      _cachedCardsByShift!.putIfAbsent(key, () => []).add(card);
-    }
-
-    return _cachedAllCards!;
   }
 
   /// Move timeline to previous 5 days
@@ -140,50 +93,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     });
   }
 
-  /// Format date for display (e.g., "Tue, 18 Jun 2025")
-  String _formatDate(DateTime date) {
-    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    final weekday = weekdays[date.weekday - 1];
-    final month = months[date.month - 1];
-
-    return '$weekday, ${date.day} $month ${date.year}';
-  }
-
-  /// Format time range (e.g., "09:00 – 13:00")
-  String _formatTimeRange(DateTime start, DateTime end) {
-    final startStr = '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
-    final endStr = '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
-    return '$startStr – $endStr';
-  }
-
-  /// Get cards for a specific shift from manager cards data
-  ///
-  /// OPTIMIZED: Uses cached lookup map instead of filtering all cards each time
-  /// Note: RPC doesn't return shift_id, so we match by:
-  /// - shiftDate (exact match)
-  /// - shiftName (exact match)
-  /// - isApproved = true (only approved cards)
-  List<ShiftCard> _getCardsForShift(
-    ManagerShiftCardsState? cardsState,
-    String shiftName,
-    String shiftDate,
-  ) {
-    if (cardsState == null) return [];
-
-    // Ensure cache is populated
-    _getAllCards(cardsState);
-
-    // O(1) lookup instead of O(n) filtering
-    final key = '${shiftDate}_$shiftName';
-    return _cachedCardsByShift?[key] ?? [];
-  }
-
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
-    final stores = _extractStores(appState.user, appState.companyChoosen);
+    final stores = extractStores(appState.user, appState.companyChoosen);
 
     // If no store selected, show store selector only (if multiple stores exist)
     if (widget.selectedStoreId == null || widget.selectedStoreId!.isEmpty) {
@@ -331,11 +244,11 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     // Get cards for this specific shift from manager_shift_get_cards_v3 data
     // Match by shiftName since RPC doesn't return shift_id
     final shiftDate = '${shift.planStartTime.year}-${shift.planStartTime.month.toString().padLeft(2, '0')}-${shift.planStartTime.day.toString().padLeft(2, '0')}';
-    final cardsForShift = _getCardsForShift(managerCardsState, shift.shiftName ?? '', shiftDate);
+    final cardsForShift = getCardsForShift(managerCardsState, shift.shiftName ?? '', shiftDate);
 
     // ✅ UseCase: Calculate attendance status with consecutive shift support
     // OPTIMIZED: Use cached allCards instead of recomputing
-    final allCards = _getAllCards(managerCardsState);
+    final allCards = getAllCards(managerCardsState);
     final allCardsEntity = allCards.isNotEmpty
         ? ManagerShiftCards(
             storeId: widget.selectedStoreId ?? '',
@@ -371,9 +284,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     }).toList();
 
     return ShiftInfoCard(
-      date: _formatDate(shift.planStartTime),
+      date: formatDate(shift.planStartTime),
       shiftName: shift.shiftName ?? 'Unnamed Shift',
-      timeRange: _formatTimeRange(shift.planStartTime, shift.planEndTime),
+      timeRange: formatTimeRange(shift.planStartTime, shift.planEndTime),
       type: ShiftCardType.active,
       statusLabel: '$arrivedCount/$targetCount arrived',
       statusType: arrivedCount >= targetCount
@@ -426,263 +339,14 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     )).toList();
 
     return ShiftInfoCard(
-      date: _formatDate(shift.planStartTime),
+      date: formatDate(shift.planStartTime),
       shiftName: shift.shiftName ?? 'Unnamed Shift',
-      timeRange: _formatTimeRange(shift.planStartTime, shift.planEndTime),
+      timeRange: formatTimeRange(shift.planStartTime, shift.planEndTime),
       type: ShiftCardType.upcoming,
       statusLabel: '$approvedCount/$targetCount assigned',
       statusType: ShiftStatusType.neutral,
       staffList: staffList,
     );
-  }
-
-  /// Get attention items from real data (with caching)
-  ///
-  /// OPTIMIZED: Results are cached and only recomputed when input data changes
-  ///
-  /// Sources:
-  /// 1. manager_shift_get_cards_v4 (is_approved = true):
-  ///    - Late: is_late = true (show late_minute)
-  ///    - Problem: is_problem = true AND is_problem_solved = false
-  ///    - Reported: is_reported = true AND is_problem_solved = false
-  ///    - Overtime: is_overtime = true (show overtime_minute)
-  /// 2. Coverage Gap Detection (NEW):
-  ///    - Uses centralized coverageGapProvider for consistent data across tabs
-  ///    - Only shows gap if no shift with approved employees covers that time
-  ///    - Replaces old "understaffed" logic which counted per-shift
-  List<AttentionItemData> _getAttentionItems(
-    ManagerShiftCardsState? managerCardsState,
-    MonthlyShiftStatusState? monthlyStatusState,
-    ShiftMetadata? shiftMetadata, {
-    CoverageGapState? coverageGapState,
-  }) {
-    // Compute cache hash from input data AND storeId
-    // Include storeId to invalidate cache when store changes
-    final storeHash = widget.selectedStoreId?.hashCode ?? 0;
-    final cardsHash = managerCardsState?.dataByMonth.values
-        .fold<int>(0, (sum, m) => sum + m.cards.length) ?? 0;
-    final statusHash = monthlyStatusState?.allMonthlyStatuses
-        .fold<int>(0, (sum, s) => sum + s.dailyShifts.length) ?? 0;
-    final metadataHash = shiftMetadata?.activeShifts.length ?? 0;
-    final coverageGapHash = coverageGapState?.totalGapCount ?? 0;
-
-    // Include problem status in hash to invalidate cache when isSolved changes
-    // Count unsolved problems to detect status changes
-    final problemHash = managerCardsState?.dataByMonth.values
-        .expand((m) => m.cards)
-        .where((c) => c.isApproved && c.problemDetails != null)
-        .fold<int>(0, (sum, c) {
-          final pd = c.problemDetails!;
-          // Include both problemCount and unsolved count in hash
-          final unsolvedCount = pd.problems.where((p) => !p.isSolved).length;
-          return sum + pd.problemCount * 10 + unsolvedCount;
-        }) ?? 0;
-
-    final currentHash = storeHash + cardsHash * 10000 + statusHash * 100 + metadataHash + problemHash + coverageGapHash;
-
-    // Return cached result if inputs haven't changed
-    if (_cachedAttentionItems != null && _lastAttentionInputsHash == currentHash) {
-      return _cachedAttentionItems!;
-    }
-
-    final List<AttentionItemData> items = [];
-
-    // 1. Get attention items from manager cards (approved cards only)
-    // Use problem_details_v2 exclusively (same as Problems tab)
-    final allCards = _getAllCards(managerCardsState);
-    final approvedCards = allCards.where((card) => card.isApproved).toList();
-
-    // Pre-compute consecutive end times for all staff+date combinations (same as problemStatusProvider)
-    final Map<String, DateTime> consecutiveEndTimeMap = {};
-    final Map<String, List<DateTime>> staffDateEndTimes = {};
-
-    for (final card in approvedCards) {
-      final endTime = _parseShiftEndTime(card.shiftEndTime);
-      if (endTime == null) continue;
-
-      final mapKey = '${card.employee.userId}_${card.shiftDate}';
-      staffDateEndTimes.putIfAbsent(mapKey, () => []).add(endTime);
-    }
-
-    for (final entry in staffDateEndTimes.entries) {
-      entry.value.sort();
-      consecutiveEndTimeMap[entry.key] = entry.value.last;
-    }
-
-    // Get current time for filtering (same as problemStatusProvider)
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    for (final card in approvedCards) {
-      final shiftDate = DateTime.tryParse(card.shiftDate);
-      if (shiftDate == null) continue;
-
-      final cardDate = DateTime(shiftDate.year, shiftDate.month, shiftDate.day);
-      final dateStr = _formatDate(shiftDate);
-      final timeStr = _formatTimeRange(card.shift.planStartTime, card.shift.planEndTime);
-
-      // Skip future dates (same logic as problemStatusProvider)
-      if (cardDate.isAfter(today)) continue;
-
-      // Check if shift is still in progress using pre-computed map (same as problemStatusProvider)
-      final mapKey = '${card.employee.userId}_${card.shiftDate}';
-      final shiftEndTime = consecutiveEndTimeMap[mapKey];
-      if (shiftEndTime != null && now.isBefore(shiftEndTime)) {
-        continue; // Shift still in progress
-      }
-
-      // Use problem_details_v2 exclusively (no legacy fallback)
-      final pd = card.problemDetails;
-      if (pd == null || pd.problemCount == 0) continue;
-
-      // Skip if all problems are solved (same logic as problemStatusProvider)
-      if (pd.isFullySolved) continue;
-
-      // Extract values from problem_details_v2 (no legacy fields)
-      final hasLate = pd.problems.any((p) => p.type == 'late' && !p.isSolved);
-      final hasOvertime = pd.problems.any((p) => p.type == 'overtime' && !p.isSolved);
-      final hasReported = pd.problems.any((p) => p.type == 'reported' && !p.isSolved);
-      final reportedProblem = pd.problems.where((p) => p.type == 'reported').firstOrNull;
-      final lateProblem = pd.problems.where((p) => p.type == 'late').firstOrNull;
-      final overtimeProblem = pd.problems.where((p) => p.type == 'overtime').firstOrNull;
-
-      // Common navigation data for staff items
-      AttentionItemData createStaffAttentionItem({
-        required AttentionType type,
-        required String subtext,
-        int? lateMinutes,
-        int? overtimeMinutes,
-        String? reportReason,
-      }) {
-        return AttentionItemData(
-          type: type,
-          title: card.employee.userName,
-          date: dateStr,
-          time: timeStr,
-          subtext: subtext,
-          // Navigation data
-          staffId: card.employee.userId,
-          shiftRequestId: card.shiftRequestId,
-          clockIn: card.actualStartTime != null
-              ? '${card.actualStartTime!.hour.toString().padLeft(2, '0')}:${card.actualStartTime!.minute.toString().padLeft(2, '0')}'
-              : '--:--',
-          clockOut: card.actualEndTime != null
-              ? '${card.actualEndTime!.hour.toString().padLeft(2, '0')}:${card.actualEndTime!.minute.toString().padLeft(2, '0')}'
-              : '--:--',
-          // Use problem_details_v2 instead of legacy fields
-          isLate: hasLate,
-          isOvertime: hasOvertime,
-          isConfirmed: card.confirmedStartTime != null || card.confirmedEndTime != null,
-          actualStart: card.actualStartTime?.toIso8601String(),
-          actualEnd: card.actualEndTime?.toIso8601String(),
-          confirmStartTime: card.confirmedStartTime?.toIso8601String(),
-          confirmEndTime: card.confirmedEndTime?.toIso8601String(),
-          isReported: hasReported,
-          reportReason: reportReason ?? reportedProblem?.reason,
-          isProblemSolved: pd.isSolved,
-          bonusAmount: card.bonusAmount ?? 0.0,
-          salaryType: card.salaryType,
-          salaryAmount: card.salaryAmount,
-          basePay: card.basePay,
-          totalPayWithBonus: card.totalPayWithBonus,
-          paidHour: card.paidHour,
-          lateMinute: lateMinutes ?? lateProblem?.actualMinutes ?? 0,
-          overtimeMinute: overtimeMinutes ?? overtimeProblem?.actualMinutes ?? 0,
-          avatarUrl: card.employee.profileImage,
-          shiftDate: shiftDate,
-          shiftName: card.shift.shiftName,
-          shiftTimeRange: timeStr,
-          isShiftProblem: false,
-          shiftEndTime: shiftEndTime,
-        );
-      }
-
-      // Process each problem from problem_details_v2
-      for (final problemItem in pd.problems) {
-        // Skip solved problems
-        if (problemItem.isSolved) continue;
-
-        final problemType = _mapProblemTypeFromString(problemItem.type);
-        if (problemType == null) continue;
-
-        // Build subtext based on problem type
-        String subtext;
-        int? lateMinutes;
-        int? overtimeMinutes;
-        String? reportReason;
-
-        switch (problemType) {
-          case AttentionType.late:
-            lateMinutes = problemItem.actualMinutes;
-            subtext = '${lateMinutes ?? 0} mins late';
-          case AttentionType.overtime:
-            overtimeMinutes = problemItem.actualMinutes;
-            final hours = (overtimeMinutes ?? 0) ~/ 60;
-            final mins = (overtimeMinutes ?? 0) % 60;
-            subtext = hours > 0
-                ? (mins > 0 ? '$hours hrs $mins mins overtime' : '$hours hrs overtime')
-                : '${overtimeMinutes ?? 0} mins overtime';
-          case AttentionType.reported:
-            reportReason = problemItem.reason;
-            subtext = reportReason ?? 'Reported';
-          case AttentionType.noCheckIn:
-            subtext = 'No check-in recorded';
-          case AttentionType.noCheckOut:
-            subtext = 'No check-out recorded';
-          case AttentionType.earlyCheckOut:
-            subtext = '${problemItem.actualMinutes ?? 0} mins early';
-          case AttentionType.understaffed:
-            continue; // Skip understaffed - handled separately
-        }
-
-        items.add(
-          createStaffAttentionItem(
-            type: problemType,
-            subtext: subtext,
-            lateMinutes: lateMinutes,
-            overtimeMinutes: overtimeMinutes,
-            reportReason: reportReason,
-          ),
-        );
-      }
-    }
-
-    // 2. Coverage Gap Detection - Uses CENTRALIZED coverageGapProvider
-    // This ensures consistent data between Overview and Schedule tabs
-    // The provider handles:
-    // - Fetching business hours (no default value fallback during loading)
-    // - Approved shift coverage calculation
-    // - TODAY time-based filtering (only show gaps AFTER current time)
-    // - Caching for performance
-    //
-    // NOTE: coverageGapState is passed in from _buildNeedAttentionTimeline
-    //       to avoid duplicate provider watch calls
-    if (coverageGapState != null && !coverageGapState.isLoading) {
-      for (final entry in coverageGapState.gapsByDate.entries) {
-        final gapInfo = entry.value;
-        if (!gapInfo.hasGap) continue;
-
-        final normalizedDate = entry.key;
-
-        items.add(AttentionItemData(
-          type: AttentionType.understaffed,
-          title: 'Schedule Gap',
-          date: _formatDate(normalizedDate),
-          time: gapInfo.gapSummary,
-          subtext: 'Uncovered: ${gapInfo.gapSummary}',
-          isShiftProblem: true,
-          shiftDate: normalizedDate,
-          shiftName: 'Coverage Gap',
-          shiftTimeRange: gapInfo.gapSummary,
-        ));
-      }
-    }
-
-    // Cache the result for next build
-    _cachedAttentionItems = items;
-    _lastAttentionInputsHash = currentHash;
-
-    return items;
   }
 
   /// Build Need Attention Timeline (new design)
@@ -729,10 +393,14 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
       coverageGapState = state;
     }
 
-    final attentionItems = _getAttentionItems(
-      managerCardsState,
-      monthlyStatusState,
-      shiftMetadata,
+    final attentionItems = _attentionItemsBuilder.getAttentionItems(
+      managerCardsState: managerCardsState,
+      monthlyStatusState: monthlyStatusState,
+      shiftMetadata: shiftMetadata,
+      getAllCards: getAllCards,
+      formatDate: formatDate,
+      formatTimeRange: formatTimeRange,
+      parseShiftEndTime: parseShiftEndTime,
       coverageGapState: coverageGapState,
     );
 
@@ -779,8 +447,8 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     // Parse shift end time and find consecutive end time
     // For consecutive shifts (e.g., Morning 10-14 + Afternoon 14-18),
     // use the LAST shift's end time (18:00) for all shifts
-    final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
-    final shiftEndTime = _findConsecutiveEndTime(
+    final currentShiftEndTime = parseShiftEndTime(card.shiftEndTime);
+    final shiftEndTime = findConsecutiveEndTime(
       staffId: card.employee.userId,
       shiftDate: card.shiftDate,
       currentShiftEndTime: currentShiftEndTime,
@@ -840,7 +508,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
           staffRecord: staffRecord,
           shiftName: shift.shiftName ?? 'Shift',
           shiftDate: shiftDateStr,
-          shiftTimeRange: _formatTimeRange(shift.planStartTime, shift.planEndTime),
+          shiftTimeRange: formatTimeRange(shift.planStartTime, shift.planEndTime),
         ),
       ),
     );
@@ -878,113 +546,4 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
     );
   }
 
-  /// Map problem type string from problem_details_v2 to AttentionType
-  /// NOTE: Type strings from RPC use 'no_checkin', 'no_checkout', 'early_leave'
-  /// (same as timesheets_tab.dart)
-  AttentionType? _mapProblemTypeFromString(String type) {
-    switch (type.toLowerCase()) {
-      case 'late':
-        return AttentionType.late;
-      case 'overtime':
-        return AttentionType.overtime;
-      case 'reported':
-        return AttentionType.reported;
-      case 'no_checkin':
-      case 'no_check_in':  // fallback for safety
-        return AttentionType.noCheckIn;
-      case 'no_checkout':
-      case 'no_check_out':  // fallback for safety
-        return AttentionType.noCheckOut;
-      case 'early_leave':
-      case 'early_check_out':  // fallback for safety
-        return AttentionType.earlyCheckOut;
-      case 'absence':
-        return AttentionType.noCheckIn;  // Map absence to noCheckIn (same as Problems tab)
-      default:
-        return null;
-    }
-  }
-
-  /// Parse shift end time string to DateTime
-  /// Format: "2025-12-08 18:00" or "2025-12-08T18:00"
-  DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
-    if (shiftEndTimeStr == null || shiftEndTimeStr.isEmpty) return null;
-    try {
-      final normalized = shiftEndTimeStr.replaceAll('T', ' ');
-      final parts = normalized.split(' ');
-      if (parts.length < 2) return null;
-
-      final dateParts = parts[0].split('-');
-      final timeParts = parts[1].split(':');
-      if (dateParts.length < 3 || timeParts.length < 2) return null;
-
-      return DateTime(
-        int.parse(dateParts[0]),
-        int.parse(dateParts[1]),
-        int.parse(dateParts[2]),
-        int.parse(timeParts[0]),
-        int.parse(timeParts[1]),
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Find the last consecutive shift end time for a staff member on a given date
-  /// Returns the end time of the last shift of the day for this staff member
-  DateTime? _findConsecutiveEndTime({
-    required String staffId,
-    required String shiftDate,
-    required DateTime? currentShiftEndTime,
-    required List<ShiftCard> allCards,
-  }) {
-    if (currentShiftEndTime == null) return null;
-
-    // Find all shifts for this staff member on the same date
-    final staffShiftsOnDate = allCards
-        .where((c) => c.employee.userId == staffId && c.shiftDate == shiftDate)
-        .toList();
-
-    if (staffShiftsOnDate.isEmpty) return currentShiftEndTime;
-
-    // Parse all shift end times and sort
-    final shiftEndTimes = <DateTime>[];
-    for (final card in staffShiftsOnDate) {
-      final endTime = _parseShiftEndTime(card.shiftEndTime);
-      if (endTime != null) {
-        shiftEndTimes.add(endTime);
-      }
-    }
-
-    if (shiftEndTimes.isEmpty) return currentShiftEndTime;
-
-    // Sort by time and return the latest
-    shiftEndTimes.sort();
-    return shiftEndTimes.last;
-  }
-
-  /// Extract stores from user data for the currently selected company
-  List<dynamic> _extractStores(Map<String, dynamic> userData, String selectedCompanyId) {
-    if (userData.isEmpty || selectedCompanyId.isEmpty) return [];
-
-    try {
-      final companies = userData['companies'] as List<dynamic>?;
-      if (companies == null || companies.isEmpty) return [];
-
-      // Find the company matching the selected company ID
-      for (final company in companies) {
-        final companyMap = company as Map<String, dynamic>;
-        final companyId = companyMap['company_id']?.toString() ?? '';
-        if (companyId == selectedCompanyId) {
-          final stores = companyMap['stores'] as List<dynamic>?;
-          return stores ?? [];
-        }
-      }
-
-      // Fallback: if no matching company found, return empty
-      return [];
-    } catch (e) {
-      return [];
-    }
-  }
 }

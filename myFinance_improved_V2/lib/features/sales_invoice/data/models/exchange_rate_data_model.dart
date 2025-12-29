@@ -24,12 +24,14 @@ class ExchangeRateDataModel {
       ),
       rates: (ratesJson ?? [])
           .cast<Map<String, dynamic>>()
-          .map((rateJson) => ExchangeRate(
-                currencyCode: rateJson['currency_code']?.toString() ?? '',
-                symbol: rateJson['symbol']?.toString() ?? '',
-                rate: (rateJson['rate'] as num?)?.toDouble() ?? 1.0,
-                name: rateJson['currency_name']?.toString(),
-              ))
+          .map(
+            (rateJson) => ExchangeRate(
+              currencyCode: rateJson['currency_code']?.toString() ?? '',
+              symbol: rateJson['symbol']?.toString() ?? '',
+              rate: (rateJson['rate'] as num?)?.toDouble() ?? 1.0,
+              name: rateJson['currency_name']?.toString(),
+            ),
+          )
           .toList(),
     );
   }

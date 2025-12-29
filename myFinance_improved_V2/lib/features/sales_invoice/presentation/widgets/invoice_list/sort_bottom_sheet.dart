@@ -90,7 +90,7 @@ class InvoiceSortBottomSheet {
         if (currentSort == option) {
           // Deselect - clear server sort
           onSortChanged(null);
-          ref.read(invoiceListProvider.notifier).clearServerSort();
+          ref.read(invoiceListNotifierProvider.notifier).clearServerSort();
         } else {
           // Select new sort option
           onSortChanged(option);
@@ -102,7 +102,7 @@ class InvoiceSortBottomSheet {
 
   /// Apply server-side sorting via RPC
   static void _applyServerSort(WidgetRef ref, InvoiceSortOption option) {
-    final notifier = ref.read(invoiceListProvider.notifier);
+    final notifier = ref.read(invoiceListNotifierProvider.notifier);
 
     if (option == InvoiceSortOption.dateDesc) {
       notifier.updateServerSort(dateFilter: 'newest', amountFilter: null);

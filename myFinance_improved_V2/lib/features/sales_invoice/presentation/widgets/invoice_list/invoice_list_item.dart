@@ -69,7 +69,7 @@ class InvoiceListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = ref.watch(invoiceListProvider).response?.currency;
+    final currency = ref.watch(invoiceListNotifierProvider).response?.currency;
 
     return InkWell(
       onTap: () {

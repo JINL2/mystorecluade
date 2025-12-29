@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
@@ -13,8 +15,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../di/providers.dart';
 import '../../domain/entities/currency.dart';
-import '../providers/exchange_rate_provider.dart';
+import 'edit_exchange_rate/currency_info_header.dart';
+import 'edit_exchange_rate/current_rate_info.dart';
+import 'edit_exchange_rate/exchange_rate_input_field.dart';
 
+/// Bottom sheet for editing exchange rates
 class EditExchangeRateBottomSheet extends ConsumerStatefulWidget {
   final Currency currency;
 
@@ -57,33 +62,31 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
-      
+
       if (companyId.isEmpty) return;
-      
+
       final supabase = Supabase.instance.client;
-      
-      // Query companies table to get base_currency_id
+
       final companyResult = await supabase
           .from('companies')
           .select('base_currency_id')
           .eq('company_id', companyId)
           .single();
-          
+
       if (companyResult['base_currency_id'] != null) {
         baseCurrencyId = companyResult['base_currency_id'] as String;
-        
-        // Query currency_types to get base currency symbol and code
+
         final currencyResult = await supabase
             .from('currency_types')
             .select('symbol, currency_code')
             .eq('currency_id', baseCurrencyId!)
             .single();
-            
+
         setState(() {
           baseCurrencySymbol = currencyResult['symbol'] as String;
           baseCurrencyCode = currencyResult['currency_code'] as String;
         });
-            }
+      }
     } catch (e) {
       debugPrint('Error fetching base currency: $e');
     }
@@ -93,12 +96,11 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
-      
+
       if (companyId.isEmpty || baseCurrencyId == null) return;
-      
+
       final supabase = Supabase.instance.client;
-      
-      // Get the current exchange rate from book_exchange_rates table
+
       final rateResult = await supabase
           .from('book_exchange_rates')
           .select('rate')
@@ -108,7 +110,7 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
           .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();
-          
+
       if (rateResult != null) {
         setState(() {
           currentExchangeRate = (rateResult['rate'] as num).toDouble();
@@ -123,12 +125,9 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
   Future<void> _fetchLatestExchangeRate() async {
     if (baseCurrencyCode == null) return;
 
-    setState(() {
-      isFetchingRate = true;
-    });
+    setState(() => isFetchingRate = true);
 
     try {
-      // Note: API gives rate from base to target, so we need to get rate from selected currency to base currency
       final rate = await ref
           .read(exchangeRateServiceProvider)
           .getExchangeRate(widget.currency.code, baseCurrencyCode!);
@@ -138,8 +137,7 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
           exchangeRateController.text = rate.toStringAsFixed(4);
           isFetchingRate = false;
         });
-        
-        // Show success feedback
+
         HapticFeedback.lightImpact();
         await showDialog<bool>(
           context: context,
@@ -153,10 +151,8 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          isFetchingRate = false;
-        });
-        
+        setState(() => isFetchingRate = false);
+
         await showDialog<bool>(
           context: context,
           barrierDismissible: true,
@@ -172,43 +168,25 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
 
   Future<void> _updateExchangeRate() async {
     final exchangeRateText = exchangeRateController.text.trim();
-    
+
     if (exchangeRateText.isEmpty) {
-      await showDialog<bool>(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) => TossDialog.error(
-          title: 'Invalid Input',
-          message: 'Please enter an exchange rate',
-          primaryButtonText: 'OK',
-        ),
-      );
+      await _showErrorDialog('Please enter an exchange rate');
       return;
     }
 
     final exchangeRate = double.tryParse(exchangeRateText);
     if (exchangeRate == null || exchangeRate <= 0) {
-      await showDialog<bool>(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) => TossDialog.error(
-          title: 'Invalid Input',
-          message: 'Please enter a valid exchange rate',
-          primaryButtonText: 'OK',
-        ),
-      );
+      await _showErrorDialog('Please enter a valid exchange rate');
       return;
     }
 
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
 
     try {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final userId = appState.user['user_id'] as String;
-      
+
       if (companyId.isEmpty) {
         throw Exception('No company selected');
       }
@@ -217,7 +195,6 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       final now = DateTimeUtils.nowUtc();
       final today = DateTimeUtils.toDateOnly(DateTime.now());
 
-      // Insert new exchange rate record
       await supabase.from('book_exchange_rates').insert({
         'company_id': companyId,
         'from_currency_id': widget.currency.id,
@@ -228,7 +205,6 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
         'created_at': now,
       });
 
-      // Show success message
       if (mounted) {
         await showDialog<bool>(
           context: context,
@@ -239,22 +215,14 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
             primaryButtonText: 'OK',
           ),
         );
-
-        // Close the bottom sheet
         context.pop();
       }
 
-      // Success haptic feedback
       HapticFeedback.selectionClick();
-
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      
-      // Error haptic feedback
+      setState(() => isLoading = false);
       HapticFeedback.heavyImpact();
-      
+
       if (mounted) {
         await showDialog<bool>(
           context: context,
@@ -269,6 +237,18 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
     }
   }
 
+  Future<void> _showErrorDialog(String message) async {
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => TossDialog.error(
+        title: 'Invalid Input',
+        message: message,
+        primaryButtonText: 'OK',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return TossBottomSheet(
@@ -277,18 +257,15 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
         builder: (context, constraints) {
           final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
           final isKeyboardVisible = keyboardHeight > 0;
-          
+
           return GestureDetector(
-            onTap: () {
-              // Dismiss keyboard when tapping anywhere outside the text field
-              FocusScope.of(context).unfocus();
-            },
-            behavior: HitTestBehavior.opaque, // Ensure taps on empty areas are detected
+            onTap: () => FocusScope.of(context).unfocus(),
+            behavior: HitTestBehavior.opaque,
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: isKeyboardVisible 
+                  minHeight: isKeyboardVisible
                       ? constraints.maxHeight - keyboardHeight
                       : constraints.maxHeight,
                 ),
@@ -297,237 +274,108 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
                     padding: EdgeInsets.only(
                       bottom: isKeyboardVisible ? keyboardHeight + 16 : 16,
                     ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-          // Currency info header
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              border: Border.all(color: TossColors.gray200),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: TossColors.white,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    border: Border.all(color: TossColors.gray200),
-                  ),
-                  child: Center(
-                    child: Text(
-                      widget.currency.flagEmoji,
-                      style: TossTextStyles.h3,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${widget.currency.code} - ${widget.currency.name}',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Currency info header
+                        CurrencyInfoHeader(
+                          currency: widget.currency,
+                          baseCurrencySymbol: baseCurrencySymbol,
+                          baseCurrencyCode: baseCurrencyCode,
                         ),
-                      ),
-                      const SizedBox(height: TossSpacing.space1),
-                      if (baseCurrencySymbol != null) ...[
-                        Text(
-                          'Base Currency: $baseCurrencySymbol ($baseCurrencyCode)',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray500,
+
+                        const SizedBox(height: TossSpacing.space5),
+
+                        // Current exchange rate info
+                        if (currentExchangeRate != null) ...[
+                          CurrentRateInfo(
+                            currencyCode: widget.currency.code,
+                            currentRate: currentExchangeRate!,
+                            baseCurrencySymbol: baseCurrencySymbol,
+                          ),
+                          const SizedBox(height: TossSpacing.space4),
+                        ],
+
+                        // Exchange rate input
+                        ExchangeRateInputField(
+                          controller: exchangeRateController,
+                          baseCurrencySymbol: baseCurrencySymbol,
+                          isFetchingRate: isFetchingRate,
+                        ),
+
+                        const SizedBox(height: TossSpacing.space4),
+
+                        // Fetch latest rate button
+                        _buildFetchRateButton(),
+
+                        const SizedBox(height: TossSpacing.space4),
+
+                        // Update button
+                        SizedBox(
+                          width: double.infinity,
+                          child: TossPrimaryButton(
+                            text: 'Update Exchange Rate',
+                            onPressed: isLoading ? null : _updateExchangeRate,
+                            isLoading: isLoading,
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: TossSpacing.space5),
-
-          // Current exchange rate info
-          if (currentExchangeRate != null) ...[
-            Container(
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(color: TossColors.primary.withValues(alpha: 0.2)),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: TossColors.primary, size: 20),
-                  const SizedBox(width: TossSpacing.space2),
-                  Expanded(
-                    child: Text(
-                      'Current Rate: 1 ${widget.currency.code} = ${currentExchangeRate!.toStringAsFixed(4)} ${baseCurrencySymbol ?? ''}',
-                      style: TossTextStyles.bodySmall.copyWith(
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFetchRateButton() {
+    return Center(
+      child: SizedBox(
+        width: 250,
+        height: 56,
+        child: OutlinedButton(
+          onPressed: isFetchingRate ? null : _fetchLatestExchangeRate,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: TossColors.white,
+            foregroundColor: TossColors.primary,
+            side: const BorderSide(
+              color: TossColors.primary,
+              width: 1.5,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+            ),
+            elevation: 0,
+          ),
+          child: isFetchingRate
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.refresh, size: 20),
+                    const SizedBox(width: TossSpacing.space2),
+                    Text(
+                      'Fetch Latest Rate',
+                      style: TossTextStyles.button.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                         color: TossColors.primary,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-          ],
-
-          // Exchange rate input
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Exchange Rate',
-                style: TossTextStyles.label.copyWith(
-                  color: TossColors.gray700,
+                  ],
                 ),
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              TextFormField(
-                controller: exchangeRateController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                  signed: false, // No negative numbers
-                ),
-                inputFormatters: [
-                  // Only allow digits and one decimal point with up to 4 decimal places
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,4}')),
-                ],
-                textInputAction: TextInputAction.done, // Shows "Done" button on keyboard
-                enabled: !isFetchingRate,
-                autofocus: false,
-                style: TossTextStyles.body.copyWith(
-                  color: !isFetchingRate ? TossColors.gray900 : TossColors.gray500,
-                  fontSize: 16,
-                ),
-                cursorColor: TossColors.primary,
-                onTapOutside: (event) {
-                  // Additional way to dismiss keyboard when tapping outside
-                  FocusScope.of(context).unfocus();
-                },
-                onEditingComplete: () {
-                  // Dismiss keyboard when user presses "Done" button
-                  FocusScope.of(context).unfocus();
-                },
-                decoration: InputDecoration(
-                  hintText: 'Enter exchange rate',
-                  hintStyle: TossTextStyles.body.copyWith(
-                    color: TossColors.gray400,
-                  ),
-                  filled: true,
-                  fillColor: !isFetchingRate ? TossColors.gray50 : TossColors.gray100,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    borderSide: const BorderSide(
-                      color: TossColors.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space4,
-                    vertical: TossSpacing.space4,
-                  ),
-                  prefixIcon: const Icon(Icons.swap_horiz, color: TossColors.gray500),
-                  suffixText: baseCurrencySymbol,
-                  suffixStyle: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: TossSpacing.space4),
-
-          // Fetch latest rate button - SMALLER WIDTH, CENTERED, outlined style
-          Center(
-            child: SizedBox(
-              width: 250, // Smaller width like a regular button
-              height: 56,
-              child: OutlinedButton(
-                onPressed: isFetchingRate ? null : _fetchLatestExchangeRate,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: TossColors.white,
-                  foregroundColor: TossColors.primary,
-                  side: const BorderSide(
-                    color: TossColors.primary,
-                    width: 1.5,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-                  ),
-                  elevation: 0,
-                ),
-                child: isFetchingRate
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.refresh, size: 20),
-                          const SizedBox(width: TossSpacing.space2),
-                          Text(
-                            'Fetch Latest Rate',
-                            style: TossTextStyles.button.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: TossColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: TossSpacing.space4),
-
-          // Update button - FULL WIDTH, primary filled button
-          SizedBox(
-            width: double.infinity, // Ensure full width
-            child: TossPrimaryButton(
-              text: 'Update Exchange Rate',
-              onPressed: isLoading ? null : _updateExchangeRate,
-              isLoading: isLoading,
-            ),
-          ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          );
-        },
+        ),
       ),
     );
   }

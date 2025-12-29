@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/features/delegate_role/domain/entities/role.dart';
-import 'package:myfinance_improved/features/delegate_role/presentation/providers/state/state_providers.dart';
+import 'package:myfinance_improved/features/delegate_role/presentation/providers/role_providers.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/widgets/create_role_sheet/create_role_sheet.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/widgets/role_card_widget.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/widgets/role_management_sheet.dart';

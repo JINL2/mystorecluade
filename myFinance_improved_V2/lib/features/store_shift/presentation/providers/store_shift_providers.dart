@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/business_hours.dart';
 import '../../domain/entities/store_shift.dart';
 import '../../domain/entities/work_schedule_template.dart';
-import '../../domain/providers/repository_provider.dart';
 import '../../domain/usecases/create_shift.dart';
 import '../../domain/usecases/delete_shift.dart';
 import '../../domain/usecases/get_business_hours.dart';
@@ -14,90 +14,97 @@ import '../../domain/usecases/update_operational_settings.dart';
 import '../../domain/usecases/update_shift.dart';
 import '../../domain/usecases/update_store_location.dart';
 import '../../domain/value_objects/shift_params.dart';
+import 'di_providers.dart';
 import 'states/shift_form_state.dart';
 import 'states/shift_page_state.dart';
 import 'states/store_settings_state.dart';
 
-/// ========================================
-/// CLEAN ARCHITECTURE COMPLIANCE ✅
-/// ========================================
-///
-/// Presentation layer structure (IMPROVED):
-/// - Imports repository provider from DOMAIN layer (repository_provider.dart)
-/// - Data layer provides concrete implementation through override in main.dart
-/// - Presentation layer depends ONLY on Domain (UseCases, Entities, Repository interfaces)
-///
-/// Dependency Flow:
-/// Presentation → Domain Providers → Domain Interfaces
-///                     ↑
-///              Data Implementation (injected via ProviderScope.overrides)
-///
-/// Clean Architecture Benefits:
-/// ✅ Presentation does NOT import Data layer at all
-/// ✅ Presentation only knows about Domain interfaces
-/// ✅ Data layer can be swapped without affecting Presentation
-/// ✅ Easy to mock repositories for testing
-///
-/// Implementation:
-/// 1. Domain defines: storeShiftRepositoryProvider (throws UnimplementedError)
-/// 2. Data provides: storeShiftRepositoryImplProvider (concrete implementation)
-/// 3. main.dart overrides: storeShiftRepositoryProvider with storeShiftRepositoryImplProvider
-/// 4. Presentation uses: storeShiftRepositoryProvider (gets Data's implementation)
+part 'store_shift_providers.g.dart';
 
 /// ========================================
-/// UseCase Providers
+/// CLEAN ARCHITECTURE 2025 ✅
+/// ========================================
+///
+/// DI 구조 (Riverpod as DI):
+/// - Repository Provider는 presentation/providers/di_providers.dart에서 정의
+/// - Domain은 인터페이스(abstract class)만 정의
+/// - Riverpod이 DI 컨테이너 역할 수행
+///
+/// 의존성 흐름:
+/// Presentation (di_providers.dart)
+///      ↓ provides
+/// Repository Impl (data layer)
+///      ↓ implements
+/// Repository Interface (domain layer)
+///
+/// Clean Architecture Benefits:
+/// ✅ Domain 레이어 순수성 유지 (Riverpod 의존성 없음)
+/// ✅ Presentation에서 DI 관리 (표준 패턴)
+/// ✅ 테스트 시 Provider override로 Mock 주입 가능
+/// ✅ ProviderScope.overrides 불필요
+
+/// ========================================
+/// UseCase Providers (@riverpod 2025)
 /// ========================================
 
 /// Get Shifts UseCase Provider
-final getShiftsUseCaseProvider = Provider<GetShifts>((ref) {
+@riverpod
+GetShifts getShiftsUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return GetShifts(repository);
-});
+}
 
 /// Create Shift UseCase Provider
-final createShiftUseCaseProvider = Provider<CreateShift>((ref) {
+@riverpod
+CreateShift createShiftUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return CreateShift(repository);
-});
+}
 
 /// Update Shift UseCase Provider
-final updateShiftUseCaseProvider = Provider<UpdateShift>((ref) {
+@riverpod
+UpdateShift updateShiftUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return UpdateShift(repository);
-});
+}
 
 /// Delete Shift UseCase Provider
-final deleteShiftUseCaseProvider = Provider<DeleteShift>((ref) {
+@riverpod
+DeleteShift deleteShiftUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return DeleteShift(repository);
-});
+}
 
 /// Update Store Location UseCase Provider
-final updateStoreLocationUseCaseProvider = Provider<UpdateStoreLocation>((ref) {
+@riverpod
+UpdateStoreLocation updateStoreLocationUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return UpdateStoreLocation(repository);
-});
+}
 
 /// Update Operational Settings UseCase Provider
-final updateOperationalSettingsUseCaseProvider = Provider<UpdateOperationalSettings>((ref) {
+@riverpod
+UpdateOperationalSettings updateOperationalSettingsUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return UpdateOperationalSettings(repository);
-});
+}
 
 /// Get Business Hours UseCase Provider
-final getBusinessHoursUseCaseProvider = Provider<GetBusinessHours>((ref) {
+@riverpod
+GetBusinessHours getBusinessHoursUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return GetBusinessHours(repository);
-});
+}
 
 /// Update Business Hours UseCase Provider
-final updateBusinessHoursUseCaseProvider = Provider<UpdateBusinessHours>((ref) {
+@riverpod
+UpdateBusinessHours updateBusinessHoursUseCase(Ref ref) {
   final repository = ref.watch(storeShiftRepositoryProvider);
   return UpdateBusinessHours(repository);
-});
+}
 
 /// ========================================
-/// Business Logic Providers
+/// Business Logic Providers (@riverpod 2025)
 /// ========================================
 ///
 /// These providers use UseCases from the Domain layer.
@@ -107,7 +114,8 @@ final updateBusinessHoursUseCaseProvider = Provider<UpdateBusinessHours>((ref) {
 ///
 /// Uses Domain Repository Provider (implementation injected via DI)
 /// Returns empty list if no store is selected.
-final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) async {
+@riverpod
+Future<List<StoreShift>> storeShifts(Ref ref) async {
   final appState = ref.watch(appStateProvider);
 
   // If no store is selected, return empty list
@@ -118,13 +126,14 @@ final storeShiftsProvider = FutureProvider.autoDispose<List<StoreShift>>((ref) a
   // Use Domain Repository Provider (Clean Architecture compliant)
   final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getShiftsByStoreId(appState.storeChoosen);
-});
+}
 
 /// Provider to fetch detailed store information
 ///
 /// Uses Domain Repository Provider (implementation injected via DI)
 /// Returns null if no store is selected.
-final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
+@riverpod
+Future<Map<String, dynamic>?> storeDetails(Ref ref) async {
   final appState = ref.watch(appStateProvider);
 
   // If no store is selected, return null
@@ -135,13 +144,14 @@ final storeDetailsProvider = FutureProvider.autoDispose<Map<String, dynamic>?>((
   // Use Domain Repository Provider (Clean Architecture compliant)
   final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getStoreById(appState.storeChoosen);
-});
+}
 
 /// Provider to fetch business hours for the selected store
 ///
 /// Uses Domain Repository Provider (implementation injected via DI)
 /// Returns default hours if no hours configured or no store selected.
-final businessHoursProvider = FutureProvider.autoDispose<List<BusinessHours>>((ref) async {
+@riverpod
+Future<List<BusinessHours>> businessHours(Ref ref) async {
   final appState = ref.watch(appStateProvider);
 
   // If no store is selected, return default hours
@@ -159,7 +169,7 @@ final businessHoursProvider = FutureProvider.autoDispose<List<BusinessHours>>((r
   }
 
   return hours;
-});
+}
 
 /// ========================================
 /// UI State Providers (Freezed States)
@@ -334,13 +344,13 @@ final updateBusinessHoursProvider = Provider.autoDispose<
 });
 
 /// ========================================
-/// Work Schedule Template Providers
+/// Work Schedule Template Providers (@riverpod 2025)
 /// ========================================
 /// For monthly (salary-based) employees
 
 /// Provider to fetch work schedule templates for the current company
-final workScheduleTemplatesProvider =
-    FutureProvider.autoDispose<List<WorkScheduleTemplate>>((ref) async {
+@riverpod
+Future<List<WorkScheduleTemplate>> workScheduleTemplates(Ref ref) async {
   final appState = ref.watch(appStateProvider);
 
   // If no company is selected, return empty list
@@ -350,7 +360,7 @@ final workScheduleTemplatesProvider =
 
   final repository = ref.watch(storeShiftRepositoryProvider);
   return await repository.getWorkScheduleTemplates(appState.companyChoosen);
-});
+}
 
 /// Create a new work schedule template
 final createWorkScheduleTemplateProvider = Provider.autoDispose<

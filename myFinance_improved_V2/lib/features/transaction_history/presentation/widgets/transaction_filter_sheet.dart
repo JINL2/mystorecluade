@@ -1,30 +1,45 @@
+// lib/features/transaction_history/presentation/widgets/transaction_filter_sheet.dart
+//
+// Transaction Filter Sheet - Refactored following Clean Architecture 2025
+// Single Responsibility Principle applied
+//
+// Extracted widgets:
+// - filter_sheet/scope_toggle_section.dart
+// - filter_sheet/quick_date_filters_section.dart
+// - filter_sheet/date_range_section.dart
+// - filter_sheet/filter_options_section.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/common/toss_loading_view.dart';
+import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
+import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
+import '../../../../shared/widgets/toss/toss_primary_button.dart';
+import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 import '../../domain/entities/transaction_filter.dart';
 import '../providers/transaction_providers.dart';
+import 'filter_sheet/date_range_section.dart';
+import 'filter_sheet/filter_options_section.dart';
+import 'filter_sheet/quick_date_filters_section.dart';
+import 'filter_sheet/scope_toggle_section.dart';
 
+/// Transaction filter bottom sheet
 class TransactionFilterSheet extends ConsumerStatefulWidget {
   const TransactionFilterSheet({super.key});
 
   @override
-  ConsumerState<TransactionFilterSheet> createState() => _TransactionFilterSheetState();
+  ConsumerState<TransactionFilterSheet> createState() =>
+      _TransactionFilterSheetState();
 }
 
-class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet> {
+class _TransactionFilterSheetState
+    extends ConsumerState<TransactionFilterSheet> {
   late TransactionFilter _filter;
   TransactionScope _selectedScope = TransactionScope.store;
   DateTime? _selectedFromDate;
@@ -39,6 +54,10 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
   @override
   void initState() {
     super.initState();
+    _initializeFromCurrentFilter();
+  }
+
+  void _initializeFromCurrentFilter() {
     _filter = ref.read(transactionFilterStateProvider);
     _selectedScope = _filter.scope;
     _selectedFromDate = _filter.dateFrom;
@@ -59,12 +78,12 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
   Widget build(BuildContext context) {
     final filterOptionsAsync = ref.watch(transactionFilterOptionsProvider);
     final screenHeight = MediaQuery.of(context).size.height;
-    final maxHeight = screenHeight * 0.8; // Use 80% of screen height max
-    
+    final maxHeight = screenHeight * 0.8;
+
     return TossBottomSheet(
       content: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: maxHeight - 100, // Account for TossBottomSheet padding and handle
+          maxHeight: maxHeight - 100,
         ),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -72,199 +91,122 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          // Header - Using Toss design principles
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Filter Transactions',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.bold,
+              // Header
+              _buildHeader(),
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Scope Toggle
+              ScopeToggleSection(
+                selectedScope: _selectedScope,
+                onScopeChanged: (scope) => setState(() => _selectedScope = scope),
+              ),
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Quick Date Filters
+              QuickDateFiltersSection(
+                onDateRangeSelected: (from, to) {
+                  setState(() {
+                    _selectedFromDate = from;
+                    _selectedToDate = to;
+                  });
+                },
+              ),
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Custom Date Range
+              DateRangeSection(
+                fromDate: _selectedFromDate,
+                toDate: _selectedToDate,
+                onFromDateChanged: (date) =>
+                    setState(() => _selectedFromDate = date),
+                onToDateChanged: (date) =>
+                    setState(() => _selectedToDate = date),
+              ),
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Account Selector
+              EnhancedAccountSelector(
+                selectedAccountId: _selectedAccountId,
+                contextType: 'transaction_filter',
+                showQuickAccess: true,
+                maxQuickItems: 5,
+                onAccountSelected: (account) {
+                  setState(() {
+                    _selectedAccountId = account.id;
+                    _selectedAccountIds = [account.id];
+                  });
+                },
+                label: 'Account',
+                hint: 'All Accounts',
+                showSearch: true,
+                showTransactionCount: true,
+              ),
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Cash Location Selector
+              AutonomousCashLocationSelector(
+                selectedLocationId: _selectedCashLocationId,
+                onChanged: (value) =>
+                    setState(() => _selectedCashLocationId = value),
+              ),
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Counterparty Selector
+              AutonomousCounterpartySelector(
+                selectedCounterpartyId: _selectedCounterpartyId,
+                onChanged: (value) =>
+                    setState(() => _selectedCounterpartyId = value),
+              ),
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Filter Options (Transaction Type, Created By)
+              filterOptionsAsync.when(
+                data: (options) => FilterOptionsSection(
+                  optionsSnapshot: AsyncSnapshot.withData(
+                    ConnectionState.done,
+                    options,
+                  ),
+                  selectedJournalType: _selectedJournalType,
+                  selectedCreatedBy: _selectedCreatedBy,
+                  onJournalTypeChanged: (value) =>
+                      setState(() => _selectedJournalType = value),
+                  onCreatedByChanged: (value) =>
+                      setState(() => _selectedCreatedBy = value),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close, color: TossColors.gray700),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Scope Toggle - Store vs Company view
-          _buildScopeToggle(),
-          
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Quick Date Filters - Toss style chips
-          _buildQuickDateFilters(),
-          
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Custom Date Range - Toss style date pickers
-          _buildDateRangeSection(),
-          
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Account Selector
-          EnhancedAccountSelector(
-            selectedAccountId: _selectedAccountId,
-            contextType: 'transaction_filter',
-            showQuickAccess: true,
-            maxQuickItems: 5,
-            onAccountSelected: (account) {
-              setState(() {
-                _selectedAccountId = account.id;
-                _selectedAccountIds = [account.id];
-              });
-            },
-            label: 'Account',
-            hint: 'All Accounts',
-            showSearch: true,
-            showTransactionCount: true,
-          ),
-
-          const SizedBox(height: TossSpacing.space4),
-
-          // Cash Location Selector
-          AutonomousCashLocationSelector(
-            selectedLocationId: _selectedCashLocationId,
-            onChanged: (value) {
-              setState(() {
-                _selectedCashLocationId = value;
-              });
-            },
-          ),
-
-          const SizedBox(height: TossSpacing.space4),
-
-          // Counterparty Selector
-          AutonomousCounterpartySelector(
-            selectedCounterpartyId: _selectedCounterpartyId,
-            onChanged: (value) {
-              setState(() {
-                _selectedCounterpartyId = value;
-              });
-            },
-          ),
-
-          const SizedBox(height: TossSpacing.space4),
-
-          // Filter Options that still need async data (Transaction Type, Created By)
-          filterOptionsAsync.when(
-            data: (options) => Column(
-              children: [
-                // Transaction Type
-                TossDropdown<String?>(
-                  label: 'Transaction Type',
-                  value: _selectedJournalType,
-                  hint: 'All Types',
-                  items: [
-                    const TossDropdownItem(
-                      value: null,
-                      label: 'All Types',
-                    ),
-                    ...options.journalTypes.map((type) => 
-                      TossDropdownItem(
-                        value: type.id,
-                        label: type.name,
-                        subtitle: '${type.transactionCount} transactions',
-                      ),
-                    ),
+                loading: () => const Column(
+                  children: [
+                    SizedBox(height: TossSpacing.space6),
+                    Center(child: TossLoadingView()),
+                    SizedBox(height: TossSpacing.space6),
                   ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedJournalType = value;
-                    });
-                  },
                 ),
-                const SizedBox(height: TossSpacing.space4),
-                
-                // Created By
-                TossDropdown<String?>(
-                  label: 'Created By',
-                  value: _selectedCreatedBy,
-                  hint: 'All Users',
-                  items: [
-                    const TossDropdownItem(
-                      value: null,
-                      label: 'All Users',
-                    ),
-                    ...options.users.map((user) => 
-                      TossDropdownItem(
-                        value: user.id,
-                        label: user.name,
-                        subtitle: '${user.transactionCount} transactions',
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCreatedBy = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: TossSpacing.space4),
-              ],
-            ),
-            loading: () => const Column(
-              children: [
-                SizedBox(height: TossSpacing.space6),
-                Center(
-                  child: TossLoadingView(),
-                ),
-                SizedBox(height: TossSpacing.space6),
-              ],
-            ),
-            error: (error, _) => Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(TossSpacing.space4),
-                  decoration: BoxDecoration(
-                    color: TossColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                error: (error, _) => FilterOptionsSection(
+                  optionsSnapshot: AsyncSnapshot.withError(
+                    ConnectionState.done,
+                    error,
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconSM),
-                      const SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: Text(
-                          'Failed to load filter options',
-                          style: TossTextStyles.caption.copyWith(color: TossColors.error),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space4),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: TossSpacing.space6),
-          
-          // Action Buttons - Already using Toss components correctly
-          Row(
-            children: [
-              Expanded(
-                child: TossSecondaryButton(
-                  text: 'Clear All',
-                  onPressed: _clearFilters,
+                  selectedJournalType: _selectedJournalType,
+                  selectedCreatedBy: _selectedCreatedBy,
+                  onJournalTypeChanged: (value) =>
+                      setState(() => _selectedJournalType = value),
+                  onCreatedByChanged: (value) =>
+                      setState(() => _selectedCreatedBy = value),
                 ),
               ),
-              const SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: TossPrimaryButton(
-                  text: 'Apply Filter',
-                  onPressed: _applyFilters,
-                ),
-              ),
-            ],
-          ),
-          
-          // Add bottom padding for safe area and visual spacing
-          const SizedBox(height: TossSpacing.space4),
+
+              const SizedBox(height: TossSpacing.space6),
+
+              // Action Buttons
+              _buildActionButtons(),
+
+              const SizedBox(height: TossSpacing.space4),
             ],
           ),
         ),
@@ -272,332 +214,47 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
     );
   }
 
-  // Scope toggle widget
-  Widget _buildScopeToggle() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Scope',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+          'Filter Transactions',
+          style: TossTextStyles.h3.copyWith(
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: TossSpacing.space2),
-        Container(
-          decoration: BoxDecoration(
-            color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(color: TossColors.gray200),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => setState(() => _selectedScope = TransactionScope.store),
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(TossBorderRadius.lg - 1),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                    decoration: BoxDecoration(
-                      color: _selectedScope == TransactionScope.store
-                          ? TossColors.white
-                          : TossColors.transparent,
-                      borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(TossBorderRadius.lg - 1),
-                      ),
-                      border: _selectedScope == TransactionScope.store
-                          ? Border.all(color: TossColors.primary)
-                          : null,
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.store,
-                            size: TossSpacing.iconXS,
-                            color: _selectedScope == TransactionScope.store
-                                ? TossColors.primary
-                                : TossColors.gray500,
-                          ),
-                          const SizedBox(width: TossSpacing.space1),
-                          Text(
-                            'Store View',
-                            style: TossTextStyles.caption.copyWith(
-                              color: _selectedScope == TransactionScope.store
-                                  ? TossColors.primary
-                                  : TossColors.gray600,
-                              fontWeight: _selectedScope == TransactionScope.store
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Container(width: 1, height: TossSpacing.space6, color: TossColors.gray200),
-              Expanded(
-                child: InkWell(
-                  onTap: () => setState(() => _selectedScope = TransactionScope.company),
-                  borderRadius: const BorderRadius.horizontal(
-                    right: Radius.circular(TossBorderRadius.lg - 1),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                    decoration: BoxDecoration(
-                      color: _selectedScope == TransactionScope.company
-                          ? TossColors.white
-                          : TossColors.transparent,
-                      borderRadius: const BorderRadius.horizontal(
-                        right: Radius.circular(TossBorderRadius.lg - 1),
-                      ),
-                      border: _selectedScope == TransactionScope.company
-                          ? Border.all(color: TossColors.primary)
-                          : null,
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.business,
-                            size: TossSpacing.iconXS,
-                            color: _selectedScope == TransactionScope.company
-                                ? TossColors.primary
-                                : TossColors.gray500,
-                          ),
-                          const SizedBox(width: TossSpacing.space1),
-                          Text(
-                            'Company View',
-                            style: TossTextStyles.caption.copyWith(
-                              color: _selectedScope == TransactionScope.company
-                                  ? TossColors.primary
-                                  : TossColors.gray600,
-                              fontWeight: _selectedScope == TransactionScope.company
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+        IconButton(
+          icon: const Icon(Icons.close, color: TossColors.gray700),
+          onPressed: () => Navigator.pop(context),
         ),
       ],
     );
   }
 
-  // Quick date filters using Toss design chips
-  Widget _buildQuickDateFilters() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildActionButtons() {
+    return Row(
       children: [
-        Text(
-          'Quick Filters',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+        Expanded(
+          child: TossSecondaryButton(
+            text: 'Clear All',
+            onPressed: _clearFilters,
           ),
         ),
-        const SizedBox(height: TossSpacing.space2),
-        Wrap(
-          spacing: TossSpacing.space2,
-          runSpacing: TossSpacing.space2,
-          children: [
-            _buildQuickFilterChip('Today', () {
-              final now = DateTime.now();
-              setState(() {
-                _selectedFromDate = DateTime(now.year, now.month, now.day);
-                _selectedToDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
-              });
-            }),
-            _buildQuickFilterChip('Yesterday', () {
-              final yesterday = DateTime.now().subtract(const Duration(days: 1));
-              setState(() {
-                _selectedFromDate = DateTime(yesterday.year, yesterday.month, yesterday.day);
-                _selectedToDate = DateTime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59);
-              });
-            }),
-            _buildQuickFilterChip('This Week', () {
-              final now = DateTime.now();
-              final weekStart = now.subtract(Duration(days: now.weekday - 1));
-              setState(() {
-                _selectedFromDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
-                _selectedToDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
-              });
-            }),
-            _buildQuickFilterChip('This Month', () {
-              final now = DateTime.now();
-              setState(() {
-                _selectedFromDate = DateTime(now.year, now.month, 1);
-                _selectedToDate = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-              });
-            }),
-          ],
+        const SizedBox(width: TossSpacing.space3),
+        Expanded(
+          child: TossPrimaryButton(
+            text: 'Apply Filter',
+            onPressed: _applyFilters,
+          ),
         ),
       ],
     );
   }
-
-  // Toss-style filter chip
-  Widget _buildQuickFilterChip(String label, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space2,
-        ),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          border: Border.all(
-            color: TossColors.gray200,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray700,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Date range section with Toss styling
-  Widget _buildDateRangeSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Date Range',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        Row(
-          children: [
-            Expanded(
-              child: _buildDatePicker(
-                'From',
-                _selectedFromDate,
-                (date) => setState(() => _selectedFromDate = date),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: _buildDatePicker(
-                'To',
-                _selectedToDate,
-                (date) => setState(() => _selectedToDate = date),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // Toss-style date picker
-  Widget _buildDatePicker(
-    String label,
-    DateTime? value,
-    void Function(DateTime?) onChanged,
-  ) {
-    return InkWell(
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: value ?? DateTime.now(),
-          firstDate: DateTime(2020),
-          lastDate: DateTime.now().add(const Duration(days: 365)),
-          builder: (context, child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: TossColors.primary,
-                  onPrimary: TossColors.white,
-                  surface: TossColors.white,
-                  onSurface: TossColors.gray900,
-                ),
-              ),
-              child: child!,
-            );
-          },
-        );
-
-        if (!mounted) return;
-
-        if (picked != null) {
-          onChanged(picked);
-        }
-      },
-      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space3),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: TossColors.border,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: TossSpacing.space1 / 2),
-                Text(
-                  value != null
-                      ? DateFormat('MMM d, yyyy').format(value)
-                      : 'Select date',
-                  style: TossTextStyles.body.copyWith(
-                    color: value != null ? TossColors.gray900 : TossColors.gray400,
-                    fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
-                  ),
-                ),
-              ],
-            ),
-            const Icon(
-              Icons.calendar_today,
-              size: TossSpacing.iconXS,
-              color: TossColors.gray500,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
 
   void _clearFilters() {
     setState(() {
-      _selectedScope = TransactionScope.store; // Reset to default
+      _selectedScope = TransactionScope.store;
       _selectedFromDate = null;
       _selectedToDate = null;
       _selectedAccountId = null;
@@ -607,7 +264,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       _selectedJournalType = null;
       _selectedCreatedBy = null;
     });
-    
+
     ref.read(transactionFilterStateProvider.notifier).clearFilter();
     Navigator.pop(context);
   }
@@ -624,7 +281,7 @@ class _TransactionFilterSheetState extends ConsumerState<TransactionFilterSheet>
       journalType: _selectedJournalType,
       createdBy: _selectedCreatedBy,
     );
-    
+
     ref.read(transactionFilterStateProvider.notifier).updateFilter(newFilter);
     Navigator.pop(context);
   }

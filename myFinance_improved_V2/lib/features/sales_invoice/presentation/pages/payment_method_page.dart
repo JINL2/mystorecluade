@@ -1,3 +1,18 @@
+// lib/features/sales_invoice/presentation/pages/payment_method_page.dart
+//
+// Payment Method Page - Invoice completion flow
+// Refactored following Clean Architecture 2025 - Single Responsibility Principle
+//
+// Extracted widgets:
+// - PaymentMethodAppBar: AppBar with exchange rate button
+// - ExchangeRateButton: Toggle button for exchange rate panel
+// - InvoiceLoadingDialog: Loading dialog for invoice creation
+// - ViewItemsSection: Selected products display
+// - PaymentBreakdownSection: Discount and total calculation
+// - PaymentMethodSection: Cash location selection
+// - ExchangeRatePanel: Currency conversion display
+// - InvoiceSuccessBottomSheet: Success confirmation
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,9 +21,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 // Shared imports - themes
-import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 // Shared imports - widgets
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
@@ -29,6 +42,8 @@ import '../providers/product_providers.dart';
 import '../providers/states/payment_method_state.dart';
 // Extracted widgets
 import '../widgets/payment_method/bottom_sheets/invoice_success_bottom_sheet.dart';
+import '../widgets/payment_method/invoice_loading_dialog.dart';
+import '../widgets/payment_method/payment_method_app_bar.dart';
 import '../widgets/payment_method/sections/exchange_rate_panel.dart';
 import '../widgets/payment_method/sections/payment_breakdown_section.dart';
 import '../widgets/payment_method/sections/payment_method_section.dart';
@@ -49,19 +64,15 @@ class PaymentMethodPage extends ConsumerStatefulWidget {
 }
 
 class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
-  // Exchange rate data (strongly typed)
   ExchangeRateData? _exchangeRateData;
-  // Controls visibility of exchange rate panel
   bool _isExchangeRatePanelExpanded = false;
-  // Scroll controller for auto-scrolling when dropdown expands
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    // Load currency and cash location data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(paymentMethodProvider.notifier).loadCurrencyData();
+      ref.read(paymentMethodNotifierProvider.notifier).loadCurrencyData();
       _loadExchangeRates();
     });
   }
@@ -72,72 +83,20 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  Future<void> _loadExchangeRates() async {
-    final appState = ref.read(appStateProvider);
-    final String companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) return;
-
-    try {
-      final exchangeRatesJson =
-          await ref.read(exchangeRatesProvider(companyId).future);
-      if (mounted) {
-        setState(() {
-          _exchangeRateData = ExchangeRateHelper.fromJson(exchangeRatesJson);
-        });
-      }
-    } catch (e) {
-      // Exchange rate loading failed - will use default rates
-    }
-  }
-
-  double get _cartTotal {
-    double total = 0;
-    for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
-      final price = product.pricing.sellingPrice ?? 0;
-      total += price * quantity;
-    }
-    return total;
-  }
+  // ============================================================================
+  // Build
+  // ============================================================================
 
   @override
   Widget build(BuildContext context) {
-    final paymentState = ref.watch(paymentMethodProvider);
+    final paymentState = ref.watch(paymentMethodNotifierProvider);
     final discountAmount = paymentState.discountAmount;
     final finalTotal = _cartTotal - discountAmount;
 
     return TossScaffold(
-      backgroundColor: TossColors.white,
-      appBar: AppBar(
-        backgroundColor: TossColors.gray50,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 24),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        titleSpacing: 0,
-        title: Text(
-          'Sales Invoice',
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w700,
-            color: TossColors.gray900,
-          ),
-        ),
-        actions: [
-          _buildExchangeRateButton(),
-        ],
+      appBar: PaymentMethodAppBar(
+        isExchangeRatePanelExpanded: _isExchangeRatePanelExpanded,
+        onExchangeRateToggle: _toggleExchangeRatePanel,
       ),
       body: Column(
         children: [
@@ -168,7 +127,6 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ),
                   ),
 
-                  // Section Divider - Full width
                   const GrayDividerSpace(),
 
                   // Payment Breakdown Section
@@ -182,7 +140,6 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                     ),
                   ),
 
-                  // Section Divider - Full width
                   const GrayDividerSpace(),
 
                   // Payment Method Section
@@ -214,51 +171,71 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     );
   }
 
-  Widget _buildExchangeRateButton() {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isExchangeRatePanelExpanded = !_isExchangeRatePanelExpanded;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(right: TossSpacing.space3),
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space2 + 2,
-          vertical: TossSpacing.space1,
-        ),
-        decoration: BoxDecoration(
-          color: TossColors.gray100,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Exchange Rate',
-              style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w500,
-                color: TossColors.gray600,
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space1),
-            Icon(
-              _isExchangeRatePanelExpanded
-                  ? Icons.keyboard_arrow_up
-                  : Icons.keyboard_arrow_down,
-              size: 16,
-              color: TossColors.gray600,
-            ),
-          ],
-        ),
-      ),
-    );
+  // ============================================================================
+  // Helpers
+  // ============================================================================
+
+  double get _cartTotal {
+    double total = 0;
+    for (final product in widget.selectedProducts) {
+      final quantity = widget.productQuantities[product.productId] ?? 0;
+      final price = product.pricing.sellingPrice ?? 0;
+      total += price * quantity;
+    }
+    return total;
   }
 
-  Future<void> _proceedToInvoice() async {
-    final paymentState = ref.read(paymentMethodProvider);
+  double get _totalCost {
+    double totalCost = 0;
+    for (final product in widget.selectedProducts) {
+      final quantity = widget.productQuantities[product.productId] ?? 0;
+      final cost = product.pricing.costPrice ?? 0;
+      totalCost += cost * quantity;
+    }
+    return totalCost;
+  }
 
-    // Get required IDs
+  void _toggleExchangeRatePanel() {
+    setState(() {
+      _isExchangeRatePanelExpanded = !_isExchangeRatePanelExpanded;
+    });
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  Future<void> _loadExchangeRates() async {
+    final appState = ref.read(appStateProvider);
+    final String companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) return;
+
+    try {
+      final exchangeRatesJson =
+          await ref.read(exchangeRatesProvider(companyId).future);
+      if (mounted) {
+        setState(() {
+          _exchangeRateData = ExchangeRateHelper.fromJson(exchangeRatesJson);
+        });
+      }
+    } catch (_) {
+      // Exchange rate loading failed - will use default rates
+    }
+  }
+
+  // ============================================================================
+  // Invoice Processing
+  // ============================================================================
+
+  Future<void> _proceedToInvoice() async {
+    final paymentState = ref.read(paymentMethodNotifierProvider);
     final appState = ref.read(appStateProvider);
     final authState = ref.read(authStateProvider);
     final companyId = appState.companyChoosen;
@@ -266,110 +243,32 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     final userId = authState.value?.id;
 
     // Validate required fields
-    if (companyId.isEmpty || storeId.isEmpty || userId == null) {
-      _showErrorDialog(
-        'Missing Information',
-        'Please ensure you are logged in and have selected a company and store.',
-      );
+    if (!_validateInvoiceRequirements(companyId, storeId, userId, paymentState)) {
       return;
     }
 
-    // Validate cash location is selected
-    if (paymentState.selectedCashLocation == null) {
-      _showErrorDialog(
-        'Payment Method Required',
-        'Please select a cash location before completing the invoice.',
-      );
-      return;
-    }
-
-    // Format items array for the RPC
-    final items = <Map<String, dynamic>>[];
-    for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
-      if (quantity > 0) {
-        final itemData = <String, dynamic>{
-          'product_id': product.productId,
-          'quantity': quantity,
-        };
-
-        final sellingPrice = product.pricing.sellingPrice;
-        if (sellingPrice != null && sellingPrice > 0) {
-          itemData['unit_price'] = sellingPrice;
-        }
-
-        items.add(itemData);
-      }
-    }
-
+    // Prepare invoice items
+    final items = _prepareInvoiceItems();
     if (items.isEmpty) {
       _showErrorDialog('No Items', 'No valid items to invoice');
       return;
     }
 
-    // Show loading indicator
-    _showLoadingDialog();
+    InvoiceLoadingDialog.show(context);
 
     try {
-      // Get repository via provider
-      final productRepository = ref.read(productRepositoryProvider);
-
-      // Determine payment method based on cash location type
-      String paymentMethod = 'cash';
-      if (paymentState.selectedCashLocation != null) {
-        paymentMethod =
-            paymentState.selectedCashLocation!.isBank ? 'transfer' : 'cash';
-      }
-
-      // Prepare invoice items
-      final invoiceItems = <InvoiceItem>[];
-      for (final item in items) {
-        invoiceItems.add(
-          InvoiceItem(
-            productId: item['product_id'] as String,
-            quantity: item['quantity'] as int,
-            unitPrice: item['unit_price'] as double?,
-          ),
-        );
-      }
-
-      // Build notes from cash location info
-      String? notes;
-      if (paymentState.selectedCashLocation != null) {
-        final cashLoc = paymentState.selectedCashLocation!;
-        notes = 'Cash Location: ${cashLoc.name} (${cashLoc.type})';
-      }
-
-      // Call repository to create invoice
-      final result = await productRepository.createInvoice(
+      final result = await _createInvoice(
         companyId: companyId,
         storeId: storeId,
-        userId: userId,
-        saleDate: DateTime.now(),
-        items: invoiceItems,
-        paymentMethod: paymentMethod,
-        discountAmount: paymentState.discountAmount > 0
-            ? paymentState.discountAmount.roundToDouble()
-            : null,
-        taxRate: 0.0,
-        notes: notes,
-        cashLocationId: paymentState.selectedCashLocation?.id,
+        userId: userId!,
+        paymentState: paymentState,
+        items: items,
       );
 
-      // Close loading dialog
-      if (mounted) {
-        context.pop();
-      }
+      if (mounted) context.pop(); // Close loading dialog
 
-      // Check response
       if (result.success) {
-        await _handleInvoiceSuccess(
-          result,
-          paymentState,
-          companyId,
-          storeId,
-          userId,
-        );
+        await _handleInvoiceSuccess(result, paymentState, companyId, storeId, userId);
       } else {
         _showErrorDialog(
           'Invoice Creation Failed',
@@ -377,13 +276,88 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         );
       }
     } catch (e) {
-      // Close loading dialog if still open
-      if (mounted) {
-        context.pop();
-      }
-
+      if (mounted) context.pop();
       _showErrorDialog('Error', 'Error creating invoice: ${e.toString()}');
     }
+  }
+
+  bool _validateInvoiceRequirements(
+    String companyId,
+    String storeId,
+    String? userId,
+    PaymentMethodState paymentState,
+  ) {
+    if (companyId.isEmpty || storeId.isEmpty || userId == null) {
+      _showErrorDialog(
+        'Missing Information',
+        'Please ensure you are logged in and have selected a company and store.',
+      );
+      return false;
+    }
+
+    if (paymentState.selectedCashLocation == null) {
+      _showErrorDialog(
+        'Payment Method Required',
+        'Please select a cash location before completing the invoice.',
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  List<InvoiceItem> _prepareInvoiceItems() {
+    final items = <InvoiceItem>[];
+    for (final product in widget.selectedProducts) {
+      final quantity = widget.productQuantities[product.productId] ?? 0;
+      if (quantity > 0) {
+        items.add(
+          InvoiceItem(
+            productId: product.productId,
+            quantity: quantity,
+            unitPrice: product.pricing.sellingPrice,
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  Future<CreateInvoiceResult> _createInvoice({
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required PaymentMethodState paymentState,
+    required List<InvoiceItem> items,
+  }) async {
+    final productRepository = ref.read(productRepositoryProvider);
+
+    String paymentMethod = 'cash';
+    if (paymentState.selectedCashLocation != null) {
+      paymentMethod =
+          paymentState.selectedCashLocation!.isBank ? 'transfer' : 'cash';
+    }
+
+    String? notes;
+    if (paymentState.selectedCashLocation != null) {
+      final cashLoc = paymentState.selectedCashLocation!;
+      notes = 'Cash Location: ${cashLoc.name} (${cashLoc.type})';
+    }
+
+    return productRepository.createInvoice(
+      companyId: companyId,
+      storeId: storeId,
+      userId: userId,
+      saleDate: DateTime.now(),
+      items: items,
+      paymentMethod: paymentMethod,
+      discountAmount: paymentState.discountAmount > 0
+          ? paymentState.discountAmount.roundToDouble()
+          : null,
+      taxRate: 0.0,
+      notes: notes,
+      cashLocationId: paymentState.selectedCashLocation?.id,
+    );
   }
 
   Future<void> _handleInvoiceSuccess(
@@ -396,155 +370,94 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     final invoiceNumber = result.invoiceNumber ?? 'Unknown';
     final totalAmount = result.totalAmount ?? 0;
 
-    // Create journal entry for the cash sales transaction
-    try {
-      if (paymentState.selectedCashLocation != null) {
-        final journalDescription = _buildJournalDescription(
-          paymentState,
-          invoiceNumber,
-        );
-
-        // Calculate total cost for COGS entry
-        final totalCost = _getTotalCost();
-
-        await ref.read(paymentMethodProvider.notifier).createSalesJournalEntry(
-              companyId: companyId,
-              storeId: storeId,
-              userId: userId,
-              amount: totalAmount,
-              description: 'Cash sales - Invoice $invoiceNumber',
-              lineDescription: journalDescription,
-              cashLocationId: paymentState.selectedCashLocation!.id,
-              totalCost: totalCost,
-            );
-      }
-    } catch (journalError) {
-      // Journal entry creation failed but don't fail the whole transaction
-    }
+    // Create journal entry
+    await _createJournalEntry(
+      paymentState: paymentState,
+      companyId: companyId,
+      storeId: storeId,
+      userId: userId,
+      invoiceNumber: invoiceNumber,
+      totalAmount: totalAmount,
+    );
 
     // Build warning message
     final warnings = result.warnings ?? [];
     String warningMessage = '';
     if (warnings.isNotEmpty) {
-      warningMessage = 'Warnings:\n';
-      for (final warning in warnings) {
-        warningMessage += '⚠️ $warning\n';
-      }
+      warningMessage = 'Warnings:\n${warnings.map((w) => '⚠️ $w').join('\n')}';
     }
 
-    // Get store name from app state
-    final appState = ref.read(appStateProvider);
-    final storeName = appState.storeName.isNotEmpty
-        ? appState.storeName
-        : 'Store';
-
-    // Get currency symbol from exchange rate data
-    final currencySymbol = _exchangeRateData?.baseCurrency.symbol ?? 'đ';
-
-    // Get payment type (Cash, Bank, Vault)
-    final paymentType = paymentState.selectedCashLocation?.type ?? 'Cash';
-
-    // Get cash location name
-    final cashLocationName = paymentState.selectedCashLocation?.name ?? 'Cash';
-
-    // Clear the cart
-    ref.read(cartProvider.notifier).clearCart();
-
-    // Clear payment method selections for next invoice
-    ref.read(paymentMethodProvider.notifier).clearSelections();
+    // Clear cart and payment selections
+    ref.read(cartNotifierProvider.notifier).clearCart();
+    ref.read(paymentMethodNotifierProvider.notifier).clearSelections();
 
     // Show success bottom sheet
     if (mounted) {
+      final appState = ref.read(appStateProvider);
       InvoiceSuccessBottomSheet.show(
         context,
         invoiceNumber: invoiceNumber,
         totalAmount: totalAmount,
-        currencySymbol: currencySymbol,
-        storeName: storeName,
-        paymentType: paymentType,
-        cashLocationName: cashLocationName,
+        currencySymbol: _exchangeRateData?.baseCurrency.symbol ?? 'đ',
+        storeName: appState.storeName.isNotEmpty ? appState.storeName : 'Store',
+        paymentType: paymentState.selectedCashLocation?.type ?? 'Cash',
+        cashLocationName: paymentState.selectedCashLocation?.name ?? 'Cash',
         products: widget.selectedProducts,
         quantities: widget.productQuantities,
         warningMessage: warningMessage,
         onDismiss: () {
-          // Force refresh of sales product data
-          ref.invalidate(salesProductProvider);
-          // Navigate back to Sales Product page
+          ref.invalidate(salesProductNotifierProvider);
           context.pop();
         },
       );
     }
   }
 
-  double _getTotalCost() {
-    double totalCost = 0;
-    for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
-      final cost = product.pricing.costPrice ?? 0;
-      totalCost += cost * quantity;
+  Future<void> _createJournalEntry({
+    required PaymentMethodState paymentState,
+    required String companyId,
+    required String storeId,
+    required String userId,
+    required String invoiceNumber,
+    required double totalAmount,
+  }) async {
+    if (paymentState.selectedCashLocation == null) return;
+
+    try {
+      final journalDescription = _buildJournalDescription(paymentState, invoiceNumber);
+
+      await ref.read(paymentMethodNotifierProvider.notifier).createSalesJournalEntry(
+            companyId: companyId,
+            storeId: storeId,
+            userId: userId,
+            amount: totalAmount,
+            description: 'Cash sales - Invoice $invoiceNumber',
+            lineDescription: journalDescription,
+            cashLocationId: paymentState.selectedCashLocation!.id,
+            totalCost: _totalCost,
+          );
+    } catch (_) {
+      // Journal entry creation failed but don't fail the whole transaction
     }
-    return totalCost;
   }
 
-  String _buildJournalDescription(
-    PaymentMethodState paymentState,
-    String invoiceNumber,
-  ) {
-    final baseCurrencyCode =
-        _exchangeRateData?.baseCurrency.currencyCode ?? 'VND';
+  String _buildJournalDescription(PaymentMethodState paymentState, String invoiceNumber) {
+    final baseCurrencyCode = _exchangeRateData?.baseCurrency.currencyCode ?? 'VND';
 
-    String journalDescription = '';
-
+    String description = '';
     if (widget.selectedProducts.length == 1) {
-      journalDescription = widget.selectedProducts.first.productName;
+      description = widget.selectedProducts.first.productName;
     } else if (widget.selectedProducts.isNotEmpty) {
       final additionalCount = widget.selectedProducts.length - 1;
-      journalDescription =
-          '${widget.selectedProducts.first.productName} +$additionalCount products';
+      description = '${widget.selectedProducts.first.productName} +$additionalCount products';
     }
 
     if (paymentState.discountAmount > 0) {
       final discountFormatted = paymentState.discountAmount.toStringAsFixed(0);
-      journalDescription += ' $discountFormatted$baseCurrencyCode discount';
+      description += ' $discountFormatted$baseCurrencyCode discount';
     }
 
-    if (journalDescription.isEmpty) {
-      journalDescription = 'Sales - Invoice $invoiceNumber';
-    }
-
-    return journalDescription;
-  }
-
-  void _showLoadingDialog() {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(color: TossColors.primary),
-                const SizedBox(height: TossSpacing.space3),
-                Text(
-                  'Creating invoice...',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    return description.isEmpty ? 'Sales - Invoice $invoiceNumber' : description;
   }
 
   void _showErrorDialog(String title, String message) {

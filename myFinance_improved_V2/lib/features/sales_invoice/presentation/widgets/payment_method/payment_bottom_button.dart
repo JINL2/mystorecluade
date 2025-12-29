@@ -23,7 +23,7 @@ class PaymentBottomButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final paymentState = ref.watch(paymentMethodProvider);
+    final paymentState = ref.watch(paymentMethodNotifierProvider);
 
     // Calculate cart total from selected products
     double cartTotal = 0;

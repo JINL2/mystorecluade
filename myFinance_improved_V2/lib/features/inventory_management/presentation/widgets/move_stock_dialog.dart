@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_quantity_stepper.dart';
 import '../../di/inventory_providers.dart';
+import 'store_picker_sheet.dart';
 
 /// Store location data class for Move Stock Dialog
 class StoreLocation {
@@ -423,94 +422,21 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
       return isFrom ? s.id != _toStore.id : s.id != _fromStore.id;
     }).toList();
 
-    showModalBottomSheet(
+    StorePickerSheet.show(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
-      ),
-      builder: (context) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: TossSpacing.space2),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                child: Text(
-                  isFrom ? 'Select From Store' : 'Select To Store',
-                  style: TossTextStyles.titleLarge.copyWith(
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space3),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: availableStores.length,
-                  itemBuilder: (context, index) {
-                    final store = availableStores[index];
-                    return ListTile(
-                      leading: Icon(
-                        Icons.store_outlined,
-                        color: TossColors.gray600,
-                      ),
-                      title: Text(
-                        store.name,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: TossColors.primarySurface,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '${store.stock}',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.primary,
-                          ),
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        setState(() {
-                          if (isFrom) {
-                            _fromStore = store;
-                            // Reset quantity when changing from store
-                            _quantity = 0;
-                          } else {
-                            _toStore = store;
-                          }
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-            ],
-          ),
-        ),
-      ),
+      title: isFrom ? 'Select From Store' : 'Select To Store',
+      stores: availableStores,
+      onSelect: (store) {
+        setState(() {
+          if (isFrom) {
+            _fromStore = store;
+            // Reset quantity when changing from store
+            _quantity = 0;
+          } else {
+            _toStore = store;
+          }
+        });
+      },
     );
   }
 }

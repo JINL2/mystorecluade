@@ -1337,12 +1337,11 @@ class __$$SessionSubmitItemImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SessionSubmitItemImpl extends _SessionSubmitItem {
+class _$SessionSubmitItemImpl implements _SessionSubmitItem {
   const _$SessionSubmitItemImpl(
       {required this.productId,
       required this.quantity,
-      this.quantityRejected = 0})
-      : super._();
+      this.quantityRejected = 0});
 
   @override
   final String productId;
@@ -1384,12 +1383,11 @@ class _$SessionSubmitItemImpl extends _SessionSubmitItem {
           this, _$identity);
 }
 
-abstract class _SessionSubmitItem extends SessionSubmitItem {
+abstract class _SessionSubmitItem implements SessionSubmitItem {
   const factory _SessionSubmitItem(
       {required final String productId,
       required final int quantity,
       final int quantityRejected}) = _$SessionSubmitItemImpl;
-  const _SessionSubmitItem._() : super._();
 
   @override
   String get productId;

@@ -53,7 +53,7 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
 
   @override
   Widget build(BuildContext context) {
-    final paymentState = ref.watch(paymentMethodProvider);
+    final paymentState = ref.watch(paymentMethodNotifierProvider);
     final discountAmount = paymentState.discountAmount;
     final finalTotal = _cartTotal - discountAmount;
 
@@ -185,7 +185,7 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
                 _isPercentageDiscount = false;
                 _discountController.clear();
               });
-              ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
+              ref.read(paymentMethodNotifierProvider.notifier).updateDiscountAmount(0);
             },
           ),
           _buildToggleButton(
@@ -196,7 +196,7 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
                 _isPercentageDiscount = true;
                 _discountController.clear();
               });
-              ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
+              ref.read(paymentMethodNotifierProvider.notifier).updateDiscountAmount(0);
             },
           ),
         ],
@@ -270,7 +270,7 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
           }
 
           ref
-              .read(paymentMethodProvider.notifier)
+              .read(paymentMethodNotifierProvider.notifier)
               .updateDiscountAmount(discountAmount);
         },
       ),

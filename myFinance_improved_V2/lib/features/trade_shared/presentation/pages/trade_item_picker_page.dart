@@ -88,20 +88,20 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
   }
 
   void _loadProducts() {
-    ref.read(salesProductProvider.notifier).loadProducts();
+    ref.read(salesProductNotifierProvider.notifier).loadProducts();
   }
 
   void _onScroll() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      final state = ref.read(salesProductProvider);
+      final state = ref.read(salesProductNotifierProvider);
       if (state.canLoadMore) {
-        ref.read(salesProductProvider.notifier).loadNextPage();
+        ref.read(salesProductNotifierProvider.notifier).loadNextPage();
       }
     }
   }
 
   void _onSearch(String query) {
-    ref.read(salesProductProvider.notifier).loadProducts(search: query);
+    ref.read(salesProductNotifierProvider.notifier).loadProducts(search: query);
   }
 
   void _addItem(SalesProduct product) {
@@ -153,9 +153,10 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final productState = ref.watch(salesProductProvider);
+    final productState = ref.watch(salesProductNotifierProvider);
     final filteredProducts = ref.watch(filteredProductsProvider);
-    final brandNames = ref.watch(inventoryMetadataProvider).brandNames;
+    // Use extension method on AsyncValue<InventoryMetadata?> for brandNames (includes "All" prefix)
+    final brandNames = ref.watch(inventoryMetadataNotifierProvider).brandNames;
 
     // Filter by brand
     final displayProducts = _selectedBrand == null || _selectedBrand!.isEmpty
@@ -260,21 +261,20 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
               });
             },
           ),
-          // Brand chips
+          // Brand chips (brandNames already includes "All" from extension)
           if (brandNames.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space3),
             SizedBox(
               height: 36,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: brandNames.length + 1, // +1 for "All"
+                itemCount: brandNames.length,
                 separatorBuilder: (_, __) => const SizedBox(width: TossSpacing.space2),
                 itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _buildBrandChip('All', null);
-                  }
-                  final brand = brandNames[index - 1];
-                  return _buildBrandChip(brand, brand);
+                  final brand = brandNames[index];
+                  // "All" maps to null for no filter
+                  final filterValue = brand == 'All' ? null : brand;
+                  return _buildBrandChip(brand, filterValue);
                 },
               ),
             ),

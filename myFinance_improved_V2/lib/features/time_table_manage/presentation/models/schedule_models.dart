@@ -17,10 +17,10 @@ class Employee {
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
       id: json['id']?.toString(),
-      name: json['name'] ?? '',
-      avatarUrl: json['avatar_url'] ?? '',
-      email: json['email'],
-      phone: json['phone'],
+      name: (json['name'] as String?) ?? '',
+      avatarUrl: (json['avatar_url'] as String?) ?? '',
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
     );
   }
 
@@ -63,11 +63,11 @@ class ShiftData {
   factory ShiftData.fromJson(Map<String, dynamic> json) {
     return ShiftData(
       id: json['id']?.toString(),
-      name: json['name'] ?? '',
-      startTime: json['start_time'] ?? '',
-      endTime: json['end_time'] ?? '',
-      assignedCount: json['assigned_count'] ?? 0,
-      maxCapacity: json['max_capacity'] ?? 0,
+      name: (json['name'] as String?) ?? '',
+      startTime: (json['start_time'] as String?) ?? '',
+      endTime: (json['end_time'] as String?) ?? '',
+      assignedCount: (json['assigned_count'] as int?) ?? 0,
+      maxCapacity: (json['max_capacity'] as int?) ?? 0,
       assignedEmployees: (json['assigned_employees'] as List<dynamic>?)
               ?.map((e) => Employee.fromJson(e as Map<String, dynamic>))
               .toList() ??

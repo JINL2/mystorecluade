@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,6 +17,7 @@ import '../../di/inventory_providers.dart';
 import '../../domain/entities/inventory_metadata.dart';
 import '../adapters/xfile_image_adapter.dart';
 import '../providers/inventory_providers.dart';
+import '../utils/store_utils.dart';
 import '../widgets/product_form/product_form_widgets.dart';
 import 'attribute_value_selector_page.dart';
 import 'attributes_edit_page.dart';
@@ -269,7 +269,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       );
 
       if (product != null && mounted) {
-        ref.read(inventoryPageProvider.notifier).refresh();
+        ref.read(inventoryPageNotifierProvider.notifier).refresh();
 
         if (!context.mounted) return;
         await showDialog<bool>(
@@ -365,7 +365,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             );
 
             if (category != null) {
-              ref.read(inventoryMetadataProvider.notifier).refresh();
+              ref.read(inventoryMetadataNotifierProvider.notifier).refresh();
             }
             return category;
           },
@@ -402,7 +402,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             );
 
             if (brand != null) {
-              ref.read(inventoryMetadataProvider.notifier).refresh();
+              ref.read(inventoryMetadataNotifierProvider.notifier).refresh();
             }
             return brand;
           },
@@ -412,34 +412,15 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   void _showLocationSelector() {
-    // Get stores from AppState for the selected company
     final appState = ref.read(appStateProvider);
-    final companies = appState.user['companies'] as List<dynamic>? ?? [];
-    final selectedCompanyId = appState.companyChoosen;
-
-    // Find the selected company and get its stores
-    List<Map<String, String>> stores = [];
-    for (final company in companies) {
-      final companyMap = company as Map<String, dynamic>;
-      if (companyMap['company_id'] == selectedCompanyId) {
-        final companyStores = companyMap['stores'] as List<dynamic>? ?? [];
-        stores = companyStores.map((store) {
-          final storeMap = store as Map<String, dynamic>;
-          return {
-            'id': (storeMap['store_id'] as String?) ?? '',
-            'name': (storeMap['store_name'] as String?) ?? '',
-          };
-        }).toList();
-        break;
-      }
-    }
+    final stores = StoreUtils.getCompanyStores(appState);
 
     final items = stores
         .map((store) => TossSelectionItem(
-              id: store['id']!,
-              title: store['name']!,
+              id: store.id,
+              title: store.name,
               icon: TossIcons.store,
-            ),)
+            ))
         .toList();
 
     TossSelectionBottomSheet.show<void>(
@@ -487,7 +468,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
 
   @override
   Widget build(BuildContext context) {
-    final metadataState = ref.watch(inventoryMetadataProvider);
+    final metadataState = ref.watch(inventoryMetadataNotifierProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -543,57 +524,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   Widget _buildImageUpload() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 24),
-      child: Center(
-        child: GestureDetector(
-          onTap: _pickImages,
-          child: Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: TossColors.gray200,
-                style: BorderStyle.solid,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: _selectedImages.isEmpty
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.camera_alt_outlined,
-                        size: 26,
-                        color: TossColors.gray500,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Add Photo',
-                        style: TossTextStyles.caption.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  )
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(11),
-                    child: Image.asset(
-                      _selectedImages.first.path,
-                      fit: BoxFit.cover,
-                      width: 88,
-                      height: 88,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.image,
-                        size: 40,
-                        color: TossColors.gray400,
-                      ),
-                    ),
-                  ),
-          ),
-        ),
-      ),
+    return ProductImageThumbnail(
+      onTap: _pickImages,
+      selectedImages: _selectedImages,
     );
   }
 
@@ -611,75 +544,10 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             onTap: _showSkuInput,
             onHelpTap: _showSkuInfoDialog,
           ),
-          _buildProductNameRow(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProductNameRow() {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Label with required indicator
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'Product name',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.gray600,
-                  ),
-                ),
-                const TextSpan(
-                  text: ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // TextField and chevron
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _productNameController,
-                    focusNode: _productNameFocusNode,
-                    textAlign: TextAlign.right,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: TossColors.gray900,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: _isProductNameFocused || _productNameController.text.isNotEmpty ? null : 'Enter product name',
-                      hintStyle: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w400,
-                        color: TossColors.gray500,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: TossColors.gray500,
-                ),
-              ],
-            ),
+          ProductNameRow(
+            controller: _productNameController,
+            focusNode: _productNameFocusNode,
+            isFocused: _isProductNameFocused,
           ),
         ],
       ),
@@ -726,7 +594,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
 
   Widget _buildPricingSection() {
     // Get base currency symbol from inventory page state
-    final inventoryState = ref.watch(inventoryPageProvider);
+    final inventoryState = ref.watch(inventoryPageNotifierProvider);
     final currencySymbol = inventoryState.baseCurrency?.displaySymbol ?? '₩';
 
     return Padding(
@@ -734,7 +602,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       child: Column(
         children: [
           const FormSectionHeader(title: 'Pricing'),
-          _buildPriceRow(
+          FormPriceRow(
             label: 'Sale price ($currencySymbol)',
             controller: _salePriceController,
             focusNode: _salePriceFocusNode,
@@ -742,93 +610,13 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             placeholder: 'Enter selling price',
             currencySymbol: currencySymbol,
           ),
-          _buildPriceRow(
+          FormPriceRow(
             label: 'Cost of goods ($currencySymbol)',
             controller: _costPriceController,
             focusNode: _costPriceFocusNode,
             isFocused: _isCostPriceFocused,
             placeholder: 'Enter item cost',
             currencySymbol: currencySymbol,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPriceRow({
-    required String label,
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required bool isFocused,
-    required String placeholder,
-    required String currencySymbol,
-  }) {
-    final bool hasValue = controller.text.isNotEmpty;
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Label
-          Text(
-            label,
-            style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
-              color: TossColors.gray600,
-            ),
-          ),
-          // TextField, currency suffix and chevron
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    textAlign: TextAlign.right,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      CurrencyInputFormatter(),
-                    ],
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: TossColors.gray900,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: isFocused || hasValue ? null : placeholder,
-                      hintStyle: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w400,
-                        color: TossColors.gray500,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                // Currency suffix
-                if (hasValue) ...[
-                  Text(
-                    currencySymbol,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                ],
-                const SizedBox(width: 6),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: TossColors.gray500,
-                ),
-              ],
-            ),
           ),
         ],
       ),

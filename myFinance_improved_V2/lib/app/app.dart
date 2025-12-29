@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/notifications/services/notification_service.dart';
 import '../core/notifications/services/token_manager.dart';
@@ -57,10 +59,23 @@ class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBinding
     }
   }
 
-  /// Handle app resume
-  void _handleAppResume() {
+  /// Handle app resume - refresh Supabase session to avoid stale socket issues
+  Future<void> _handleAppResume() async {
     // Handle token validation when app resumes
     TokenManager().handleAppLifecycleState(AppLifecycleState.resumed);
+
+    // Refresh Supabase session to prevent "Bad file descriptor" error
+    // iOS closes network sockets when app goes to background,
+    // so we need to refresh with a new connection when resuming
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        await Supabase.instance.client.auth.refreshSession();
+      }
+    } catch (e) {
+      // Log but don't crash - user may need to re-login if this fails
+      debugPrint('Supabase session refresh failed: $e');
+    }
   }
 
   @override

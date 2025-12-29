@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../app/providers/app_state.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -10,6 +9,8 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/toss/calendar_time_range.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/repositories/inventory_repository.dart';
+import '../utils/store_utils.dart';
+import '../widgets/inventory_history/history_item.dart';
 
 /// Inventory History Page - Shows history of all stock movements in the store
 class InventoryHistoryPage extends ConsumerStatefulWidget {
@@ -31,7 +32,6 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
   bool _isLoadingMore = false;
   int _currentPage = 1;
   int _totalPages = 1;
-  int _totalCount = 0;
   static const int _pageSize = 20;
 
   @override
@@ -75,7 +75,6 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
             _historyEntries.addAll(result.entries);
           }
           _totalPages = result.totalPages;
-          _totalCount = result.totalCount;
           _isLoading = false;
           _isLoadingMore = false;
         });
@@ -157,7 +156,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
     final appState = ref.watch(appStateProvider);
 
     // Get stores list
-    final stores = _getCompanyStores(appState);
+    final stores = StoreUtils.getCompanyStores(appState);
 
     // Apply date filter
     final filteredEntries = _getFilteredEntries();
@@ -235,7 +234,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                                   child: Center(child: CircularProgressIndicator()),
                                 );
                               }
-                              return _buildHistoryItem(filteredEntries[index]);
+                              return HistoryItem(entry: filteredEntries[index]);
                             },
                           ),
                         ),
@@ -275,7 +274,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context, List<_StoreOption> stores) {
+  Widget _buildTopBar(BuildContext context, List<StoreOption> stores) {
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
@@ -358,234 +357,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
     );
   }
 
-  Widget _buildHistoryItem(InventoryHistoryEntry entry) {
-    final eventType = _parseEventType(entry.eventType);
-    final isTransfer = entry.eventType == 'stock_transfer_out' ||
-        entry.eventType == 'stock_transfer_in';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product image
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(8),
-              image: entry.productImage != null
-                  ? DecorationImage(
-                      image: NetworkImage(entry.productImage!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: entry.productImage == null
-                ? Center(
-                    child: Icon(
-                      Icons.inventory_2_outlined,
-                      size: 24,
-                      color: TossColors.gray400,
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product name
-                Text(
-                  entry.productName ?? 'Unknown Product',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                // SKU
-                if (entry.productSku != null && entry.productSku!.isNotEmpty)
-                  Text(
-                    entry.productSku!,
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                const SizedBox(height: 4),
-                // Event type with icon
-                Row(
-                  children: [
-                    Icon(
-                      _getTransactionIcon(eventType),
-                      size: 14,
-                      color: TossColors.gray600,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _getTransactionTitle(eventType),
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                // Date and time
-                Text(
-                  _formatCreatedAt(entry.createdAt),
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-                // Location info for transfers
-                if (isTransfer && entry.fromStoreName != null && entry.toStoreName != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        Text(
-                          entry.fromStoreName ?? '',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 12,
-                          color: TossColors.gray500,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          entry.toStoreName ?? '',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                // User info
-                if (entry.createdUser != null && entry.createdUser!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Row(
-                      children: [
-                        // Avatar
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: TossColors.gray200,
-                            shape: BoxShape.circle,
-                            image: entry.createdUserProfileImage != null
-                                ? DecorationImage(
-                                    image: NetworkImage(entry.createdUserProfileImage!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                          ),
-                          child: entry.createdUserProfileImage == null
-                              ? Center(
-                                  child: Text(
-                                    entry.createdUser!.isNotEmpty
-                                        ? entry.createdUser![0].toUpperCase()
-                                        : 'U',
-                                    style: TossTextStyles.caption.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: TossColors.gray600,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          entry.createdUser!,
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          // Quantity change - only show if quantity changed
-          if (entry.quantityBefore != null &&
-              entry.quantityAfter != null &&
-              entry.quantityBefore != entry.quantityAfter)
-            Builder(
-              builder: (context) {
-                final isIncrease = entry.quantityAfter! > entry.quantityBefore!;
-                final changeColor = isIncrease ? TossColors.primary : TossColors.error;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    // Before quantity (gray, on top)
-                    Text(
-                      '${entry.quantityBefore}',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // After quantity with arrow (colored, below)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_forward,
-                          size: 14,
-                          color: changeColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${entry.quantityAfter}',
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: changeColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  _TransactionType _parseEventType(String eventType) {
-    switch (eventType) {
-      case 'stock_sale':
-        return _TransactionType.sell;
-      case 'stock_refund':
-        return _TransactionType.stockIn;
-      case 'stock_receipt':
-        return _TransactionType.stockIn;
-      case 'stock_transfer_out':
-      case 'stock_transfer_in':
-        return _TransactionType.moveStock;
-      case 'stock_adjustment':
-        return _TransactionType.editStock;
-      default:
-        return _TransactionType.editStock;
-    }
-  }
-
-  void _showStorePicker(BuildContext context, List<_StoreOption> stores) {
+  void _showStorePicker(BuildContext context, List<StoreOption> stores) {
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.white,
@@ -679,110 +451,4 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
       },
     );
   }
-
-  List<_StoreOption> _getCompanyStores(AppState appState) {
-    final currentCompanyId = appState.companyChoosen;
-    final companies = appState.user['companies'] as List<dynamic>? ?? [];
-
-    Map<String, dynamic>? company;
-    for (final c in companies) {
-      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
-        company = c;
-        break;
-      }
-    }
-
-    if (company == null) {
-      return [
-        _StoreOption(
-          id: appState.storeChoosen,
-          name: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
-        ),
-      ];
-    }
-
-    final storesList = company['stores'] as List<dynamic>? ?? [];
-
-    return storesList.map((store) {
-      final storeMap = store as Map<String, dynamic>;
-      return _StoreOption(
-        id: storeMap['store_id'] as String? ?? '',
-        name: storeMap['store_name'] as String? ?? 'Unknown Store',
-      );
-    }).toList();
-  }
-
-  IconData _getTransactionIcon(_TransactionType type) {
-    switch (type) {
-      case _TransactionType.moveStock:
-        return Icons.swap_horiz;
-      case _TransactionType.stockIn:
-        return Icons.download_outlined;
-      case _TransactionType.editStock:
-        return Icons.edit_outlined;
-      case _TransactionType.sell:
-        return Icons.shopping_bag_outlined;
-    }
-  }
-
-  String _getTransactionTitle(_TransactionType type) {
-    switch (type) {
-      case _TransactionType.moveStock:
-        return 'Move Stock';
-      case _TransactionType.stockIn:
-        return 'Stock In';
-      case _TransactionType.editStock:
-        return 'Edit Stock';
-      case _TransactionType.sell:
-        return 'Sell';
-    }
-  }
-
-  /// Format created_at string from RPC (format: 'YYYY-MM-DD HH24:MI:SS')
-  /// to user-friendly format (e.g., 'Oct 12, 2025 · 14:32')
-  String _formatCreatedAt(String createdAt) {
-    try {
-      // Parse the datetime string from RPC
-      final parts = createdAt.split(' ');
-      if (parts.length != 2) return createdAt;
-
-      final dateParts = parts[0].split('-');
-      final timeParts = parts[1].split(':');
-
-      if (dateParts.length != 3 || timeParts.length < 2) return createdAt;
-
-      final month = int.parse(dateParts[1]);
-      final day = int.parse(dateParts[2]);
-      final hour = timeParts[0];
-      final minute = timeParts[1];
-
-      // Month names
-      const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ];
-
-      final monthName = months[month - 1];
-      return '$monthName $day · $hour:$minute';
-    } catch (e) {
-      return createdAt;
-    }
-  }
-}
-
-enum _TransactionType {
-  moveStock,
-  stockIn,
-  editStock,
-  sell,
-}
-
-class _StoreOption {
-  final String id;
-  final String name;
-
-  _StoreOption({
-    required this.id,
-    required this.name,
-  });
 }

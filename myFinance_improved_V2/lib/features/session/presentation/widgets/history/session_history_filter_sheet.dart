@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
@@ -9,6 +8,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/session_history_provider.dart';
 import '../../providers/states/session_history_filter_state.dart';
+import 'filter_chip_widget.dart';
 
 /// Filter bottom sheet for session history
 class SessionHistoryFilterSheet extends ConsumerStatefulWidget {
@@ -40,7 +40,7 @@ class _SessionHistoryFilterSheetState
   @override
   void initState() {
     super.initState();
-    final filter = ref.read(sessionHistoryProvider).filter;
+    final filter = ref.read(sessionHistoryNotifierProvider).filter;
     _selectedStoreId = filter.selectedStoreId;
     _dateRangeType = filter.dateRangeType;
     _customStartDate = filter.customStartDate;
@@ -59,9 +59,7 @@ class _SessionHistoryFilterSheetState
       final companyMap = company as Map<String, dynamic>;
       if (companyMap['company_id'] == companyId) {
         final stores = companyMap['stores'] as List<dynamic>? ?? <dynamic>[];
-        return stores
-            .map((s) => s as Map<String, dynamic>)
-            .toList();
+        return stores.map((s) => s as Map<String, dynamic>).toList();
       }
     }
     return [];
@@ -76,7 +74,7 @@ class _SessionHistoryFilterSheetState
       isActive: _isActive,
       sessionType: _sessionType,
     );
-    ref.read(sessionHistoryProvider.notifier).updateFilter(newFilter);
+    ref.read(sessionHistoryNotifierProvider.notifier).updateFilter(newFilter);
     Navigator.pop(context);
   }
 
@@ -140,66 +138,26 @@ class _SessionHistoryFilterSheetState
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.full),
-            ),
-          ),
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Filter',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                TextButton(
-                  onPressed: _clearFilters,
-                  child: Text(
-                    'Clear All',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Filter content
+          _buildHandleBar(),
+          _buildHeader(),
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Store filter
                   if (stores.isNotEmpty) ...[
                     _buildSectionTitle('Store'),
                     _buildStoreSelector(stores),
                     const SizedBox(height: TossSpacing.space5),
                   ],
-
-                  // Date range filter
                   _buildSectionTitle('Date Range'),
                   _buildDateRangeSelector(),
                   const SizedBox(height: TossSpacing.space5),
-
-                  // Active status filter
                   _buildSectionTitle('Status'),
                   _buildActiveStatusSelector(),
                   const SizedBox(height: TossSpacing.space5),
-
-                  // Session type filter
                   _buildSectionTitle('Session Type'),
                   _buildSessionTypeSelector(),
                   const SizedBox(height: TossSpacing.space5),
@@ -207,37 +165,79 @@ class _SessionHistoryFilterSheetState
               ),
             ),
           ),
-          // Apply button
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              TossSpacing.space5,
-              TossSpacing.space4,
-              TossSpacing.space5,
-              MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+          _buildApplyButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHandleBar() {
+    return Container(
+      margin: const EdgeInsets.only(top: TossSpacing.space3),
+      width: 40,
+      height: 4,
+      decoration: BoxDecoration(
+        color: TossColors.gray300,
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(TossSpacing.space5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Filter',
+            style: TossTextStyles.h3.copyWith(
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w700,
             ),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _applyFilters,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TossColors.primary,
-                  foregroundColor: TossColors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Apply Filters',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+          ),
+          TextButton(
+            onPressed: _clearFilters,
+            child: Text(
+              'Clear All',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.primary,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildApplyButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        TossSpacing.space5,
+        TossSpacing.space4,
+        TossSpacing.space5,
+        MediaQuery.of(context).padding.bottom + TossSpacing.space4,
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          onPressed: _applyFilters,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: TossColors.primary,
+            foregroundColor: TossColors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            elevation: 0,
+          ),
+          child: Text(
+            'Apply Filters',
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -260,50 +260,21 @@ class _SessionHistoryFilterSheetState
       spacing: TossSpacing.space2,
       runSpacing: TossSpacing.space2,
       children: [
-        // All stores option
-        _buildStoreChip(null, 'All Stores'),
-        // Individual stores
+        StoreChipWidget(
+          label: 'All Stores',
+          isSelected: _selectedStoreId == null,
+          onTap: () => setState(() => _selectedStoreId = null),
+        ),
         ...stores.map((store) {
           final storeId = store['store_id']?.toString() ?? '';
           final storeName = store['store_name']?.toString() ?? 'Unknown';
-          return _buildStoreChip(storeId, storeName);
+          return StoreChipWidget(
+            label: storeName,
+            isSelected: _selectedStoreId == storeId,
+            onTap: () => setState(() => _selectedStoreId = storeId),
+          );
         }),
       ],
-    );
-  }
-
-  Widget _buildStoreChip(String? storeId, String storeName) {
-    final isSelected = _selectedStoreId == storeId;
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() {
-          _selectedStoreId = storeId;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space2,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? TossColors.primary.withValues(alpha: 0.15)
-              : TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: isSelected ? TossColors.primary : TossColors.gray200,
-          ),
-        ),
-        child: Text(
-          storeName,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: isSelected ? TossColors.primary : TossColors.textPrimary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
-        ),
-      ),
     );
   }
 
@@ -313,16 +284,26 @@ class _SessionHistoryFilterSheetState
         Row(
           children: [
             Expanded(
-              child: _buildDateRangeChip(
-                'This Month',
-                DateRangeType.thisMonth,
+              child: FilterChipWidget(
+                label: 'This Month',
+                isSelected: _dateRangeType == DateRangeType.thisMonth,
+                onTap: () => setState(() {
+                  _dateRangeType = DateRangeType.thisMonth;
+                  _customStartDate = null;
+                  _customEndDate = null;
+                }),
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
             Expanded(
-              child: _buildDateRangeChip(
-                'Last Month',
-                DateRangeType.lastMonth,
+              child: FilterChipWidget(
+                label: 'Last Month',
+                isSelected: _dateRangeType == DateRangeType.lastMonth,
+                onTap: () => setState(() {
+                  _dateRangeType = DateRangeType.lastMonth;
+                  _customStartDate = null;
+                  _customEndDate = null;
+                }),
               ),
             ),
           ],
@@ -331,14 +312,34 @@ class _SessionHistoryFilterSheetState
         Row(
           children: [
             Expanded(
-              child: _buildDateRangeChip(
-                'This Year',
-                DateRangeType.thisYear,
+              child: FilterChipWidget(
+                label: 'This Year',
+                isSelected: _dateRangeType == DateRangeType.thisYear,
+                onTap: () => setState(() {
+                  _dateRangeType = DateRangeType.thisYear;
+                  _customStartDate = null;
+                  _customEndDate = null;
+                }),
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
             Expanded(
-              child: _buildCustomDateRangeChip(),
+              child: FilterChipWidget(
+                label: _dateRangeType == DateRangeType.custom &&
+                        _customStartDate != null &&
+                        _customEndDate != null
+                    ? '${_customStartDate!.month}/${_customStartDate!.day} - ${_customEndDate!.month}/${_customEndDate!.day}'
+                    : 'Custom',
+                isSelected: _dateRangeType == DateRangeType.custom,
+                onTap: _selectCustomDateRange,
+                prefixIcon: Icon(
+                  Icons.calendar_today,
+                  size: 14,
+                  color: _dateRangeType == DateRangeType.custom
+                      ? TossColors.primary
+                      : TossColors.textSecondary,
+                ),
+              ),
             ),
           ],
         ),
@@ -346,192 +347,63 @@ class _SessionHistoryFilterSheetState
     );
   }
 
-  Widget _buildDateRangeChip(String label, DateRangeType type) {
-    final isSelected = _dateRangeType == type;
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() {
-          _dateRangeType = type;
-          if (type != DateRangeType.custom) {
-            _customStartDate = null;
-            _customEndDate = null;
-          }
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: isSelected ? TossColors.primary : TossColors.gray200,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: isSelected ? TossColors.primary : TossColors.textPrimary,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCustomDateRangeChip() {
-    final isSelected = _dateRangeType == DateRangeType.custom;
-    String label = 'Custom';
-    if (isSelected && _customStartDate != null && _customEndDate != null) {
-      label =
-          '${_formatDate(_customStartDate!)} - ${_formatDate(_customEndDate!)}';
-    }
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        _selectCustomDateRange();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: isSelected ? TossColors.primary : TossColors.gray200,
-          ),
-        ),
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.calendar_today,
-                size: 14,
-                color: isSelected ? TossColors.primary : TossColors.textSecondary,
-              ),
-              const SizedBox(width: TossSpacing.space1),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: isSelected ? TossColors.primary : TossColors.textPrimary,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.month}/${date.day}';
-  }
-
   Widget _buildActiveStatusSelector() {
     return Row(
       children: [
-        Expanded(child: _buildActiveChip('All', null)),
+        Expanded(
+          child: FilterChipWidget(
+            label: 'All',
+            isSelected: _isActive == null,
+            onTap: () => setState(() => _isActive = null),
+          ),
+        ),
         const SizedBox(width: TossSpacing.space2),
-        Expanded(child: _buildActiveChip('Active', true)),
+        Expanded(
+          child: FilterChipWidget(
+            label: 'Active',
+            isSelected: _isActive == true,
+            onTap: () => setState(() => _isActive = true),
+          ),
+        ),
         const SizedBox(width: TossSpacing.space2),
-        Expanded(child: _buildActiveChip('Closed', false)),
+        Expanded(
+          child: FilterChipWidget(
+            label: 'Closed',
+            isSelected: _isActive == false,
+            onTap: () => setState(() => _isActive = false),
+          ),
+        ),
       ],
-    );
-  }
-
-  Widget _buildActiveChip(String label, bool? value) {
-    final isSelected = _isActive == value;
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() {
-          _isActive = value;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: isSelected ? TossColors.primary : TossColors.gray200,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: isSelected ? TossColors.primary : TossColors.textPrimary,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
   Widget _buildSessionTypeSelector() {
     return Row(
       children: [
-        Expanded(child: _buildTypeChip('All', null)),
+        Expanded(
+          child: FilterChipWidget(
+            label: 'All',
+            isSelected: _sessionType == null,
+            onTap: () => setState(() => _sessionType = null),
+          ),
+        ),
         const SizedBox(width: TossSpacing.space2),
-        Expanded(child: _buildTypeChip('Counting', 'counting')),
+        Expanded(
+          child: FilterChipWidget(
+            label: 'Counting',
+            isSelected: _sessionType == 'counting',
+            onTap: () => setState(() => _sessionType = 'counting'),
+          ),
+        ),
         const SizedBox(width: TossSpacing.space2),
-        Expanded(child: _buildTypeChip('Receiving', 'receiving')),
+        Expanded(
+          child: FilterChipWidget(
+            label: 'Receiving',
+            isSelected: _sessionType == 'receiving',
+            onTap: () => setState(() => _sessionType = 'receiving'),
+          ),
+        ),
       ],
-    );
-  }
-
-  Widget _buildTypeChip(String label, String? value) {
-    final isSelected = _sessionType == value;
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() {
-          _sessionType = value;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: isSelected ? TossColors.primary : TossColors.gray200,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: isSelected ? TossColors.primary : TossColors.textPrimary,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

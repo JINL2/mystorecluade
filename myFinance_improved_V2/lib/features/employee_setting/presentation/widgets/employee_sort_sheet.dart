@@ -93,16 +93,15 @@ class EmployeeSortSheet extends ConsumerWidget {
 
                   // If clicking the same sort option, toggle direction
                   if (option['value'] == currentSort) {
-                    ref.read(employeeSortDirectionProvider.notifier).state = !isAscending;
+                    ref.read(employeeSortDirectionProvider.notifier).toggle();
                   } else {
                     // Set new sort option with default direction
-                    ref.read(employeeSortOptionProvider.notifier).state = (option['value']! as String);
+                    ref.read(employeeSortOptionProvider.notifier).update(option['value']! as String);
                     // Reset to default direction for each sort type
                     if (option['value'] == 'name' || option['value'] == 'role') {
-                      ref.read(employeeSortDirectionProvider.notifier).state = true; // A-Z by default
+                      ref.read(employeeSortDirectionProvider.notifier).update(true); // A-Z by default
                     } else {
-                      ref.read(employeeSortDirectionProvider.notifier).state =
-                          false; // High-to-Low/Recent first by default
+                      ref.read(employeeSortDirectionProvider.notifier).update(false); // High-to-Low/Recent first by default
                     }
                   }
 

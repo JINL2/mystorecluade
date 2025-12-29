@@ -89,19 +89,11 @@ class SessionReviewResponse with _$SessionReviewResponse {
 /// Item to submit in session
 @freezed
 class SessionSubmitItem with _$SessionSubmitItem {
-  const SessionSubmitItem._();
-
   const factory SessionSubmitItem({
     required String productId,
     required int quantity,
     @Default(0) int quantityRejected,
   }) = _SessionSubmitItem;
-
-  Map<String, dynamic> toJson() => {
-        'product_id': productId,
-        'quantity': quantity,
-        'quantity_rejected': quantityRejected,
-      };
 }
 
 /// Stock change item from submit response (V2)

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../app/providers/app_state.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -11,6 +10,8 @@ import '../../../../shared/widgets/toss/calendar_time_range.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/inventory_repository.dart';
+import '../utils/store_utils.dart';
+import '../widgets/product_transactions/transaction_item.dart';
 
 /// Product Transactions Page - Shows history of stock movements
 class ProductTransactionsPage extends ConsumerStatefulWidget {
@@ -38,7 +39,6 @@ class _ProductTransactionsPageState
   bool _isLoadingMore = false;
   int _currentPage = 1;
   int _totalPages = 1;
-  int _totalCount = 0;
   static const int _pageSize = 20;
 
   @override
@@ -101,7 +101,6 @@ class _ProductTransactionsPageState
             _transactions.addAll(result.entries);
           }
           _totalPages = result.totalPages;
-          _totalCount = result.totalCount;
           _isLoading = false;
           _isLoadingMore = false;
         });
@@ -187,7 +186,7 @@ class _ProductTransactionsPageState
     final appState = ref.watch(appStateProvider);
 
     // Get stores list
-    final stores = _getCompanyStores(appState);
+    final stores = StoreUtils.getCompanyStores(appState);
 
     // Apply date filter
     final filteredTransactions = _getFilteredTransactions();
@@ -267,7 +266,9 @@ class _ProductTransactionsPageState
                                   child: Center(child: CircularProgressIndicator()),
                                 );
                               }
-                              return _buildTransactionItem(filteredTransactions[index]);
+                              return TransactionItem(
+                                transaction: filteredTransactions[index],
+                              );
                             },
                           ),
                         ),
@@ -307,7 +308,7 @@ class _ProductTransactionsPageState
     );
   }
 
-  Widget _buildTopBar(BuildContext context, List<_StoreOption> stores) {
+  Widget _buildTopBar(BuildContext context, List<StoreOption> stores) {
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
@@ -411,182 +412,7 @@ class _ProductTransactionsPageState
     );
   }
 
-  Widget _buildTransactionItem(ProductHistoryEntry transaction) {
-    final eventType = _parseEventType(transaction.eventType);
-    final isTransfer = transaction.eventType == 'stock_transfer_out' ||
-        transaction.eventType == 'stock_transfer_in';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icon - aligned with title top
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              _getTransactionIcon(eventType),
-              size: 20,
-              color: TossColors.gray600,
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Type title
-                Text(
-                  _getTransactionTitle(eventType),
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Date and time
-                Text(
-                  _formatCreatedAt(transaction.createdAt),
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Location info
-                if (isTransfer && transaction.fromStoreName != null && transaction.toStoreName != null)
-                  Row(
-                    children: [
-                      Text(
-                        transaction.fromStoreName ?? '',
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward,
-                        size: 12,
-                        color: TossColors.gray500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        transaction.toStoreName ?? '',
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ],
-                  )
-                else if (transaction.notes != null && transaction.notes!.isNotEmpty)
-                  Text(
-                    transaction.notes!,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                // User info
-                if (transaction.createdUser != null && transaction.createdUser!.isNotEmpty)
-                  Row(
-                    children: [
-                      // Avatar
-                      Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: TossColors.gray200,
-                          shape: BoxShape.circle,
-                          image: transaction.createdUserProfileImage != null
-                              ? DecorationImage(
-                                  image: NetworkImage(transaction.createdUserProfileImage!),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: transaction.createdUserProfileImage == null
-                            ? Center(
-                                child: Text(
-                                  transaction.createdUser!.isNotEmpty
-                                      ? transaction.createdUser![0].toUpperCase()
-                                      : 'U',
-                                  style: TossTextStyles.caption.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: TossColors.gray600,
-                                  ),
-                                ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        transaction.createdUser!,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray700,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-          // Quantity change - only show if quantity changed
-          if (transaction.quantityBefore != null &&
-              transaction.quantityAfter != null &&
-              transaction.quantityBefore != transaction.quantityAfter)
-            Builder(
-              builder: (context) {
-                final change = transaction.quantityAfter! - transaction.quantityBefore!;
-                final isIncrease = change > 0;
-                final changeColor = isIncrease ? TossColors.primary : TossColors.error;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    // Change amount (colored, prominent)
-                    Text(
-                      '${isIncrease ? '+' : ''}$change',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: changeColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Before → After (gray, subtle)
-                    Text(
-                      '${transaction.quantityBefore} → ${transaction.quantityAfter}',
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  _TransactionType _parseEventType(String eventType) {
-    switch (eventType) {
-      case 'stock_sale':
-        return _TransactionType.sell;
-      case 'stock_refund':
-        return _TransactionType.stockIn;
-      case 'stock_receipt':
-        return _TransactionType.stockIn;
-      case 'stock_transfer_out':
-      case 'stock_transfer_in':
-        return _TransactionType.moveStock;
-      case 'stock_adjustment':
-        return _TransactionType.editStock;
-      default:
-        return _TransactionType.editStock;
-    }
-  }
-
-  void _showStorePicker(BuildContext context, List<_StoreOption> stores) {
+  void _showStorePicker(BuildContext context, List<StoreOption> stores) {
     showModalBottomSheet(
       context: context,
       backgroundColor: TossColors.white,
@@ -681,110 +507,4 @@ class _ProductTransactionsPageState
     );
   }
 
-  List<_StoreOption> _getCompanyStores(AppState appState) {
-    final currentCompanyId = appState.companyChoosen;
-    final companies = appState.user['companies'] as List<dynamic>? ?? [];
-
-    Map<String, dynamic>? company;
-    for (final c in companies) {
-      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
-        company = c;
-        break;
-      }
-    }
-
-    if (company == null) {
-      return [
-        _StoreOption(
-          id: appState.storeChoosen,
-          name: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
-        ),
-      ];
-    }
-
-    final storesList = company['stores'] as List<dynamic>? ?? [];
-
-    return storesList.map((store) {
-      final storeMap = store as Map<String, dynamic>;
-      return _StoreOption(
-        id: storeMap['store_id'] as String? ?? '',
-        name: storeMap['store_name'] as String? ?? 'Unknown Store',
-      );
-    }).toList();
-  }
-
-  IconData _getTransactionIcon(_TransactionType type) {
-    switch (type) {
-      case _TransactionType.moveStock:
-        return Icons.swap_horiz;
-      case _TransactionType.stockIn:
-        return Icons.download_outlined;
-      case _TransactionType.editStock:
-        return Icons.edit_outlined;
-      case _TransactionType.sell:
-        return Icons.shopping_bag_outlined;
-    }
-  }
-
-  String _getTransactionTitle(_TransactionType type) {
-    switch (type) {
-      case _TransactionType.moveStock:
-        return 'Move Stock';
-      case _TransactionType.stockIn:
-        return 'Stock In';
-      case _TransactionType.editStock:
-        return 'Edit Stock';
-      case _TransactionType.sell:
-        return 'Sell';
-    }
-  }
-
-  /// Format created_at string from RPC (format: 'YYYY-MM-DD HH24:MI:SS')
-  /// to user-friendly format (e.g., 'Oct 12, 2025 · 14:32')
-  String _formatCreatedAt(String createdAt) {
-    try {
-      // Parse the datetime string from RPC
-      final parts = createdAt.split(' ');
-      if (parts.length != 2) return createdAt;
-
-      final dateParts = parts[0].split('-');
-      final timeParts = parts[1].split(':');
-
-      if (dateParts.length != 3 || timeParts.length < 2) return createdAt;
-
-      final year = int.parse(dateParts[0]);
-      final month = int.parse(dateParts[1]);
-      final day = int.parse(dateParts[2]);
-      final hour = timeParts[0];
-      final minute = timeParts[1];
-
-      // Month names
-      const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ];
-
-      final monthName = months[month - 1];
-      return '$monthName $day, $year · $hour:$minute';
-    } catch (e) {
-      return createdAt;
-    }
-  }
-}
-
-enum _TransactionType {
-  moveStock,
-  stockIn,
-  editStock,
-  sell,
-}
-
-class _StoreOption {
-  final String id;
-  final String name;
-
-  _StoreOption({
-    required this.id,
-    required this.name,
-  });
 }

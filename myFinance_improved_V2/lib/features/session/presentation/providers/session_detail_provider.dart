@@ -1,44 +1,35 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_item.dart';
-import '../../domain/usecases/get_inventory_page.dart';
-import '../../domain/usecases/get_user_session_items.dart';
-import '../../domain/usecases/update_session_items.dart';
 import 'states/session_detail_state.dart';
 
-/// Notifier for session detail state management
-class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
-  final UpdateSessionItems _updateSessionItems;
-  final GetInventoryPage _getInventoryPage;
-  final GetUserSessionItems _getUserSessionItems;
-  final String _companyId;
-  final String _userId;
+part 'session_detail_provider.g.dart';
 
+/// Provider parameters record
+typedef SessionDetailParams = ({
+  String sessionId,
+  String sessionType,
+  String storeId,
+  String? sessionName,
+});
+
+/// Notifier for session detail state management
+/// Migrated to @riverpod from StateNotifier (2025 Best Practice)
+@riverpod
+class SessionDetailNotifier extends _$SessionDetailNotifier {
   static const int _pageLimit = 15;
 
-  SessionDetailNotifier({
-    required UpdateSessionItems updateSessionItems,
-    required GetInventoryPage getInventoryPage,
-    required GetUserSessionItems getUserSessionItems,
-    required String companyId,
-    required String userId,
-    required String sessionId,
-    required String sessionType,
-    required String storeId,
-    String? sessionName,
-  })  : _updateSessionItems = updateSessionItems,
-        _getInventoryPage = getInventoryPage,
-        _getUserSessionItems = getUserSessionItems,
-        _companyId = companyId,
-        _userId = userId,
-        super(SessionDetailState.initial(
-          sessionId: sessionId,
-          sessionType: sessionType,
-          storeId: storeId,
-          sessionName: sessionName,
-        ),);
+  @override
+  SessionDetailState build(SessionDetailParams params) {
+    return SessionDetailState.initial(
+      sessionId: params.sessionId,
+      sessionType: params.sessionType,
+      storeId: params.storeId,
+      sessionName: params.sessionName,
+    );
+  }
 
   /// Load user's existing session items (previously added items)
   /// Called on page init to populate selectedProducts with existing items
@@ -51,9 +42,13 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     );
 
     try {
-      final response = await _getUserSessionItems(
+      final appState = ref.read(appStateProvider);
+      final userId = appState.userId;
+      final getUserSessionItems = ref.read(getUserSessionItemsUseCaseProvider);
+
+      final response = await getUserSessionItems(
         sessionId: state.sessionId,
-        userId: _userId,
+        userId: userId,
       );
 
       if (response.hasItems) {
@@ -95,8 +90,12 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     );
 
     try {
-      final response = await _getInventoryPage(
-        companyId: _companyId,
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final getInventoryPage = ref.read(getInventoryPageUseCaseProvider);
+
+      final response = await getInventoryPage(
+        companyId: companyId,
         storeId: state.storeId,
         page: 1,
         limit: _pageLimit,
@@ -111,7 +110,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ))
+              ),)
           .toList();
 
       state = state.copyWith(
@@ -136,9 +135,13 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     state = state.copyWith(isLoadingMoreInventory: true);
 
     try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final getInventoryPage = ref.read(getInventoryPageUseCaseProvider);
+
       final nextPage = state.currentPage + 1;
-      final response = await _getInventoryPage(
-        companyId: _companyId,
+      final response = await getInventoryPage(
+        companyId: companyId,
         storeId: state.storeId,
         search: state.searchQuery.isNotEmpty ? state.searchQuery : null,
         page: nextPage,
@@ -154,7 +157,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ))
+              ),)
           .toList();
 
       state = state.copyWith(
@@ -193,8 +196,12 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     );
 
     try {
-      final response = await _getInventoryPage(
-        companyId: _companyId,
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final getInventoryPage = ref.read(getInventoryPageUseCaseProvider);
+
+      final response = await getInventoryPage(
+        companyId: companyId,
         storeId: state.storeId,
         search: query,
         page: 1,
@@ -210,7 +217,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ))
+              ),)
           .toList();
 
       state = state.copyWith(
@@ -232,14 +239,20 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
   Future<void> loadMoreSearchResults() async {
     if (state.isLoadingMoreInventory ||
         !state.hasMoreInventory ||
-        state.searchQuery.isEmpty) return;
+        state.searchQuery.isEmpty) {
+      return;
+    }
 
     state = state.copyWith(isLoadingMoreInventory: true);
 
     try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final getInventoryPage = ref.read(getInventoryPageUseCaseProvider);
+
       final nextPage = state.currentPage + 1;
-      final response = await _getInventoryPage(
-        companyId: _companyId,
+      final response = await getInventoryPage(
+        companyId: companyId,
         storeId: state.storeId,
         search: state.searchQuery,
         page: nextPage,
@@ -255,7 +268,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ))
+              ),)
           .toList();
 
       state = state.copyWith(
@@ -457,6 +470,8 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
+      final updateSessionItems = ref.read(updateSessionItemsUseCaseProvider);
+
       // Build items for UseCase
       final items = state.selectedProducts
           .map((p) => SessionItemInput(
@@ -466,7 +481,7 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
               ),)
           .toList();
 
-      final response = await _updateSessionItems(
+      final response = await updateSessionItems(
         sessionId: state.sessionId,
         userId: userId,
         items: items,
@@ -491,35 +506,3 @@ class SessionDetailNotifier extends StateNotifier<SessionDetailState> {
     }
   }
 }
-
-/// Provider parameters record
-typedef SessionDetailParams = ({
-  String sessionId,
-  String sessionType,
-  String storeId,
-  String? sessionName,
-});
-
-/// Provider for session detail
-final sessionDetailProvider = StateNotifierProvider.autoDispose
-    .family<SessionDetailNotifier, SessionDetailState, SessionDetailParams>(
-        (ref, params) {
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
-  final userId = appState.userId;
-  final updateSessionItems = ref.watch(updateSessionItemsUseCaseProvider);
-  final getInventoryPage = ref.watch(getInventoryPageUseCaseProvider);
-  final getUserSessionItems = ref.watch(getUserSessionItemsUseCaseProvider);
-
-  return SessionDetailNotifier(
-    updateSessionItems: updateSessionItems,
-    getInventoryPage: getInventoryPage,
-    getUserSessionItems: getUserSessionItems,
-    companyId: companyId,
-    userId: userId,
-    sessionId: params.sessionId,
-    sessionType: params.sessionType,
-    storeId: params.storeId,
-    sessionName: params.sessionName,
-  );
-});

@@ -91,7 +91,7 @@ class _FeatureCardState extends State<FeatureCard>
                     height: 48,
                     padding: const EdgeInsets.all(TossSpacing.space2),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.1),
+                      color: TossColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Center(

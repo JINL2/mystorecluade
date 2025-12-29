@@ -145,10 +145,10 @@ class _CodeCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
-            color: TossColors.gray100.withOpacity(0.5),
+            color: TossColors.gray100.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
-              color: TossColors.border.withOpacity(0.3),
+              color: TossColors.border.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -158,7 +158,7 @@ class _CodeCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(icon, color: TossColors.primary, size: 20),
@@ -208,7 +208,7 @@ class _CodeCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: TossColors.primary.withOpacity(0.1),
+                        color: TossColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                       child: Row(

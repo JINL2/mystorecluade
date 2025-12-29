@@ -45,15 +45,15 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(cartProvider.notifier).clearCart();
+      ref.read(cartNotifierProvider.notifier).clearCart();
       // Invalidate providers to force fresh data load from server
       ref.invalidate(filteredProductsProvider);
-      ref.invalidate(salesProductProvider);
-      ref.invalidate(inventoryMetadataProvider);
-      ref.invalidate(salePreloadProvider);
+      ref.invalidate(salesProductNotifierProvider);
+      ref.invalidate(inventoryMetadataNotifierProvider);
+      ref.invalidate(salePreloadNotifierProvider);
       // Load metadata, exchange rates, and cash locations
-      ref.read(inventoryMetadataProvider.notifier).loadMetadata();
-      ref.read(salePreloadProvider.notifier).loadAll();
+      ref.read(inventoryMetadataNotifierProvider.notifier).loadMetadata();
+      ref.read(salePreloadNotifierProvider.notifier).loadAll();
     });
 
     _scrollController.addListener(_onScroll);
@@ -71,9 +71,9 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final salesState = ref.read(salesProductProvider);
+      final salesState = ref.read(salesProductNotifierProvider);
       if (salesState.canLoadMore) {
-        ref.read(salesProductProvider.notifier).loadNextPage();
+        ref.read(salesProductNotifierProvider.notifier).loadNextPage();
       }
     }
   }
@@ -81,14 +81,14 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(salesProductProvider.notifier).refresh();
+      ref.read(salesProductNotifierProvider.notifier).refresh();
     }
   }
 
   void _onSearchChanged(String value) {
     _searchDebounceTimer?.cancel();
     _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
-      ref.read(salesProductProvider.notifier).search(value);
+      ref.read(salesProductNotifierProvider.notifier).search(value);
     });
   }
 
@@ -153,7 +153,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   }
 
   Future<bool> _onWillPop() async {
-    final cart = ref.read(cartProvider);
+    final cart = ref.read(cartNotifierProvider);
     if (cart.isEmpty) return true;
 
     final shouldDiscard = await showDialog<bool>(
@@ -186,7 +186,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     );
 
     if (shouldDiscard == true) {
-      ref.read(cartProvider.notifier).clearCart();
+      ref.read(cartNotifierProvider.notifier).clearCart();
       return true;
     }
     return false;
@@ -194,11 +194,11 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
   @override
   Widget build(BuildContext context) {
-    final salesState = ref.watch(salesProductProvider);
-    final cart = ref.watch(cartProvider);
+    final salesState = ref.watch(salesProductNotifierProvider);
+    final cart = ref.watch(cartNotifierProvider);
     final currencySymbol = ref.watch(currencyProvider);
     final allProducts = ref.watch(filteredProductsProvider);
-    final metadataState = ref.watch(inventoryMetadataProvider);
+    final metadataState = ref.watch(inventoryMetadataNotifierProvider);
 
     // Get brands from metadata
     final brands = metadataState.brandNames;
@@ -232,8 +232,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                 right: 0,
                 bottom: 0,
                 child: CartSummaryBar(
-                  itemCount: ref.read(cartProvider.notifier).totalItems,
-                  subtotal: ref.read(cartProvider.notifier).subtotal,
+                  itemCount: ref.read(cartNotifierProvider.notifier).totalItems,
+                  subtotal: ref.read(cartNotifierProvider.notifier).subtotal,
                   currencySymbol: currencySymbol,
                   cartItems: cart,
                   onCreateInvoice: () => _navigateToPayment(cart),
@@ -346,7 +346,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
             Text(salesState.errorMessage ?? 'Error loading products', style: TossTextStyles.body),
             const SizedBox(height: TossSpacing.space3),
             TextButton(
-              onPressed: () => ref.read(salesProductProvider.notifier).refresh(),
+              onPressed: () => ref.read(salesProductNotifierProvider.notifier).refresh(),
               child: const Text('Retry'),
             ),
           ],
@@ -410,7 +410,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   }
 
   void _navigateToPayment(List<CartItem> cartItems) {
-    final cartNotifier = ref.read(cartProvider.notifier);
+    final cartNotifier = ref.read(cartNotifierProvider.notifier);
     final selectedProductsList = cartNotifier.cartProducts;
     final productQuantities = <String, int>{};
     for (var item in cartItems) {
@@ -418,7 +418,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     }
 
     // Get preloaded data (exchange rates + cash locations)
-    final preloadState = ref.read(salePreloadProvider);
+    final preloadAsync = ref.read(salePreloadNotifierProvider);
+    final preloadData = preloadAsync.valueOrNull ?? const SalePreloadData();
 
     Navigator.push(
       context,
@@ -426,8 +427,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         builder: (context) => PaymentMethodPage(
           selectedProducts: selectedProductsList,
           productQuantities: productQuantities,
-          exchangeRateData: preloadState.exchangeRateData,
-          cashLocations: preloadState.cashLocations,
+          exchangeRateData: preloadData.exchangeRateData,
+          cashLocations: preloadData.cashLocations,
         ),
       ),
     );

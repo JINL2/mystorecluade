@@ -33,7 +33,7 @@ class _AttachmentPickerSectionState
   Future<void> _pickImagesFromGallery() async {
     if (_isPickingImages) return;
 
-    final state = ref.read(journalEntryStateProvider);
+    final state = ref.read(journalEntryNotifierProvider);
     if (!state.canAddMoreAttachments) {
       _showMaxAttachmentsError();
       return;
@@ -68,7 +68,7 @@ class _AttachmentPickerSectionState
   Future<void> _pickImageFromCamera() async {
     if (_isPickingImages) return;
 
-    final state = ref.read(journalEntryStateProvider);
+    final state = ref.read(journalEntryNotifierProvider);
     if (!state.canAddMoreAttachments) {
       _showMaxAttachmentsError();
       return;
@@ -113,7 +113,7 @@ class _AttachmentPickerSectionState
       );
     }
 
-    ref.read(journalEntryStateProvider.notifier).addAttachments(attachments);
+    ref.read(journalEntryNotifierProvider.notifier).addAttachments(attachments);
   }
 
   String _getMimeType(String fileName) {
@@ -151,7 +151,7 @@ class _AttachmentPickerSectionState
   }
 
   void _removeAttachment(int index) {
-    ref.read(journalEntryStateProvider.notifier).removeAttachment(index);
+    ref.read(journalEntryNotifierProvider.notifier).removeAttachment(index);
   }
 
   /// Show source selection dialog
@@ -235,7 +235,7 @@ class _AttachmentPickerSectionState
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(journalEntryStateProvider);
+    final state = ref.watch(journalEntryNotifierProvider);
     final attachments = state.pendingAttachments;
 
     return Column(

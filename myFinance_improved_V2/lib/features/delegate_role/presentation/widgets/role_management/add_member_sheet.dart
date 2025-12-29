@@ -9,9 +9,8 @@ import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart'
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 
-import '../../../domain/providers/repository_providers.dart';
-import '../../../domain/providers/usecase_providers.dart';
-import '../../providers/state/state_providers.dart';
+import '../../../di/delegate_role_providers.dart';
+import '../../providers/role_providers.dart';
 
 /// Add Member Bottom Sheet for assigning users to a role
 class AddMemberSheet extends ConsumerStatefulWidget {

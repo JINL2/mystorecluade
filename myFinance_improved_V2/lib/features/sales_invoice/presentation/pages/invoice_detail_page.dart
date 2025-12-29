@@ -79,13 +79,13 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
     super.initState();
     // Load invoice detail on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(invoiceDetailProvider.notifier).loadDetail(invoice.invoiceId);
+      ref.read(invoiceDetailNotifierProvider.notifier).loadDetail(invoice.invoiceId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final detailState = ref.watch(invoiceDetailProvider);
+    final detailState = ref.watch(invoiceDetailNotifierProvider);
     final detail = detailState.detail;
 
     return TossScaffold(
@@ -199,7 +199,7 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
           ElevatedButton(
             onPressed: () {
               ref
-                  .read(invoiceDetailProvider.notifier)
+                  .read(invoiceDetailNotifierProvider.notifier)
                   .loadDetail(invoice.invoiceId);
             },
             style: ElevatedButton.styleFrom(

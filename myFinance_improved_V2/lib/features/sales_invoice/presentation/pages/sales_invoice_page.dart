@@ -1,5 +1,14 @@
-// Presentation Page: Sales Invoice
-// Main page for sales invoice management with Clean Architecture
+// lib/features/sales_invoice/presentation/pages/sales_invoice_page.dart
+//
+// Sales Invoice Page - Main page for sales invoice management
+// Refactored following Clean Architecture 2025 - Single Responsibility Principle
+//
+// Extracted widgets:
+// - InvoiceFilterSection: Filter pills and summary
+// - InvoiceErrorState: Error display with retry
+// - InvoiceEmptyState: Empty state display
+// - InvoiceDateSeparator: Date grouping headers
+// - InvoiceFloatingButton: FAB for new invoice
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +16,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -15,11 +23,15 @@ import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../sale_product/presentation/pages/sale_product_page.dart';
 import '../../domain/entities/invoice.dart';
-import '../extensions/invoice_period_extension.dart';
 import '../providers/invoice_list_provider.dart';
 import '../providers/states/invoice_list_state.dart';
 import '../widgets/invoice_list/filter_bottom_sheets.dart';
 import '../widgets/invoice_list/filter_header_delegate.dart';
+import '../widgets/invoice_list/invoice_date_separator.dart';
+import '../widgets/invoice_list/invoice_empty_state.dart';
+import '../widgets/invoice_list/invoice_error_state.dart';
+import '../widgets/invoice_list/invoice_filter_section.dart';
+import '../widgets/invoice_list/invoice_floating_button.dart';
 import '../widgets/invoice_list/invoice_list_item.dart';
 import '../widgets/invoice_list/invoice_sort_options.dart';
 import '../widgets/invoice_list/sort_bottom_sheet.dart';
@@ -34,20 +46,12 @@ class SalesInvoicePage extends ConsumerStatefulWidget {
 
 class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
   final ScrollController _scrollController = ScrollController();
-
-  // Sort option
   InvoiceSortOption? _currentSort;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 페이지 진입 시 필터 초기화 (All 상태로)
-      ref.read(invoiceListProvider.notifier).clearCashLocationFilter();
-      ref.read(invoiceListProvider.notifier).clearStatusFilter();
-      ref.read(invoiceListProvider.notifier).loadInvoices();
-      ref.read(invoiceListProvider.notifier).loadCashLocations();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initializeInvoices());
     _scrollController.addListener(_onScroll);
   }
 
@@ -57,99 +61,35 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     super.dispose();
   }
 
+  void _initializeInvoices() {
+    final notifier = ref.read(invoiceListNotifierProvider.notifier);
+    notifier.clearCashLocationFilter();
+    notifier.clearStatusFilter();
+    notifier.loadInvoices();
+    notifier.loadCashLocations();
+  }
+
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final invoiceState = ref.read(invoiceListProvider);
+      final invoiceState = ref.read(invoiceListNotifierProvider);
       if (invoiceState.canLoadMore && !invoiceState.isLoadingMore) {
-        ref.read(invoiceListProvider.notifier).loadNextPage();
-      }
-    }
-  }
-
-  Future<void> _handleRefund(Invoice invoice) async {
-    if (mounted) {
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-          ),
-        ),
-      );
-    }
-
-    try {
-      final result = await ref.read(invoiceListProvider.notifier).refundInvoice(
-        invoice: invoice,
-      );
-
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-
-      if (result.success) {
-        if (mounted) {
-          final formatter = NumberFormat.currency(symbol: '', decimalDigits: 0);
-          final currency = ref.read(invoiceListProvider).response?.currency;
-          final symbol = currency?.symbol ?? '';
-
-          showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => TossDialog.success(
-              title: 'Refund Successful',
-              subtitle: '$symbol${formatter.format(result.totalAmountRefunded)}',
-              message: 'Invoice ${invoice.invoiceNumber} has been refunded',
-              primaryButtonText: 'Done',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          showDialog<void>(
-            context: context,
-            barrierDismissible: true,
-            builder: (context) => TossDialog.error(
-              title: 'Refund Failed',
-              message: result.errorMessage ?? 'Could not process refund',
-              primaryButtonText: 'OK',
-              onPrimaryPressed: () => Navigator.of(context).pop(),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-
-      if (mounted) {
-        showDialog<void>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Refund Failed',
-            message: e.toString().replaceAll('Exception:', '').trim(),
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
-          ),
-        );
+        ref.read(invoiceListNotifierProvider.notifier).loadNextPage();
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final invoiceState = ref.watch(invoiceListProvider);
+    final invoiceState = ref.watch(invoiceListNotifierProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.white,
       appBar: _buildAppBar(),
       body: _buildBody(invoiceState),
-      floatingActionButton: _buildFloatingAddButton(),
+      floatingActionButton: InvoiceFloatingButton(
+        onPressed: _navigateToSaleProduct,
+      ),
     );
   }
 
@@ -160,11 +100,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       scrolledUnderElevation: 0,
       leading: IconButton(
         onPressed: () => context.pop(),
-        icon: const Icon(
-          Icons.arrow_back,
-          color: TossColors.gray900,
-          size: 22,
-        ),
+        icon: const Icon(Icons.arrow_back, color: TossColors.gray900, size: 22),
       ),
       title: Text(
         'Invoice',
@@ -175,80 +111,51 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       ),
       titleSpacing: 0,
       actions: [
-        _buildAppBarIconButton(Icons.search, () {
-          HapticFeedback.lightImpact();
-          Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (context) => const InvoiceSearchPage(),
-            ),
-          );
-        }),
-        _buildAppBarIconButton(Icons.swap_vert, () {
-          HapticFeedback.lightImpact();
-          _showSortOptionsSheet();
-        }),
+        IconButton(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            _navigateToSearch();
+          },
+          icon: const Icon(Icons.search, color: TossColors.gray900, size: 22),
+          splashRadius: 20,
+        ),
+        IconButton(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            _showSortOptionsSheet();
+          },
+          icon: const Icon(Icons.swap_vert, color: TossColors.gray900, size: 22),
+          splashRadius: 20,
+        ),
         const SizedBox(width: 4),
       ],
     );
   }
 
-  Widget _buildAppBarIconButton(IconData icon, VoidCallback onTap) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Icon(
-        icon,
-        color: TossColors.gray900,
-        size: 22,
-      ),
-      splashRadius: 20,
-    );
-  }
-
   Widget _buildBody(InvoiceListState invoiceState) {
-    // Cash location and status filter applied (sorting is now server-side)
-    List<Invoice> displayInvoices = invoiceState.filteredInvoices;
+    final displayInvoices = invoiceState.filteredInvoices;
 
+    // Empty state
     if (displayInvoices.isEmpty && !invoiceState.isLoading) {
       return Column(
         children: [
-          _buildFilterSection(invoiceState),
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.receipt_long_outlined,
-                    size: 64,
-                    color: TossColors.gray400,
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  Text(
-                    'No invoices found',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space2),
-                  Text(
-                    'Create your first invoice to get started',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          InvoiceFilterSection(
+            invoiceState: invoiceState,
+            onFilterTap: _showFilterBottomSheet,
           ),
+          const Expanded(child: InvoiceEmptyState()),
         ],
       );
     }
 
+    // Loading state
     if (invoiceState.isLoading && displayInvoices.isEmpty) {
       return Column(
         children: [
-          _buildFilterSection(invoiceState),
+          InvoiceFilterSection(
+            invoiceState: invoiceState,
+            onFilterTap: _showFilterBottomSheet,
+          ),
           const Expanded(
             child: Center(
               child: CircularProgressIndicator(
@@ -260,323 +167,125 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       );
     }
 
+    // Error state
     if (invoiceState.error != null && displayInvoices.isEmpty) {
-      return _buildErrorState(invoiceState.error!);
+      return InvoiceErrorState(
+        error: invoiceState.error!,
+        onRetry: () => ref.read(invoiceListNotifierProvider.notifier).loadInvoices(),
+      );
     }
 
+    // Invoice list
     return RefreshIndicator(
-      onRefresh: () => ref.read(invoiceListProvider.notifier).refresh(),
+      onRefresh: () => ref.read(invoiceListNotifierProvider.notifier).refresh(),
       color: TossColors.primary,
       child: CustomScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // Sticky filter section
           SliverPersistentHeader(
             pinned: true,
             delegate: FilterHeaderDelegate(
               invoiceState: invoiceState,
-              onFilterTap: (filter) {
-                _showFilterBottomSheet(filter);
-              },
+              onFilterTap: _showFilterBottomSheet,
             ),
           ),
-          // Invoice list
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  // Group invoices by date
-                  final groupedInvoices = _groupInvoicesByDate(displayInvoices);
-                  final entries = groupedInvoices.entries.toList();
-
-                  // Calculate which item we're rendering
-                  int currentIndex = 0;
-                  for (final entry in entries) {
-                    // Date separator
-                    if (index == currentIndex) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          top: currentIndex == 0 ? 0 : 20,
-                          bottom: 2,
-                        ),
-                        child: _buildDateSeparator(entry.key),
-                      );
-                    }
-                    currentIndex++;
-
-                    // Invoice items for this date
-                    for (final invoice in entry.value) {
-                      if (index == currentIndex) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: InvoiceListItem(
-                            invoice: invoice,
-                            onRefundPressed: _handleRefund,
-                          ),
-                        );
-                      }
-                      currentIndex++;
-                    }
-                  }
-                  return null;
-                },
-                childCount: _calculateTotalItemCount(displayInvoices),
-              ),
-            ),
-          ),
-          // Loading More Indicator
-          if (invoiceState.isLoadingMore)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(TossSpacing.space4),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-                  ),
-                ),
-              ),
-            ),
+          _buildInvoiceList(displayInvoices),
+          if (invoiceState.isLoadingMore) _buildLoadingMoreIndicator(),
         ],
       ),
     );
   }
 
-  Widget _buildFilterSection(InvoiceListState invoiceState) {
-    return Container(
-      color: TossColors.white,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Filter pills row - equal distribution
-          SizedBox(
-            height: 52,
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildFilterPill('Time', invoiceState.selectedPeriod.displayName),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildFilterPill(
-                    'Location',
-                    invoiceState.selectedCashLocation?.name ?? 'All',
-                    isActive: invoiceState.selectedCashLocation != null,
-                    filterKey: 'Cash Location',
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildFilterPill(
-                    'Status',
-                    invoiceState.statusDisplayText,
-                    isActive: invoiceState.selectedStatus != null,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Summary text with bold numbers
-          RichText(
-            text: TextSpan(
-              style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w500,
-                color: TossColors.gray600,
-              ),
-              children: [
-                const TextSpan(text: 'Total invoice: '),
-                TextSpan(
-                  text: '${invoiceState.filteredInvoices.length} invoices',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
-                  ),
-                ),
-                const TextSpan(text: ' · Total money: '),
-                TextSpan(
-                  text: _formatCurrency(_calculateTotalAmount(invoiceState.filteredInvoices)),
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Divider
-          Container(
-            height: 1,
-            color: TossColors.gray100,
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildInvoiceList(List<Invoice> invoices) {
+    final groupedInvoices = _groupInvoicesByDate(invoices);
+    final entries = groupedInvoices.entries.toList();
 
-  Widget _buildFilterPill(String title, String subtitle, {bool isActive = false, String? filterKey}) {
-    return Material(
-      color: TossColors.transparent,
-      child: InkWell(
-        onTap: () {
-          _showFilterBottomSheet(filterKey ?? title);
-        },
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        child: Container(
-          height: 52,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
-            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            border: isActive ? Border.all(color: TossColors.primary, width: 1) : null,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: isActive ? TossColors.primary : TossColors.gray900,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      subtitle,
-                      style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w400,
-                        color: isActive ? TossColors.primary : TossColors.gray600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.keyboard_arrow_down,
-                size: 16,
-                color: isActive ? TossColors.primary : TossColors.gray600,
-              ),
-            ],
-          ),
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => _buildListItem(index, entries),
+          childCount: _calculateTotalItemCount(invoices),
         ),
       ),
     );
   }
 
-  Widget _buildDateSeparator(DateTime date) {
-    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-
-    final dayName = dayNames[date.weekday - 1];
-    final monthName = monthNames[date.month - 1];
-
-    return Text(
-      '$dayName, ${date.day} $monthName ${date.year}',
-      style: TossTextStyles.caption.copyWith(
-        fontWeight: FontWeight.w400,
-        color: TossColors.gray600,
-      ),
-    );
-  }
-
-  Widget _buildFloatingAddButton() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute<void>(
-            builder: (context) => const SaleProductPage(),
-          ),
+  Widget? _buildListItem(int index, List<MapEntry<DateTime, List<Invoice>>> entries) {
+    int currentIndex = 0;
+    for (final entry in entries) {
+      // Date separator
+      if (index == currentIndex) {
+        return Padding(
+          padding: EdgeInsets.only(top: currentIndex == 0 ? 0 : 20, bottom: 2),
+          child: InvoiceDateSeparator(date: entry.key),
         );
-      },
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: TossColors.primary,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.18),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+      }
+      currentIndex++;
+
+      // Invoice items
+      for (final invoice in entry.value) {
+        if (index == currentIndex) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: InvoiceListItem(
+              invoice: invoice,
+              onRefundPressed: _handleRefund,
             ),
-          ],
-        ),
-        child: const Icon(
-          Icons.add,
-          size: 24,
-          color: TossColors.white,
+          );
+        }
+        currentIndex++;
+      }
+    }
+    return null;
+  }
+
+  Widget _buildLoadingMoreIndicator() {
+    return const SliverToBoxAdapter(
+      child: Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildErrorState(String error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: TossColors.error,
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          Text(
-            'Error loading invoices',
-            style: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          Text(
-            error,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: TossSpacing.space4),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(invoiceListProvider.notifier).loadInvoices();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-            ),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
+  // ============================================================================
+  // Navigation
+  // ============================================================================
+
+  void _navigateToSearch() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (context) => const InvoiceSearchPage()),
     );
   }
+
+  void _navigateToSaleProduct() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (context) => const SaleProductPage()),
+    );
+  }
+
+  // ============================================================================
+  // Bottom Sheets
+  // ============================================================================
 
   void _showFilterBottomSheet(String filterType) {
-    if (filterType == 'Time') {
-      InvoiceFilterBottomSheets.showPeriodFilter(context, ref);
-    } else if (filterType == 'Cash Location') {
-      InvoiceFilterBottomSheets.showCashLocationFilter(context, ref);
-    } else if (filterType == 'Status') {
-      InvoiceFilterBottomSheets.showStatusFilter(context, ref);
-    } else {
-      InvoiceFilterBottomSheets.showGenericFilter(context, filterType);
+    switch (filterType) {
+      case 'Time':
+        InvoiceFilterBottomSheets.showPeriodFilter(context, ref);
+      case 'Cash Location':
+        InvoiceFilterBottomSheets.showCashLocationFilter(context, ref);
+      case 'Status':
+        InvoiceFilterBottomSheets.showStatusFilter(context, ref);
+      default:
+        InvoiceFilterBottomSheets.showGenericFilter(context, filterType);
     }
   }
 
@@ -585,13 +294,84 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       context,
       ref,
       currentSort: _currentSort,
-      onSortChanged: (newSort) {
-        setState(() {
-          _currentSort = newSort;
-        });
-      },
+      onSortChanged: (newSort) => setState(() => _currentSort = newSort),
     );
   }
+
+  // ============================================================================
+  // Refund Handling
+  // ============================================================================
+
+  Future<void> _handleRefund(Invoice invoice) async {
+    _showLoadingDialog();
+
+    try {
+      final result = await ref.read(invoiceListNotifierProvider.notifier).refundInvoice(
+        invoice: invoice,
+      );
+
+      if (mounted) Navigator.of(context).pop();
+
+      if (result.success) {
+        _showRefundSuccessDialog(invoice, result.totalAmountRefunded);
+      } else {
+        _showErrorDialog('Refund Failed', result.errorMessage ?? 'Could not process refund');
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context).pop();
+      _showErrorDialog('Refund Failed', e.toString().replaceAll('Exception:', '').trim());
+    }
+  }
+
+  void _showLoadingDialog() {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
+        ),
+      ),
+    );
+  }
+
+  void _showRefundSuccessDialog(Invoice invoice, double totalRefunded) {
+    if (!mounted) return;
+    final formatter = NumberFormat.currency(symbol: '', decimalDigits: 0);
+    final currency = ref.read(invoiceListNotifierProvider).response?.currency;
+    final symbol = currency?.symbol ?? '';
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.success(
+        title: 'Refund Successful',
+        subtitle: '$symbol${formatter.format(totalRefunded)}',
+        message: 'Invoice ${invoice.invoiceNumber} has been refunded',
+        primaryButtonText: 'Done',
+        onPrimaryPressed: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  void _showErrorDialog(String title, String message) {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => TossDialog.error(
+        title: title,
+        message: message,
+        primaryButtonText: 'OK',
+        onPrimaryPressed: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  // ============================================================================
+  // Utility Methods
+  // ============================================================================
 
   Map<DateTime, List<Invoice>> _groupInvoicesByDate(List<Invoice> invoices) {
     final grouped = <DateTime, List<Invoice>>{};
@@ -602,40 +382,15 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
         invoice.saleDate.month,
         invoice.saleDate.day,
       );
-      if (!grouped.containsKey(dateKey)) {
-        grouped[dateKey] = [];
-      }
-      grouped[dateKey]!.add(invoice);
+      grouped.putIfAbsent(dateKey, () => []).add(invoice);
     }
 
-    // Sort by date descending
     final sortedKeys = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-    final sortedMap = <DateTime, List<Invoice>>{};
-    for (final key in sortedKeys) {
-      sortedMap[key] = grouped[key]!;
-    }
-
-    return sortedMap;
+    return {for (final key in sortedKeys) key: grouped[key]!};
   }
 
   int _calculateTotalItemCount(List<Invoice> invoices) {
     final grouped = _groupInvoicesByDate(invoices);
-    int count = 0;
-    for (final entry in grouped.entries) {
-      count++; // Date separator
-      count += entry.value.length; // Invoice items
-    }
-    return count;
-  }
-
-  double _calculateTotalAmount(List<Invoice> invoices) {
-    return invoices.fold(0.0, (sum, invoice) => sum + invoice.amounts.totalAmount);
-  }
-
-  String _formatCurrency(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
+    return grouped.entries.fold(0, (count, entry) => count + 1 + entry.value.length);
   }
 }

@@ -7,21 +7,8 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
-
-/// Attribute types available for selection
-enum AttributeType {
-  text('Text', LucideIcons.type),
-  number('Number', LucideIcons.hash),
-  date('Date', LucideIcons.calendar),
-  barcode('Barcode', LucideIcons.scanLine);
-
-  final String label;
-  final IconData icon;
-
-  const AttributeType(this.label, this.icon);
-}
+import '../widgets/attributes/add_attribute_form_dialog.dart';
 
 /// Attribute item model for display
 class AttributeItem {
@@ -77,178 +64,20 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
     ),
   ];
 
-  void _addAttribute() {
-    _showAddAttributeDialog();
-  }
-
-  void _showAddAttributeDialog() {
-    final TextEditingController nameController = TextEditingController();
-    AttributeType selectedType = AttributeType.text;
-
-    showDialog<void>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => Dialog(
-          backgroundColor: TossColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+  Future<void> _addAttribute() async {
+    final result = await AddAttributeFormDialog.show(context);
+    if (result != null) {
+      setState(() {
+        _attributes.add(
+          AttributeItem(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: result.name,
+            type: result.type,
+            isBuiltIn: false,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                Center(
-                  child: Text(
-                    'Add Attribute',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Name input
-                Text(
-                  'Name',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.gray600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter attribute name',
-                    hintStyle: TossTextStyles.body.copyWith(
-                      color: TossColors.gray400,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: const BorderSide(color: TossColors.gray200),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: const BorderSide(color: TossColors.gray200),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: const BorderSide(color: TossColors.primary),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Type selector
-                Text(
-                  'Type',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.gray600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InkWell(
-                  onTap: () async {
-                    final result = await _showTypeSelector(selectedType);
-                    if (result != null) {
-                      setDialogState(() {
-                        selectedType = result;
-                      });
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: TossColors.gray200),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            selectedType.label,
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray900,
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          LucideIcons.chevronDown,
-                          size: 18,
-                          color: TossColors.gray400,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Action buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(TossBorderRadius.md),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TossPrimaryButton(
-                        text: 'Add',
-                        onPressed: () {
-                          if (nameController.text.trim().isNotEmpty) {
-                            setState(() {
-                              _attributes.add(
-                                AttributeItem(
-                                  id: DateTime.now()
-                                      .millisecondsSinceEpoch
-                                      .toString(),
-                                  name: nameController.text.trim(),
-                                  type: selectedType,
-                                  isBuiltIn: false,
-                                ),
-                              );
-                            });
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+        );
+      });
+    }
   }
 
   Future<AttributeType?> _showTypeSelector(AttributeType currentType) async {

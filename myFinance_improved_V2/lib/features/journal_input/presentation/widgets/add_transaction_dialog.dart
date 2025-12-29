@@ -250,11 +250,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
 
     try {
       final appState = ref.read(appStateProvider);
-      final checkMapping = ref.read(checkAccountMappingProvider);
-      final mapping = await checkMapping(
-        appState.companyChoosen,
-        _selectedCounterpartyId!,
-        _selectedAccountId!,
+      final mapping = await ref.read(journalActionsNotifierProvider.notifier).checkAccountMapping(
+        companyId: appState.companyChoosen,
+        counterpartyId: _selectedCounterpartyId!,
+        accountId: _selectedAccountId!,
       );
 
       setState(() {

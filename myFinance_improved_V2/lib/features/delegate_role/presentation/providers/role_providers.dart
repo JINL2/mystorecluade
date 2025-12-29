@@ -1,264 +1,176 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../data/datasources/delegation_remote_data_source.dart';
-import '../../data/datasources/role_remote_data_source.dart';
-import '../../data/repositories/delegation_repository_impl.dart';
-import '../../data/repositories/role_repository_impl.dart';
+// lib/features/delegate_role/presentation/providers/role_providers.dart
+//
+// Presentation Layer Providers with @riverpod
+// All providers migrated to riverpod_generator for Clean Architecture 2025
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// Import centralized DI providers
+import '../../di/delegate_role_providers.dart';
+
+// Import domain entities
 import '../../domain/entities/delegatable_role.dart';
 import '../../domain/entities/delegation_audit.dart';
 import '../../domain/entities/role.dart';
 import '../../domain/entities/role_delegation.dart';
-import '../../domain/repositories/delegation_repository.dart';
-import '../../domain/repositories/role_repository.dart';
+
+// Import state classes
 import 'states/role_page_state.dart';
 import 'states/role_creation_state.dart';
 import 'states/role_management_state.dart';
 
-// =============================================================================
-// Data Source Providers
-// =============================================================================
+// Re-export DI providers for convenience
+export '../../di/delegate_role_providers.dart';
 
-/// Supabase client provider
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Role remote data source provider
-final roleRemoteDataSourceProvider = Provider<RoleRemoteDataSource>((ref) {
-  final supabase = ref.watch(supabaseClientProvider);
-  return RoleRemoteDataSource(supabase);
-});
-
-/// Delegation remote data source provider
-final delegationRemoteDataSourceProvider = Provider<DelegationRemoteDataSource>((ref) {
-  final supabase = ref.watch(supabaseClientProvider);
-  return DelegationRemoteDataSource(supabase);
-});
+part 'role_providers.g.dart';
 
 // =============================================================================
-// Repository Providers
+// Role Query Providers (@riverpod)
 // =============================================================================
 
-/// Role repository provider
-final roleRepositoryProvider = Provider<RoleRepository>((ref) {
-  final dataSource = ref.watch(roleRemoteDataSourceProvider);
-  return RoleRepositoryImpl(dataSource);
-});
+/// Params for company roles query
+class CompanyRolesParams {
+  final String companyId;
+  final String? userId;
 
-/// Delegation repository provider
-final delegationRepositoryProvider = Provider<DelegationRepository>((ref) {
-  final dataSource = ref.watch(delegationRemoteDataSourceProvider);
-  return DelegationRepositoryImpl(dataSource);
-});
+  const CompanyRolesParams({
+    required this.companyId,
+    this.userId,
+  });
 
-// =============================================================================
-// Role Use Case Providers
-// =============================================================================
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CompanyRolesParams &&
+          runtimeType == other.runtimeType &&
+          companyId == other.companyId &&
+          userId == other.userId;
+
+  @override
+  int get hashCode => companyId.hashCode ^ (userId?.hashCode ?? 0);
+}
 
 /// Get all company roles
-final allCompanyRolesProvider = FutureProvider.family<List<Role>, ({String companyId, String? userId})>((ref, params) async {
+@riverpod
+Future<List<Role>> allCompanyRoles(
+  AllCompanyRolesRef ref,
+  CompanyRolesParams params,
+) async {
   final repository = ref.watch(roleRepositoryProvider);
-  return await repository.getAllCompanyRoles(params.companyId, params.userId);
-});
+  return repository.getAllCompanyRoles(params.companyId, params.userId);
+}
 
 /// Get role by ID
-final roleByIdProvider = FutureProvider.family<Role, String>((ref, roleId) async {
+@riverpod
+Future<Role> roleById(RoleByIdRef ref, String roleId) async {
   final repository = ref.watch(roleRepositoryProvider);
-  return await repository.getRoleById(roleId);
-});
+  return repository.getRoleById(roleId);
+}
 
 /// Get role permissions
-final rolePermissionsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, roleId) async {
+@riverpod
+Future<Map<String, dynamic>> rolePermissions(
+  RolePermissionsRef ref,
+  String roleId,
+) async {
   final repository = ref.watch(roleRepositoryProvider);
-  return await repository.getRolePermissions(roleId);
-});
+  return repository.getRolePermissions(roleId);
+}
 
 /// Get delegatable roles
-final delegatableRolesProvider = FutureProvider.family<List<DelegatableRole>, String>((ref, companyId) async {
+@riverpod
+Future<List<DelegatableRole>> delegatableRoles(
+  DelegatableRolesRef ref,
+  String companyId,
+) async {
   final repository = ref.watch(roleRepositoryProvider);
-  return await repository.getDelegatableRoles(companyId);
-});
+  return repository.getDelegatableRoles(companyId);
+}
 
 /// Get role members
-final roleMembersProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, roleId) async {
+@riverpod
+Future<List<Map<String, dynamic>>> roleMembers(
+  RoleMembersRef ref,
+  String roleId,
+) async {
   final repository = ref.watch(roleRepositoryProvider);
-  return await repository.getRoleMembers(roleId);
-});
+  return repository.getRoleMembers(roleId);
+}
 
 /// Get company users with roles
-final companyUsersProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, companyId) async {
+@riverpod
+Future<List<Map<String, dynamic>>> companyUsers(
+  CompanyUsersRef ref,
+  String companyId,
+) async {
   final dataSource = ref.watch(roleRemoteDataSourceProvider);
-  return await dataSource.getCompanyUsersWithRoles(companyId);
-});
+  return dataSource.getCompanyUsersWithRoles(companyId);
+}
 
 /// Get all features with categories
-final allFeaturesWithCategoriesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+@riverpod
+Future<List<Map<String, dynamic>>> allFeaturesWithCategories(
+  AllFeaturesWithCategoriesRef ref,
+) async {
   final dataSource = ref.watch(roleRemoteDataSourceProvider);
-  return await dataSource.getAllFeaturesWithCategories();
-});
+  return dataSource.getAllFeaturesWithCategories();
+}
 
 // =============================================================================
-// Role Action Providers
+// Delegation Query Providers (@riverpod)
 // =============================================================================
 
-/// Create role provider
-final createRoleProvider = Provider((ref) {
-  return ({
-    required String companyId,
-    required String roleName,
-    String? description,
-    String roleType = 'custom',
-    List<String>? tags,
-  }) async {
-    final repository = ref.read(roleRepositoryProvider);
-    final roleId = await repository.createRole(
-      companyId: companyId,
-      roleName: roleName,
-      description: description,
-      roleType: roleType,
-      tags: tags,
-    );
+/// Params for active delegations query
+class ActiveDelegationsParams {
+  final String userId;
+  final String companyId;
 
-    // Invalidate roles list to refresh
-    ref.invalidate(allCompanyRolesProvider);
-    ref.invalidate(delegatableRolesProvider);
+  const ActiveDelegationsParams({
+    required this.userId,
+    required this.companyId,
+  });
 
-    return roleId;
-  };
-});
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ActiveDelegationsParams &&
+          runtimeType == other.runtimeType &&
+          userId == other.userId &&
+          companyId == other.companyId;
 
-/// Update role details provider
-final updateRoleDetailsProvider = Provider((ref) {
-  return ({
-    required String roleId,
-    required String roleName,
-    String? description,
-    List<String>? tags,
-  }) async {
-    final repository = ref.read(roleRepositoryProvider);
-    await repository.updateRoleDetails(
-      roleId: roleId,
-      roleName: roleName,
-      description: description,
-      tags: tags,
-    );
-
-    // Invalidate related providers
-    ref.invalidate(allCompanyRolesProvider);
-    ref.invalidate(delegatableRolesProvider);
-    ref.invalidate(roleByIdProvider(roleId));
-
-    return true;
-  };
-});
-
-/// Update role permissions provider
-final updateRolePermissionsProvider = Provider((ref) {
-  return (String roleId, Set<String> newPermissions) async {
-    final repository = ref.read(roleRepositoryProvider);
-    await repository.updateRolePermissions(roleId, newPermissions);
-
-    // Invalidate related providers
-    ref.invalidate(allCompanyRolesProvider);
-    ref.invalidate(rolePermissionsProvider(roleId));
-
-    return true;
-  };
-});
-
-/// Delete role provider
-final deleteRoleProvider = Provider((ref) {
-  return (String roleId, String companyId) async {
-    final repository = ref.read(roleRepositoryProvider);
-    await repository.deleteRole(roleId, companyId);
-
-    // Invalidate roles list to refresh
-    ref.invalidate(allCompanyRolesProvider);
-  };
-});
-
-/// Assign user to role provider
-final assignUserToRoleProvider = Provider((ref) {
-  return ({
-    required String userId,
-    required String roleId,
-    required String companyId,
-  }) async {
-    final repository = ref.read(roleRepositoryProvider);
-    await repository.assignUserToRole(
-      userId: userId,
-      roleId: roleId,
-      companyId: companyId,
-    );
-
-    // Invalidate related providers
-    ref.invalidate(companyUsersProvider);
-    ref.invalidate(allCompanyRolesProvider);
-    ref.invalidate(roleMembersProvider(roleId));
-  };
-});
-
-// =============================================================================
-// Delegation Use Case Providers
-// =============================================================================
+  @override
+  int get hashCode => userId.hashCode ^ companyId.hashCode;
+}
 
 /// Get active delegations
-final activeDelegationsProvider = FutureProvider.family<List<RoleDelegation>, ({String userId, String companyId})>((ref, params) async {
+@riverpod
+Future<List<RoleDelegation>> activeDelegations(
+  ActiveDelegationsRef ref,
+  ActiveDelegationsParams params,
+) async {
   final repository = ref.watch(delegationRepositoryProvider);
-  return await repository.getActiveDelegations(params.userId, params.companyId);
-});
+  return repository.getActiveDelegations(params.userId, params.companyId);
+}
 
 /// Get delegation history
-final delegationHistoryProvider = FutureProvider.family<List<DelegationAudit>, String>((ref, companyId) async {
+@riverpod
+Future<List<DelegationAudit>> delegationHistory(
+  DelegationHistoryRef ref,
+  String companyId,
+) async {
   final repository = ref.watch(delegationRepositoryProvider);
-  return await repository.getDelegationHistory(companyId);
-});
+  return repository.getDelegationHistory(companyId);
+}
 
 // =============================================================================
-// Delegation Action Providers
-// =============================================================================
-
-/// Create delegation provider
-final createDelegationProvider = Provider((ref) {
-  return ({
-    required String delegateId,
-    required String roleId,
-    required List<String> permissions,
-    required DateTime startDate,
-    required DateTime endDate,
-  }) async {
-    final repository = ref.read(delegationRepositoryProvider);
-    await repository.createDelegation(
-      delegateId: delegateId,
-      roleId: roleId,
-      permissions: permissions,
-      startDate: startDate,
-      endDate: endDate,
-    );
-
-    // Invalidate delegations to refresh
-    ref.invalidate(activeDelegationsProvider);
-  };
-});
-
-/// Revoke delegation provider
-final revokeDelegationProvider = Provider((ref) {
-  return (String delegationId) async {
-    final repository = ref.read(delegationRepositoryProvider);
-    await repository.revokeDelegation(delegationId);
-
-    // Invalidate delegations to refresh
-    ref.invalidate(activeDelegationsProvider);
-  };
-});
-
-// =============================================================================
-// Page State Management
+// Page State Management (@riverpod Notifier)
 // =============================================================================
 
 /// Role Page State Notifier
-class RolePageNotifier extends StateNotifier<RolePageState> {
-  RolePageNotifier() : super(RolePageState.initial());
+@riverpod
+class RolePageNotifier extends _$RolePageNotifier {
+  @override
+  RolePageState build() => RolePageState.initial();
 
   /// Update search query and filter roles
   void updateSearchQuery(String query) {
@@ -291,18 +203,15 @@ class RolePageNotifier extends StateNotifier<RolePageState> {
   }
 }
 
-/// Role page state provider
-final rolePageStateProvider = StateNotifierProvider<RolePageNotifier, RolePageState>((ref) {
-  return RolePageNotifier();
-});
-
 // =============================================================================
-// Role Creation State Management
+// Role Creation State Management (@riverpod Notifier)
 // =============================================================================
 
 /// Role Creation State Notifier
-class RoleCreationNotifier extends StateNotifier<RoleCreationState> {
-  RoleCreationNotifier() : super(RoleCreationState.initial());
+@riverpod
+class RoleCreationNotifier extends _$RoleCreationNotifier {
+  @override
+  RoleCreationState build() => RoleCreationState.initial();
 
   /// Move to next step
   void nextStep() {
@@ -416,18 +325,15 @@ class RoleCreationNotifier extends StateNotifier<RoleCreationState> {
   }
 }
 
-/// Role creation state provider
-final roleCreationStateProvider = StateNotifierProvider<RoleCreationNotifier, RoleCreationState>((ref) {
-  return RoleCreationNotifier();
-});
-
 // =============================================================================
-// Role Management State Management
+// Role Management State Management (@riverpod Notifier)
 // =============================================================================
 
 /// Role Management State Notifier
-class RoleManagementNotifier extends StateNotifier<RoleManagementState> {
-  RoleManagementNotifier() : super(RoleManagementState.initial());
+@riverpod
+class RoleManagementNotifier extends _$RoleManagementNotifier {
+  @override
+  RoleManagementState build() => RoleManagementState.initial();
 
   /// Set selected tab
   void setTab(int tabIndex) {
@@ -475,7 +381,195 @@ class RoleManagementNotifier extends StateNotifier<RoleManagementState> {
   }
 }
 
-/// Role management state provider
-final roleManagementStateProvider = StateNotifierProvider<RoleManagementNotifier, RoleManagementState>((ref) {
-  return RoleManagementNotifier();
-});
+// =============================================================================
+// Role Action Notifier (@riverpod) - Handles create, update, delete operations
+// =============================================================================
+
+/// Role Actions Notifier for mutations
+@riverpod
+class RoleActionsNotifier extends _$RoleActionsNotifier {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
+
+  /// Create a new role
+  Future<String> createRole({
+    required String companyId,
+    required String roleName,
+    String? description,
+    String roleType = 'custom',
+    List<String>? tags,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(roleRepositoryProvider);
+      final roleId = await repository.createRole(
+        companyId: companyId,
+        roleName: roleName,
+        description: description,
+        roleType: roleType,
+        tags: tags,
+      );
+
+      // Invalidate related providers
+      ref.invalidate(allCompanyRolesProvider);
+      ref.invalidate(delegatableRolesProvider);
+
+      state = const AsyncValue.data(null);
+      return roleId;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Update role details
+  Future<void> updateRoleDetails({
+    required String roleId,
+    required String roleName,
+    String? description,
+    List<String>? tags,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(roleRepositoryProvider);
+      await repository.updateRoleDetails(
+        roleId: roleId,
+        roleName: roleName,
+        description: description,
+        tags: tags,
+      );
+
+      // Invalidate related providers
+      ref.invalidate(allCompanyRolesProvider);
+      ref.invalidate(delegatableRolesProvider);
+      ref.invalidate(roleByIdProvider(roleId));
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Update role permissions
+  Future<void> updateRolePermissions(
+    String roleId,
+    Set<String> newPermissions,
+  ) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(roleRepositoryProvider);
+      await repository.updateRolePermissions(roleId, newPermissions);
+
+      // Invalidate related providers
+      ref.invalidate(allCompanyRolesProvider);
+      ref.invalidate(rolePermissionsProvider(roleId));
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Delete role
+  Future<void> deleteRole(String roleId, String companyId) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(roleRepositoryProvider);
+      await repository.deleteRole(roleId, companyId);
+
+      // Invalidate roles list to refresh
+      ref.invalidate(allCompanyRolesProvider);
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Assign user to role
+  Future<void> assignUserToRole({
+    required String userId,
+    required String roleId,
+    required String companyId,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(roleRepositoryProvider);
+      await repository.assignUserToRole(
+        userId: userId,
+        roleId: roleId,
+        companyId: companyId,
+      );
+
+      // Invalidate related providers
+      ref.invalidate(companyUsersProvider);
+      ref.invalidate(allCompanyRolesProvider);
+      ref.invalidate(roleMembersProvider(roleId));
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+}
+
+// =============================================================================
+// Delegation Action Notifier (@riverpod) - Handles delegation operations
+// =============================================================================
+
+/// Delegation Actions Notifier for mutations
+@riverpod
+class DelegationActionsNotifier extends _$DelegationActionsNotifier {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
+
+  /// Create a new delegation
+  Future<void> createDelegation({
+    required String delegateId,
+    required String roleId,
+    required List<String> permissions,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(delegationRepositoryProvider);
+      await repository.createDelegation(
+        delegateId: delegateId,
+        roleId: roleId,
+        permissions: permissions,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Invalidate delegations to refresh
+      ref.invalidate(activeDelegationsProvider);
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Revoke delegation
+  Future<void> revokeDelegation(String delegationId) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(delegationRepositoryProvider);
+      await repository.revokeDelegation(delegationId);
+
+      // Invalidate delegations to refresh
+      ref.invalidate(activeDelegationsProvider);
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+}

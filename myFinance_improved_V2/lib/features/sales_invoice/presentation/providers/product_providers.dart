@@ -1,8 +1,9 @@
 /// Product repository providers
 ///
-/// Re-exports repository providers from data layer for presentation layer use.
-/// The data layer provides concrete implementations of domain interfaces.
+/// Re-exports providers from centralized DI layer.
+/// Following Clean Architecture 2025 with @riverpod
 ///
-/// Clean Architecture: PRESENTATION LAYER imports Repository Providers (DI boundary)
+/// Clean Architecture: PRESENTATION LAYER imports from DI layer
 library;
-export '../../data/repositories/repository_providers.dart' show productRepositoryProvider;
+
+export '../../di/sales_invoice_providers.dart' show productRepositoryProvider;

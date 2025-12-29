@@ -1,7 +1,6 @@
 // Presentation Page: Inventory Management
 // Main page for inventory management with Clean Architecture
 
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state.dart';
 import '../../../../app/providers/app_state_provider.dart';
+import '../utils/store_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -38,9 +38,7 @@ class InventoryManagementPage extends ConsumerStatefulWidget {
 
 class _InventoryManagementPageState
     extends ConsumerState<InventoryManagementPage> {
-  final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  Timer? _searchDebounceTimer;
 
   // Sorting (client-side only, RPC does not support sorting)
   InventorySortOption? _currentSort; // null = database default order
@@ -61,9 +59,9 @@ class _InventoryManagementPageState
         : 'All locations';
     // Load initial data and metadata
     Future.microtask(() {
-      ref.read(inventoryPageProvider.notifier).refresh();
+      ref.read(inventoryPageNotifierProvider.notifier).refresh();
       // Trigger metadata provider to load (it auto-initializes on first read)
-      ref.read(inventoryMetadataProvider);
+      ref.read(inventoryMetadataNotifierProvider);
     });
     // Add scroll listener for infinite scroll
     _scrollController.addListener(_onScroll);
@@ -71,9 +69,7 @@ class _InventoryManagementPageState
 
   @override
   void dispose() {
-    _searchController.dispose();
     _scrollController.dispose();
-    _searchDebounceTimer?.cancel();
     super.dispose();
   }
 
@@ -81,30 +77,20 @@ class _InventoryManagementPageState
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       // Load next page when near bottom (200px threshold)
-      final pageState = ref.read(inventoryPageProvider);
+      final pageState = ref.read(inventoryPageNotifierProvider);
       debugPrint('[InventoryPage] _onScroll: pixels=${_scrollController.position.pixels.toInt()}, max=${_scrollController.position.maxScrollExtent.toInt()}, canLoadMore=${pageState.canLoadMore}, isLoadingMore=${pageState.isLoadingMore}');
       if (pageState.canLoadMore) {
         debugPrint('[InventoryPage] _onScroll: Calling loadNextPage()');
-        ref.read(inventoryPageProvider.notifier).loadNextPage();
+        ref.read(inventoryPageNotifierProvider.notifier).loadNextPage();
       }
     }
   }
 
-  void _onSearchChanged() {
-    // Cancel previous timer if it exists
-    _searchDebounceTimer?.cancel();
-
-    // Start new timer for debouncing (300ms delay)
-    _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
-      ref.read(inventoryPageProvider.notifier).setSearchQuery(_searchController.text);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final pageState = ref.watch(inventoryPageProvider);
+    final pageState = ref.watch(inventoryPageNotifierProvider);
     // Watch metadata provider to keep it alive and get brands/categories
-    ref.watch(inventoryMetadataProvider);
+    ref.watch(inventoryMetadataNotifierProvider);
 
     return TossScaffold(
       backgroundColor: TossColors.white,
@@ -397,23 +383,23 @@ class _InventoryManagementPageState
       default:
         stockStatus = null; // All products
     }
-    ref.read(inventoryPageProvider.notifier).setStockStatus(stockStatus);
+    ref.read(inventoryPageNotifierProvider.notifier).setStockStatus(stockStatus);
   }
 
   /// Handle brand filter change
   void _onBrandChanged(String brandName) {
     if (brandName == 'All brands') {
-      ref.read(inventoryPageProvider.notifier).setBrand(null);
+      ref.read(inventoryPageNotifierProvider.notifier).setBrand(null);
       return;
     }
 
     // Find brand ID by name from metadata
-    final metadataState = ref.read(inventoryMetadataProvider);
+    final metadataState = ref.read(inventoryMetadataNotifierProvider);
     final brands = metadataState.metadata?.brands ?? [];
 
     for (final brand in brands) {
       if (brand.name == brandName) {
-        ref.read(inventoryPageProvider.notifier).setBrand(brand.id);
+        ref.read(inventoryPageNotifierProvider.notifier).setBrand(brand.id);
         return;
       }
     }
@@ -422,17 +408,17 @@ class _InventoryManagementPageState
   /// Handle category filter change
   void _onCategoryChanged(String categoryName) {
     if (categoryName == 'All categories') {
-      ref.read(inventoryPageProvider.notifier).setCategory(null);
+      ref.read(inventoryPageNotifierProvider.notifier).setCategory(null);
       return;
     }
 
     // Find category ID by name from metadata
-    final metadataState = ref.read(inventoryMetadataProvider);
+    final metadataState = ref.read(inventoryMetadataNotifierProvider);
     final categories = metadataState.metadata?.categories ?? [];
 
     for (final category in categories) {
       if (category.name == categoryName) {
-        ref.read(inventoryPageProvider.notifier).setCategory(category.id);
+        ref.read(inventoryPageNotifierProvider.notifier).setCategory(category.id);
         return;
       }
     }
@@ -451,42 +437,19 @@ class _InventoryManagementPageState
       );
 
       // Refresh inventory data for the new store
-      ref.read(inventoryPageProvider.notifier).refresh();
+      ref.read(inventoryPageNotifierProvider.notifier).refresh();
     }
   }
 
   /// Get store_id by store name from AppState
   Map<String, String>? _getStoreIdByName(String storeName) {
     final appState = ref.read(appStateProvider);
-    final currentCompanyId = appState.companyChoosen;
-    final companies = appState.user['companies'] as List<dynamic>? ?? [];
-
-    // Find current company
-    Map<String, dynamic>? company;
-    for (final c in companies) {
-      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
-        company = c;
-        break;
-      }
-    }
-
-    if (company == null) return null;
-
-    final storesList = company['stores'] as List<dynamic>? ?? [];
-
-    // Find store by name
-    for (final store in storesList) {
-      final storeMap = store as Map<String, dynamic>;
-      final name = storeMap['store_name'] as String? ?? '';
-      if (name == storeName) {
-        return {
-          'store_id': storeMap['store_id'] as String? ?? '',
-          'store_name': name,
-        };
-      }
-    }
-
-    return null;
+    final store = StoreUtils.findStoreByName(appState, storeName);
+    if (store == null) return null;
+    return {
+      'store_id': store.id,
+      'store_name': store.name,
+    };
   }
 
   List<String> _getFilterOptions(String filterType) {
@@ -506,7 +469,7 @@ class _InventoryManagementPageState
 
   /// Get brand options from inventory metadata
   List<String> _getBrandOptions() {
-    final metadataState = ref.read(inventoryMetadataProvider);
+    final metadataState = ref.read(inventoryMetadataNotifierProvider);
     final brands = metadataState.metadata?.brands ?? [];
 
     if (brands.isEmpty) {
@@ -518,7 +481,7 @@ class _InventoryManagementPageState
 
   /// Get category options from inventory metadata
   List<String> _getCategoryOptions() {
-    final metadataState = ref.read(inventoryMetadataProvider);
+    final metadataState = ref.read(inventoryMetadataNotifierProvider);
     final categories = metadataState.metadata?.categories ?? [];
 
     if (categories.isEmpty) {
@@ -531,43 +494,7 @@ class _InventoryManagementPageState
   /// Get store options from AppState for Location filter
   List<String> _getStoreOptions() {
     final appState = ref.read(appStateProvider);
-    final currentCompanyId = appState.companyChoosen;
-    final companies = appState.user['companies'] as List<dynamic>? ?? [];
-
-    // Find current company
-    Map<String, dynamic>? company;
-    for (final c in companies) {
-      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
-        company = c;
-        break;
-      }
-    }
-
-    if (company == null) {
-      // Fallback: return current store name only
-      return [appState.storeName.isNotEmpty ? appState.storeName : 'All locations'];
-    }
-
-    final storesList = company['stores'] as List<dynamic>? ?? [];
-
-    if (storesList.isEmpty) {
-      return [appState.storeName.isNotEmpty ? appState.storeName : 'All locations'];
-    }
-
-    // Extract store names
-    final storeNames = storesList.map((store) {
-      final storeMap = store as Map<String, dynamic>;
-      return storeMap['store_name'] as String? ?? 'Unknown Store';
-    }).toList();
-
-    return storeNames;
-  }
-
-  String _formatCurrency(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
+    return StoreUtils.getStoreNames(appState);
   }
 
   /// Get all stores for the current company from AppState
@@ -685,7 +612,7 @@ class _InventoryManagementPageState
               ),
             );
             // Refresh inventory data
-            ref.read(inventoryPageProvider.notifier).refresh();
+            ref.read(inventoryPageNotifierProvider.notifier).refresh();
             return true;
           }
           return false;
@@ -705,10 +632,6 @@ class _InventoryManagementPageState
         }
       },
     );
-  }
-
-  String _getSortLabel() {
-    return InventorySorter.getSortLabel(_currentSort);
   }
 
   /// Apply client-side filtering for brand, category, and stock status

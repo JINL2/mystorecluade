@@ -13,7 +13,7 @@ class FilterBottomSheet {
   FilterBottomSheet._();
 
   static void show(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.read(invoiceListProvider);
+    final invoiceState = ref.read(invoiceListNotifierProvider);
 
     showModalBottomSheet<void>(
       context: context,
@@ -57,7 +57,7 @@ class FilterBottomSheet {
                 title: period.displayName,
                 isSelected: invoiceState.selectedPeriod == period,
                 onTap: () {
-                  ref.read(invoiceListProvider.notifier).updatePeriod(period);
+                  ref.read(invoiceListNotifierProvider.notifier).updatePeriod(period);
                   Navigator.pop(context);
                 },
               ),

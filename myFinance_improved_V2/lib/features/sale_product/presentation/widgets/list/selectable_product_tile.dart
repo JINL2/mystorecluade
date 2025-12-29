@@ -77,9 +77,9 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
   void _applyQuantity() {
     final qty = int.tryParse(_quantityController.text) ?? 0;
     if (qty > 0) {
-      ref.read(cartProvider.notifier).updateQuantity(widget.cartItem.id, qty);
+      ref.read(cartNotifierProvider.notifier).updateQuantity(widget.cartItem.id, qty);
     } else {
-      ref.read(cartProvider.notifier).removeItem(widget.cartItem.id);
+      ref.read(cartNotifierProvider.notifier).removeItem(widget.cartItem.id);
     }
   }
 
@@ -94,13 +94,13 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
         HapticFeedback.lightImpact();
         if (isSelected) {
           // Already in cart - increase quantity
-          ref.read(cartProvider.notifier).updateQuantity(
+          ref.read(cartNotifierProvider.notifier).updateQuantity(
                 widget.cartItem.id,
                 widget.cartItem.quantity + 1,
               );
         } else {
           // Not in cart - add item
-          ref.read(cartProvider.notifier).addItem(widget.product);
+          ref.read(cartNotifierProvider.notifier).addItem(widget.product);
         }
       },
       child: Container(
@@ -217,12 +217,12 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
             onTap: () {
               HapticFeedback.lightImpact();
               if (widget.cartItem.quantity > 1) {
-                ref.read(cartProvider.notifier).updateQuantity(
+                ref.read(cartNotifierProvider.notifier).updateQuantity(
                       widget.cartItem.id,
                       widget.cartItem.quantity - 1,
                     );
               } else {
-                ref.read(cartProvider.notifier).removeItem(widget.cartItem.id);
+                ref.read(cartNotifierProvider.notifier).removeItem(widget.cartItem.id);
               }
             },
             child: const SizedBox(
@@ -287,7 +287,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
             behavior: HitTestBehavior.opaque,
             onTap: () {
               HapticFeedback.lightImpact();
-              ref.read(cartProvider.notifier).updateQuantity(
+              ref.read(cartNotifierProvider.notifier).updateQuantity(
                     widget.cartItem.id,
                     widget.cartItem.quantity + 1,
                   );
@@ -313,7 +313,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        ref.read(cartProvider.notifier).addItem(widget.product);
+        ref.read(cartNotifierProvider.notifier).addItem(widget.product);
       },
       child: Container(
         width: 44,

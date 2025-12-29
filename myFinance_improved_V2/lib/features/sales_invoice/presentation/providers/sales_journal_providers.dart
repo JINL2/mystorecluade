@@ -1,9 +1,9 @@
 /// Sales journal repository provider
 ///
-/// Re-exports repository provider from data layer for presentation layer use.
-/// The data layer provides concrete implementation of domain interface.
+/// Re-exports providers from centralized DI layer.
+/// Following Clean Architecture 2025 with @riverpod
 ///
-/// Clean Architecture: PRESENTATION LAYER imports Repository Providers (DI boundary)
+/// Clean Architecture: PRESENTATION LAYER imports from DI layer
 library;
 
-export '../../data/repositories/repository_providers.dart' show salesJournalRepositoryProvider;
+export '../../di/sales_invoice_providers.dart' show salesJournalRepositoryProvider;

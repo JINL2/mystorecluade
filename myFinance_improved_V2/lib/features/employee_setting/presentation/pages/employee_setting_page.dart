@@ -79,21 +79,21 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
 
     // Reset loading states and refresh data on page entry
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(isUpdatingSalaryProvider.notifier).state = false;
-      ref.read(isSyncingProvider.notifier).state = false;
+      ref.read(isUpdatingSalaryProvider.notifier).update(false);
+      ref.read(isSyncingProvider.notifier).update(false);
 
       // Reset all filters
-      ref.read(selectedRoleFilterProvider.notifier).state = null;
-      ref.read(selectedDepartmentFilterProvider.notifier).state = null;
-      ref.read(selectedSalaryTypeFilterProvider.notifier).state = null;
+      ref.read(selectedRoleFilterProvider.notifier).clear();
+      ref.read(selectedDepartmentFilterProvider.notifier).clear();
+      ref.read(selectedSalaryTypeFilterProvider.notifier).clear();
 
       // Reset search query
-      ref.read(employeeSearchQueryProvider.notifier).state = '';
+      ref.read(employeeSearchQueryProvider.notifier).clear();
       _searchController.clear();
 
       // Reset sort to default (name, ascending)
-      ref.read(employeeSortOptionProvider.notifier).state = 'name';
-      ref.read(employeeSortDirectionProvider.notifier).state = true;
+      ref.read(employeeSortOptionProvider.notifier).update('name');
+      ref.read(employeeSortDirectionProvider.notifier).update(true);
 
       // Invalidate providers to force fresh data load from database
       ref.invalidate(employeeSalaryListProvider);
@@ -101,7 +101,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       ref.invalidate(rolesProvider);
 
       // Also clear mutable employee list to force reload
-      ref.read(mutableEmployeeListProvider.notifier).state = null;
+      ref.read(mutableEmployeeListProvider.notifier).clear();
     });
   }
 
@@ -131,11 +131,11 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   }
 
   Future<void> _handleRefresh() async {
-    ref.read(isSyncingProvider.notifier).state = true;
+    ref.read(isSyncingProvider.notifier).update(true);
     try {
       await refreshEmployees(ref);
     } finally {
-      ref.read(isSyncingProvider.notifier).state = false;
+      ref.read(isSyncingProvider.notifier).update(false);
     }
   }
 
@@ -374,7 +374,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
         return emp;
       }).toList();
 
-      ref.read(mutableEmployeeListProvider.notifier).state = updatedList;
+      ref.read(mutableEmployeeListProvider.notifier).update(updatedList);
     }
   }
 
@@ -414,11 +414,11 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
 
   void _clearAllFilters() {
     HapticFeedback.lightImpact();
-    ref.read(selectedRoleFilterProvider.notifier).state = null;
-    ref.read(selectedDepartmentFilterProvider.notifier).state = null;
-    ref.read(selectedSalaryTypeFilterProvider.notifier).state = null;
+    ref.read(selectedRoleFilterProvider.notifier).clear();
+    ref.read(selectedDepartmentFilterProvider.notifier).clear();
+    ref.read(selectedSalaryTypeFilterProvider.notifier).clear();
     _searchController.clear();
-    ref.read(employeeSearchQueryProvider.notifier).state = '';
+    ref.read(employeeSearchQueryProvider.notifier).clear();
   }
 
   bool _hasActiveFilters() {

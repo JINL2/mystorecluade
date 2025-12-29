@@ -7,7 +7,7 @@ import 'sales_product_provider.dart';
 /// Returns products in server order (SKU-based from RPC).
 /// Only applies local search filter when needed.
 final filteredProductsProvider = Provider<List<SalesProduct>>((ref) {
-  final salesState = ref.watch(salesProductProvider);
+  final salesState = ref.watch(salesProductNotifierProvider);
   final products = salesState.products;
   final searchQuery = salesState.searchQuery;
 

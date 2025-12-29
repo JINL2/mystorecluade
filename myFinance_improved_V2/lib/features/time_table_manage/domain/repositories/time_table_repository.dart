@@ -1,4 +1,5 @@
 import '../entities/bulk_approval_result.dart';
+import '../entities/card_input_result.dart';
 import '../entities/employee_monthly_detail.dart';
 import '../entities/manager_overview.dart';
 import '../entities/manager_shift_cards.dart';
@@ -260,6 +261,33 @@ abstract class TimeTableRepository {
     required String userId,
     required String companyId,
     required String yearMonth,
+    required String timezone,
+  });
+
+  /// Input card data (legacy interface for InputCard UseCase)
+  ///
+  /// Wrapper for inputCardV5 for backward compatibility
+  ///
+  /// [managerId] - Manager user ID performing the update
+  /// [shiftRequestId] - Shift request ID to update
+  /// [confirmStartTime] - Confirmed start time (HH:mm format), null to keep existing
+  /// [confirmEndTime] - Confirmed end time (HH:mm format), null to keep existing
+  /// [newTagContent] - New tag content (not used in v5)
+  /// [newTagType] - New tag type (not used in v5)
+  /// [isLate] - Late status (not used in v5)
+  /// [isProblemSolved] - Problem solved status
+  /// [timezone] - User's local timezone
+  ///
+  /// Returns [CardInputResult] with update results
+  Future<CardInputResult> inputCard({
+    required String managerId,
+    required String shiftRequestId,
+    String? confirmStartTime,
+    String? confirmEndTime,
+    String? newTagContent,
+    String? newTagType,
+    required bool isLate,
+    required bool isProblemSolved,
     required String timezone,
   });
 }

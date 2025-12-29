@@ -1,9 +1,12 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/employee_salary.dart';
-import '../../domain/repositories/employee_repository.dart';
 import '../../domain/usecases/update_employee_salary_usecase.dart';
 import 'states/employee_state.dart';
+import 'use_case_providers.dart';
+
+part 'employee_notifier.g.dart';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Employee Notifier - 상태 관리 + UseCase 조율
@@ -12,16 +15,12 @@ import 'states/employee_state.dart';
 /// Hybrid 구조:
 /// - 단순 CRUD: Repository 직접 호출 (loadEmployees, searchEmployees)
 /// - 복잡한 로직: UseCase 호출 (updateEmployeeSalary)
-class EmployeeNotifier extends StateNotifier<EmployeeState> {
-  final EmployeeRepository _repository;
-  final UpdateEmployeeSalaryUseCase _updateSalaryUseCase;
-
-  EmployeeNotifier({
-    required EmployeeRepository repository,
-    required UpdateEmployeeSalaryUseCase updateSalaryUseCase,
-  })  : _repository = repository,
-        _updateSalaryUseCase = updateSalaryUseCase,
-        super(const EmployeeState());
+@riverpod
+class EmployeeNotifier extends _$EmployeeNotifier {
+  @override
+  EmployeeState build() {
+    return const EmployeeState();
+  }
 
   /// 직원 급여 목록 로드 (직접 Repository 호출)
   Future<void> loadEmployees({
@@ -30,8 +29,8 @@ class EmployeeNotifier extends StateNotifier<EmployeeState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      // ✅ Flutter 표준: Repository 직접 호출
-      final employees = await _repository.getEmployeeSalaries(companyId);
+      final repository = ref.read(employeeRepositoryProvider);
+      final employees = await repository.getEmployeeSalaries(companyId);
 
       state = state.copyWith(
         isLoading: false,
@@ -57,7 +56,8 @@ class EmployeeNotifier extends StateNotifier<EmployeeState> {
     state = state.copyWith(isUpdatingSalary: true, errorMessage: null);
 
     try {
-      // ✅ UseCase 호출: 비즈니스 로직 분리
+      final updateSalaryUseCase = ref.read(updateEmployeeSalaryUseCaseProvider);
+
       final command = UpdateEmployeeSalaryCommand(
         salaryId: salaryId,
         salaryAmount: salaryAmount,
@@ -66,7 +66,7 @@ class EmployeeNotifier extends StateNotifier<EmployeeState> {
         changeReason: changeReason,
       );
 
-      final result = await _updateSalaryUseCase.execute(command);
+      final result = await updateSalaryUseCase.execute(command);
 
       if (result.isSuccess) {
         state = state.copyWith(isUpdatingSalary: false);
@@ -103,8 +103,8 @@ class EmployeeNotifier extends StateNotifier<EmployeeState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      // ✅ Flutter 표준: Repository 직접 호출
-      final employees = await _repository.searchEmployees(
+      final repository = ref.read(employeeRepositoryProvider);
+      final employees = await repository.searchEmployees(
         companyId: companyId,
         searchQuery: searchQuery,
         storeId: storeId,

@@ -410,8 +410,11 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     });
 
     try {
-      final checkMapping = ref.read(checkAccountMappingProvider);
-      final mapping = await checkMapping(companyId, counterpartyId, accountId);
+      final mapping = await ref.read(journalActionsNotifierProvider.notifier).checkAccountMapping(
+        companyId: companyId,
+        counterpartyId: counterpartyId,
+        accountId: accountId,
+      );
 
       if (mounted) {
         setState(() {

@@ -1,77 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/session_providers.dart';
-import '../../domain/entities/session_history_item.dart';
 import 'states/session_history_filter_state.dart';
+import 'states/session_history_state.dart';
 
-/// State for session history
-class SessionHistoryState {
-  final List<SessionHistoryItem> sessions;
-  final bool isLoading;
-  final bool isLoadingMore;
-  final String? error;
-  final int totalCount;
-  final bool hasMore;
-  final int currentOffset;
-  final SessionHistoryFilterState filter;
-
-  static const int pageSize = 15;
-
-  const SessionHistoryState({
-    this.sessions = const [],
-    this.isLoading = false,
-    this.isLoadingMore = false,
-    this.error,
-    this.totalCount = 0,
-    this.hasMore = false,
-    this.currentOffset = 0,
-    this.filter = const SessionHistoryFilterState(),
-  });
-
-  factory SessionHistoryState.initial() {
-    return SessionHistoryState(
-      filter: SessionHistoryFilterState.initial(),
-    );
-  }
-
-  SessionHistoryState copyWith({
-    List<SessionHistoryItem>? sessions,
-    bool? isLoading,
-    bool? isLoadingMore,
-    String? error,
-    int? totalCount,
-    bool? hasMore,
-    int? currentOffset,
-    SessionHistoryFilterState? filter,
-  }) {
-    return SessionHistoryState(
-      sessions: sessions ?? this.sessions,
-      isLoading: isLoading ?? this.isLoading,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      error: error,
-      totalCount: totalCount ?? this.totalCount,
-      hasMore: hasMore ?? this.hasMore,
-      currentOffset: currentOffset ?? this.currentOffset,
-      filter: filter ?? this.filter,
-    );
-  }
-
-  bool get hasError => error != null;
-  bool get isEmpty => sessions.isEmpty && !isLoading;
-}
+part 'session_history_provider.g.dart';
 
 /// Notifier for session history state management
-class SessionHistoryNotifier extends StateNotifier<SessionHistoryState> {
-  final Ref _ref;
-  final String _companyId;
-
-  SessionHistoryNotifier({
-    required Ref ref,
-    required String companyId,
-  })  : _ref = ref,
-        _companyId = companyId,
-        super(SessionHistoryState.initial());
+/// Migrated to @riverpod from StateNotifier (2025 Best Practice)
+@riverpod
+class SessionHistoryNotifier extends _$SessionHistoryNotifier {
+  @override
+  SessionHistoryState build() {
+    // Auto-load on creation
+    Future.microtask(loadSessions);
+    return SessionHistoryState.initial();
+  }
 
   /// Load sessions with current filter (initial load)
   Future<void> loadSessions() async {
@@ -85,12 +31,14 @@ class SessionHistoryNotifier extends StateNotifier<SessionHistoryState> {
     );
 
     try {
-      final getSessionHistory = _ref.read(getSessionHistoryUseCaseProvider);
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final getSessionHistory = ref.read(getSessionHistoryUseCaseProvider);
       final filter = state.filter;
       final dateRange = filter.getDateRange();
 
       final response = await getSessionHistory(
-        companyId: _companyId,
+        companyId: companyId,
         storeId: filter.selectedStoreId,
         sessionType: filter.sessionType,
         isActive: filter.isActive,
@@ -122,12 +70,14 @@ class SessionHistoryNotifier extends StateNotifier<SessionHistoryState> {
     state = state.copyWith(isLoadingMore: true);
 
     try {
-      final getSessionHistory = _ref.read(getSessionHistoryUseCaseProvider);
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final getSessionHistory = ref.read(getSessionHistoryUseCaseProvider);
       final filter = state.filter;
       final dateRange = filter.getDateRange();
 
       final response = await getSessionHistory(
-        companyId: _companyId,
+        companyId: companyId,
         storeId: filter.selectedStoreId,
         sessionType: filter.sessionType,
         isActive: filter.isActive,
@@ -222,25 +172,9 @@ class SessionHistoryNotifier extends StateNotifier<SessionHistoryState> {
   }
 }
 
-/// Provider for session history
-final sessionHistoryProvider =
-    StateNotifierProvider.autoDispose<SessionHistoryNotifier, SessionHistoryState>(
-        (ref) {
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
-
-  final notifier = SessionHistoryNotifier(
-    ref: ref,
-    companyId: companyId,
-  );
-
-  // Auto-load on creation
-  notifier.loadSessions();
-
-  return notifier;
-});
-
 /// Provider for filter state only (for UI)
-final sessionHistoryFilterProvider = Provider<SessionHistoryFilterState>((ref) {
-  return ref.watch(sessionHistoryProvider).filter;
-});
+/// This is a simple derived provider that extracts filter from history state
+@riverpod
+SessionHistoryFilterState sessionHistoryFilter(Ref ref) {
+  return ref.watch(sessionHistoryNotifierProvider).filter;
+}

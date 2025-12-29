@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 // App-level
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 
@@ -7,45 +9,61 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import '../../di/providers.dart';
 // Feature - Domain
 import '../../domain/entities/currency.dart';
-import '../../domain/repositories/currency_repository.dart';
 
-// Available currency types provider
-final availableCurrencyTypesProvider = FutureProvider<List<CurrencyType>>((ref) async {
+part 'currency_providers.g.dart';
+
+// ============================================================================
+// Available Currency Types Provider
+// ============================================================================
+
+/// Available currency types provider
+@riverpod
+Future<List<CurrencyType>> availableCurrencyTypes(Ref ref) async {
   final repository = ref.watch(currencyRepositoryProvider);
   return repository.getAvailableCurrencyTypes();
-});
+}
 
-// Company currencies provider
-final companyCurrenciesProvider = FutureProvider<List<Currency>>((ref) async {
+// ============================================================================
+// Company Currencies Provider
+// ============================================================================
+
+/// Company currencies provider
+@riverpod
+Future<List<Currency>> companyCurrencies(Ref ref) async {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  
+
   if (companyId.isEmpty) {
     throw Exception('No company selected');
   }
-  
+
   final repository = ref.watch(currencyRepositoryProvider);
   return repository.getCompanyCurrencies(companyId);
-});
+}
 
-// Company currencies stream provider for real-time updates
-final companyCurrenciesStreamProvider = StreamProvider<List<Currency>>((ref) {
+/// Company currencies stream provider for real-time updates
+@riverpod
+Stream<List<Currency>> companyCurrenciesStream(Ref ref) {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  
+
   if (companyId.isEmpty) {
     return Stream.value([]);
   }
-  
+
   final repository = ref.watch(currencyRepositoryProvider);
   return repository.watchCompanyCurrencies(companyId);
-});
+}
 
-// Search functionality
-class CurrencySearchNotifier extends StateNotifier<AsyncValue<List<CurrencyType>>> {
-  CurrencySearchNotifier(this._repository) : super(const AsyncValue.data([]));
-  
-  final CurrencyRepository _repository;
+// ============================================================================
+// Currency Search Notifier
+// ============================================================================
+
+/// Currency search notifier
+@riverpod
+class CurrencySearch extends _$CurrencySearch {
+  @override
+  AsyncValue<List<CurrencyType>> build() => const AsyncValue.data([]);
 
   Future<void> search(String query) async {
     if (query.trim().isEmpty) {
@@ -54,9 +72,10 @@ class CurrencySearchNotifier extends StateNotifier<AsyncValue<List<CurrencyType>
     }
 
     state = const AsyncValue.loading();
-    
+
     try {
-      final results = await _repository.searchCurrencyTypes(query.trim());
+      final repository = ref.read(currencyRepositoryProvider);
+      final results = await repository.searchCurrencyTypes(query.trim());
       state = AsyncValue.data(results);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -68,37 +87,53 @@ class CurrencySearchNotifier extends StateNotifier<AsyncValue<List<CurrencyType>
   }
 }
 
-final currencySearchProvider = StateNotifierProvider<CurrencySearchNotifier, AsyncValue<List<CurrencyType>>>((ref) {
-  final repository = ref.watch(currencyRepositoryProvider);
-  return CurrencySearchNotifier(repository);
-});
+// ============================================================================
+// Selected Currency Type Provider
+// ============================================================================
 
-// Selected currency type for adding
-final selectedCurrencyTypeProvider = StateProvider<String?>((ref) => null);
+/// Selected currency type for adding
+@riverpod
+class SelectedCurrencyType extends _$SelectedCurrencyType {
+  @override
+  String? build() => null;
 
-// Currency operations provider
-class CurrencyOperationsNotifier extends StateNotifier<AsyncValue<void>> {
-  CurrencyOperationsNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
-  
-  final CurrencyRepository _repository;
-  final Ref _ref;
+  void update(String? value) {
+    state = value;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
+// ============================================================================
+// Currency Operations Notifier
+// ============================================================================
+
+/// Currency operations notifier
+@riverpod
+class CurrencyOperations extends _$CurrencyOperations {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
 
   Future<void> addCompanyCurrency(String currencyId) async {
-    final appState = _ref.read(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
-    
+
     if (companyId.isEmpty) {
       state = AsyncValue.error(Exception('No company selected'), StackTrace.current);
       return;
     }
 
     state = const AsyncValue.loading();
-    
+
     try {
+      final repository = ref.read(currencyRepositoryProvider);
+
       // First, get the currency type to create a full currency object for optimistic update
-      final allTypes = await _repository.getAvailableCurrencyTypes();
+      final allTypes = await repository.getAvailableCurrencyTypes();
       final currencyType = allTypes.firstWhere((type) => type.currencyId == currencyId);
-      
+
       // Create a temporary currency object for optimistic update
       final optimisticCurrency = Currency(
         id: currencyType.currencyId,
@@ -108,89 +143,91 @@ class CurrencyOperationsNotifier extends StateNotifier<AsyncValue<void>> {
         symbol: currencyType.symbol,
         flagEmoji: currencyType.flagEmoji,
       );
-      
+
       // OPTIMISTIC UI UPDATE - Add to local state immediately
-      _ref.read(localCurrencyListProvider.notifier).optimisticallyAdd(optimisticCurrency);
-      
+      ref.read(localCurrencyListProvider.notifier).optimisticallyAdd(optimisticCurrency);
+
       // Perform database operation in background
-      await _repository.addCompanyCurrency(companyId, currencyId);
-      
+      await repository.addCompanyCurrency(companyId, currencyId);
+
       // Refresh the remote providers after successful database operation
-      _ref.invalidate(companyCurrenciesProvider);
-      _ref.invalidate(companyCurrenciesStreamProvider);
-      
+      ref.invalidate(companyCurrenciesProvider);
+      ref.invalidate(companyCurrenciesStreamProvider);
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       // If database operation fails, revert the optimistic update
-      _ref.read(localCurrencyListProvider.notifier).optimisticallyRemove(currencyId);
-      
+      ref.read(localCurrencyListProvider.notifier).optimisticallyRemove(currencyId);
+
       // Enhanced error reporting
-      final errorMessage = error.toString().contains('already exists') 
+      final errorMessage = error.toString().contains('already exists')
           ? 'This currency has already been added to your company'
           : 'Failed to add currency: Network error or server unavailable';
-      
+
       state = AsyncValue.error(errorMessage, stackTrace);
     }
   }
 
   Future<void> removeCompanyCurrency(String currencyId) async {
-    final appState = _ref.read(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
-    
+
     if (companyId.isEmpty) {
       state = AsyncValue.error(Exception('No company selected'), StackTrace.current);
       return;
     }
 
     // Store the current currency for potential rollback
-    final localNotifier = _ref.read(localCurrencyListProvider.notifier);
+    final localNotifier = ref.read(localCurrencyListProvider.notifier);
     final currentCurrencies = localNotifier.getCurrencies();
     final currencyToRemove = currentCurrencies.firstWhere((c) => c.id == currencyId);
 
     state = const AsyncValue.loading();
-    
+
     try {
       // OPTIMISTIC UI UPDATE - Remove from local state immediately
       localNotifier.optimisticallyRemove(currencyId);
-      
+
       // Perform database operation in background
-      await _repository.removeCompanyCurrency(companyId, currencyId);
-      
+      final repository = ref.read(currencyRepositoryProvider);
+      await repository.removeCompanyCurrency(companyId, currencyId);
+
       // Refresh the remote providers after successful database operation
-      _ref.invalidate(companyCurrenciesProvider);
-      _ref.invalidate(companyCurrenciesStreamProvider);
-      
+      ref.invalidate(companyCurrenciesProvider);
+      ref.invalidate(companyCurrenciesStreamProvider);
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       // If database operation fails, revert the optimistic update
       localNotifier.optimisticallyAdd(currencyToRemove);
-      
+
       // Enhanced error reporting
       final errorMessage = error.toString().contains('Currency not found')
           ? 'Currency not found in your company.'
           : 'Failed to remove currency: ${error.toString()}';
-      
+
       state = AsyncValue.error(errorMessage, stackTrace);
     }
   }
 
   Future<void> updateCompanyCurrency(String currencyId, {bool? isActive}) async {
-    final appState = _ref.read(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
-    
+
     if (companyId.isEmpty) {
       state = AsyncValue.error(Exception('No company selected'), StackTrace.current);
       return;
     }
 
     state = const AsyncValue.loading();
-    
+
     try {
-      await _repository.updateCompanyCurrency(companyId, currencyId, isActive: isActive);
-      
+      final repository = ref.read(currencyRepositoryProvider);
+      await repository.updateCompanyCurrency(companyId, currencyId, isActive: isActive);
+
       // Refresh the company currencies list
-      _ref.invalidate(companyCurrenciesProvider);
-      
+      ref.invalidate(companyCurrenciesProvider);
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -202,99 +239,88 @@ class CurrencyOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final currencyOperationsProvider = StateNotifierProvider<CurrencyOperationsNotifier, AsyncValue<void>>((ref) {
-  final repository = ref.watch(currencyRepositoryProvider);
-  return CurrencyOperationsNotifier(repository, ref);
-});
+// ============================================================================
+// Expanded Currencies Provider
+// ============================================================================
 
-// Expanded currencies state (which currencies are expanded in the UI)
-final expandedCurrenciesProvider = StateProvider<Set<String>>((ref) => <String>{});
+/// Expanded currencies state (which currencies are expanded in the UI)
+@riverpod
+class ExpandedCurrencies extends _$ExpandedCurrencies {
+  @override
+  Set<String> build() => <String>{};
 
-// Filtered currencies provider (for search functionality)
-class FilteredCurrenciesNotifier extends StateNotifier<List<Currency>> {
-  FilteredCurrenciesNotifier(this._ref) : super([]) {
-    _ref.listen<AsyncValue<List<Currency>>>(companyCurrenciesProvider, (_, next) {
-      next.when(
-        data: (currencies) {
-          _allCurrencies = currencies;
-          _applyFilter();
-        },
-        loading: () {},
-        error: (_, __) => state = [],
-      );
-    });
-  }
-  
-  final Ref _ref;
-  List<Currency> _allCurrencies = [];
-  String _searchQuery = '';
-
-  void updateSearchQuery(String query) {
-    _searchQuery = query.toLowerCase();
-    _applyFilter();
-  }
-
-  void clearSearch() {
-    _searchQuery = '';
-    _applyFilter();
-  }
-
-  void _applyFilter() {
-    if (_searchQuery.isEmpty) {
-      state = _allCurrencies;
-      return;
+  void toggle(String currencyId) {
+    if (state.contains(currencyId)) {
+      state = {...state}..remove(currencyId);
+    } else {
+      state = {...state, currencyId};
     }
+  }
 
-    state = _allCurrencies.where((currency) {
-      return currency.name.toLowerCase().contains(_searchQuery) ||
-             currency.code.toLowerCase().contains(_searchQuery) ||
-             currency.fullName.toLowerCase().contains(_searchQuery);
-    }).toList();
+  void expand(String currencyId) {
+    state = {...state, currencyId};
+  }
+
+  void collapse(String currencyId) {
+    state = {...state}..remove(currencyId);
+  }
+
+  void clear() {
+    state = <String>{};
   }
 }
 
-final filteredCurrenciesProvider = StateNotifierProvider<FilteredCurrenciesNotifier, List<Currency>>((ref) {
-  return FilteredCurrenciesNotifier(ref);
-});
+// ============================================================================
+// Search Query Provider
+// ============================================================================
 
-// Search query provider with auto-dispose and explicit page lifecycle management
-final currencySearchQueryProvider = StateProvider.autoDispose<String>((ref) {
-  // Auto-dispose when no longer watched - ensures clean state on page exit
-  return '';
-});
+/// Search query provider with auto-dispose
+@riverpod
+class CurrencySearchQuery extends _$CurrencySearchQuery {
+  @override
+  String build() => '';
 
-// Page-specific search controller provider that manages TossSearchField state
-final currencySearchControllerProvider = StateProvider.autoDispose<TextEditingController>((ref) {
-  final controller = TextEditingController();
-  
-  // Listen to search query changes and sync with controller
-  ref.listen(currencySearchQueryProvider, (previous, next) {
-    if (controller.text != next) {
-      controller.text = next;
-    }
-  });
-  
-  // Clean disposal
-  ref.onDispose(() {
-    controller.dispose();
-  });
-  
-  return controller;
-});
+  void update(String query) {
+    state = query;
+  }
 
-// Navigation-aware search state manager - simplified since all providers auto-dispose
-final searchStateManagerProvider = Provider.autoDispose<void>((ref) {
-  // This provider ensures all search-related providers are properly watched
-  // and will auto-dispose when the page is no longer active
-  ref.watch(currencySearchQueryProvider);
-  return;
-});
+  void clear() {
+    state = '';
+  }
+}
 
-// Local currency list state for optimistic UI updates
-class LocalCurrencyListNotifier extends StateNotifier<List<Currency>?> {
-  LocalCurrencyListNotifier(this._ref) : super(null);
-  
-  final Ref _ref; // ignore: unused_field
+/// Page-specific search controller provider that manages TossSearchField state
+@riverpod
+class CurrencySearchController extends _$CurrencySearchController {
+  @override
+  TextEditingController build() {
+    final controller = TextEditingController();
+
+    // Listen to search query changes and sync with controller
+    ref.listen(currencySearchQueryProvider, (previous, next) {
+      if (controller.text != next) {
+        controller.text = next;
+      }
+    });
+
+    // Clean disposal
+    ref.onDispose(() {
+      controller.dispose();
+    });
+
+    return controller;
+  }
+}
+
+// ============================================================================
+// Local Currency List Provider (for Optimistic UI Updates)
+// ============================================================================
+
+/// Local currency list notifier for optimistic UI updates
+@riverpod
+class LocalCurrencyList extends _$LocalCurrencyList {
+  @override
+  List<Currency>? build() => null;
 
   // Initialize local state with remote data
   void initializeFromRemote(List<Currency> currencies) {
@@ -309,22 +335,19 @@ class LocalCurrencyListNotifier extends StateNotifier<List<Currency>?> {
   // Optimistically add currency to local state
   void optimisticallyAdd(Currency currency) {
     final currentList = state ?? [];
-    final updatedList = [...currentList, currency];
-    state = updatedList;
+    state = [...currentList, currency];
   }
 
   // Optimistically remove currency from local state
   void optimisticallyRemove(String currencyId) {
     final currentList = state ?? [];
-    final updatedList = currentList.where((c) => c.id != currencyId).toList();
-    state = updatedList;
+    state = currentList.where((c) => c.id != currencyId).toList();
   }
 
   // Update a currency optimistically
   void optimisticallyUpdate(String currencyId, Currency updatedCurrency) {
     final currentList = state ?? [];
-    final updatedList = currentList.map((c) => c.id == currencyId ? updatedCurrency : c).toList();
-    state = updatedList;
+    state = currentList.map((c) => c.id == currencyId ? updatedCurrency : c).toList();
   }
 
   // Reset local state (sync with remote)
@@ -338,32 +361,38 @@ class LocalCurrencyListNotifier extends StateNotifier<List<Currency>?> {
   }
 }
 
-final localCurrencyListProvider = StateNotifierProvider.autoDispose<LocalCurrencyListNotifier, List<Currency>?>((ref) {
-  return LocalCurrencyListNotifier(ref);
-});
+// ============================================================================
+// Effective Company Currencies Provider
+// ============================================================================
 
-// Effective company currencies provider that uses local state when available
-final effectiveCompanyCurrenciesProvider = Provider.autoDispose<AsyncValue<List<Currency>>>((ref) {
+/// Effective company currencies provider that uses local state when available
+@riverpod
+AsyncValue<List<Currency>> effectiveCompanyCurrencies(Ref ref) {
   final localState = ref.watch(localCurrencyListProvider);
   final remoteState = ref.watch(companyCurrenciesStreamProvider);
-  
+
   // If we have local state, use it
   if (localState != null) {
     return AsyncValue.data(localState);
   }
-  
+
   // Schedule initialization for next frame to avoid modifying during build
   remoteState.whenData((currencies) {
     Future.microtask(() {
       ref.read(localCurrencyListProvider.notifier).initializeFromRemote(currencies);
     });
   });
-  
-  return remoteState;
-});
 
-// Combined provider with auto-dispose that listens to search query changes and uses effective currencies
-final searchFilteredCurrenciesProvider = Provider.autoDispose<AsyncValue<List<Currency>>>((ref) {
+  return remoteState;
+}
+
+// ============================================================================
+// Search Filtered Currencies Provider
+// ============================================================================
+
+/// Combined provider that listens to search query changes and uses effective currencies
+@riverpod
+AsyncValue<List<Currency>> searchFilteredCurrencies(Ref ref) {
   final companyCurrencies = ref.watch(effectiveCompanyCurrenciesProvider);
   final searchQuery = ref.watch(currencySearchQueryProvider).toLowerCase();
 
@@ -372,25 +401,30 @@ final searchFilteredCurrenciesProvider = Provider.autoDispose<AsyncValue<List<Cu
       if (searchQuery.isEmpty) {
         return AsyncValue.data(currencies);
       }
-      
+
       final filtered = currencies.where((currency) {
         return currency.name.toLowerCase().contains(searchQuery) ||
-               currency.code.toLowerCase().contains(searchQuery) ||
-               currency.fullName.toLowerCase().contains(searchQuery);
+            currency.code.toLowerCase().contains(searchQuery) ||
+            currency.fullName.toLowerCase().contains(searchQuery);
       }).toList();
-      
+
       return AsyncValue.data(filtered);
     },
     loading: () => const AsyncValue.loading(),
     error: (error, stackTrace) => AsyncValue.error(error, stackTrace),
   );
-});
+}
 
-// Available currencies to add provider that filters out already added currencies
-final availableCurrenciesToAddProvider = FutureProvider.autoDispose<List<CurrencyType>>((ref) async {
+// ============================================================================
+// Available Currencies to Add Provider
+// ============================================================================
+
+/// Available currencies to add provider that filters out already added currencies
+@riverpod
+Future<List<CurrencyType>> availableCurrenciesToAdd(Ref ref) async {
   final allTypes = await ref.watch(availableCurrencyTypesProvider.future);
   final companyCurrencies = ref.watch(effectiveCompanyCurrenciesProvider);
-  
+
   return companyCurrencies.when(
     data: (currencies) {
       final companyCurrencyIds = currencies.map((c) => c.id).toSet();
@@ -399,4 +433,4 @@ final availableCurrenciesToAddProvider = FutureProvider.autoDispose<List<Currenc
     loading: () => [],
     error: (_, __) => allTypes,
   );
-});
+}

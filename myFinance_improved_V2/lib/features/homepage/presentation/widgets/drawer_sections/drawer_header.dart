@@ -20,7 +20,7 @@ class DrawerHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2), width: 1),
+          bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2), width: 1),
         ),
       ),
       child: Row(
@@ -43,7 +43,7 @@ class DrawerHeader extends StatelessWidget {
                       backgroundImage: userData?['profile_image'] != null && (userData!['profile_image'] as String).isNotEmpty
                           ? NetworkImage(userData!['profile_image'] as String)
                           : null,
-                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                       child: userData?['profile_image'] == null || (userData!['profile_image'] as String).isEmpty
                           ? Text(
                               userData?['user_first_name'] != null && (userData!['user_first_name'] as String).isNotEmpty

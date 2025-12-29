@@ -266,7 +266,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                 bottom: TossSpacing.paddingXL,
               ),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),

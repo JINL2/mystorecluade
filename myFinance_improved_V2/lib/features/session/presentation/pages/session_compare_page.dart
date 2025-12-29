@@ -8,6 +8,10 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_compare_result.dart';
+import '../widgets/compare/compare_error_view.dart';
+import '../widgets/compare/compare_item_card.dart';
+import '../widgets/compare/compare_merge_button.dart';
+import '../widgets/compare/compare_session_info_header.dart';
 
 /// Page for comparing two sessions
 /// Shows items that exist in target session but not in source session
@@ -160,7 +164,10 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
     }
 
     if (_error != null) {
-      return _buildErrorView();
+      return CompareErrorView(
+        error: _error,
+        onRetry: _loadCompareData,
+      );
     }
 
     if (_compareResult == null) {
@@ -170,7 +177,11 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
     return Column(
       children: [
         // Session info header
-        _buildSessionInfoHeader(),
+        CompareSessionInfoHeader(
+          sourceSessionName: widget.sourceSessionName,
+          targetSessionName: widget.targetSessionName,
+          compareResult: _compareResult,
+        ),
         // Tab content
         Expanded(
           child: TabBarView(
@@ -195,100 +206,11 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
           ),
         ),
         // Fixed bottom merge button
-        _buildMergeButton(),
-      ],
-    );
-  }
-
-  Widget _buildSessionInfoHeader() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: const BoxDecoration(
-        color: TossColors.gray50,
-        border: Border(
-          bottom: BorderSide(color: TossColors.gray200),
+        CompareMergeButton(
+          isMerging: _isMerging,
+          onMerge: _onMerge,
         ),
-      ),
-      child: Row(
-        children: [
-          // Source session (Mine)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'My Session',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.sourceSessionName,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (_compareResult != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '${_compareResult!.sourceSession.totalProducts} items',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // Arrow
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-            child: Icon(
-              Icons.compare_arrows,
-              color: TossColors.gray400,
-              size: 24,
-            ),
-          ),
-          // Target session
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'Target Session',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.targetSessionName,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                ),
-                if (_compareResult != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '${_compareResult!.targetSession.totalProducts} items',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -323,146 +245,8 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
       ),
       itemBuilder: (context, index) {
         final item = items[index];
-        return _buildItemCard(item, accentColor);
+        return CompareItemCard(item: item, accentColor: accentColor);
       },
-    );
-  }
-
-  Widget _buildItemCard(SessionCompareItem item, Color accentColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space3,
-      ),
-      child: Row(
-        children: [
-          // Product image
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: TossColors.gray100,
-              borderRadius: BorderRadius.circular(8),
-              image: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(item.imageUrl!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: item.imageUrl == null || item.imageUrl!.isEmpty
-                ? const Icon(
-                    Icons.inventory_2_outlined,
-                    color: TossColors.gray400,
-                    size: 24,
-                  )
-                : null,
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          // Product info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.productName,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (item.sku != null && item.sku!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'SKU: ${item.sku}',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-                if (item.scannedByName != null &&
-                    item.scannedByName!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'By: ${item.scannedByName}',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray500,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          // Quantity
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space3,
-              vertical: TossSpacing.space2,
-            ),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '${item.quantity}',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w700,
-                color: accentColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMergeButton() {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          top: BorderSide(color: TossColors.gray200),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: _isMerging ? null : _onMerge,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-              disabledBackgroundColor: TossColors.gray300,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: _isMerging
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: TossColors.white,
-                    ),
-                  )
-                : Text(
-                    'Merge',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: TossColors.white,
-                    ),
-                  ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -560,44 +344,5 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
         setState(() => _isMerging = false);
       }
     }
-  }
-
-  Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: TossColors.error,
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'Failed to compare sessions',
-              style: TossTextStyles.h4.copyWith(
-                color: TossColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              _error ?? 'Unknown error',
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            TextButton.icon(
-              onPressed: _loadCompareData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

@@ -666,12 +666,11 @@ class _InvoiceSuccessBottomSheetState
       });
 
       try {
-        final uploadAttachments = ref.read(uploadAttachmentsProvider);
-        await uploadAttachments(
-          widget.companyId!,
-          widget.journalEntryId!,
-          widget.userId!,
-          _pendingAttachments,
+        await ref.read(journalActionsNotifierProvider.notifier).uploadAttachments(
+          companyId: widget.companyId!,
+          journalId: widget.journalEntryId!,
+          uploadedBy: widget.userId!,
+          files: _pendingAttachments,
         );
 
         // Upload successful, go back

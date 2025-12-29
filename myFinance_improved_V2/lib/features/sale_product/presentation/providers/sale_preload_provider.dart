@@ -1,4 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../register_denomination/data/services/exchange_rate_service.dart';
@@ -6,34 +7,18 @@ import '../../di/sale_product_providers.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/exchange_rate_data.dart';
 
+part 'sale_preload_provider.freezed.dart';
+part 'sale_preload_provider.g.dart';
+
 /// State for preloaded sale data (exchange rates + cash locations)
-/// NOTE: Consider using Freezed for consistency with SalesProductState
-class SalePreloadState {
-  final ExchangeRateData? exchangeRateData;
-  final List<CashLocation> cashLocations;
-  final bool isLoading;
-  final String? errorMessage;
-
-  const SalePreloadState({
-    this.exchangeRateData,
-    this.cashLocations = const [],
-    this.isLoading = false,
-    this.errorMessage,
-  });
-
-  SalePreloadState copyWith({
+@freezed
+class SalePreloadData with _$SalePreloadData {
+  const factory SalePreloadData({
     ExchangeRateData? exchangeRateData,
-    List<CashLocation>? cashLocations,
-    bool? isLoading,
-    String? errorMessage,
-  }) {
-    return SalePreloadState(
-      exchangeRateData: exchangeRateData ?? this.exchangeRateData,
-      cashLocations: cashLocations ?? this.cashLocations,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
-    );
-  }
+    @Default([]) List<CashLocation> cashLocations,
+  }) = _SalePreloadData;
+
+  const SalePreloadData._();
 
   /// Get exchange rate for a specific currency code
   double? getRateForCurrency(String currencyCode) {
@@ -53,37 +38,34 @@ class SalePreloadState {
 }
 
 /// Provider to preload sale data (exchange rates + cash locations)
-final salePreloadProvider =
-    StateNotifierProvider<SalePreloadNotifier, SalePreloadState>((ref) {
-  return SalePreloadNotifier(ref);
-});
-
-/// Notifier for preloaded sale data
-class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
-  final Ref ref;
-
-  SalePreloadNotifier(this.ref) : super(const SalePreloadState());
+///
+/// Uses @riverpod for automatic code generation and better type safety.
+/// Returns AsyncValue<SalePreloadData> for loading/error states.
+@riverpod
+class SalePreloadNotifier extends _$SalePreloadNotifier {
+  @override
+  Future<SalePreloadData> build() async {
+    // Initial state - empty data
+    return const SalePreloadData();
+  }
 
   /// Load all preload data (exchange rates + cash locations) in parallel
   Future<void> loadAll() async {
+    // Skip if already loading
     if (state.isLoading) return;
 
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = const AsyncLoading();
 
-    try {
+    state = await AsyncValue.guard(() async {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
       if (companyId.isEmpty) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: 'Please select a company first',
-        );
-        return;
+        throw Exception('Please select a company first');
       }
 
-      // Load exchange rates and cash locations in parallel using repositories
+      // Load exchange rates and cash locations in parallel
       final results = await Future.wait([
         _loadExchangeRates(companyId, storeId),
         _loadCashLocations(companyId, storeId),
@@ -93,17 +75,11 @@ class SalePreloadNotifier extends StateNotifier<SalePreloadState> {
       final cashLocations =
           (results[1] as List<CashLocation>?) ?? <CashLocation>[];
 
-      state = state.copyWith(
+      return SalePreloadData(
         exchangeRateData: exchangeRateData,
         cashLocations: cashLocations,
-        isLoading: false,
       );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Error loading data: $e',
-      );
-    }
+    });
   }
 
   /// Load exchange rates using real-time API

@@ -47,11 +47,6 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     
     // Apply filters if provided from navigation
     if (widget.counterpartyId != null || widget.scope != null) {
-      print('🔍 [TransactionHistory] Applying filters from navigation:');
-      print('   counterpartyId: ${widget.counterpartyId}');
-      print('   counterpartyName: ${widget.counterpartyName}');
-      print('   scope: ${widget.scope}');
-
       // Use addPostFrameCallback to ensure the widget tree is built
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -59,7 +54,6 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
 
           // Set counterparty filter
           if (widget.counterpartyId != null) {
-            print('   ✅ Setting counterparty filter: ${widget.counterpartyId}');
             notifier.setCounterparty(widget.counterpartyId);
           }
 
@@ -68,7 +62,6 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
             final scope = widget.scope == 'store'
               ? TransactionScope.store
               : TransactionScope.company;
-            print('   ✅ Setting scope filter: $scope');
             notifier.setScope(scope);
           }
         }
@@ -93,7 +86,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     if (_isFilterSheetOpen) return;
     _isFilterSheetOpen = true;
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,

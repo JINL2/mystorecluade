@@ -66,7 +66,7 @@ class _PaymentBreakdownSectionState
 
   @override
   Widget build(BuildContext context) {
-    final paymentState = ref.watch(paymentMethodProvider);
+    final paymentState = ref.watch(paymentMethodNotifierProvider);
     final discountAmount = paymentState.discountAmount;
     final finalTotal = _cartTotal - discountAmount;
 
@@ -194,7 +194,7 @@ class _PaymentBreakdownSectionState
           _isPercentageDiscount = id == 'percent';
           _discountController.clear();
         });
-        ref.read(paymentMethodProvider.notifier).updateDiscountAmount(0);
+        ref.read(paymentMethodNotifierProvider.notifier).updateDiscountAmount(0);
       },
     );
   }
@@ -264,7 +264,7 @@ class _PaymentBreakdownSectionState
           }
 
           ref
-              .read(paymentMethodProvider.notifier)
+              .read(paymentMethodNotifierProvider.notifier)
               .updateDiscountAmount(discountAmt);
         },
       ),

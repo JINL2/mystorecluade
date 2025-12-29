@@ -1346,12 +1346,11 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
 
     try {
       final appState = ref.read(appStateProvider);
-      final checkMapping = ref.read(checkAccountMappingProvider);
 
-      final mapping = await checkMapping(
-        appState.companyChoosen,
-        entryState.counterpartyId!,
-        entryState.accountId!,
+      final mapping = await ref.read(journalActionsNotifierProvider.notifier).checkAccountMapping(
+        companyId: appState.companyChoosen,
+        counterpartyId: entryState.counterpartyId!,
+        accountId: entryState.accountId!,
       );
 
       if (mounted) {

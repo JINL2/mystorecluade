@@ -597,7 +597,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
 
       try {
         // ✅ Use Notifier instead of calling repository directly
-        final success = await ref.read(employeeProvider.notifier).updateEmployeeSalary(
+        final success = await ref.read(employeeNotifierProvider.notifier).updateEmployeeSalary(
           salaryId: widget.employee.salaryId!,
           salaryAmount: amount,
           salaryType: _selectedPaymentType,

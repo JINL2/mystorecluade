@@ -59,7 +59,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
       _descriptionController.clear();
 
       // Initialize with company/store from app state
-      final notifier = ref.read(journalEntryStateProvider.notifier);
+      final notifier = ref.read(journalEntryNotifierProvider.notifier);
       if (appState.companyChoosen.isNotEmpty) {
         notifier.setSelectedCompany(appState.companyChoosen);
       }
@@ -87,7 +87,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   }
 
   Future<void> _addTransactionLine([bool? isDebit]) async {
-    final state = ref.read(journalEntryStateProvider);
+    final state = ref.read(journalEntryNotifierProvider);
 
     // Use Domain Entity business logic methods
     final suggestedAmount = state.getSuggestedAmountForBalance();
@@ -131,17 +131,17 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
   /// Handle transaction result
   void _handleTransactionResult(TransactionLine result) {
-    ref.read(journalEntryStateProvider.notifier).addTransactionLine(result);
+    ref.read(journalEntryNotifierProvider.notifier).addTransactionLine(result);
 
     // Update counterparty cash location if present
     if (result.counterpartyCashLocationId != null) {
-      ref.read(journalEntryStateProvider.notifier)
+      ref.read(journalEntryNotifierProvider.notifier)
          .setCounterpartyCashLocation(result.counterpartyCashLocationId);
     }
   }
 
   Future<void> _editTransactionLine(int index) async {
-    final journalEntry = ref.read(journalEntryStateProvider);
+    final journalEntry = ref.read(journalEntryNotifierProvider);
     final existingLine = journalEntry.transactionLines[index];
 
     // Get already used cash locations, excluding the current line being edited
@@ -171,11 +171,11 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     );
 
     if (result != null) {
-      ref.read(journalEntryStateProvider.notifier).updateTransactionLine(index, result);
+      ref.read(journalEntryNotifierProvider.notifier).updateTransactionLine(index, result);
 
       // If the transaction line has a counterparty cash location, update state
       if (result.counterpartyCashLocationId != null) {
-        ref.read(journalEntryStateProvider.notifier).setCounterpartyCashLocation(
+        ref.read(journalEntryNotifierProvider.notifier).setCounterpartyCashLocation(
           result.counterpartyCashLocationId,
         );
       }
@@ -215,7 +215,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
   /// Validate journal entry before submission
   bool _validateJournalEntry() {
-    final journalEntry = ref.read(journalEntryStateProvider);
+    final journalEntry = ref.read(journalEntryNotifierProvider);
 
     if (!journalEntry.canSubmit()) {
       showDialog<void>(
@@ -240,7 +240,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   Future<void> _performSubmission() async {
     debugPrint('🔵 [3] _performSubmission() started');
     final appState = ref.read(appStateProvider);
-    final notifier = ref.read(journalEntryStateProvider.notifier);
+    final notifier = ref.read(journalEntryNotifierProvider.notifier);
 
     // Validate user authentication
     if (appState.userId.isEmpty) {
@@ -264,15 +264,14 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     );
 
     // Submit to repository
-    debugPrint('🔵 [4] Calling submitJournalEntryProvider');
-    final submitFunction = ref.read(submitJournalEntryProvider);
-    await submitFunction(
-      updatedJournalEntry,
-      appState.userId,
-      appState.companyChoosen,
-      appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
+    debugPrint('🔵 [4] Calling journalActionsNotifier.submitJournalEntry');
+    await ref.read(journalActionsNotifierProvider.notifier).submitJournalEntry(
+      journalEntry: updatedJournalEntry,
+      userId: appState.userId,
+      companyId: appState.companyChoosen,
+      storeId: appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
     );
-    debugPrint('🟢 [4.1] submitJournalEntryProvider completed');
+    debugPrint('🟢 [4.1] submitJournalEntry completed');
 
     // Clear form after successful submission
     _descriptionController.clear();
@@ -347,7 +346,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
   @override
   Widget build(BuildContext context) {
-    final journalEntry = ref.watch(journalEntryStateProvider);
+    final journalEntry = ref.watch(journalEntryNotifierProvider);
     final appState = ref.watch(appStateProvider);
 
     return TossScaffold(
@@ -522,7 +521,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                                 index: index,
                                 onEdit: () => _editTransactionLine(index),
                                 onDelete: () {
-                                  ref.read(journalEntryStateProvider.notifier).removeTransactionLine(index);
+                                  ref.read(journalEntryNotifierProvider.notifier).removeTransactionLine(index);
                                 },
                               );
                             }).toList(),

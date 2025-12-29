@@ -3,6 +3,7 @@ import '../../domain/entities/store_shift.dart';
 import '../../domain/entities/work_schedule_template.dart';
 import '../../domain/repositories/store_shift_repository.dart';
 import '../datasources/store_shift_data_source.dart';
+import '../models/business_hours_dto.dart';
 import '../models/store_shift_model.dart';
 import '../models/work_schedule_template_model.dart';
 
@@ -149,7 +150,10 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
   Future<List<BusinessHours>> getBusinessHours(String storeId) async {
     final hoursData = await _dataSource.getBusinessHours(storeId);
 
-    return hoursData.map((json) => BusinessHours.fromJson(json)).toList();
+    // DTO로 파싱 후 Entity로 변환
+    return hoursData
+        .map((json) => BusinessHoursDto.fromJson(json).toEntity())
+        .toList();
   }
 
   @override
@@ -157,8 +161,10 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     required String storeId,
     required List<BusinessHours> hours,
   }) async {
-    // Convert BusinessHours entities to JSON
-    final hoursJson = hours.map((h) => h.toJson()).toList();
+    // Entity를 DTO로 변환 후 JSON으로 직렬화
+    final hoursJson = hours
+        .map((h) => BusinessHoursDto.fromEntity(h).toJson())
+        .toList();
 
     final success = await _dataSource.upsertBusinessHours(
       storeId: storeId,

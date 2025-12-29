@@ -11,15 +11,8 @@ import 'core/monitoring/sentry_config.dart';
 import 'core/services/revenuecat_service.dart';
 import 'core/notifications/config/firebase_options.dart';
 import 'core/notifications/services/badge_service.dart';
-// Attendance now uses direct provider pattern (no override needed)
-import 'features/journal_input/data/repositories/repository_providers.dart'
-    as journal_data;
-import 'features/journal_input/presentation/providers/journal_input_providers.dart'
-    as journal_presentation;
-import 'features/store_shift/data/repositories/repository_providers.dart'
-    as store_shift_data;
-import 'features/store_shift/domain/providers/repository_provider.dart'
-    as store_shift_domain;
+// Features now use @riverpod for DI - no override needed
+// DI is handled in presentation/providers/di_providers.dart
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -108,17 +101,10 @@ Future<void> main() async {
     }
 
     runApp(
-      ProviderScope(
-        overrides: [
-          // Override presentation layer provider with data layer implementation
-          // Journal Input feature
-          journal_presentation.journalEntryRepositoryProvider
-              .overrideWithProvider(journal_data.journalEntryRepositoryProvider),
-          // Store Shift feature
-          store_shift_domain.storeShiftRepositoryProvider
-              .overrideWithProvider(store_shift_data.storeShiftRepositoryImplProvider),
-        ],
-        child: const MyFinanceApp(),
+      const ProviderScope(
+        // ✅ No overrides needed - @riverpod handles DI
+        // Repository providers are defined in presentation/providers/di_providers.dart
+        child: MyFinanceApp(),
       ),
     );
   });

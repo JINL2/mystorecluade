@@ -12,6 +12,7 @@ import '../../domain/entities/user_session_items.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../datasources/session_datasource.dart';
 import '../models/session_item_input_model.dart';
+import '../models/session_submit_item_model.dart';
 
 /// Implementation of SessionRepository
 class SessionRepositoryImpl implements SessionRepository {
@@ -187,10 +188,16 @@ class SessionRepositoryImpl implements SessionRepository {
     bool isFinal = false,
     String? notes,
   }) async {
+    // Convert domain entities to data models
+    final itemModels = items
+        .map((e) => SessionSubmitItemModel.fromEntity(e))
+        .map((e) => e.toJson())
+        .toList();
+
     final model = await _datasource.submitSession(
       sessionId: sessionId,
       userId: userId,
-      items: items.map((e) => e.toJson()).toList(),
+      items: itemModels,
       isFinal: isFinal,
       notes: notes,
     );
@@ -287,7 +294,7 @@ class SessionRepositoryImpl implements SessionRepository {
               productId: e.productId,
               quantity: e.quantity,
               quantityRejected: e.quantityRejected,
-            ))
+            ),)
         .toList();
     final model = await _datasource.addSessionItems(
       sessionId: sessionId,
@@ -384,7 +391,7 @@ class SessionRepositoryImpl implements SessionRepository {
               productId: e.productId,
               quantity: e.quantity,
               quantityRejected: e.quantityRejected,
-            ))
+            ),)
         .toList();
     final model = await _datasource.updateSessionItems(
       sessionId: sessionId,

@@ -151,7 +151,7 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                         Icon(
                           Icons.sort_rounded,
                           size: 22,
-                          color: sortOption != null ? TossColors.primary : TossColors.gray600,
+                          color: sortOption.isNotEmpty ? TossColors.primary : TossColors.gray600,
                         ),
                         const SizedBox(width: TossSpacing.space2),
                         Expanded(
@@ -164,7 +164,7 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                           ),
                         ),
                         // Show sort direction indicator
-                        if (sortOption != null)
+                        if (sortOption.isNotEmpty)
                           Icon(
                             ref.watch(employeeSortDirectionProvider)
                                 ? Icons.arrow_upward_rounded
@@ -199,7 +199,7 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
             controller: searchController,
             hintText: 'Search team members...',
             onChanged: (value) {
-              ref.read(employeeSearchQueryProvider.notifier).state = value;
+              ref.read(employeeSearchQueryProvider.notifier).update(value);
             },
           ),
         ),

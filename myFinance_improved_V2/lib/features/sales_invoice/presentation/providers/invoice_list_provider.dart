@@ -1,16 +1,23 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+// lib/features/sales_invoice/presentation/providers/invoice_list_provider.dart
+//
+// Invoice List Provider migrated to @riverpod
+// Following Clean Architecture 2025
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../cash_location/domain/constants/account_ids.dart';
+import '../../di/sales_invoice_providers.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';
-import '../../domain/repositories/invoice_repository.dart';
+import '../../domain/repositories/invoice_repository.dart' show RefundResult;
 import '../../domain/value_objects/invoice_filter.dart';
 import '../../domain/value_objects/invoice_period.dart';
 import '../../domain/value_objects/invoice_sort_option.dart';
-import 'invoice_providers.dart';
 import 'states/invoice_list_state.dart';
+
+part 'invoice_list_provider.g.dart';
 
 /// Account IDs for journal entries - using centralized AccountIds
 const String _salesRevenueAccountId = AccountIds.salesRevenue;
@@ -18,12 +25,11 @@ const String _cashAccountId = AccountIds.cash;
 const String _cogsAccountId = AccountIds.cogs;
 const String _inventoryAccountId = AccountIds.inventory;
 
-/// Invoice list state notifier
-class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
-  final InvoiceRepository _repository;
-  final Ref _ref;
-
-  InvoiceListNotifier(this._repository, this._ref) : super(const InvoiceListState());
+/// Invoice list state notifier using @riverpod
+@riverpod
+class InvoiceListNotifier extends _$InvoiceListNotifier {
+  @override
+  InvoiceListState build() => const InvoiceListState();
 
   /// Load invoices
   Future<void> loadInvoices() async {
@@ -32,7 +38,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final appState = _ref.read(appStateProvider);
+      final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
@@ -54,7 +60,8 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         amountFilter: state.amountFilter,
       );
 
-      final result = await _repository.getInvoices(
+      final repository = ref.read(invoiceRepositoryProvider);
+      final result = await repository.getInvoices(
         companyId: companyId,
         storeId: storeId,
         filter: filter,
@@ -140,7 +147,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     state = state.copyWith(isLoadingCashLocations: true);
 
     try {
-      final appState = _ref.read(appStateProvider);
+      final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
@@ -149,7 +156,8 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         return;
       }
 
-      final cashLocations = await _repository.getCashLocations(
+      final repository = ref.read(invoiceRepositoryProvider);
+      final cashLocations = await repository.getCashLocations(
         companyId: companyId,
         storeId: storeId,
       );
@@ -199,7 +207,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     state = state.copyWith(isLoadingMore: true);
 
     try {
-      final appState = _ref.read(appStateProvider);
+      final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
 
@@ -219,7 +227,8 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
         amountFilter: state.amountFilter,
       );
 
-      final result = await _repository.getInvoices(
+      final repository = ref.read(invoiceRepositoryProvider);
+      final result = await repository.getInvoices(
         companyId: companyId,
         storeId: storeId,
         filter: filter,
@@ -264,7 +273,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     required Invoice invoice,
     String? notes,
   }) async {
-    final appState = _ref.read(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final userId = appState.userId;
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
@@ -277,7 +286,8 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
       throw Exception('Company or store not selected');
     }
 
-    final result = await _repository.refundInvoice(
+    final invoiceRepository = ref.read(invoiceRepositoryProvider);
+    final result = await invoiceRepository.refundInvoice(
       invoiceIds: [invoice.invoiceId],
       userId: userId,
       notes: notes,
@@ -285,7 +295,7 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
 
     if (result.success) {
       try {
-        final journalRepository = _ref.read(salesJournalRepositoryProvider);
+        final journalRepository = ref.read(salesJournalRepositoryProvider);
 
         await journalRepository.createRefundJournalEntry(
           companyId: companyId,
@@ -311,9 +321,3 @@ class InvoiceListNotifier extends StateNotifier<InvoiceListState> {
     return result;
   }
 }
-
-/// Invoice list provider
-final invoiceListProvider = StateNotifierProvider<InvoiceListNotifier, InvoiceListState>((ref) {
-  final repository = ref.watch(invoiceRepositoryProvider);
-  return InvoiceListNotifier(repository, ref);
-});

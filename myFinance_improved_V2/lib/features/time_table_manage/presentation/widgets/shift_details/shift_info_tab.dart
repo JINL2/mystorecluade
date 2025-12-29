@@ -80,10 +80,10 @@ class ShiftInfoTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (card.problemType != null) ...[
+                  if (card.problemDetails != null && card.problemDetails!.problems.isNotEmpty) ...[
                     const SizedBox(height: TossSpacing.space2),
                     Text(
-                      'Type: ${card.problemType!}',
+                      'Type: ${card.problemDetails!.problems.map((p) => p.displayName).join(', ')}',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: card.isProblemSolved
                             ? TossColors.success.withValues(alpha: 0.8)

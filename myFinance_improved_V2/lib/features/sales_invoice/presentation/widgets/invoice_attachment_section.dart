@@ -35,8 +35,8 @@ class _InvoiceAttachmentSectionState
 
   /// Pick multiple images from gallery
   Future<void> _pickImagesFromGallery() async {
-    final notifier = ref.read(invoiceAttachmentProvider.notifier);
-    final state = ref.read(invoiceAttachmentProvider);
+    final notifier = ref.read(invoiceAttachmentNotifierProvider.notifier);
+    final state = ref.read(invoiceAttachmentNotifierProvider);
 
     if (state.isPickingImages || !state.canAddMoreAttachments) return;
 
@@ -66,8 +66,8 @@ class _InvoiceAttachmentSectionState
 
   /// Pick image from camera
   Future<void> _pickImageFromCamera() async {
-    final notifier = ref.read(invoiceAttachmentProvider.notifier);
-    final state = ref.read(invoiceAttachmentProvider);
+    final notifier = ref.read(invoiceAttachmentNotifierProvider.notifier);
+    final state = ref.read(invoiceAttachmentNotifierProvider);
 
     if (state.isPickingImages || !state.canAddMoreAttachments) return;
 
@@ -104,7 +104,7 @@ class _InvoiceAttachmentSectionState
   }
 
   void _removeAttachment(int index) {
-    ref.read(invoiceAttachmentProvider.notifier).removeAttachment(index);
+    ref.read(invoiceAttachmentNotifierProvider.notifier).removeAttachment(index);
   }
 
   /// Show source selection dialog
@@ -188,7 +188,7 @@ class _InvoiceAttachmentSectionState
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(invoiceAttachmentProvider);
+    final state = ref.watch(invoiceAttachmentNotifierProvider);
     final pendingAttachments = state.pendingAttachments;
     final existingAttachments = widget.existingAttachments;
     final totalCount = existingAttachments.length + pendingAttachments.length;
@@ -337,6 +337,9 @@ class _InvoiceAttachmentSectionState
 
   /// Build thumbnail for existing attachment (from database)
   Widget _buildExistingAttachment(InvoiceAttachment attachment) {
+    final fileUrl = attachment.fileUrl;
+    final showImage = attachment.isImage && fileUrl != null;
+
     return Container(
       width: 80,
       height: 80,
@@ -346,9 +349,9 @@ class _InvoiceAttachmentSectionState
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(TossBorderRadius.md - 1),
-        child: attachment.isImage && attachment.fileUrl != null
+        child: showImage
             ? CachedNetworkImage(
-                imageUrl: StorageUrlHelper.toAuthenticatedUrl(attachment.fileUrl!),
+                imageUrl: StorageUrlHelper.toAuthenticatedUrl(fileUrl),
                 httpHeaders: StorageUrlHelper.getAuthHeaders(),
                 fit: BoxFit.cover,
                 placeholder: (_, __) => Container(

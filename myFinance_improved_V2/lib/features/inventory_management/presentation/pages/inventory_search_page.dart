@@ -212,7 +212,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
           currencySymbol: currencySymbol,
           onTap: () {
             // Add product to provider so ProductDetailPage can find it
-            ref.read(inventoryPageProvider.notifier).addProductIfNotExists(product);
+            ref.read(inventoryPageNotifierProvider.notifier).addProductIfNotExists(product);
             context.push('/inventoryManagement/product/${product.id}');
           },
           onTransferTap: () => _showMoveStockDialog(product),

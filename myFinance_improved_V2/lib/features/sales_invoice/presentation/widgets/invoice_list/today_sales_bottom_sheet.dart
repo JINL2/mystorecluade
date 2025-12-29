@@ -12,7 +12,7 @@ import '../../providers/invoice_list_provider.dart';
 class TodaySalesBottomSheet {
   /// Show today's sales by location
   static void show(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.read(invoiceListProvider);
+    final invoiceState = ref.read(invoiceListNotifierProvider);
     final cashLocations = invoiceState.cashLocations;
     final allInvoices = invoiceState.invoices;
 

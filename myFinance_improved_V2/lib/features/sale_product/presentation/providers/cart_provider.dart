@@ -1,26 +1,32 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../domain/entities/cart_item.dart';
 import '../../domain/entities/sales_product.dart';
 import '../../domain/usecases/add_to_cart_usecase.dart';
 import '../../domain/usecases/update_cart_quantity_usecase.dart';
 import 'use_case_providers.dart';
 
-/// Cart provider - manages shopping cart state
-final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>((ref) {
-  final addToCartUseCase = ref.watch(addToCartUseCaseProvider);
-  final updateQuantityUseCase = ref.watch(updateCartQuantityUseCaseProvider);
-  return CartNotifier(addToCartUseCase, updateQuantityUseCase);
-});
+part 'cart_provider.g.dart';
 
-/// Cart notifier - handles cart operations
-class CartNotifier extends StateNotifier<List<CartItem>> {
-  final AddToCartUseCase _addToCartUseCase;
-  final UpdateCartQuantityUseCase _updateQuantityUseCase;
-
+/// Cart notifier - manages shopping cart state
+///
+/// Uses @Riverpod(keepAlive: true) to persist cart data across navigation.
+/// State is List<CartItem> for synchronous updates.
+@Riverpod(keepAlive: true)
+class CartNotifier extends _$CartNotifier {
   /// Map to store SalesProduct by productId for later retrieval
   final Map<String, SalesProduct> _productsMap = {};
 
-  CartNotifier(this._addToCartUseCase, this._updateQuantityUseCase) : super([]);
+  @override
+  List<CartItem> build() {
+    // Initialize with empty cart
+    return [];
+  }
+
+  /// Get use cases from ref
+  AddToCartUseCase get _addToCartUseCase => ref.read(addToCartUseCaseProvider);
+  UpdateCartQuantityUseCase get _updateQuantityUseCase =>
+      ref.read(updateCartQuantityUseCaseProvider);
 
   /// Get list of SalesProducts in cart
   List<SalesProduct> get cartProducts =>

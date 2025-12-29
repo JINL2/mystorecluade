@@ -10,10 +10,11 @@ import '../../../../../shared/widgets/toss/month_dates_picker.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
 import '../../../../../shared/widgets/toss/week_dates_picker.dart';
-import '../../../domain/usecases/toggle_shift_approval.dart';
 import '../../models/schedule_models.dart';
 import '../../providers/state/coverage_gap_provider.dart';
 import '../../providers/time_table_providers.dart';
+import 'mixins/schedule_approval_handler.dart';
+import 'mixins/schedule_date_helpers.dart';
 import 'schedule_shift_card.dart';
 
 /// Schedule Tab Content - Redesigned
@@ -56,16 +57,24 @@ class ScheduleTabContent extends ConsumerStatefulWidget {
   ConsumerState<ScheduleTabContent> createState() => _ScheduleTabContentState();
 }
 
-class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
+class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
+    with ScheduleDateHelpersMixin, ScheduleApprovalHandlerMixin {
   late DateTime _currentWeekStart;
   late DateTime _selectedDate;
   bool _isExpanded = false; // Toggle between week and month view
+
+  // Mixin requirements
+  @override
+  String? get selectedStoreId => widget.selectedStoreId;
+
+  @override
+  DateTime get selectedDate => _selectedDate;
 
   @override
   void initState() {
     super.initState();
     _selectedDate = widget.selectedDate;
-    _currentWeekStart = _getWeekStart(_selectedDate);
+    _currentWeekStart = getWeekStart(_selectedDate);
 
     // Note: Data loading is handled by parent page (time_table_manage_page.dart)
     // Parent calls fetchMonthlyShiftStatus(forceRefresh: true) on page entry
@@ -104,7 +113,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     if (widget.selectedDate != oldWidget.selectedDate) {
       setState(() {
         _selectedDate = widget.selectedDate;
-        _currentWeekStart = _getWeekStart(_selectedDate);
+        _currentWeekStart = getWeekStart(_selectedDate);
       });
       // Date changed within same store - load if month changed
       // Provider caching handles duplicate month requests
@@ -115,12 +124,6 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     if (widget.selectedStoreId != oldWidget.selectedStoreId) {
       _loadMonthData(forceRefresh: true);
     }
-  }
-
-  /// Get Monday of the week for a given date
-  DateTime _getWeekStart(DateTime date) {
-    final weekday = date.weekday; // Monday = 1, Sunday = 7
-    return date.subtract(Duration(days: weekday - 1));
   }
 
   @override
@@ -162,8 +165,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
                 child: _isExpanded
                     ? _buildMonthNavigation()
                     : TossWeekNavigation(
-                        weekLabel: _getWeekLabel(),
-                        dateRange: _formatWeekRange(),
+                        weekLabel: getWeekLabel(_currentWeekStart),
+                        dateRange: formatWeekRange(_currentWeekStart),
                         onPrevWeek: () => _changeWeek(-7),
                         onCurrentWeek: () => _jumpToToday(),
                         onNextWeek: () => _changeWeek(7),
@@ -194,7 +197,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
               onDateSelected: (date) {
                 setState(() {
                   _selectedDate = date;
-                  _currentWeekStart = _getWeekStart(date);
+                  _currentWeekStart = getWeekStart(date);
                 });
                 widget.onDateSelected(date);
               },
@@ -214,7 +217,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
 
           // "Shifts for..." label
           Text(
-            'Shifts for ${_formatSelectedDate()}',
+            'Shifts for ${formatSelectedDate(_selectedDate)}',
             style: TossTextStyles.label.copyWith(
               color: TossColors.gray600,
               fontWeight: FontWeight.w600,
@@ -316,8 +319,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         endTime: shift.endTime,
         maxCapacity: shift.maxCapacity,
         assignedEmployees: assignedEmployees,
-        onApprove: (shiftRequestId) => _handleApprove(shiftRequestId),
-        onRemove: (shiftRequestId) => _handleRemove(shiftRequestId),
+        onApprove: (shiftRequestId) => handleApprove(shiftRequestId),
+        onRemove: (shiftRequestId) => handleRemove(shiftRequestId),
       );
     }).toList();
   }
@@ -370,77 +373,6 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     );
   }
 
-  /// Get week label (e.g., "This week", "Next week", "Last week", or "Week 52")
-  String _getWeekLabel() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
-
-    // Check if _currentWeekStart is the same week as today
-    if (_currentWeekStart.year == currentWeekStart.year &&
-        _currentWeekStart.month == currentWeekStart.month &&
-        _currentWeekStart.day == currentWeekStart.day) {
-      return 'This week';
-    }
-
-    // Check if it's next week (7 days ahead)
-    final nextWeekStart = currentWeekStart.add(const Duration(days: 7));
-    if (_currentWeekStart.year == nextWeekStart.year &&
-        _currentWeekStart.month == nextWeekStart.month &&
-        _currentWeekStart.day == nextWeekStart.day) {
-      return 'Next week';
-    }
-
-    // Check if it's previous week (7 days back)
-    final previousWeekStart = currentWeekStart.subtract(const Duration(days: 7));
-    if (_currentWeekStart.year == previousWeekStart.year &&
-        _currentWeekStart.month == previousWeekStart.month &&
-        _currentWeekStart.day == previousWeekStart.day) {
-      return 'Last week';
-    }
-
-    // Otherwise, return "Week [number]" (ISO week number)
-    final weekNumber = _getIsoWeekNumber(_currentWeekStart);
-    return 'Week $weekNumber';
-  }
-
-  /// Calculate ISO week number (1-53)
-  /// ISO 8601: Week 1 is the week containing the first Thursday of the year
-  int _getIsoWeekNumber(DateTime date) {
-    // Find the Thursday of the current week
-    final thursday = date.add(Duration(days: 4 - date.weekday));
-
-    // Find January 1st of that Thursday's year
-    final jan1 = DateTime(thursday.year, 1, 1);
-
-    // Calculate the number of days from Jan 1 to the Thursday
-    final daysDiff = thursday.difference(jan1).inDays;
-
-    // Week number is (days / 7) + 1
-    return (daysDiff / 7).floor() + 1;
-  }
-
-  /// Format week range for navigation (e.g., "10-16 Jun")
-  String _formatWeekRange() {
-    final weekEnd = _currentWeekStart.add(const Duration(days: 6));
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${_currentWeekStart.day}-${weekEnd.day} ${months[_currentWeekStart.month - 1]}';
-  }
-
-  /// Format selected date (e.g., "Wed, 12 Jun")
-  String _formatSelectedDate() {
-    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    final dayName = weekdays[_selectedDate.weekday - 1];
-    return '$dayName, ${_selectedDate.day} ${months[_selectedDate.month - 1]}';
-  }
-
   /// Change week by number of days
   void _changeWeek(int days) {
     final oldSelectedDate = _selectedDate;
@@ -466,7 +398,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
     final today = DateTime.now();
     setState(() {
       _selectedDate = today;
-      _currentWeekStart = _getWeekStart(today);
+      _currentWeekStart = getWeekStart(today);
     });
 
     // Load current month data
@@ -566,8 +498,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
       return ShiftData(
         id: shiftMeta.shiftId,
         name: shiftMeta.shiftName,
-        startTime: _formatTime(shiftMeta.startTime),
-        endTime: _formatTime(shiftMeta.endTime),
+        startTime: formatTime(shiftMeta.startTime),
+        endTime: formatTime(shiftMeta.endTime),
         assignedCount: assignedEmployees.length,
         maxCapacity: shiftMeta.targetCount,
         assignedEmployees: assignedEmployees,
@@ -575,125 +507,6 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent> {
         waitlist: [], // No waitlist in current domain model
       );
     }).toList();
-  }
-
-  /// Format time string to HH:mm format
-  String _formatTime(String? timeString) {
-    if (timeString == null || timeString.isEmpty) return '--:--';
-
-    try {
-      // Remove timezone offset and seconds (e.g., "02:00:00+07" -> "02:00")
-      final parts = timeString.split(':');
-      if (parts.length >= 2) {
-        return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
-      }
-    } catch (e) {
-      // Return original on error
-    }
-
-    return timeString;
-  }
-
-  /// Handle Approve button click
-  ///
-  /// Calls toggle_shift_approval_v3 RPC to approve a shift request.
-  /// Local state is updated by ScheduleShiftCard for instant UI feedback.
-  /// Uses Partial Update for cross-tab sync instead of full refresh.
-  /// Returns true on success, false on failure.
-  Future<bool> _handleApprove(String shiftRequestId) async {
-    if (shiftRequestId.isEmpty) return false;
-
-    final appState = ref.read(appStateProvider);
-    final userId = appState.userId;
-
-    if (userId.isEmpty) return false;
-
-    try {
-      final useCase = ref.read(toggleShiftApprovalUseCaseProvider);
-      await useCase(
-        ToggleShiftApprovalParams(
-          shiftRequestIds: [shiftRequestId],
-          userId: userId,
-        ),
-      );
-
-      // Partial Update: Update only the affected card instead of full refresh
-      // This is much more efficient than loading all data again
-      if (widget.selectedStoreId != null) {
-        final shiftDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
-
-        // Update MonthlyShiftStatus (Schedule tab data)
-        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier)
-            .updateShiftRequestApproval(
-          shiftRequestId: shiftRequestId,
-          isApproved: true,
-          shiftDate: shiftDate,
-        );
-
-        // Update ManagerCards (Timesheets/Problems tab data)
-        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier)
-            .updateCardApproval(
-          shiftRequestId: shiftRequestId,
-          isApproved: true,
-          shiftDate: shiftDate,
-        );
-      }
-
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Handle Remove button click from bottom sheet
-  ///
-  /// Calls toggle_shift_approval_v3 RPC to unapprove a shift request.
-  /// Local state is updated by ScheduleShiftCard for instant UI feedback.
-  /// Uses Partial Update for cross-tab sync instead of full refresh.
-  /// Returns true on success, false on failure.
-  Future<bool> _handleRemove(String shiftRequestId) async {
-    if (shiftRequestId.isEmpty) return false;
-
-    final appState = ref.read(appStateProvider);
-    final userId = appState.userId;
-
-    if (userId.isEmpty) return false;
-
-    try {
-      final useCase = ref.read(toggleShiftApprovalUseCaseProvider);
-      await useCase(
-        ToggleShiftApprovalParams(
-          shiftRequestIds: [shiftRequestId],
-          userId: userId,
-        ),
-      );
-
-      // Partial Update: Update only the affected card instead of full refresh
-      // This is much more efficient than loading all data again
-      if (widget.selectedStoreId != null) {
-        final shiftDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
-
-        // Update MonthlyShiftStatus (Schedule tab data)
-        ref.read(monthlyShiftStatusProvider(widget.selectedStoreId!).notifier)
-            .updateShiftRequestApproval(
-          shiftRequestId: shiftRequestId,
-          isApproved: false,
-          shiftDate: shiftDate,
-        );
-
-        // Update ManagerCards (Timesheets/Problems tab data)
-        ref.read(managerCardsProvider(widget.selectedStoreId!).notifier)
-            .updateCardApproval(
-          shiftRequestId: shiftRequestId,
-          isApproved: false,
-          shiftDate: shiftDate,
-        );
-      }
-
-      return true;
-    } catch (e) {
-      return false;
-    }
   }
 
   /// Build month navigation widget (same style as timesheets_tab.dart)

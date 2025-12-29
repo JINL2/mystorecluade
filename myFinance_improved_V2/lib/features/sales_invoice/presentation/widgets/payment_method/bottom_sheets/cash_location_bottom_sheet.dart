@@ -84,7 +84,7 @@ class CashLocationBottomSheet extends StatelessWidget {
   Widget _buildLocationItem(BuildContext context, CashLocation location) {
     return InkWell(
       onTap: () {
-        ref.read(paymentMethodProvider.notifier).selectCashLocation(location);
+        ref.read(paymentMethodNotifierProvider.notifier).selectCashLocation(location);
         context.pop();
       },
       child: Container(

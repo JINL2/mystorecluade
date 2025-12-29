@@ -74,7 +74,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       // Cash locations are preloaded in SaleProductPage via salePreloadProvider
       // No RPC call needed here - just set the data to provider
       ref
-          .read(paymentMethodProvider.notifier)
+          .read(paymentMethodNotifierProvider.notifier)
           .setCashLocations(widget.cashLocations);
 
       // Only load exchange rates if not already provided
@@ -124,7 +124,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   void _handleApplyExchangeRateAsTotal(
       double convertedAmount, double discount) {
     // Update the discount amount in provider
-    ref.read(paymentMethodProvider.notifier).updateDiscountAmount(discount);
+    ref.read(paymentMethodNotifierProvider.notifier).updateDiscountAmount(discount);
 
     // Collapse exchange rate panel after applying
     setState(() {
@@ -149,7 +149,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
   @override
   Widget build(BuildContext context) {
-    final paymentState = ref.watch(paymentMethodProvider);
+    final paymentState = ref.watch(paymentMethodNotifierProvider);
     final discountAmount = paymentState.discountAmount;
     final finalTotal = _cartTotal - discountAmount;
 
@@ -310,14 +310,14 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     print('🚀 [INVOICE] _proceedToInvoice() START');
 
     // Prevent duplicate submissions - this is the critical guard
-    final notifier = ref.read(paymentMethodProvider.notifier);
+    final notifier = ref.read(paymentMethodNotifierProvider.notifier);
     if (!notifier.startSubmitting()) {
       print('⚠️ [INVOICE] BLOCKED: Already submitting, ignoring duplicate click');
       return;
     }
     print('🔒 [INVOICE] Submission lock acquired');
 
-    final paymentState = ref.read(paymentMethodProvider);
+    final paymentState = ref.read(paymentMethodNotifierProvider);
     print('📋 [INVOICE] paymentState: selectedCashLocation=${paymentState.selectedCashLocation?.name}, discountAmount=${paymentState.discountAmount}');
 
     // Get required IDs
@@ -526,7 +526,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         print('📒 [JOURNAL] amount: $totalAmount, totalCost: $totalCost');
         print('📒 [JOURNAL] cashLocationId: ${paymentState.selectedCashLocation!.id}');
 
-        journalEntryId = await ref.read(paymentMethodProvider.notifier).createSalesJournalEntry(
+        journalEntryId = await ref.read(paymentMethodNotifierProvider.notifier).createSalesJournalEntry(
               companyId: companyId,
               storeId: storeId,
               userId: userId,
@@ -572,10 +572,10 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     final cashLocationName = paymentState.selectedCashLocation?.name ?? 'Cash';
 
     // Clear the cart
-    ref.read(cartProvider.notifier).clearCart();
+    ref.read(cartNotifierProvider.notifier).clearCart();
 
     // Clear payment method selections for next invoice
-    ref.read(paymentMethodProvider.notifier).clearSelections();
+    ref.read(paymentMethodNotifierProvider.notifier).clearSelections();
 
     // Show success bottom sheet
     if (mounted) {
@@ -595,7 +595,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         userId: userId,
         onDismiss: () {
           // Force refresh of sales product data
-          ref.invalidate(salesProductProvider);
+          ref.invalidate(salesProductNotifierProvider);
           // Navigate back to Sales Product page
           context.pop();
         },

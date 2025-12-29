@@ -1,6 +1,6 @@
-import 'dart:developer' as developer;
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 // App-level
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 
@@ -10,80 +10,85 @@ import '../../di/providers.dart';
 import '../../domain/entities/denomination.dart';
 import '../../domain/repositories/denomination_repository.dart';
 
-// Denominations for a specific currency
-final denominationListProvider = FutureProvider.family<List<Denomination>, String>((ref, currencyId) async {
+part 'denomination_providers.g.dart';
+
+// ============================================================================
+// Denomination List Provider
+// ============================================================================
+
+/// Denominations for a specific currency
+@riverpod
+Future<List<Denomination>> denominationList(Ref ref, String currencyId) async {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  
+
   if (companyId.isEmpty) {
     throw Exception('No company selected');
   }
-  
+
   final repository = ref.watch(denominationRepositoryProvider);
   return repository.getCurrencyDenominations(companyId, currencyId);
-});
+}
 
-// Real-time denominations stream
-final denominationStreamProvider = StreamProvider.family<List<Denomination>, String>((ref, currencyId) {
+/// Real-time denominations stream
+@riverpod
+Stream<List<Denomination>> denominationStream(Ref ref, String currencyId) {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  
+
   if (companyId.isEmpty) {
     return Stream.value([]);
   }
-  
+
   final repository = ref.watch(denominationRepositoryProvider);
   return repository.watchCurrencyDenominations(companyId, currencyId);
-});
+}
 
-// Denomination statistics
-final denominationStatsProvider = FutureProvider.family<DenominationStats, String>((ref, currencyId) async {
+// ============================================================================
+// Denomination Stats Provider
+// ============================================================================
+
+/// Denomination statistics
+@riverpod
+Future<DenominationStats> denominationStats(Ref ref, String currencyId) async {
   final appState = ref.watch(appStateProvider);
   final companyId = appState.companyChoosen;
-  
+
   if (companyId.isEmpty) {
     throw Exception('No company selected');
   }
-  
+
   final repository = ref.watch(denominationRepositoryProvider);
   return repository.getDenominationStats(companyId, currencyId);
-});
+}
 
-// Denomination operations provider
-class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
-  DenominationOperationsNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
-  
-  final DenominationRepository _repository;
-  final Ref _ref;
+// ============================================================================
+// Denomination Operations Notifier
+// ============================================================================
+
+/// Denomination operations notifier
+@riverpod
+class DenominationOperations extends _$DenominationOperations {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
 
   Future<void> addDenomination(DenominationInput input) async {
     state = const AsyncValue.loading();
 
     try {
-      await _repository.addDenomination(input);
+      final repository = ref.read(denominationRepositoryProvider);
+      await repository.addDenomination(input);
 
       // Refresh providers after successful database operation
-      _ref.invalidate(denominationListProvider(input.currencyId));
-      _ref.invalidate(denominationStatsProvider(input.currencyId));
-      _ref.read(localDenominationListProvider.notifier).reset(input.currencyId);
+      ref.invalidate(denominationListProvider(input.currencyId));
+      ref.invalidate(denominationStatsProvider(input.currencyId));
+      ref.read(localDenominationListProvider.notifier).reset(input.currencyId);
 
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
       rethrow;
     }
-  }
-
-  String _getDefaultDisplayName(double value, DenominationType type) {
-    if (type == DenominationType.coin) {
-      return value < 1.0 ? '${(value * 100).toInt()}¢' : '\$${value.toInt()}';
-    } else {
-      return '\$${value.toInt()}';
-    }
-  }
-
-  String _getDefaultEmoji(DenominationType type) {
-    return type == DenominationType.coin ? '🪙' : '💵';
   }
 
   Future<void> updateDenomination(
@@ -96,9 +101,10 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     bool? isActive,
   }) async {
     state = const AsyncValue.loading();
-    
+
     try {
-      await _repository.updateDenomination(
+      final repository = ref.read(denominationRepositoryProvider);
+      await repository.updateDenomination(
         denominationId,
         value: value,
         type: type,
@@ -106,11 +112,11 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
         emoji: emoji,
         isActive: isActive,
       );
-      
+
       // Refresh the denomination list for this currency
-      _ref.invalidate(denominationListProvider(currencyId));
-      _ref.invalidate(denominationStatsProvider(currencyId));
-      
+      ref.invalidate(denominationListProvider(currencyId));
+      ref.invalidate(denominationStatsProvider(currencyId));
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -119,14 +125,15 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> removeDenomination(String denominationId, String currencyId) async {
     state = const AsyncValue.loading();
-    
+
     try {
-      await _repository.removeDenomination(denominationId);
-      
+      final repository = ref.read(denominationRepositoryProvider);
+      await repository.removeDenomination(denominationId);
+
       // Refresh the denomination list for this currency
-      _ref.invalidate(denominationListProvider(currencyId));
-      _ref.invalidate(denominationStatsProvider(currencyId));
-      
+      ref.invalidate(denominationListProvider(currencyId));
+      ref.invalidate(denominationStatsProvider(currencyId));
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -136,23 +143,24 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> applyTemplate(String currencyCode, String currencyId) async {
-    final appState = _ref.read(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
-    
+
     if (companyId.isEmpty) {
       state = AsyncValue.error(Exception('No company selected'), StackTrace.current);
       return;
     }
 
     state = const AsyncValue.loading();
-    
+
     try {
-      await _repository.applyDenominationTemplate(currencyCode, companyId, currencyId);
-      
+      final repository = ref.read(denominationRepositoryProvider);
+      await repository.applyDenominationTemplate(currencyCode, companyId, currencyId);
+
       // Refresh the denomination list for this currency
-      _ref.invalidate(denominationListProvider(currencyId));
-      _ref.invalidate(denominationStatsProvider(currencyId));
-      
+      ref.invalidate(denominationListProvider(currencyId));
+      ref.invalidate(denominationStatsProvider(currencyId));
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -163,17 +171,18 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     if (inputs.isEmpty) return;
 
     state = const AsyncValue.loading();
-    
+
     try {
-      await _repository.addBulkDenominations(inputs);
-      
+      final repository = ref.read(denominationRepositoryProvider);
+      await repository.addBulkDenominations(inputs);
+
       // Refresh denomination lists for affected currencies
       final currencyIds = inputs.map((input) => input.currencyId).toSet();
       for (final currencyId in currencyIds) {
-        _ref.invalidate(denominationListProvider(currencyId));
-        _ref.invalidate(denominationStatsProvider(currencyId));
+        ref.invalidate(denominationListProvider(currencyId));
+        ref.invalidate(denominationStatsProvider(currencyId));
       }
-      
+
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -185,33 +194,31 @@ class DenominationOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final denominationOperationsProvider = StateNotifierProvider<DenominationOperationsNotifier, AsyncValue<void>>((ref) {
-  final repository = ref.watch(denominationRepositoryProvider);
-  return DenominationOperationsNotifier(repository, ref);
-});
+// ============================================================================
+// Denomination Validation Notifier
+// ============================================================================
 
-// Denomination validation provider
-class DenominationValidationNotifier extends StateNotifier<AsyncValue<DenominationValidationResult>> {
-  DenominationValidationNotifier(this._repository, this._ref) : super(const AsyncValue.data(
-    DenominationValidationResult(isValid: true),
-  ),);
-  
-  final DenominationRepository _repository;
-  final Ref _ref;
+/// Denomination validation notifier
+@riverpod
+class DenominationValidation extends _$DenominationValidation {
+  @override
+  AsyncValue<DenominationValidationResult> build() =>
+      const AsyncValue.data(DenominationValidationResult(isValid: true));
 
   Future<void> validateDenominations(String currencyId, List<DenominationInput> denominations) async {
-    final appState = _ref.read(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
-    
+
     if (companyId.isEmpty) {
       state = AsyncValue.error(Exception('No company selected'), StackTrace.current);
       return;
     }
 
     state = const AsyncValue.loading();
-    
+
     try {
-      final result = await _repository.validateDenominations(companyId, currencyId, denominations);
+      final repository = ref.read(denominationRepositoryProvider);
+      final result = await repository.validateDenominations(companyId, currencyId, denominations);
       state = AsyncValue.data(result);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -219,41 +226,111 @@ class DenominationValidationNotifier extends StateNotifier<AsyncValue<Denominati
   }
 
   void resetValidation() {
-    state = const AsyncValue.data(
-      DenominationValidationResult(isValid: true),
+    state = const AsyncValue.data(DenominationValidationResult(isValid: true));
+  }
+}
+
+// ============================================================================
+// Template Providers
+// ============================================================================
+
+/// Available templates provider
+@riverpod
+List<String> availableTemplates(Ref ref) {
+  final templateService = ref.watch(denominationTemplateServiceProvider);
+  return templateService.getAvailableTemplates();
+}
+
+/// Denomination template provider
+@riverpod
+List<DenominationTemplateItem> denominationTemplate(Ref ref, String currencyCode) {
+  final templateService = ref.watch(denominationTemplateServiceProvider);
+  return templateService.getTemplate(currencyCode);
+}
+
+/// Has template provider
+@riverpod
+bool hasTemplate(Ref ref, String currencyCode) {
+  final templateService = ref.watch(denominationTemplateServiceProvider);
+  return templateService.hasTemplate(currencyCode);
+}
+
+// ============================================================================
+// UI State Providers
+// ============================================================================
+
+/// Selected denomination type provider
+@riverpod
+class SelectedDenominationType extends _$SelectedDenominationType {
+  @override
+  DenominationType build() => DenominationType.bill;
+
+  void update(DenominationType type) {
+    state = type;
+  }
+}
+
+/// Denomination form provider
+@riverpod
+class DenominationForm extends _$DenominationForm {
+  @override
+  DenominationInput? build() => null;
+
+  void update(DenominationInput? input) {
+    state = input;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
+// ============================================================================
+// Denomination Editor State
+// ============================================================================
+
+/// Denomination editor state
+class DenominationEditorState {
+  const DenominationEditorState({
+    this.editingDenomination,
+    this.isEditing = false,
+    this.value = 0.0,
+    this.type = DenominationType.bill,
+    this.displayName,
+    this.emoji,
+  });
+
+  final Denomination? editingDenomination;
+  final bool isEditing;
+  final double value;
+  final DenominationType type;
+  final String? displayName;
+  final String? emoji;
+
+  DenominationEditorState copyWith({
+    Denomination? editingDenomination,
+    bool? isEditing,
+    double? value,
+    DenominationType? type,
+    String? displayName,
+    String? emoji,
+  }) {
+    return DenominationEditorState(
+      editingDenomination: editingDenomination ?? this.editingDenomination,
+      isEditing: isEditing ?? this.isEditing,
+      value: value ?? this.value,
+      type: type ?? this.type,
+      displayName: displayName ?? this.displayName,
+      emoji: emoji ?? this.emoji,
     );
   }
 }
 
-final denominationValidationProvider = StateNotifierProvider<DenominationValidationNotifier, AsyncValue<DenominationValidationResult>>((ref) {
-  final repository = ref.watch(denominationRepositoryProvider);
-  return DenominationValidationNotifier(repository, ref);
-});
-
-// Template-related providers
-final availableTemplatesProvider = Provider<List<String>>((ref) {
-  final templateService = ref.watch(denominationTemplateServiceProvider);
-  return templateService.getAvailableTemplates();
-});
-
-final denominationTemplateProvider = Provider.family<List<DenominationTemplateItem>, String>((ref, currencyCode) {
-  final templateService = ref.watch(denominationTemplateServiceProvider);
-  return templateService.getTemplate(currencyCode);
-});
-
-final hasTemplateProvider = Provider.family<bool, String>((ref, currencyCode) {
-  final templateService = ref.watch(denominationTemplateServiceProvider);
-  return templateService.hasTemplate(currencyCode);
-});
-
-// UI State providers
-final selectedDenominationTypeProvider = StateProvider<DenominationType>((ref) => DenominationType.bill);
-
-final denominationFormProvider = StateProvider<DenominationInput?>((ref) => null);
-
-// Denomination editor state
-class DenominationEditorNotifier extends StateNotifier<DenominationEditorState> {
-  DenominationEditorNotifier() : super(const DenominationEditorState());
+/// Denomination editor notifier
+@riverpod
+class DenominationEditor extends _$DenominationEditor {
+  @override
+  DenominationEditorState build() => const DenominationEditorState();
 
   void setEditingDenomination(Denomination? denomination) {
     state = state.copyWith(
@@ -296,51 +373,15 @@ class DenominationEditorNotifier extends StateNotifier<DenominationEditorState> 
   }
 }
 
-class DenominationEditorState {
-  const DenominationEditorState({
-    this.editingDenomination,
-    this.isEditing = false,
-    this.value = 0.0,
-    this.type = DenominationType.bill,
-    this.displayName,
-    this.emoji,
-  });
+// ============================================================================
+// Local Denomination List Provider (for Optimistic UI Updates)
+// ============================================================================
 
-  final Denomination? editingDenomination;
-  final bool isEditing;
-  final double value;
-  final DenominationType type;
-  final String? displayName;
-  final String? emoji;
-
-  DenominationEditorState copyWith({
-    Denomination? editingDenomination,
-    bool? isEditing,
-    double? value,
-    DenominationType? type,
-    String? displayName,
-    String? emoji,
-  }) {
-    return DenominationEditorState(
-      editingDenomination: editingDenomination ?? this.editingDenomination,
-      isEditing: isEditing ?? this.isEditing,
-      value: value ?? this.value,
-      type: type ?? this.type,
-      displayName: displayName ?? this.displayName,
-      emoji: emoji ?? this.emoji,
-    );
-  }
-}
-
-final denominationEditorProvider = StateNotifierProvider<DenominationEditorNotifier, DenominationEditorState>((ref) {
-  return DenominationEditorNotifier();
-});
-
-// Local denomination list state for optimistic UI updates
-class LocalDenominationListNotifier extends StateNotifier<Map<String, List<Denomination>>> {
-  LocalDenominationListNotifier(this._ref) : super({});
-  
-  final Ref _ref; // ignore: unused_field
+/// Local denomination list notifier for optimistic UI updates
+@riverpod
+class LocalDenominationList extends _$LocalDenominationList {
+  @override
+  Map<String, List<Denomination>> build() => {};
 
   // Initialize local state with remote data
   void initializeFromRemote(String currencyId, List<Denomination> denominations) {
@@ -379,21 +420,22 @@ class LocalDenominationListNotifier extends StateNotifier<Map<String, List<Denom
   }
 }
 
-final localDenominationListProvider = StateNotifierProvider<LocalDenominationListNotifier, Map<String, List<Denomination>>>((ref) {
-  return LocalDenominationListNotifier(ref);
-});
+// ============================================================================
+// Effective Denomination List Provider
+// ============================================================================
 
-// Combined provider that uses local state when available, falls back to remote
-final effectiveDenominationListProvider = Provider.family<AsyncValue<List<Denomination>>, String>((ref, currencyId) {
+/// Combined provider that uses local state when available, falls back to remote
+@riverpod
+AsyncValue<List<Denomination>> effectiveDenominationList(Ref ref, String currencyId) {
   final localState = ref.watch(localDenominationListProvider);
   final remoteState = ref.watch(denominationListProvider(currencyId));
-  
+
   // If we have local state for this currency, use it
   if (localState.containsKey(currencyId)) {
     return AsyncValue.data(localState[currencyId]!);
   }
-  
+
   // For new currencies or when no local state exists, use remote state directly
   // Don't initialize local state here to avoid stale data issues
   return remoteState;
-});
+}

@@ -155,18 +155,16 @@ class _InvoiceAttachmentPageState extends ConsumerState<InvoiceAttachmentPage> {
       }
 
       // Clean Architecture: Use provider from Presentation layer (NOT DataSource directly)
-      final uploadAttachments = ref.read(uploadAttachmentsProvider);
-
       final files = _pendingAttachments
           .where((a) => a.localFile != null)
           .map((a) => a.localFile!)
           .toList();
 
-      await uploadAttachments(
-        companyId,
-        widget.journalId,
-        userId,
-        files,
+      await ref.read(journalActionsNotifierProvider.notifier).uploadAttachments(
+        companyId: companyId,
+        journalId: widget.journalId,
+        uploadedBy: userId,
+        files: files,
       );
 
       if (mounted) {

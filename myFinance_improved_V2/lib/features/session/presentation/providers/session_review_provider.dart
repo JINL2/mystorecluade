@@ -1,38 +1,34 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/session_providers.dart';
-import '../../domain/usecases/get_product_stock_by_store.dart';
-import '../../domain/usecases/get_session_review_items.dart';
-import '../../domain/usecases/submit_session.dart';
 import 'states/session_review_state.dart';
 
-/// Notifier for session review state management
-class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
-  final Ref _ref;
-  final GetSessionReviewItems _getSessionReviewItems;
-  final SubmitSession _submitSession;
-  final GetProductStockByStore _getProductStockByStore;
+part 'session_review_provider.g.dart';
 
-  SessionReviewNotifier({
-    required Ref ref,
-    required GetSessionReviewItems getSessionReviewItems,
-    required SubmitSession submitSession,
-    required GetProductStockByStore getProductStockByStore,
-    required String sessionId,
-    required String sessionType,
-    String? sessionName,
-    required String storeId,
-  })  : _ref = ref,
-        _getSessionReviewItems = getSessionReviewItems,
-        _submitSession = submitSession,
-        _getProductStockByStore = getProductStockByStore,
-        super(SessionReviewState.initial(
-          sessionId: sessionId,
-          sessionType: sessionType,
-          sessionName: sessionName,
-          storeId: storeId,
-        ),);
+/// Provider parameters record
+typedef SessionReviewParams = ({
+  String sessionId,
+  String sessionType,
+  String? sessionName,
+  String storeId,
+});
+
+/// Notifier for session review state management
+/// Migrated to @riverpod from StateNotifier (2025 Best Practice)
+@riverpod
+class SessionReviewNotifier extends _$SessionReviewNotifier {
+  @override
+  SessionReviewState build(SessionReviewParams params) {
+    // Auto-load on creation
+    Future.microtask(loadSessionItems);
+    return SessionReviewState.initial(
+      sessionId: params.sessionId,
+      sessionType: params.sessionType,
+      sessionName: params.sessionName,
+      storeId: params.storeId,
+    );
+  }
 
   /// Load session items via UseCase and fetch current stock for each product
   Future<void> loadSessionItems() async {
@@ -41,17 +37,11 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final appState = _ref.read(appStateProvider);
+      final appState = ref.read(appStateProvider);
       final userId = appState.userId;
       final companyId = appState.companyChoosen;
-
-      // DEBUG
-      print('🔍 [SessionReview] Loading items...');
-      print('🔍 [SessionReview] sessionId: ${state.sessionId}');
-      print('🔍 [SessionReview] sessionType: ${state.sessionType}');
-      print('🔍 [SessionReview] storeId: ${state.storeId}');
-      print('🔍 [SessionReview] companyId: $companyId');
-      print('🔍 [SessionReview] userId: $userId');
+      final getSessionReviewItems = ref.read(getSessionReviewItemsUseCaseProvider);
+      final getProductStockByStore = ref.read(getProductStockByStoreUseCaseProvider);
 
       if (userId.isEmpty) {
         state = state.copyWith(
@@ -62,48 +52,31 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
       }
 
       // 1. Get session review items
-      final response = await _getSessionReviewItems(
+      final response = await getSessionReviewItems(
         sessionId: state.sessionId,
         userId: userId,
       );
 
-      print('🔍 [SessionReview] Got ${response.items.length} items from RPC');
-      for (final item in response.items) {
-        print('🔍 [SessionReview] Item: ${item.productName}');
-        print('   - productId: ${item.productId}');
-        print('   - totalQuantity: ${item.totalQuantity}');
-        print('   - totalRejected: ${item.totalRejected}');
-        print('   - previousStock (from RPC): ${item.previousStock}');
-      }
-
       // 2. Get current stock for each product in this store
       final productIds = response.items.map((item) => item.productId).toList();
-      print('🔍 [SessionReview] Product IDs for stock lookup: $productIds');
 
       Map<String, int> stockMap = {};
       if (productIds.isNotEmpty && state.storeId.isNotEmpty && companyId.isNotEmpty) {
         try {
-          stockMap = await _getProductStockByStore(
+          stockMap = await getProductStockByStore(
             companyId: companyId,
             storeId: state.storeId,
             productIds: productIds,
           );
-          print('🔍 [SessionReview] Stock map from RPC: $stockMap');
         } catch (e) {
           // If stock fetch fails, continue with 0 stock (don't fail the whole operation)
-          print('❌ [SessionReview] Failed to fetch stock data: $e');
         }
-      } else {
-        print('⚠️ [SessionReview] Skipping stock lookup - missing data');
-        print('   - productIds.isEmpty: ${productIds.isEmpty}');
-        print('   - storeId.isEmpty: ${state.storeId.isEmpty}');
-        print('   - companyId.isEmpty: ${companyId.isEmpty}');
       }
 
       // 3. Merge stock data into items - create new items with correct previousStock and sessionType
       final itemsWithStock = response.items.map((item) {
         final currentStock = stockMap[item.productId] ?? 0;
-        final newItem = SessionReviewItem(
+        return SessionReviewItem(
           productId: item.productId,
           productName: item.productName,
           sku: item.sku,
@@ -116,16 +89,6 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
           scannedBy: item.scannedBy,
           sessionType: state.sessionType,
         );
-
-        print('🔍 [SessionReview] Final item: ${item.productName}');
-        print('   - previousStock (from stock RPC): $currentStock');
-        print('   - totalQuantity: ${item.totalQuantity}');
-        print('   - totalRejected: ${item.totalRejected}');
-        print('   - netQuantity: ${newItem.netQuantity}');
-        print('   - newStock: ${newItem.newStock}');
-        print('   - stockChange: ${newItem.stockChange}');
-
-        return newItem;
       }).toList();
 
       state = state.copyWith(
@@ -134,7 +97,6 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
         isLoading: false,
       );
     } catch (e) {
-      print('❌ [SessionReview] Error loading items: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -203,25 +165,18 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
     bool isFinal = false,
     String? notes,
   }) async {
-    print('🔄 [SessionReview] submitSession called');
-    print('🔄 [SessionReview] isFinal: $isFinal');
-    print('🔄 [SessionReview] items count: ${state.items.length}');
-
     if (state.items.isEmpty) {
-      print('❌ [SessionReview] No items to submit');
       return (success: false, error: 'No items to submit', data: null);
     }
 
     state = state.copyWith(isSubmitting: true, error: null);
 
     try {
-      final appState = _ref.read(appStateProvider);
+      final appState = ref.read(appStateProvider);
       final userId = appState.userId;
-
-      print('🔄 [SessionReview] userId: $userId');
+      final submitSessionUseCase = ref.read(submitSessionUseCaseProvider);
 
       if (userId.isEmpty) {
-        print('❌ [SessionReview] User not found');
         state = state.copyWith(isSubmitting: false, error: 'User not found');
         return (success: false, error: 'User not found', data: null);
       }
@@ -239,13 +194,7 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
               ),)
           .toList();
 
-      print('🔄 [SessionReview] submitItems: ${submitItems.length}');
-      for (final item in submitItems) {
-        print('   - productId: ${item.productId}, qty: ${item.quantity}, rejected: ${item.quantityRejected}');
-      }
-
-      print('🔄 [SessionReview] Calling _submitSession RPC...');
-      final response = await _submitSession(
+      final response = await submitSessionUseCase(
         sessionId: state.sessionId,
         userId: userId,
         items: submitItems,
@@ -253,52 +202,12 @@ class SessionReviewNotifier extends StateNotifier<SessionReviewState> {
         notes: notes,
       );
 
-      print('✅ [SessionReview] RPC Success!');
-      print('✅ [SessionReview] receivingNumber: ${response.receivingNumber}');
-      print('✅ [SessionReview] stockChanges count: ${response.stockChanges.length}');
-      print('✅ [SessionReview] newDisplayCount: ${response.newDisplayCount}');
-
       state = state.copyWith(isSubmitting: false);
       return (success: true, error: null, data: response);
-    } catch (e, stackTrace) {
-      print('❌ [SessionReview] Error: $e');
-      print('❌ [SessionReview] StackTrace: $stackTrace');
+    } catch (e) {
       final errorMsg = e.toString();
       state = state.copyWith(isSubmitting: false, error: errorMsg);
       return (success: false, error: errorMsg, data: null);
     }
   }
 }
-
-/// Provider parameters record
-typedef SessionReviewParams = ({
-  String sessionId,
-  String sessionType,
-  String? sessionName,
-  String storeId,
-});
-
-/// Provider for session review
-final sessionReviewProvider = StateNotifierProvider.autoDispose
-    .family<SessionReviewNotifier, SessionReviewState, SessionReviewParams>(
-        (ref, params) {
-  final getSessionReviewItems = ref.watch(getSessionReviewItemsUseCaseProvider);
-  final submitSession = ref.watch(submitSessionUseCaseProvider);
-  final getProductStockByStore = ref.watch(getProductStockByStoreUseCaseProvider);
-
-  final notifier = SessionReviewNotifier(
-    ref: ref,
-    getSessionReviewItems: getSessionReviewItems,
-    submitSession: submitSession,
-    getProductStockByStore: getProductStockByStore,
-    sessionId: params.sessionId,
-    sessionType: params.sessionType,
-    sessionName: params.sessionName,
-    storeId: params.storeId,
-  );
-
-  // Auto-load on creation
-  notifier.loadSessionItems();
-
-  return notifier;
-});

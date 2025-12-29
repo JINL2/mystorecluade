@@ -42,7 +42,7 @@ class CodesDisplaySheet extends StatelessWidget {
             height: TossSpacing.space1,
             margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
@@ -140,10 +140,10 @@ class CodesDisplaySheet extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(TossSpacing.paddingMD),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
             ),
           ),
           child: Row(
@@ -152,7 +152,7 @@ class CodesDisplaySheet extends StatelessWidget {
                 width: TossSpacing.iconXL,
                 height: TossSpacing.iconXL,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
@@ -197,7 +197,7 @@ class CodesDisplaySheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Row(

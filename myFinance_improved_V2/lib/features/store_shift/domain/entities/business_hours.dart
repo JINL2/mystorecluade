@@ -231,40 +231,6 @@ class BusinessHours {
     6: 'Saturday',
   };
 
-  /// Create from JSON response (from RPC get_store_business_hours)
-  factory BusinessHours.fromJson(Map<String, dynamic> json) {
-    return BusinessHours(
-      dayOfWeek: json['day_of_week'] as int,
-      dayName: json['day_name'] as String? ?? dayNumberToName[json['day_of_week'] as int] ?? '',
-      isOpen: json['is_open'] as bool? ?? true,
-      openTime: _parseTime(json['open_time']),
-      closeTime: _parseTime(json['close_time']),
-      closesNextDay: json['closes_next_day'] as bool? ?? false,
-    );
-  }
-
-  /// Parse time from various formats (HH:mm:ss or HH:mm)
-  static String? _parseTime(dynamic time) {
-    if (time == null) return null;
-    final timeStr = time.toString();
-    // If format is HH:mm:ss, truncate to HH:mm
-    if (timeStr.length >= 5) {
-      return timeStr.substring(0, 5);
-    }
-    return timeStr;
-  }
-
-  /// Convert to JSON for upsert RPC
-  Map<String, dynamic> toJson() {
-    return {
-      'day_of_week': dayOfWeek,
-      'is_open': isOpen,
-      'open_time': openTime,
-      'close_time': closeTime,
-      'closes_next_day': closesNextDay,
-    };
-  }
-
   /// Create a copy with optional field updates
   BusinessHours copyWith({
     int? dayOfWeek,

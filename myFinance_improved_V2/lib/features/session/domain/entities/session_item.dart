@@ -27,19 +27,11 @@ class SessionItem with _$SessionItem {
 /// Input for adding items to a session
 @freezed
 class SessionItemInput with _$SessionItemInput {
-  const SessionItemInput._();
-
   const factory SessionItemInput({
     required String productId,
     required int quantity,
     @Default(0) int quantityRejected,
   }) = _SessionItemInput;
-
-  Map<String, dynamic> toJson() => {
-        'product_id': productId,
-        'quantity': quantity,
-        'quantity_rejected': quantityRejected,
-      };
 }
 
 /// Response for adding session items

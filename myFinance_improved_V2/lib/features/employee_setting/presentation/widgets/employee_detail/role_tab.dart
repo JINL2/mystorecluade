@@ -189,7 +189,7 @@ class RoleTab extends ConsumerWidget {
         final currentList = ref.read(mutableEmployeeListProvider);
         if (currentList != null) {
           final updatedList = currentList.where((e) => e.userId != employee.userId).toList();
-          ref.read(mutableEmployeeListProvider.notifier).state = updatedList;
+          ref.read(mutableEmployeeListProvider.notifier).update(updatedList);
         }
 
         // Also invalidate the source provider to refresh from server

@@ -12,6 +12,11 @@ import '../../../auth/domain/entities/store_entity.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/inventory_session.dart';
 import '../../domain/entities/shipment.dart';
+import 'create_session/dialog_action_buttons.dart';
+import 'create_session/dialog_empty_stores.dart';
+import 'create_session/dialog_error_banner.dart';
+import 'create_session/dialog_header.dart';
+import 'create_session/dialog_selector_field.dart';
 
 /// Dialog for creating a new session (Stock Count or Receiving)
 class CreateSessionDialog extends ConsumerStatefulWidget {
@@ -192,239 +197,6 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _typeColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  child: Icon(
-                    _isCounting
-                        ? Icons.inventory_2_outlined
-                        : Icons.local_shipping_outlined,
-                    color: _typeColor,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Text(
-                    'Create ${_isCounting ? 'Stock Count' : 'Receiving'} Session',
-                    style: TossTextStyles.h4.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: TossColors.textPrimary,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, color: TossColors.textTertiary),
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 32, minHeight: 32),
-                ),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space5),
-
-            // Content
-            if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(TossSpacing.space6),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (_stores.isEmpty)
-              _buildEmptyStores()
-            else
-              _buildForm(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyStores() {
-    return Column(
-      children: [
-        const Icon(
-          Icons.store_outlined,
-          size: 48,
-          color: TossColors.textTertiary,
-        ),
-        const SizedBox(height: TossSpacing.space3),
-        Text(
-          'No stores available',
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space4),
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Shipment Selector (for receiving only)
-        if (_isReceiving) ...[
-          Text(
-            'Shipment',
-            style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w500,
-              color: TossColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          _buildShipmentSelector(),
-          const SizedBox(height: TossSpacing.space4),
-        ],
-
-        // Store Selector
-        Text(
-          'Store',
-          style: TossTextStyles.bodySmall.copyWith(
-            fontWeight: FontWeight.w500,
-            color: TossColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        _buildStoreSelector(),
-        const SizedBox(height: TossSpacing.space4),
-
-        // Session Name Input
-        Text(
-          'Session Name (Optional)',
-          style: TossTextStyles.bodySmall.copyWith(
-            fontWeight: FontWeight.w500,
-            color: TossColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        TextField(
-          controller: _sessionNameController,
-          decoration: InputDecoration(
-            hintText: _isCounting
-                ? 'e.g., December Stock Count'
-                : 'e.g., Weekly Receiving',
-            hintStyle: TossTextStyles.body.copyWith(
-              color: TossColors.textTertiary,
-            ),
-            filled: true,
-            fillColor: TossColors.gray50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
-            ),
-          ),
-        ),
-
-        // Error Message
-        if (_error != null) ...[
-          const SizedBox(height: TossSpacing.space3),
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.error.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  color: TossColors.error,
-                  size: 20,
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    _error!,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.error,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-
-        const SizedBox(height: TossSpacing.space5),
-
-        // Buttons
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed:
-                    _isCreating ? null : () => Navigator.of(context).pop(),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                ),
-                child: const Text('Cancel'),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _isCreating ? null : _createSession,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _typeColor,
-                  foregroundColor: TossColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  elevation: 0,
-                ),
-                child: _isCreating
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: TossColors.white,
-                        ),
-                      )
-                    : const Text('Create'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Future<void> _showStoreSelector() async {
     final items = _stores.map((store) {
       return TossSelectionItem(
@@ -481,103 +253,132 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
     );
   }
 
-  Widget _buildStoreSelector() {
-    return InkWell(
-      onTap: _showStoreSelector,
-      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        ),
-        child: Row(
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(TossSpacing.space5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Text(
-                _selectedStore?.name ?? 'Select a store',
-                style: TossTextStyles.body.copyWith(
-                  color: _selectedStore != null
-                      ? TossColors.textPrimary
-                      : TossColors.textTertiary,
+            DialogHeader(
+              icon: _isCounting
+                  ? Icons.inventory_2_outlined
+                  : Icons.local_shipping_outlined,
+              title: 'Create ${_isCounting ? 'Stock Count' : 'Receiving'} Session',
+              color: _typeColor,
+              onClose: () => Navigator.of(context).pop(),
+            ),
+            const SizedBox(height: TossSpacing.space5),
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(TossSpacing.space6),
+                  child: CircularProgressIndicator(),
                 ),
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              color: TossColors.textTertiary,
-            ),
+              )
+            else if (_stores.isEmpty)
+              DialogEmptyStores(
+                onClose: () => Navigator.of(context).pop(),
+              )
+            else
+              _buildForm(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildShipmentSelector() {
-    return InkWell(
-      onTap: _isLoadingShipments ? null : _showShipmentSelector,
-      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
+  Widget _buildForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Shipment Selector (for receiving only)
+        if (_isReceiving) ...[
+          _buildFieldLabel('Shipment'),
+          const SizedBox(height: TossSpacing.space2),
+          DialogSelectorField(
+            value: _selectedShipment?.shipmentNumber,
+            subtitle: _selectedShipment != null
+                ? '${_selectedShipment!.supplierName} • ${_selectedShipment!.itemCount} items'
+                : null,
+            placeholder: 'Select a shipment',
+            isLoading: _isLoadingShipments,
+            loadingText: 'Loading shipments...',
+            onTap: _showShipmentSelector,
+          ),
+          const SizedBox(height: TossSpacing.space4),
+        ],
+
+        // Store Selector
+        _buildFieldLabel('Store'),
+        const SizedBox(height: TossSpacing.space2),
+        DialogSelectorField(
+          value: _selectedStore?.name,
+          placeholder: 'Select a store',
+          onTap: _showStoreSelector,
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Session Name Input
+        _buildFieldLabel('Session Name (Optional)'),
+        const SizedBox(height: TossSpacing.space2),
+        _buildSessionNameInput(),
+
+        // Error Message
+        if (_error != null) ...[
+          const SizedBox(height: TossSpacing.space3),
+          DialogErrorBanner(message: _error!),
+        ],
+
+        const SizedBox(height: TossSpacing.space5),
+
+        // Buttons
+        DialogActionButtons(
+          cancelText: 'Cancel',
+          confirmText: 'Create',
+          confirmColor: _typeColor,
+          isLoading: _isCreating,
+          onCancel: () => Navigator.of(context).pop(),
+          onConfirm: _createSession,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: TossTextStyles.bodySmall.copyWith(
+        fontWeight: FontWeight.w500,
+        color: TossColors.textSecondary,
+      ),
+    );
+  }
+
+  Widget _buildSessionNameInput() {
+    return TextField(
+      controller: _sessionNameController,
+      decoration: InputDecoration(
+        hintText: _isCounting
+            ? 'e.g., December Stock Count'
+            : 'e.g., Weekly Receiving',
+        hintStyle: TossTextStyles.body.copyWith(
+          color: TossColors.textTertiary,
+        ),
+        filled: true,
+        fillColor: TossColors.gray50,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
           vertical: TossSpacing.space3,
-        ),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _isLoadingShipments
-                  ? Row(
-                      children: [
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        const SizedBox(width: TossSpacing.space2),
-                        Text(
-                          'Loading shipments...',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.textTertiary,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _selectedShipment?.shipmentNumber ??
-                              'Select a shipment',
-                          style: TossTextStyles.body.copyWith(
-                            color: _selectedShipment != null
-                                ? TossColors.textPrimary
-                                : TossColors.textTertiary,
-                          ),
-                        ),
-                        if (_selectedShipment != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            '${_selectedShipment!.supplierName} • ${_selectedShipment!.itemCount} items',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              color: TossColors.textTertiary,
-            ),
-          ],
         ),
       ),
     );

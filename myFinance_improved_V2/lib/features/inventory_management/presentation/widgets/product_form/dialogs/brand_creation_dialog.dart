@@ -93,7 +93,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
         if (!mounted) return;
 
         // Refresh metadata
-        ref.read(inventoryMetadataProvider.notifier).refresh();
+        ref.read(inventoryMetadataNotifierProvider.notifier).refresh();
 
         // Notify parent
         widget.onBrandCreated(brand);

@@ -10,6 +10,7 @@ export 'rows/rows.dart';
 export 'form_section_header.dart';
 export 'help_badge.dart';
 export 'image_upload_sheet.dart';
+export 'product_image_thumbnail.dart';
 export 'product_name_row.dart';
 export 'product_status_row.dart';
 

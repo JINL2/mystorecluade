@@ -8,10 +8,12 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/reliability_score.dart';
-import '../../domain/entities/shift_card.dart';
 import '../providers/state/manager_shift_cards_provider.dart';
 import '../providers/state/reliability_score_provider.dart';
 import '../providers/states/time_table_state.dart';
+import '../widgets/stats/helpers/stats_format_helpers.dart';
+import '../widgets/stats/helpers/stats_problem_calculator.dart';
+import '../widgets/stats/period_selector_bottom_sheet.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
@@ -67,7 +69,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         : const ManagerShiftCardsState();
 
     // Extract employee UUIDs from shift cards (employees with actual work history this month)
-    final currentMonthKey = _getCurrentMonthKey();
+    final currentMonthKey = StatsFormatHelpers.getCurrentMonthKey();
 
     // Ensure current month data is loaded
     if (storeId.isNotEmpty) {
@@ -79,7 +81,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
       }
     }
 
-    final employeesWithWorkHistory = _extractEmployeeIdsFromCards(
+    final employeesWithWorkHistory = StatsProblemCalculator.extractEmployeeIdsFromCards(
       managerCardsState,
       currentMonthKey,
     );
@@ -246,7 +248,15 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
 
     // Problem counts from problem_details_v2 (not from RPC)
     // This ensures consistency with Problems tab
-    final (problemUnsolved, problemSolved) = _getProblemCountsFromCards();
+    final storeId = widget.selectedStoreId ?? '';
+    final managerCardsState = storeId.isNotEmpty
+        ? ref.watch(managerCardsProvider(storeId))
+        : const ManagerShiftCardsState();
+    final (problemUnsolved, problemSolved) =
+        StatsProblemCalculator.getProblemCountsFromCards(
+      managerCardsState,
+      selectedPeriod,
+    );
 
     // Calculate changes (current period vs previous period)
     final lateChange = currentPeriod.lateCount - previousPeriod.lateCount;
@@ -282,13 +292,13 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
           // Hero Stats with real data
           StatsMetricRow(
             lateShifts: currentPeriod.lateCount.toString(),
-            lateShiftsChange: _formatChange(lateChange),
+            lateShiftsChange: StatsFormatHelpers.formatChange(lateChange),
             lateShiftsIsNegative: lateChange > 0, // Increase in late is negative
             understaffedShifts: currentUnderstaffed.toString(),
-            understaffedShiftsChange: _formatChange(understaffedChange),
+            understaffedShiftsChange: StatsFormatHelpers.formatChange(understaffedChange),
             understaffedIsNegative: understaffedChange > 0, // Increase is negative
-            otHours: _formatOvertimeHours(currentPeriod.overtimeAmountSum),
-            otHoursChange: _formatOvertimeChange(otChange),
+            otHours: StatsFormatHelpers.formatOvertimeHours(currentPeriod.overtimeAmountSum),
+            otHoursChange: StatsFormatHelpers.formatOvertimeChange(otChange),
             otHoursIsNegative: otChange > 0, // Increase in OT is negative
           ),
         ],
@@ -336,7 +346,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _PeriodSelectorBottomSheet(
+      builder: (context) => PeriodSelectorBottomSheet(
         selectedPeriod: selectedPeriod,
         onPeriodSelected: (period) {
           Navigator.pop(context);
@@ -349,25 +359,6 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         },
       ),
     );
-  }
-
-  /// Format change value with + or - prefix
-  String _formatChange(int change) {
-    if (change == 0) return '0';
-    return change > 0 ? '+$change' : '$change';
-  }
-
-  /// Format overtime hours
-  String _formatOvertimeHours(double hours) {
-    if (hours == 0) return '0h';
-    return '${hours.toStringAsFixed(1)}h';
-  }
-
-  /// Format overtime change
-  String _formatOvertimeChange(double change) {
-    if (change == 0) return '0h';
-    final prefix = change > 0 ? '+' : '';
-    return '$prefix${change.toStringAsFixed(1)}h';
   }
 
   /// Build loading section
@@ -463,177 +454,6 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
     }).toList();
   }
 
-  /// Get problem counts from managerCardsProvider using problem_details_v2
-  /// Returns (unsolvedCount, solvedCount) for the selected period
-  /// This ensures consistency with Problems tab counting logic
-  (int, int) _getProblemCountsFromCards() {
-    final storeId = widget.selectedStoreId ?? '';
-    if (storeId.isEmpty) return (0, 0);
-
-    final managerCardsState = ref.watch(managerCardsProvider(storeId));
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // Get date range based on selected period
-    late DateTime periodStart;
-    late DateTime periodEnd;
-
-    switch (selectedPeriod) {
-      case StatsPeriod.today:
-        periodStart = today;
-        periodEnd = today;
-      case StatsPeriod.thisMonth:
-        periodStart = DateTime(now.year, now.month, 1);
-        periodEnd = DateTime(now.year, now.month + 1, 0); // Last day of month
-      case StatsPeriod.lastMonth:
-        final lastMonth = DateTime(now.year, now.month - 1, 1);
-        periodStart = lastMonth;
-        periodEnd = DateTime(lastMonth.year, lastMonth.month + 1, 0);
-    }
-
-    // Track unique shift_request_ids (EXACT same as Problems tab)
-    final Set<String> shiftsWithUnsolved = {};
-    final Set<String> shiftsWithSolved = {};
-
-    // Get all approved cards
-    final List<ShiftCard> allCards = managerCardsState.dataByMonth.values
-        .expand((managerCards) => managerCards.cards)
-        .where((card) => card.isApproved)
-        .toList();
-
-    for (final ShiftCard card in allCards) {
-      final shiftDate = DateTime.tryParse(card.shiftDate);
-      if (shiftDate == null) continue;
-
-      final cardDate = DateTime(shiftDate.year, shiftDate.month, shiftDate.day);
-
-      // Check if card is within period
-      if (cardDate.isBefore(periodStart) || cardDate.isAfter(periodEnd)) {
-        continue;
-      }
-
-      // Skip future dates - can't have problems yet
-      if (cardDate.isAfter(today)) {
-        continue;
-      }
-
-      // Skip if shift is still in progress (EXACT same logic as Problems tab)
-      final currentShiftEndTime = _parseShiftEndTime(card.shiftEndTime);
-      final shiftEndTime = _findConsecutiveEndTime(
-        staffId: card.employee.userId,
-        shiftDate: card.shiftDate,
-        currentShiftEndTime: currentShiftEndTime,
-        allCards: allCards,
-      );
-      final isInProgress = shiftEndTime != null && DateTime.now().isBefore(shiftEndTime);
-      if (isInProgress) {
-        continue;
-      }
-
-      // Check if this shift has problems using problem_details_v2 exclusively
-      // 1 shift = 1 unit (not individual problem items)
-      // Use isFullySolved which checks both isSolved AND reported status
-      final pd = card.problemDetails;
-      if (pd != null && pd.problemCount > 0) {
-        if (pd.isFullySolved) {
-          shiftsWithSolved.add(card.shiftRequestId);
-        } else {
-          shiftsWithUnsolved.add(card.shiftRequestId);
-        }
-      }
-    }
-    return (shiftsWithUnsolved.length, shiftsWithSolved.length);
-  }
-
-  /// Parse shift end time string to DateTime
-  /// Format: "2025-12-08 18:00" or "2025-12-08T18:00:00" or "HH:mm"
-  /// EXACT same logic as Problems tab (_parseShiftEndTime)
-  DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
-    if (shiftEndTimeStr == null || shiftEndTimeStr.isEmpty) return null;
-    try {
-      // Normalize: replace 'T' with space if present
-      final normalized = shiftEndTimeStr.replaceAll('T', ' ');
-      final parts = normalized.split(' ');
-      if (parts.length < 2) return null;
-
-      final dateParts = parts[0].split('-');
-      final timeParts = parts[1].split(':');
-
-      if (dateParts.length < 3 || timeParts.length < 2) return null;
-
-      return DateTime(
-        int.parse(dateParts[0]), // year
-        int.parse(dateParts[1]), // month
-        int.parse(dateParts[2]), // day
-        int.parse(timeParts[0]), // hour
-        int.parse(timeParts[1]), // minute
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Find the consecutive end time for a staff member on a given date
-  /// This is used to determine if a shift is still in progress
-  /// EXACT same logic as Problems tab (_findConsecutiveEndTime)
-  DateTime? _findConsecutiveEndTime({
-    required String staffId,
-    required String shiftDate,
-    required DateTime? currentShiftEndTime,
-    required List<ShiftCard> allCards,
-  }) {
-    if (currentShiftEndTime == null) return null;
-
-    // Find all shifts for this staff member on the same date
-    final staffShiftsOnDate = allCards
-        .where((c) => c.employee.userId == staffId && c.shiftDate == shiftDate)
-        .toList();
-
-    if (staffShiftsOnDate.isEmpty) return currentShiftEndTime;
-
-    // Parse all shift end times and sort
-    final shiftEndTimes = <DateTime>[];
-    for (final card in staffShiftsOnDate) {
-      final endTime = _parseShiftEndTime(card.shiftEndTime);
-      if (endTime != null) {
-        shiftEndTimes.add(endTime);
-      }
-    }
-
-    if (shiftEndTimes.isEmpty) return currentShiftEndTime;
-
-    // Sort by time
-    shiftEndTimes.sort();
-
-    // Return the latest end time (last shift of the day for this staff)
-    return shiftEndTimes.last;
-  }
-
-  /// Get current month key in "yyyy-MM" format for data lookup
-  String _getCurrentMonthKey() {
-    final now = DateTime.now();
-    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
-  }
-
-  /// Extract employee UUIDs from shift cards for a given month
-  /// Returns Set of user IDs who have actual work history in that month
-  Set<String> _extractEmployeeIdsFromCards(
-    ManagerShiftCardsState cardsState,
-    String monthKey,
-  ) {
-    final monthData = cardsState.dataByMonth[monthKey];
-    if (monthData == null) {
-      return {};
-    }
-
-    // Extract unique employee user IDs from shift cards
-    // Only include non-empty user IDs
-    return monthData.cards
-        .map((card) => card.employee.userId)
-        .where((userId) => userId.isNotEmpty)
-        .toSet();
-  }
-
   /// Build store selector dropdown
   Widget _buildStoreSelector() {
     final appState = ref.watch(appStateProvider);
@@ -669,101 +489,6 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
           widget.onStoreChanged?.call(newValue);
         }
       },
-    );
-  }
-}
-
-/// Period selector bottom sheet widget
-class _PeriodSelectorBottomSheet extends StatelessWidget {
-  final StatsPeriod selectedPeriod;
-  final void Function(StatsPeriod) onPeriodSelected;
-
-  const _PeriodSelectorBottomSheet({
-    required this.selectedPeriod,
-    required this.onPeriodSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          // Title
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-            child: Text(
-              'Select Period',
-              style: TossTextStyles.titleMedium,
-            ),
-          ),
-          // Period options
-          ...StatsPeriod.values.map((period) => _buildPeriodOption(period)),
-          const SizedBox(height: TossSpacing.space4),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodOption(StatsPeriod period) {
-    final isSelected = period == selectedPeriod;
-
-    return InkWell(
-      onTap: () => onPeriodSelected(period),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.08) : null,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? TossColors.primary.withValues(alpha: 0.12)
-                    : TossColors.gray100,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.calendar_today_outlined,
-                size: 20,
-                color: isSelected ? TossColors.primary : TossColors.gray500,
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Text(
-                period.label,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? TossColors.gray900 : TossColors.gray700,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                Icons.check,
-                size: 20,
-                color: TossColors.primary,
-              ),
-          ],
-        ),
-      ),
     );
   }
 }

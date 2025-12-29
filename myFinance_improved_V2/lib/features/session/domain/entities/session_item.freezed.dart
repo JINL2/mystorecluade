@@ -460,12 +460,11 @@ class __$$SessionItemInputImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SessionItemInputImpl extends _SessionItemInput {
+class _$SessionItemInputImpl implements _SessionItemInput {
   const _$SessionItemInputImpl(
       {required this.productId,
       required this.quantity,
-      this.quantityRejected = 0})
-      : super._();
+      this.quantityRejected = 0});
 
   @override
   final String productId;
@@ -507,12 +506,11 @@ class _$SessionItemInputImpl extends _SessionItemInput {
           this, _$identity);
 }
 
-abstract class _SessionItemInput extends SessionItemInput {
+abstract class _SessionItemInput implements SessionItemInput {
   const factory _SessionItemInput(
       {required final String productId,
       required final int quantity,
       final int quantityRejected}) = _$SessionItemInputImpl;
-  const _SessionItemInput._() : super._();
 
   @override
   String get productId;

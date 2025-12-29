@@ -20,7 +20,7 @@ class InvoiceListSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.watch(invoiceListProvider);
+    final invoiceState = ref.watch(invoiceListNotifierProvider);
     final groupedInvoices = invoiceState.groupedInvoices;
 
     if (groupedInvoices.isEmpty) {

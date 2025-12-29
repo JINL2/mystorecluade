@@ -9,7 +9,7 @@ import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_modal.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 
-import '../providers/state/state_providers.dart';
+import '../providers/role_providers.dart';
 import 'role_management/role_management.dart';
 
 /// Role Management Sheet - Main container for role editing
@@ -241,9 +241,11 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     setState(() => _isLoading = true);
 
     try {
+      // Use RoleActionsNotifier for mutations
+      final roleActions = ref.read(roleActionsNotifierProvider.notifier);
+
       // Update role details (name, description, and tags)
-      final updateDetails = ref.read(updateRoleDetailsProvider);
-      await updateDetails(
+      await roleActions.updateRoleDetails(
         roleId: widget.roleId,
         roleName: _roleNameController.text.trim(),
         description: _descriptionController.text.trim().isEmpty
@@ -253,8 +255,10 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       );
 
       // Update role permissions
-      final updatePermissions = ref.read(updateRolePermissionsProvider);
-      await updatePermissions(widget.roleId, _selectedPermissions);
+      await roleActions.updateRolePermissions(
+        widget.roleId,
+        _selectedPermissions,
+      );
 
       if (mounted) {
         Navigator.pop(context);

@@ -1,8 +1,14 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+// lib/features/sales_invoice/presentation/providers/invoice_detail_provider.dart
+//
+// Invoice Detail Provider migrated to @riverpod
+// Following Clean Architecture 2025
 
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../di/sales_invoice_providers.dart';
 import '../../domain/entities/invoice_detail.dart';
-import '../../domain/repositories/invoice_repository.dart';
-import 'invoice_providers.dart';
+
+part 'invoice_detail_provider.g.dart';
 
 /// State for invoice detail
 class InvoiceDetailState {
@@ -29,18 +35,19 @@ class InvoiceDetailState {
   }
 }
 
-/// Invoice detail notifier
-class InvoiceDetailNotifier extends StateNotifier<InvoiceDetailState> {
-  final InvoiceRepository _repository;
-
-  InvoiceDetailNotifier(this._repository) : super(const InvoiceDetailState());
+/// Invoice detail notifier using @riverpod
+@riverpod
+class InvoiceDetailNotifier extends _$InvoiceDetailNotifier {
+  @override
+  InvoiceDetailState build() => const InvoiceDetailState();
 
   /// Load invoice detail
   Future<void> loadDetail(String invoiceId) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final detail = await _repository.getInvoiceDetail(invoiceId: invoiceId);
+      final repository = ref.read(invoiceRepositoryProvider);
+      final detail = await repository.getInvoiceDetail(invoiceId: invoiceId);
       state = state.copyWith(detail: detail, isLoading: false);
     } catch (e) {
       state = state.copyWith(
@@ -55,10 +62,3 @@ class InvoiceDetailNotifier extends StateNotifier<InvoiceDetailState> {
     state = const InvoiceDetailState();
   }
 }
-
-/// Invoice detail provider
-final invoiceDetailProvider =
-    StateNotifierProvider<InvoiceDetailNotifier, InvoiceDetailState>((ref) {
-  final repository = ref.watch(invoiceRepositoryProvider);
-  return InvoiceDetailNotifier(repository);
-});

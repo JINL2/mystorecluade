@@ -40,7 +40,7 @@ class DenominationGrid extends ConsumerWidget {
   void _onDenominationTap(BuildContext context, WidgetRef ref, Denomination denomination) {
     HapticFeedback.lightImpact();
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
@@ -55,7 +55,7 @@ class DenominationGrid extends ConsumerWidget {
 
   void _onDenominationLongPress(BuildContext context, WidgetRef ref, Denomination denomination) {
     // Show delete confirmation with haptic feedback
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(

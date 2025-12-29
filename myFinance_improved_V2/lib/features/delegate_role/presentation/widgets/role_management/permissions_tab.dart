@@ -6,7 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 
-import '../../providers/state/state_providers.dart';
+import '../../providers/role_providers.dart';
 
 /// Permissions Tab for role management - displays and edits permissions
 class PermissionsTab extends ConsumerStatefulWidget {

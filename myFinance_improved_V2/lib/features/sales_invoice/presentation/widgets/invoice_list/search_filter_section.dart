@@ -22,7 +22,7 @@ class SearchFilterSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.watch(invoiceListProvider);
+    final invoiceState = ref.watch(invoiceListNotifierProvider);
 
     return Column(
       children: [
@@ -100,7 +100,7 @@ class SearchFilterSection extends ConsumerWidget {
             controller: searchController,
             hintText: 'Search by invoice number (e.g., IN2025...)',
             onChanged: (value) {
-              ref.read(invoiceListProvider.notifier).updateSearch(value);
+              ref.read(invoiceListNotifierProvider.notifier).updateSearch(value);
             },
           ),
         ),

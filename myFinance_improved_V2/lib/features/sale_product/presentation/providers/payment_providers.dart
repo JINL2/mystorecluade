@@ -1,26 +1,23 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/cash_location.dart';
-import '../../domain/usecases/create_sales_journal_usecase.dart';
-import '../../domain/usecases/get_cash_locations_usecase.dart';
-import '../../domain/usecases/get_currency_data_usecase.dart';
 import '../models/payment_models.dart';
 import 'states/payment_method_state.dart';
 import 'usecase_providers.dart';
 
-class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
-  final Ref ref;
-  final GetCurrencyDataUseCase _getCurrencyDataUseCase;
-  final GetCashLocationsUseCase _getCashLocationsUseCase;
-  final CreateSalesJournalUseCase _createSalesJournalUseCase;
+part 'payment_providers.g.dart';
 
-  PaymentMethodNotifier(
-    this.ref,
-    this._getCurrencyDataUseCase,
-    this._getCashLocationsUseCase,
-    this._createSalesJournalUseCase,
-  ) : super(const PaymentMethodState());
+/// Payment method notifier - manages payment method selection and currency data
+///
+/// Uses @riverpod for auto-dispose behavior (resets when leaving payment page).
+/// State is PaymentMethodState (freezed) for complex UI state management.
+@riverpod
+class PaymentMethodNotifier extends _$PaymentMethodNotifier {
+  @override
+  PaymentMethodState build() {
+    return const PaymentMethodState();
+  }
 
   // Load currency data and cash locations
   Future<void> loadCurrencyData() async {
@@ -34,7 +31,8 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
       }
 
       // Call UseCase to get currency data
-      final currencyResult = await _getCurrencyDataUseCase.execute(
+      final getCurrencyDataUseCase = ref.read(getCurrencyDataUseCaseProvider);
+      final currencyResult = await getCurrencyDataUseCase.execute(
         companyId: appState.companyChoosen,
       );
 
@@ -49,14 +47,16 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
           exchangeRateToBase: currencyResult.baseCurrency.exchangeRateToBase,
         ),
         companyCurrencies: currencyResult.companyCurrencies
-            .map((c) => PaymentCurrency(
-                  currencyId: c.currencyId,
-                  currencyCode: c.currencyCode,
-                  currencyName: c.currencyName,
-                  symbol: c.symbol,
-                  flagEmoji: c.flagEmoji,
-                  exchangeRateToBase: c.exchangeRateToBase,
-                ),)
+            .map(
+              (c) => PaymentCurrency(
+                currencyId: c.currencyId,
+                currencyCode: c.currencyCode,
+                currencyName: c.currencyName,
+                symbol: c.symbol,
+                flagEmoji: c.flagEmoji,
+                exchangeRateToBase: c.exchangeRateToBase,
+              ),
+            )
             .toList(),
       );
 
@@ -68,7 +68,9 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
         final storeId = appState.storeChoosen;
         if (storeId.isNotEmpty) {
           // UseCase returns domain entities directly
-          cashLocations = await _getCashLocationsUseCase.execute(
+          final getCashLocationsUseCase =
+              ref.read(getCashLocationsUseCaseProvider);
+          cashLocations = await getCashLocationsUseCase.execute(
             companyId: appState.companyChoosen,
             storeId: storeId,
           );
@@ -176,7 +178,9 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
     required double totalCost,
     required String invoiceId,
   }) async {
-    return _createSalesJournalUseCase.execute(
+    final createSalesJournalUseCase =
+        ref.read(createSalesJournalUseCaseProvider);
+    return createSalesJournalUseCase.execute(
       companyId: companyId,
       storeId: storeId,
       userId: userId,
@@ -190,27 +194,14 @@ class PaymentMethodNotifier extends StateNotifier<PaymentMethodState> {
   }
 }
 
-// Provider for payment method state
-final paymentMethodProvider =
-    StateNotifierProvider.autoDispose<PaymentMethodNotifier, PaymentMethodState>((ref) {
-  final getCurrencyDataUseCase = ref.read(getCurrencyDataUseCaseProvider);
-  final getCashLocationsUseCase = ref.read(getCashLocationsUseCaseProvider);
-  final createSalesJournalUseCase = ref.read(createSalesJournalUseCaseProvider);
-  return PaymentMethodNotifier(
-    ref,
-    getCurrencyDataUseCase,
-    getCashLocationsUseCase,
-    createSalesJournalUseCase,
-  );
-});
-
-// Provider to auto-load currency data when company changes
-final paymentMethodDataProvider = FutureProvider.autoDispose<void>((ref) async {
-  final notifier = ref.watch(paymentMethodProvider.notifier);
+/// Provider to auto-load currency data when company changes
+@riverpod
+Future<void> paymentMethodData(PaymentMethodDataRef ref) async {
+  final notifier = ref.watch(paymentMethodNotifierProvider.notifier);
   final appState = ref.watch(appStateProvider);
 
   // Watch for company changes
   if (appState.companyChoosen.isNotEmpty) {
     await notifier.loadCurrencyData();
   }
-});
+}

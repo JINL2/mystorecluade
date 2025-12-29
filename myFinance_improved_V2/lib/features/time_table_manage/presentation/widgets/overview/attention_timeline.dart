@@ -4,27 +4,13 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'attention_card.dart';
+import 'timeline/date_attention_summary.dart';
+import 'timeline/legend_item.dart';
+import 'timeline/navigation_button.dart';
+import 'timeline/timeline_date.dart';
 
-/// Summary of attention items for a single date
-class DateAttentionSummary {
-  final DateTime date;
-  final int scheduleCount; // Schedule issues (shift-level: empty or understaffed)
-  final int problemCount; // Red dots (staff-level problems)
-  final List<AttentionItemData> items;
-
-  const DateAttentionSummary({
-    required this.date,
-    required this.scheduleCount,
-    required this.problemCount,
-    required this.items,
-  });
-
-  /// Total count of all attention items
-  int get totalCount => scheduleCount + problemCount;
-
-  /// Check if this date has any attention items
-  bool get hasItems => totalCount > 0;
-}
+// Re-export for backwards compatibility
+export 'timeline/date_attention_summary.dart';
 
 /// Attention Timeline Widget
 ///
@@ -136,7 +122,9 @@ class AttentionTimeline extends StatelessWidget {
 
   /// Count items before visible range (shift-based for problems)
   int _countItemsBefore(
-      Map<DateTime, DateAttentionSummary> summaries, DateTime firstVisible) {
+    Map<DateTime, DateAttentionSummary> summaries,
+    DateTime firstVisible,
+  ) {
     int count = 0;
     for (final entry in summaries.entries) {
       if (entry.key.isBefore(firstVisible)) {
@@ -149,7 +137,9 @@ class AttentionTimeline extends StatelessWidget {
 
   /// Count items after visible range (shift-based for problems)
   int _countItemsAfter(
-      Map<DateTime, DateAttentionSummary> summaries, DateTime lastVisible) {
+    Map<DateTime, DateAttentionSummary> summaries,
+    DateTime lastVisible,
+  ) {
     int count = 0;
     for (final entry in summaries.entries) {
       if (entry.key.isAfter(lastVisible)) {
@@ -188,71 +178,7 @@ class AttentionTimeline extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header with split badges (schedule issues + problems)
-        Row(
-          children: [
-            Text(
-              'Need Attention',
-              style: TossTextStyles.h4.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            // Orange badge for schedule issues (empty/understaffed)
-            if (totalSchedule > 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: TossColors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$totalSchedule',
-                  style: TossTextStyles.labelSmall.copyWith(
-                    color: TossColors.warning,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-            // Red badge for problems
-            if (totalProblem > 0) ...[
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: TossColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$totalProblem',
-                  style: TossTextStyles.labelSmall.copyWith(
-                    color: TossColors.error,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-            // Show "All clear" badge when no issues
-            if (totalSchedule == 0 && totalProblem == 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: TossColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'All clear',
-                  style: TossTextStyles.labelSmall.copyWith(
-                    color: TossColors.success,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
+        _buildHeader(totalSchedule, totalProblem),
 
         const SizedBox(height: TossSpacing.space4),
 
@@ -260,9 +186,9 @@ class AttentionTimeline extends StatelessWidget {
         Row(
           children: [
             // Previous button
-            _NavigationButton(
+            NavigationButton(
               count: beforeCount,
-              direction: _NavigationDirection.previous,
+              direction: NavigationDirection.previous,
               onTap: beforeCount > 0 ? onPrevious : null,
             ),
 
@@ -273,15 +199,14 @@ class AttentionTimeline extends StatelessWidget {
                 children: visibleDates.map((date) {
                   final summary = summaries[date];
                   final hasProblem = summary != null && summary.problemCount > 0;
-                  return _TimelineDate(
+                  return TimelineDate(
                     date: date,
                     summary: summary,
                     isToday: _isSameDay(date, DateTime.now()),
                     onDateTap: () => onDateTap?.call(date, hasProblem),
-                    onScheduleTap:
-                        summary != null && summary.scheduleCount > 0
-                            ? () => onScheduleTap?.call(date)
-                            : null,
+                    onScheduleTap: summary != null && summary.scheduleCount > 0
+                        ? () => onScheduleTap?.call(date)
+                        : null,
                     onProblemTap: hasProblem
                         ? () => onProblemTap?.call(date)
                         : null,
@@ -291,9 +216,9 @@ class AttentionTimeline extends StatelessWidget {
             ),
 
             // Next button
-            _NavigationButton(
+            NavigationButton(
               count: afterCount,
-              direction: _NavigationDirection.next,
+              direction: NavigationDirection.next,
               onTap: afterCount > 0 ? onNext : null,
             ),
           ],
@@ -307,16 +232,84 @@ class AttentionTimeline extends StatelessWidget {
     );
   }
 
+  Widget _buildHeader(int totalSchedule, int totalProblem) {
+    return Row(
+      children: [
+        Text(
+          'Need Attention',
+          style: TossTextStyles.h4.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        // Orange badge for schedule issues (empty/understaffed)
+        if (totalSchedule > 0) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: TossColors.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '$totalSchedule',
+              style: TossTextStyles.labelSmall.copyWith(
+                color: TossColors.warning,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+        // Red badge for problems
+        if (totalProblem > 0) ...[
+          const SizedBox(width: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: TossColors.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '$totalProblem',
+              style: TossTextStyles.labelSmall.copyWith(
+                color: TossColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+        // Show "All clear" badge when no issues
+        if (totalSchedule == 0 && totalProblem == 0) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: TossColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'All clear',
+              style: TossTextStyles.labelSmall.copyWith(
+                color: TossColors.success,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildLegend() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _LegendItem(
+        LegendItem(
           color: TossColors.warning,
           label: 'Schedule',
         ),
         const SizedBox(width: TossSpacing.space4),
-        _LegendItem(
+        LegendItem(
           color: TossColors.error,
           label: 'Problem',
         ),
@@ -326,281 +319,5 @@ class AttentionTimeline extends StatelessWidget {
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-}
-
-/// Single date column in the timeline
-class _TimelineDate extends StatelessWidget {
-  final DateTime date;
-  final DateAttentionSummary? summary;
-  final bool isToday;
-  final VoidCallback? onDateTap;
-  final VoidCallback? onScheduleTap;
-  final VoidCallback? onProblemTap;
-
-  const _TimelineDate({
-    required this.date,
-    this.summary,
-    required this.isToday,
-    this.onDateTap,
-    this.onScheduleTap,
-    this.onProblemTap,
-  });
-
-  String _formatDayName(DateTime date) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[date.weekday - 1];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final hasItems = summary != null && summary!.hasItems;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Day name (Thu, Fri, ...)
-        Text(
-          _formatDayName(date),
-          style: TossTextStyles.labelSmall.copyWith(
-            color: isToday ? TossColors.primary : TossColors.gray500,
-            fontWeight: isToday ? FontWeight.w600 : FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 2),
-
-        // Day number (tappable)
-        GestureDetector(
-          onTap: onDateTap,
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: isToday
-                ? BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  )
-                : null,
-            alignment: Alignment.center,
-            child: Text(
-              '${date.day}',
-              style: TossTextStyles.body.copyWith(
-                color: isToday ? TossColors.primary : TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Vertical line
-        Container(
-          width: 1,
-          height: 16,
-          color: hasItems ? TossColors.gray300 : TossColors.gray200,
-        ),
-
-        const SizedBox(height: 4),
-
-        // Dots row - Fixed height container for consistent alignment
-        SizedBox(
-          height: 32, // Fixed height: dots(8) + spacing(4) + text(~18) + padding
-          child: hasItems
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Orange dots (schedule issues: empty/understaffed)
-                        if (summary!.scheduleCount > 0)
-                          GestureDetector(
-                            onTap: onScheduleTap,
-                            child: _DotIndicator(
-                              color: TossColors.warning,
-                              count: summary!.scheduleCount,
-                            ),
-                          ),
-
-                        if (summary!.scheduleCount > 0 &&
-                            summary!.problemCount > 0)
-                          const SizedBox(width: 4),
-
-                        // Red dots (problems)
-                        if (summary!.problemCount > 0)
-                          GestureDetector(
-                            onTap: onProblemTap,
-                            child: _DotIndicator(
-                              color: TossColors.error,
-                              count: summary!.problemCount,
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    // Total count
-                    Text(
-                      '(${summary!.totalCount})',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                )
-              : null, // Empty - just takes up fixed height
-        ),
-      ],
-    );
-  }
-}
-
-/// Dot indicator showing count
-class _DotIndicator extends StatelessWidget {
-  final Color color;
-  final int count;
-
-  const _DotIndicator({
-    required this.color,
-    required this.count,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Show up to 3 dots, then show number
-    if (count <= 3) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(
-          count,
-          (index) => Container(
-            width: 8,
-            height: 8,
-            margin: EdgeInsets.only(left: index > 0 ? 2 : 0),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ),
-      );
-    }
-
-    // More than 3: show dot with number
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 2),
-        Text(
-          '×$count',
-          style: TossTextStyles.caption.copyWith(
-            color: color,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-enum _NavigationDirection { previous, next }
-
-/// Navigation button (< 7 more) or (5 more >)
-class _NavigationButton extends StatelessWidget {
-  final int count;
-  final _NavigationDirection direction;
-  final VoidCallback? onTap;
-
-  const _NavigationButton({
-    required this.count,
-    required this.direction,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isEnabled = count > 0 && onTap != null;
-    final color = isEnabled ? TossColors.gray600 : TossColors.gray300;
-
-    return GestureDetector(
-      onTap: isEnabled ? onTap : null,
-      child: Container(
-        width: 48,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (direction == _NavigationDirection.previous) ...[
-              Icon(Icons.chevron_left, size: 20, color: color),
-              if (count > 0)
-                Text(
-                  '$count',
-                  style: TossTextStyles.caption.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-            ] else ...[
-              Icon(Icons.chevron_right, size: 20, color: color),
-              if (count > 0)
-                Text(
-                  '$count',
-                  style: TossTextStyles.caption.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Legend item
-class _LegendItem extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _LegendItem({
-    required this.color,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
-          ),
-        ),
-      ],
-    );
   }
 }

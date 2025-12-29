@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ExchangeRateService {
   static const String _baseUrl = 'https://api.exchangerate-api.com/v4/latest';
@@ -28,25 +29,25 @@ class ExchangeRateService {
         return 1.0;
       }
 
-      final response = await _dio.get(
+      final response = await _dio.get<Map<String, dynamic>>(
         '$_baseUrl/$baseCurrency',
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data!;
         final rates = data['rates'] as Map<String, dynamic>;
-        
+
         // Get the exchange rate for target currency
         final rate = rates[targetCurrency.toUpperCase()];
-        
+
         if (rate != null) {
           return (rate as num).toDouble();
         }
       }
-      
+
       return null;
     } catch (e) {
-      print('Error fetching exchange rate: $e');
+      debugPrint('Error fetching exchange rate: $e');
       return null;
     }
   }
@@ -58,20 +59,20 @@ class ExchangeRateService {
   /// 
   /// Returns a map of currency code to exchange rate
   Future<Map<String, double>> getMultipleExchangeRates(
-    String baseCurrency, 
+    String baseCurrency,
     List<String> targetCurrencies,
   ) async {
     try {
-      final response = await _dio.get(
+      final response = await _dio.get<Map<String, dynamic>>(
         '$_baseUrl/$baseCurrency',
       );
 
       final Map<String, double> result = {};
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data!;
         final rates = data['rates'] as Map<String, dynamic>;
-        
+
         for (final currency in targetCurrencies) {
           final rate = rates[currency.toUpperCase()];
           if (rate != null) {
@@ -79,10 +80,10 @@ class ExchangeRateService {
           }
         }
       }
-      
+
       return result;
     } catch (e) {
-      print('Error fetching multiple exchange rates: $e');
+      debugPrint('Error fetching multiple exchange rates: $e');
       return {};
     }
   }
@@ -90,19 +91,19 @@ class ExchangeRateService {
   /// Gets supported currency codes from the API
   Future<List<String>> getSupportedCurrencies() async {
     try {
-      final response = await _dio.get(
+      final response = await _dio.get<Map<String, dynamic>>(
         '$_baseUrl/USD', // Use USD as base to get all supported currencies
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data!;
         final rates = data['rates'] as Map<String, dynamic>;
         return rates.keys.toList();
       }
-      
+
       return [];
     } catch (e) {
-      print('Error fetching supported currencies: $e');
+      debugPrint('Error fetching supported currencies: $e');
       return [];
     }
   }

@@ -6,6 +6,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
+import '../widgets/add_attribute_dialog.dart';
 
 /// Generic attribute value for selection
 class AttributeValue {
@@ -158,16 +159,6 @@ class _AttributeValueSelectorPageState<T>
     });
   }
 
-  Future<void> _handleAdd() async {
-    if (widget.onAdd != null) {
-      final newValue = await widget.onAdd!();
-      if (newValue != null && mounted) {
-        widget.onSelect(newValue);
-        Navigator.of(context).pop();
-      }
-    }
-  }
-
   Future<void> _handleQuickAdd() async {
     if (widget.onQuickAdd != null && _searchQuery.isNotEmpty) {
       final newValue = await widget.onQuickAdd!(_searchQuery);
@@ -179,111 +170,10 @@ class _AttributeValueSelectorPageState<T>
   }
 
   Future<void> _showAddValueDialog() async {
-    final nameController = TextEditingController(text: _searchQuery);
-    final result = await showDialog<String>(
+    final result = await AddAttributeDialog.show(
       context: context,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Container(
-          width: double.maxFinite,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Add ${widget.title}',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: TossColors.gray900,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Name',
-                    style: TossTextStyles.label.copyWith(
-                      color: TossColors.gray600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: nameController,
-                    autofocus: true,
-                    textCapitalization: TextCapitalization.none,
-                    autocorrect: false,
-                    decoration: InputDecoration(
-                      hintText: 'Enter ${widget.title} name',
-                      hintStyle: TossTextStyles.body.copyWith(
-                        color: TossColors.gray400,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: TossColors.gray300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: TossColors.gray300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: TossColors.primary, width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: Text(
-                        'Cancel',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final name = nameController.text.trim();
-                        if (name.isNotEmpty) {
-                          Navigator.pop(dialogContext, name);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: TossColors.primary,
-                        foregroundColor: TossColors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text('Add'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: widget.title,
+      initialValue: _searchQuery,
     );
 
     if (result != null && result.isNotEmpty && widget.onQuickAdd != null) {

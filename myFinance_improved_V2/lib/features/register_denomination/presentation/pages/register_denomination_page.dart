@@ -55,10 +55,10 @@ class RegisterDenominationPage extends ConsumerWidget {
                   final searchController = ref.watch(currencySearchControllerProvider);
                   return TossSearchField(
                     controller: searchController,
-                    onChanged: (query) => ref.read(currencySearchQueryProvider.notifier).state = query,
+                    onChanged: (query) => ref.read(currencySearchQueryProvider.notifier).update(query),
                     hintText: 'Search currencies...',
                     prefixIcon: Icons.search,
-                    onClear: () => ref.read(currencySearchQueryProvider.notifier).state = '',
+                    onClear: () => ref.read(currencySearchQueryProvider.notifier).clear(),
                   );
                 },),
               ),
@@ -188,7 +188,7 @@ class RegisterDenominationPage extends ConsumerWidget {
     HapticFeedback.lightImpact();
     
     // Clear search query to show all currencies during refresh
-    ref.read(currencySearchQueryProvider.notifier).state = '';
+    ref.read(currencySearchQueryProvider.notifier).clear();
     
     // Invalidate all currency-related providers to force fresh data
     ref.invalidate(companyCurrenciesProvider);
@@ -202,7 +202,7 @@ class RegisterDenominationPage extends ConsumerWidget {
       ref.refresh(searchFilteredCurrenciesProvider);
       
       // Wait a bit for the refresh to propagate
-      await Future.delayed(TossAnimations.medium);
+      await Future<void>.delayed(TossAnimations.medium);
       
       // Additional haptic feedback on successful refresh
       HapticFeedback.selectionClick();
@@ -212,11 +212,11 @@ class RegisterDenominationPage extends ConsumerWidget {
     }
     
     // Small delay for smooth UX
-    await Future.delayed(TossAnimations.normal);
+    await Future<void>.delayed(TossAnimations.normal);
   }
 
   void _showAddCurrencySheet(BuildContext context) {
-    TossBottomSheet.show(
+    TossBottomSheet.show<void>(
       context: context,
       content: const AddCurrencyBottomSheet(),
     );

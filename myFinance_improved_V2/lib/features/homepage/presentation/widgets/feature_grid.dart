@@ -237,8 +237,8 @@ class _FeatureListItem extends ConsumerWidget {
           context.push(route, extra: feature);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        splashColor: TossColors.primary.withOpacity(0.08),
-        highlightColor: TossColors.primary.withOpacity(0.04),
+        splashColor: TossColors.primary.withValues(alpha: 0.08),
+        highlightColor: TossColors.primary.withValues(alpha: 0.04),
         child: Container(
           padding: const EdgeInsets.symmetric(
             vertical: TossSpacing.space3,
@@ -476,8 +476,8 @@ class _LibraryCard extends StatelessWidget {
                 context.push('/library');
               },
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              splashColor: TossColors.primary.withOpacity(0.08),
-              highlightColor: TossColors.primary.withOpacity(0.04),
+              splashColor: TossColors.primary.withValues(alpha: 0.08),
+              highlightColor: TossColors.primary.withValues(alpha: 0.04),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: TossSpacing.space3,

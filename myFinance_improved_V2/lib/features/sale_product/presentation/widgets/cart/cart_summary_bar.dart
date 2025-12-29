@@ -48,7 +48,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
         border: Border.all(color: TossColors.gray200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withOpacity(0.08),
+            color: TossColors.black.withValues(alpha: 0.08),
             blurRadius: 18,
             offset: const Offset(0, -6),
           ),

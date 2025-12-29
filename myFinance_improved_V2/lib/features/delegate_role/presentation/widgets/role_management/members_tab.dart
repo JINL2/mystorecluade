@@ -6,8 +6,8 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 
-import '../../../domain/providers/usecase_providers.dart';
-import '../../providers/state/state_providers.dart';
+import '../../../di/delegate_role_providers.dart';
+import '../../providers/role_providers.dart';
 import 'add_member_sheet.dart';
 
 /// Members Tab for role management - displays and manages role members

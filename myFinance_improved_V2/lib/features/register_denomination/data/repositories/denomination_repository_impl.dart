@@ -1,5 +1,3 @@
-import 'dart:developer' as developer;
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/utils/datetime_utils.dart';

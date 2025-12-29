@@ -62,8 +62,8 @@ class ProductRemoteDataSource {
       List<Map<String, dynamic>> companyCurrencyList = [];
 
       if (companyCurrencies.isNotEmpty) {
-        final currencyIds = (companyCurrencies as List)
-            .map((cc) => cc['currency_id'] as String)
+        final currencyIds = (companyCurrencies as List<dynamic>)
+            .map((cc) => (cc as Map<String, dynamic>)['currency_id'] as String)
             .toList();
 
         // 4. Get currency details for company currencies
@@ -72,15 +72,18 @@ class ProductRemoteDataSource {
             .select('currency_id, currency_code, currency_name, symbol, flag_emoji')
             .inFilter('currency_id', currencyIds);
 
-        companyCurrencyList = (currencyTypes as List)
-            .map((ct) => {
-                  'currency_id': ct['currency_id'],
-                  'currency_code': ct['currency_code'],
-                  'currency_name': ct['currency_name'],
-                  'symbol': ct['symbol'],
-                  'flag_emoji': ct['flag_emoji'] ?? '🏳️',
-                  'exchange_rate_to_base': ct['currency_id'] == baseCurrencyId ? 1.0 : null,
-                })
+        companyCurrencyList = (currencyTypes as List<dynamic>)
+            .map((ct) {
+              final currency = ct as Map<String, dynamic>;
+              return {
+                'currency_id': currency['currency_id'],
+                'currency_code': currency['currency_code'],
+                'currency_name': currency['currency_name'],
+                'symbol': currency['symbol'],
+                'flag_emoji': currency['flag_emoji'] ?? '🏳️',
+                'exchange_rate_to_base': currency['currency_id'] == baseCurrencyId ? 1.0 : null,
+              };
+            })
             .toList();
       }
 

@@ -37,7 +37,7 @@ class StoreActionsSheet extends ConsumerWidget {
             height: TossSpacing.space1,
             margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.paddingXL),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
@@ -130,7 +130,7 @@ class StoreActionsSheet extends ConsumerWidget {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
@@ -139,7 +139,7 @@ class StoreActionsSheet extends ConsumerWidget {
                 width: TossSpacing.inputHeightLG,
                 height: TossSpacing.inputHeightLG,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(

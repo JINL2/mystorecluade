@@ -95,7 +95,7 @@ class EmployeeFilterSheet extends ConsumerWidget {
                     selectedValue: selectedSalaryType,
                     allEmployees: allEmployees,
                     onChanged: (value) {
-                      ref.read(selectedSalaryTypeFilterProvider.notifier).state = value;
+                      ref.read(selectedSalaryTypeFilterProvider.notifier).update(value);
                       Navigator.pop(context);
                     },
                     customLabels: const {'hourly': 'Hourly', 'monthly': 'Monthly'},
@@ -107,7 +107,7 @@ class EmployeeFilterSheet extends ConsumerWidget {
                     selectedValue: selectedRole,
                     allEmployees: allEmployees,
                     onChanged: (value) {
-                      ref.read(selectedRoleFilterProvider.notifier).state = value;
+                      ref.read(selectedRoleFilterProvider.notifier).update(value);
                       Navigator.pop(context);
                     },
                   ),
@@ -119,7 +119,7 @@ class EmployeeFilterSheet extends ConsumerWidget {
                       selectedValue: selectedDepartment,
                       allEmployees: allEmployees,
                       onChanged: (value) {
-                        ref.read(selectedDepartmentFilterProvider.notifier).state = value;
+                        ref.read(selectedDepartmentFilterProvider.notifier).update(value);
                         Navigator.pop(context);
                       },
                     ),

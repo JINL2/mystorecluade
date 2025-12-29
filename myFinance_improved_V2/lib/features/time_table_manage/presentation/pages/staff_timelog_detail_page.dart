@@ -5,7 +5,6 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/utils/datetime_utils.dart';
@@ -667,7 +666,12 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           ),
                         ],
                         const SizedBox(height: 16),
-                        _buildRecordedAttendanceCard(),
+                        RecordedAttendanceCard(
+                          isExpanded: _recordedAttendanceExpanded,
+                          onToggle: () => setState(() => _recordedAttendanceExpanded = !_recordedAttendanceExpanded),
+                          recordedCheckIn: recordedCheckIn,
+                          recordedCheckOut: recordedCheckOut,
+                        ),
                         const SizedBox(height: 16),
                         ConfirmedAttendanceCard(
                           isExpanded: _confirmedAttendanceExpanded,
@@ -760,37 +764,6 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
           icon: const Icon(Icons.close, color: TossColors.gray900),
           onPressed: () => Navigator.pop(context),
         ),
-      ],
-    );
-  }
-
-  Widget _buildRecordedAttendanceCard() {
-    return TossExpandableCard(
-      title: 'Recorded attendance',
-      isExpanded: _recordedAttendanceExpanded,
-      onToggle: () => setState(() => _recordedAttendanceExpanded = !_recordedAttendanceExpanded),
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildInfoRow(label: 'Recorded check-in', value: recordedCheckIn),
-          const SizedBox(height: 12),
-          _buildInfoRow(label: 'Recorded check-out', value: recordedCheckOut),
-          const SizedBox(height: 12),
-          Text(
-            'Based on check-in/out device logs.',
-            style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow({required String label, required String value}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600)),
-        Text(value, style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray900, fontWeight: FontWeight.w600)),
       ],
     );
   }

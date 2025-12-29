@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -197,7 +198,7 @@ class EmployeeRemoteDataSource {
                   return EmployeeSalaryModel.fromJson(json);
                 } catch (e) {
                   // Log parsing error but continue with other items
-                  print('Warning: Failed to parse employee salary: $e');
+                  debugPrint('Warning: Failed to parse employee salary: $e');
                   return null;
                 }
               })
@@ -206,7 +207,7 @@ class EmployeeRemoteDataSource {
         )
         .handleError((Object error) {
           // Log stream error
-          print('Error in employee salary stream: $error');
+          debugPrint('Error in employee salary stream: $error');
           // Return empty list on error but keep stream alive
           return <EmployeeSalaryModel>[];
         });
@@ -297,7 +298,7 @@ class EmployeeRemoteDataSource {
     int offset = 0,
   }) async {
     try {
-      final response = await _supabase.rpc(
+      final response = await _supabase.rpc<List<dynamic>>(
         'get_employee_shift_audit_logs',
         params: {
           'p_user_id': userId,
@@ -307,11 +308,11 @@ class EmployeeRemoteDataSource {
         },
       );
 
-      if (response == null) {
+      if (response.isEmpty) {
         return [];
       }
 
-      return (response as List)
+      return response
           .map((json) {
             try {
               return ShiftAuditLogModel.fromJson(json as Map<String, dynamic>);

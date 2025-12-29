@@ -12,7 +12,7 @@ import '../../providers/invoice_list_provider.dart';
 class InvoiceFilterBottomSheets {
   /// Show period filter bottom sheet
   static void showPeriodFilter(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.read(invoiceListProvider);
+    final invoiceState = ref.read(invoiceListNotifierProvider);
 
     TossBottomSheet.show<void>(
       context: context,
@@ -37,7 +37,7 @@ class InvoiceFilterBottomSheets {
                   ? const Icon(Icons.check, color: TossColors.primary, size: 20)
                   : null,
               onTap: () {
-                ref.read(invoiceListProvider.notifier).updatePeriod(period);
+                ref.read(invoiceListNotifierProvider.notifier).updatePeriod(period);
                 Navigator.pop(context);
               },
             );
@@ -49,7 +49,7 @@ class InvoiceFilterBottomSheets {
 
   /// Show status filter bottom sheet
   static void showStatusFilter(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.read(invoiceListProvider);
+    final invoiceState = ref.read(invoiceListNotifierProvider);
     final selectedStatus = invoiceState.selectedStatus;
 
     TossBottomSheet.show<void>(
@@ -112,7 +112,7 @@ class InvoiceFilterBottomSheets {
           ? const Icon(Icons.check, color: TossColors.primary, size: 20)
           : null,
       onTap: () {
-        ref.read(invoiceListProvider.notifier).updateStatus(value);
+        ref.read(invoiceListNotifierProvider.notifier).updateStatus(value);
         Navigator.pop(context);
       },
     );
@@ -120,7 +120,7 @@ class InvoiceFilterBottomSheets {
 
   /// Show cash location filter bottom sheet
   static void showCashLocationFilter(BuildContext context, WidgetRef ref) {
-    final invoiceState = ref.read(invoiceListProvider);
+    final invoiceState = ref.read(invoiceListNotifierProvider);
     final cashLocations = invoiceState.cashLocations;
     final selectedCashLocation = invoiceState.selectedCashLocation;
 
@@ -150,7 +150,7 @@ class InvoiceFilterBottomSheets {
                   ? const Icon(Icons.check, color: TossColors.primary, size: 20)
                   : null,
               onTap: () {
-                ref.read(invoiceListProvider.notifier).clearCashLocationFilter();
+                ref.read(invoiceListNotifierProvider.notifier).clearCashLocationFilter();
                 Navigator.pop(context);
               },
             ),
@@ -178,7 +178,7 @@ class InvoiceFilterBottomSheets {
                     ? const Icon(Icons.check, color: TossColors.primary, size: 20)
                     : null,
                 onTap: () {
-                  ref.read(invoiceListProvider.notifier).updateCashLocation(location);
+                  ref.read(invoiceListNotifierProvider.notifier).updateCashLocation(location);
                   Navigator.pop(context);
                 },
               );

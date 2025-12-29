@@ -121,7 +121,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
           height: TossSpacing.space1,
           margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
@@ -223,7 +223,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             color: Theme.of(context).colorScheme.surface,
             border: Border(
               top: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -269,8 +269,8 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: isSelected
-            ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-            : Theme.of(context).colorScheme.outline.withOpacity(0.1),
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
+            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -379,7 +379,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
                       padding: const EdgeInsets.all(TossSpacing.space2),
                       decoration: BoxDecoration(
                         color: (_expandedCompanies[company.id] ?? isSelected)
-                          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                           : TossColors.transparent,
                         borderRadius: BorderRadius.circular(TossBorderRadius.full),
                       ),
@@ -509,7 +509,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
@@ -547,7 +547,7 @@ class _ModernBottomDrawerState extends ConsumerState<ModernBottomDrawer> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space3),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
           ),
           child: Row(

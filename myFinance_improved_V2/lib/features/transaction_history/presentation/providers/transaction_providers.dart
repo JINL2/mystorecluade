@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/repositories/repository_providers.dart';
@@ -117,7 +118,7 @@ class TransactionFilterState extends _$TransactionFilterState {
 
 /// Provider for grouping transactions by date
 @riverpod
-Map<String, List<Transaction>> groupedTransactions(GroupedTransactionsRef ref) {
+Map<String, List<Transaction>> groupedTransactions(Ref ref) {
   final transactions = ref.watch(transactionHistoryProvider).valueOrNull ?? [];
 
   final Map<String, List<Transaction>> grouped = {};
@@ -132,7 +133,7 @@ Map<String, List<Transaction>> groupedTransactions(GroupedTransactionsRef ref) {
 
 /// Provider for filter options (accounts, cash locations, counterparties, journal types)
 @riverpod
-Future<FilterOptions> transactionFilterOptions(TransactionFilterOptionsRef ref) async {
+Future<FilterOptions> transactionFilterOptions(Ref ref) async {
   final repository = ref.watch(transactionRepositoryProvider);
   return repository.getFilterOptions();
 }

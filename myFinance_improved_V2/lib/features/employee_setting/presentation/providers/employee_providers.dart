@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../data/repositories/repository_providers.dart';
@@ -7,10 +8,14 @@ import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
 import '../../domain/entities/role.dart';
 import '../../domain/entities/shift_audit_log.dart';
-import '../../domain/usecases/search_and_sort_employees_usecase.dart';
-import 'employee_notifier.dart';
-import 'states/employee_state.dart';
+import '../../domain/usecases/search_and_sort_employees_usecase.dart' as usecase;
 import 'use_case_providers.dart';
+
+// Re-export the notifier for easy access
+export 'employee_notifier.dart';
+export 'states/employee_state.dart';
+
+part 'employee_providers.g.dart';
 
 // ============================================================================
 // Repository Providers
@@ -21,29 +26,26 @@ import 'use_case_providers.dart';
 // Import them from the new location above
 
 // ============================================================================
-// Employee Data Providers
+// Employee Data Providers (@riverpod)
 // ============================================================================
 
 /// Employee Salary List Provider
-final employeeSalaryListProvider = FutureProvider.autoDispose<List<EmployeeSalary>>((ref) async {
-  try {
-    final repository = ref.read(employeeRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
+@riverpod
+Future<List<EmployeeSalary>> employeeSalaryList(Ref ref) async {
+  final repository = ref.read(employeeRepositoryProvider);
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
 
-    if (companyId.isEmpty) {
-      return [];
-    }
-
-    final result = await repository.getEmployeeSalaries(companyId);
-    return result;
-  } catch (e) {
-    rethrow;
+  if (companyId.isEmpty) {
+    return [];
   }
-});
+
+  return await repository.getEmployeeSalaries(companyId);
+}
 
 /// Currency Types Provider
-final currencyTypesProvider = FutureProvider.autoDispose<List<CurrencyType>>((ref) async {
+@riverpod
+Future<List<CurrencyType>> currencyTypes(Ref ref) async {
   try {
     final repository = ref.read(employeeRepositoryProvider);
     return await repository.getCurrencyTypes();
@@ -56,62 +58,251 @@ final currencyTypesProvider = FutureProvider.autoDispose<List<CurrencyType>>((re
       CurrencyType(currencyCode: 'KRW', currencyName: 'Korean Won', symbol: '₩'),
     ];
   }
-});
+}
+
+/// Check if the current user is the owner of the selected company
+@riverpod
+Future<bool> isCurrentUserOwner(Ref ref) async {
+  try {
+    final repository = ref.read(employeeRepositoryProvider);
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      return false;
+    }
+
+    return await repository.isCurrentUserOwner(companyId);
+  } catch (e) {
+    return false;
+  }
+}
+
+/// Roles Provider
+@riverpod
+Future<List<Role>> roles(Ref ref) async {
+  final repository = ref.read(roleRepositoryProvider);
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
+
+  if (companyId.isEmpty) {
+    // If no company selected, fetch all global roles
+    return await repository.getAllRoles();
+  }
+
+  // Fetch company-specific and global roles
+  return await repository.getRolesByCompany(companyId);
+}
+
+/// Employee Shift Audit Logs Provider with pagination support
+@riverpod
+Future<List<ShiftAuditLog>> employeeShiftAuditLogs(
+  Ref ref,
+  EmployeeAuditLogParams params,
+) async {
+  try {
+    final repository = ref.read(employeeRepositoryProvider);
+
+    if (params.userId.isEmpty || params.companyId.isEmpty) {
+      return [];
+    }
+
+    return await repository.getEmployeeShiftAuditLogs(
+      userId: params.userId,
+      companyId: params.companyId,
+      limit: params.limit,
+      offset: params.offset,
+    );
+  } catch (e) {
+    return [];
+  }
+}
+
+/// Real-time salary updates stream
+@Riverpod(keepAlive: true)
+Stream<List<EmployeeSalary>> salaryUpdatesStream(Ref ref) {
+  try {
+    final repository = ref.read(employeeRepositoryProvider);
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      return Stream.value([]);
+    }
+
+    return repository.watchEmployeeSalaries(companyId);
+  } catch (e) {
+    return Stream.value([]);
+  }
+}
 
 // ============================================================================
-// UI State Providers
+// UI State Notifiers (@riverpod)
 // ============================================================================
 
-/// Search Query Provider
-final employeeSearchQueryProvider = StateProvider<String>((ref) => '');
+/// Mutable Employee List Notifier for instant updates
+@riverpod
+class MutableEmployeeList extends _$MutableEmployeeList {
+  @override
+  List<EmployeeSalary>? build() => null;
 
-/// Sort Option Provider - tracks both field and direction
-final employeeSortOptionProvider = StateProvider<String?>((ref) => 'name');
+  void update(List<EmployeeSalary>? employees) {
+    state = employees;
+  }
 
-/// Sort Direction Provider - true for ascending, false for descending
-final employeeSortDirectionProvider = StateProvider<bool>((ref) => true);
+  void clear() {
+    state = null;
+  }
+}
 
-/// Filter Providers for centralized state management
-final selectedRoleFilterProvider = StateProvider<String?>((ref) => null);
-final selectedDepartmentFilterProvider = StateProvider<String?>((ref) => null);
-final selectedSalaryTypeFilterProvider = StateProvider<String?>((ref) => null);
+/// Search Query Notifier
+@riverpod
+class EmployeeSearchQuery extends _$EmployeeSearchQuery {
+  @override
+  String build() => '';
 
-/// Mutable Employee List Provider for instant updates
-final mutableEmployeeListProvider = StateProvider<List<EmployeeSalary>?>((ref) => null);
+  void update(String query) {
+    state = query;
+  }
 
-/// Loading State Provider
-final isUpdatingSalaryProvider = StateProvider<bool>((ref) => false);
+  void clear() {
+    state = '';
+  }
+}
 
-/// Sync State Provider
-final isSyncingProvider = StateProvider<bool>((ref) => false);
+/// Sort Option Notifier
+@riverpod
+class EmployeeSortOption extends _$EmployeeSortOption {
+  @override
+  String build() => 'name';
 
-/// Selected Employee Provider
-final selectedEmployeeProvider = StateProvider<EmployeeSalary?>((ref) => null);
+  void update(String option) {
+    state = option;
+  }
+}
+
+/// Sort Direction Notifier - true for ascending, false for descending
+@riverpod
+class EmployeeSortDirection extends _$EmployeeSortDirection {
+  @override
+  bool build() => true;
+
+  void toggle() {
+    state = !state;
+  }
+
+  void update(bool ascending) {
+    state = ascending;
+  }
+}
+
+/// Role Filter Notifier
+@riverpod
+class SelectedRoleFilter extends _$SelectedRoleFilter {
+  @override
+  String? build() => null;
+
+  void update(String? role) {
+    state = role;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
+/// Department Filter Notifier
+@riverpod
+class SelectedDepartmentFilter extends _$SelectedDepartmentFilter {
+  @override
+  String? build() => null;
+
+  void update(String? department) {
+    state = department;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
+/// Salary Type Filter Notifier
+@riverpod
+class SelectedSalaryTypeFilter extends _$SelectedSalaryTypeFilter {
+  @override
+  String? build() => null;
+
+  void update(String? salaryType) {
+    state = salaryType;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
+/// Loading State Notifier for salary updates
+@riverpod
+class IsUpdatingSalary extends _$IsUpdatingSalary {
+  @override
+  bool build() => false;
+
+  void update(bool isUpdating) {
+    state = isUpdating;
+  }
+}
+
+/// Sync State Notifier
+@riverpod
+class IsSyncing extends _$IsSyncing {
+  @override
+  bool build() => false;
+
+  void update(bool isSyncing) {
+    state = isSyncing;
+  }
+}
+
+/// Selected Employee Notifier
+@riverpod
+class SelectedEmployee extends _$SelectedEmployee {
+  @override
+  EmployeeSalary? build() => null;
+
+  void select(EmployeeSalary? employee) {
+    state = employee;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
 
 // ============================================================================
 // Filtered and Sorted Employees Provider
 // ============================================================================
 
-final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeSalary>>>((ref) {
+@riverpod
+AsyncValue<List<EmployeeSalary>> filteredEmployees(Ref ref) {
   final searchQuery = ref.watch(employeeSearchQueryProvider);
   final sortOption = ref.watch(employeeSortOptionProvider);
   final sortAscending = ref.watch(employeeSortDirectionProvider);
   final mutableEmployees = ref.watch(mutableEmployeeListProvider);
   final employeesAsync = ref.watch(employeeSalaryListProvider);
 
-  // ✅ Read UseCase once at Provider level instead of inside function
+  // Read UseCase once at Provider level
   final searchAndSortUseCase = ref.read(searchAndSortEmployeesUseCaseProvider);
 
   List<EmployeeSalary> processEmployees(List<EmployeeSalary> employees) {
     // Convert string sort option to enum
     final sortOptionEnum = _convertToSortOption(sortOption);
     final sortDirectionEnum = sortAscending
-        ? SortDirection.ascending
-        : SortDirection.descending;
+        ? usecase.SortDirection.ascending
+        : usecase.SortDirection.descending;
 
-    // ✅ Delegate to UseCase - Clean Architecture compliance
+    // Delegate to UseCase - Clean Architecture compliance
     return searchAndSortUseCase.execute(
-      SearchAndSortParams(
+      usecase.SearchAndSortParams(
         employees: employees,
         searchQuery: searchQuery,
         sortOption: sortOptionEnum,
@@ -129,7 +320,7 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
     data: (employees) {
       // Also populate the mutable list for future updates
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(mutableEmployeeListProvider.notifier).state = employees;
+        ref.read(mutableEmployeeListProvider.notifier).update(employees);
       });
 
       return AsyncData(processEmployees(employees));
@@ -137,84 +328,50 @@ final filteredEmployeesProvider = Provider.autoDispose<AsyncValue<List<EmployeeS
     loading: () => const AsyncLoading(),
     error: (error, stack) => AsyncError(error, stack),
   );
-});
+}
 
 // ============================================================================
-// Real-time Updates Provider
+// Work Schedule Template Assignment
 // ============================================================================
 
-final salaryUpdatesStreamProvider = StreamProvider<List<EmployeeSalary>>((ref) {
-  try {
+/// Assign or unassign a work schedule template to an employee
+@riverpod
+Future<Map<String, dynamic>> Function({
+  required String userId,
+  String? templateId,
+}) assignWorkScheduleTemplate(Ref ref) {
+  return ({
+    required String userId,
+    String? templateId,
+  }) async {
     final repository = ref.read(employeeRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
 
     if (companyId.isEmpty) {
-      return Stream.value([]);
+      return {
+        'success': false,
+        'error': 'NO_COMPANY',
+        'message': 'No company selected',
+      };
     }
 
-    return repository.watchEmployeeSalaries(companyId);
-  } catch (e) {
-    return Stream.value([]);
-  }
-});
+    final result = await repository.assignWorkScheduleTemplate(
+      userId: userId,
+      companyId: companyId,
+      templateId: templateId,
+    );
 
-// ============================================================================
-// Owner Check Provider
-// ============================================================================
-
-/// Check if the current user is the owner of the selected company
-final isCurrentUserOwnerProvider = FutureProvider.autoDispose<bool>((ref) async {
-  try {
-    final repository = ref.read(employeeRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      return false;
+    // Invalidate employee list to refresh with new template data
+    if (result['success'] == true) {
+      ref.invalidate(employeeSalaryListProvider);
+      // Also clear mutable list to force refresh
+      ref.read(mutableEmployeeListProvider.notifier).clear();
     }
 
-    return await repository.isCurrentUserOwner(companyId);
-  } catch (e) {
-    return false;
-  }
-});
-
-// ============================================================================
-// Roles Providers
-// ============================================================================
-
-final rolesProvider = FutureProvider.autoDispose<List<Role>>((ref) async {
-  try {
-    final repository = ref.read(roleRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      // If no company selected, fetch all global roles
-      return await repository.getAllRoles();
-    }
-
-    // Fetch company-specific and global roles
-    return await repository.getRolesByCompany(companyId);
-  } catch (e) {
-    rethrow;
-  }
-});
-
-// ============================================================================
-// ✅ NEW STANDARD: StateNotifier Pattern (Following transaction_template)
-// ============================================================================
-
-/// Employee State Provider - 메인 직원 상태 관리
-///
-/// ✅ Hybrid pattern: UseCase for complex operations, Repository for simple CRUD
-final employeeProvider = StateNotifierProvider<EmployeeNotifier, EmployeeState>((ref) {
-  return EmployeeNotifier(
-    repository: ref.read(employeeRepositoryProvider),
-    updateSalaryUseCase: ref.read(updateEmployeeSalaryUseCaseProvider),
-  );
-});
+    return result;
+  };
+}
 
 // ============================================================================
 // Helper Functions
@@ -228,46 +385,24 @@ Future<void> refreshEmployees(WidgetRef ref) async {
 }
 
 /// Convert string sort option to enum
-EmployeeSortOption _convertToSortOption(String? sortOption) {
+usecase.EmployeeSortOption _convertToSortOption(String? sortOption) {
   switch (sortOption) {
     case 'name':
-      return EmployeeSortOption.name;
+      return usecase.EmployeeSortOption.name;
     case 'salary':
-      return EmployeeSortOption.salary;
+      return usecase.EmployeeSortOption.salary;
     case 'role':
-      return EmployeeSortOption.role;
+      return usecase.EmployeeSortOption.role;
     case 'recent':
-      return EmployeeSortOption.recent;
+      return usecase.EmployeeSortOption.recent;
     default:
-      return EmployeeSortOption.name;
+      return usecase.EmployeeSortOption.name;
   }
 }
 
 // ============================================================================
-// Shift Audit Log Providers
+// Parameters Class for Family Providers
 // ============================================================================
-
-/// Provider for employee shift audit logs with pagination support
-/// Usage: ref.watch(employeeShiftAuditLogsProvider(EmployeeAuditLogParams(...)))
-final employeeShiftAuditLogsProvider = FutureProvider.autoDispose
-    .family<List<ShiftAuditLog>, EmployeeAuditLogParams>((ref, params) async {
-  try {
-    final repository = ref.read(employeeRepositoryProvider);
-
-    if (params.userId.isEmpty || params.companyId.isEmpty) {
-      return [];
-    }
-
-    return await repository.getEmployeeShiftAuditLogs(
-      userId: params.userId,
-      companyId: params.companyId,
-      limit: params.limit,
-      offset: params.offset,
-    );
-  } catch (e) {
-    return [];
-  }
-});
 
 /// Parameters for shift audit log provider
 class EmployeeAuditLogParams {
@@ -297,47 +432,3 @@ class EmployeeAuditLogParams {
   int get hashCode =>
       userId.hashCode ^ companyId.hashCode ^ limit.hashCode ^ offset.hashCode;
 }
-
-// ============================================================================
-// Work Schedule Template Assignment Provider
-// ============================================================================
-
-/// Assign or unassign a work schedule template to an employee
-/// Returns a function that can be called with userId and templateId
-final assignWorkScheduleTemplateProvider = Provider.autoDispose<
-    Future<Map<String, dynamic>> Function({
-      required String userId,
-      String? templateId,
-    })>((ref) {
-  return ({
-    required String userId,
-    String? templateId,
-  }) async {
-    final repository = ref.read(employeeRepositoryProvider);
-    final appState = ref.read(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      return {
-        'success': false,
-        'error': 'NO_COMPANY',
-        'message': 'No company selected',
-      };
-    }
-
-    final result = await repository.assignWorkScheduleTemplate(
-      userId: userId,
-      companyId: companyId,
-      templateId: templateId,
-    );
-
-    // Invalidate employee list to refresh with new template data
-    if (result['success'] == true) {
-      ref.invalidate(employeeSalaryListProvider);
-      // Also clear mutable list to force refresh
-      ref.read(mutableEmployeeListProvider.notifier).state = null;
-    }
-
-    return result;
-  };
-});

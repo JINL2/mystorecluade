@@ -49,7 +49,7 @@ class CompanyStoreSelector extends ConsumerWidget {
               bottom: TossSpacing.space4,
             ),
             decoration: BoxDecoration(
-              color: TossColors.textTertiary.withOpacity(0.3),
+              color: TossColors.textTertiary.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),

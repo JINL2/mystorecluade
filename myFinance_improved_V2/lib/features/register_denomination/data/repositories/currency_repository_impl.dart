@@ -79,7 +79,7 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
         final currencyId = denom['currency_id'] as String;
         denominationMap[currencyId] ??= [];
         denominationMap[currencyId]!.add(
-          DenominationMapper.fromJson(denom as Map<String, dynamic>),
+          DenominationMapper.fromJson(denom),
         );
       }
 

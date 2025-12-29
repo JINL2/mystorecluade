@@ -18,6 +18,7 @@ import '../../domain/entities/inventory_metadata.dart';
 import '../../domain/entities/product.dart';
 import '../adapters/xfile_image_adapter.dart';
 import '../providers/inventory_providers.dart';
+import '../utils/store_utils.dart';
 import '../widgets/product_form/product_form_widgets.dart';
 import 'attribute_value_selector_page.dart';
 import 'attributes_edit_page.dart';
@@ -127,7 +128,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   void _loadProduct() {
-    final productsState = ref.read(inventoryPageProvider);
+    final productsState = ref.read(inventoryPageNotifierProvider);
     try {
       _product = productsState.products.firstWhere(
         (p) => p.id == widget.productId,
@@ -147,7 +148,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _costPriceController.text = _formatNumberWithCommas(_product!.costPrice.toStringAsFixed(0));
     _descriptionController.text = _product!.description ?? '';
     _quantityController.text = _product!.onHand.toString();
-    _unit = _product!.unit ?? 'piece';
+    _unit = _product!.unit;
     _isActive = _product!.isActive;
     _existingImageUrls = List.from(_product!.images);
 
@@ -164,7 +165,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _originalCostPrice = _product!.costPrice.toStringAsFixed(0);
     _originalDescription = _product!.description ?? '';
     _originalOnHand = _product!.onHand.toString();
-    _originalUnit = _product!.unit ?? 'piece';
+    _originalUnit = _product!.unit;
     _originalIsActive = _product!.isActive;
     _originalCategoryId = _product!.categoryId;
     _originalBrandId = _product!.brandId;
@@ -172,7 +173,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
     // Load metadata to find category and brand
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final metadataState = ref.read(inventoryMetadataProvider);
+      final metadataState = ref.read(inventoryMetadataNotifierProvider);
       if (metadataState.metadata != null) {
         setState(() {
           // Find category
@@ -371,7 +372,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
       if (product != null && mounted) {
         // Refresh the inventory list and wait for completion
-        await ref.read(inventoryPageProvider.notifier).refresh();
+        await ref.read(inventoryPageNotifierProvider.notifier).refresh();
 
         if (!mounted) return;
         await showDialog<bool>(
@@ -466,7 +467,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             );
 
             if (category != null) {
-              ref.read(inventoryMetadataProvider.notifier).refresh();
+              ref.read(inventoryMetadataNotifierProvider.notifier).refresh();
             }
             return category;
           },
@@ -503,7 +504,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             );
 
             if (brand != null) {
-              ref.read(inventoryMetadataProvider.notifier).refresh();
+              ref.read(inventoryMetadataNotifierProvider.notifier).refresh();
             }
             return brand;
           },
@@ -513,34 +514,15 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   void _showLocationSelector() {
-    // Get stores from AppState for the selected company
     final appState = ref.read(appStateProvider);
-    final companies = appState.user['companies'] as List<dynamic>? ?? [];
-    final selectedCompanyId = appState.companyChoosen;
-
-    // Find the selected company and get its stores
-    List<Map<String, String>> stores = [];
-    for (final company in companies) {
-      final companyMap = company as Map<String, dynamic>;
-      if (companyMap['company_id'] == selectedCompanyId) {
-        final companyStores = companyMap['stores'] as List<dynamic>? ?? [];
-        stores = companyStores.map((store) {
-          final storeMap = store as Map<String, dynamic>;
-          return {
-            'id': (storeMap['store_id'] as String?) ?? '',
-            'name': (storeMap['store_name'] as String?) ?? '',
-          };
-        }).toList();
-        break;
-      }
-    }
+    final stores = StoreUtils.getCompanyStores(appState);
 
     final items = stores
         .map((store) => TossSelectionItem(
-              id: store['id']!,
-              title: store['name']!,
+              id: store.id,
+              title: store.name,
               icon: TossIcons.store,
-            ),)
+            ))
         .toList();
 
     TossSelectionBottomSheet.show<void>(
@@ -588,7 +570,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   @override
   Widget build(BuildContext context) {
-    final metadataState = ref.watch(inventoryMetadataProvider);
+    final metadataState = ref.watch(inventoryMetadataNotifierProvider);
 
     if (_product == null) {
       return const TossScaffold(
@@ -651,71 +633,10 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   Widget _buildImageUpload() {
-    final hasImages = _existingImageUrls.isNotEmpty || _selectedImages.isNotEmpty;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 24),
-      child: Center(
-        child: GestureDetector(
-          onTap: _pickImages,
-          child: Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: TossColors.gray200,
-                style: BorderStyle.solid,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: !hasImages
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.camera_alt_outlined,
-                        size: 26,
-                        color: TossColors.gray500,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Add Photo',
-                        style: TossTextStyles.caption.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                    ],
-                  )
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(11),
-                    child: _existingImageUrls.isNotEmpty
-                        ? Image.network(
-                            _existingImageUrls.first,
-                            fit: BoxFit.cover,
-                            width: 88,
-                            height: 88,
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.image,
-                              size: 40,
-                              color: TossColors.gray400,
-                            ),
-                          )
-                        : Image.asset(
-                            _selectedImages.first.path,
-                            fit: BoxFit.cover,
-                            width: 88,
-                            height: 88,
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.image,
-                              size: 40,
-                              color: TossColors.gray400,
-                            ),
-                          ),
-                  ),
-          ),
-        ),
-      ),
+    return ProductImageThumbnail(
+      onTap: _pickImages,
+      existingImageUrls: _existingImageUrls,
+      selectedImages: _selectedImages,
     );
   }
 
@@ -792,7 +713,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Widget _buildPricingSection() {
     // Get base currency symbol from inventory page state
-    final inventoryState = ref.watch(inventoryPageProvider);
+    final inventoryState = ref.watch(inventoryPageNotifierProvider);
     final currencySymbol = inventoryState.baseCurrency?.displaySymbol ?? '₩';
 
     return Padding(

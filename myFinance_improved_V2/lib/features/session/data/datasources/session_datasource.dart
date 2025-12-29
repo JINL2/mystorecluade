@@ -1,18 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
 import '../models/close_session_response_model.dart';
-import '../models/session_item_input_model.dart';
 import '../models/inventory_session_model.dart';
 import '../models/join_session_response_model.dart';
 import '../models/product_search_model.dart';
+import '../models/session_compare_model.dart';
 import '../models/session_history_item_model.dart';
+import '../models/session_item_input_model.dart';
 import '../models/session_item_model.dart';
 import '../models/session_list_item_model.dart';
 import '../models/session_review_item_model.dart';
 import '../models/shipment_model.dart';
-import '../models/session_compare_model.dart';
 import '../models/update_session_items_response_model.dart';
 import '../models/user_session_items_model.dart';
 
@@ -337,11 +338,11 @@ class SessionDatasource {
     bool isFinal = false,
     String? notes,
   }) async {
-    print('🔄 [Datasource] submitSession called');
-    print('🔄 [Datasource] sessionId: $sessionId');
-    print('🔄 [Datasource] userId: $userId');
-    print('🔄 [Datasource] items: $items');
-    print('🔄 [Datasource] isFinal: $isFinal');
+    debugPrint('🔄 [Datasource] submitSession called');
+    debugPrint('🔄 [Datasource] sessionId: $sessionId');
+    debugPrint('🔄 [Datasource] userId: $userId');
+    debugPrint('🔄 [Datasource] items: $items');
+    debugPrint('🔄 [Datasource] isFinal: $isFinal');
 
     final response = await _client.rpc<Map<String, dynamic>>(
       'inventory_submit_session_v2',
@@ -356,15 +357,15 @@ class SessionDatasource {
       },
     ).single();
 
-    print('🔄 [Datasource] RPC response: $response');
+    debugPrint('🔄 [Datasource] RPC response: $response');
 
     if (response['success'] != true) {
-      print('❌ [Datasource] RPC failed: ${response['error']}');
+      debugPrint('❌ [Datasource] RPC failed: ${response['error']}');
       throw Exception(response['error'] ?? 'Failed to submit session');
     }
 
     final data = response['data'] as Map<String, dynamic>? ?? {};
-    print('✅ [Datasource] RPC data: $data');
+    debugPrint('✅ [Datasource] RPC data: $data');
     return SessionSubmitResponseModel.fromJson(data);
   }
 
@@ -709,11 +710,11 @@ class SessionDatasource {
     ).single();
 
     // Debug: Print the actual RPC response structure
-    print('🔍 [compareSessions] Response keys: ${response.keys.toList()}');
+    debugPrint('🔍 [compareSessions] Response keys: ${response.keys.toList()}');
     if (response['data'] != null) {
       final data = response['data'] as Map<String, dynamic>;
-      print('🔍 [compareSessions] Data keys: ${data.keys.toList()}');
-      print('🔍 [compareSessions] Full data: $data');
+      debugPrint('🔍 [compareSessions] Data keys: ${data.keys.toList()}');
+      debugPrint('🔍 [compareSessions] Full data: $data');
     }
 
     if (response['success'] != true) {
