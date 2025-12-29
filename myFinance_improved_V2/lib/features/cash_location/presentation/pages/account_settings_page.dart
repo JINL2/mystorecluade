@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/core/monitoring/sentry_config.dart';
-import 'package:myfinance_improved/features/cash_location/presentation/providers/cash_location_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -15,13 +12,15 @@ import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart'
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
+import '../providers/account_settings_notifier.dart';
+import '../providers/states/account_settings_state.dart';
 import '../widgets/sheets/text_edit_sheet.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   final String accountName;
   final String locationType;
   final String locationId;
-  
+
   const AccountSettingsPage({
     super.key,
     required this.accountName,
@@ -30,224 +29,54 @@ class AccountSettingsPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AccountSettingsPage> createState() => _AccountSettingsPageState();
+  ConsumerState<AccountSettingsPage> createState() =>
+      _AccountSettingsPageState();
 }
 
 class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     with WidgetsBindingObserver {
-  bool _isMainAccount = false;
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _noteController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _bankNameController = TextEditingController();
-  final TextEditingController _accountNumberController = TextEditingController();
-  String _currentAccountName = '';
-  
+  late final AccountSettingsParams _params;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _currentAccountName = widget.accountName;
-    _nameController.text = widget.accountName;
-    // Schedule data refresh after the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshData();
-    });
+    _params = AccountSettingsParams(
+      locationId: widget.locationId,
+      accountName: widget.accountName,
+      locationType: widget.locationType,
+    );
   }
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh data when app returns to foreground
     if (state == AppLifecycleState.resumed) {
-      _refreshData();
-    }
-  }
-  
-  // Note: Removed didChangeDependencies override that was causing excessive rebuilds.
-  // The method was calling _refreshData() on every dependency change,
-  // which could cause UI flickering and AppBar disappearing issues.
-  // Data refresh is already handled by:
-  // - initState (initial load)
-  // - didChangeAppLifecycleState (app resume)
-  
-  Future<void> _refreshData() async {
-    if (widget.locationId.isNotEmpty) {
-      await _loadCashLocationData();
-    } else {
-      await _loadCashLocationDataByName();
-    }
-  }
-  
-  Future<void> _loadCashLocationData() async {
-    try {
-      final useCase = ref.read(getCashLocationByIdUseCaseProvider);
-      final location = await useCase(widget.locationId);
-
-      if (location == null) {
-        // If not found by ID, try loading by name
-        _loadCashLocationDataByName();
-        return;
-      }
-
-      if (mounted) {
-        setState(() {
-          _currentAccountName = location.locationName;
-          _nameController.text = _currentAccountName;
-          _noteController.text = location.note ?? '';
-          _isMainAccount = location.isMainLocation;
-
-          if (widget.locationType == 'bank') {
-            _bankNameController.text = location.bankName ?? '';
-            _accountNumberController.text = location.accountNumber ?? '';
-          } else {
-            // For cash/vault, load description
-            _descriptionController.text = location.description ?? '';
-          }
-        });
-      }
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'AccountSettingsPage: Failed to load cash location by ID',
-        extra: {'locationId': widget.locationId},
-      );
-      // If fails, try loading by name
-      _loadCashLocationDataByName();
-    }
-  }
-
-  Future<void> _loadCashLocationDataByName() async {
-    try {
-      final appState = ref.read(appStateProvider);
-      final useCase = ref.read(getCashLocationByNameUseCaseProvider);
-
-      final location = await useCase(
-        companyId: appState.companyChoosen,
-        storeId: appState.storeChoosen,
-        locationName: widget.accountName,
-      );
-
-      if (location == null) return;
-
-      if (mounted) {
-        setState(() {
-          _currentAccountName = location.locationName;
-          _nameController.text = _currentAccountName;
-          _noteController.text = location.note ?? '';
-          _isMainAccount = location.isMainLocation;
-
-          if (widget.locationType == 'bank') {
-            _bankNameController.text = location.bankName ?? '';
-            _accountNumberController.text = location.accountNumber ?? '';
-          } else {
-            // For cash/vault, load description
-            _descriptionController.text = location.description ?? '';
-          }
-        });
-      }
-    } catch (e, stackTrace) {
-      // Log but don't show error to user
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'AccountSettingsPage: Failed to load cash location by name',
-        extra: {'accountName': widget.accountName, 'locationType': widget.locationType},
-      );
+      ref.read(accountSettingsNotifierProvider(_params).notifier).refresh();
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _nameController.dispose();
-    _noteController.dispose();
-    _descriptionController.dispose();
-    _bankNameController.dispose();
-    _accountNumberController.dispose();
     super.dispose();
-  }
-
-  // Generic helper method for showing edit bottom sheets
-  Future<void> _showEditBottomSheet({
-    required String title,
-    required TextEditingController controller,
-    String? hintText,
-    bool multiline = false,
-    TextInputType? keyboardType,
-    Future<void> Function(String)? onUpdate,
-  }) async {
-    final initialText = controller.text;
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      isDismissible: true,
-      enableDrag: true,
-      builder: (BuildContext modalContext) {
-        return TextEditSheet(
-          title: title,
-          initialText: initialText,
-          hintText: hintText,
-          multiline: multiline,
-          keyboardType: keyboardType,
-          onSave: (String newValue) async {
-            Navigator.of(modalContext).pop();
-
-            // Call update method if provided
-            if (onUpdate != null) {
-              await onUpdate(newValue);
-            }
-
-            // Update controller if mounted
-            if (mounted) {
-              setState(() {
-                controller.text = newValue;
-              });
-            }
-          },
-          onCancel: () {
-            Navigator.of(modalContext).pop();
-          },
-        );
-      },
-    );
-  }
-
-  // Generic helper method for showing update dialogs
-  Future<void> _showUpdateDialog({
-    required bool success,
-    required String title,
-    required String message,
-  }) async {
-    if (!mounted) return;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        if (success) {
-          return TossDialog.success(
-            title: title,
-            message: message,
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
-          );
-        } else {
-          return TossDialog.error(
-            title: title,
-            message: message,
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => Navigator.of(context).pop(),
-          );
-        }
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(accountSettingsNotifierProvider(_params));
+
+    // Listen for success/error messages
+    ref.listen(accountSettingsNotifierProvider(_params), (previous, next) {
+      if (next.successMessage != null && previous?.successMessage != next.successMessage) {
+        _showSuccessDialog(next.successMessage!);
+        ref.read(accountSettingsNotifierProvider(_params).notifier).clearSuccessMessage();
+      }
+      if (next.errorMessage != null && previous?.errorMessage != next.errorMessage) {
+        _showErrorDialog(next.errorMessage!);
+        ref.read(accountSettingsNotifierProvider(_params).notifier).clearErrorMessage();
+      }
+    });
+
     return TossScaffold(
       appBar: const TossAppBar1(
         title: 'Account Settings',
@@ -255,39 +84,30 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       ),
       backgroundColor: TossColors.gray50,
       body: SafeArea(
-        child: Column(
-          children: [
-            
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // Account Info
-                    _buildAccountInfo(),
-                    
-                    const SizedBox(height: TossSpacing.space4),
-                    
-                    // Settings Options
-                    _buildSettingsOptions(),
-                    
-                    const SizedBox(height: TossSpacing.space4),
-                    
-                    // Delete Account Button
-                    _buildDeleteSection(),
-                  ],
-                ),
+        child: state.isLoading
+            ? const Center(child: TossLoadingView())
+            : Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildAccountInfo(state.accountName),
+                          const SizedBox(height: TossSpacing.space4),
+                          _buildSettingsOptions(state),
+                          const SizedBox(height: TossSpacing.space4),
+                          _buildDeleteSection(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
-  
-  // Removed _buildHeader method - now using TossAppBar
-  
-  Widget _buildAccountInfo() {
+
+  Widget _buildAccountInfo(String accountName) {
     return Container(
       margin: const EdgeInsets.only(
         left: TossSpacing.space4,
@@ -303,21 +123,17 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Account Name (like Balance/Accounts heading)
           SizedBox(
             width: double.infinity,
             child: Text(
-              _currentAccountName,
+              accountName,
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 17,
               ),
             ),
           ),
-          
           const SizedBox(height: TossSpacing.space2),
-          
-          // Account Location (like "65% of total balance")
           Text(
             '${_getAccountTypeText()} Account',
             style: TossTextStyles.caption.copyWith(
@@ -329,8 +145,10 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       ),
     );
   }
-  
-  Widget _buildSettingsOptions() {
+
+  Widget _buildSettingsOptions(AccountSettingsState state) {
+    final notifier = ref.read(accountSettingsNotifierProvider(_params).notifier);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       padding: const EdgeInsets.fromLTRB(
@@ -349,54 +167,41 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           // Name field
           _buildInputField(
             'Name',
-            _nameController,
+            state.accountName,
             isFirst: true,
-            onTap: () {
-              _showNameEditBottomSheet();
-            },
+            onTap: () => _showNameEditBottomSheet(state.accountName),
           ),
-          
-          // Bank-specific fields (only show for bank accounts)
+
+          // Bank-specific fields
           if (widget.locationType == 'bank') ...[
-            // Bank Name field
             _buildInputField(
               'Bank Name',
-              _bankNameController,
-              onTap: () {
-                _showBankNameEditBottomSheet();
-              },
+              state.bankName,
+              onTap: () => _showBankNameEditBottomSheet(state.bankName),
             ),
-            
-            // Account Number field
             _buildInputField(
               'Account Number',
-              _accountNumberController,
-              onTap: () {
-                _showAccountNumberEditBottomSheet();
-              },
+              state.accountNumber,
+              onTap: () => _showAccountNumberEditBottomSheet(state.accountNumber),
             ),
           ],
-          
-          // Description field for cash/vault, Note field for bank
+
+          // Description/Note field
           if (widget.locationType != 'bank')
             _buildInputField(
               'Description',
-              _descriptionController,
+              state.description,
               hintText: 'Add description',
-              onTap: () {
-                _showDescriptionEditBottomSheet();
-              },
+              onTap: () => _showDescriptionEditBottomSheet(state.description),
             )
           else
             _buildInputField(
               'Note',
-              _noteController,
+              state.note,
               hintText: 'Add note',
-              onTap: () {
-                _showNoteEditBottomSheet();
-              },
+              onTap: () => _showNoteEditBottomSheet(state.note),
             ),
-          
+
           // Main Account switch
           Container(
             padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
@@ -412,13 +217,10 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                 ),
                 const Spacer(),
                 Switch(
-                  value: _isMainAccount,
-                  onChanged: (value) async {
-                    setState(() {
-                      _isMainAccount = value;
-                    });
-                    await _updateMainAccountStatus(value);
-                  },
+                  value: state.isMainAccount,
+                  onChanged: state.isSaving
+                      ? null
+                      : (value) => notifier.updateMainAccountStatus(value),
                   activeColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
@@ -428,10 +230,10 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       ),
     );
   }
-  
+
   Widget _buildInputField(
     String label,
-    TextEditingController controller, {
+    String value, {
     String? hintText,
     bool isFirst = false,
     VoidCallback? onTap,
@@ -443,7 +245,6 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
         child: Row(
           children: [
-            // Label - lighter weight for secondary information
             Text(
               label,
               style: TossTextStyles.body.copyWith(
@@ -452,21 +253,15 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                 color: TossColors.gray700,
               ),
             ),
-            
-            // Spacer
             const Spacer(),
-            
-            // Value - bolder weight for primary content
             Text(
-              controller.text.isEmpty ? (hintText ?? '') : controller.text,
+              value.isEmpty ? (hintText ?? '') : value,
               style: TossTextStyles.body.copyWith(
                 fontSize: 16,
-                fontWeight: controller.text.isEmpty ? FontWeight.w400 : FontWeight.w600,
-                color: controller.text.isEmpty ? TossColors.gray400 : TossColors.gray800,
+                fontWeight: value.isEmpty ? FontWeight.w400 : FontWeight.w600,
+                color: value.isEmpty ? TossColors.gray400 : TossColors.gray800,
               ),
             ),
-            
-            // Arrow
             const SizedBox(width: TossSpacing.space2),
             const Icon(
               Icons.chevron_right,
@@ -478,15 +273,12 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       ),
     );
   }
-  
+
   Widget _buildDeleteSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: GestureDetector(
-        onTap: () {
-          // Show delete confirmation dialog
-          _showDeleteConfirmation();
-        },
+        onTap: _showDeleteConfirmation,
         child: Container(
           padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
@@ -508,75 +300,124 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       ),
     );
   }
-  
-  void _showNameEditBottomSheet() {
+
+  // Bottom sheet methods
+  void _showNameEditBottomSheet(String currentName) {
     _showEditBottomSheet(
       title: 'Change account name',
-      controller: _nameController,
-      onUpdate: (newName) async {
-        await _updateCashLocationName(newName);
-        if (mounted) {
-          setState(() {
-            _currentAccountName = newName;
-          });
-        }
+      initialText: currentName,
+      onSave: (newName) async {
+        final success = await ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateName(newName);
+        return success;
       },
     );
   }
-  
-  void _showNoteEditBottomSheet() {
+
+  void _showNoteEditBottomSheet(String currentNote) {
     _showEditBottomSheet(
       title: 'Add note',
-      controller: _noteController,
+      initialText: currentNote,
       hintText: 'Add note...',
       multiline: true,
-      onUpdate: (newNote) => _updateCashLocationNote(newNote),
+      onSave: (newNote) async {
+        final success = await ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateNote(newNote);
+        return success;
+      },
     );
   }
-  
-  void _showDescriptionEditBottomSheet() {
+
+  void _showDescriptionEditBottomSheet(String currentDescription) {
     _showEditBottomSheet(
       title: 'Edit description',
-      controller: _descriptionController,
+      initialText: currentDescription,
       multiline: true,
-      onUpdate: (newDescription) => _updateCashLocationDescription(newDescription),
+      onSave: (newDescription) async {
+        final success = await ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateDescription(newDescription);
+        return success;
+      },
     );
   }
 
-  void _showBankNameEditBottomSheet() {
+  void _showBankNameEditBottomSheet(String currentBankName) {
     _showEditBottomSheet(
       title: 'Change bank name',
-      controller: _bankNameController,
+      initialText: currentBankName,
+      onSave: (newBankName) async {
+        ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateBankName(newBankName);
+        return true;
+      },
     );
   }
 
-  void _showAccountNumberEditBottomSheet() {
+  void _showAccountNumberEditBottomSheet(String currentAccountNumber) {
     _showEditBottomSheet(
       title: 'Change account number',
-      controller: _accountNumberController,
+      initialText: currentAccountNumber,
       keyboardType: TextInputType.number,
+      onSave: (newAccountNumber) async {
+        ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateAccountNumber(newAccountNumber);
+        return true;
+      },
     );
   }
-  
+
+  Future<void> _showEditBottomSheet({
+    required String title,
+    required String initialText,
+    String? hintText,
+    bool multiline = false,
+    TextInputType? keyboardType,
+    required Future<bool> Function(String) onSave,
+  }) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      isDismissible: true,
+      enableDrag: true,
+      builder: (BuildContext modalContext) {
+        return TextEditSheet(
+          title: title,
+          initialText: initialText,
+          hintText: hintText,
+          multiline: multiline,
+          keyboardType: keyboardType,
+          onSave: (String newValue) async {
+            Navigator.of(modalContext).pop();
+            await onSave(newValue);
+          },
+          onCancel: () => Navigator.of(modalContext).pop(),
+        );
+      },
+    );
+  }
+
   void _showDeleteConfirmation() async {
-    // Save the main widget's context before showing any dialogs
     final rootContext = context;
 
-    // Show confirm/cancel dialog
     final confirmed = await TossConfirmCancelDialog.showDelete(
       context: rootContext,
       title: 'Delete Account',
-      message: 'Are you sure you want to delete this account? This action cannot be undone.',
+      message:
+          'Are you sure you want to delete this account? This action cannot be undone.',
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
     );
 
-    // If user confirmed deletion
     if (confirmed == true) {
-      // Check if the widget is still mounted before proceeding
       if (!mounted) return;
 
-      // Show loading indicator using the root context
+      // Show loading indicator
       showDialog(
         context: rootContext,
         barrierDismissible: false,
@@ -597,9 +438,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                     const SizedBox(height: TossSpacing.space4),
                     Text(
                       'Deleting...',
-                      style: TossTextStyles.body.copyWith(
-                        fontSize: 14,
-                      ),
+                      style: TossTextStyles.body.copyWith(fontSize: 14),
                     ),
                   ],
                 ),
@@ -609,19 +448,17 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         },
       );
 
-      // Delete the cash location
-      final success = await _deleteCashLocation();
+      // Delete using notifier
+      final success = await ref
+          .read(accountSettingsNotifierProvider(_params).notifier)
+          .deleteCashLocation();
 
-      // Check if still mounted before any navigation
       if (!mounted) return;
 
-      // Close the loading dialog using the root navigator
+      // Close loading dialog
       Navigator.of(rootContext).pop();
 
       if (success) {
-        // Invalidate cache to refresh the list
-        ref.invalidate(allCashLocationsProvider);
-
         // Show success message
         if (mounted) {
           await showDialog(
@@ -635,33 +472,16 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           );
         }
 
-        // Add a small delay for the success message to show
         await Future.delayed(const Duration(milliseconds: 300));
 
-        // Navigate back to Cash Location list page
-        // Check if still mounted after the delay
         if (mounted) {
-          // Use GoRouter for safer navigation back to cash location page
-          // This will replace the current navigation stack
           context.go('/cashLocation');
-        }
-      } else {
-        // Show error message if deletion failed
-        if (mounted) {
-          await showDialog(
-            context: rootContext,
-            barrierDismissible: false,
-            builder: (context) => TossDialog.error(
-              title: 'Delete Failed',
-              message: 'Failed to delete account',
-              primaryButtonText: 'OK',
-            ),
-          );
         }
       }
     }
   }
-  
+
+  // Helper methods
   String _getAccountTypeText() {
     switch (widget.locationType) {
       case 'bank':
@@ -673,179 +493,33 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
         return 'Cash';
     }
   }
-  
-  Future<void> _updateCashLocationName(String newName) async {
-    try {
-      final useCase = ref.read(updateCashLocationUseCaseProvider);
 
-      await useCase(UpdateCashLocationParams(
-        locationId: widget.locationId,
-        locationName: newName,
-      ));
+  void _showSuccessDialog(String message) async {
+    // Don't show dialog for certain messages that are handled elsewhere
+    if (message == 'Account deleted successfully') return;
 
-      // Update the current name after successful DB update
-      _currentAccountName = newName;
-
-      await _showUpdateDialog(
-        success: true,
-        title: 'Name Updated',
-        message: 'Account name updated successfully',
-      );
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'AccountSettingsPage: Failed to update name',
-        extra: {'locationId': widget.locationId, 'newName': newName},
-      );
-      await _showUpdateDialog(
-        success: false,
-        title: 'Update Failed',
-        message: 'Failed to update name: ${e.toString()}',
-      );
-    }
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.success(
+        title: 'Updated',
+        message: message,
+        primaryButtonText: 'OK',
+        onPrimaryPressed: () => Navigator.of(context).pop(),
+      ),
+    );
   }
 
-  Future<void> _updateCashLocationNote(String newNote) async {
-    try {
-      final useCase = ref.read(updateCashLocationUseCaseProvider);
-
-      await useCase(UpdateCashLocationParams(
-        locationId: widget.locationId,
-        locationName: _currentAccountName,
-        locationInfo: newNote,
-      ));
-
-      await _showUpdateDialog(
-        success: true,
-        title: 'Note Updated',
-        message: 'Note updated successfully',
-      );
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'AccountSettingsPage: Failed to update note',
-        extra: {'locationId': widget.locationId},
-      );
-      await _showUpdateDialog(
-        success: false,
-        title: 'Update Failed',
-        message: 'Failed to update note: ${e.toString()}',
-      );
-    }
-  }
-
-  Future<void> _updateCashLocationDescription(String newDescription) async {
-    try {
-      final useCase = ref.read(updateCashLocationUseCaseProvider);
-
-      await useCase(UpdateCashLocationParams(
-        locationId: widget.locationId,
-        locationName: _currentAccountName,
-        locationInfo: newDescription,
-      ));
-
-      await _showUpdateDialog(
-        success: true,
-        title: 'Description Updated',
-        message: 'Description updated successfully',
-      );
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'AccountSettingsPage: Failed to update description',
-        extra: {'locationId': widget.locationId},
-      );
-      await _showUpdateDialog(
-        success: false,
-        title: 'Update Failed',
-        message: 'Failed to update description: ${e.toString()}',
-      );
-    }
-  }
-
-  Future<void> _updateMainAccountStatus(bool isMain) async {
-    try {
-      final appState = ref.read(appStateProvider);
-      final useCase = ref.read(updateMainAccountStatusUseCaseProvider);
-
-      await useCase(UpdateMainAccountStatusParams(
-        locationId: widget.locationId,
-        isMainAccount: isMain,
-        companyId: appState.companyChoosen,
-        storeId: appState.storeChoosen,
-        locationType: widget.locationType,
-      ));
-
-      // Invalidate cache to refresh the list
-      ref.invalidate(allCashLocationsProvider);
-
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => TossDialog.success(
-            title: 'Account Updated',
-            message: isMain ? 'Set as main account' : 'Removed as main account',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'AccountSettingsPage: Failed to update main account status',
-        extra: {'locationId': widget.locationId, 'isMain': isMain},
-      );
-      // Revert the state if update failed
-      if (mounted) {
-        setState(() {
-          _isMainAccount = !isMain;
-        });
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => TossDialog.error(
-            title: 'Update Failed',
-            message: 'Failed to update main account: ${e.toString()}',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-    }
-  }
-
-  Future<bool> _deleteCashLocation() async {
-    try {
-      final useCase = ref.read(deleteCashLocationUseCaseProvider);
-
-      await useCase(widget.locationId);
-
-      // Don't show success message here, it will be shown after dialog closes
-      return true; // Return success
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'AccountSettingsPage: Failed to delete cash location',
-        extra: {'locationId': widget.locationId},
-      );
-      // Show error message only on failure
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => TossDialog.error(
-            title: 'Delete Failed',
-            message: 'Failed to delete account: ${e.toString()}',
-            primaryButtonText: 'OK',
-          ),
-        );
-      }
-      return false; // Return failure
-    }
+  void _showErrorDialog(String message) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.error(
+        title: 'Error',
+        message: message,
+        primaryButtonText: 'OK',
+        onPrimaryPressed: () => Navigator.of(context).pop(),
+      ),
+    );
   }
 }
