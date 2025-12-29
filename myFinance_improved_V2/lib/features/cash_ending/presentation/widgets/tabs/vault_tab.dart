@@ -5,12 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/monitoring/sentry_config.dart';
-import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
-import '../../../../../shared/widgets/toss/toss_button_1.dart';
-import '../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/currency.dart';
@@ -19,11 +15,7 @@ import '../../../domain/entities/multi_currency_recount.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/vault_tab_provider.dart';
-import '../collapsible_currency_section.dart';
-import '../currency_pill_selector.dart';
-import '../grand_total_section.dart';
 import '../section_label.dart';
-import '../sheets/currency_selector_sheet.dart';
 import '../store_selector.dart';
 import '../../pages/cash_ending_completion_page.dart';
 
@@ -91,10 +83,8 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
   @override
   void dispose() {
-    if (_toolbarController != null) {
-      _toolbarController!.dispose();
-      _toolbarController = null;
-    }
+    _toolbarController?.dispose();
+    _toolbarController = null;
 
     for (final currencyFocusNodes in _focusNodes.values) {
       for (final focusNode in currencyFocusNodes.values) {
@@ -170,34 +160,10 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     return _focusNodes[currencyId]![denominationId]!;
   }
 
-  void _ensureCurrencyInitialized(Currency currency) {
-    if (_initializedCurrencies.contains(currency.currencyId)) {
-      return;
-    }
-
-    _controllers.putIfAbsent(currency.currencyId, () => {});
-    _focusNodes.putIfAbsent(currency.currencyId, () => {});
-
-    for (final denom in currency.denominations) {
-      _controllers[currency.currencyId]!.putIfAbsent(
-        denom.denominationId,
-        () => TextEditingController(),
-      );
-      _focusNodes[currency.currencyId]!.putIfAbsent(
-        denom.denominationId,
-        () => FocusNode(),
-      );
-    }
-
-    _initializedCurrencies.add(currency.currencyId);
-  }
-
   void _initializeToolbarController(List<Denomination> denominations, String currencyId) {
-    if (_toolbarController != null) {
-      _toolbarController!.focusNodes.clear();
-      _toolbarController!.dispose();
-      _toolbarController = null;
-    }
+    _toolbarController?.focusNodes.clear();
+    _toolbarController?.dispose();
+    _toolbarController = null;
 
     _toolbarController = KeyboardToolbarController(
       fieldCount: denominations.length,
@@ -287,233 +253,64 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   }
 
   Widget _buildVaultCountingCard(CashEndingState state) {
+    final selectedCurrencyIds = _getSelectedCurrencyIds(state);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SectionLabel(text: 'Vault Transaction'),
         const SizedBox(height: TossSpacing.space2),
-        _buildVaultCountingSection(state),
-      ],
-    );
-  }
-
-  Widget _buildVaultCountingSection(CashEndingState state) {
-    if (state.isLoadingCurrencies) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space8),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    if (state.currencies.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space8),
-          child: Column(
-            children: [
-              const Icon(Icons.inbox, size: 64, color: TossColors.gray400),
-              const SizedBox(height: TossSpacing.space4),
-              Text(
-                'No currencies available',
-                style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final selectedCurrencyIds = state.selectedVaultCurrencyIds.isEmpty
-        ? [state.currencies.first.currencyId]
-        : state.selectedVaultCurrencyIds;
-
-    return Stack(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DebitCreditToggle(
-              selectedType: _transactionType,
-              onTypeChanged: (type) {
-                setState(() {
-                  _transactionType = type;
-                });
-              },
-            ),
-
-            const SizedBox(height: TossSpacing.space5),
-
-            CurrencyPillSelector(
-              availableCurrencies: state.currencies,
-              selectedCurrencyIds: selectedCurrencyIds,
-              onAddCurrency: () {
-                final availableCurrencies = state.currencies.where((c) =>
-                  !state.selectedVaultCurrencyIds.contains(c.currencyId)
-                ).toList();
-
-                if (availableCurrencies.isEmpty) return;
-
-                CurrencySelectorSheet.show(
-                  context: context,
-                  ref: ref,
-                  currencies: availableCurrencies,
-                  selectedCurrencyId: null,
-                  tabType: 'vault',
-                );
-              },
-              onRemoveCurrency: (currencyId) {
-                ref.read(cashEndingProvider.notifier).removeVaultCurrency(currencyId);
-              },
-            ),
-
-            const SizedBox(height: TossSpacing.space5),
-
-            ...state.currencies.where((currency) {
-              return selectedCurrencyIds.contains(currency.currencyId);
-            }).map((currency) {
-              _ensureCurrencyInitialized(currency);
-
-              final currencyId = currency.currencyId;
-              final denominations = currency.denominations;
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: TossSpacing.space4),
-                child: CollapsibleCurrencySection(
-                  currency: currency,
-                  controllers: _controllers[currencyId]!,
-                  focusNodes: _focusNodes[currencyId]!,
-                  totalAmount: _calculateCurrencySubtotal(
-                    currency.currencyId,
-                    currency.denominations,
-                  ),
-                  onChanged: () => setState(() {}),
-                  isExpanded: _expandedCurrencyId == currencyId,
-                  baseCurrencySymbol: state.baseCurrencySymbol,
-                  onToggle: () {
-                    final willBeExpanded = _expandedCurrencyId != currencyId;
-
-                    setState(() {
-                      if (_expandedCurrencyId == currencyId) {
-                        _expandedCurrencyId = null;
-                      } else {
-                        _expandedCurrencyId = currencyId;
-                      }
-                    });
-
-                    if (willBeExpanded) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (!mounted) return;
-
-                        if (_toolbarController == null ||
-                            _toolbarController!.focusNodes.length != denominations.length ||
-                            _initializedToolbarCurrencyId != currencyId) {
-                          _initializeToolbarController(denominations, currencyId);
-                          _initializedToolbarCurrencyId = currencyId;
-                        }
-                      });
-                    }
-                  },
-                ),
+        VaultCountingSection(
+          state: state,
+          controllers: _controllers,
+          focusNodes: _focusNodes,
+          initializedCurrencies: _initializedCurrencies,
+          expandedCurrencyId: _expandedCurrencyId,
+          onExpandedChanged: (currencyId) {
+            setState(() {
+              _expandedCurrencyId = currencyId;
+            });
+          },
+          toolbarController: _toolbarController,
+          onInitializeToolbar: (currency) {
+            if (_toolbarController == null ||
+                _toolbarController!.focusNodes.length != currency.denominations.length ||
+                _initializedToolbarCurrencyId != currency.currencyId) {
+              _initializeToolbarController(currency.denominations, currency.currencyId);
+              _initializedToolbarCurrencyId = currency.currencyId;
+            }
+          },
+          onStateChanged: () => setState(() {}),
+          transactionType: _transactionType,
+          onTransactionTypeChanged: (type) {
+            setState(() {
+              _transactionType = type;
+            });
+          },
+          submitButton: VaultSubmitButton(
+            state: state,
+            selectedCurrencyIds: selectedCurrencyIds,
+            transactionType: _transactionType,
+            onRecountPressed: () => _showRecountSummary(context, state, selectedCurrencyIds),
+            onSubmitPressed: () async {
+              await widget.onSave(
+                context,
+                state,
+                selectedCurrencyIds.first,
+                _transactionType.stringValue,
               );
-            }),
-
-            const SizedBox(height: TossSpacing.space5),
-
-            ListenableBuilder(
-              listenable: Listenable.merge(
-                _controllers.values.expand((map) => map.values).toList(),
-              ),
-              builder: (context, _) {
-                final grandTotal = _calculateGrandTotal(state);
-                return GrandTotalSection(
-                  totalAmount: grandTotal,
-                  currencySymbol: state.baseCurrencySymbol,
-                  label: 'Grand total ${state.baseCurrency?.currencyCode ?? ""}',
-                  isBaseCurrency: true,
-                  journalAmount: state.vaultLocationJournalAmount,
-                  isLoadingJournal: state.isLoadingVaultJournalAmount,
-                  onHistoryTap: state.selectedVaultLocationId != null
-                      ? () => _navigateToAccountDetail(state, grandTotal)
-                      : null,
-                );
-              },
-            ),
-
-            const SizedBox(height: TossSpacing.space2),
-
-            _buildSubmitButton(state, selectedCurrencyIds),
-          ],
-        ),
-
-        if (_toolbarController != null)
-          KeyboardToolbar1(
-            controller: _toolbarController,
-            showToolbar: true,
-            onPrevious: () => _toolbarController!.focusPrevious?.call(),
-            onNext: () => _toolbarController!.focusNext?.call(),
-            onDone: () => _toolbarController!.unfocusAll(),
+            },
           ),
+        ),
       ],
     );
   }
 
-  Widget _buildSubmitButton(CashEndingState state, List<String> selectedCurrencyIds) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Builder(
-        builder: (context) {
-          final tabState = ref.watch(vaultTabProvider);
-          final firstCurrencyId = selectedCurrencyIds.first;
-
-          if (_transactionType == VaultTransactionType.recount) {
-            return TossButton1.primary(
-              text: 'Show Recount Summary',
-              isLoading: false,
-              isEnabled: true,
-              fullWidth: true,
-              onPressed: () {
-                _showRecountSummary(context, state, selectedCurrencyIds);
-              },
-              textStyle: TossTextStyles.titleLarge.copyWith(
-                color: TossColors.white,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space3,
-              ),
-              borderRadius: 12,
-            );
-          }
-
-          return TossButton1.primary(
-            text: 'Submit Ending',
-            isLoading: tabState.isSaving,
-            isEnabled: !tabState.isSaving,
-            fullWidth: true,
-            onPressed: !tabState.isSaving
-                ? () async {
-                    await widget.onSave(
-                      context,
-                      state,
-                      firstCurrencyId,
-                      _transactionType.stringValue,
-                    );
-                  }
-                : null,
-            textStyle: TossTextStyles.titleLarge.copyWith(
-              color: TossColors.white,
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
-            ),
-            borderRadius: 12,
-          );
-        },
-      ),
-    );
+  List<String> _getSelectedCurrencyIds(CashEndingState state) {
+    if (state.selectedVaultCurrencyIds.isEmpty && state.currencies.isNotEmpty) {
+      return [state.currencies.first.currencyId];
+    }
+    return state.selectedVaultCurrencyIds;
   }
 
   // Public getters for parent to access
@@ -650,45 +447,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
     }
   }
 
-  double _calculateCurrencySubtotal(String currencyId, List<Denomination> denominations) {
-    final currencyControllers = _controllers[currencyId];
-    if (currencyControllers == null) return 0.0;
-
-    double subtotal = 0.0;
-    for (final denomination in denominations) {
-      final controller = currencyControllers[denomination.denominationId];
-      if (controller == null) continue;
-
-      final quantity = int.tryParse(controller.text.trim()) ?? 0;
-      subtotal += denomination.value * quantity;
-    }
-
-    return subtotal;
-  }
-
-  double _calculateGrandTotal(CashEndingState state) {
-    double grandTotal = 0.0;
-
-    for (final currency in state.currencies) {
-      final currencyControllers = _controllers[currency.currencyId];
-      if (currencyControllers == null) continue;
-
-      double currencySubtotal = 0.0;
-      for (final denomination in currency.denominations) {
-        final controller = currencyControllers[denomination.denominationId];
-        if (controller == null) continue;
-
-        final quantity = int.tryParse(controller.text.trim()) ?? 0;
-        currencySubtotal += denomination.value * quantity;
-      }
-
-      final amountInBaseCurrency = currencySubtotal * currency.exchangeRateToBase;
-      grandTotal += amountInBaseCurrency;
-    }
-
-    return grandTotal;
-  }
-
   MultiCurrencyRecount _buildMultiCurrencyRecountEntity({
     required CashEndingState state,
     required List<Currency> currenciesWithData,
@@ -721,35 +479,6 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       userId: userId,
       recordDate: now,
       currencyRecounts: currencyRecounts,
-    );
-  }
-
-  void _navigateToAccountDetail(CashEndingState state, double grandTotal) {
-    if (state.selectedVaultLocationId == null) return;
-
-    final selectedLocation = state.vaultLocations.firstWhere(
-      (loc) => loc.locationId == state.selectedVaultLocationId,
-      orElse: () => state.vaultLocations.first,
-    );
-
-    final journalAmount = state.vaultLocationJournalAmount ?? 0.0;
-    final difference = grandTotal - journalAmount;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AccountDetailPage(
-          locationId: state.selectedVaultLocationId,
-          accountName: selectedLocation.locationName,
-          locationType: 'vault',
-          balance: journalAmount.toInt(),
-          errors: difference.toInt().abs(),
-          totalJournal: journalAmount.toInt(),
-          totalReal: grandTotal.toInt(),
-          cashDifference: difference.toInt(),
-          currencySymbol: state.baseCurrencySymbol,
-        ),
-      ),
     );
   }
 }
