@@ -103,7 +103,7 @@ class _DebtAccountSettingsPageState
   Future<void> _deleteMapping(AccountMapping mapping) async {
     try {
       await ref.read(
-        deleteAccountMappingProvider((
+        deleteAccountMappingProvider(DeleteAccountMappingParams(
           mappingId: mapping.mappingId,
           counterpartyId: widget.counterpartyId,
         )).future,

@@ -16,7 +16,7 @@ class CounterPartyFilterSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter = ref.watch(counterPartyFilterProvider);
+    final filter = ref.watch(counterPartyFilterNotifierProvider);
 
     return Container(
       constraints: BoxConstraints(
@@ -104,7 +104,7 @@ class CounterPartyFilterSheet extends ConsumerWidget {
               : (filter.types?.contains(option['type']) ?? false);
 
           onTap = () {
-            final currentFilter = ref.read(counterPartyFilterProvider);
+            final currentFilter = ref.read(counterPartyFilterNotifierProvider);
             List<CounterPartyType>? newTypes;
 
             if (isAll) {
@@ -122,8 +122,8 @@ class CounterPartyFilterSheet extends ConsumerWidget {
               newTypes = currentTypes.isEmpty ? null : currentTypes;
             }
 
-            ref.read(counterPartyFilterProvider.notifier).state =
-                currentFilter.copyWith(types: newTypes);
+            ref.read(counterPartyFilterNotifierProvider.notifier).setFilter(
+                currentFilter.copyWith(types: newTypes));
 
             Navigator.pop(context);
           };
@@ -132,10 +132,9 @@ class CounterPartyFilterSheet extends ConsumerWidget {
           isSelected = filter.isInternal == option['value'];
 
           onTap = () {
-            final currentFilter = ref.read(counterPartyFilterProvider);
-            ref.read(counterPartyFilterProvider.notifier).state = currentFilter.copyWith(
-              isInternal: option['value'] as bool?,
-            );
+            final currentFilter = ref.read(counterPartyFilterNotifierProvider);
+            ref.read(counterPartyFilterNotifierProvider.notifier).setFilter(
+              currentFilter.copyWith(isInternal: option['value'] as bool?));
             Navigator.pop(context);
           };
         }
@@ -184,7 +183,7 @@ class CounterPartyFilterSheet extends ConsumerWidget {
 /// Helper class for showing sort options bottom sheet
 class SortOptionsHelper {
   static void showSortSheet(BuildContext context, WidgetRef ref) {
-    final filter = ref.read(counterPartyFilterProvider);
+    final filter = ref.read(counterPartyFilterNotifierProvider);
 
     final sortOptions = [
       TossSelectionItem(
@@ -243,7 +242,7 @@ class SortOptionsHelper {
       items: sortOptions,
       selectedId: currentSelectedId,
       onItemSelected: (item) {
-        final currentFilter = ref.read(counterPartyFilterProvider);
+        final currentFilter = ref.read(counterPartyFilterNotifierProvider);
         CounterPartySortOption sortBy;
 
         switch (item.id) {
@@ -266,8 +265,8 @@ class SortOptionsHelper {
         // Toggle direction if same sort option is selected
         final ascending = currentFilter.sortBy == sortBy ? !currentFilter.ascending : true;
 
-        ref.read(counterPartyFilterProvider.notifier).state =
-            currentFilter.copyWith(sortBy: sortBy, ascending: ascending);
+        ref.read(counterPartyFilterNotifierProvider.notifier).setFilter(
+            currentFilter.copyWith(sortBy: sortBy, ascending: ascending));
       },
     );
   }

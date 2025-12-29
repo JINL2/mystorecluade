@@ -74,13 +74,13 @@ class _AccountMappingFormSheetState
       }
 
       await ref.read(
-        createAccountMappingProvider((
+        createAccountMappingProvider(CreateAccountMappingParams(
           myCompanyId: myCompanyId,
           myAccountId: _selectedMyAccountId!,
           counterpartyId: widget.counterpartyId,
           linkedAccountId: _selectedLinkedAccountId!,
           direction: _selectedDirection,
-          createdBy: appState.user['user_id'],
+          createdBy: appState.user['user_id'] as String?,
         )).future,
       );
 

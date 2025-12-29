@@ -21,7 +21,7 @@ class FilterSortBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter = ref.watch(counterPartyFilterProvider);
+    final filter = ref.watch(counterPartyFilterNotifierProvider);
 
     return SliverToBoxAdapter(
       child: Container(
@@ -161,7 +161,7 @@ class FilterSortBar extends ConsumerWidget {
   }
 
   String _getFilterLabel(WidgetRef ref) {
-    final filter = ref.watch(counterPartyFilterProvider);
+    final filter = ref.watch(counterPartyFilterNotifierProvider);
     final activeFilters = <String>[];
 
     if (filter.types != null && filter.types!.isNotEmpty) {
@@ -197,7 +197,7 @@ class FilterSortBar extends ConsumerWidget {
   }
 
   bool _hasActiveFilters(WidgetRef ref) {
-    final filter = ref.watch(counterPartyFilterProvider);
+    final filter = ref.watch(counterPartyFilterNotifierProvider);
     return (filter.types?.isNotEmpty ?? false) || filter.isInternal != null;
   }
 }

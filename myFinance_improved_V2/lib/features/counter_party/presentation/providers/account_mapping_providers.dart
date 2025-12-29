@@ -1,71 +1,76 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../di/counter_party_providers.dart';
 import '../../domain/entities/account_mapping.dart';
+
+part 'account_mapping_providers.g.dart';
 
 // ============================================================================
 // Account Mappings List Provider
 // ============================================================================
 
 /// Provider for fetching account mappings for a counterparty
-final accountMappingsProvider =
-    FutureProvider.family<List<AccountMapping>, String>((ref, counterpartyId) async {
+@riverpod
+Future<List<AccountMapping>> accountMappings(
+  AccountMappingsRef ref,
+  String counterpartyId,
+) async {
   final useCase = ref.watch(getAccountMappingsUseCaseProvider);
-
   return await useCase(counterpartyId: counterpartyId);
-});
+}
 
 // ============================================================================
 // Available Accounts Provider (for dropdowns)
 // ============================================================================
 
 /// Provider for fetching available accounts for mapping
-final availableAccountsProvider =
-    FutureProvider.family<List<Map<String, dynamic>>, String>((ref, companyId) async {
+@riverpod
+Future<List<Map<String, dynamic>>> availableAccounts(
+  AvailableAccountsRef ref,
+  String companyId,
+) async {
   final repository = ref.watch(accountMappingRepositoryProvider);
-
   return await repository.getAvailableAccounts(companyId: companyId);
-});
+}
 
 // ============================================================================
 // Linked Company Info Provider
 // ============================================================================
 
 /// Provider for fetching linked company information
-final linkedCompanyInfoProvider =
-    FutureProvider.family<Map<String, dynamic>?, String>((ref, counterpartyId) async {
+@riverpod
+Future<Map<String, dynamic>?> linkedCompanyInfo(
+  LinkedCompanyInfoRef ref,
+  String counterpartyId,
+) async {
   final repository = ref.watch(accountMappingRepositoryProvider);
-
   return await repository.getLinkedCompanyInfo(counterpartyId: counterpartyId);
-});
+}
 
 // ============================================================================
 // Linked Company Accounts Provider
 // ============================================================================
 
 /// Provider for fetching available accounts for the linked company
-final linkedCompanyAccountsProvider =
-    FutureProvider.family<List<Map<String, dynamic>>, String>((ref, linkedCompanyId) async {
+@riverpod
+Future<List<Map<String, dynamic>>> linkedCompanyAccounts(
+  LinkedCompanyAccountsRef ref,
+  String linkedCompanyId,
+) async {
   final repository = ref.watch(accountMappingRepositoryProvider);
-
   return await repository.getAvailableAccounts(companyId: linkedCompanyId);
-});
+}
 
 // ============================================================================
 // Create Account Mapping Provider
 // ============================================================================
 
 /// Provider for creating a new account mapping
-final createAccountMappingProvider = FutureProvider.family<
-    AccountMapping,
-    ({
-      String myCompanyId,
-      String myAccountId,
-      String counterpartyId,
-      String linkedAccountId,
-      String direction,
-      String? createdBy,
-    })>((ref, params) async {
+@riverpod
+Future<AccountMapping> createAccountMapping(
+  CreateAccountMappingRef ref,
+  CreateAccountMappingParams params,
+) async {
   final useCase = ref.watch(createAccountMappingUseCaseProvider);
 
   final result = await useCase(
@@ -81,19 +86,18 @@ final createAccountMappingProvider = FutureProvider.family<
   ref.invalidate(accountMappingsProvider(params.counterpartyId));
 
   return result;
-});
+}
 
 // ============================================================================
 // Delete Account Mapping Provider
 // ============================================================================
 
 /// Provider for deleting an account mapping
-final deleteAccountMappingProvider = FutureProvider.family<
-    bool,
-    ({
-      String mappingId,
-      String counterpartyId,
-    })>((ref, params) async {
+@riverpod
+Future<bool> deleteAccountMapping(
+  DeleteAccountMappingRef ref,
+  DeleteAccountMappingParams params,
+) async {
   final useCase = ref.watch(deleteAccountMappingUseCaseProvider);
 
   final result = await useCase(mappingId: params.mappingId);
@@ -102,4 +106,36 @@ final deleteAccountMappingProvider = FutureProvider.family<
   ref.invalidate(accountMappingsProvider(params.counterpartyId));
 
   return result;
-});
+}
+
+// ============================================================================
+// Parameter Classes (for @riverpod with multiple params)
+// ============================================================================
+
+class CreateAccountMappingParams {
+  final String myCompanyId;
+  final String myAccountId;
+  final String counterpartyId;
+  final String linkedAccountId;
+  final String direction;
+  final String? createdBy;
+
+  const CreateAccountMappingParams({
+    required this.myCompanyId,
+    required this.myAccountId,
+    required this.counterpartyId,
+    required this.linkedAccountId,
+    required this.direction,
+    this.createdBy,
+  });
+}
+
+class DeleteAccountMappingParams {
+  final String mappingId;
+  final String counterpartyId;
+
+  const DeleteAccountMappingParams({
+    required this.mappingId,
+    required this.counterpartyId,
+  });
+}

@@ -60,7 +60,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(TossAnimations.slow, () {
-      ref.read(counterPartySearchProvider.notifier).state = value;
+      ref.read(counterPartySearchProvider.notifier).setSearch(value);
     });
   }
 

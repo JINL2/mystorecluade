@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/counter_party_providers.dart' as di;
@@ -9,21 +9,38 @@ import '../../domain/value_objects/counter_party_filter.dart';
 import 'counter_party_data.dart';
 import 'counter_party_params.dart';
 
+part 'counter_party_providers.g.dart';
+
 // ============================================================================
 // State Providers
 // ============================================================================
 
 /// Search query provider
-final counterPartySearchProvider = StateProvider<String>((ref) => '');
+@riverpod
+class CounterPartySearch extends _$CounterPartySearch {
+  @override
+  String build() => '';
+
+  void setSearch(String query) => state = query;
+  void clear() => state = '';
+}
 
 /// Filter provider
-final counterPartyFilterProvider = StateProvider<CounterPartyFilter>((ref) {
-  return const CounterPartyFilter();
-});
+@riverpod
+class CounterPartyFilterNotifier extends _$CounterPartyFilterNotifier {
+  @override
+  CounterPartyFilter build() => const CounterPartyFilter();
+
+  void setFilter(CounterPartyFilter filter) => state = filter;
+  void reset() => state = const CounterPartyFilter();
+}
 
 /// Optimized base provider - Single source of truth
-final optimizedCounterPartyDataProvider =
-    FutureProvider.family<CounterPartyData, String>((ref, companyId) async {
+@riverpod
+Future<CounterPartyData> optimizedCounterPartyData(
+  OptimizedCounterPartyDataRef ref,
+  String companyId,
+) async {
   final repository = ref.watch(di.counterPartyRepositoryProvider);
   final calculateStats = ref.watch(di.calculateCounterPartyStatsProvider);
 
@@ -48,21 +65,24 @@ final optimizedCounterPartyDataProvider =
   } catch (e) {
     throw Exception('Failed to load counter party data: $e');
   }
-});
+}
 
 // Selected company ID provider (from app state)
-final selectedCompanyIdProvider = Provider<String?>((ref) {
+@riverpod
+String? selectedCompanyId(SelectedCompanyIdRef ref) {
   final appState = ref.watch(appStateProvider);
   final companyChoosen = appState.companyChoosen;
   if (companyChoosen.isEmpty) return null;
   return companyChoosen;
-});
+}
 
 /// Optimized counter parties provider - derived from base data
-final optimizedCounterPartiesProvider =
-    Provider<AsyncValue<List<CounterParty>>>((ref) {
+@riverpod
+AsyncValue<List<CounterParty>> optimizedCounterParties(
+  OptimizedCounterPartiesRef ref,
+) {
   final companyId = ref.watch(selectedCompanyIdProvider);
-  final filter = ref.watch(counterPartyFilterProvider);
+  final filter = ref.watch(counterPartyFilterNotifierProvider);
   final sortUseCase = ref.watch(di.sortCounterPartiesProvider);
 
   if (companyId == null) {
@@ -99,18 +119,21 @@ final optimizedCounterPartiesProvider =
       }
 
       // Apply sorting using UseCase
-      counterParties = sortUseCase(counterParties, filter.sortBy, filter.ascending);
+      counterParties =
+          sortUseCase(counterParties, filter.sortBy, filter.ascending);
 
       return AsyncValue.data(counterParties);
     },
     loading: () => const AsyncValue.loading(),
     error: (error, stack) => AsyncValue.error(error, stack),
   );
-});
+}
 
 /// Optimized stats provider
-final optimizedCounterPartyStatsProvider =
-    Provider<AsyncValue<CounterPartyStats>>((ref) {
+@riverpod
+AsyncValue<CounterPartyStats> optimizedCounterPartyStats(
+  OptimizedCounterPartyStatsRef ref,
+) {
   final companyId = ref.watch(selectedCompanyIdProvider);
 
   if (companyId == null) {
@@ -123,15 +146,18 @@ final optimizedCounterPartyStatsProvider =
     loading: () => const AsyncValue.loading(),
     error: (error, stack) => AsyncValue.error(error, stack),
   );
-});
+}
 
 // ============================================================================
 // Action Providers
 // ============================================================================
 
 /// Create counter party provider
-final createCounterPartyProvider = FutureProvider.autoDispose
-    .family<CounterParty, CreateCounterPartyParams>((ref, params) async {
+@riverpod
+Future<CounterParty> createCounterParty(
+  CreateCounterPartyRef ref,
+  CreateCounterPartyParams params,
+) async {
   final repository = ref.watch(di.counterPartyRepositoryProvider);
   return await repository.createCounterParty(
     companyId: params.companyId,
@@ -144,11 +170,14 @@ final createCounterPartyProvider = FutureProvider.autoDispose
     isInternal: params.isInternal,
     linkedCompanyId: params.linkedCompanyId,
   );
-});
+}
 
 /// Update counter party provider
-final updateCounterPartyProvider = FutureProvider.autoDispose
-    .family<CounterParty, UpdateCounterPartyParams>((ref, params) async {
+@riverpod
+Future<CounterParty> updateCounterParty(
+  UpdateCounterPartyRef ref,
+  UpdateCounterPartyParams params,
+) async {
   final repository = ref.watch(di.counterPartyRepositoryProvider);
   return await repository.updateCounterParty(
     counterpartyId: params.counterpartyId,
@@ -162,17 +191,23 @@ final updateCounterPartyProvider = FutureProvider.autoDispose
     isInternal: params.isInternal,
     linkedCompanyId: params.linkedCompanyId,
   );
-});
+}
 
 /// Delete counter party provider
-final deleteCounterPartyProvider =
-    FutureProvider.autoDispose.family<bool, String>((ref, counterpartyId) async {
+@riverpod
+Future<bool> deleteCounterParty(
+  DeleteCounterPartyRef ref,
+  String counterpartyId,
+) async {
   final repository = ref.watch(di.counterPartyRepositoryProvider);
   return await repository.deleteCounterParty(counterpartyId);
-});
+}
 
 /// Get unlinked companies provider
-final unlinkedCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+@riverpod
+Future<List<Map<String, dynamic>>> unlinkedCompanies(
+  UnlinkedCompaniesRef ref,
+) async {
   final repository = ref.watch(di.counterPartyRepositoryProvider);
   final appState = ref.watch(appStateProvider);
   final companyId = ref.watch(selectedCompanyIdProvider);
@@ -181,16 +216,19 @@ final unlinkedCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((re
   debugPrint('🏢 [unlinkedCompaniesProvider] appState.user: ${appState.user}');
 
   if (companyId == null || appState.user.isEmpty) {
-    debugPrint('⚠️ [unlinkedCompaniesProvider] Early return: companyId=$companyId, user.isEmpty=${appState.user.isEmpty}');
+    debugPrint(
+        '⚠️ [unlinkedCompaniesProvider] Early return: companyId=$companyId, user.isEmpty=${appState.user.isEmpty}');
     return [];
   }
 
   // Safe type checking instead of unsafe cast
   final userId = appState.user['user_id'];
-  debugPrint('🏢 [unlinkedCompaniesProvider] userId: $userId (type: ${userId.runtimeType})');
+  debugPrint(
+      '🏢 [unlinkedCompaniesProvider] userId: $userId (type: ${userId.runtimeType})');
 
   if (userId is! String) {
-    debugPrint('⚠️ [unlinkedCompaniesProvider] userId is not String: ${userId.runtimeType}');
+    debugPrint(
+        '⚠️ [unlinkedCompaniesProvider] userId is not String: ${userId.runtimeType}');
     return [];
   }
 
@@ -200,25 +238,27 @@ final unlinkedCompaniesProvider = FutureProvider<List<Map<String, dynamic>>>((re
   );
   debugPrint('✅ [unlinkedCompaniesProvider] Got ${result.length} companies');
   return result;
-});
+}
 
 /// Manual refresh functionality
-final counterPartyRefreshProvider = Provider<void Function()>((ref) {
+@riverpod
+void Function() counterPartyRefresh(CounterPartyRefreshRef ref) {
   return () {
     final companyId = ref.read(selectedCompanyIdProvider);
     if (companyId != null) {
       ref.invalidate(optimizedCounterPartyDataProvider(companyId));
     }
   };
-});
+}
 
 /// Cache management provider
-final counterPartyCacheProvider = Provider<CounterPartyCacheManager>((ref) {
+@riverpod
+CounterPartyCacheManager counterPartyCache(CounterPartyCacheRef ref) {
   return CounterPartyCacheManager(ref);
-});
+}
 
 class CounterPartyCacheManager {
-  final Ref ref;
+  final CounterPartyCacheRef ref;
 
   CounterPartyCacheManager(this.ref);
 
