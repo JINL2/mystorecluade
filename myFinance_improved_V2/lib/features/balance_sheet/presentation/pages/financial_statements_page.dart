@@ -218,7 +218,7 @@ class _FinancialStatementsPageState
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   boxShadow: [
                     BoxShadow(
-                      color: TossColors.black.withOpacity(0.06),
+                      color: TossColors.black.withValues(alpha: 0.06),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),

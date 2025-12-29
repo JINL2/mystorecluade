@@ -109,7 +109,7 @@ class _BalanceSheetPageState extends ConsumerState<BalanceSheetPage>
                             borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                             boxShadow: [
                               BoxShadow(
-                                color: TossColors.black.withOpacity(0.08),
+                                color: TossColors.black.withValues(alpha: 0.08),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),

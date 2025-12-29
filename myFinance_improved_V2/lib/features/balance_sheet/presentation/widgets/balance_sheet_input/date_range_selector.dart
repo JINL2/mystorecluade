@@ -44,12 +44,12 @@ class DateRangeSelector extends ConsumerWidget {
               color: TossColors.background,
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
-                color: TossColors.primary.withOpacity(0.3),
+                color: TossColors.primary.withValues(alpha: 0.3),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: TossColors.black.withOpacity(0.04),
+                  color: TossColors.black.withValues(alpha: 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -62,7 +62,7 @@ class DateRangeSelector extends ConsumerWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
+                    color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: const Icon(
