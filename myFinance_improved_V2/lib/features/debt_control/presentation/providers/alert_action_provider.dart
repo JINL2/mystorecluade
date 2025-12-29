@@ -4,14 +4,13 @@ import 'states/debt_control_state.dart';
 
 /// Alert action state provider
 final alertActionProvider =
-    StateNotifierProvider<AlertActionNotifier, AlertActionState>(
-  (ref) => AlertActionNotifier(ref),
+    NotifierProvider<AlertActionNotifier, AlertActionState>(
+  AlertActionNotifier.new,
 );
 
-class AlertActionNotifier extends StateNotifier<AlertActionState> {
-  AlertActionNotifier(this.ref) : super(const AlertActionState());
-
-  final Ref ref;
+class AlertActionNotifier extends Notifier<AlertActionState> {
+  @override
+  AlertActionState build() => const AlertActionState();
 
   /// Mark alert as read
   Future<void> markAlertAsRead(String alertId) async {

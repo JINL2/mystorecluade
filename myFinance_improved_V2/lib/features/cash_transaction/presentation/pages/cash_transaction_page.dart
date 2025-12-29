@@ -129,7 +129,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
       debugPrint('[CashTransactionPage] initState - invalidating provider cache');
-      ref.invalidate(cashLocationsForStoreProvider((companyId: companyId, storeId: storeId)));
+      ref.invalidate(cashLocationsForStoreProvider(companyId: companyId, storeId: storeId));
     });
   }
 
@@ -583,7 +583,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     debugPrint('$_tag 📡 Watching cashLocationsForStoreProvider with companyId: "$companyId", storeId: "$storeId"');
 
     final cashLocationsAsync = ref.watch(
-      cashLocationsForStoreProvider((companyId: companyId, storeId: storeId)),
+      cashLocationsForStoreProvider(companyId: companyId, storeId: storeId),
     );
 
     return cashLocationsAsync.when(

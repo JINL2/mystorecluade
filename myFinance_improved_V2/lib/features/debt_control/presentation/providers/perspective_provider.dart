@@ -4,13 +4,13 @@ import 'debt_repository_provider.dart';
 import 'states/debt_control_state.dart';
 
 /// Perspective state provider for viewpoint selection
-final perspectiveProvider =
-    StateNotifierProvider<PerspectiveNotifier, PerspectiveState>(
-  (ref) => PerspectiveNotifier(),
+final perspectiveProvider = NotifierProvider<PerspectiveNotifier, PerspectiveState>(
+  PerspectiveNotifier.new,
 );
 
-class PerspectiveNotifier extends StateNotifier<PerspectiveState> {
-  PerspectiveNotifier() : super(const PerspectiveState());
+class PerspectiveNotifier extends Notifier<PerspectiveState> {
+  @override
+  PerspectiveState build() => const PerspectiveState();
 
   /// Change perspective (company, store, headquarters)
   void changePerspective(String perspective) {

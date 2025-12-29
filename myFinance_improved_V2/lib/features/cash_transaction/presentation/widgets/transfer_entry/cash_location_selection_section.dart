@@ -41,7 +41,7 @@ class WithinStoreCashLocationSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cashLocationsAsync = ref.watch(
-      cashLocationsForStoreProvider((companyId: companyId, storeId: storeId)),
+      cashLocationsForStoreProvider(companyId: companyId, storeId: storeId),
     );
 
     return Column(
@@ -152,10 +152,10 @@ class InterEntityCashLocationSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cashLocationsAsync = ref.watch(
-      cashLocationsForStoreProvider((
+      cashLocationsForStoreProvider(
         companyId: targetCompanyId,
         storeId: targetStoreId,
-      )),
+      ),
     );
 
     return Column(

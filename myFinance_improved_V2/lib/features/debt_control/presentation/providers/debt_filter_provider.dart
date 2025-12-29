@@ -3,13 +3,13 @@ import '../../domain/value_objects/debt_filter.dart';
 
 /// Debt filter state provider
 /// Manages the current filter state for debt list
-final debtFilterProvider =
-    StateNotifierProvider<DebtFilterNotifier, DebtFilter>(
-  (ref) => DebtFilterNotifier(),
+final debtFilterProvider = NotifierProvider<DebtFilterNotifier, DebtFilter>(
+  DebtFilterNotifier.new,
 );
 
-class DebtFilterNotifier extends StateNotifier<DebtFilter> {
-  DebtFilterNotifier() : super(const DebtFilter());
+class DebtFilterNotifier extends Notifier<DebtFilter> {
+  @override
+  DebtFilter build() => const DebtFilter();
 
   /// Update counterparty type filter
   void setCounterpartyType(String type) {

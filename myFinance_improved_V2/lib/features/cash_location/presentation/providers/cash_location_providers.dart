@@ -4,6 +4,7 @@
 // Following Clean Architecture: Presentation depends only on Domain
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 // Import DI providers (centralized dependency injection)
 import '../../di/cash_location_providers.dart';
@@ -55,57 +56,89 @@ export '../../domain/value_objects/vault_real_params.dart';
 export '../../di/cash_location_providers.dart';
 
 // Export use case params for presentation layer
-export '../../domain/usecases/create_error_adjustment_use_case.dart' show CreateErrorAdjustmentParams;
-export '../../domain/usecases/create_foreign_currency_translation_use_case.dart' show CreateForeignCurrencyTranslationParams;
-export '../../domain/usecases/update_cash_location_use_case.dart' show UpdateCashLocationParams;
-export '../../domain/usecases/update_main_account_status_use_case.dart' show UpdateMainAccountStatusParams;
+export '../../domain/usecases/create_error_adjustment_use_case.dart'
+    show CreateErrorAdjustmentParams;
+export '../../domain/usecases/create_foreign_currency_translation_use_case.dart'
+    show CreateForeignCurrencyTranslationParams;
+export '../../domain/usecases/update_cash_location_use_case.dart'
+    show UpdateCashLocationParams;
+export '../../domain/usecases/update_main_account_status_use_case.dart'
+    show UpdateMainAccountStatusParams;
+
+// Part directive must come after all imports and exports
+part 'cash_location_providers.g.dart';
 
 // ============================================================================
 // PRESENTATION LAYER PROVIDERS (UI State)
 // ============================================================================
 
 /// Cash Location Providers - delegates to UseCases
-final allCashLocationsProvider = FutureProvider.family<List<CashLocation>, CashLocationQueryParams>((ref, params) async {
+@riverpod
+Future<List<CashLocation>> allCashLocations(
+  AllCashLocationsRef ref,
+  CashLocationQueryParams params,
+) async {
   final useCase = ref.read(getAllCashLocationsUseCaseProvider);
   return useCase(params);
-});
+}
 
 /// Cash Real Provider - delegates to UseCase
-final cashRealProvider = FutureProvider.family<List<CashRealEntry>, CashRealParams>((ref, params) async {
+@riverpod
+Future<List<CashRealEntry>> cashReal(
+  CashRealRef ref,
+  CashRealParams params,
+) async {
   final useCase = ref.read(getCashRealUseCaseProvider);
   return useCase(params);
-});
+}
 
 /// Bank Real Provider - delegates to UseCase
-final bankRealProvider = FutureProvider.family<List<BankRealEntry>, BankRealParams>((ref, params) async {
+@riverpod
+Future<List<BankRealEntry>> bankReal(
+  BankRealRef ref,
+  BankRealParams params,
+) async {
   final useCase = ref.read(getBankRealUseCaseProvider);
   return useCase(params);
-});
+}
 
 /// Vault Real Provider - delegates to UseCase
-final vaultRealProvider = FutureProvider.family<List<VaultRealEntry>, VaultRealParams>((ref, params) async {
+@riverpod
+Future<List<VaultRealEntry>> vaultReal(
+  VaultRealRef ref,
+  VaultRealParams params,
+) async {
   final useCase = ref.read(getVaultRealUseCaseProvider);
   return useCase(params);
-});
+}
 
 /// Cash Journal Provider - delegates to UseCase
-final cashJournalProvider = FutureProvider.family<List<JournalEntry>, CashJournalParams>((ref, params) async {
+@riverpod
+Future<List<JournalEntry>> cashJournal(
+  CashJournalRef ref,
+  CashJournalParams params,
+) async {
   final useCase = ref.read(getCashJournalUseCaseProvider);
   return useCase(params);
-});
+}
 
 /// Stock Flow Provider - delegates to UseCase
-final stockFlowProvider = FutureProvider.family<StockFlowResponse, StockFlowParams>((ref, params) async {
+@riverpod
+Future<StockFlowResponse> stockFlow(
+  StockFlowRef ref,
+  StockFlowParams params,
+) async {
   final useCase = ref.read(getStockFlowUseCaseProvider);
   return useCase(params);
-});
+}
 
 /// Currency Types Provider - fetches available currency types from register_denomination feature
-final currencyTypesProvider = FutureProvider<List<CurrencyType>>((ref) async {
-  // Import currency repository from register_denomination feature
-  final currencyRepository = ref.read(register_denomination_di.currencyRepositoryProvider);
+@riverpod
+Future<List<CurrencyType>> currencyTypes(CurrencyTypesRef ref) async {
+  final currencyRepository =
+      ref.read(register_denomination_di.currencyRepositoryProvider);
   return currencyRepository.getAvailableCurrencyTypes();
-});
+}
 
 // ============================================================================
 // PRESENTATION DISPLAY MODELS (UI Concerns Only)
@@ -188,20 +221,24 @@ class CashLocationTotals {
 }
 
 /// Provider for cached totals (avoids fold() every build)
-final cashLocationTotalsProvider = Provider.family<CashLocationTotals, List<CashLocation>>(
-  (ref, locations) {
-    final totalJournal = locations.fold<double>(
-      0, (sum, loc) => sum + loc.totalJournalCashAmount,
-    );
-    final totalReal = locations.fold<double>(
-      0, (sum, loc) => sum + loc.totalRealCashAmount,
-    );
-    final totalError = totalReal - totalJournal;
+@riverpod
+CashLocationTotals cashLocationTotals(
+  CashLocationTotalsRef ref,
+  List<CashLocation> locations,
+) {
+  final totalJournal = locations.fold<double>(
+    0,
+    (sum, loc) => sum + loc.totalJournalCashAmount,
+  );
+  final totalReal = locations.fold<double>(
+    0,
+    (sum, loc) => sum + loc.totalRealCashAmount,
+  );
+  final totalError = totalReal - totalJournal;
 
-    return CashLocationTotals(
-      totalJournal: totalJournal,
-      totalReal: totalReal,
-      totalError: totalError,
-    );
-  },
-);
+  return CashLocationTotals(
+    totalJournal: totalJournal,
+    totalReal: totalReal,
+    totalError: totalError,
+  );
+}

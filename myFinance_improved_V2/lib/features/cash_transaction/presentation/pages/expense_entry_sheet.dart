@@ -316,7 +316,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
 
     // For search, use the search provider if query is not empty
     final searchAsync = _searchQuery.isNotEmpty
-        ? ref.watch(searchExpenseAccountsProvider((companyId: companyId, query: _searchQuery)))
+        ? ref.watch(searchExpenseAccountsProvider(companyId: companyId, query: _searchQuery))
         : null;
 
     return accountsAsync.when(
