@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../auth/di/auth_providers.dart';
 import '../../data/datasources/balance_sheet_data_source.dart';
 import '../../data/models/pnl_summary_dto.dart';
 import '../../data/models/bs_summary_dto.dart';
@@ -14,7 +14,7 @@ part 'financial_statements_provider.g.dart';
 
 @riverpod
 BalanceSheetDataSource balanceSheetDataSource(Ref ref) {
-  return BalanceSheetDataSource(Supabase.instance.client);
+  return BalanceSheetDataSource(ref.watch(supabaseClientProvider));
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
