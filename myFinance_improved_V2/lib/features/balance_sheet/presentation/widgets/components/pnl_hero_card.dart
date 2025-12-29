@@ -5,11 +5,11 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../data/models/pnl_summary_dto.dart';
+import '../../../domain/entities/pnl_summary.dart';
 
 /// P&L Hero Card - Main metrics display
 class PnlHeroCard extends StatelessWidget {
-  final PnlSummaryModel summary;
+  final PnlSummary summary;
   final String currencySymbol;
 
   const PnlHeroCard({
@@ -30,7 +30,7 @@ class PnlHeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withOpacity(0.04),
+            color: TossColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -125,8 +125,8 @@ class PnlHeroCard extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isPositive
-            ? TossColors.success.withOpacity(0.1)
-            : TossColors.error.withOpacity(0.1),
+            ? TossColors.success.withValues(alpha: 0.1)
+            : TossColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Row(

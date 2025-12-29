@@ -5,12 +5,12 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../data/models/bs_summary_dto.dart';
+import '../../../domain/entities/bs_summary.dart';
 
 /// B/S Detail Section - Expandable account breakdown
 class BsDetailSection extends StatefulWidget {
-  final List<BsDetailRowModel> details;
-  final BsSummaryModel summary;
+  final List<BsDetailRow> details;
+  final BsSummary summary;
   final String currencySymbol;
 
   const BsDetailSection({
@@ -30,7 +30,7 @@ class _BsDetailSectionState extends State<BsDetailSection> {
   @override
   Widget build(BuildContext context) {
     // Group details by section
-    final sections = <String, List<BsDetailRowModel>>{};
+    final sections = <String, List<BsDetailRow>>{};
     for (final row in widget.details) {
       sections.putIfAbsent(row.section, () => []).add(row);
     }
@@ -49,7 +49,7 @@ class _BsDetailSectionState extends State<BsDetailSection> {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withOpacity(0.04),
+            color: TossColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -89,7 +89,7 @@ class _BsDetailSectionState extends State<BsDetailSection> {
     );
   }
 
-  Widget _buildSection(String sectionName, List<BsDetailRowModel> accounts) {
+  Widget _buildSection(String sectionName, List<BsDetailRow> accounts) {
     final isExpanded = _expandedSections.contains(sectionName);
     final sectionTotal = accounts.fold<double>(0, (sum, a) => sum + a.balance);
     final formatter = NumberFormat('#,##0', 'en_US');
@@ -175,7 +175,7 @@ class _BsDetailSectionState extends State<BsDetailSection> {
     );
   }
 
-  Widget _buildAccountRow(BsDetailRowModel account) {
+  Widget _buildAccountRow(BsDetailRow account) {
     final formatter = NumberFormat('#,##0', 'en_US');
     final hasBalance = account.balance != 0;
 

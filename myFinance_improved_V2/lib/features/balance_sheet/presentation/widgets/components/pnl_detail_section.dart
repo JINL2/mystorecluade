@@ -5,12 +5,12 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../data/models/pnl_summary_dto.dart';
+import '../../../domain/entities/pnl_summary.dart';
 
 /// P&L Detail Section - Expandable account breakdown
 class PnlDetailSection extends StatefulWidget {
-  final List<PnlDetailRowModel> details;
-  final PnlSummaryModel summary;
+  final List<PnlDetailRow> details;
+  final PnlSummary summary;
   final String currencySymbol;
 
   const PnlDetailSection({
@@ -30,7 +30,7 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
   @override
   Widget build(BuildContext context) {
     // Group details by section
-    final sections = <String, List<PnlDetailRowModel>>{};
+    final sections = <String, List<PnlDetailRow>>{};
     for (final row in widget.details) {
       sections.putIfAbsent(row.section, () => []).add(row);
     }
@@ -49,7 +49,7 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withOpacity(0.04),
+            color: TossColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -89,7 +89,7 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
     );
   }
 
-  Widget _buildSection(String sectionName, List<PnlDetailRowModel> accounts) {
+  Widget _buildSection(String sectionName, List<PnlDetailRow> accounts) {
     final isExpanded = _expandedSections.contains(sectionName);
     final sectionTotal = accounts.fold<double>(0, (sum, a) => sum + a.amount);
     final formatter = NumberFormat('#,##0', 'en_US');
@@ -175,7 +175,7 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
     );
   }
 
-  Widget _buildAccountRow(PnlDetailRowModel account) {
+  Widget _buildAccountRow(PnlDetailRow account) {
     final formatter = NumberFormat('#,##0', 'en_US');
     final hasActivity = account.amount != 0;
 

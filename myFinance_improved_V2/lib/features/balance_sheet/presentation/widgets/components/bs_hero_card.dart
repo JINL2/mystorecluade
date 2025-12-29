@@ -5,11 +5,11 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../data/models/bs_summary_dto.dart';
+import '../../../domain/entities/bs_summary.dart';
 
 /// B/S Hero Card - Main balance sheet metrics
 class BsHeroCard extends StatelessWidget {
-  final BsSummaryModel summary;
+  final BsSummary summary;
   final String currencySymbol;
 
   const BsHeroCard({
@@ -30,7 +30,7 @@ class BsHeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withOpacity(0.04),
+            color: TossColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -150,8 +150,8 @@ class BsHeroCard extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isPositive
-            ? TossColors.success.withOpacity(0.1)
-            : TossColors.error.withOpacity(0.1),
+            ? TossColors.success.withValues(alpha: 0.1)
+            : TossColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Row(
@@ -300,7 +300,7 @@ class BsHeroCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: TossColors.warning.withOpacity(0.1),
+        color: TossColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Row(

@@ -1,11 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../domain/entities/pnl_summary.dart';
+import '../../domain/entities/daily_pnl.dart';
+
 part 'pnl_summary_dto.freezed.dart';
 part 'pnl_summary_dto.g.dart';
 
 /// P&L Summary from get_pnl() RPC
 @freezed
 class PnlSummaryModel with _$PnlSummaryModel {
+  const PnlSummaryModel._();
+
   const factory PnlSummaryModel({
     // Current period amounts
     @Default(0) double revenue,
@@ -32,6 +37,24 @@ class PnlSummaryModel with _$PnlSummaryModel {
 
   factory PnlSummaryModel.fromJson(Map<String, dynamic> json) =>
       _$PnlSummaryModelFromJson(_parseNumericFields(json));
+
+  /// Convert DTO to Domain Entity
+  PnlSummary toEntity() => PnlSummary(
+        revenue: revenue,
+        cogs: cogs,
+        grossProfit: grossProfit,
+        operatingExpense: operatingExpense,
+        operatingIncome: operatingIncome,
+        nonOperatingExpense: nonOperatingExpense,
+        netIncome: netIncome,
+        grossMargin: grossMargin,
+        operatingMargin: operatingMargin,
+        netMargin: netMargin,
+        prevRevenue: prevRevenue,
+        prevNetIncome: prevNetIncome,
+        revenueChangePct: revenueChangePct,
+        netIncomeChangePct: netIncomeChangePct,
+      );
 
   /// Parse numeric fields that might come as strings
   static Map<String, dynamic> _parseNumericFields(Map<String, dynamic> json) {
@@ -62,6 +85,8 @@ class PnlSummaryModel with _$PnlSummaryModel {
 /// P&L Detail Row from get_pnl_detail() RPC
 @freezed
 class PnlDetailRowModel with _$PnlDetailRowModel {
+  const PnlDetailRowModel._();
+
   const factory PnlDetailRowModel({
     @Default('') String section,
     @JsonKey(name: 'section_order') @Default(0) int sectionOrder,
@@ -72,6 +97,15 @@ class PnlDetailRowModel with _$PnlDetailRowModel {
 
   factory PnlDetailRowModel.fromJson(Map<String, dynamic> json) =>
       _$PnlDetailRowModelFromJson(_parseNumericFields(json));
+
+  /// Convert DTO to Domain Entity
+  PnlDetailRow toEntity() => PnlDetailRow(
+        section: section,
+        sectionOrder: sectionOrder,
+        accountCode: accountCode,
+        accountName: accountName,
+        amount: amount,
+      );
 
   static Map<String, dynamic> _parseNumericFields(Map<String, dynamic> json) {
     final result = Map<String, dynamic>.from(json);
@@ -94,6 +128,8 @@ class PnlDetailRowModel with _$PnlDetailRowModel {
 /// Daily P&L for trend chart
 @freezed
 class DailyPnlModel with _$DailyPnlModel {
+  const DailyPnlModel._();
+
   const factory DailyPnlModel({
     required DateTime date,
     @Default(0) double revenue,
@@ -111,6 +147,15 @@ class DailyPnlModel with _$DailyPnlModel {
       netIncome: _toDouble(json['net_income']),
     );
   }
+
+  /// Convert DTO to Domain Entity
+  DailyPnl toEntity() => DailyPnl(
+        date: date,
+        revenue: revenue,
+        cogs: cogs,
+        opex: opex,
+        netIncome: netIncome,
+      );
 
   static double _toDouble(dynamic value) {
     if (value == null) return 0.0;

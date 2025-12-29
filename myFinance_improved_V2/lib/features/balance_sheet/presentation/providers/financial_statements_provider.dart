@@ -3,8 +3,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../auth/di/auth_providers.dart';
 import '../../data/datasources/balance_sheet_data_source.dart';
-import '../../data/models/pnl_summary_dto.dart';
-import '../../data/models/bs_summary_dto.dart';
+import '../../data/repositories/financial_statements_repository_impl.dart';
+import '../../domain/entities/pnl_summary.dart';
+import '../../domain/entities/bs_summary.dart';
+import '../../domain/entities/daily_pnl.dart';
+import '../../domain/repositories/financial_statements_repository.dart';
 
 part 'financial_statements_provider.g.dart';
 
@@ -15,6 +18,17 @@ part 'financial_statements_provider.g.dart';
 @riverpod
 BalanceSheetDataSource balanceSheetDataSource(Ref ref) {
   return BalanceSheetDataSource(ref.watch(supabaseClientProvider));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// REPOSITORY PROVIDER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@riverpod
+FinancialStatementsRepository financialStatementsRepository(Ref ref) {
+  return FinancialStatementsRepositoryImpl(
+    ref.watch(balanceSheetDataSourceProvider),
+  );
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -148,7 +162,7 @@ class FinancialStatementsPageNotifier extends _$FinancialStatementsPageNotifier 
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// DATA PROVIDERS
+// PARAMS CLASSES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class PnlParams {
@@ -184,32 +198,6 @@ class PnlParams {
       companyId, startDate, endDate, storeId, prevStartDate, prevEndDate);
 }
 
-/// P&L Summary Provider
-@riverpod
-Future<PnlSummaryModel> pnlSummary(Ref ref, PnlParams params) async {
-  final dataSource = ref.read(balanceSheetDataSourceProvider);
-  return dataSource.getPnlSummary(
-    companyId: params.companyId,
-    startDate: params.startDate,
-    endDate: params.endDate,
-    storeId: params.storeId,
-    prevStartDate: params.prevStartDate,
-    prevEndDate: params.prevEndDate,
-  );
-}
-
-/// P&L Detail Provider
-@riverpod
-Future<List<PnlDetailRowModel>> pnlDetail(Ref ref, PnlParams params) async {
-  final dataSource = ref.read(balanceSheetDataSourceProvider);
-  return dataSource.getPnlDetail(
-    companyId: params.companyId,
-    startDate: params.startDate,
-    endDate: params.endDate,
-    storeId: params.storeId,
-  );
-}
-
 class BsParams {
   final String companyId;
   final DateTime asOfDate;
@@ -235,29 +223,6 @@ class BsParams {
   @override
   int get hashCode =>
       Object.hash(companyId, asOfDate, storeId, compareDate);
-}
-
-/// B/S Summary Provider
-@riverpod
-Future<BsSummaryModel> bsSummary(Ref ref, BsParams params) async {
-  final dataSource = ref.read(balanceSheetDataSourceProvider);
-  return dataSource.getBsSummary(
-    companyId: params.companyId,
-    asOfDate: params.asOfDate,
-    storeId: params.storeId,
-    compareDate: params.compareDate,
-  );
-}
-
-/// B/S Detail Provider
-@riverpod
-Future<List<BsDetailRowModel>> bsDetail(Ref ref, BsParams params) async {
-  final dataSource = ref.read(balanceSheetDataSourceProvider);
-  return dataSource.getBsDetail(
-    companyId: params.companyId,
-    asOfDate: params.asOfDate,
-    storeId: params.storeId,
-  );
 }
 
 class TrendParams {
@@ -286,11 +251,64 @@ class TrendParams {
   int get hashCode => Object.hash(companyId, startDate, endDate, storeId);
 }
 
-/// Daily P&L Trend Provider
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DATA PROVIDERS (using Repository, returning Domain Entities)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/// P&L Summary Provider - returns Domain Entity
 @riverpod
-Future<List<DailyPnlModel>> dailyPnlTrend(Ref ref, TrendParams params) async {
-  final dataSource = ref.read(balanceSheetDataSourceProvider);
-  return dataSource.getDailyPnlTrend(
+Future<PnlSummary> pnlSummary(Ref ref, PnlParams params) async {
+  final repository = ref.read(financialStatementsRepositoryProvider);
+  return repository.getPnlSummary(
+    companyId: params.companyId,
+    startDate: params.startDate,
+    endDate: params.endDate,
+    storeId: params.storeId,
+    prevStartDate: params.prevStartDate,
+    prevEndDate: params.prevEndDate,
+  );
+}
+
+/// P&L Detail Provider - returns Domain Entities
+@riverpod
+Future<List<PnlDetailRow>> pnlDetail(Ref ref, PnlParams params) async {
+  final repository = ref.read(financialStatementsRepositoryProvider);
+  return repository.getPnlDetail(
+    companyId: params.companyId,
+    startDate: params.startDate,
+    endDate: params.endDate,
+    storeId: params.storeId,
+  );
+}
+
+/// B/S Summary Provider - returns Domain Entity
+@riverpod
+Future<BsSummary> bsSummary(Ref ref, BsParams params) async {
+  final repository = ref.read(financialStatementsRepositoryProvider);
+  return repository.getBsSummary(
+    companyId: params.companyId,
+    asOfDate: params.asOfDate,
+    storeId: params.storeId,
+    compareDate: params.compareDate,
+  );
+}
+
+/// B/S Detail Provider - returns Domain Entities
+@riverpod
+Future<List<BsDetailRow>> bsDetail(Ref ref, BsParams params) async {
+  final repository = ref.read(financialStatementsRepositoryProvider);
+  return repository.getBsDetail(
+    companyId: params.companyId,
+    asOfDate: params.asOfDate,
+    storeId: params.storeId,
+  );
+}
+
+/// Daily P&L Trend Provider - returns Domain Entities
+@riverpod
+Future<List<DailyPnl>> dailyPnlTrend(Ref ref, TrendParams params) async {
+  final repository = ref.read(financialStatementsRepositoryProvider);
+  return repository.getDailyPnlTrend(
     companyId: params.companyId,
     startDate: params.startDate,
     endDate: params.endDate,
@@ -301,7 +319,6 @@ Future<List<DailyPnlModel>> dailyPnlTrend(Ref ref, TrendParams params) async {
 /// Currency Provider
 @riverpod
 Future<String> companyCurrency(Ref ref, String companyId) async {
-  final dataSource = ref.read(balanceSheetDataSourceProvider);
-  final currency = await dataSource.getCurrencyRaw(companyId);
-  return currency['symbol'] as String? ?? '₫';
+  final repository = ref.read(financialStatementsRepositoryProvider);
+  return repository.getCurrencySymbol(companyId);
 }

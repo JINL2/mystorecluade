@@ -290,7 +290,7 @@ class __$$PnlSummaryModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$PnlSummaryModelImpl implements _PnlSummaryModel {
+class _$PnlSummaryModelImpl extends _PnlSummaryModel {
   const _$PnlSummaryModelImpl(
       {this.revenue = 0,
       this.cogs = 0,
@@ -305,7 +305,8 @@ class _$PnlSummaryModelImpl implements _PnlSummaryModel {
       @JsonKey(name: 'prev_revenue') this.prevRevenue,
       @JsonKey(name: 'prev_net_income') this.prevNetIncome,
       @JsonKey(name: 'revenue_change_pct') this.revenueChangePct,
-      @JsonKey(name: 'net_income_change_pct') this.netIncomeChangePct});
+      @JsonKey(name: 'net_income_change_pct') this.netIncomeChangePct})
+      : super._();
 
   factory _$PnlSummaryModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$PnlSummaryModelImplFromJson(json);
@@ -431,7 +432,7 @@ class _$PnlSummaryModelImpl implements _PnlSummaryModel {
   }
 }
 
-abstract class _PnlSummaryModel implements PnlSummaryModel {
+abstract class _PnlSummaryModel extends PnlSummaryModel {
   const factory _PnlSummaryModel(
       {final double revenue,
       final double cogs,
@@ -448,6 +449,7 @@ abstract class _PnlSummaryModel implements PnlSummaryModel {
       @JsonKey(name: 'revenue_change_pct') final double? revenueChangePct,
       @JsonKey(name: 'net_income_change_pct')
       final double? netIncomeChangePct}) = _$PnlSummaryModelImpl;
+  const _PnlSummaryModel._() : super._();
 
   factory _PnlSummaryModel.fromJson(Map<String, dynamic> json) =
       _$PnlSummaryModelImpl.fromJson;
@@ -649,13 +651,14 @@ class __$$PnlDetailRowModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$PnlDetailRowModelImpl implements _PnlDetailRowModel {
+class _$PnlDetailRowModelImpl extends _PnlDetailRowModel {
   const _$PnlDetailRowModelImpl(
       {this.section = '',
       @JsonKey(name: 'section_order') this.sectionOrder = 0,
       @JsonKey(name: 'account_code') this.accountCode = '',
       @JsonKey(name: 'account_name') this.accountName = '',
-      this.amount = 0});
+      this.amount = 0})
+      : super._();
 
   factory _$PnlDetailRowModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$PnlDetailRowModelImplFromJson(json);
@@ -718,13 +721,14 @@ class _$PnlDetailRowModelImpl implements _PnlDetailRowModel {
   }
 }
 
-abstract class _PnlDetailRowModel implements PnlDetailRowModel {
+abstract class _PnlDetailRowModel extends PnlDetailRowModel {
   const factory _PnlDetailRowModel(
       {final String section,
       @JsonKey(name: 'section_order') final int sectionOrder,
       @JsonKey(name: 'account_code') final String accountCode,
       @JsonKey(name: 'account_name') final String accountName,
       final double amount}) = _$PnlDetailRowModelImpl;
+  const _PnlDetailRowModel._() : super._();
 
   factory _PnlDetailRowModel.fromJson(Map<String, dynamic> json) =
       _$PnlDetailRowModelImpl.fromJson;
@@ -889,13 +893,14 @@ class __$$DailyPnlModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$DailyPnlModelImpl implements _DailyPnlModel {
+class _$DailyPnlModelImpl extends _DailyPnlModel {
   const _$DailyPnlModelImpl(
       {required this.date,
       this.revenue = 0,
       this.cogs = 0,
       this.opex = 0,
-      @JsonKey(name: 'net_income') this.netIncome = 0});
+      @JsonKey(name: 'net_income') this.netIncome = 0})
+      : super._();
 
   @override
   final DateTime date;
@@ -943,7 +948,7 @@ class _$DailyPnlModelImpl implements _DailyPnlModel {
       __$$DailyPnlModelImplCopyWithImpl<_$DailyPnlModelImpl>(this, _$identity);
 }
 
-abstract class _DailyPnlModel implements DailyPnlModel {
+abstract class _DailyPnlModel extends DailyPnlModel {
   const factory _DailyPnlModel(
           {required final DateTime date,
           final double revenue,
@@ -951,6 +956,7 @@ abstract class _DailyPnlModel implements DailyPnlModel {
           final double opex,
           @JsonKey(name: 'net_income') final double netIncome}) =
       _$DailyPnlModelImpl;
+  const _DailyPnlModel._() : super._();
 
   @override
   DateTime get date;

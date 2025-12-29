@@ -7,7 +7,7 @@ part of 'financial_statements_provider.dart';
 // **************************************************************************
 
 String _$balanceSheetDataSourceHash() =>
-    r'14ebcb2c4e1cb0f3778d4b2f862c62abea31684d';
+    r'93d4ea79fb386d5a216857968c54eaa24be317b5';
 
 /// See also [balanceSheetDataSource].
 @ProviderFor(balanceSheetDataSource)
@@ -26,7 +26,27 @@ final balanceSheetDataSourceProvider =
 // ignore: unused_element
 typedef BalanceSheetDataSourceRef
     = AutoDisposeProviderRef<BalanceSheetDataSource>;
-String _$pnlSummaryHash() => r'6c9805b4f8aec5cff00b3ae233046947425a2054';
+String _$financialStatementsRepositoryHash() =>
+    r'3076cc28817ff92322a93a8f8cf424eff6299d6b';
+
+/// See also [financialStatementsRepository].
+@ProviderFor(financialStatementsRepository)
+final financialStatementsRepositoryProvider =
+    AutoDisposeProvider<FinancialStatementsRepository>.internal(
+  financialStatementsRepository,
+  name: r'financialStatementsRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$financialStatementsRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FinancialStatementsRepositoryRef
+    = AutoDisposeProviderRef<FinancialStatementsRepository>;
+String _$pnlSummaryHash() => r'c16b826acee2b9add86896a2e7834705f272853f';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -49,22 +69,22 @@ class _SystemHash {
   }
 }
 
-/// P&L Summary Provider
+/// P&L Summary Provider - returns Domain Entity
 ///
 /// Copied from [pnlSummary].
 @ProviderFor(pnlSummary)
 const pnlSummaryProvider = PnlSummaryFamily();
 
-/// P&L Summary Provider
+/// P&L Summary Provider - returns Domain Entity
 ///
 /// Copied from [pnlSummary].
-class PnlSummaryFamily extends Family<AsyncValue<PnlSummaryModel>> {
-  /// P&L Summary Provider
+class PnlSummaryFamily extends Family<AsyncValue<PnlSummary>> {
+  /// P&L Summary Provider - returns Domain Entity
   ///
   /// Copied from [pnlSummary].
   const PnlSummaryFamily();
 
-  /// P&L Summary Provider
+  /// P&L Summary Provider - returns Domain Entity
   ///
   /// Copied from [pnlSummary].
   PnlSummaryProvider call(
@@ -99,11 +119,11 @@ class PnlSummaryFamily extends Family<AsyncValue<PnlSummaryModel>> {
   String? get name => r'pnlSummaryProvider';
 }
 
-/// P&L Summary Provider
+/// P&L Summary Provider - returns Domain Entity
 ///
 /// Copied from [pnlSummary].
-class PnlSummaryProvider extends AutoDisposeFutureProvider<PnlSummaryModel> {
-  /// P&L Summary Provider
+class PnlSummaryProvider extends AutoDisposeFutureProvider<PnlSummary> {
+  /// P&L Summary Provider - returns Domain Entity
   ///
   /// Copied from [pnlSummary].
   PnlSummaryProvider(
@@ -139,7 +159,7 @@ class PnlSummaryProvider extends AutoDisposeFutureProvider<PnlSummaryModel> {
 
   @override
   Override overrideWith(
-    FutureOr<PnlSummaryModel> Function(PnlSummaryRef provider) create,
+    FutureOr<PnlSummary> Function(PnlSummaryRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -156,7 +176,7 @@ class PnlSummaryProvider extends AutoDisposeFutureProvider<PnlSummaryModel> {
   }
 
   @override
-  AutoDisposeFutureProviderElement<PnlSummaryModel> createElement() {
+  AutoDisposeFutureProviderElement<PnlSummary> createElement() {
     return _PnlSummaryProviderElement(this);
   }
 
@@ -176,38 +196,37 @@ class PnlSummaryProvider extends AutoDisposeFutureProvider<PnlSummaryModel> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin PnlSummaryRef on AutoDisposeFutureProviderRef<PnlSummaryModel> {
+mixin PnlSummaryRef on AutoDisposeFutureProviderRef<PnlSummary> {
   /// The parameter `params` of this provider.
   PnlParams get params;
 }
 
 class _PnlSummaryProviderElement
-    extends AutoDisposeFutureProviderElement<PnlSummaryModel>
-    with PnlSummaryRef {
+    extends AutoDisposeFutureProviderElement<PnlSummary> with PnlSummaryRef {
   _PnlSummaryProviderElement(super.provider);
 
   @override
   PnlParams get params => (origin as PnlSummaryProvider).params;
 }
 
-String _$pnlDetailHash() => r'a7ca5f843c831936adb554372ac1575dec56ad51';
+String _$pnlDetailHash() => r'3e400bff7e1c4da3738ec5984c2aa850379bf73f';
 
-/// P&L Detail Provider
+/// P&L Detail Provider - returns Domain Entities
 ///
 /// Copied from [pnlDetail].
 @ProviderFor(pnlDetail)
 const pnlDetailProvider = PnlDetailFamily();
 
-/// P&L Detail Provider
+/// P&L Detail Provider - returns Domain Entities
 ///
 /// Copied from [pnlDetail].
-class PnlDetailFamily extends Family<AsyncValue<List<PnlDetailRowModel>>> {
-  /// P&L Detail Provider
+class PnlDetailFamily extends Family<AsyncValue<List<PnlDetailRow>>> {
+  /// P&L Detail Provider - returns Domain Entities
   ///
   /// Copied from [pnlDetail].
   const PnlDetailFamily();
 
-  /// P&L Detail Provider
+  /// P&L Detail Provider - returns Domain Entities
   ///
   /// Copied from [pnlDetail].
   PnlDetailProvider call(
@@ -242,12 +261,11 @@ class PnlDetailFamily extends Family<AsyncValue<List<PnlDetailRowModel>>> {
   String? get name => r'pnlDetailProvider';
 }
 
-/// P&L Detail Provider
+/// P&L Detail Provider - returns Domain Entities
 ///
 /// Copied from [pnlDetail].
-class PnlDetailProvider
-    extends AutoDisposeFutureProvider<List<PnlDetailRowModel>> {
-  /// P&L Detail Provider
+class PnlDetailProvider extends AutoDisposeFutureProvider<List<PnlDetailRow>> {
+  /// P&L Detail Provider - returns Domain Entities
   ///
   /// Copied from [pnlDetail].
   PnlDetailProvider(
@@ -282,7 +300,7 @@ class PnlDetailProvider
 
   @override
   Override overrideWith(
-    FutureOr<List<PnlDetailRowModel>> Function(PnlDetailRef provider) create,
+    FutureOr<List<PnlDetailRow>> Function(PnlDetailRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -299,7 +317,7 @@ class PnlDetailProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<PnlDetailRowModel>> createElement() {
+  AutoDisposeFutureProviderElement<List<PnlDetailRow>> createElement() {
     return _PnlDetailProviderElement(this);
   }
 
@@ -319,13 +337,13 @@ class PnlDetailProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin PnlDetailRef on AutoDisposeFutureProviderRef<List<PnlDetailRowModel>> {
+mixin PnlDetailRef on AutoDisposeFutureProviderRef<List<PnlDetailRow>> {
   /// The parameter `params` of this provider.
   PnlParams get params;
 }
 
 class _PnlDetailProviderElement
-    extends AutoDisposeFutureProviderElement<List<PnlDetailRowModel>>
+    extends AutoDisposeFutureProviderElement<List<PnlDetailRow>>
     with PnlDetailRef {
   _PnlDetailProviderElement(super.provider);
 
@@ -333,24 +351,24 @@ class _PnlDetailProviderElement
   PnlParams get params => (origin as PnlDetailProvider).params;
 }
 
-String _$bsSummaryHash() => r'9f8e7e7a7a3d9b2181d9e7b3871685e7e9fbb54c';
+String _$bsSummaryHash() => r'061a3d28cfcfbe6d1fba73eb6ff96228533de084';
 
-/// B/S Summary Provider
+/// B/S Summary Provider - returns Domain Entity
 ///
 /// Copied from [bsSummary].
 @ProviderFor(bsSummary)
 const bsSummaryProvider = BsSummaryFamily();
 
-/// B/S Summary Provider
+/// B/S Summary Provider - returns Domain Entity
 ///
 /// Copied from [bsSummary].
-class BsSummaryFamily extends Family<AsyncValue<BsSummaryModel>> {
-  /// B/S Summary Provider
+class BsSummaryFamily extends Family<AsyncValue<BsSummary>> {
+  /// B/S Summary Provider - returns Domain Entity
   ///
   /// Copied from [bsSummary].
   const BsSummaryFamily();
 
-  /// B/S Summary Provider
+  /// B/S Summary Provider - returns Domain Entity
   ///
   /// Copied from [bsSummary].
   BsSummaryProvider call(
@@ -385,11 +403,11 @@ class BsSummaryFamily extends Family<AsyncValue<BsSummaryModel>> {
   String? get name => r'bsSummaryProvider';
 }
 
-/// B/S Summary Provider
+/// B/S Summary Provider - returns Domain Entity
 ///
 /// Copied from [bsSummary].
-class BsSummaryProvider extends AutoDisposeFutureProvider<BsSummaryModel> {
-  /// B/S Summary Provider
+class BsSummaryProvider extends AutoDisposeFutureProvider<BsSummary> {
+  /// B/S Summary Provider - returns Domain Entity
   ///
   /// Copied from [bsSummary].
   BsSummaryProvider(
@@ -424,7 +442,7 @@ class BsSummaryProvider extends AutoDisposeFutureProvider<BsSummaryModel> {
 
   @override
   Override overrideWith(
-    FutureOr<BsSummaryModel> Function(BsSummaryRef provider) create,
+    FutureOr<BsSummary> Function(BsSummaryRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -441,7 +459,7 @@ class BsSummaryProvider extends AutoDisposeFutureProvider<BsSummaryModel> {
   }
 
   @override
-  AutoDisposeFutureProviderElement<BsSummaryModel> createElement() {
+  AutoDisposeFutureProviderElement<BsSummary> createElement() {
     return _BsSummaryProviderElement(this);
   }
 
@@ -461,37 +479,37 @@ class BsSummaryProvider extends AutoDisposeFutureProvider<BsSummaryModel> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin BsSummaryRef on AutoDisposeFutureProviderRef<BsSummaryModel> {
+mixin BsSummaryRef on AutoDisposeFutureProviderRef<BsSummary> {
   /// The parameter `params` of this provider.
   BsParams get params;
 }
 
 class _BsSummaryProviderElement
-    extends AutoDisposeFutureProviderElement<BsSummaryModel> with BsSummaryRef {
+    extends AutoDisposeFutureProviderElement<BsSummary> with BsSummaryRef {
   _BsSummaryProviderElement(super.provider);
 
   @override
   BsParams get params => (origin as BsSummaryProvider).params;
 }
 
-String _$bsDetailHash() => r'0fdc3af8d068f16259157c97c4e2af0c993569e9';
+String _$bsDetailHash() => r'729b04e3a4a539c53f1d80fec772723f5e0e6c80';
 
-/// B/S Detail Provider
+/// B/S Detail Provider - returns Domain Entities
 ///
 /// Copied from [bsDetail].
 @ProviderFor(bsDetail)
 const bsDetailProvider = BsDetailFamily();
 
-/// B/S Detail Provider
+/// B/S Detail Provider - returns Domain Entities
 ///
 /// Copied from [bsDetail].
-class BsDetailFamily extends Family<AsyncValue<List<BsDetailRowModel>>> {
-  /// B/S Detail Provider
+class BsDetailFamily extends Family<AsyncValue<List<BsDetailRow>>> {
+  /// B/S Detail Provider - returns Domain Entities
   ///
   /// Copied from [bsDetail].
   const BsDetailFamily();
 
-  /// B/S Detail Provider
+  /// B/S Detail Provider - returns Domain Entities
   ///
   /// Copied from [bsDetail].
   BsDetailProvider call(
@@ -526,12 +544,11 @@ class BsDetailFamily extends Family<AsyncValue<List<BsDetailRowModel>>> {
   String? get name => r'bsDetailProvider';
 }
 
-/// B/S Detail Provider
+/// B/S Detail Provider - returns Domain Entities
 ///
 /// Copied from [bsDetail].
-class BsDetailProvider
-    extends AutoDisposeFutureProvider<List<BsDetailRowModel>> {
-  /// B/S Detail Provider
+class BsDetailProvider extends AutoDisposeFutureProvider<List<BsDetailRow>> {
+  /// B/S Detail Provider - returns Domain Entities
   ///
   /// Copied from [bsDetail].
   BsDetailProvider(
@@ -566,7 +583,7 @@ class BsDetailProvider
 
   @override
   Override overrideWith(
-    FutureOr<List<BsDetailRowModel>> Function(BsDetailRef provider) create,
+    FutureOr<List<BsDetailRow>> Function(BsDetailRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -583,7 +600,7 @@ class BsDetailProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<BsDetailRowModel>> createElement() {
+  AutoDisposeFutureProviderElement<List<BsDetailRow>> createElement() {
     return _BsDetailProviderElement(this);
   }
 
@@ -603,13 +620,13 @@ class BsDetailProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin BsDetailRef on AutoDisposeFutureProviderRef<List<BsDetailRowModel>> {
+mixin BsDetailRef on AutoDisposeFutureProviderRef<List<BsDetailRow>> {
   /// The parameter `params` of this provider.
   BsParams get params;
 }
 
 class _BsDetailProviderElement
-    extends AutoDisposeFutureProviderElement<List<BsDetailRowModel>>
+    extends AutoDisposeFutureProviderElement<List<BsDetailRow>>
     with BsDetailRef {
   _BsDetailProviderElement(super.provider);
 
@@ -617,24 +634,24 @@ class _BsDetailProviderElement
   BsParams get params => (origin as BsDetailProvider).params;
 }
 
-String _$dailyPnlTrendHash() => r'870b37b76edb006749b9605773c9fed1a25990a5';
+String _$dailyPnlTrendHash() => r'c08e97a78aa2aec77663c8255c1626ec8a79aea7';
 
-/// Daily P&L Trend Provider
+/// Daily P&L Trend Provider - returns Domain Entities
 ///
 /// Copied from [dailyPnlTrend].
 @ProviderFor(dailyPnlTrend)
 const dailyPnlTrendProvider = DailyPnlTrendFamily();
 
-/// Daily P&L Trend Provider
+/// Daily P&L Trend Provider - returns Domain Entities
 ///
 /// Copied from [dailyPnlTrend].
-class DailyPnlTrendFamily extends Family<AsyncValue<List<DailyPnlModel>>> {
-  /// Daily P&L Trend Provider
+class DailyPnlTrendFamily extends Family<AsyncValue<List<DailyPnl>>> {
+  /// Daily P&L Trend Provider - returns Domain Entities
   ///
   /// Copied from [dailyPnlTrend].
   const DailyPnlTrendFamily();
 
-  /// Daily P&L Trend Provider
+  /// Daily P&L Trend Provider - returns Domain Entities
   ///
   /// Copied from [dailyPnlTrend].
   DailyPnlTrendProvider call(
@@ -669,12 +686,11 @@ class DailyPnlTrendFamily extends Family<AsyncValue<List<DailyPnlModel>>> {
   String? get name => r'dailyPnlTrendProvider';
 }
 
-/// Daily P&L Trend Provider
+/// Daily P&L Trend Provider - returns Domain Entities
 ///
 /// Copied from [dailyPnlTrend].
-class DailyPnlTrendProvider
-    extends AutoDisposeFutureProvider<List<DailyPnlModel>> {
-  /// Daily P&L Trend Provider
+class DailyPnlTrendProvider extends AutoDisposeFutureProvider<List<DailyPnl>> {
+  /// Daily P&L Trend Provider - returns Domain Entities
   ///
   /// Copied from [dailyPnlTrend].
   DailyPnlTrendProvider(
@@ -710,7 +726,7 @@ class DailyPnlTrendProvider
 
   @override
   Override overrideWith(
-    FutureOr<List<DailyPnlModel>> Function(DailyPnlTrendRef provider) create,
+    FutureOr<List<DailyPnl>> Function(DailyPnlTrendRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -727,7 +743,7 @@ class DailyPnlTrendProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<DailyPnlModel>> createElement() {
+  AutoDisposeFutureProviderElement<List<DailyPnl>> createElement() {
     return _DailyPnlTrendProviderElement(this);
   }
 
@@ -747,13 +763,13 @@ class DailyPnlTrendProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin DailyPnlTrendRef on AutoDisposeFutureProviderRef<List<DailyPnlModel>> {
+mixin DailyPnlTrendRef on AutoDisposeFutureProviderRef<List<DailyPnl>> {
   /// The parameter `params` of this provider.
   TrendParams get params;
 }
 
 class _DailyPnlTrendProviderElement
-    extends AutoDisposeFutureProviderElement<List<DailyPnlModel>>
+    extends AutoDisposeFutureProviderElement<List<DailyPnl>>
     with DailyPnlTrendRef {
   _DailyPnlTrendProviderElement(super.provider);
 
@@ -761,7 +777,7 @@ class _DailyPnlTrendProviderElement
   TrendParams get params => (origin as DailyPnlTrendProvider).params;
 }
 
-String _$companyCurrencyHash() => r'15ed4ab43ba14c734e87779b613036d7f9b3f268';
+String _$companyCurrencyHash() => r'af1da1eee79a3659fbded0e1c92002309ebd00e5';
 
 /// Currency Provider
 ///
@@ -904,7 +920,7 @@ class _CompanyCurrencyProviderElement
 }
 
 String _$financialStatementsPageNotifierHash() =>
-    r'de9dac3d86a1032bc743dcfb1506ee7a30821ce4';
+    r'7eeae1157faba419d44d22916d738ad5577cb126';
 
 /// See also [FinancialStatementsPageNotifier].
 @ProviderFor(FinancialStatementsPageNotifier)

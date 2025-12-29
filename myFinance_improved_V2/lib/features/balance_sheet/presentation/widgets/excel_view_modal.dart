@@ -5,8 +5,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../data/models/pnl_summary_dto.dart';
-import '../../data/models/bs_summary_dto.dart';
+import '../../domain/entities/pnl_summary.dart';
+import '../../domain/entities/bs_summary.dart';
 
 enum ExcelViewType { pnl, bs }
 
@@ -15,10 +15,10 @@ class ExcelViewModal extends StatelessWidget {
   final String title;
   final String dateRange;
   final String currencySymbol;
-  final List<PnlDetailRowModel>? details;
-  final PnlSummaryModel? summary;
-  final List<BsDetailRowModel>? bsDetails;
-  final BsSummaryModel? bsSummary;
+  final List<PnlDetailRow>? details;
+  final PnlSummary? summary;
+  final List<BsDetailRow>? bsDetails;
+  final BsSummary? bsSummary;
   final ExcelViewType type;
 
   const ExcelViewModal({
@@ -136,7 +136,7 @@ class ExcelViewModal extends StatelessWidget {
     final formatter = NumberFormat('#,##0', 'en_US');
 
     // Group by section
-    final sections = <String, List<PnlDetailRowModel>>{};
+    final sections = <String, List<PnlDetailRow>>{};
     for (final row in details!) {
       sections.putIfAbsent(row.section, () => []).add(row);
     }
@@ -208,7 +208,7 @@ class ExcelViewModal extends StatelessWidget {
     final formatter = NumberFormat('#,##0', 'en_US');
 
     // Group by section
-    final sections = <String, List<BsDetailRowModel>>{};
+    final sections = <String, List<BsDetailRow>>{};
     for (final row in bsDetails!) {
       sections.putIfAbsent(row.section, () => []).add(row);
     }
@@ -270,7 +270,7 @@ class ExcelViewModal extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
-                color: TossColors.warning.withOpacity(0.1),
+                color: TossColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Row(

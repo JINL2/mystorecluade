@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../domain/entities/bs_summary.dart';
+
 part 'bs_summary_dto.freezed.dart';
 part 'bs_summary_dto.g.dart';
 
@@ -33,6 +35,22 @@ class BsSummaryModel with _$BsSummaryModel {
   /// Whether the balance sheet is balanced (Assets = Liabilities + Equity)
   bool get isBalanced => balanceCheck.abs() < 0.01;
 
+  /// Convert DTO to Domain Entity
+  BsSummary toEntity() => BsSummary(
+        totalAssets: totalAssets,
+        currentAssets: currentAssets,
+        nonCurrentAssets: nonCurrentAssets,
+        totalLiabilities: totalLiabilities,
+        currentLiabilities: currentLiabilities,
+        nonCurrentLiabilities: nonCurrentLiabilities,
+        totalEquity: totalEquity,
+        balanceCheck: balanceCheck,
+        prevTotalAssets: prevTotalAssets,
+        prevTotalEquity: prevTotalEquity,
+        assetsChangePct: assetsChangePct,
+        equityChangePct: equityChangePct,
+      );
+
   factory BsSummaryModel.fromJson(Map<String, dynamic> json) =>
       _$BsSummaryModelFromJson(_parseNumericFields(json));
 
@@ -64,6 +82,8 @@ class BsSummaryModel with _$BsSummaryModel {
 /// B/S Detail Row from get_bs_detail() RPC
 @freezed
 class BsDetailRowModel with _$BsDetailRowModel {
+  const BsDetailRowModel._();
+
   const factory BsDetailRowModel({
     @Default('') String section,
     @JsonKey(name: 'section_order') @Default(0) int sectionOrder,
@@ -74,6 +94,15 @@ class BsDetailRowModel with _$BsDetailRowModel {
 
   factory BsDetailRowModel.fromJson(Map<String, dynamic> json) =>
       _$BsDetailRowModelFromJson(_parseNumericFields(json));
+
+  /// Convert DTO to Domain Entity
+  BsDetailRow toEntity() => BsDetailRow(
+        section: section,
+        sectionOrder: sectionOrder,
+        accountCode: accountCode,
+        accountName: accountName,
+        balance: balance,
+      );
 
   static Map<String, dynamic> _parseNumericFields(Map<String, dynamic> json) {
     final result = Map<String, dynamic>.from(json);
