@@ -25,7 +25,7 @@ class _ReceivingSubmitDialogState extends State<ReceivingSubmitDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Submit Receiving Session?'),
-      contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      contentPadding: const EdgeInsets.fromLTRB(TossSpacing.space6, TossSpacing.space4, TossSpacing.space6, 0),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +70,7 @@ class _ReceivingSubmitDialogState extends State<ReceivingSubmitDialog> {
                         },
                         activeColor: TossColors.success,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                       ),
                     ),
@@ -103,7 +103,7 @@ class _ReceivingSubmitDialogState extends State<ReceivingSubmitDialog> {
           ),
         ],
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      actionsPadding: const EdgeInsets.all(TossSpacing.space4),
       actions: [
         Row(
           children: [
@@ -111,7 +111,7 @@ class _ReceivingSubmitDialogState extends State<ReceivingSubmitDialog> {
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
@@ -119,13 +119,13 @@ class _ReceivingSubmitDialogState extends State<ReceivingSubmitDialog> {
                 child: const Text('Cancel'),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: ElevatedButton(
                 onPressed: () => widget.onSubmit(_isFinal),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),

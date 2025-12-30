@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
@@ -106,7 +107,7 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,8 +153,8 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
                   borderSide: const BorderSide(color: TossColors.primary),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                  horizontal: TossSpacing.space4,
+                  vertical: TossSpacing.space3,
                 ),
               ),
             ),
@@ -208,7 +209,7 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                       shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(TossBorderRadius.md),

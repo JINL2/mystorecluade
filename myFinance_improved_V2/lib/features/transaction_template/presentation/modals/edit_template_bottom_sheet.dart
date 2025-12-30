@@ -14,10 +14,11 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
@@ -308,7 +309,7 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
         );
 
         if (account != null && account.accountCode != null) {
-          state.accountCode = account.accountCode;
+          state.accountCode = account.accountCode as String?;
           debugPrint('📝 Loaded account_code ${account.accountCode} for account ${state.accountId}');
         }
       }
@@ -887,10 +888,24 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
   Widget _buildEntryCashLocationSelector(int index, _EntryEditState entryState) {
     final appState = ref.watch(appStateProvider);
     final storeId = appState.storeChoosen;
+    final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
 
-    return AutonomousCashLocationSelector(
-      storeId: storeId,
-      selectedLocationId: entryState.cashLocationId,
+    return TossDropdown<String>(
+      label: 'Cash Location',
+      hint: 'Select cash location',
+      value: entryState.cashLocationId,
+      isLoading: cashLocationsAsync.isLoading,
+      items: cashLocationsAsync.maybeWhen(
+        data: (locations) => locations
+            .where((l) => storeId.isEmpty || l.storeId == storeId || l.isCompanyWide)
+            .map((l) => TossDropdownItem(
+                  value: l.id,
+                  label: l.name,
+                  subtitle: l.type,
+                ))
+            .toList(),
+        orElse: () => [],
+      ),
       onChanged: (cashLocationId) {
         setState(() {
           entryState.cashLocationId = cashLocationId;
@@ -1204,12 +1219,33 @@ class _EditTemplateBottomSheetState extends ConsumerState<EditTemplateBottomShee
   /// Counterparty Cash Location selector for entry (only for internal counterparty)
   Widget _buildCounterpartyCashLocationSelector(int index, _EntryEditState entryState) {
     // Use counterparty's linked company and store for cash location lookup
-    return AutonomousCashLocationSelector(
-      companyId: entryState.linkedCompanyId, // Counterparty's company
-      storeId: entryState.counterpartyStoreId, // Counterparty's selected store
-      selectedLocationId: entryState.counterpartyCashLocationId,
-      label: 'Counterparty Cash Location *', // Asterisk indicates required
-      showScopeTabs: entryState.counterpartyStoreId != null, // Show tabs only if store is selected
+    if (entryState.linkedCompanyId == null) {
+      return const SizedBox.shrink();
+    }
+
+    final counterpartyCashLocationsAsync = ref.watch(
+      counterpartyCompanyCashLocationsProvider(entryState.linkedCompanyId!),
+    );
+
+    return TossDropdown<String>(
+      label: 'Counterparty Cash Location *',
+      hint: 'Select counterparty cash location',
+      value: entryState.counterpartyCashLocationId,
+      isLoading: counterpartyCashLocationsAsync.isLoading,
+      items: counterpartyCashLocationsAsync.maybeWhen(
+        data: (locations) => locations
+            .where((l) =>
+                entryState.counterpartyStoreId == null ||
+                l.storeId == entryState.counterpartyStoreId ||
+                l.isCompanyWide)
+            .map((l) => TossDropdownItem(
+                  value: l.id,
+                  label: l.name,
+                  subtitle: l.type,
+                ))
+            .toList(),
+        orElse: () => [],
+      ),
       onChanged: (cashLocationId) {
         setState(() {
           entryState.counterpartyCashLocationId = cashLocationId;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
 /// Step navigation buttons for multi-step counter party form
 ///
@@ -45,7 +45,7 @@ class StepNavigation extends StatelessWidget {
             // Back/Cancel button
             if (currentStep > 0)
               Expanded(
-                child: TossButton1.secondary(
+                child: TossButton.secondary(
                   text: 'Back',
                   onPressed: isLoading ? null : onPrevious,
                   leadingIcon: const Icon(Icons.arrow_back, size: 18),
@@ -54,7 +54,7 @@ class StepNavigation extends StatelessWidget {
               )
             else
               Expanded(
-                child: TossButton1.secondary(
+                child: TossButton.secondary(
                   text: 'Cancel',
                   onPressed: isLoading ? null : onCancel,
                   fullWidth: true,
@@ -66,7 +66,7 @@ class StepNavigation extends StatelessWidget {
             // Next/Create/Update button
             Expanded(
               flex: 2,
-              child: TossButton1.primary(
+              child: TossButton.primary(
                 text: _getNextButtonText(),
                 onPressed: !isCurrentStepValid ? null : onNext,
                 isEnabled: isCurrentStepValid && !isLoading,

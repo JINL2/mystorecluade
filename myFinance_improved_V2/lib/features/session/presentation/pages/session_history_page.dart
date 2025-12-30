@@ -40,7 +40,7 @@ class SessionHistoryPage extends ConsumerWidget {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(TossSpacing.space1),
                     decoration: const BoxDecoration(
                       color: TossColors.primary,
                       shape: BoxShape.circle,

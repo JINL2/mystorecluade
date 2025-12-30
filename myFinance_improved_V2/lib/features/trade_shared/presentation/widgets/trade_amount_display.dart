@@ -149,7 +149,7 @@ class TradeAmountComparison extends StatelessWidget {
           ),
           const SizedBox(height: TossSpacing.space3),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             child: LinearProgressIndicator(
               value: progressValue.clamp(0.0, 1.0),
               backgroundColor: TossColors.gray200,
@@ -319,7 +319,7 @@ class TradeLCAmountDisplay extends StatelessWidget {
         ),
         const SizedBox(height: TossSpacing.space2),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           child: LinearProgressIndicator(
             value: progressPercent.clamp(0.0, 1.0),
             backgroundColor: TossColors.gray200,

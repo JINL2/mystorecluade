@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -36,7 +37,7 @@ class ProductImageThumbnail extends StatelessWidget {
                 color: TossColors.gray200,
                 style: BorderStyle.solid,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: !_hasImages ? _buildPlaceholder() : _buildImage(),
           ),

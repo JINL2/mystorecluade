@@ -101,7 +101,7 @@ class _AttachmentThumbnail extends StatelessWidget {
           child: GestureDetector(
             onTap: onRemove,
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(TossSpacing.space1),
               decoration: const BoxDecoration(
                 color: TossColors.gray600,
                 shape: BoxShape.circle,

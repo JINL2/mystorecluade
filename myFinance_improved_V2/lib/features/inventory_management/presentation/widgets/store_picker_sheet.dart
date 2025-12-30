@@ -98,7 +98,7 @@ class StorePickerSheet extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: TossColors.primarySurface,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
                       child: Text(
                         '${store.stock}',

@@ -212,6 +212,7 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
       items: items,
       selectedId: _selectedStore?.id,
       showSubtitle: false,
+      showSearch: true,
       onItemSelected: (item) {
         final store = _stores.firstWhere((s) => s.id == item.id);
         setState(() {
@@ -243,6 +244,7 @@ class _CreateSessionDialogState extends ConsumerState<CreateSessionDialog> {
       items: items,
       selectedId: _selectedShipment?.shipmentId,
       showSubtitle: true,
+      showSearch: true,
       onItemSelected: (item) {
         final shipment = _shipments.firstWhere((s) => s.shipmentId == item.id);
         setState(() {

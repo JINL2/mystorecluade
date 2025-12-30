@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/index.dart';
 
 /// Balance card showing journal vs actual balances
 ///
@@ -28,13 +28,13 @@ class BalanceCard extends StatelessWidget {
     final currencyFormat = NumberFormat('#,##0', 'en_US');
 
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(TossSpacing.space4),
       elevation: 2,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

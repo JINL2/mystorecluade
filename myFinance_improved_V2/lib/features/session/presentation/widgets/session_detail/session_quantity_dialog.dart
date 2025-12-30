@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_quantity_stepper.dart';
 import '../../providers/states/session_detail_state.dart';
@@ -38,12 +40,12 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+      insetPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space10),
       child: Container(
         width: double.maxFinite,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -56,7 +58,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             // Product name
             Text(
               widget.item.productName,
@@ -76,7 +78,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                 ),
                 textAlign: TextAlign.center,
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.space6),
             // Quantity input using TossQuantityStepper
             TossQuantityStepper(
               initialValue: _quantity,
@@ -89,7 +91,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             // Rejected quantity toggle
             GestureDetector(
               onTap: () {
@@ -120,7 +122,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
             ),
             // Rejected quantity input (expandable)
             if (_showRejected) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: TossSpacing.space4),
               RejectedQuantityStepper(
                 initialValue: _rejected,
                 minValue: 0,
@@ -131,7 +133,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                 },
               ),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.space6),
             // Action buttons
             Row(
               children: [
@@ -140,10 +142,10 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
                       alignment: Alignment.center,
                       child: Text(
@@ -156,7 +158,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: TossSpacing.space3),
                 // Submit button
                 Expanded(
                   child: GestureDetector(
@@ -165,10 +167,10 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                       Navigator.pop(context);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                       decoration: BoxDecoration(
                         color: TossColors.primary,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
                       alignment: Alignment.center,
                       child: Text(

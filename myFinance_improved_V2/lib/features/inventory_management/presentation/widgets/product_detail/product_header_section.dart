@@ -139,7 +139,7 @@ class ProductHeaderSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: TossColors.primary,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           ),
           alignment: Alignment.center,
           child: Text(

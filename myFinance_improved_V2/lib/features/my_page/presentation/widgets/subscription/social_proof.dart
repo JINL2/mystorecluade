@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -49,7 +50,7 @@ class SocialProof extends StatelessWidget {
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             ),
             child: Column(
               children: [
@@ -71,7 +72,7 @@ class SocialProof extends StatelessWidget {
                       height: 32,
                       decoration: BoxDecoration(
                         color: const Color(0xFF3B82F6),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: const Center(
                         child: Text(

@@ -117,7 +117,7 @@ class TemplateSubscriptionCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: TossSpacing.space2,
-                      vertical: 4,
+                      vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
                       color: _getCategoryColor().withOpacity(0.05),
@@ -275,7 +275,7 @@ class TemplateSubscriptionCard extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.all(6),
+      padding: EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         shape: BoxShape.circle,

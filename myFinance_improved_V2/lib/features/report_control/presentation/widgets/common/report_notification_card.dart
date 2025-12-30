@@ -158,7 +158,7 @@ class ReportNotificationCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: TossSpacing.space2,
-                      vertical: 4,
+                      vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
@@ -194,7 +194,7 @@ class ReportNotificationCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: TossSpacing.space2,
-                      vertical: 4,
+                      vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withOpacity(0.05),
@@ -248,7 +248,7 @@ class ReportNotificationCard extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.all(6),
+      padding: EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         shape: BoxShape.circle,

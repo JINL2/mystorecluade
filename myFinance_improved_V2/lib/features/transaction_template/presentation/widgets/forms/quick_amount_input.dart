@@ -14,7 +14,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
+import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_currency_exchange_modal.dart';
 
 class QuickAmountInput extends StatefulWidget {
   final TextEditingController controller;
@@ -78,7 +78,7 @@ class _QuickAmountInputState extends State<QuickAmountInput> {
   Future<void> _showNumberpad() async {
     if (!widget.enabled) return;
     
-    await TossNumberpadModal.show(
+    await TossCurrencyExchangeModal.show(
       context: context,
       title: 'Enter ${widget.label}',
       initialValue: widget.controller.text.replaceAll(',', ''),

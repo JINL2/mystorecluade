@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/monthly_salary_report.dart';
 
 /// Notices Card for Salary Report
@@ -26,10 +26,10 @@ class SalaryNoticesCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -43,7 +43,7 @@ class SalaryNoticesCard extends StatelessWidget {
                 height: 32,
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: const Icon(
                   LucideIcons.bell,
@@ -52,10 +52,9 @@ class SalaryNoticesCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Notices',
-                style: TextStyle(
-                  fontSize: 14,
+                style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w600,
                   color: TossColors.gray900,
                 ),
@@ -69,8 +68,7 @@ class SalaryNoticesCard extends StatelessWidget {
                 ),
                 child: Text(
                   '${notices.length}',
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TossTextStyles.labelSmall.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray600,
                   ),
@@ -93,10 +91,10 @@ class SalaryNoticesCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: colors.background,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: colors.border),
       ),
       child: Column(
@@ -114,8 +112,7 @@ class SalaryNoticesCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   notice.title,
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: TossTextStyles.bodySmall.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colors.textColor,
                   ),
@@ -124,8 +121,7 @@ class SalaryNoticesCard extends StatelessWidget {
               if (notice.amountFormatted != null)
                 Text(
                   notice.amountFormatted!,
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: TossTextStyles.bodySmall.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colors.textColor,
                   ),
@@ -137,8 +133,7 @@ class SalaryNoticesCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               notice.message,
-              style: const TextStyle(
-                fontSize: 12,
+              style: TossTextStyles.bodySmall.copyWith(
                 color: TossColors.gray700,
                 height: 1.4,
               ),
@@ -157,8 +152,7 @@ class SalaryNoticesCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   notice.employeeName!,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.gray500,
                   ),
                 ),

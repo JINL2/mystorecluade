@@ -12,14 +12,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/providers/account_provider.dart';
+import '../../../../app/providers/cash_location_provider.dart';
+import '../../../../app/providers/counterparty_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
 import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
+import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 import '../../domain/entities/transaction_filter.dart';
@@ -77,6 +78,9 @@ class _TransactionFilterSheetState
   @override
   Widget build(BuildContext context) {
     final filterOptionsAsync = ref.watch(transactionFilterOptionsProvider);
+    final accountsAsync = ref.watch(currentAccountsProvider);
+    final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
+    final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
     final screenHeight = MediaQuery.of(context).size.height;
     final maxHeight = screenHeight * 0.8;
 
@@ -128,40 +132,72 @@ class _TransactionFilterSheetState
 
               const SizedBox(height: TossSpacing.space4),
 
-              // Account Selector
-              EnhancedAccountSelector(
-                selectedAccountId: _selectedAccountId,
-                contextType: 'transaction_filter',
-                showQuickAccess: true,
-                maxQuickItems: 5,
-                onAccountSelected: (account) {
-                  setState(() {
-                    _selectedAccountId = account.id;
-                    _selectedAccountIds = [account.id];
-                  });
-                },
+              // Account Selector - TossDropdown
+              TossDropdown<String>(
                 label: 'Account',
                 hint: 'All Accounts',
-                showSearch: true,
-                showTransactionCount: true,
+                value: _selectedAccountId,
+                isLoading: accountsAsync.isLoading,
+                items: accountsAsync.maybeWhen(
+                  data: (accounts) => accounts
+                      .map((a) => TossDropdownItem(
+                            value: a.id,
+                            label: a.name,
+                            subtitle: a.categoryTag,
+                          ))
+                      .toList(),
+                  orElse: () => [],
+                ),
+                onChanged: (accountId) {
+                  setState(() {
+                    _selectedAccountId = accountId;
+                    _selectedAccountIds = accountId != null ? [accountId] : null;
+                  });
+                },
               ),
 
               const SizedBox(height: TossSpacing.space4),
 
-              // Cash Location Selector
-              AutonomousCashLocationSelector(
-                selectedLocationId: _selectedCashLocationId,
-                onChanged: (value) =>
-                    setState(() => _selectedCashLocationId = value),
+              // Cash Location Selector - TossDropdown
+              TossDropdown<String>(
+                label: 'Cash Location',
+                hint: 'All Cash Locations',
+                value: _selectedCashLocationId,
+                isLoading: cashLocationsAsync.isLoading,
+                items: cashLocationsAsync.maybeWhen(
+                  data: (locations) => locations
+                      .map((l) => TossDropdownItem(
+                            value: l.id,
+                            label: l.name,
+                            subtitle: l.type,
+                          ))
+                      .toList(),
+                  orElse: () => [],
+                ),
+                onChanged: (locationId) =>
+                    setState(() => _selectedCashLocationId = locationId),
               ),
 
               const SizedBox(height: TossSpacing.space4),
 
-              // Counterparty Selector
-              AutonomousCounterpartySelector(
-                selectedCounterpartyId: _selectedCounterpartyId,
-                onChanged: (value) =>
-                    setState(() => _selectedCounterpartyId = value),
+              // Counterparty Selector - TossDropdown
+              TossDropdown<String>(
+                label: 'Counterparty',
+                hint: 'All Counterparties',
+                value: _selectedCounterpartyId,
+                isLoading: counterpartiesAsync.isLoading,
+                items: counterpartiesAsync.maybeWhen(
+                  data: (counterparties) => counterparties
+                      .map((c) => TossDropdownItem(
+                            value: c.id,
+                            label: c.name,
+                            subtitle: c.type,
+                          ))
+                      .toList(),
+                  orElse: () => [],
+                ),
+                onChanged: (counterpartyId) =>
+                    setState(() => _selectedCounterpartyId = counterpartyId),
               ),
 
               const SizedBox(height: TossSpacing.space4),

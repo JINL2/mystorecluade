@@ -150,7 +150,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
       onTap: () => _toggleCompanyExpansion(companyId),
       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(TossSpacing.space1),
         child: Icon(
           isSelected ? LucideIcons.chevronDown : LucideIcons.chevronRight,
           size: 18,
@@ -228,8 +228,8 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     return InkWell(
       onTap: () => _showCompanyMenuBottomSheet(context, ref, company),
       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: const Padding(
-        padding: EdgeInsets.all(4),
+      child: Padding(
+        padding: const EdgeInsets.all(TossSpacing.space1),
         child: Icon(
           LucideIcons.moreHorizontal,
           size: 18,
@@ -291,7 +291,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       child: Container(
         padding: const EdgeInsets.only(
-          left: 36,
+          left: TossSpacing.space8,
           right: TossSpacing.space2,
           top: TossSpacing.space2,
           bottom: TossSpacing.space2,
@@ -340,7 +340,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
         bottom: TossSpacing.space2,
       ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 36),
+        padding: const EdgeInsets.only(left: TossSpacing.space8),
         child: Text(
           'No stores',
           style: TossTextStyles.caption.copyWith(

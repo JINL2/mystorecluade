@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_icons.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../shared/widgets/common/toss_info_dialog.dart';
@@ -642,7 +643,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Widget _buildBasicInfoSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
         children: [
           // Product Status row
@@ -675,7 +676,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Widget _buildAttributesSection(InventoryMetadata? metadata) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
         children: [
           FormSectionHeader(
@@ -717,7 +718,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     final currencySymbol = inventoryState.baseCurrency?.displaySymbol ?? '₩';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
         children: [
           const FormSectionHeader(title: 'Pricing'),
@@ -744,7 +745,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Widget _buildInventorySection(InventoryMetadata? metadata) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
         children: [
           const FormSectionHeader(title: 'Inventory'),
@@ -800,7 +801,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Widget _buildBottomBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space2, TossSpacing.space4, TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white.withValues(alpha: 0.94),
       ),

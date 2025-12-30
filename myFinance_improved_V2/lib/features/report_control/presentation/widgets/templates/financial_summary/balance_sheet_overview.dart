@@ -4,7 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/report_detail.dart';
 
 /// Balance Sheet Overview with Visual Chart
@@ -25,13 +25,12 @@ class BalanceSheetOverview extends StatelessWidget {
       children: [
         // Section title with health score
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: TossSpacing.space3),
           child: Row(
             children: [
-              const Text(
+              Text(
                 'Balance Sheet',
-                style: TextStyle(
-                  fontSize: 16,
+                style: TossTextStyles.titleMedium.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.gray900,
                 ),
@@ -47,10 +46,10 @@ class BalanceSheetOverview extends StatelessWidget {
 
         // Main card with chart + metrics
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
@@ -159,10 +158,10 @@ class _HealthScoreBadge extends StatelessWidget {
     final color = _getColor();
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         border: Border.all(
           color: color.withOpacity(0.3),
           width: 1,
@@ -179,8 +178,7 @@ class _HealthScoreBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '${score.toStringAsFixed(0)} - ${_getLabel()}',
-            style: TextStyle(
-              fontSize: 12,
+            style: TossTextStyles.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -219,7 +217,7 @@ class _BalanceSheetBarChart extends StatelessWidget {
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (_) => TossColors.gray800,
             tooltipRoundedRadius: 8,
-            tooltipPadding: const EdgeInsets.all(8),
+            tooltipPadding: const EdgeInsets.all(TossSpacing.space2),
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               String label;
               switch (groupIndex) {
@@ -237,10 +235,9 @@ class _BalanceSheetBarChart extends StatelessWidget {
               }
               return BarTooltipItem(
                 '$label\n${_formatCurrency(rod.toY)}',
-                const TextStyle(
+                TossTextStyles.bodySmall.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
                 ),
               );
             },
@@ -277,7 +274,7 @@ class _BalanceSheetBarChart extends StatelessWidget {
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: TossSpacing.space2),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -285,8 +282,7 @@ class _BalanceSheetBarChart extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         text,
-                        style: const TextStyle(
-                          fontSize: 11,
+                        style: TossTextStyles.labelSmall.copyWith(
                           fontWeight: FontWeight.w500,
                           color: TossColors.gray700,
                         ),
@@ -305,8 +301,7 @@ class _BalanceSheetBarChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   _formatShortCurrency(value),
-                  style: const TextStyle(
-                    fontSize: 10,
+                  style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.gray600,
                   ),
                 );
@@ -425,10 +420,10 @@ class _MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray200,
           width: 1,
@@ -449,8 +444,7 @@ class _MetricCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TossTextStyles.labelSmall.copyWith(
                     fontWeight: FontWeight.w500,
                     color: TossColors.gray600,
                   ),
@@ -464,8 +458,7 @@ class _MetricCard extends StatelessWidget {
           // Value
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TossTextStyles.body.copyWith(
               fontWeight: FontWeight.bold,
               color: TossColors.gray900,
             ),
@@ -487,8 +480,7 @@ class _MetricCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   change,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: TossTextStyles.labelSmall.copyWith(
                     fontWeight: FontWeight.w500,
                     color: isPositive ? TossColors.success : TossColors.error,
                   ),

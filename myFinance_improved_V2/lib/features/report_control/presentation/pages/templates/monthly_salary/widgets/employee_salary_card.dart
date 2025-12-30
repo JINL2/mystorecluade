@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/monthly_salary_report.dart';
 
 /// Employee Salary Card
@@ -42,10 +42,10 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
     final hasWarnings = employee.hasWarnings && employee.warnings.isNotEmpty;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: hasWarnings ? const Color(0xFFFECACA) : TossColors.gray200,
         ),
@@ -64,9 +64,9 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
             onTap: hasWarnings
                 ? () => setState(() => _isExpanded = !_isExpanded)
                 : null,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 children: [
                   // Employee name row
@@ -87,8 +87,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                             employee.employeeName.isNotEmpty
                                 ? employee.employeeName[0].toUpperCase()
                                 : '?',
-                            style: TextStyle(
-                              fontSize: 16,
+                            style: TossTextStyles.titleMedium.copyWith(
                               fontWeight: FontWeight.w600,
                               color: hasWarnings
                                   ? const Color(0xFFDC2626)
@@ -108,8 +107,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                                 Flexible(
                                   child: Text(
                                     employee.employeeName,
-                                    style: const TextStyle(
-                                      fontSize: 15,
+                                    style: TossTextStyles.body.copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: TossColors.gray900,
                                     ),
@@ -125,14 +123,13 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFEDE9FE),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'Manager',
-                                      style: TextStyle(
-                                        fontSize: 10,
+                                      style: TossTextStyles.labelSmall.copyWith(
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF7C3AED),
+                                        color: const Color(0xFF7C3AED),
                                       ),
                                     ),
                                   ),
@@ -150,8 +147,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                         children: [
                           Text(
                             employee.salary.totalPaymentFormatted,
-                            style: const TextStyle(
-                              fontSize: 15,
+                            style: TossTextStyles.body.copyWith(
                               fontWeight: FontWeight.bold,
                               color: TossColors.gray900,
                             ),
@@ -169,10 +165,9 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                                 const SizedBox(width: 4),
                                 Text(
                                   '${employee.warningCount}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
+                                  style: TossTextStyles.bodySmall.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFFDC2626),
+                                    color: const Color(0xFFDC2626),
                                   ),
                                 ),
                               ],
@@ -248,11 +243,10 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
             color: const Color(0xFFF59E0B),
           ),
           const SizedBox(width: 4),
-          const Text(
+          Text(
             'No bank info',
-            style: TextStyle(
-              fontSize: 12,
-              color: Color(0xFFF59E0B),
+            style: TossTextStyles.bodySmall.copyWith(
+              color: const Color(0xFFF59E0B),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -262,8 +256,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
 
     return Text(
       '${bankInfo.bankName ?? ''} ${bankInfo.accountNumber != null ? '•••${bankInfo.accountNumber!.substring(bankInfo.accountNumber!.length > 4 ? bankInfo.accountNumber!.length - 4 : 0)}' : ''}',
-      style: const TextStyle(
-        fontSize: 12,
+      style: TossTextStyles.bodySmall.copyWith(
         color: TossColors.gray500,
       ),
     );
@@ -276,10 +269,10 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
   }) {
     final chipColor = color ?? TossColors.gray500;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -288,8 +281,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
           const SizedBox(width: 4),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 11,
+            style: TossTextStyles.labelSmall.copyWith(
               fontWeight: FontWeight.w500,
               color: chipColor,
             ),
@@ -315,7 +307,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
         children: [
           const Divider(height: 1, color: Color(0xFFFECACA)),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(TossSpacing.space3),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -330,10 +322,9 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                     const SizedBox(width: 6),
                     Text(
                       '${employee.warningCount} warnings • ${employee.warningTotalFormatted}',
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFFDC2626),
+                        color: const Color(0xFFDC2626),
                       ),
                     ),
                     if (hasSelfApproved) ...[
@@ -345,14 +336,13 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF3C7),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Self-approved',
-                          style: TextStyle(
-                            fontSize: 10,
+                          style: TossTextStyles.labelSmall.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFD97706),
+                            color: const Color(0xFFD97706),
                           ),
                         ),
                       ),
@@ -374,11 +364,11 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
 
   Widget _buildWarningItem(SalaryWarning warning) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
+      margin: EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
           color: warning.selfApproved
               ? const Color(0xFFFDE68A)
@@ -395,12 +385,11 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   warning.date,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TossTextStyles.labelSmall.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray700,
                   ),
@@ -409,10 +398,9 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
               const Spacer(),
               Text(
                 warning.amountFormatted,
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TossTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFDC2626),
+                  color: const Color(0xFFDC2626),
                 ),
               ),
             ],
@@ -423,8 +411,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
           // Message
           Text(
             warning.message,
-            style: const TextStyle(
-              fontSize: 12,
+            style: TossTextStyles.bodySmall.copyWith(
               color: TossColors.gray700,
             ),
           ),
@@ -444,8 +431,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
               const SizedBox(width: 4),
               Text(
                 warning.approvedBy,
-                style: TextStyle(
-                  fontSize: 11,
+                style: TossTextStyles.labelSmall.copyWith(
                   color: warning.selfApproved
                       ? const Color(0xFFD97706)
                       : TossColors.gray500,

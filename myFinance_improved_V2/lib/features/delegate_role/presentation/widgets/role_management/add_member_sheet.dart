@@ -7,7 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
 import '../../../di/delegate_role_providers.dart';
 import '../../providers/role_providers.dart';
@@ -350,7 +350,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                   TossSpacing.space5,
                   TossSpacing.space4,
                 ),
-                child: TossButton1.primary(
+                child: TossButton.primary(
                   text: 'Add Member',
                   fullWidth: true,
                   isLoading: _isAssigning,

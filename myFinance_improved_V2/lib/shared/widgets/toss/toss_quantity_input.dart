@@ -98,8 +98,13 @@ class _TossQuantityInputState extends State<TossQuantityInput> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.value.toString());
+    _controller.addListener(_onTextChange);
     _focusNode = FocusNode();
     _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onTextChange() {
+    setState(() {});
   }
 
   @override
@@ -113,6 +118,7 @@ class _TossQuantityInputState extends State<TossQuantityInput> {
   @override
   void dispose() {
     _focusNode.removeListener(_onFocusChange);
+    _controller.removeListener(_onTextChange);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -273,7 +279,7 @@ class _TossQuantityInputState extends State<TossQuantityInput> {
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 style: TossTextStyles.body.copyWith(
-                  color: widget.value == 0 ? TossColors.gray400 : _textColor,
+                  color: _controller.text.isNotEmpty && _controller.text != '0' ? _textColor : TossColors.gray400,
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: const InputDecoration(

@@ -202,7 +202,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     final entries = groupedInvoices.entries.toList();
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+      padding: const EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space1, TossSpacing.space3, 100),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) => _buildListItem(index, entries),
@@ -228,7 +228,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       for (final invoice in entry.value) {
         if (index == currentIndex) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: TossSpacing.space4),
             child: InvoiceListItem(
               invoice: invoice,
               onRefundPressed: _handleRefund,

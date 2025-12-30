@@ -189,7 +189,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         '$stockQuantity',

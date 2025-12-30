@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
-import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/index.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
@@ -157,9 +157,8 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
                       ),
                       child: Text(
                         '${state.unreadCount}',
-                        style: const TextStyle(
+                        style: TossTextStyles.labelSmall.copyWith(
                           color: Colors.white,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -178,7 +177,7 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
           if (state.errorMessage != null)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(TossSpacing.space3),
               color: TossColors.error.withOpacity(0.1),
               child: Row(
                 children: [

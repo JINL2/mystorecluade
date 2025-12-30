@@ -6,9 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/utils/datetime_utils.dart';
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/index.dart';
 import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
@@ -466,7 +464,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
           if (widget.stores.length > 1)
             Container(
               color: TossColors.white,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, 0),
               child: TossDropdown<String>(
                 label: 'Store',
                 value: widget.selectedStoreId,
@@ -488,7 +486,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
           // ============================================
           Container(
             color: TossColors.white,
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+            padding: const EdgeInsets.only(left: TossSpacing.space4, right: TossSpacing.space4, top: TossSpacing.space4, bottom: TossSpacing.space2),
             child: ScheduleHeader(
               cardKey: _todayShiftCardKey,
               todayShift: currentShift,
@@ -511,7 +509,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
           // ============================================
           Container(
             color: TossColors.white,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -659,7 +657,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
 
     if (selectedDateShifts.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32),
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space8),
         child: Center(
           child: Text(
             'No shifts on this day',
@@ -672,7 +670,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
     return Column(
       children: selectedDateShifts.map((card) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: TossSpacing.space2),
           child: _buildShiftCard(card),
         );
       }).toList(),
@@ -700,10 +698,10 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
     return GestureDetector(
       onTap: () => ShiftDetailDialog.show(context, shiftCard: card),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3, horizontal: TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(color: TossColors.gray200),
         ),
         child: Column(
@@ -773,7 +771,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Text(
         label,
@@ -886,7 +884,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
             right: 4,
             top: 4,
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(TossSpacing.space1),
               decoration: const BoxDecoration(
                 color: TossColors.error,
                 shape: BoxShape.circle,
@@ -974,7 +972,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
         if (widget.stores.length > 1)
           Container(
             color: TossColors.white,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, 0),
             child: TossDropdown<String>(
               label: 'Store',
               value: widget.selectedStoreId,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
@@ -101,7 +102,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
           padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.error.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
               color: TossColors.error.withValues(alpha: 0.3),
               width: 1,
@@ -378,7 +379,7 @@ class _FlashableLocationItemState extends State<_FlashableLocationItem>
             margin: const EdgeInsets.symmetric(horizontal: -TossSpacing.space2),
             decoration: BoxDecoration(
               color: _colorAnimation.value,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
             child: child,
           ),

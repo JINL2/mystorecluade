@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../../../shared/widgets/common/toss_white_card.dart';
 
 /// Salary trend chart section with interactive line graph
@@ -49,8 +48,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
         // Section title
         Text(
           'Salary Trend (Last 5 Weeks)',
-          style: TossTextStyles.bodyMedium.copyWith(
-            fontSize: 13,
+          style: TossTextStyles.bodySmall.copyWith(
             fontWeight: FontWeight.w700,
             color: TossColors.gray900,
           ),
@@ -60,7 +58,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
 
         // Chart card
         TossWhiteCard(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(TossSpacing.space3),
           showBorder: false,
           child: Column(
             children: [
@@ -100,8 +98,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
                     final isSelected = _selectedIndex == index;
                     return Text(
                       widget.weekLabels[index],
-                      style: TossTextStyles.caption.copyWith(
-                        fontSize: 10,
+                      style: TossTextStyles.labelSmall.copyWith(
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         color: isSelected ? TossColors.primary : TossColors.gray600,
                       ),
@@ -118,8 +115,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
         // Footer note
         Text(
           widget.footerNote,
-          style: TossTextStyles.caption.copyWith(
-            fontSize: 11,
+          style: TossTextStyles.labelSmall.copyWith(
             color: TossColors.gray600,
             height: 1.4,
           ),
@@ -267,8 +263,7 @@ class _TrendLinePainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: selectedValue,
-        style: const TextStyle(
-          fontSize: 10,
+        style: TossTextStyles.labelSmall.copyWith(
           fontWeight: FontWeight.w600,
           color: TossColors.gray900,
         ),

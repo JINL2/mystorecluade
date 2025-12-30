@@ -347,7 +347,7 @@ class _AssignedEmployeesStackState extends State<_AssignedEmployeesStack> {
                       if (currentEmployees.isEmpty) {
                         return Center(
                           child: Padding(
-                            padding: const EdgeInsets.all(40),
+                            padding: const EdgeInsets.all(TossSpacing.space10),
                             child: Text(
                               'No assigned employees',
                               style: TossTextStyles.body.copyWith(
@@ -411,7 +411,7 @@ class _AssignedEmployeesStackState extends State<_AssignedEmployeesStack> {
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
                                   color: TossColors.gray100,
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                                   border: Border.all(color: TossColors.gray200, width: 1),
                                 ),
                                 child: Row(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -74,7 +75,7 @@ class StoreRowItem extends StatelessWidget {
                     color: store.stock > 0
                         ? TossColors.primarySurface
                         : TossColors.gray100,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   alignment: Alignment.center,
                   child: Text(

@@ -4,7 +4,6 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_section_header.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
 
 class SettingsSection extends StatelessWidget {
   final VoidCallback onEditProfile;
@@ -58,142 +57,88 @@ class SettingsSection extends StatelessWidget {
             ),
           ),
 
-          // Settings Items - Modern vibrant design with primary brand color
-          TossListTile(
+          // Settings Items
+          _buildSettingsTile(
+            icon: Icons.person_outline,
             title: 'Edit Profile',
-            leading: Container(
-              width: TossSpacing.space10,
-              height: TossSpacing.space10,
-              decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: const Icon(
-                Icons.person_outline,
-                color: TossColors.primary,
-                size: TossSpacing.iconSM,
-              ),
-            ),
-            trailing: const Icon(
-              Icons.chevron_right,
-              color: TossColors.gray400,
-              size: TossSpacing.iconSM,
-            ),
             onTap: onEditProfile,
           ),
-
-          TossListTile(
+          _buildSettingsTile(
+            icon: Icons.notifications_outlined,
             title: 'Notifications',
-            leading: Container(
-              width: TossSpacing.space10,
-              height: TossSpacing.space10,
-              decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: const Icon(
-                Icons.notifications_outlined,
-                color: TossColors.primary,
-                size: TossSpacing.iconSM,
-              ),
-            ),
-            trailing: const Icon(
-              Icons.chevron_right,
-              color: TossColors.gray400,
-              size: TossSpacing.iconSM,
-            ),
             onTap: onNotifications,
           ),
-
-          TossListTile(
+          _buildSettingsTile(
+            icon: Icons.security_outlined,
             title: 'Privacy & Security',
-            leading: Container(
-              width: TossSpacing.space10,
-              height: TossSpacing.space10,
-              decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: const Icon(
-                Icons.security_outlined,
-                color: TossColors.primary,
-                size: TossSpacing.iconSM,
-              ),
-            ),
-            trailing: const Icon(
-              Icons.chevron_right,
-              color: TossColors.gray400,
-              size: TossSpacing.iconSM,
-            ),
             onTap: onPrivacySecurity,
           ),
-
-          TossListTile(
+          _buildSettingsTile(
+            icon: Icons.language,
             title: 'Language',
-            leading: Container(
-              width: TossSpacing.space10,
-              height: TossSpacing.space10,
-              decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: const Icon(
-                Icons.language,
-                color: TossColors.primary,
-                size: TossSpacing.iconSM,
-              ),
-            ),
-            trailing: const Icon(
-              Icons.chevron_right,
-              color: TossColors.gray400,
-              size: TossSpacing.iconSM,
-            ),
             onTap: onLanguage,
           ),
 
-          // Sign Out - Using TossListTile with destructive styling
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
-            child: InkWell(
-              onTap: onSignOut,
-              child: Padding(
-                padding: const EdgeInsets.all(TossSpacing.space4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: TossSpacing.space10,
-                      height: TossSpacing.space10,
-                      decoration: BoxDecoration(
-                        color: TossColors.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                      child: const Icon(
-                        Icons.logout,
-                        color: TossColors.error,
-                        size: TossSpacing.iconSM,
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space3),
-                    Expanded(
-                      child: Text(
-                        'Sign Out',
-                        style: TossTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.error,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: TossColors.gray400,
-                      size: TossSpacing.iconSM,
-                    ),
-                  ],
+          // Sign Out - Destructive styling
+          _buildSettingsTile(
+            icon: Icons.logout,
+            title: 'Sign Out',
+            onTap: onSignOut,
+            isDestructive: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final iconColor = isDestructive ? TossColors.error : TossColors.primary;
+    final iconBgColor = isDestructive
+        ? TossColors.error.withValues(alpha: 0.1)
+        : TossColors.primary.withValues(alpha: 0.12);
+    final textColor = isDestructive ? TossColors.error : TossColors.gray900;
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Row(
+          children: [
+            Container(
+              width: TossSpacing.space10,
+              height: TossSpacing.space10,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: TossSpacing.iconSM,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Text(
+                title,
+                style: TossTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
                 ),
               ),
             ),
-          ),
-        ],
+            const Icon(
+              Icons.chevron_right,
+              color: TossColors.gray400,
+              size: TossSpacing.iconSM,
+            ),
+          ],
+        ),
       ),
     );
   }

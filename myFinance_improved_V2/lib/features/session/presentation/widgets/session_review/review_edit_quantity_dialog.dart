@@ -134,7 +134,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
               IconButton(
                 onPressed: _quantity > 0 ? _decrement : null,
                 icon: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -193,7 +193,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
               IconButton(
                 onPressed: _increment,
                 icon: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -238,7 +238,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
           ],
         ],
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actionsPadding: const EdgeInsets.fromLTRB(TossSpacing.space4, 0, TossSpacing.space4, TossSpacing.space4),
       actions: [
         Row(
           children: [
@@ -246,7 +246,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
@@ -254,13 +254,13 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
                 child: const Text('Cancel'),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: ElevatedButton(
                 onPressed: () => widget.onSave(_quantity),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TossColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),

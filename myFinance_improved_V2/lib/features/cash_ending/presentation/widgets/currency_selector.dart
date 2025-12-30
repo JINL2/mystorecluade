@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -32,7 +33,7 @@ class CurrencySelector extends StatelessWidget {
         padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Text(
           'No currencies available',
@@ -56,7 +57,7 @@ class CurrencySelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.white,
         border: Border.all(color: TossColors.gray200),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Row(
         children: [

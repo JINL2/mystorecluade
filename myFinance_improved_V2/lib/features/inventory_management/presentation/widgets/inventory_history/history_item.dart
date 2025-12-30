@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -113,7 +114,7 @@ class HistoryItem extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         image: entry.productImage != null
             ? DecorationImage(
                 image: NetworkImage(entry.productImage!),

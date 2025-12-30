@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/widgets/toss/toss_button.dart';
 
 /// Shift signup status determining the action button state
 enum ShiftSignupStatus {
@@ -73,7 +71,7 @@ class ShiftSignupCard extends StatelessWidget {
         border: Border.all(color: TossColors.gray100, width: 1),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -182,7 +180,7 @@ class ShiftSignupCard extends StatelessWidget {
     switch (status) {
       case ShiftSignupStatus.available:
         // Blue filled button: "+ Apply"
-        return TossButton1.primary(
+        return TossButton.primary(
           text: 'Apply',
           onPressed: isLoading ? null : onApply,
           isLoading: isLoading,
@@ -192,7 +190,7 @@ class ShiftSignupCard extends StatelessWidget {
 
       case ShiftSignupStatus.applied:
         // Blue outline button: "- Withdraw"
-        return TossButton1.outlined(
+        return TossButton.outlined(
           text: 'Withdraw',
           onPressed: isLoading ? null : onWithdraw,
           isLoading: isLoading,
@@ -202,7 +200,7 @@ class ShiftSignupCard extends StatelessWidget {
 
       case ShiftSignupStatus.waitlist:
         // Gray filled button: "+ Waitlist"
-        return TossButton1.secondary(
+        return TossButton.secondary(
           text: 'Waitlist',
           onPressed: isLoading ? null : onWaitlist,
           isLoading: isLoading,
@@ -212,7 +210,7 @@ class ShiftSignupCard extends StatelessWidget {
 
       case ShiftSignupStatus.onWaitlist:
         // Gray filled button: "- Leave"
-        return TossButton1.secondary(
+        return TossButton.secondary(
           text: 'Leave',
           onPressed: isLoading ? null : onLeaveWaitlist,
           isLoading: isLoading,
@@ -223,7 +221,7 @@ class ShiftSignupCard extends StatelessWidget {
 
       case ShiftSignupStatus.assigned:
         // Gray badge (non-interactive): "Assigned"
-        return TossButton1.secondary(
+        return TossButton.secondary(
           text: 'Assigned',
           onPressed: null, // Disabled - non-interactive badge
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

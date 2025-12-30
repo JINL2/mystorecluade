@@ -219,7 +219,7 @@ class ReviewItemCard extends ConsumerWidget {
             GestureDetector(
               onTap: () => _showEditDialog(context, ref, state),
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
                   color: isEdited
                       ? TossColors.primary.withValues(alpha: 0.1)

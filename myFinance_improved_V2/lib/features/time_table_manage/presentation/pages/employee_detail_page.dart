@@ -548,7 +548,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
             padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.warning.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               children: [

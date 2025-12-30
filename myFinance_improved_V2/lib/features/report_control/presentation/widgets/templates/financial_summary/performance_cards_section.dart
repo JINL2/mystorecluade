@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/report_detail.dart';
 
 /// Performance Cards Section
@@ -23,12 +23,11 @@ class PerformanceCardsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section title
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
+        Padding(
+          padding: const EdgeInsets.only(bottom: TossSpacing.space3),
           child: Text(
             'Performance Overview',
-            style: TextStyle(
-              fontSize: 16,
+            style: TossTextStyles.titleMedium.copyWith(
               fontWeight: FontWeight.bold,
               color: TossColors.gray900,
             ),
@@ -37,10 +36,10 @@ class PerformanceCardsSection extends StatelessWidget {
 
         // Cards grid
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
@@ -63,7 +62,7 @@ class PerformanceCardsSection extends StatelessWidget {
                           Container(
                             width: 1,
                             height: 40,
-                            margin: const EdgeInsets.symmetric(horizontal: 12),
+                            margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
                             color: TossColors.gray200,
                           ),
                         Expanded(
@@ -109,14 +108,13 @@ class _PerformanceCard extends StatelessWidget {
           children: [
             Text(
               card.icon,
-              style: const TextStyle(fontSize: 16),
+              style: TossTextStyles.titleMedium,
             ),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
                 card.label,
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TossTextStyles.labelSmall.copyWith(
                   color: TossColors.gray600,
                   fontWeight: FontWeight.w500,
                 ),
@@ -132,8 +130,7 @@ class _PerformanceCard extends StatelessWidget {
         // Value
         Text(
           card.value,
-          style: TextStyle(
-            fontSize: 18,
+          style: TossTextStyles.h4.copyWith(
             fontWeight: FontWeight.bold,
             color: card.severity != null
                 ? _getSeverityColor(card.severity)
@@ -146,8 +143,7 @@ class _PerformanceCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             card.trend!,
-            style: TextStyle(
-              fontSize: 11,
+            style: TossTextStyles.labelSmall.copyWith(
               color: card.trend!.startsWith('+')
                   ? TossColors.success
                   : card.trend!.startsWith('-')

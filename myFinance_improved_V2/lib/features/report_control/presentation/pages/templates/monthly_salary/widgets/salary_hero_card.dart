@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/monthly_salary_report.dart';
 
 /// Filter type for salary report
@@ -31,10 +31,10 @@ class SalaryHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(color: TossColors.gray200),
         boxShadow: [
           BoxShadow(
@@ -68,10 +68,9 @@ class SalaryHeroCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Monthly Payroll',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
                         fontWeight: FontWeight.w500,
                       ),
@@ -79,8 +78,7 @@ class SalaryHeroCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${summary.totalEmployees} employees',
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TossTextStyles.body.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.gray900,
                       ),
@@ -98,17 +96,16 @@ class SalaryHeroCard extends StatelessWidget {
           // Total payment (hero number)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Column(
               children: [
-                const Text(
+                Text(
                   'Total Payroll',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray500,
                     fontWeight: FontWeight.w500,
                   ),
@@ -116,8 +113,7 @@ class SalaryHeroCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   summary.totalPaymentFormatted,
-                  style: const TextStyle(
-                    fontSize: 28,
+                  style: TossTextStyles.h2.copyWith(
                     fontWeight: FontWeight.bold,
                     color: TossColors.gray900,
                     height: 1.1,
@@ -126,17 +122,16 @@ class SalaryHeroCard extends StatelessWidget {
                 if (summary.totalWarningAmount > 0) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: TossSpacing.space1),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEE2E2),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Text(
                       '⚠️ ${summary.totalWarningAmountFormatted} needs review',
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFFDC2626),
+                        color: const Color(0xFFDC2626),
                       ),
                     ),
                   ),
@@ -150,13 +145,12 @@ class SalaryHeroCard extends StatelessWidget {
           // Filter hint
           if (onFilterChanged != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.only(bottom: TossSpacing.space2),
               child: Text(
                 activeFilter == SalaryFilter.all
                     ? 'Tap to filter employees'
                     : 'Tap again to clear filter',
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TossTextStyles.labelSmall.copyWith(
                   color: TossColors.gray400,
                 ),
               ),
@@ -194,15 +188,14 @@ class SalaryHeroCard extends StatelessWidget {
     final text = _getStatusText();
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Text(
         text,
-        style: TextStyle(
-          fontSize: 11,
+        style: TossTextStyles.labelSmall.copyWith(
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -231,10 +224,10 @@ class SalaryHeroCard extends StatelessWidget {
             : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 10),
           decoration: BoxDecoration(
             color: isActive ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
               color: isActive ? color : color.withValues(alpha: 0.2),
               width: isActive ? 2 : 1,
@@ -247,8 +240,7 @@ class SalaryHeroCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 value,
-                style: TextStyle(
-                  fontSize: 14,
+                style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),

@@ -1,6 +1,8 @@
 // lib/features/cash_ending/presentation/widgets/cash_ending_complete_dialog.dart
 
 import 'package:flutter/material.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/index.dart';
 import '../../domain/entities/balance_summary.dart';
 
 /// Dialog shown after successful cash ending submission
@@ -22,10 +24,10 @@ class CashEndingCompleteDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -36,10 +38,9 @@ class CashEndingCompleteDialog extends StatelessWidget {
               size: 64,
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Ending Completed!',
-              style: TextStyle(
-                fontSize: 24,
+              style: TossTextStyles.h2.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -48,8 +49,7 @@ class CashEndingCompleteDialog extends StatelessWidget {
             // Total Amount
             Text(
               balanceSummary.formattedTotalReal,
-              style: const TextStyle(
-                fontSize: 32,
+              style: TossTextStyles.display.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
               ),
@@ -59,8 +59,7 @@ class CashEndingCompleteDialog extends StatelessWidget {
             // Location Info
             Text(
               '${balanceSummary.locationType} · ${balanceSummary.locationName}',
-              style: TextStyle(
-                fontSize: 14,
+              style: TossTextStyles.body.copyWith(
                 color: Colors.grey[600],
               ),
             ),
@@ -68,25 +67,25 @@ class CashEndingCompleteDialog extends StatelessWidget {
 
             // Currency Info
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     '${balanceSummary.currencyCode} • ${balanceSummary.currencySymbol}',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                   Text(
                     'Subtotal (${balanceSummary.currencyCode})',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TossTextStyles.body.copyWith(color: Colors.grey[600]),
                   ),
                   Text(
                     balanceSummary.formattedTotalReal,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -95,10 +94,10 @@ class CashEndingCompleteDialog extends StatelessWidget {
 
             // Balance Summary Card
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: Column(
                 children: [
@@ -133,16 +132,15 @@ class CashEndingCompleteDialog extends StatelessWidget {
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
+                            horizontal: TossSpacing.space6,
+                            vertical: TossSpacing.space3,
                           ),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Make sure today\'s Journal entries are complete before using Auto-Balance - missing entries often cause differences.',
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: TossTextStyles.bodySmall.copyWith(
                           color: Colors.grey[600],
                         ),
                         textAlign: TextAlign.center,
@@ -161,15 +159,14 @@ class CashEndingCompleteDialog extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Close',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: TossTextStyles.titleMedium.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -192,16 +189,14 @@ class CashEndingCompleteDialog extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 16,
+          style: TossTextStyles.titleMedium.copyWith(
             color: Colors.grey[700],
             fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 16,
+          style: TossTextStyles.titleMedium.copyWith(
             fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500,
             color: color ?? Colors.black87,
           ),

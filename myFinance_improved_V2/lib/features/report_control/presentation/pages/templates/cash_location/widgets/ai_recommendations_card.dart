@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/cash_location_report.dart';
 
 /// AI recommendations card
@@ -22,7 +22,7 @@ class AiRecommendationsCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray200),
         boxShadow: [
           BoxShadow(
@@ -37,7 +37,7 @@ class AiRecommendationsCard extends StatelessWidget {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Row(
               children: [
                 Container(
@@ -47,7 +47,7 @@ class AiRecommendationsCard extends StatelessWidget {
                     gradient: const LinearGradient(
                       colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: const Icon(
                     LucideIcons.sparkles,
@@ -56,10 +56,9 @@ class AiRecommendationsCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
                   'AI Recommendations',
-                  style: TextStyle(
-                    fontSize: 15,
+                  style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray900,
                   ),
@@ -72,11 +71,10 @@ class AiRecommendationsCard extends StatelessWidget {
 
           // Summary
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Text(
               insights.summary,
-              style: TextStyle(
-                fontSize: 13,
+              style: TossTextStyles.bodySmall.copyWith(
                 height: 1.5,
                 color: TossColors.gray700,
               ),
@@ -85,11 +83,11 @@ class AiRecommendationsCard extends StatelessWidget {
 
           // Recommendations
           Container(
-            margin: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.fromLTRB(TossSpacing.space4, 0, TossSpacing.space4, TossSpacing.space4),
+            padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
               color: const Color(0xFFF5F3FF), // Light purple
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,12 +100,11 @@ class AiRecommendationsCard extends StatelessWidget {
                       color: const Color(0xFF7C3AED),
                     ),
                     const SizedBox(width: 6),
-                    const Text(
+                    Text(
                       'Next Steps',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF7C3AED),
+                        color: const Color(0xFF7C3AED),
                       ),
                     ),
                   ],
@@ -117,7 +114,7 @@ class AiRecommendationsCard extends StatelessWidget {
                   final index = entry.key;
                   final rec = entry.value;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.only(bottom: TossSpacing.space2),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -132,10 +129,9 @@ class AiRecommendationsCard extends StatelessWidget {
                           child: Center(
                             child: Text(
                               '${index + 1}',
-                              style: const TextStyle(
-                                fontSize: 10,
+                              style: TossTextStyles.labelSmall.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF7C3AED),
+                                color: const Color(0xFF7C3AED),
                               ),
                             ),
                           ),
@@ -144,8 +140,7 @@ class AiRecommendationsCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             rec,
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: TossTextStyles.bodySmall.copyWith(
                               height: 1.4,
                               color: TossColors.gray700,
                             ),

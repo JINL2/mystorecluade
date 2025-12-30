@@ -22,11 +22,12 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
+import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
+import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
@@ -908,16 +909,32 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        AutonomousCashLocationSelector(
-          storeId: storeId,
-          selectedLocationId: _selectedMyCashLocationId,
-          // Hide built-in label since we render our own styled label above
-          hideLabel: true,
-          onChanged: (cashLocationId) {
-            setState(() {
-              _selectedMyCashLocationId = cashLocationId;
-              _validateCashLocationField();
-            });
+        Consumer(
+          builder: (context, ref, child) {
+            final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
+            return TossDropdown<String>(
+              label: '',
+              hint: 'Select cash location',
+              value: _selectedMyCashLocationId,
+              isLoading: cashLocationsAsync.isLoading,
+              items: cashLocationsAsync.maybeWhen(
+                data: (locations) => locations
+                    .where((l) => storeId == null || l.storeId == storeId || l.isCompanyWide)
+                    .map((l) => TossDropdownItem(
+                          value: l.id,
+                          label: l.name,
+                          subtitle: l.type,
+                        ))
+                    .toList(),
+                orElse: () => [],
+              ),
+              onChanged: (cashLocationId) {
+                setState(() {
+                  _selectedMyCashLocationId = cashLocationId;
+                  _validateCashLocationField();
+                });
+              },
+            );
           },
         ),
         if (_cashLocationError != null) ...[
@@ -959,18 +976,32 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           ],
         ),
         const SizedBox(height: TossSpacing.space2),
-        AutonomousCounterpartySelector(
-          selectedCounterpartyId: _selectedCounterpartyId,
-          // External template = show only external counterparties
-          // This prevents selecting internal companies for external transactions
-          isInternal: false,
-          // Hide built-in label since we render our own styled label above
-          hideLabel: true,
-          onChanged: (counterpartyId) {
-            setState(() {
-              _selectedCounterpartyId = counterpartyId;
-              _validateCounterpartyField();
-            });
+        Consumer(
+          builder: (context, ref, child) {
+            final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
+            return TossDropdown<String>(
+              label: '',
+              hint: 'Select counterparty',
+              value: _selectedCounterpartyId,
+              isLoading: counterpartiesAsync.isLoading,
+              items: counterpartiesAsync.maybeWhen(
+                data: (counterparties) => counterparties
+                    .where((c) => !c.isInternal) // External counterparties only
+                    .map((c) => TossDropdownItem(
+                          value: c.id,
+                          label: c.name,
+                          subtitle: c.type,
+                        ))
+                    .toList(),
+                orElse: () => [],
+              ),
+              onChanged: (counterpartyId) {
+                setState(() {
+                  _selectedCounterpartyId = counterpartyId;
+                  _validateCounterpartyField();
+                });
+              },
+            );
           },
         ),
         if (_counterpartyError != null) ...[
@@ -1209,16 +1240,38 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             ),
           )
         else
-          AutonomousCashLocationSelector(
-            storeId: _selectedCounterpartyStoreId!,
-            selectedLocationId: _selectedCounterpartyCashLocationId,
-            // Hide built-in label since we render our own styled label above
-            hideLabel: true,
-            onChanged: (cashLocationId) {
-              setState(() {
-                _selectedCounterpartyCashLocationId = cashLocationId;
-              });
-              _notifyValidityChange();
+          Consumer(
+            builder: (context, ref, child) {
+              final linkedCompanyId = _rpcResponse?.uiConfig?.linkedCompanyId;
+              if (linkedCompanyId == null) {
+                return const SizedBox.shrink();
+              }
+              final cashLocationsAsync = ref.watch(
+                counterpartyCompanyCashLocationsProvider(linkedCompanyId),
+              );
+              return TossDropdown<String>(
+                label: '',
+                hint: 'Select counterparty cash location',
+                value: _selectedCounterpartyCashLocationId,
+                isLoading: cashLocationsAsync.isLoading,
+                items: cashLocationsAsync.maybeWhen(
+                  data: (locations) => locations
+                      .where((l) => l.storeId == _selectedCounterpartyStoreId || l.isCompanyWide)
+                      .map((l) => TossDropdownItem(
+                            value: l.id,
+                            label: l.name,
+                            subtitle: l.type,
+                          ))
+                      .toList(),
+                  orElse: () => [],
+                ),
+                onChanged: (cashLocationId) {
+                  setState(() {
+                    _selectedCounterpartyCashLocationId = cashLocationId;
+                  });
+                  _notifyValidityChange();
+                },
+              );
             },
           ),
       ],

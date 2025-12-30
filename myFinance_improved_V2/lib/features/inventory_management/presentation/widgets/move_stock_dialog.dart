@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_quantity_stepper.dart';
 import '../../di/inventory_providers.dart';
@@ -195,11 +197,11 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
     return Dialog(
       backgroundColor: TossColors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space6, vertical: TossSpacing.space6),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -287,7 +289,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       alignment: Alignment.center,
                       child: Text(
@@ -309,7 +311,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: canSubmit && !_isSubmitting ? TossColors.primary : TossColors.gray300,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       alignment: Alignment.center,
                       child: _isSubmitting
@@ -346,7 +348,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
         decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.circular(10),
@@ -387,10 +389,10 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                           ),
                         )
                       : Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                           decoration: BoxDecoration(
                             color: TossColors.primarySurface,
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                           ),
                           child: Text(
                             '${store.stock}',

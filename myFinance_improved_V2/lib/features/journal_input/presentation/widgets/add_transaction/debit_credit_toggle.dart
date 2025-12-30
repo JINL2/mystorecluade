@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 
 /// Animated toggle widget for selecting Debit or Credit transaction type
 ///
@@ -27,7 +25,7 @@ class DebitCreditToggle extends StatelessWidget {
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(TossSpacing.space1),
       child: Stack(
         children: [
           // Animated selection indicator

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -133,7 +134,7 @@ class PricingCards extends ConsumerWidget {
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: isSelected ? plan.color : Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 border: Border.all(
                   color: isSelected ? plan.color : TossColors.gray200,
                   width: isSelected ? 2 : 1,
@@ -159,7 +160,7 @@ class PricingCards extends ConsumerWidget {
                         color: isSelected
                             ? Colors.white.withValues(alpha: 0.2)
                             : plan.color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
                       child: Text(
                         '⭐ BEST VALUE',
@@ -178,7 +179,7 @@ class PricingCards extends ConsumerWidget {
                         color: isSelected
                             ? Colors.white.withValues(alpha: 0.2)
                             : TossColors.gray100,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

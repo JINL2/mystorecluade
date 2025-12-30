@@ -246,7 +246,7 @@ class _EditableTimeRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 const Padding(
-                  padding: EdgeInsets.all(4),
+                  padding: EdgeInsets.all(TossSpacing.space1),
                   child: Icon(
                     Icons.edit_outlined,
                     size: 16,

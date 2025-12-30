@@ -401,7 +401,7 @@ class _InvoiceAttachmentSectionState
           left: 0,
           child: Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: 4,
+              horizontal: TossSpacing.space1,
               vertical: 2,
             ),
             decoration: const BoxDecoration(

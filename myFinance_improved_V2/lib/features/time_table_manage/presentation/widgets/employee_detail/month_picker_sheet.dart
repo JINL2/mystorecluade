@@ -107,7 +107,7 @@ class _MonthPickerSheetState extends State<MonthPickerSheet> {
                           : isFuture
                               ? TossColors.gray100
                               : TossColors.gray50,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: isSelected
                           ? null
                           : Border.all(color: TossColors.gray200),

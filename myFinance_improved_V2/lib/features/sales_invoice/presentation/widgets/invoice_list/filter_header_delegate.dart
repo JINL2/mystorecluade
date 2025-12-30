@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../extensions/invoice_period_extension.dart';
 import '../../providers/states/invoice_list_state.dart';
@@ -24,7 +25,7 @@ class FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   ) {
     return Container(
       color: TossColors.white,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      padding: const EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space2, TossSpacing.space3, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -114,7 +115,7 @@ class FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
         onTap: () => onFilterTap(filterKey ?? title),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
           decoration: BoxDecoration(
             color: isActive
                 ? TossColors.primary.withValues(alpha: 0.1)

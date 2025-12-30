@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 
 /// A dialog for manually entering a barcode/SKU value
@@ -18,10 +20,10 @@ class BarcodeInputDialog {
       builder: (dialogContext) => Dialog(
         backgroundColor: TossColors.transparent,
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -56,7 +58,7 @@ class BarcodeInputDialog {
                       width: 2,
                     ),
                   ),
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  contentPadding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
                 ),
               ),
               const SizedBox(height: 24),
@@ -70,9 +72,9 @@ class BarcodeInputDialog {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: TossColors.gray700,
                         side: const BorderSide(color: TossColors.gray300),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
                       ),
                       child: Text(
@@ -94,9 +96,9 @@ class BarcodeInputDialog {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: TossColors.primary,
                         foregroundColor: TossColors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
                         elevation: 0,
                       ),

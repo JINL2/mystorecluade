@@ -135,10 +135,10 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.success.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: const Icon(
                 Icons.group_add,

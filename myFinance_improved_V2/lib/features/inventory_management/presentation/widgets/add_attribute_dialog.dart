@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 
 /// Dialog for adding a new attribute value (Category, Brand, etc.)
@@ -38,12 +40,12 @@ class AddAttributeDialog extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+      insetPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space10),
       child: Container(
         width: double.maxFinite,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -78,21 +80,21 @@ class AddAttributeDialog extends StatelessWidget {
                       color: TossColors.gray400,
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       borderSide: const BorderSide(color: TossColors.gray300),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       borderSide: const BorderSide(color: TossColors.gray300),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       borderSide:
                           const BorderSide(color: TossColors.primary, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
+                      horizontal: TossSpacing.space3,
+                      vertical: TossSpacing.space3,
                     ),
                   ),
                 ),
@@ -126,9 +128,9 @@ class AddAttributeDialog extends StatelessWidget {
                       foregroundColor: TossColors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                     ),
                     child: const Text('Add'),
                   ),

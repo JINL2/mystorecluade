@@ -283,8 +283,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Text(
                         ReportStrings.noReportsMessage,
-                        style: TextStyle(
-                          fontSize: 16,
+                        style: TossTextStyles.titleMedium.copyWith(
                           color: TossColors.gray500,
                         ),
                       ),
@@ -377,7 +376,7 @@ class ReceivedReportsTab extends ConsumerWidget {
             children: [
               // Handle bar
               Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space2),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -388,7 +387,7 @@ class ReceivedReportsTab extends ConsumerWidget {
 
               // Header
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(color: TossColors.gray200),
@@ -402,14 +401,13 @@ class ReceivedReportsTab extends ConsumerWidget {
                         if (report.templateIcon != null)
                           Text(
                             report.templateIcon!,
-                            style: const TextStyle(fontSize: 24),
+                            style: TossTextStyles.h2,
                           ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             report.templateName,
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TossTextStyles.h4.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -423,18 +421,16 @@ class ReceivedReportsTab extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       DateFormat('yyyy-MM-dd HH:mm').format(report.reportDate),
-                      style: TextStyle(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.gray600,
-                        fontSize: 14,
                       ),
                     ),
                     if (report.storeName != null) ...[
                       const SizedBox(height: 4),
                       Text(
                         '${ReportStrings.storeLabel}: ${report.storeName}',
-                        style: TextStyle(
+                        style: TossTextStyles.body.copyWith(
                           color: TossColors.gray600,
-                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -446,82 +442,76 @@ class ReceivedReportsTab extends ConsumerWidget {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(TossSpacing.space4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Report content (markdown body) - Readable style
                       MarkdownBody(
                         data: _formatMarkdownForDisplay(
-                            report.body), // ✅ Pre-process markdown
+                            report.body), // Pre-process markdown
                         shrinkWrap: true,
                         styleSheet: MarkdownStyleSheet(
                           // Paragraph spacing
-                          blockSpacing: 12.0, // ✅ Space between paragraphs
-                          listIndent: 20.0, // ✅ Indent for list items
+                          blockSpacing: 12.0, // Space between paragraphs
+                          listIndent: 20.0, // Indent for list items
 
                           // Normal text - not bold
-                          p: const TextStyle(
-                            fontSize: 15,
-                            height: 1.8, // ✅ Increased line height
+                          p: TossTextStyles.body.copyWith(
+                            height: 1.8, // Increased line height
                             fontWeight: FontWeight.normal,
                             color: TossColors.gray900,
                           ),
 
                           // H1 - Main titles (bold, larger)
-                          h1: const TextStyle(
-                            fontSize: 20,
+                          h1: TossTextStyles.h3.copyWith(
                             fontWeight: FontWeight.w700,
-                            height: 2.0, // ✅ More spacing
+                            height: 2.0, // More spacing
                             color: TossColors.gray900,
                           ),
                           h1Padding: const EdgeInsets.only(
-                              top: 16, bottom: 8), // ✅ Padding around H1
+                              top: TossSpacing.space4, bottom: TossSpacing.space2), // Padding around H1
 
                           // H2 - Section titles (semi-bold, medium)
-                          h2: const TextStyle(
-                            fontSize: 18,
+                          h2: TossTextStyles.h4.copyWith(
                             fontWeight: FontWeight.w600,
                             height: 1.9,
                             color: TossColors.gray800,
                           ),
                           h2Padding: const EdgeInsets.only(
-                              top: 12, bottom: 6), // ✅ Padding around H2
+                              top: TossSpacing.space3, bottom: TossSpacing.space2), // Padding around H2
 
                           // H3 - Subsection titles (medium weight)
-                          h3: const TextStyle(
-                            fontSize: 16,
+                          h3: TossTextStyles.titleMedium.copyWith(
                             fontWeight: FontWeight.w500,
                             height: 1.8,
                             color: TossColors.gray700,
                           ),
                           h3Padding: const EdgeInsets.only(
-                              top: 8, bottom: 4), // ✅ Padding around H3
+                              top: TossSpacing.space2, bottom: TossSpacing.space1), // Padding around H3
 
                           // List items - normal weight with proper spacing
-                          listBullet: const TextStyle(
-                            fontSize: 15,
+                          listBullet: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.normal,
                           ),
 
                           // Strong/Bold text - use only when explicitly marked **bold**
-                          strong: const TextStyle(
+                          strong: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
                             color: TossColors.primary,
                           ),
 
                           // Code blocks
-                          code: TextStyle(
+                          code: TossTextStyles.body.copyWith(
                             backgroundColor: TossColors.gray100,
                             fontFamily: 'monospace',
-                            fontSize: 14,
                           ),
                           codeblockDecoration: BoxDecoration(
                             color: TossColors.gray100,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                           codeblockPadding: const EdgeInsets.all(
-                              12), // ✅ Padding inside code blocks
+                              TossSpacing.space3), // Padding inside code blocks
                         ),
                       ),
 
@@ -530,10 +520,10 @@ class ReceivedReportsTab extends ConsumerWidget {
                       // Session info
                       if (report.sessionErrorMessage != null) ...[
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
                             color: TossColors.error.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,9 +534,9 @@ class ReceivedReportsTab extends ConsumerWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       ReportStrings.errorOccurred,
-                                      style: TextStyle(
+                                      style: TossTextStyles.body.copyWith(
                                         fontWeight: FontWeight.bold,
                                         color: TossColors.error,
                                       ),
@@ -554,7 +544,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                                     const SizedBox(height: 4),
                                     Text(
                                       report.sessionErrorMessage!,
-                                      style: const TextStyle(fontSize: 14),
+                                      style: TossTextStyles.body,
                                     ),
                                   ],
                                 ),
@@ -569,9 +559,8 @@ class ReceivedReportsTab extends ConsumerWidget {
                       if (report.processingTimeMs != null)
                         Text(
                           '${ReportStrings.processingTime}: ${(report.processingTimeMs! / 1000).toStringAsFixed(2)}s',
-                          style: TextStyle(
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray600,
-                            fontSize: 12,
                           ),
                         ),
                     ],
@@ -609,10 +598,10 @@ class ReceivedReportsTab extends ConsumerWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -621,10 +610,9 @@ class ReceivedReportsTab extends ConsumerWidget {
           const SizedBox(width: 4),
           Text(
             statusText,
-            style: TextStyle(
+            style: TossTextStyles.body.copyWith(
               color: textColor,
               fontWeight: FontWeight.bold,
-              fontSize: 14,
             ),
           ),
         ],
@@ -708,15 +696,14 @@ class ReceivedReportsTab extends ConsumerWidget {
       ),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Example Reports',
-                style: TextStyle(
-                  fontSize: 18,
+                style: TossTextStyles.h4.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -728,7 +715,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: const Color(0xFF10B981).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: const Icon(
                     Icons.account_balance_wallet,
@@ -756,7 +743,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
                     Icons.analytics,

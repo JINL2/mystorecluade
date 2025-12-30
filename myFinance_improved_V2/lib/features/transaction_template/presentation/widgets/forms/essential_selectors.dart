@@ -11,12 +11,13 @@
 library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
+import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../../domain/value_objects/template_analysis_result.dart';
 
@@ -28,7 +29,7 @@ class EssentialSelectors extends ConsumerWidget {
   final ValueChanged<String?>? onMyCashLocationChanged;
   final ValueChanged<String?>? onCounterpartyChanged;
   final ValueChanged<String?>? onCounterpartyCashLocationChanged;
-  
+
   const EssentialSelectors({
     super.key,
     required this.analysis,
@@ -42,9 +43,7 @@ class EssentialSelectors extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final currentStoreId = appState.storeChoosen;
-    final selectors = _buildSelectors(currentStoreId);
+    final selectors = _buildSelectors(ref);
 
     if (selectors.isEmpty) {
       return const SizedBox.shrink();
@@ -61,25 +60,27 @@ class EssentialSelectors extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: TossSpacing.space3),
-        ...selectors.map((selector) => Padding(
-          padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-          child: selector,
-        ),),
+        ...selectors.map(
+          (selector) => Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+            child: selector,
+          ),
+        ),
       ],
     );
   }
 
-  List<Widget> _buildSelectors(String? currentStoreId) {
+  List<Widget> _buildSelectors(WidgetRef ref) {
     final List<Widget> selectors = [];
 
     // Add cash location selector if needed
     if (analysis.missingItems.contains('cash_location')) {
-      selectors.add(_buildCashLocationSelector(currentStoreId));
+      selectors.add(_buildCashLocationSelector(ref));
     }
 
     // Add counterparty selector if needed
     if (analysis.missingItems.contains('counterparty')) {
-      selectors.add(_buildCounterpartySelector());
+      selectors.add(_buildCounterpartySelector(ref));
     }
 
     // Add counterparty cash location selector if needed
@@ -90,35 +91,50 @@ class EssentialSelectors extends ConsumerWidget {
     return selectors;
   }
 
-  Widget _buildCashLocationSelector(String? currentStoreId) {
-    return AutonomousCashLocationSelector(
-      selectedLocationId: selectedMyCashLocationId,
-      storeId: currentStoreId, // ✅ 내 storeId 전달
-      onChanged: onMyCashLocationChanged,
+  Widget _buildCashLocationSelector(WidgetRef ref) {
+    final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
+
+    return TossDropdown<String>(
       label: 'Cash Location',
       hint: 'Select cash location',
-      showSearch: false,
-      showTransactionCount: false,
-      showScopeTabs: true,
+      value: selectedMyCashLocationId,
+      isLoading: cashLocationsAsync.isLoading,
+      items: cashLocationsAsync.maybeWhen(
+        data: (locations) => locations
+            .map((l) => TossDropdownItem(
+                  value: l.id,
+                  label: l.name,
+                  subtitle: l.type,
+                ))
+            .toList(),
+        orElse: () => [],
+      ),
+      onChanged: onMyCashLocationChanged,
     );
   }
-  
-  Widget _buildCounterpartySelector() {
-    return AutonomousCounterpartySelector(
-      selectedCounterpartyId: selectedCounterpartyId,
-      // ✅ NEW: Type-safe callback
-      onCounterpartySelected: (counterparty) {
-        onCounterpartyChanged?.call(counterparty.id);
-      },
-      // ✅ Legacy callback maintained for compatibility
-      onChanged: onCounterpartyChanged,
+
+  Widget _buildCounterpartySelector(WidgetRef ref) {
+    final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
+
+    return TossDropdown<String>(
       label: 'Counterparty',
       hint: 'Select counterparty',
-      showSearch: false,
-      showTransactionCount: false,
+      value: selectedCounterpartyId,
+      isLoading: counterpartiesAsync.isLoading,
+      items: counterpartiesAsync.maybeWhen(
+        data: (counterparties) => counterparties
+            .map((c) => TossDropdownItem(
+                  value: c.id,
+                  label: c.name,
+                  subtitle: c.type,
+                ))
+            .toList(),
+        orElse: () => [],
+      ),
+      onChanged: onCounterpartyChanged,
     );
   }
-  
+
   Widget _buildCounterpartyCashLocationSelector() {
     // For counterparty cash location, we would need a specialized selector
     // For now, return a placeholder that matches the interface
@@ -126,7 +142,7 @@ class EssentialSelectors extends ConsumerWidget {
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Text(
@@ -137,48 +153,48 @@ class EssentialSelectors extends ConsumerWidget {
       ),
     );
   }
-  
+
   /// Check if all essential selections are complete
   bool get isComplete {
     bool allSelected = true;
-    
-    if (analysis.missingItems.contains('cash_location') && 
+
+    if (analysis.missingItems.contains('cash_location') &&
         selectedMyCashLocationId == null) {
       allSelected = false;
     }
-    
-    if (analysis.missingItems.contains('counterparty') && 
+
+    if (analysis.missingItems.contains('counterparty') &&
         selectedCounterpartyId == null) {
       allSelected = false;
     }
-    
-    if (analysis.missingItems.contains('counterparty_cash_location') && 
+
+    if (analysis.missingItems.contains('counterparty_cash_location') &&
         selectedCounterpartyCashLocationId == null) {
       allSelected = false;
     }
-    
+
     return allSelected;
   }
-  
+
   /// Get validation error messages for incomplete selections
   List<String> get validationErrors {
     final errors = <String>[];
-    
-    if (analysis.missingItems.contains('cash_location') && 
+
+    if (analysis.missingItems.contains('cash_location') &&
         selectedMyCashLocationId == null) {
       errors.add('Please select a cash location');
     }
-    
-    if (analysis.missingItems.contains('counterparty') && 
+
+    if (analysis.missingItems.contains('counterparty') &&
         selectedCounterpartyId == null) {
       errors.add('Please select a counterparty');
     }
-    
-    if (analysis.missingItems.contains('counterparty_cash_location') && 
+
+    if (analysis.missingItems.contains('counterparty_cash_location') &&
         selectedCounterpartyCashLocationId == null) {
       errors.add('Please select counterparty cash location');
     }
-    
+
     return errors;
   }
 }

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/utils/datetime_utils.dart';
@@ -626,7 +627,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                 children: [
                   // Section 1: Shift info, issue report, recorded/confirmed attendance
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -709,7 +710,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
                   // Section 2: Adjustment section (bonus and deduct)
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     child: AdjustmentSection(
                       bonusController: _bonusController,
                       deductController: _deductController,
@@ -723,7 +724,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
                   // Section 2: Salary breakdown with before/after comparison
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     child: SalaryBreakdownCard(
                       asOfDate: asOfDate,
                       totalConfirmedTime: totalConfirmedTime,
@@ -801,12 +802,12 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
   Widget _buildBottomButton() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
+      padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space4, TossSpacing.space4, 48),
       decoration: const BoxDecoration(
         color: TossColors.white,
         border: Border(top: BorderSide(color: TossColors.gray100, width: 1)),
       ),
-      child: TossButton1.primary(
+      child: TossButton.primary(
         text: _buttonText,
         fullWidth: true,
         isLoading: _isSaving,

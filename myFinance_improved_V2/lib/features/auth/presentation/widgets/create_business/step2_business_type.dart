@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../domain/value_objects/company_type.dart';
 
 /// Step 2: Business Type Selection
@@ -76,7 +74,7 @@ class Step2BusinessType extends StatelessWidget {
               customTypeController.clear();
             }
           },
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
@@ -84,7 +82,7 @@ class Step2BusinessType extends StatelessWidget {
                 color: isSelected ? TossColors.primary : TossColors.gray300,
                 width: isSelected ? 2 : 1,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               color: TossColors.white,
             ),
             child: Row(

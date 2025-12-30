@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../di/inventory_providers.dart';
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_success_error_dialog.dart';
@@ -147,7 +148,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       title: Text(
         'Add Brand',
@@ -176,7 +177,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
               decoration: InputDecoration(
                 hintText: 'Enter brand name',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -200,7 +201,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
               decoration: InputDecoration(
                 hintText: 'Enter brand code or leave empty for auto...',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -239,7 +240,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
                       : Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                 ),
                 child: _isCreating

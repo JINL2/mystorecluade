@@ -5,10 +5,7 @@ import 'package:go_router/go_router.dart';
 // Core - Constants
 import '../../../../core/constants/auth_constants.dart';
 // Shared - Theme System
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_animations.dart';
+import '../../../../shared/themes/index.dart';
 // Auth Providers
 import '../providers/auth_service.dart';
 import '../../../homepage/presentation/providers/homepage_providers.dart';
@@ -125,7 +122,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       children: [
         // Large App Logo
         ClipRRect(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
           child: Image.asset(
             'assets/images/app icon.png',
             width: 100,
@@ -229,7 +226,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
           backgroundColor: backgroundColor,
           side: BorderSide(color: borderColor, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),

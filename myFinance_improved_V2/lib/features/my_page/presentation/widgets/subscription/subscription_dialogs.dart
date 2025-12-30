@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 
 /// Helper class for subscription-related dialogs
 class SubscriptionDialogs {
@@ -19,15 +20,15 @@ class SubscriptionDialogs {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
                 color: planColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 isPro ? LucideIcons.crown : LucideIcons.checkCircle,
@@ -39,7 +40,7 @@ class SubscriptionDialogs {
             Expanded(
               child: Text(
                 'Welcome to $planDisplayName!',
-                style: const TextStyle(fontSize: 18),
+                style: TossTextStyles.h4,
               ),
             ),
           ],
@@ -69,15 +70,15 @@ class SubscriptionDialogs {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
                 color: TossColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: const Icon(
                 LucideIcons.alertCircle,
@@ -113,15 +114,15 @@ class SubscriptionDialogs {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
                 color: planColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 isProPlan ? LucideIcons.crown : LucideIcons.checkCircle,
@@ -130,10 +131,10 @@ class SubscriptionDialogs {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
                 'Purchases Restored!',
-                style: TextStyle(fontSize: 18),
+                style: TossTextStyles.h4,
               ),
             ),
           ],
@@ -157,7 +158,7 @@ class SubscriptionDialogs {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
         ),
         title: const Text('No Purchases Found'),
         content: const Text(

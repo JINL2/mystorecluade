@@ -225,7 +225,7 @@ class _FinancialStatementsPageState
                   ],
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                indicatorPadding: const EdgeInsets.all(3),
+                indicatorPadding: const EdgeInsets.all(TossSpacing.space1 - 1),
                 dividerColor: TossColors.transparent,
                 labelColor: TossColors.gray900,
                 unselectedLabelColor: TossColors.gray500,

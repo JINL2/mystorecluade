@@ -428,7 +428,7 @@ class _TemplateAttachmentPickerSectionState
           child: GestureDetector(
             onTap: () => _removeAttachment(index),
             child: Container(
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.all(TossSpacing.space1 / 2),
               decoration: const BoxDecoration(
                 color: TossColors.error,
                 shape: BoxShape.circle,

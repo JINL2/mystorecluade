@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../../../shared/widgets/toss/toss_button.dart';
 
 /// Transaction type for vault operations
 enum VaultTransactionType {
@@ -72,7 +72,7 @@ class DebitCreditToggle extends StatelessWidget {
     required bool isSelected,
   }) {
     if (isSelected) {
-      return TossButton1.outlined(
+      return TossButton.outlined(
         text: label,
         leadingIcon: Icon(icon, size: 20),
         onPressed: () => onTypeChanged(type),
@@ -80,7 +80,7 @@ class DebitCreditToggle extends StatelessWidget {
         borderRadius: TossBorderRadius.lg,
       );
     } else {
-      return TossButton1.outlinedGray(
+      return TossButton.outlinedGray(
         text: label,
         leadingIcon: Icon(icon, size: 20),
         onPressed: () => onTypeChanged(type),

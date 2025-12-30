@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
@@ -30,7 +31,7 @@ class SessionUserCard extends StatelessWidget {
         padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: isCurrentUser ? TossColors.primary : TossColors.gray200,
           ),

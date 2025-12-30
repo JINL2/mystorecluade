@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -35,7 +36,7 @@ class ProductListView extends StatelessWidget {
         if (index == products.length) {
           return const Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(TossSpacing.space4),
               child: CircularProgressIndicator(),
             ),
           );
@@ -119,10 +120,10 @@ class _ProductListItem extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         label,

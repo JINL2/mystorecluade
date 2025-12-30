@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
@@ -145,7 +146,7 @@ class CountDetailInfoSection extends StatelessWidget {
       backgroundColor: TossColors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
       ),
       builder: (context) => SafeArea(
         child: Padding(
@@ -161,7 +162,7 @@ class CountDetailInfoSection extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                 ),
               ),

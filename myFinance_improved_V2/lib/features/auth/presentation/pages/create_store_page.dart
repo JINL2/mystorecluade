@@ -243,7 +243,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
           ),
           const SizedBox(width: TossSpacing.space2),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             child: Image.asset(
               'assets/images/app icon.png',
               width: 40,

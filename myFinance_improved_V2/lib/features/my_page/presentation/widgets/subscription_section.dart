@@ -572,7 +572,7 @@ class SubscriptionSection extends ConsumerWidget {
                       height: 12,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -581,7 +581,7 @@ class SubscriptionSection extends ConsumerWidget {
                       height: 20,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
                   ],

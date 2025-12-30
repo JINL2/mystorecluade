@@ -524,7 +524,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
                               ),
                               decoration: BoxDecoration(
                                 color: _getCategoryColor(notification.category).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                               ),
                               child: Text(
                                 _getCategoryLabel(notification.category),

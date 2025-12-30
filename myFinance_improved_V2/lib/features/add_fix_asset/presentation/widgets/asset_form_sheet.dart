@@ -114,7 +114,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                       child: Container(
                         width: 40,
                         height: 4,
-                        margin: const EdgeInsets.only(bottom: 20),
+                        margin: const EdgeInsets.only(bottom: TossSpacing.space5),
                         decoration: BoxDecoration(
                           color: TossColors.gray200,
                           borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -370,7 +370,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(TossSpacing.space1 + 2),
                 decoration: BoxDecoration(
                   color: TossColors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -461,7 +461,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(TossSpacing.space1 + 2),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -550,7 +550,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
           child: OutlinedButton(
             onPressed: () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 18),
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4 + 2),
               side: const BorderSide(color: TossColors.gray300, width: 1),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -593,7 +593,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: TossColors.transparent,
                 shadowColor: TossColors.transparent,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4 + 2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/trade_status.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 
 /// Status chip widget for displaying trade entity status
 class TradeStatusChip extends StatelessWidget {
@@ -24,8 +25,8 @@ class TradeStatusChip extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 12,
-        vertical: compact ? 4 : 6,
+        horizontal: compact ? TossSpacing.space2 : TossSpacing.space3,
+        vertical: compact ? TossSpacing.space1 : TossSpacing.space1,
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
@@ -44,7 +45,7 @@ class TradeStatusChip extends StatelessWidget {
               size: compact ? 12 : 14,
               color: color,
             ),
-            SizedBox(width: compact ? 4 : 6),
+            SizedBox(width: compact ? TossSpacing.space1 : TossSpacing.space1),
           ],
           Text(
             displayName,
@@ -92,7 +93,7 @@ class TradeStatusBadge extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(TossBorderRadius.md),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -116,7 +117,7 @@ class TradeStatusBadge extends StatelessWidget {
                 color: color,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +199,7 @@ class TradeStatusFilterChip extends StatelessWidget {
       side: BorderSide(
         color: isSelected ? color.withOpacity(0.5) : TossColors.gray300,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
     );
   }
 

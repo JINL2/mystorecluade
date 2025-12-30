@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 // Shared imports - themes
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -280,7 +281,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         ),
         decoration: BoxDecoration(
           color: TossColors.gray100,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -653,7 +654,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             padding: const EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
               color: TossColors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
