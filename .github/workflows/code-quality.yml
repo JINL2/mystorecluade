@@ -1,0 +1,44 @@
+name: Code Quality Check
+
+on:
+  pull_request:
+    branches: [main, develop, Jinrefector, nghiasb, jeong11]
+  push:
+    branches: [main, develop, Jinrefector, nghiasb, jeong11]
+
+defaults:
+  run:
+    working-directory: myFinance_improved_V2
+
+jobs:
+  dcm-check:
+    name: DCM Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get
+      - run: dart pub global activate dart_code_metrics
+      - name: Check unused files
+        run: ~/.pub-cache/bin/metrics check-unused-files lib --disable-sunset-warning || true
+      - name: Check unused code
+        run: ~/.pub-cache/bin/metrics check-unused-code lib --disable-sunset-warning || true
+
+  flutter-analyze:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get
+        working-directory: myFinance_improved_V2
+      - run: flutter analyze --no-fatal-infos
+        working-directory: myFinance_improved_V2
