@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
-import 'package:myfinance_improved/shared/utils/thousand_separator_formatter.dart';
+import 'package:myfinance_improved/core/utils/thousand_separator_formatter.dart';
 
 /// Amount input field with optional calculator button
 class AmountField extends StatelessWidget {

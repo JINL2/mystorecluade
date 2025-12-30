@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/account_provider.dart';
-import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
-import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
+// Autonomous Selectors
+import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 
 import '../../domain/value_objects/template_filter.dart';
 // Updated imports to use new application layer providers
@@ -49,9 +49,6 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final accountsAsync = ref.watch(currentAccountsProvider);
-    final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
-    final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
     final screenHeight = MediaQuery.of(context).size.height;
     final maxHeight = screenHeight * 0.85; // Use 85% of screen height max
 
@@ -90,47 +87,40 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
 
               const SizedBox(height: TossSpacing.space4),
 
-              // Account Selector - TossDropdown
-              TossDropdown<String>(
-                label: 'Account',
-                hint: 'All Accounts',
-                value: _selectedAccountIds?.isNotEmpty == true ? _selectedAccountIds!.first : null,
-                isLoading: accountsAsync.isLoading,
-                items: accountsAsync.maybeWhen(
-                  data: (accounts) => accounts
-                      .map((a) => TossDropdownItem(
-                            value: a.id,
-                            label: a.name,
-                            subtitle: a.categoryTag,
-                          ))
-                      .toList(),
-                  orElse: () => [],
-                ),
+              // Account Selector - EnhancedAccountSelector
+              EnhancedAccountSelector(
+                selectedAccountId: _selectedAccountIds?.isNotEmpty == true ? _selectedAccountIds!.first : null,
+                contextType: 'template_filter',
+                showQuickAccess: true,
+                maxQuickItems: 5,
+                onAccountSelected: (account) {
+                  setState(() {
+                    _selectedAccountIds = [account.id];
+                  });
+                },
                 onChanged: (accountId) {
                   setState(() {
                     _selectedAccountIds = accountId != null ? [accountId] : null;
                   });
                 },
+                label: 'Account',
+                hint: 'All Accounts',
+                showSearch: true,
+                showTransactionCount: false,
               ),
 
               const SizedBox(height: TossSpacing.space4),
 
-              // Counterparty Selector - TossDropdown
-              TossDropdown<String>(
+              // Counterparty Selector - AutonomousCounterpartySelector
+              AutonomousCounterpartySelector(
+                selectedCounterpartyId: _selectedCounterpartyId,
                 label: 'Counterparty',
                 hint: 'All Counterparties',
-                value: _selectedCounterpartyId,
-                isLoading: counterpartiesAsync.isLoading,
-                items: counterpartiesAsync.maybeWhen(
-                  data: (counterparties) => counterparties
-                      .map((c) => TossDropdownItem(
-                            value: c.id,
-                            label: c.name,
-                            subtitle: c.type,
-                          ))
-                      .toList(),
-                  orElse: () => [],
-                ),
+                onCounterpartySelected: (counterparty) {
+                  setState(() {
+                    _selectedCounterpartyId = counterparty.id;
+                  });
+                },
                 onChanged: (counterpartyId) {
                   setState(() {
                     _selectedCounterpartyId = counterpartyId;
@@ -140,22 +130,16 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
 
               const SizedBox(height: TossSpacing.space4),
 
-              // Cash Location Selector - TossDropdown
-              TossDropdown<String>(
+              // Cash Location Selector - AutonomousCashLocationSelector
+              AutonomousCashLocationSelector(
+                selectedLocationId: _selectedCashLocationId,
                 label: 'Cash Location',
                 hint: 'All Cash Locations',
-                value: _selectedCashLocationId,
-                isLoading: cashLocationsAsync.isLoading,
-                items: cashLocationsAsync.maybeWhen(
-                  data: (locations) => locations
-                      .map((l) => TossDropdownItem(
-                            value: l.id,
-                            label: l.name,
-                            subtitle: l.type,
-                          ))
-                      .toList(),
-                  orElse: () => [],
-                ),
+                onCashLocationSelected: (cashLocation) {
+                  setState(() {
+                    _selectedCashLocationId = cashLocation.id;
+                  });
+                },
                 onChanged: (locationId) {
                   setState(() {
                     _selectedCashLocationId = locationId;

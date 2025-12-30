@@ -10,16 +10,14 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../counter_party/presentation/widgets/counter_party_form.dart';
 import '../../../register_denomination/domain/entities/currency.dart';
 import '../../../trade_shared/domain/entities/trade_item.dart';
 import '../../../trade_shared/presentation/pages/trade_item_picker_page.dart';
 import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
-import '../../../cash_location/presentation/providers/cash_location_providers.dart';
 import '../../domain/entities/proforma_invoice.dart';
 import '../../domain/repositories/pi_repository.dart';
 import '../providers/pi_providers.dart';
+import '../widgets/pi_form/pi_form_widgets.dart';
 
 class PIFormPage extends ConsumerStatefulWidget {
   final String? piId; // null for create, non-null for edit
@@ -232,7 +230,18 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
                   // Counterparty Section
                   _buildSectionTitle('Counterparty Information'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildCounterpartyDropdown(),
+                  PICounterpartySection(
+                    counterpartyId: _counterpartyId,
+                    counterpartyInfoController: _counterpartyInfoController,
+                    errorText: _counterpartyError,
+                    onCounterpartyChanged: (cp) {
+                      setState(() {
+                        _counterpartyId = cp?.id;
+                        _selectedCounterparty = cp;
+                        _counterpartyError = null;
+                      });
+                    },
+                  ),
                   const SizedBox(height: TossSpacing.space3),
                   _buildTextField(
                     controller: _counterpartyInfoController,
@@ -244,11 +253,27 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
                   // Currency & Terms
                   _buildSectionTitle('Currency & Terms'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildCurrencyDropdown(),
+                  PICurrencySection(
+                    currencyId: _currencyId,
+                    errorText: _currencyError,
+                    onCurrencyChanged: (currency) {
+                      setState(() {
+                        _currencyId = currency?.id;
+                        _selectedCurrency = currency;
+                        _currencyCode = currency?.code ?? 'USD';
+                        _currencyError = null;
+                      });
+                    },
+                  ),
                   const SizedBox(height: TossSpacing.space3),
-                  _buildIncotermsRow(),
-                  const SizedBox(height: TossSpacing.space3),
-                  _buildPaymentTermsRow(),
+                  PIShippingTermsSection(
+                    incotermsCode: _incotermsCode,
+                    incotermsPlaceController: _incotermsPlaceController,
+                    paymentTermsCode: _paymentTermsCode,
+                    paymentTermsDetailController: _paymentTermsDetailController,
+                    onIncotermsChanged: (v) => setState(() => _incotermsCode = v),
+                    onPaymentTermsChanged: (v) => setState(() => _paymentTermsCode = v),
+                  ),
                   const SizedBox(height: TossSpacing.space5),
 
                   // Shipping
@@ -318,7 +343,14 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
                   // Banking Information for PDF
                   _buildSectionTitle('Banking Information'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildBankAccountSelector(),
+                  PIBankAccountSection(
+                    selectedBankAccountIds: _selectedBankAccountIds,
+                    onSelectionChanged: (ids) {
+                      setState(() {
+                        _selectedBankAccountIds = ids;
+                      });
+                    },
+                  ),
                   const SizedBox(height: TossSpacing.space5),
 
                   // Notes
@@ -334,7 +366,15 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
                   // Terms & Conditions
                   _buildSectionTitle('Terms & Conditions'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildTermsTemplateSection(),
+                  PITermsTemplateSection(
+                    selectedTemplateId: _selectedTemplateId,
+                    termsController: _termsController,
+                    onTemplateChanged: (v) {
+                      setState(() {
+                        _selectedTemplateId = v;
+                      });
+                    },
+                  ),
 
                   const SizedBox(height: TossSpacing.space6),
                 ],
@@ -421,845 +461,6 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showCreateCounterpartySheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        // 화면 상단 10% 여백을 줘서 CounterPartyForm이 90% 높이를 차지하도록
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).size.height * 0.1,
-        ),
-        child: const CounterPartyForm(),
-      ),
-    ).then((result) {
-      // Refresh counterparty list if a new one was created
-      if (result == true) {
-        ref.invalidate(currentCounterpartiesProvider);
-      }
-    });
-  }
-
-  Widget _buildCounterpartyDropdown() {
-    final counterpartyAsync = ref.watch(currentCounterpartiesProvider);
-    final appState = ref.watch(appStateProvider);
-
-    debugPrint('🔵 [Counterparty] companyId: ${appState.companyChoosen}');
-    debugPrint('🔵 [Counterparty] storeId: ${appState.storeChoosen}');
-    debugPrint('🔵 [Counterparty] AsyncValue state: $counterpartyAsync');
-
-    return counterpartyAsync.when(
-      loading: () {
-        debugPrint('🔵 [Counterparty] State: LOADING');
-        return TossDropdown<String>(
-          label: 'Counterparty',
-          items: const [],
-          isLoading: true,
-          isRequired: true,
-          hint: 'Loading...',
-        );
-      },
-      error: (error, stackTrace) {
-        debugPrint('🔴 [Counterparty] State: ERROR');
-        debugPrint('🔴 [Counterparty] Error: $error');
-        debugPrint('🔴 [Counterparty] StackTrace: $stackTrace');
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCounterpartyLabelWithAddButton(),
-            const SizedBox(height: TossSpacing.space2),
-            Container(
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                border: Border.all(color: TossColors.error),
-              ),
-              child: Text(
-                'Failed to load counterparties',
-                style: TossTextStyles.body.copyWith(color: TossColors.error),
-              ),
-            ),
-          ],
-        );
-      },
-      data: (counterparties) {
-        debugPrint('🟢 [Counterparty] State: DATA');
-        debugPrint('🟢 [Counterparty] Count: ${counterparties.length}');
-        for (final cp in counterparties.take(3)) {
-          debugPrint('🟢 [Counterparty] Item: ${cp.id} - ${cp.name}');
-        }
-
-        // Show create button if no counterparties exist
-        if (counterparties.isEmpty) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCounterpartyLabelWithAddButton(),
-              const SizedBox(height: TossSpacing.space2),
-              _buildEmptyCounterpartyPlaceholder(),
-            ],
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCounterpartyLabelWithAddButton(),
-            const SizedBox(height: TossSpacing.space2),
-            _buildCounterpartySelector(counterparties),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildCounterpartyLabelWithAddButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Counterparty',
-              style: TossTextStyles.label.copyWith(
-                color: _counterpartyError != null ? TossColors.error : TossColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Text(
-              '*',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.error,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: _showCreateCounterpartySheet,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.add, size: 16, color: TossColors.primary),
-              const SizedBox(width: 2),
-              Text(
-                'Add New',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyCounterpartyPlaceholder() {
-    return GestureDetector(
-      onTap: _showCreateCounterpartySheet,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: _counterpartyError != null ? TossColors.error : TossColors.gray200,
-            width: _counterpartyError != null ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.person_add_outlined, size: 20, color: TossColors.primary),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              'Create your first counterparty',
-              style: TossTextStyles.body.copyWith(color: TossColors.primary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCounterpartySelector(List<CounterpartyData> counterparties) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        color: TossColors.surface,
-        border: Border.all(
-          color: _counterpartyError != null ? TossColors.error : TossColors.border,
-          width: _counterpartyError != null ? 2 : 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showCounterpartyBottomSheet(counterparties),
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          child: Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _counterpartyId != null
-                        ? counterparties.firstWhere(
-                            (c) => c.id == _counterpartyId,
-                            orElse: () => counterparties.first,
-                          ).name
-                        : 'Select counterparty',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: _counterpartyId != null ? TossColors.textPrimary : TossColors.textTertiary,
-                      fontWeight: _counterpartyId != null ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_drop_down,
-                  color: TossColors.gray600,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showCounterpartyBottomSheet(List<CounterpartyData> counterparties) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xl),
-            topRight: Radius.circular(TossBorderRadius.xl),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-              ),
-            ),
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Text(
-                'Counterparty',
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32),
-              child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            // Options list
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
-                ),
-                itemCount: counterparties.length,
-                itemBuilder: (context, index) {
-                  final cp = counterparties[index];
-                  final isSelected = cp.id == _counterpartyId;
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space4,
-                      vertical: 2,
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        onTap: () {
-                          setState(() {
-                            _counterpartyId = cp.id;
-                            _counterpartyError = null;
-                            _selectedCounterparty = cp;
-                            // Build address from additionalData
-                            final additionalData = cp.additionalData;
-                            final parts = <String>[];
-                            if (additionalData != null) {
-                              if (additionalData['address'] != null) parts.add(additionalData['address'].toString());
-                              if (additionalData['city'] != null) parts.add(additionalData['city'].toString());
-                              if (additionalData['country'] != null) parts.add(additionalData['country'].toString());
-                            }
-                            _counterpartyInfoController.text = parts.join(', ');
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space3,
-                            vertical: TossSpacing.space3,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      cp.name,
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.textPrimary,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    if (cp.type.isNotEmpty) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        cp.type,
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray600,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              if (isSelected)
-                                const Icon(
-                                  Icons.check,
-                                  color: TossColors.primary,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCurrencyDropdown() {
-    final currencyAsync = ref.watch(companyCurrenciesProvider);
-    final appState = ref.watch(appStateProvider);
-
-    debugPrint('🟡 [Currency] companyId: ${appState.companyChoosen}');
-    debugPrint('🟡 [Currency] AsyncValue state: $currencyAsync');
-
-    return currencyAsync.when(
-      loading: () {
-        debugPrint('🟡 [Currency] State: LOADING');
-        return TossDropdown<String>(
-          label: 'Currency',
-          items: const [],
-          isLoading: true,
-          isRequired: true,
-          hint: 'Loading...',
-        );
-      },
-      error: (error, stackTrace) {
-        debugPrint('🔴 [Currency] State: ERROR');
-        debugPrint('🔴 [Currency] Error: $error');
-        debugPrint('🔴 [Currency] StackTrace: $stackTrace');
-        return TossDropdown<String>(
-          label: 'Currency',
-          items: const [],
-          isRequired: true,
-          errorText: 'Failed to load',
-          hint: 'Error loading currencies',
-        );
-      },
-      data: (currencies) {
-        debugPrint('🟢 [Currency] State: DATA');
-        debugPrint('🟢 [Currency] Count: ${currencies.length}');
-        for (final c in currencies.take(3)) {
-          debugPrint('🟢 [Currency] Item: ${c.id} - ${c.code} (${c.symbol})');
-        }
-        // Find the current value - must be in items list or null
-        String? currentValue;
-        if (_currencyId != null && currencies.any((c) => c.id == _currencyId)) {
-          currentValue = _currencyId;
-        }
-
-        return TossDropdown<String>(
-          label: 'Currency',
-          value: currentValue,
-          hint: 'Select currency',
-          isRequired: true,
-          errorText: _currencyError,
-          items: currencies.map((c) => TossDropdownItem<String>(
-            value: c.id,
-            label: '${c.code} (${c.symbol})',
-            subtitle: c.fullName,
-          )).toList(),
-          onChanged: (v) {
-            if (v == null) return;
-            setState(() {
-              _currencyId = v;
-              _currencyError = null; // Clear error on selection
-              try {
-                final selected = currencies.firstWhere((c) => c.id == v);
-                _selectedCurrency = selected;
-                _currencyCode = selected.code;
-              } catch (e) {
-                // Currency not found
-              }
-            });
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildIncotermsRow() {
-    final masterDataState = ref.watch(masterDataProvider);
-    final incoterms = masterDataState.incoterms;
-
-    debugPrint('🟠 [Incoterms] isLoading: ${masterDataState.isLoading}');
-    debugPrint('🟠 [Incoterms] error: ${masterDataState.error}');
-    debugPrint('🟠 [Incoterms] Count: ${incoterms.length}');
-    for (final i in incoterms.take(3)) {
-      debugPrint('🟠 [Incoterms] Item: ${i.code} - ${i.name}');
-    }
-
-    // Fallback to hardcoded values if not loaded
-    final incotermItems = incoterms.isNotEmpty
-        ? incoterms.map((i) => TossDropdownItem<String>(
-            value: i.code,
-            label: i.code,
-            subtitle: i.name,
-          )).toList()
-        : ['FOB', 'CIF', 'CFR', 'EXW', 'DDP', 'DAP']
-            .map((c) => TossDropdownItem<String>(value: c, label: c))
-            .toList();
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: TossDropdown<String>(
-            label: 'Incoterms',
-            value: _incotermsCode,
-            hint: 'Select',
-            isLoading: masterDataState.isLoading,
-            items: incotermItems,
-            onChanged: (v) => setState(() => _incotermsCode = v),
-          ),
-        ),
-        const SizedBox(width: TossSpacing.space3),
-        Expanded(
-          child: _buildTextField(
-            controller: _incotermsPlaceController,
-            label: 'Place',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentTermsRow() {
-    final masterDataState = ref.watch(masterDataProvider);
-    final paymentTerms = masterDataState.paymentTerms;
-
-    debugPrint('🟣 [PaymentTerms] isLoading: ${masterDataState.isLoading}');
-    debugPrint('🟣 [PaymentTerms] error: ${masterDataState.error}');
-    debugPrint('🟣 [PaymentTerms] Count: ${paymentTerms.length}');
-    for (final p in paymentTerms.take(3)) {
-      debugPrint('🟣 [PaymentTerms] Item: ${p.code} - ${p.name}');
-    }
-
-    // Fallback to hardcoded values if not loaded
-    final paymentTermItems = paymentTerms.isNotEmpty
-        ? paymentTerms.map((p) => TossDropdownItem<String>(
-            value: p.code,
-            label: p.code,
-            subtitle: p.name,
-          )).toList()
-        : ['LC_AT_SIGHT', 'LC_USANCE', 'TT_ADVANCE', 'TT_AFTER', 'DA', 'DP']
-            .map((c) => TossDropdownItem<String>(value: c, label: c))
-            .toList();
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: TossDropdown<String>(
-            label: 'Payment Terms',
-            value: _paymentTermsCode,
-            hint: 'Select',
-            isLoading: masterDataState.isLoading,
-            items: paymentTermItems,
-            onChanged: (v) => setState(() => _paymentTermsCode = v),
-          ),
-        ),
-        const SizedBox(width: TossSpacing.space3),
-        Expanded(
-          child: _buildTextField(
-            controller: _paymentTermsDetailController,
-            label: 'Detail',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBankAccountSelector() {
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId == null) {
-      return const Text('No company selected');
-    }
-
-    final params = CashLocationQueryParams(
-      companyId: companyId,
-      locationType: 'bank',
-    );
-
-    final bankAccountsAsync = ref.watch(allCashLocationsProvider(params));
-
-    debugPrint('🏦 [PIFormPage] Loading bank accounts for companyId: $companyId');
-
-    return bankAccountsAsync.when(
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          child: CircularProgressIndicator(),
-        ),
-      ),
-      error: (error, _) => Text(
-        'Failed to load bank accounts: $error',
-        style: TextStyle(color: TossColors.error),
-      ),
-      data: (bankAccounts) {
-        debugPrint('🏦 [PIFormPage] Loaded ${bankAccounts.length} bank accounts');
-        for (final bank in bankAccounts) {
-          debugPrint('🏦 [PIFormPage] Bank: ${bank.locationName} (${bank.locationId})');
-          debugPrint('🏦 [PIFormPage]   - swiftCode: ${bank.swiftCode}');
-          debugPrint('🏦 [PIFormPage]   - beneficiaryName: ${bank.beneficiaryName}');
-        }
-
-        if (bankAccounts.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            child: Text(
-              'No bank accounts registered. Add bank accounts in Cash Location settings.',
-              style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
-            ),
-          );
-        }
-
-        // Build TossDropdown items - show locationName as primary, bankName as subtitle
-        final tossDropdownItems = bankAccounts.map((bank) {
-          // Use locationName as primary display
-          final primaryName = bank.locationName;
-          final bankName = bank.bankName;
-          final currencyCode = bank.currencyCode ?? '';
-
-          // Format label: "locationName (currency)"
-          String label = primaryName;
-          if (currencyCode.isNotEmpty) {
-            label = '$primaryName ($currencyCode)';
-          }
-
-          // Subtitle: bankName if different from locationName
-          String? subtitle;
-          if (bankName != null && bankName.isNotEmpty && bankName != primaryName) {
-            subtitle = bankName;
-          }
-
-          return TossDropdownItem<String>(
-            value: bank.locationId,
-            label: label,
-            subtitle: subtitle,
-          );
-        }).toList();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Bank dropdown using TossDropdown
-            TossDropdown<String>(
-              label: '',
-              hint: 'Select bank account',
-              value: _selectedBankAccountIds.isNotEmpty
-                  ? _selectedBankAccountIds.first
-                  : null,
-              items: tossDropdownItems,
-              onChanged: (value) {
-                setState(() {
-                  _selectedBankAccountIds.clear();
-                  if (value != null) {
-                    _selectedBankAccountIds.add(value);
-                  }
-                });
-              },
-            ),
-
-            // Show selected bank details
-            if (_selectedBankAccountIds.isNotEmpty) ...[
-              const SizedBox(height: TossSpacing.space3),
-              Builder(
-                builder: (context) {
-                  final selectedBank = bankAccounts.firstWhere(
-                    (b) => b.locationId == _selectedBankAccountIds.first,
-                    orElse: () => bankAccounts.first,
-                  );
-                  return _buildBankDetailCard(selectedBank);
-                },
-              ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildBankDetailCard(CashLocation bank) {
-    final details = <MapEntry<String, String>>[];
-
-    if (bank.bankName != null && bank.bankName!.isNotEmpty) {
-      details.add(MapEntry('Bank Name', bank.bankName!));
-    }
-    if (bank.bankAccount != null && bank.bankAccount!.isNotEmpty) {
-      details.add(MapEntry('Account No.', bank.bankAccount!));
-    }
-    if (bank.beneficiaryName != null && bank.beneficiaryName!.isNotEmpty) {
-      details.add(MapEntry('Beneficiary', bank.beneficiaryName!));
-    }
-    if (bank.swiftCode != null && bank.swiftCode!.isNotEmpty) {
-      details.add(MapEntry('SWIFT Code', bank.swiftCode!));
-    }
-    if (bank.bankBranch != null && bank.bankBranch!.isNotEmpty) {
-      details.add(MapEntry('Branch', bank.bankBranch!));
-    }
-    if (bank.bankAddress != null && bank.bankAddress!.isNotEmpty) {
-      details.add(MapEntry('Bank Address', bank.bankAddress!));
-    }
-    if (bank.currencyCode != null && bank.currencyCode!.isNotEmpty) {
-      details.add(MapEntry('Currency', bank.currencyCode!));
-    }
-    if (bank.accountType != null && bank.accountType!.isNotEmpty) {
-      details.add(MapEntry('Account Type', bank.accountType!));
-    }
-
-    if (details.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(TossSpacing.space3),
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(color: TossColors.border),
-        ),
-        child: Text(
-          'No additional details available for this bank account.',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(color: TossColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: details.asMap().entries.map((mapEntry) {
-          final entry = mapEntry.value;
-          final isLast = mapEntry.key == details.length - 1;
-          return Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : TossSpacing.space2),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 110,
-                  child: Text(
-                    entry.key,
-                    style: TossTextStyles.label.copyWith(
-                      color: TossColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    entry.value,
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTermsTemplateSection() {
-    final termsState = ref.watch(termsTemplateProvider);
-
-    debugPrint('⚪ [Terms] isLoading: ${termsState.isLoading}');
-    debugPrint('⚪ [Terms] error: ${termsState.error}');
-    debugPrint('⚪ [Terms] Count: ${termsState.items.length}');
-    for (final t in termsState.items.take(3)) {
-      debugPrint('⚪ [Terms] Item: ${t.templateId} - ${t.templateName}');
-    }
-
-    final templateItems = [
-      const TossDropdownItem<String?>(
-        value: null,
-        label: '-- No Template --',
-      ),
-      ...termsState.items.map((t) => TossDropdownItem<String?>(
-        value: t.templateId,
-        label: t.templateName,
-        subtitle: t.isDefault ? 'Default' : null,
-      )),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Template dropdown
-        TossDropdown<String?>(
-          label: 'Template (optional)',
-          value: _selectedTemplateId,
-          hint: 'Select template',
-          isLoading: termsState.isLoading,
-          items: templateItems,
-          onChanged: (v) {
-            setState(() {
-              _selectedTemplateId = v;
-              if (v != null) {
-                try {
-                  final selected = termsState.items.firstWhere((t) => t.templateId == v);
-                  _termsController.text = selected.content;
-                } catch (e) {
-                  // Template not found
-                }
-              }
-            });
-          },
-        ),
-        const SizedBox(height: TossSpacing.space3),
-
-        // Terms content (editable)
-        _buildTextField(
-          controller: _termsController,
-          label: 'Terms & Conditions Content',
-          maxLines: 6,
-        ),
-        const SizedBox(height: TossSpacing.space2),
-
-        // Save as template button
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: _termsController.text.isNotEmpty ? _showSaveTemplateDialog : null,
-            icon: const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save as Template'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showSaveTemplateDialog() {
-    final nameController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Save as Template'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Template Name',
-            hintText: 'e.g., Standard Export Terms',
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a template name')),
-                );
-                return;
-              }
-
-              final result = await ref.read(termsTemplateProvider.notifier).saveAsTemplate(
-                    nameController.text,
-                    _termsController.text,
-                  );
-
-              if (mounted) {
-                Navigator.pop(context);
-                if (result != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Template "${result.templateName}" saved')),
-                  );
-                  setState(() {
-                    _selectedTemplateId = result.templateId;
-                  });
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to save template')),
-                  );
-                }
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1388,115 +589,13 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
   }
 
   Widget _buildItemsSection() {
-    final total = _items.fold<double>(
-      0,
-      (sum, item) => sum + (item.quantity * item.unitPrice * (1 - item.discountPercent / 100)),
-    );
-    final hasError = _itemsError != null && _itemsError!.isNotEmpty;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Use Text directly instead of TradeSectionHeader to avoid Spacer in nested Row
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Items',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: hasError ? TossColors.error : TossColors.gray500,
-                  ),
-                ),
-                Text(
-                  ' *',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.error,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${_items.length}',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.gray900,
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              onPressed: _addItem,
-              icon: const Icon(Icons.add_circle_outline, size: 24),
-              tooltip: 'Add Items',
-              color: TossColors.primary,
-            ),
-          ],
-        ),
-        if (hasError) ...[
-          Text(
-            _itemsError!,
-            style: TossTextStyles.caption.copyWith(color: TossColors.error),
-          ),
-          const SizedBox(height: TossSpacing.space1),
-        ],
-        const SizedBox(height: TossSpacing.space2),
-
-        if (_items.isEmpty)
-          GestureDetector(
-            onTap: _addItem,
-            child: Container(
-              padding: const EdgeInsets.all(TossSpacing.space5),
-              decoration: BoxDecoration(
-                color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                border: Border.all(color: TossColors.gray200, style: BorderStyle.solid),
-              ),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.add_circle_outline, size: 40, color: TossColors.primary),
-                    const SizedBox(height: TossSpacing.space2),
-                    Text(
-                      'Tap to add items',
-                      style: TossTextStyles.bodyMedium.copyWith(color: TossColors.primary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-        else ...[
-          ..._items.asMap().entries.map((entry) => _ItemFormCard(
-                item: entry.value,
-                index: entry.key,
-                currencyCode: _currencyCode,
-                onEdit: () => _editItem(entry.key),
-                onDelete: () => _deleteItem(entry.key),
-              )),
-          const SizedBox(height: TossSpacing.space3),
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total', style: TossTextStyles.bodyLarge),
-                Text(
-                  '$_currencyCode ${NumberFormat('#,##0.00').format(total)}',
-                  style: TossTextStyles.h4,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
+    return PIItemsSection(
+      items: _items,
+      currencyCode: _currencyCode,
+      errorText: _itemsError,
+      onAddItem: _addItem,
+      onEditItem: _editItem,
+      onDeleteItem: _deleteItem,
     );
   }
 
@@ -1745,102 +844,3 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
     }
   }
 }
-
-// Item Form Data class
-class PIItemFormData {
-  final String? productId;
-  final String description;
-  final String? sku;
-  final String? hsCode;
-  final String? countryOfOrigin;
-  final double quantity;
-  final String unit;
-  final double unitPrice;
-  final double discountPercent;
-
-  PIItemFormData({
-    this.productId,
-    required this.description,
-    this.sku,
-    this.hsCode,
-    this.countryOfOrigin,
-    required this.quantity,
-    required this.unit,
-    required this.unitPrice,
-    this.discountPercent = 0,
-  });
-
-  double get lineTotal => quantity * unitPrice * (1 - discountPercent / 100);
-}
-
-// Item Form Card
-class _ItemFormCard extends StatelessWidget {
-  final PIItemFormData item;
-  final int index;
-  final String currencyCode;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _ItemFormCard({
-    required this.item,
-    required this.index,
-    required this.currencyCode,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.description,
-                  style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.edit_outlined, size: 18, color: TossColors.gray500),
-                onPressed: onEdit,
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.all(TossSpacing.space1),
-              ),
-              IconButton(
-                icon: Icon(Icons.delete_outline, size: 18, color: TossColors.error),
-                onPressed: onDelete,
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.all(TossSpacing.space1),
-              ),
-            ],
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${NumberFormat('#,##0.##').format(item.quantity)} ${item.unit} × $currencyCode ${NumberFormat('#,##0.00').format(item.unitPrice)}',
-                style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
-              ),
-              Text(
-                '$currencyCode ${NumberFormat('#,##0.00').format(item.lineTotal)}',
-                style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-

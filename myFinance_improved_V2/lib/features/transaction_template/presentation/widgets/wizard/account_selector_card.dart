@@ -10,14 +10,14 @@
 library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/account_provider.dart';
-import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
-import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
+// Autonomous Selectors
+import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 
 import '../common/store_selector.dart';
 
@@ -98,10 +98,6 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
         isDebit ? Icons.remove_circle_outline : Icons.add_circle_outline;
     final label = isDebit ? 'DEBIT' : 'CREDIT';
 
-    final accountsAsync = ref.watch(currentAccountsProvider);
-    final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
-    final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
-
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
@@ -146,81 +142,48 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           ),
           const SizedBox(height: TossSpacing.space3),
 
-          // Account selector - TossDropdown
-          TossDropdown<String>(
+          // Account selector - EnhancedAccountSelector
+          EnhancedAccountSelector(
+            selectedAccountId: widget.selectedAccountId,
+            contextType: 'template',
+            showQuickAccess: true,
+            maxQuickItems: 5,
+            onAccountSelected: (account) {
+              widget.onAccountChanged(account.id);
+              widget.onAccountChangedWithData(account.id, account.name, account.categoryTag);
+
+              // Reset dependent selections when account changes
+              widget.onCounterpartyChanged(null);
+              widget.onCounterpartyDataChanged(null);
+              widget.onMyCashLocationChanged(null);
+              widget.onStoreChanged(null, null);
+              widget.onCashLocationChanged(null);
+            },
             label: '${isDebit ? 'Debit' : 'Credit'} Account',
             hint: 'Select account to ${isDebit ? 'debit' : 'credit'}',
-            value: widget.selectedAccountId,
-            isLoading: accountsAsync.isLoading,
-            items: accountsAsync.maybeWhen(
-              data: (accounts) => accounts
-                  .map((a) => TossDropdownItem(
-                        value: a.id,
-                        label: a.name,
-                        subtitle: a.categoryTag,
-                      ))
-                  .toList(),
-              orElse: () => [],
-            ),
-            onChanged: (accountId) {
-              if (accountId != null) {
-                // Find account data from the list
-                accountsAsync.whenData((accounts) {
-                  final account = accounts.firstWhere(
-                    (a) => a.id == accountId,
-                    orElse: () => accounts.first,
-                  );
-                  widget.onAccountChanged(account.id);
-                  widget.onAccountChangedWithData(
-                      account.id, account.name, account.categoryTag);
-
-                  // Reset dependent selections when account changes
-                  widget.onCounterpartyChanged(null);
-                  widget.onCounterpartyDataChanged(null);
-                  widget.onMyCashLocationChanged(null);
-                  widget.onStoreChanged(null, null);
-                  widget.onCashLocationChanged(null);
-                });
-              }
-            },
+            showTransactionCount: false,
           ),
 
           // Counterparty section
           if (_requiresCounterparty && widget.selectedAccountId != null) ...[
             const SizedBox(height: TossSpacing.space3),
-            TossDropdown<String>(
+            AutonomousCounterpartySelector(
+              selectedCounterpartyId: widget.selectedCounterpartyId,
               label: 'Counterparty',
               hint: 'Select counterparty',
-              value: widget.selectedCounterpartyId,
-              isLoading: counterpartiesAsync.isLoading,
-              items: counterpartiesAsync.maybeWhen(
-                data: (counterparties) => counterparties
-                    .map((c) => TossDropdownItem(
-                          value: c.id,
-                          label: c.name,
-                          subtitle: c.type,
-                        ))
-                    .toList(),
-                orElse: () => [],
-              ),
+              onCounterpartySelected: (counterparty) {
+                widget.onCounterpartyChanged(counterparty.id);
+                widget.onCounterpartyDataChanged({
+                  'name': counterparty.name,
+                  'is_internal': counterparty.isInternal,
+                  'linked_company_id': counterparty.linkedCompanyId,
+                });
+                // Reset dependent selections
+                widget.onStoreChanged(null, null);
+                widget.onCashLocationChanged(null);
+              },
               onChanged: (counterpartyId) {
-                if (counterpartyId != null) {
-                  counterpartiesAsync.whenData((counterparties) {
-                    final counterparty = counterparties.firstWhere(
-                      (c) => c.id == counterpartyId,
-                      orElse: () => counterparties.first,
-                    );
-                    widget.onCounterpartyChanged(counterparty.id);
-                    widget.onCounterpartyDataChanged({
-                      'name': counterparty.name,
-                      'is_internal': counterparty.isInternal,
-                      'linked_company_id': counterparty.linkedCompanyId,
-                    });
-                    // Reset dependent selections
-                    widget.onStoreChanged(null, null);
-                    widget.onCashLocationChanged(null);
-                  });
-                } else {
+                if (counterpartyId == null) {
                   widget.onCounterpartyChanged(null);
                   widget.onCounterpartyDataChanged(null);
                   widget.onStoreChanged(null, null);
@@ -237,33 +200,16 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
           // My company's cash location for cash accounts
           if (_isCashAccount && widget.selectedAccountId != null) ...[
             const SizedBox(height: TossSpacing.space3),
-            TossDropdown<String>(
+            AutonomousCashLocationSelector(
+              selectedLocationId: widget.selectedMyCashLocationId,
               label: 'Cash Location',
               hint: 'Select cash location',
-              value: widget.selectedMyCashLocationId,
-              isLoading: cashLocationsAsync.isLoading,
-              items: cashLocationsAsync.maybeWhen(
-                data: (locations) => locations
-                    .map((l) => TossDropdownItem(
-                          value: l.id,
-                          label: l.name,
-                          subtitle: l.type,
-                        ))
-                    .toList(),
-                orElse: () => [],
-              ),
+              onCashLocationSelected: (cashLocation) {
+                widget.onMyCashLocationChanged(cashLocation.id);
+                widget.onMyCashLocationChangedWithName(cashLocation.id, cashLocation.name);
+              },
               onChanged: (locationId) {
-                if (locationId != null) {
-                  cashLocationsAsync.whenData((locations) {
-                    final location = locations.firstWhere(
-                      (l) => l.id == locationId,
-                      orElse: () => locations.first,
-                    );
-                    widget.onMyCashLocationChanged(location.id);
-                    widget.onMyCashLocationChangedWithName(
-                        location.id, location.name);
-                  });
-                } else {
+                if (locationId == null) {
                   widget.onMyCashLocationChanged(null);
                   widget.onMyCashLocationChangedWithName(null, null);
                 }
@@ -285,11 +231,6 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
     final linkedCompanyId = counterpartyData['linked_company_id'] as String?;
 
     if (isInternal && linkedCompanyId != null) {
-      // Get counterparty cash locations using the linked company ID
-      final counterpartyCashLocationsAsync = ref.watch(
-        counterpartyCompanyCashLocationsProvider(linkedCompanyId),
-      );
-
       return Column(
         children: [
           const SizedBox(height: TossSpacing.space3),
@@ -345,36 +286,21 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
               ),
             ],
 
-            // Counterparty cash location selector - TossDropdown
-            TossDropdown<String>(
+            // Counterparty cash location selector - AutonomousCashLocationSelector
+            AutonomousCashLocationSelector(
+              companyId: linkedCompanyId,
+              storeId: widget.selectedStoreId,
+              selectedLocationId: widget.selectedCashLocationId,
               label: 'Counterparty Cash Location',
               hint: 'Select counterparty cash location',
-              value: widget.selectedCashLocationId,
-              isLoading: counterpartyCashLocationsAsync.isLoading,
-              items: counterpartyCashLocationsAsync.maybeWhen(
-                data: (locations) => locations
-                    .where((l) =>
-                        l.storeId == widget.selectedStoreId || l.isCompanyWide)
-                    .map((l) => TossDropdownItem(
-                          value: l.id,
-                          label: l.name,
-                          subtitle: l.type,
-                        ))
-                    .toList(),
-                orElse: () => [],
-              ),
+              showScopeTabs: false,
+              storeOnly: true,
+              onCashLocationSelected: (cashLocation) {
+                widget.onCashLocationChanged(cashLocation.id);
+                widget.onCashLocationChangedWithName(cashLocation.id, cashLocation.name);
+              },
               onChanged: (locationId) {
-                if (locationId != null) {
-                  counterpartyCashLocationsAsync.whenData((locations) {
-                    final location = locations.firstWhere(
-                      (l) => l.id == locationId,
-                      orElse: () => locations.first,
-                    );
-                    widget.onCashLocationChanged(location.id);
-                    widget.onCashLocationChangedWithName(
-                        location.id, location.name);
-                  });
-                } else {
+                if (locationId == null) {
                   widget.onCashLocationChanged(null);
                   widget.onCashLocationChangedWithName(null, null);
                 }

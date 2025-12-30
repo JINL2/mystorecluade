@@ -1,0 +1,546 @@
+    ⚠ unused top level variable userProfileImageProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/app/providers/app_state_provider.dart:43:1
+    ⚠ unused top level variable userFirstNameProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/app/providers/app_state_provider.dart:49:1
+    ⚠ unused top level variable userFullNameProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/app/providers/app_state_provider.dart:55:1
+    ⚠ unused top level variable userInitialsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/app/providers/app_state_provider.dart:67:1
+    ⚠ unused top level variable isAuthLoadingProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/app/providers/auth_providers.dart:67:1
+    ⚠ unused class JournalEntryModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/data/models/journal_entry_model.dart:181:1
+    ⚠ unused extension TransactionDataExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/data/models/transaction_history_model.dart:110:1
+    ⚠ unused extension TransactionLineExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/data/models/transaction_history_model.dart:160:1
+    ⚠ unused class TransactionFilterOptions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/data/models/transaction_history_model.dart:208:1
+    ⚠ unused type alias DataSelectionCallback
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/domain/entities/selector_entities.dart:352:1
+    ⚠ unused type alias OnCounterpartySelectedCallback
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/domain/entities/selector_entities.dart:355:1
+    ⚠ unused type alias OnCashLocationSelectedCallback
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/domain/entities/selector_entities.dart:356:1
+    ⚠ unused type alias OnMultiCounterpartySelectedCallback
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/domain/entities/selector_entities.dart:357:1
+    ⚠ unused type alias MultiDataSelectionCallback
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/domain/entities/selector_entities.dart:358:1
+    ⚠ unused class NetworkFailure
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/errors/failures.dart:75:1
+    ⚠ unused extension StateSynchronizerExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/infrastructure/state_synchronizer.dart:190:1
+    ⚠ unused extension AuthNavigatorExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/auth_navigator.dart:262:1
+    ⚠ unused extension DebouncedGoRouterExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/go_router_extensions.dart:70:1
+    ⚠ unused function clearAllNavigationDebounces
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/go_router_extensions.dart:157:1
+    ⚠ unused top level variable isNavigatingProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/navigation_state_provider.dart:201:1
+    ⚠ unused top level variable currentRouteProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/navigation_state_provider.dart:206:1
+    ⚠ unused top level variable navigationHistoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/navigation_state_provider.dart:211:1
+    ⚠ unused top level variable isRouteLocked
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/navigation_state_provider.dart:217:1
+    ⚠ unused top level variable navigationStatisticsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/navigation_state_provider.dart:222:1
+    ⚠ unused extension SafeNavigationExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/navigation/safe_navigation.dart:527:1
+    ⚠ unused class Firebase
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/notifications/firebase_stub.dart:153:1
+    ⚠ unused class DefaultFirebaseOptions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/notifications/firebase_stub.dart:182:1
+    ⚠ unused extension NotificationDbModelExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/notifications/models/notification_db_model.dart:73:1
+    ⚠ unused extension TokenManagerConvenience
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/notifications/services/token_manager_enhanced.dart:229:1
+    ⚠ unused top level variable appInitServiceProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/services/app_init_service.dart:178:1
+    ⚠ unused class InventoryService
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/services/inventory_service.dart:3:1
+    ⚠ unused class ColorOpacityHelper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/color_opacity_helper.dart:4:1
+    ⚠ unused class SupabaseErrorMapper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/error_mapper.dart:4:1
+    ⚠ unused class ImageCacheHelper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/image_cache_helper.dart:4:1
+    ⚠ unused class CurrencyInputFormatter
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/input_formatters.dart:50:1
+    ⚠ unused class DecimalInputFormatter
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/input_formatters.dart:95:1
+    ⚠ unused class PhoneNumberInputFormatter
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/input_formatters.dart:137:1
+    ⚠ unused extension TagListValidation
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/tag_validator.dart:201:1
+    ⚠ unused class WidgetMigrationHelper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/utils/widget_migration_helper.dart:7:1
+    ⚠ unused class PhoneValidator
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/core/validators/phone_validator.dart:1:1
+    ⚠ unused class ResponsiveTester
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/dev_tools/responsive_tester.dart:3:1
+    ⚠ unused class FloatingScreenDebug
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/dev_tools/screen_size_debug.dart:74:1
+    ⚠ unused top level variable fixedAssetFormProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/add_fix_asset/presentation/providers/fixed_asset_providers.dart:42:1
+    ⚠ unused extension LocationProblemExt
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/entities/problem_details.dart:140:1
+    ⚠ unused extension ProblemDetailsLocationExt
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/entities/problem_details.dart:162:1
+    ⚠ unused class ShiftData
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/entities/shift_data.dart:1:1
+    ⚠ unused class LocationPermissionDeniedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:12:1
+    ⚠ unused class LocationServicesDisabledException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:18:1
+    ⚠ unused class InvalidQRCodeException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:24:1
+    ⚠ unused class InvalidStoreIdException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:30:1
+    ⚠ unused class ShiftRequestNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:36:1
+    ⚠ unused class AlreadyCheckedInException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:42:1
+    ⚠ unused class AlreadyCheckedOutException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:48:1
+    ⚠ unused class AttendanceNetworkException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/exceptions/attendance_exceptions.dart:54:1
+    ⚠ unused class DetermineShiftStatus
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/usecases/determine_shift_status.dart:4:1
+    ⚠ unused class InsertShiftRequest
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/domain/usecases/insert_shift_request.dart:7:1
+    ⚠ unused function showShiftDetailsBottomSheet
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/modals/shift_details_bottom_sheet.dart:12:1
+    ⚠ unused class ScheduleMonthBuilder
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/pages/utils/schedule_month_builder.dart:14:1
+    ⚠ unused class ScheduleWeekBuilder
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/pages/utils/schedule_week_builder.dart:10:1
+    ⚠ unused class ScheduleMonthView
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/pages/widgets/schedule_month_view.dart:7:1
+    ⚠ unused class AttendanceContent
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/attendance_content.dart:19:1
+    ⚠ unused class AttendanceHeroSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/components/attendance_hero_section.dart:9:1
+    ⚠ unused class AttendanceQRButton
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/components/attendance_qr_button.dart:10:1
+    ⚠ unused class AttendanceRecentActivity
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/components/attendance_recent_activity.dart:11:1
+    ⚠ unused class AttendanceStatCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/components/attendance_stat_card.dart:8:1
+    ⚠ unused class AttendanceWeekSchedule
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/components/attendance_week_schedule.dart:9:1
+    ⚠ unused function showActivityDetailsDialog
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/dialogs/activity_details_dialog.dart:27:1
+    ⚠ unused class RowWidgets
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/helpers/row_widgets.dart:6:1
+    ⚠ unused class StatusHelpers
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/helpers/status_helpers.dart:4:1
+    ⚠ unused class AttendanceFormatters
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/utils/attendance_formatters.dart:3:1
+    ⚠ unused class HeroSectionHelpers
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/utils/hero_section_helpers.dart:1:1
+    ⚠ unused class AttendanceCalendarGrid
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/widgets/attendance_calendar_grid.dart:8:1
+    ⚠ unused class AttendanceStatCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/check_in_out/widgets/attendance_stat_card.dart:8:1
+    ⚠ unused class ShiftRegistrationDialog
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/shift_register/dialogs/shift_registration_dialog.dart:8:1
+    ⚠ unused class ShiftRegisterTab
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/shift_register/shift_register_tab.dart:19:1
+    ⚠ unused class ShiftInfoCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/attendance/presentation/widgets/shift_register/widgets/shift_info_card.dart:6:1
+    ⚠ unused extension UserEntityMapper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/data/models/freezed/user_dto_mapper.dart:65:1
+    ⚠ unused class UserNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:51:1
+    ⚠ unused class AccountLockedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:60:1
+    ⚠ unused class AccountDisabledException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:69:1
+    ⚠ unused class SessionExpiredException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:78:1
+    ⚠ unused class InvalidTokenException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:87:1
+    ⚠ unused class TermsNotAgreedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:114:1
+    ⚠ unused class CompanyNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:134:1
+    ⚠ unused class StoreNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:145:1
+    ⚠ unused class PermissionDeniedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/auth_exceptions.dart:176:1
+    ⚠ unused class EntityValidationException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/domain/exceptions/validation_exception.dart:40:1
+    ⚠ unused top level variable shouldFetchUserDataProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/presentation/providers/session_manager_provider.dart:255:1
+    ⚠ unused top level variable shouldFetchFeaturesProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/presentation/providers/session_manager_provider.dart:261:1
+    ⚠ unused top level variable isFreshLoginProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/auth/presentation/providers/session_manager_provider.dart:267:1
+    ⚠ unused class BalanceSheetPage
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/balance_sheet/presentation/pages/balance_sheet_page.dart:19:1
+    ⚠ unused class MissingDataException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/domain/exceptions/cash_ending_exception.dart:24:1
+    ⚠ unused class SaveFailedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/domain/exceptions/cash_ending_exception.dart:29:1
+    ⚠ unused class FetchFailedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/domain/exceptions/cash_ending_exception.dart:34:1
+    ⚠ unused class NoDenominationsException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/domain/exceptions/cash_ending_exception.dart:39:1
+    ⚠ unused class LocationNotSelectedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/domain/exceptions/cash_ending_exception.dart:45:1
+    ⚠ unused class CreateCashEndingEntityUseCase
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/domain/usecases/create_cash_ending_entity_usecase.dart:8:1
+    ⚠ unused class GetBalanceSummaryUseCase
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/domain/usecases/get_balance_summary_usecase.dart:8:1
+    ⚠ unused top level variable selectedStoreIdProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/providers/cash_ending_provider.dart:41:1
+    ⚠ unused top level variable currentLocationIdProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/providers/cash_ending_provider.dart:48:1
+    ⚠ unused top level variable currentCurrencyIdProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/providers/cash_ending_provider.dart:53:1
+    ⚠ unused top level variable currentTabIndexProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/providers/cash_ending_provider.dart:58:1
+    ⚠ unused top level variable isLoadingProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/providers/cash_ending_provider.dart:63:1
+    ⚠ unused top level variable errorMessageProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/providers/cash_ending_provider.dart:68:1
+    ⚠ unused top level variable successMessageProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/providers/cash_ending_provider.dart:73:1
+    ⚠ unused class CashEndingCompleteDialog
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/widgets/cash_ending_complete_dialog.dart:8:1
+    ⚠ unused class CurrencySelector
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/widgets/currency_selector.dart:12:1
+    ⚠ unused class LocationSelector
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/widgets/location_selector.dart:13:1
+    ⚠ unused class RealSectionWidget
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/widgets/real_section_widget.dart:15:1
+    ⚠ unused class CashEndingSelectionHelpers
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_ending/presentation/widgets/sheets/cash_ending_selection_helpers.dart:13:1
+    ⚠ unused class CurrencyInfoModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_location/data/models/stock_flow_model.dart:164:1
+    ⚠ unused class CreatedByModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_location/data/models/stock_flow_model.dart:175:1
+    ⚠ unused class UseCaseNoParams
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_location/domain/usecases/use_case.dart:8:1
+    ⚠ unused class BalanceCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_location/presentation/widgets/balance_card.dart:6:1
+    ⚠ unused extension CashDirectionUIX
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_transaction/presentation/formatters/cash_transaction_ui_extensions.dart:6:1
+    ⚠ unused extension TransactionTypeUIX
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_transaction/presentation/formatters/cash_transaction_ui_extensions.dart:30:1
+    ⚠ unused extension CashDirectionIconX
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_transaction/presentation/widgets/cash_transaction_icons.dart:5:1
+    ⚠ unused extension TransactionTypeIconX
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_transaction/presentation/widgets/cash_transaction_icons.dart:19:1
+    ⚠ unused class DirectionSelectionCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_transaction/presentation/widgets/direction_selection_card.dart:6:1
+    ⚠ unused class MemoWithPhotoSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_transaction/presentation/widgets/memo_with_photo_section.dart:7:1
+    ⚠ unused class TransactionTypeCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/cash_transaction/presentation/widgets/transaction_type_card.dart:6:1
+    ⚠ unused extension AccountMappingX
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/counter_party/domain/entities/account_mapping.dart:31:1
+    ⚠ unused class DebtDataSource
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/debt_control/data/datasources/debt_data_source.dart:3:1
+    ⚠ unused class RoleDeletionException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/delegate_role/domain/exceptions/role_exceptions.dart:46:1
+    ⚠ unused class DelegationListItem
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/delegate_role/presentation/widgets/delegation_list_item.dart:10:1
+    ⚠ unused class RoleTagsWidget
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/delegate_role/presentation/widgets/role_tags_widget.dart:7:1
+    ⚠ unused class CommonWidgetsPage
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/design_library/presentation/pages/sections/common_widgets_page.dart:22:1
+    ⚠ unused class TossWidgetsPage
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/design_library/presentation/pages/sections/toss_widgets_page.dart:36:1
+    ⚠ unused top level variable companyRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/homepage/data/providers/company_providers.dart:34:1
+    ⚠ unused top level variable homepageRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/homepage/data/providers/homepage_providers.dart:34:1
+    ⚠ unused top level variable joinRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/homepage/data/providers/join_providers.dart:30:1
+    ⚠ unused top level variable storeRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/homepage/data/providers/store_providers.dart:30:1
+    ⚠ unused top level variable autoSelectCompanyStoreProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/homepage/presentation/providers/usecase_providers.dart:63:1
+    ⚠ unused class FeatureCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/homepage/presentation/widgets/feature_card.dart:10:1
+    ⚠ unused type alias InventoryStatsModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:51:1
+    ⚠ unused type alias BrandModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:54:1
+    ⚠ unused type alias CurrencyModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:57:1
+    ⚠ unused type alias CategoryModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:60:1
+    ⚠ unused type alias StoreInfoModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:63:1
+    ⚠ unused type alias ProductTypeModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:66:1
+    ⚠ unused type alias ValidationRulesModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:69:1
+    ⚠ unused type alias AllowCustomValuesModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:72:1
+    ⚠ unused type alias StockStatusLevelModel
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/data/models/inventory_metadata_model.dart:75:1
+    ⚠ unused class ProductNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/domain/exceptions/inventory_exceptions.dart:20:1
+    ⚠ unused class InvalidProductDataException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/domain/exceptions/inventory_exceptions.dart:31:1
+    ⚠ unused class InsufficientStockException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/domain/exceptions/inventory_exceptions.dart:54:1
+    ⚠ unused class CategoryNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/domain/exceptions/inventory_exceptions.dart:71:1
+    ⚠ unused class BrandNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/domain/exceptions/inventory_exceptions.dart:82:1
+    ⚠ unused class InventoryValidationException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/domain/exceptions/inventory_exceptions.dart:112:1
+    ⚠ unused class InventoryPermissionDeniedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/domain/exceptions/inventory_exceptions.dart:123:1
+    ⚠ unused extension StockStatusDisplay
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/extensions/stock_status_extension.dart:10:1
+    ⚠ unused class AttributeValue
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/pages/attribute_value_selector_page.dart:11:1
+    ⚠ unused class ClassificationSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/widgets/product_form/classification_section.dart:9:1
+    ⚠ unused class InventorySection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/widgets/product_form/inventory_section.dart:8:1
+    ⚠ unused class PricingSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/widgets/product_form/pricing_section.dart:8:1
+    ⚠ unused class ProductInfoSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/widgets/product_form/product_info_section.dart:8:1
+    ⚠ unused class ProductStatusSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/widgets/product_form/product_status_section.dart:8:1
+    ⚠ unused class ProductListView
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/inventory_management/presentation/widgets/product_list_view.dart:13:1
+    ⚠ unused top level variable lcDocumentTypes
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/domain/entities/lc_type.dart:41:1
+    ⚠ unused top level variable allPaymentTermsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/presentation/providers/lc_master_data_providers.dart:38:1
+    ⚠ unused top level variable currencyTypesProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/presentation/providers/lc_master_data_providers.dart:111:1
+    ⚠ unused top level variable incotermsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/presentation/providers/lc_master_data_providers.dart:152:1
+    ⚠ unused top level variable shippingMethodsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/presentation/providers/lc_master_data_providers.dart:196:1
+    ⚠ unused top level variable lcListStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/presentation/providers/lc_providers.dart:84:1
+    ⚠ unused top level variable activeLCCountProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/presentation/providers/lc_providers.dart:189:1
+    ⚠ unused top level variable expiringLCListProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/letter_of_credit/presentation/providers/lc_providers.dart:206:1
+    ⚠ unused class PurchaseOrderPage
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/purchase_order/presentation/pages/purchase_order_page.dart:9:1
+    ⚠ unused top level variable multipleExchangeRatesProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/register_denomination/presentation/providers/exchange_rate_provider.dart:14:1
+    ⚠ unused top level variable supportedCurrenciesProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/register_denomination/presentation/providers/exchange_rate_provider.dart:21:1
+    ⚠ unused class ExampleReportData
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/domain/entities/templates/financial_summary/example_report_data.dart:5:1
+    ⚠ unused class ReportDetail
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/domain/entities/templates/financial_summary/financial_report.dart:8:1
+    ⚠ unused class SubscriptionException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/domain/exceptions/report_exception.dart:32:1
+    ⚠ unused top level variable attendanceRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/presentation/pages/templates/daily_attendance/providers/attendance_providers.dart:21:1
+    ⚠ unused class BalanceSheetOverview
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/presentation/widgets/templates/financial_summary/balance_sheet_overview.dart:10:1
+    ⚠ unused class FinancialChangesSummary
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/presentation/widgets/templates/financial_summary/financial_changes_summary.dart:9:1
+    ⚠ unused class HeroRevenueDisplay
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/presentation/widgets/templates/financial_summary/hero_revenue_display.dart:8:1
+    ⚠ unused class PerformanceCardsSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/report_control/presentation/widgets/templates/financial_summary/performance_cards_section.dart:8:1
+    ⚠ unused class ProductOutOfStockException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/domain/exceptions/sales_exceptions.dart:24:1
+    ⚠ unused class InsufficientStockException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/domain/exceptions/sales_exceptions.dart:32:1
+    ⚠ unused class InvoiceAttachmentPage
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/presentation/pages/invoice_attachment_page.dart:20:1
+    ⚠ unused top level variable brandsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/presentation/providers/brands_provider.dart:10:1
+    ⚠ unused extension ExchangeRateAsyncValueExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/presentation/providers/exchange_rate_provider.dart:55:1
+    ⚠ unused top level variable filterProductsUseCaseProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/presentation/providers/use_case_providers.dart:13:1
+    ⚠ unused top level variable loadProductsUseCaseProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/presentation/providers/use_case_providers.dart:23:1
+    ⚠ unused class StockColorHelper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sale_product/presentation/utils/stock_color_helper.dart:6:1
+    ⚠ unused top level variable invoiceRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/data/repositories/repository_providers.dart:46:1
+    ⚠ unused top level variable productRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/data/repositories/repository_providers.dart:55:1
+    ⚠ unused top level variable salesJournalRepositoryProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/data/repositories/repository_providers.dart:64:1
+    ⚠ unused class InvoiceNotFoundException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/domain/exceptions/invoice_exceptions.dart:41:1
+    ⚠ unused class InvoiceValidationException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/domain/exceptions/invoice_exceptions.dart:53:1
+    ⚠ unused class InvoiceBusinessException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/domain/exceptions/invoice_exceptions.dart:65:1
+    ⚠ unused class InvoiceValidator
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/domain/validators/invoice_validator.dart:3:1
+    ⚠ unused extension InvoiceSortOptionDisplay
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/extensions/invoice_sort_option_extension.dart:11:1
+    ⚠ unused extension InvoiceStatusDisplay
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/extensions/invoice_status_extension.dart:12:1
+    ⚠ unused extension PaymentStatusDisplay
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/extensions/invoice_status_extension.dart:39:1
+    ⚠ unused class PaymentMethodPage
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/pages/payment_method_page.dart:52:1
+    ⚠ unused class InvoiceListSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/invoice_list/invoice_list_section.dart:12:1
+    ⚠ unused class PaginationControls
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/invoice_list/pagination_controls.dart:10:1
+    ⚠ unused class SearchFilterSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/invoice_list/search_filter_section.dart:14:1
+    ⚠ unused class TodaySalesBottomSheet
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/invoice_list/today_sales_bottom_sheet.dart:11:1
+    ⚠ unused class PaymentBottomButton
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/payment_method/payment_bottom_button.dart:11:1
+    ⚠ unused class CashLocationSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/payment_method/sections/cash_location_section.dart:15:1
+    ⚠ unused class CurrencyConverterSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/payment_method/sections/currency_converter_section.dart:11:1
+    ⚠ unused class DiscountTotalSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/sales_invoice/presentation/widgets/payment_method/sections/discount_total_section.dart:12:1
+    ⚠ unused top level variable searchProductsUseCaseProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/di/session_providers.dart:36:1
+    ⚠ unused top level variable addSessionItemsUseCaseProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/di/session_providers.dart:48:1
+    ⚠ unused class ProductMapper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/presentation/providers/helpers/product_mapper.dart:4:1
+    ⚠ unused class SelectedProductsManager
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/presentation/providers/helpers/selected_products_manager.dart:3:1
+    ⚠ unused function showCreateSessionDialog
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/presentation/widgets/create_session_dialog.dart:390:1
+    ⚠ unused class SearchResultCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/presentation/widgets/session_detail/search_result_card.dart:9:1
+    ⚠ unused class SessionDetailBottomButtons
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/presentation/widgets/session_detail/session_detail_bottom_buttons.dart:8:1
+    ⚠ unused class SessionItemCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/session/presentation/widgets/session_detail/session_item_card.dart:10:1
+    ⚠ unused class InvalidShiftDataException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/domain/exceptions/store_shift_exceptions.dart:28:1
+    ⚠ unused class UnauthorizedException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/domain/exceptions/store_shift_exceptions.dart:68:1
+    ⚠ unused class NoParams
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/domain/usecases/base_usecase.dart:6:1
+    ⚠ unused top level variable shiftPageStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:174:1
+    ⚠ unused top level variable shiftFilterStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:183:1
+    ⚠ unused top level variable shiftFormStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:188:1
+    ⚠ unused top level variable shiftDeletionStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:193:1
+    ⚠ unused top level variable storeSettingsStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:198:1
+    ⚠ unused top level variable operatingHoursStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:203:1
+    ⚠ unused top level variable storeLocationStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:208:1
+    ⚠ unused top level variable operationalSettingsStateProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/store_shift/presentation/providers/store_shift_providers.dart:213:1
+    ⚠ unused extension AvailableContentDtoMapper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/data/models/freezed/available_content_dto_mapper.dart:3:1
+    ⚠ unused extension AvailableEmployeesDataDtoMapper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/data/models/freezed/available_employees_data_dto_mapper.dart:6:1
+    ⚠ unused extension ShiftRequestDtoMapper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/data/models/freezed/shift_request_dto_mapper.dart:6:1
+    ⚠ unused extension StoreCardsDtoMapper
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/data/models/freezed/store_cards_dto_mapper.dart:4:1
+    ⚠ unused class ShiftCreationException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/domain/exceptions/time_table_exceptions.dart:53:1
+    ⚠ unused class InvalidShiftParametersException
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/domain/exceptions/time_table_exceptions.dart:77:1
+    ⚠ unused class InputCardV4
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/domain/usecases/input_card_v4.dart:4:1
+    ⚠ unused class WeekDayData
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/models/schedule_models.dart:138:1
+    ⚠ unused class AttentionListPage
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/pages/attention_list_page.dart:13:1
+    ⚠ unused class TimelogStateMixin
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/pages/staff_timelog_detail/mixins/timelog_state_mixin.dart:8:1
+    ⚠ unused class ShiftDetailsFormNotifier
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/providers/notifiers/shift_details_form_notifier.dart:11:1
+    ⚠ unused top level variable storeEmployeeUserIdsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/providers/state/store_employees_provider.dart:52:1
+    ⚠ unused class ShiftDetailsBottomSheet
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/bottom_sheets/shift_details_bottom_sheet.dart:13:1
+    ⚠ unused class CalendarMonthHeader
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/calendar/calendar_month_header.dart:9:1
+    ⚠ unused class ShiftCalendarView
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/calendar/shift_calendar_view.dart:12:1
+    ⚠ unused class TimeTableCalendar
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/calendar/time_table_calendar.dart:11:1
+    ⚠ unused class AnimatedTabBar
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/common/animated_tab_bar.dart:9:1
+    ⚠ unused class ShiftStatusBadge
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/common/shift_status_badge.dart:8:1
+    ⚠ unused class SimpleTimeDisplay
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/common/shift_time_display.dart:60:1
+    ⚠ unused class StatCardWidget
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/common/stat_card_widget.dart:8:1
+    ⚠ unused class StoreSelectorCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/common/store_selector_card.dart:8:1
+    ⚠ unused class ManageTabView
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/manage/manage_tab_view.dart:13:1
+    ⚠ unused class OverviewTabView
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/overview/overview_tab_view.dart:12:1
+    ⚠ unused class ShiftSummarySection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/overview/shift_summary_section.dart:9:1
+    ⚠ unused class DailyShiftCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/schedule/daily_shift_card.dart:14:1
+    ⚠ unused class ScheduleApproveButton
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/schedule/schedule_approve_button.dart:15:1
+    ⚠ unused class ScheduleShiftDataSection
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/schedule/schedule_shift_data_section.dart:15:1
+    ⚠ unused class ScheduleTabView
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/schedule/schedule_tab_view.dart:11:1
+    ⚠ unused class ShiftSectionTitle
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/shift_details/shift_section_title.dart:7:1
+    ⚠ unused class ShiftManagementCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/shift_management_card.dart:10:1
+    ⚠ unused class TimelogDayView
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/time_table_manage/presentation/widgets/timesheets/timelog_day_view.dart:9:1
+    ⚠ unused class TradeFloatingActionButton
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/trade_dashboard/presentation/widgets/dashboard_quick_actions.dart:64:1
+    ⚠ unused class AccountMappingValidatorImpl
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/data/services/account_mapping_validator_impl.dart:5:1
+    ⚠ unused class PermissionLevels
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/domain/enums/template_enums.dart:28:1
+    ⚠ unused extension FormComplexityExtension
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/domain/enums/template_enums.dart:78:1
+    ⚠ unused top level variable templateJournalAttachmentsProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/presentation/providers/use_case_providers.dart:40:1
+    ⚠ unused top level variable deleteTemplateAttachmentProvider
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/presentation/providers/use_case_providers.dart:49:1
+    ⚠ unused class CollapsibleDescription
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/presentation/widgets/forms/collapsible_description.dart:17:1
+    ⚠ unused class ComplexTemplateCard
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/presentation/widgets/forms/complex_template_card.dart:17:1
+    ⚠ unused class EssentialSelectors
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/presentation/widgets/forms/essential_selectors.dart:24:1
+    ⚠ unused class QuickAmountInput
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/presentation/widgets/forms/quick_amount_input.dart:19:1
+    ⚠ unused class QuickStatusIndicator
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/features/transaction_template/presentation/widgets/forms/quick_status_indicator.dart:20:1
+    ⚠ unused extension TossColorExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:57:1
+    ⚠ unused extension TossTextExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:112:1
+    ⚠ unused extension TossSpacingExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:152:1
+    ⚠ unused extension TossBorderRadiusExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:247:1
+    ⚠ unused extension TossShadowExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:309:1
+    ⚠ unused extension TossAnimationExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:349:1
+    ⚠ unused extension TossIconExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:371:1
+    ⚠ unused extension ConsumerThemeExtensions
+      at /Applications/XAMPP/xamppfiles/htdocs/mysite/mystorecluade/myFinance_improved_V2/lib/shared/themes/theme_extensions.dart:453:1

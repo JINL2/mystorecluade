@@ -29,6 +29,10 @@ class Company with _$Company {
     required DateTime createdAt,
     DateTime? updatedAt,
     String? otherTypeDetail, // Custom company type detail when "Others" is selected
+    String? businessNumber, // Business registration number
+    String? email, // Company email
+    String? phone, // Company phone
+    String? address, // Company address
   }) = _Company;
 
   /// Validates the company entity

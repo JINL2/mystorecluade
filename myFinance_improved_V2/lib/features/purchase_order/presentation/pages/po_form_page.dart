@@ -4,26 +4,20 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../app/providers/counterparty_provider.dart';
 import '../../../../core/domain/entities/selector_entities.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../counter_party/presentation/widgets/counter_party_form.dart';
 import '../../../register_denomination/domain/entities/currency.dart';
-import '../../../register_denomination/presentation/providers/currency_providers.dart';
 import '../../../trade_shared/domain/entities/trade_item.dart';
 import '../../../trade_shared/presentation/pages/trade_item_picker_page.dart';
 import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
-import '../../../cash_location/presentation/providers/cash_location_providers.dart';
-import '../../../cash_location/domain/value_objects/cash_location_query_params.dart';
-import '../../../cash_location/domain/entities/cash_location.dart';
 import '../../domain/entities/purchase_order.dart';
 import '../../domain/repositories/po_repository.dart';
 import '../providers/po_providers.dart';
+import '../widgets/po_form/po_form_widgets.dart';
 
 class POFormPage extends ConsumerStatefulWidget {
   final String? poId; // null for create, non-null for edit
@@ -179,7 +173,17 @@ class _POFormPageState extends ConsumerState<POFormPage> {
                   // Buyer Section
                   _buildSectionTitle('Buyer Information'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildBuyerDropdown(),
+                  POBuyerSection(
+                    buyerId: _buyerId,
+                    errorText: _buyerError,
+                    onBuyerChanged: (buyer) {
+                      setState(() {
+                        _buyerId = buyer?.id;
+                        _selectedBuyer = buyer;
+                        _buyerError = null;
+                      });
+                    },
+                  ),
                   const SizedBox(height: TossSpacing.space3),
                   _buildTextField(
                     controller: _buyerPoNumberController,
@@ -190,7 +194,18 @@ class _POFormPageState extends ConsumerState<POFormPage> {
                   // Currency Section
                   _buildSectionTitle('Currency'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildCurrencyDropdown(),
+                  POCurrencySection(
+                    currencyId: _currencyId,
+                    errorText: _currencyError,
+                    onCurrencyChanged: (currency) {
+                      setState(() {
+                        _currencyId = currency?.id;
+                        _selectedCurrency = currency;
+                        _currencyCode = currency?.code ?? 'USD';
+                        _currencyError = null;
+                      });
+                    },
+                  ),
                   const SizedBox(height: TossSpacing.space5),
 
                   // Dates Section
@@ -212,39 +227,42 @@ class _POFormPageState extends ConsumerState<POFormPage> {
                   // Trade Terms Section
                   _buildSectionTitle('Trade Terms'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildIncotermsRow(),
+                  POShippingTermsSection(
+                    incotermsCode: _incotermsCode,
+                    incotermsPlaceController: _incotermsPlaceController,
+                    paymentTermsCode: _paymentTermsCode,
+                    onIncotermsChanged: (v) => setState(() => _incotermsCode = v),
+                    onPaymentTermsChanged: (v) => setState(() => _paymentTermsCode = v),
+                  ),
                   const SizedBox(height: TossSpacing.space3),
-                  _buildPaymentTermsDropdown(),
-                  const SizedBox(height: TossSpacing.space3),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildSwitchTile(
-                          'Partial Shipment',
-                          _partialShipmentAllowed,
-                          (v) => setState(() => _partialShipmentAllowed = v),
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space3),
-                      Expanded(
-                        child: _buildSwitchTile(
-                          'Transshipment',
-                          _transshipmentAllowed,
-                          (v) => setState(() => _transshipmentAllowed = v),
-                        ),
-                      ),
-                    ],
+                  POShipmentOptionsSection(
+                    partialShipmentAllowed: _partialShipmentAllowed,
+                    transshipmentAllowed: _transshipmentAllowed,
+                    onPartialShipmentChanged: (v) => setState(() => _partialShipmentAllowed = v),
+                    onTransshipmentChanged: (v) => setState(() => _transshipmentAllowed = v),
                   ),
                   const SizedBox(height: TossSpacing.space5),
 
                   // Bank Account Selection
                   _buildSectionTitle('Banking Information'),
                   const SizedBox(height: TossSpacing.space2),
-                  _buildBankAccountSelector(),
+                  POBankAccountSection(
+                    selectedBankAccountIds: _selectedBankAccountIds,
+                    onBankAccountsChanged: (ids) {
+                      setState(() => _selectedBankAccountIds = ids);
+                    },
+                  ),
                   const SizedBox(height: TossSpacing.space5),
 
                   // Items Section
-                  _buildItemsSection(),
+                  POItemsSection(
+                    items: _items,
+                    currencyCode: _currencyCode,
+                    errorText: _itemsError,
+                    onAddItem: _addItem,
+                    onEditItem: _editItem,
+                    onDeleteItem: _deleteItem,
+                  ),
                   const SizedBox(height: TossSpacing.space5),
 
                   // Notes Section
@@ -294,570 +312,6 @@ class _POFormPageState extends ConsumerState<POFormPage> {
     );
   }
 
-  Widget _buildBuyerDropdown() {
-    final counterpartyAsync = ref.watch(currentCounterpartiesProvider);
-
-    return counterpartyAsync.when(
-      loading: () => TossDropdown<String>(
-        label: 'Buyer',
-        items: const [],
-        isLoading: true,
-        isRequired: true,
-        hint: 'Loading...',
-      ),
-      error: (error, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildBuyerLabelWithAddButton(),
-          const SizedBox(height: TossSpacing.space2),
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              border: Border.all(color: TossColors.error),
-            ),
-            child: Text(
-              'Failed to load buyers',
-              style: TossTextStyles.body.copyWith(color: TossColors.error),
-            ),
-          ),
-        ],
-      ),
-      data: (counterparties) {
-        if (counterparties.isEmpty) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBuyerLabelWithAddButton(),
-              const SizedBox(height: TossSpacing.space2),
-              _buildEmptyBuyerPlaceholder(),
-            ],
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildBuyerLabelWithAddButton(),
-            const SizedBox(height: TossSpacing.space2),
-            _buildBuyerSelector(counterparties),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildBuyerLabelWithAddButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Buyer',
-              style: TossTextStyles.label.copyWith(
-                color: _buyerError != null ? TossColors.error : TossColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Text(
-              '*',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.error,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: _showCreateCounterpartySheet,
-          child: Row(
-            children: [
-              Icon(Icons.add_circle_outline, size: 16, color: TossColors.primary),
-              const SizedBox(width: 4),
-              Text(
-                'Add New',
-                style: TossTextStyles.caption.copyWith(color: TossColors.primary),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyBuyerPlaceholder() {
-    return GestureDetector(
-      onTap: _showCreateCounterpartySheet,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: _buyerError != null ? TossColors.error : TossColors.gray200,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_circle_outline, color: TossColors.primary, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              'Add your first buyer',
-              style: TossTextStyles.body.copyWith(color: TossColors.primary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBuyerSelector(List<CounterpartyData> counterparties) {
-    String? currentValue;
-    if (_buyerId != null && counterparties.any((c) => c.id == _buyerId)) {
-      currentValue = _buyerId;
-    }
-
-    return TossDropdown<String>(
-      label: '',
-      value: currentValue,
-      hint: 'Select buyer',
-      isRequired: true,
-      errorText: _buyerError,
-      items: counterparties
-          .map((c) => TossDropdownItem<String>(
-                value: c.id,
-                label: c.name,
-                subtitle: _getCounterpartySubtitle(c),
-              ))
-          .toList(),
-      onChanged: (v) {
-        if (v == null) return;
-        setState(() {
-          _buyerId = v;
-          _buyerError = null;
-          try {
-            _selectedBuyer = counterparties.firstWhere((c) => c.id == v);
-          } catch (e) {
-            _selectedBuyer = null;
-          }
-        });
-      },
-    );
-  }
-
-  String? _getCounterpartySubtitle(CounterpartyData c) {
-    // Try to get country from additionalData
-    final country = c.additionalData?['country'] as String?;
-    if (country != null && country.isNotEmpty) {
-      return country;
-    }
-    // Fallback to type if no country
-    return c.type.isNotEmpty ? c.type : null;
-  }
-
-  Widget _buildCurrencyDropdown() {
-    final currencyAsync = ref.watch(companyCurrenciesProvider);
-
-    return currencyAsync.when(
-      loading: () => TossDropdown<String>(
-        label: 'Currency',
-        items: const [],
-        isLoading: true,
-        isRequired: true,
-        hint: 'Loading...',
-      ),
-      error: (error, _) => TossDropdown<String>(
-        label: 'Currency',
-        items: const [],
-        isRequired: true,
-        errorText: 'Failed to load',
-        hint: 'Error loading currencies',
-      ),
-      data: (currencies) {
-        String? currentValue;
-        if (_currencyId != null && currencies.any((c) => c.id == _currencyId)) {
-          currentValue = _currencyId;
-        }
-
-        return TossDropdown<String>(
-          label: 'Currency',
-          value: currentValue,
-          hint: 'Select currency',
-          isRequired: true,
-          errorText: _currencyError,
-          items: currencies
-              .map((c) => TossDropdownItem<String>(
-                    value: c.id,
-                    label: '${c.code} (${c.symbol})',
-                    subtitle: c.fullName,
-                  ))
-              .toList(),
-          onChanged: (v) {
-            if (v == null) return;
-            setState(() {
-              _currencyId = v;
-              _currencyError = null;
-              try {
-                final selected = currencies.firstWhere((c) => c.id == v);
-                _selectedCurrency = selected;
-                _currencyCode = selected.code;
-              } catch (e) {
-                // Currency not found
-              }
-            });
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildIncotermsRow() {
-    final masterDataState = ref.watch(masterDataProvider);
-    final incoterms = masterDataState.incoterms;
-
-    final incotermItems = incoterms.isNotEmpty
-        ? incoterms
-            .map((i) => TossDropdownItem<String>(
-                  value: i.code,
-                  label: i.code,
-                  subtitle: i.name,
-                ))
-            .toList()
-        : ['FOB', 'CIF', 'CFR', 'EXW', 'DDP', 'DAP']
-            .map((c) => TossDropdownItem<String>(value: c, label: c))
-            .toList();
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: TossDropdown<String>(
-            label: 'Incoterms',
-            value: _incotermsCode,
-            items: incotermItems,
-            onChanged: (v) => setState(() => _incotermsCode = v),
-            hint: 'Select',
-          ),
-        ),
-        const SizedBox(width: TossSpacing.space3),
-        Expanded(
-          child: _buildTextField(
-            controller: _incotermsPlaceController,
-            label: 'Place',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentTermsDropdown() {
-    final masterDataState = ref.watch(masterDataProvider);
-    final paymentTerms = masterDataState.paymentTerms;
-
-    final paymentTermItems = paymentTerms.isNotEmpty
-        ? paymentTerms
-            .map((p) => TossDropdownItem<String>(
-                  value: p.code,
-                  label: p.code,
-                  subtitle: p.name,
-                ))
-            .toList()
-        : ['T/T', 'L/C', 'D/P', 'D/A', 'CAD']
-            .map((c) => TossDropdownItem<String>(value: c, label: c))
-            .toList();
-
-    return TossDropdown<String>(
-      label: 'Payment Terms',
-      value: _paymentTermsCode,
-      items: paymentTermItems,
-      onChanged: (v) => setState(() => _paymentTermsCode = v),
-      hint: 'Select',
-    );
-  }
-
-  Widget _buildBankAccountSelector() {
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      return const Text('No company selected');
-    }
-
-    final params = CashLocationQueryParams(
-      companyId: companyId,
-      locationType: 'bank',
-    );
-
-    final bankAccountsAsync = ref.watch(allCashLocationsProvider(params));
-
-    return bankAccountsAsync.when(
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          child: CircularProgressIndicator(),
-        ),
-      ),
-      error: (error, _) => Text(
-        'Failed to load bank accounts: $error',
-        style: TextStyle(color: TossColors.error),
-      ),
-      data: (bankAccounts) {
-        if (bankAccounts.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            child: Text(
-              'No bank accounts registered. Add bank accounts in Cash Location settings.',
-              style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
-            ),
-          );
-        }
-
-        final tossDropdownItems = bankAccounts.map((bank) {
-          final primaryName = bank.locationName;
-          final bankName = bank.bankName;
-          final currencyCode = bank.currencyCode ?? '';
-
-          String label = primaryName;
-          if (currencyCode.isNotEmpty) {
-            label = '$primaryName ($currencyCode)';
-          }
-
-          String? subtitle;
-          if (bankName != null && bankName.isNotEmpty && bankName != primaryName) {
-            subtitle = bankName;
-          }
-
-          return TossDropdownItem<String>(
-            value: bank.locationId,
-            label: label,
-            subtitle: subtitle,
-          );
-        }).toList();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TossDropdown<String>(
-              label: '',
-              hint: 'Select bank account',
-              value: _selectedBankAccountIds.isNotEmpty ? _selectedBankAccountIds.first : null,
-              items: tossDropdownItems,
-              onChanged: (value) {
-                setState(() {
-                  _selectedBankAccountIds.clear();
-                  if (value != null) {
-                    _selectedBankAccountIds.add(value);
-                  }
-                });
-              },
-            ),
-            // Show selected bank details
-            if (_selectedBankAccountIds.isNotEmpty) ...[
-              const SizedBox(height: TossSpacing.space3),
-              Builder(
-                builder: (context) {
-                  final selectedBank = bankAccounts.firstWhere(
-                    (b) => b.locationId == _selectedBankAccountIds.first,
-                    orElse: () => bankAccounts.first,
-                  );
-                  return _buildBankDetailCard(selectedBank);
-                },
-              ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildBankDetailCard(CashLocation bank) {
-    final details = <MapEntry<String, String>>[];
-
-    if (bank.bankName != null && bank.bankName!.isNotEmpty) {
-      details.add(MapEntry('Bank Name', bank.bankName!));
-    }
-    if (bank.bankAccount != null && bank.bankAccount!.isNotEmpty) {
-      details.add(MapEntry('Account No.', bank.bankAccount!));
-    }
-    if (bank.beneficiaryName != null && bank.beneficiaryName!.isNotEmpty) {
-      details.add(MapEntry('Beneficiary', bank.beneficiaryName!));
-    }
-    if (bank.swiftCode != null && bank.swiftCode!.isNotEmpty) {
-      details.add(MapEntry('SWIFT Code', bank.swiftCode!));
-    }
-    if (bank.bankBranch != null && bank.bankBranch!.isNotEmpty) {
-      details.add(MapEntry('Branch', bank.bankBranch!));
-    }
-    if (bank.bankAddress != null && bank.bankAddress!.isNotEmpty) {
-      details.add(MapEntry('Bank Address', bank.bankAddress!));
-    }
-    if (bank.currencyCode != null && bank.currencyCode!.isNotEmpty) {
-      details.add(MapEntry('Currency', bank.currencyCode!));
-    }
-    if (bank.accountType != null && bank.accountType!.isNotEmpty) {
-      details.add(MapEntry('Account Type', bank.accountType!));
-    }
-
-    if (details.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(TossSpacing.space3),
-        decoration: BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(color: TossColors.border),
-        ),
-        child: Text(
-          'No additional details available for this bank account.',
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(color: TossColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: details.asMap().entries.map((mapEntry) {
-          final entry = mapEntry.value;
-          final isLast = mapEntry.key == details.length - 1;
-          return Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : TossSpacing.space2),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 110,
-                  child: Text(
-                    entry.key,
-                    style: TossTextStyles.label.copyWith(
-                      color: TossColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    entry.value,
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildItemsSection() {
-    final totalAmount = _calculateTotalAmount();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Items',
-                  style: TossTextStyles.h4.copyWith(color: TossColors.gray900),
-                ),
-                const SizedBox(width: 2),
-                Text(
-                  '*',
-                  style: TossTextStyles.h4.copyWith(color: TossColors.error),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Text(
-                  'Total: $_currencyCode ${NumberFormat('#,##0.00').format(totalAmount)}',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: TossColors.primary,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle, color: TossColors.primary),
-                  onPressed: _addItem,
-                ),
-              ],
-            ),
-          ],
-        ),
-        if (_itemsError != null) ...[
-          const SizedBox(height: TossSpacing.space1),
-          Text(
-            _itemsError!,
-            style: TossTextStyles.caption.copyWith(color: TossColors.error),
-          ),
-        ],
-        const SizedBox(height: TossSpacing.space2),
-        if (_items.isEmpty)
-          _buildEmptyItemsPlaceholder()
-        else
-          ...List.generate(_items.length, (index) {
-            final item = _items[index];
-            return _POItemCard(
-              item: item,
-              index: index,
-              currencyCode: _currencyCode,
-              onEdit: () => _editItem(index),
-              onDelete: () => _deleteItem(index),
-            );
-          }),
-      ],
-    );
-  }
-
-  Widget _buildEmptyItemsPlaceholder() {
-    return GestureDetector(
-      onTap: _addItem,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(
-            color: _itemsError != null ? TossColors.error : TossColors.gray200,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_circle_outline, color: TossColors.primary, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              'Add items',
-              style: TossTextStyles.body.copyWith(color: TossColors.primary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -889,7 +343,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   Widget _buildDateField({
     required String label,
     DateTime? value,
-    required Function(DateTime?) onChanged,
+    required void Function(DateTime?) onChanged,
     bool isRequired = false,
     String? errorText,
   }) {
@@ -942,52 +396,6 @@ class _POFormPageState extends ConsumerState<POFormPage> {
     );
   }
 
-  Widget _buildSwitchTile(String label, bool value, ValueChanged<bool> onChanged) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: TossSpacing.space1,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray300),
-      ),
-      child: Row(
-        children: [
-          Flexible(
-            child: Text(
-              label,
-              style: TossTextStyles.caption,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 4),
-          SizedBox(
-            height: 24,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: Switch(
-                value: value,
-                onChanged: onChanged,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper methods
-  double _calculateTotalAmount() {
-    double total = 0;
-    for (final item in _items) {
-      total += item.quantity * item.unitPrice;
-    }
-    return total;
-  }
-
   Future<void> _selectDate({
     DateTime? initialDate,
     required void Function(DateTime?) onSelected,
@@ -1001,30 +409,6 @@ class _POFormPageState extends ConsumerState<POFormPage> {
     if (picked != null) {
       onSelected(picked);
     }
-  }
-
-  void _showCreateCounterpartySheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: const CounterPartyForm(),
-        ),
-      ),
-    ).then((_) {
-      // Refresh counterparties after bottom sheet closes
-      ref.invalidate(currentCounterpartiesProvider);
-    });
   }
 
   void _addItem() async {
@@ -1259,144 +643,5 @@ class _POFormPageState extends ConsumerState<POFormPage> {
         );
       }
     }
-  }
-}
-
-// Item Form Data class
-class POItemFormData {
-  final String? productId;
-  final String description;
-  final String? sku;
-  final String? hsCode;
-  final double quantity;
-  final String unit;
-  final double unitPrice;
-
-  POItemFormData({
-    this.productId,
-    required this.description,
-    this.sku,
-    this.hsCode,
-    required this.quantity,
-    required this.unit,
-    required this.unitPrice,
-  });
-
-  double get lineTotal => quantity * unitPrice;
-}
-
-// PO Item Card Widget
-class _POItemCard extends StatelessWidget {
-  final POItemFormData item;
-  final int index;
-  final String currencyCode;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _POItemCard({
-    required this.item,
-    required this.index,
-    required this.currencyCode,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space3),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${index + 1}',
-                      style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Text(
-                    item.description,
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  onPressed: onEdit,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                IconButton(
-                  icon: Icon(Icons.delete_outline, size: 20, color: TossColors.error),
-                  onPressed: onDelete,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Row(
-              children: [
-                if (item.sku != null && item.sku!.isNotEmpty) _buildChip('SKU: ${item.sku}'),
-                if (item.hsCode != null && item.hsCode!.isNotEmpty) _buildChip('HS: ${item.hsCode}'),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${NumberFormat('#,##0.##').format(item.quantity)} ${item.unit} × $currencyCode ${NumberFormat('#,##0.00').format(item.unitPrice)}',
-                  style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray600),
-                ),
-                Text(
-                  '$currencyCode ${NumberFormat('#,##0.00').format(item.lineTotal)}',
-                  style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChip(String label) {
-    return Container(
-      margin: const EdgeInsets.only(right: TossSpacing.space2),
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label,
-        style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
-      ),
-    );
   }
 }

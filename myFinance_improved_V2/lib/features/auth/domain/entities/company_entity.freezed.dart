@@ -25,7 +25,13 @@ mixin _$Company {
   String get ownerId => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
-  String? get otherTypeDetail => throw _privateConstructorUsedError;
+  String? get otherTypeDetail =>
+      throw _privateConstructorUsedError; // Custom company type detail when "Others" is selected
+  String? get businessNumber =>
+      throw _privateConstructorUsedError; // Business registration number
+  String? get email => throw _privateConstructorUsedError; // Company email
+  String? get phone => throw _privateConstructorUsedError; // Company phone
+  String? get address => throw _privateConstructorUsedError;
 
   /// Create a copy of Company
   /// with the given fields replaced by the non-null parameter values.
@@ -47,7 +53,11 @@ abstract class $CompanyCopyWith<$Res> {
       String ownerId,
       DateTime createdAt,
       DateTime? updatedAt,
-      String? otherTypeDetail});
+      String? otherTypeDetail,
+      String? businessNumber,
+      String? email,
+      String? phone,
+      String? address});
 }
 
 /// @nodoc
@@ -74,6 +84,10 @@ class _$CompanyCopyWithImpl<$Res, $Val extends Company>
     Object? createdAt = null,
     Object? updatedAt = freezed,
     Object? otherTypeDetail = freezed,
+    Object? businessNumber = freezed,
+    Object? email = freezed,
+    Object? phone = freezed,
+    Object? address = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -112,6 +126,22 @@ class _$CompanyCopyWithImpl<$Res, $Val extends Company>
           ? _value.otherTypeDetail
           : otherTypeDetail // ignore: cast_nullable_to_non_nullable
               as String?,
+      businessNumber: freezed == businessNumber
+          ? _value.businessNumber
+          : businessNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -132,7 +162,11 @@ abstract class _$$CompanyImplCopyWith<$Res> implements $CompanyCopyWith<$Res> {
       String ownerId,
       DateTime createdAt,
       DateTime? updatedAt,
-      String? otherTypeDetail});
+      String? otherTypeDetail,
+      String? businessNumber,
+      String? email,
+      String? phone,
+      String? address});
 }
 
 /// @nodoc
@@ -157,6 +191,10 @@ class __$$CompanyImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? updatedAt = freezed,
     Object? otherTypeDetail = freezed,
+    Object? businessNumber = freezed,
+    Object? email = freezed,
+    Object? phone = freezed,
+    Object? address = freezed,
   }) {
     return _then(_$CompanyImpl(
       id: null == id
@@ -195,6 +233,22 @@ class __$$CompanyImplCopyWithImpl<$Res>
           ? _value.otherTypeDetail
           : otherTypeDetail // ignore: cast_nullable_to_non_nullable
               as String?,
+      businessNumber: freezed == businessNumber
+          ? _value.businessNumber
+          : businessNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -211,7 +265,11 @@ class _$CompanyImpl extends _Company {
       required this.ownerId,
       required this.createdAt,
       this.updatedAt,
-      this.otherTypeDetail})
+      this.otherTypeDetail,
+      this.businessNumber,
+      this.email,
+      this.phone,
+      this.address})
       : super._();
 
   @override
@@ -233,10 +291,22 @@ class _$CompanyImpl extends _Company {
   final DateTime? updatedAt;
   @override
   final String? otherTypeDetail;
+// Custom company type detail when "Others" is selected
+  @override
+  final String? businessNumber;
+// Business registration number
+  @override
+  final String? email;
+// Company email
+  @override
+  final String? phone;
+// Company phone
+  @override
+  final String? address;
 
   @override
   String toString() {
-    return 'Company(id: $id, name: $name, companyTypeId: $companyTypeId, currencyId: $currencyId, companyCode: $companyCode, ownerId: $ownerId, createdAt: $createdAt, updatedAt: $updatedAt, otherTypeDetail: $otherTypeDetail)';
+    return 'Company(id: $id, name: $name, companyTypeId: $companyTypeId, currencyId: $currencyId, companyCode: $companyCode, ownerId: $ownerId, createdAt: $createdAt, updatedAt: $updatedAt, otherTypeDetail: $otherTypeDetail, businessNumber: $businessNumber, email: $email, phone: $phone, address: $address)';
   }
 
   @override
@@ -258,12 +328,30 @@ class _$CompanyImpl extends _Company {
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.otherTypeDetail, otherTypeDetail) ||
-                other.otherTypeDetail == otherTypeDetail));
+                other.otherTypeDetail == otherTypeDetail) &&
+            (identical(other.businessNumber, businessNumber) ||
+                other.businessNumber == businessNumber) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.address, address) || other.address == address));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, companyTypeId,
-      currencyId, companyCode, ownerId, createdAt, updatedAt, otherTypeDetail);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      companyTypeId,
+      currencyId,
+      companyCode,
+      ownerId,
+      createdAt,
+      updatedAt,
+      otherTypeDetail,
+      businessNumber,
+      email,
+      phone,
+      address);
 
   /// Create a copy of Company
   /// with the given fields replaced by the non-null parameter values.
@@ -284,7 +372,11 @@ abstract class _Company extends Company {
       required final String ownerId,
       required final DateTime createdAt,
       final DateTime? updatedAt,
-      final String? otherTypeDetail}) = _$CompanyImpl;
+      final String? otherTypeDetail,
+      final String? businessNumber,
+      final String? email,
+      final String? phone,
+      final String? address}) = _$CompanyImpl;
   const _Company._() : super._();
 
   @override
@@ -304,7 +396,16 @@ abstract class _Company extends Company {
   @override
   DateTime? get updatedAt;
   @override
-  String? get otherTypeDetail;
+  String?
+      get otherTypeDetail; // Custom company type detail when "Others" is selected
+  @override
+  String? get businessNumber; // Business registration number
+  @override
+  String? get email; // Company email
+  @override
+  String? get phone; // Company phone
+  @override
+  String? get address;
 
   /// Create a copy of Company
   /// with the given fields replaced by the non-null parameter values.

@@ -3,6 +3,25 @@ import '../models/po_model.dart';
 import '../../domain/repositories/po_repository.dart';
 import '../../domain/entities/purchase_order.dart';
 
+/// DTO for accepted PI available for conversion to PO
+class AcceptedPIForConversion {
+  final String piId;
+  final String piNumber;
+  final String buyerName;
+  final double totalAmount;
+  final String currencyCode;
+  final String currencySymbol;
+
+  const AcceptedPIForConversion({
+    required this.piId,
+    required this.piNumber,
+    required this.buyerName,
+    required this.totalAmount,
+    required this.currencyCode,
+    required this.currencySymbol,
+  });
+}
+
 /// PO Remote Datasource - handles all Supabase RPC calls
 abstract class PORemoteDatasource {
   Future<PaginatedPOResponse> getList(POListParams params);
@@ -14,6 +33,7 @@ abstract class PORemoteDatasource {
   Future<void> updateStatus(String poId, POStatus newStatus, {String? notes});
   Future<String> convertFromPI(String piId, {Map<String, dynamic>? options});
   Future<String> generateNumber(String companyId);
+  Future<List<AcceptedPIForConversion>> getAcceptedPIsForConversion();
 }
 
 class PORemoteDatasourceImpl implements PORemoteDatasource {
@@ -666,5 +686,109 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
     final dateStr =
         '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
     return 'PO-$dateStr-${nextNumber.toString().padLeft(4, '0')}';
+  }
+
+  @override
+  Future<List<AcceptedPIForConversion>> getAcceptedPIsForConversion() async {
+    // Load accepted PIs that haven't been converted to PO yet
+    final response = await _supabase
+        .from('trade_proforma_invoices')
+        .select('''
+          pi_id,
+          pi_number,
+          counterparty_id,
+          counterparty_info,
+          total_amount,
+          currency_id,
+          status,
+          created_at_utc
+        ''')
+        .eq('status', 'accepted')
+        .order('created_at_utc', ascending: false);
+
+    final data = response as List;
+
+    // Get currency IDs for lookup
+    final currencyIds = data
+        .map((e) => (e as Map<String, dynamic>)['currency_id'] as String?)
+        .where((id) => id != null)
+        .toSet()
+        .toList();
+
+    // Get counterparty IDs for lookup
+    final counterpartyIds = data
+        .map((e) => (e as Map<String, dynamic>)['counterparty_id'] as String?)
+        .where((id) => id != null)
+        .toSet()
+        .toList();
+
+    // Fetch currency codes and symbols
+    Map<String, Map<String, String>> currencyMap = {};
+    if (currencyIds.isNotEmpty) {
+      final currencyResponse = await _supabase
+          .from('currency_types')
+          .select('currency_id, currency_code, symbol')
+          .inFilter('currency_id', currencyIds);
+      for (final c in currencyResponse as List) {
+        final cMap = c as Map<String, dynamic>;
+        currencyMap[cMap['currency_id'] as String] = {
+          'code': cMap['currency_code'] as String? ?? 'USD',
+          'symbol': cMap['symbol'] as String? ?? '\$',
+        };
+      }
+    }
+
+    // Fetch counterparty names
+    Map<String, String> counterpartyMap = {};
+    if (counterpartyIds.isNotEmpty) {
+      final counterpartyResponse = await _supabase
+          .from('counterparties')
+          .select('counterparty_id, name')
+          .inFilter('counterparty_id', counterpartyIds);
+      for (final cp in counterpartyResponse as List) {
+        final cpMap = cp as Map<String, dynamic>;
+        counterpartyMap[cpMap['counterparty_id'] as String] =
+            cpMap['name'] as String? ?? 'Unknown';
+      }
+    }
+
+    final List<AcceptedPIForConversion> items = [];
+    for (final row in data) {
+      final rowMap = row as Map<String, dynamic>;
+      final piId = rowMap['pi_id'] as String;
+
+      // Check if PI is already converted to PO
+      final poCheck = await _supabase
+          .from('trade_purchase_orders')
+          .select('po_id')
+          .eq('pi_id', piId)
+          .maybeSingle();
+
+      if (poCheck == null) {
+        final counterpartyId = rowMap['counterparty_id'] as String?;
+        final counterpartyInfo =
+            rowMap['counterparty_info'] as Map<String, dynamic>?;
+        final currencyId = rowMap['currency_id'] as String?;
+        final currency = currencyId != null ? currencyMap[currencyId] : null;
+
+        // Get buyer name: prefer counterparty table, then counterparty_info, then fallback
+        final buyerName =
+            (counterpartyId != null ? counterpartyMap[counterpartyId] : null) ??
+                counterpartyInfo?['name'] as String? ??
+                counterpartyInfo?['company_name'] as String? ??
+                'Unknown Buyer';
+
+        items.add(AcceptedPIForConversion(
+          piId: piId,
+          piNumber: rowMap['pi_number'] as String? ?? 'N/A',
+          buyerName: buyerName,
+          totalAmount: (rowMap['total_amount'] as num?)?.toDouble() ?? 0,
+          currencyCode: currency?['code'] ?? 'USD',
+          currencySymbol: currency?['symbol'] ?? '\$',
+        ));
+      }
+    }
+
+    return items;
   }
 }

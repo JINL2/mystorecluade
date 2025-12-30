@@ -24,12 +24,13 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Leg
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
+// Autonomous Selectors
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
 
 // ✅ Clean Architecture: Domain layer entities
 import '../../domain/entities/template_attachment.dart';
@@ -586,11 +587,8 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 
-  /// Builds cash location selector with validation
+  /// Builds cash location selector with validation - AutonomousCashLocationSelector
   Widget _buildCashLocationSelector() {
-    final appState = ref.watch(Legacy.appStateProvider);
-    final storeId = appState.storeChoosen;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -615,9 +613,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         ),
         const SizedBox(height: TossSpacing.space2),
         AutonomousCashLocationSelector(
-          storeId: storeId,
           selectedLocationId: _selectedMyCashLocationId,
+          hint: 'Select cash location',
           hideLabel: true,
+          onCashLocationSelected: (cashLocation) {
+            setState(() {
+              _selectedMyCashLocationId = cashLocation.id;
+              _validateCashLocationField();
+            });
+          },
           onChanged: (cashLocationId) {
             setState(() {
               _selectedMyCashLocationId = cashLocationId;
@@ -636,7 +640,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 
-  /// Builds counterparty selector with validation
+  /// Builds counterparty selector with validation - AutonomousCounterpartySelector
   Widget _buildCounterpartySelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -663,8 +667,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         const SizedBox(height: TossSpacing.space2),
         AutonomousCounterpartySelector(
           selectedCounterpartyId: _selectedCounterpartyId,
-          isInternal: false,
+          hint: 'Select counterparty',
+          isInternal: false, // External counterparties only
           hideLabel: true,
+          onCounterpartySelected: (counterparty) {
+            setState(() {
+              _selectedCounterpartyId = counterparty.id;
+              _validateCounterpartyField();
+            });
+          },
           onChanged: (counterpartyId) {
             setState(() {
               _selectedCounterpartyId = counterpartyId;

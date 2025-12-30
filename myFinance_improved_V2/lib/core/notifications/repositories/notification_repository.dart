@@ -315,17 +315,17 @@ class NotificationRepository {
           UserFcmTokenModel(
             id: userId,
             userId: userId,
-            token: userResponse['fcm_token'],
+            token: userResponse['fcm_token'] as String?,
             platform: Platform.operatingSystem,
             deviceId: 'primary',
             deviceModel: Platform.operatingSystem,
             appVersion: '1.0.0',
             isActive: true,
             createdAt: userResponse['created_at'] != null 
-                ? DateTime.parse(userResponse['created_at'])
+                ? DateTime.parse(userResponse['created_at'] as String)
                 : DateTime.now(),
             updatedAt: userResponse['updated_at'] != null
-                ? DateTime.parse(userResponse['updated_at'])
+                ? DateTime.parse(userResponse['updated_at'] as String)
                 : DateTime.now(),
             lastUsedAt: DateTime.now(),
           ),
@@ -534,7 +534,7 @@ class NotificationRepository {
       // Check if table exists
       diagnostics['table_exists'] = await _checkIfTableExists(_fcmTokensTable);
       
-      if (diagnostics['table_exists']) {
+      if (diagnostics['table_exists'] == true) {
         // Try to get count
         try {
           final countResponse = await _supabase
@@ -590,7 +590,7 @@ class NotificationRepository {
             await _supabase
                 .from(_fcmTokensTable)
                 .delete()
-                .eq('id', insertResult['id']);
+                .eq('id', insertResult['id'] as Object);
                 
           } catch (e) {
             diagnostics['insert_works'] = false;
@@ -615,7 +615,7 @@ class NotificationRepository {
       // Provide recommendations
       final recommendations = <String>[];
       
-      if (!diagnostics['table_exists']) {
+      if (diagnostics['table_exists'] != true) {
         recommendations.add('Create user_fcm_tokens table in Supabase');
       } else {
         if (diagnostics['rls_issue'] == true) {

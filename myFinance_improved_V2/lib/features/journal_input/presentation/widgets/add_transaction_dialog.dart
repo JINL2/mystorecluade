@@ -5,9 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../app/providers/account_provider.dart';
-import '../../../../app/providers/cash_location_provider.dart';
-import '../../../../app/providers/counterparty_provider.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 // Use feature-level providers (Clean Architecture compliant)
 import '../providers/journal_input_providers.dart';
@@ -20,6 +17,10 @@ import '../../../../shared/widgets/toss/keyboard/toss_currency_exchange_modal.da
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
 import '../../../../shared/widgets/common/exchange_rate_calculator.dart';
+// Autonomous Selectors
+import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
+import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
 import '../../domain/entities/debt_category.dart';
 import '../../domain/entities/transaction_line.dart';
 
@@ -571,99 +572,57 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     ),
                     
                     const SizedBox(height: 20),
-                    
-                    // Account Selection - TossDropdown
-                    Builder(
-                      builder: (context) {
-                        final accountsAsync = ref.watch(currentAccountsProvider);
-                        return TossDropdown<String>(
-                          label: 'Account',
-                          hint: 'Select account',
-                          value: _selectedAccountId,
-                          isLoading: accountsAsync.isLoading,
-                          items: accountsAsync.maybeWhen(
-                            data: (accounts) => accounts
-                                .map((a) => TossDropdownItem(
-                                      value: a.id,
-                                      label: a.name,
-                                      subtitle: a.categoryTag,
-                                    ))
-                                .toList(),
-                            orElse: () => [],
-                          ),
-                          onChanged: (accountId) {
-                            if (accountId != null) {
-                              accountsAsync.whenData((accounts) {
-                                final account = accounts.firstWhere(
-                                  (a) => a.id == accountId,
-                                  orElse: () => accounts.first,
-                                );
-                                setState(() {
-                                  _selectedAccountId = account.id;
-                                  _selectedAccountName = account.name;
-                                  _selectedCategoryTag = account.categoryTag;
-                                  // Reset all dependent fields when account changes
-                                  _selectedCashLocationId = null;
-                                  _selectedCounterpartyId = null;
-                                  _selectedCounterpartyName = null;
-                                  _selectedCounterpartyStoreId = null;
-                                  _selectedCounterpartyStoreName = null;
-                                  _linkedCompanyId = null;
-                                  _isInternal = false;
-                                  _accountMapping = null;
-                                  _mappingError = null;
-                                });
-                              });
-                            }
-                          },
-                        );
+
+                    // Account Selection - EnhancedAccountSelector
+                    EnhancedAccountSelector(
+                      selectedAccountId: _selectedAccountId,
+                      contextType: 'journal_entry',
+                      onAccountSelected: (account) {
+                        setState(() {
+                          _selectedAccountId = account.id;
+                          _selectedAccountName = account.name;
+                          _selectedCategoryTag = account.categoryTag;
+                          // Reset all dependent fields when account changes
+                          _selectedCashLocationId = null;
+                          _selectedCounterpartyId = null;
+                          _selectedCounterpartyName = null;
+                          _selectedCounterpartyStoreId = null;
+                          _selectedCounterpartyStoreName = null;
+                          _linkedCompanyId = null;
+                          _isInternal = false;
+                          _accountMapping = null;
+                          _mappingError = null;
+                        });
                       },
+                      label: 'Account',
+                      hint: 'Select account',
+                      showSearch: true,
+                      showTransactionCount: false,
+                      showQuickAccess: true,
+                      maxQuickItems: 5,
                     ),
                     
-                    // Cash Location Selection - TossDropdown
+                    // Cash Location Selection - AutonomousCashLocationSelector
                     if (_selectedCategoryTag == 'cash') ...[
                       const SizedBox(height: 20),
-                      Builder(
-                        builder: (context) {
-                          final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
-                          return TossDropdown<String>(
-                            label: 'Cash Location',
-                            hint: 'Select cash location',
-                            value: _selectedCashLocationId,
-                            isLoading: cashLocationsAsync.isLoading,
-                            items: cashLocationsAsync.maybeWhen(
-                              data: (locations) => locations
-                                  .where((l) => !(widget.blockedCashLocationIds?.contains(l.id) ?? false))
-                                  .map((l) => TossDropdownItem(
-                                        value: l.id,
-                                        label: l.name,
-                                        subtitle: l.type,
-                                      ))
-                                  .toList(),
-                              orElse: () => [],
-                            ),
-                            onChanged: (locationId) {
-                              if (locationId != null) {
-                                cashLocationsAsync.whenData((locations) {
-                                  final location = locations.firstWhere(
-                                    (l) => l.id == locationId,
-                                    orElse: () => locations.first,
-                                  );
-                                  setState(() {
-                                    _selectedCashLocationId = location.id;
-                                    _selectedCashLocationName = location.name;
-                                    _selectedCashLocationType = location.type;
-                                  });
-                                });
-                              } else {
-                                setState(() {
-                                  _selectedCashLocationId = null;
-                                  _selectedCashLocationName = null;
-                                  _selectedCashLocationType = null;
-                                });
-                              }
-                            },
-                          );
+                      AutonomousCashLocationSelector(
+                        selectedLocationId: _selectedCashLocationId,
+                        blockedLocationIds: widget.blockedCashLocationIds,
+                        onCashLocationSelected: (cashLocation) {
+                          setState(() {
+                            _selectedCashLocationId = cashLocation.id;
+                            _selectedCashLocationName = cashLocation.name;
+                            _selectedCashLocationType = cashLocation.type;
+                          });
+                        },
+                        onChanged: (locationId) {
+                          if (locationId == null) {
+                            setState(() {
+                              _selectedCashLocationId = null;
+                              _selectedCashLocationName = null;
+                              _selectedCashLocationType = null;
+                            });
+                          }
                         },
                       ),
                     ],
@@ -671,74 +630,46 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                     // Payable/Receivable specific fields
                     if (_selectedCategoryTag != null && (_selectedCategoryTag!.toLowerCase() == 'payable' || _selectedCategoryTag!.toLowerCase() == 'receivable')) ...[
                       const SizedBox(height: 20),
-                      Text(
-                        _selectedCategoryTag == 'payable' 
-                            ? 'Counterparty (Supplier/Vendor)' 
+                      // Counterparty Selection - AutonomousCounterpartySelector
+                      AutonomousCounterpartySelector(
+                        selectedCounterpartyId: _selectedCounterpartyId,
+                        label: _selectedCategoryTag == 'payable'
+                            ? 'Counterparty (Supplier/Vendor)'
                             : _selectedCategoryTag == 'receivable'
                                 ? 'Counterparty (Customer)'
                                 : 'Counterparty',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space2),
-                      Builder(
-                        builder: (context) {
-                          final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
-                          return TossDropdown<String>(
-                            label: _selectedCategoryTag == 'payable'
-                                ? 'Select Supplier/Vendor'
-                                : _selectedCategoryTag == 'receivable'
-                                    ? 'Select Customer'
-                                    : 'Select Counterparty',
-                            hint: 'Search all counterparties',
-                            value: _selectedCounterpartyId,
-                            isLoading: counterpartiesAsync.isLoading,
-                            items: counterpartiesAsync.maybeWhen(
-                              data: (counterparties) => counterparties
-                                  .map((c) => TossDropdownItem(
-                                        value: c.id,
-                                        label: c.name,
-                                        subtitle: c.type,
-                                      ))
-                                  .toList(),
-                              orElse: () => [],
-                            ),
-                            onChanged: (counterpartyId) {
-                              if (counterpartyId != null) {
-                                counterpartiesAsync.whenData((counterparties) {
-                                  final counterparty = counterparties.firstWhere(
-                                    (c) => c.id == counterpartyId,
-                                    orElse: () => counterparties.first,
-                                  );
-                                  setState(() {
-                                    _selectedCounterpartyId = counterparty.id;
-                                    _selectedCounterpartyName = counterparty.name;
-                                    _isInternal = counterparty.isInternal;
-                                    _linkedCompanyId = counterparty.linkedCompanyId;
+                        hint: _selectedCategoryTag == 'payable'
+                            ? 'Select Supplier/Vendor'
+                            : _selectedCategoryTag == 'receivable'
+                                ? 'Select Customer'
+                                : 'Select Counterparty',
+                        onCounterpartySelected: (counterparty) {
+                          setState(() {
+                            _selectedCounterpartyId = counterparty.id;
+                            _selectedCounterpartyName = counterparty.name;
+                            _isInternal = counterparty.isInternal;
+                            _linkedCompanyId = counterparty.linkedCompanyId;
 
-                                    // Reset dependent fields
-                                    _selectedCounterpartyStoreId = null;
-                                    _selectedCounterpartyStoreName = null;
-                                    _selectedCounterpartyCashLocationId = null;
-                                  });
+                            // Reset dependent fields
+                            _selectedCounterpartyStoreId = null;
+                            _selectedCounterpartyStoreName = null;
+                            _selectedCounterpartyCashLocationId = null;
+                          });
 
-                                  _checkAccountMapping();
-                                });
-                              } else {
-                                setState(() {
-                                  _selectedCounterpartyId = null;
-                                  _selectedCounterpartyName = null;
-                                  _isInternal = false;
-                                  _linkedCompanyId = null;
-                                  _selectedCounterpartyStoreId = null;
-                                  _selectedCounterpartyStoreName = null;
-                                  _selectedCounterpartyCashLocationId = null;
-                                });
-                              }
-                            },
-                          );
+                          _checkAccountMapping();
+                        },
+                        onChanged: (counterpartyId) {
+                          if (counterpartyId == null) {
+                            setState(() {
+                              _selectedCounterpartyId = null;
+                              _selectedCounterpartyName = null;
+                              _isInternal = false;
+                              _linkedCompanyId = null;
+                              _selectedCounterpartyStoreId = null;
+                              _selectedCounterpartyStoreName = null;
+                              _selectedCounterpartyCashLocationId = null;
+                            });
+                          }
                         },
                       ),
                       
@@ -759,40 +690,29 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
                         ),
                       ],
                       
-                      // Counterparty Cash Location Selection - TossDropdown
+                      // Counterparty Cash Location Selection - AutonomousCashLocationSelector
                       if (_linkedCompanyId != null) ...[
                         const SizedBox(height: 20),
-                        Builder(
-                          builder: (context) {
-                            final counterpartyCashLocationsAsync = ref.watch(
-                              counterpartyCompanyCashLocationsProvider(_linkedCompanyId!),
-                            );
-                            return TossDropdown<String>(
-                              label: 'Counterparty Cash Location',
-                              hint: 'Select counterparty cash location',
-                              value: _selectedCounterpartyCashLocationId,
-                              isLoading: counterpartyCashLocationsAsync.isLoading,
-                              items: counterpartyCashLocationsAsync.maybeWhen(
-                                data: (locations) => locations
-                                    .where((l) =>
-                                        !(widget.blockedCashLocationIds?.contains(l.id) ?? false) &&
-                                        (_selectedCounterpartyStoreId == null ||
-                                            l.storeId == _selectedCounterpartyStoreId ||
-                                            l.isCompanyWide))
-                                    .map((l) => TossDropdownItem(
-                                          value: l.id,
-                                          label: l.name,
-                                          subtitle: l.type,
-                                        ))
-                                    .toList(),
-                                orElse: () => [],
-                              ),
-                              onChanged: (locationId) {
-                                setState(() {
-                                  _selectedCounterpartyCashLocationId = locationId;
-                                });
-                              },
-                            );
+                        AutonomousCashLocationSelector(
+                          companyId: _linkedCompanyId,
+                          storeId: _selectedCounterpartyStoreId,
+                          selectedLocationId: _selectedCounterpartyCashLocationId,
+                          label: 'Counterparty Cash Location',
+                          hint: 'Select counterparty cash location',
+                          showScopeTabs: false,
+                          storeOnly: true,
+                          blockedLocationIds: widget.blockedCashLocationIds,
+                          onCashLocationSelected: (cashLocation) {
+                            setState(() {
+                              _selectedCounterpartyCashLocationId = cashLocation.id;
+                            });
+                          },
+                          onChanged: (locationId) {
+                            if (locationId == null) {
+                              setState(() {
+                                _selectedCounterpartyCashLocationId = null;
+                              });
+                            }
                           },
                         ),
                       ],

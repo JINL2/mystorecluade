@@ -1,20 +1,24 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../data/datasources/po_remote_datasource.dart';
 import '../../data/repositories/po_repository_impl.dart';
 import '../../domain/entities/purchase_order.dart';
 import '../../domain/repositories/po_repository.dart';
-import '../../../../app/providers/app_state_provider.dart';
+
+part 'po_providers.g.dart';
 
 // === Datasource & Repository ===
-final poDatasourceProvider = Provider<PORemoteDatasource>((ref) {
+@Riverpod(keepAlive: true)
+PORemoteDatasource poDatasource(PoDatasourceRef ref) {
   return PORemoteDatasourceImpl(Supabase.instance.client);
-});
+}
 
-final poRepositoryProvider = Provider<PORepository>((ref) {
+@Riverpod(keepAlive: true)
+PORepository poRepository(PoRepositoryRef ref) {
   return PORepositoryImpl(ref.watch(poDatasourceProvider));
-});
+}
 
 // === List State ===
 class POListState {
@@ -61,13 +65,24 @@ class POListState {
   }
 }
 
-class POListNotifier extends StateNotifier<POListState> {
-  final PORepository _repository;
-  final String? _companyId;
-  final String? _storeId;
+@riverpod
+class PoList extends _$PoList {
+  @override
+  POListState build() {
+    return const POListState();
+  }
 
-  POListNotifier(this._repository, this._companyId, this._storeId)
-      : super(const POListState());
+  String? get _companyId {
+    final appState = ref.read(appStateProvider);
+    return appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
+  }
+
+  String? get _storeId {
+    final appState = ref.read(appStateProvider);
+    return appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
+  }
+
+  PORepository get _repository => ref.read(poRepositoryProvider);
 
   Future<void> loadList({
     List<POStatus>? statuses,
@@ -172,21 +187,6 @@ class POListNotifier extends StateNotifier<POListState> {
   }
 }
 
-final poListProvider =
-    StateNotifierProvider<POListNotifier, POListState>((ref) {
-  final repository = ref.watch(poRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId =
-      appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
-  final storeId =
-      appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
-  return POListNotifier(
-    repository,
-    companyId,
-    storeId,
-  );
-});
-
 // === Detail State ===
 class PODetailState {
   final PurchaseOrder? po;
@@ -212,10 +212,14 @@ class PODetailState {
   }
 }
 
-class PODetailNotifier extends StateNotifier<PODetailState> {
-  final PORepository _repository;
+@riverpod
+class PoDetail extends _$PoDetail {
+  @override
+  PODetailState build() {
+    return const PODetailState();
+  }
 
-  PODetailNotifier(this._repository) : super(const PODetailState());
+  PORepository get _repository => ref.read(poRepositoryProvider);
 
   Future<void> load(String poId) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -279,11 +283,6 @@ class PODetailNotifier extends StateNotifier<PODetailState> {
   }
 }
 
-final poDetailProvider =
-    StateNotifierProvider<PODetailNotifier, PODetailState>((ref) {
-  return PODetailNotifier(ref.watch(poRepositoryProvider));
-});
-
 // === Form State ===
 class POFormState {
   final bool isLoading;
@@ -317,13 +316,20 @@ class POFormState {
   }
 }
 
-class POFormNotifier extends StateNotifier<POFormState> {
-  final PORepository _repository;
-  final PORemoteDatasource _datasource;
-  final String? _companyId;
+@riverpod
+class PoForm extends _$PoForm {
+  @override
+  POFormState build() {
+    return const POFormState();
+  }
 
-  POFormNotifier(this._repository, this._datasource, this._companyId)
-      : super(const POFormState());
+  String? get _companyId {
+    final appState = ref.read(appStateProvider);
+    return appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
+  }
+
+  PORepository get _repository => ref.read(poRepositoryProvider);
+  PORemoteDatasource get _datasource => ref.read(poDatasourceProvider);
 
   Future<void> generateNumber() async {
     if (_companyId == null) return;
@@ -352,7 +358,10 @@ class POFormNotifier extends StateNotifier<POFormState> {
   }
 
   Future<PurchaseOrder?> update(
-      String poId, int version, Map<String, dynamic> updates) async {
+    String poId,
+    int version,
+    Map<String, dynamic> updates,
+  ) async {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
@@ -378,8 +387,10 @@ class POFormNotifier extends StateNotifier<POFormState> {
     }
   }
 
-  Future<String?> convertFromPI(String piId,
-      {Map<String, dynamic>? options}) async {
+  Future<String?> convertFromPI(
+    String piId, {
+    Map<String, dynamic>? options,
+  }) async {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
@@ -397,12 +408,11 @@ class POFormNotifier extends StateNotifier<POFormState> {
   }
 }
 
-final poFormProvider =
-    StateNotifierProvider<POFormNotifier, POFormState>((ref) {
-  final repository = ref.watch(poRepositoryProvider);
+// === Accepted PIs for Conversion ===
+@riverpod
+Future<List<AcceptedPIForConversion>> acceptedPIsForConversion(
+  AcceptedPIsForConversionRef ref,
+) async {
   final datasource = ref.watch(poDatasourceProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId =
-      appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
-  return POFormNotifier(repository, datasource, companyId);
-});
+  return datasource.getAcceptedPIsForConversion();
+}

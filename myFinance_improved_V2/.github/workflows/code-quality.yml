@@ -1,0 +1,112 @@
+# ===========================================
+# DCM 자동 검사 워크플로우
+# ===========================================
+# 이게 뭐냐면:
+# - 누군가 코드를 올리면 (Push/PR)
+# - GitHub 서버가 자동으로 DCM 검사를 돌림
+# - 문제 있으면 ❌, 없으면 ✅
+#
+# 친구들은 아무것도 설치 안 해도 됨!
+# ===========================================
+
+name: Code Quality Check
+
+# 언제 실행되냐면:
+on:
+  # 이 브랜치들에 PR 올릴 때
+  pull_request:
+    branches: [main, develop, Jinrefector, nghiasb, jeong11]
+
+  # 이 브랜치들에 직접 push할 때
+  push:
+    branches: [main, develop, Jinrefector, nghiasb, jeong11]
+
+jobs:
+  # ===========================================
+  # DCM 검사 (무료 버전)
+  # ===========================================
+  dcm-check:
+    name: DCM Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 코드 가져오기
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Flutter 설치
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      # 3. 패키지 설치
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. DCM 설치
+      - name: Install DCM
+        run: dart pub global activate dart_code_metrics
+
+      # 5. 미사용 파일 검사
+      - name: Check unused files
+        run: |
+          echo "🔍 미사용 파일 검사 중..."
+          ~/.pub-cache/bin/metrics check-unused-files lib --disable-sunset-warning || true
+
+      # 6. 미사용 코드 검사
+      - name: Check unused code
+        run: |
+          echo "🔍 미사용 코드 검사 중..."
+          ~/.pub-cache/bin/metrics check-unused-code lib --disable-sunset-warning || true
+
+  # ===========================================
+  # Flutter 기본 분석 (무료, 항상 가능)
+  # ===========================================
+  flutter-analyze:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run Flutter analyze
+        run: flutter analyze --no-fatal-infos
+
+  # ===========================================
+  # 빌드 테스트 (앱이 빌드되는지 확인)
+  # ===========================================
+  build-test:
+    name: Build Test
+    runs-on: ubuntu-latest
+    needs: [flutter-analyze]  # analyze 통과해야 빌드
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (release)
+        run: flutter build apk --release --no-tree-shake-icons

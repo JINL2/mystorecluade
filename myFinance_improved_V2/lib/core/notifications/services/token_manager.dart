@@ -112,10 +112,10 @@ class TokenManager {
       // Load pending updates
       final pendingJson = prefs.getString(_pendingUpdatesKey);
       if (pendingJson != null) {
-        final List<dynamic> pending = jsonDecode(pendingJson);
+        final List<dynamic> pending = jsonDecode(pendingJson) as List<dynamic>;
         _pendingUpdates.clear();
         _pendingUpdates.addAll(
-          pending.map((p) => _TokenUpdateRequest.fromJson(p)).toList(),
+          pending.map((p) => _TokenUpdateRequest.fromJson(p as Map<String, dynamic>)).toList(),
         );
       }
       
@@ -648,9 +648,9 @@ class _TokenUpdateRequest {
   
   factory _TokenUpdateRequest.fromJson(Map<String, dynamic> json) {
     return _TokenUpdateRequest(
-      token: json['token'],
-      timestamp: DateTime.parse(json['timestamp']),
-      attempts: json['attempts'] ?? 0,
+      token: json['token'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      attempts: (json['attempts'] as int?) ?? 0,
     );
   }
 }

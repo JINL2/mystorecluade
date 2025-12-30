@@ -1,6 +1,6 @@
 // lib/features/auth/domain/usecases/get_user_data_usecase.dart
 
-import '../../../../shared/utils/data_filter_utils.dart';
+import '../../../../core/utils/data_filter_utils.dart';
 import '../repositories/user_repository.dart';
 
 /// Get user complete data use case

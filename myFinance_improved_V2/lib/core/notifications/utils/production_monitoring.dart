@@ -66,12 +66,12 @@ class ProductionTokenMonitoring {
     final last7Days = now.subtract(const Duration(days: 7));
     
     final recent24h = _registrationEvents.where((e) {
-      final timestamp = DateTime.parse(e['timestamp']);
+      final timestamp = DateTime.parse(e['timestamp'] as String);
       return timestamp.isAfter(last24Hours);
     }).toList();
-    
+
     final recent7d = _registrationEvents.where((e) {
-      final timestamp = DateTime.parse(e['timestamp']);
+      final timestamp = DateTime.parse(e['timestamp'] as String);
       return timestamp.isAfter(last7Days);
     }).toList();
     

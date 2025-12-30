@@ -1,24 +1,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../data/datasources/pi_remote_datasource.dart';
 import '../../data/repositories/pi_repository_impl.dart';
 import '../../domain/entities/proforma_invoice.dart';
 import '../../domain/repositories/pi_repository.dart';
-import '../../../../app/providers/app_state_provider.dart';
 
 // Re-export existing providers for use in PI feature
 export '../../../../app/providers/counterparty_provider.dart';
 export '../../../register_denomination/presentation/providers/currency_providers.dart';
 
-// === Datasource & Repository ===
-final piDatasourceProvider = Provider<PIRemoteDatasource>((ref) {
-  return PIRemoteDatasourceImpl(Supabase.instance.client);
-});
+part 'pi_providers.g.dart';
 
-final piRepositoryProvider = Provider<PIRepository>((ref) {
+// === Datasource & Repository ===
+@riverpod
+PIRemoteDatasource piDatasource(Ref ref) {
+  return PIRemoteDatasourceImpl(Supabase.instance.client);
+}
+
+@riverpod
+PIRepository piRepository(Ref ref) {
   return PIRepositoryImpl(ref.watch(piDatasourceProvider));
-});
+}
 
 // === List State ===
 class PIListState {
@@ -65,13 +70,24 @@ class PIListState {
   }
 }
 
-class PIListNotifier extends StateNotifier<PIListState> {
-  final PIRepository _repository;
-  final String? _companyId;
-  final String? _storeId;
+@Riverpod(keepAlive: true)
+class PIListNotifier extends _$PIListNotifier {
+  @override
+  PIListState build() {
+    return const PIListState();
+  }
 
-  PIListNotifier(this._repository, this._companyId, this._storeId)
-      : super(const PIListState());
+  PIRepository get _repository => ref.read(piRepositoryProvider);
+
+  String? get _companyId {
+    final appState = ref.read(appStateProvider);
+    return appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
+  }
+
+  String? get _storeId {
+    final appState = ref.read(appStateProvider);
+    return appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
+  }
 
   Future<void> loadList({
     List<PIStatus>? statuses,
@@ -86,11 +102,7 @@ class PIListNotifier extends StateNotifier<PIListState> {
       return;
     }
 
-    if (refresh) {
-      state = state.copyWith(isLoading: true, error: null);
-    } else {
-      state = state.copyWith(isLoading: true, error: null);
-    }
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
       final params = PIListParams(
@@ -176,19 +188,6 @@ class PIListNotifier extends StateNotifier<PIListState> {
   }
 }
 
-final piListProvider =
-    StateNotifierProvider<PIListNotifier, PIListState>((ref) {
-  final repository = ref.watch(piRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
-  final storeId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
-  return PIListNotifier(
-    repository,
-    companyId,
-    storeId,
-  );
-});
-
 // === Detail State ===
 class PIDetailState {
   final ProformaInvoice? pi;
@@ -214,10 +213,14 @@ class PIDetailState {
   }
 }
 
-class PIDetailNotifier extends StateNotifier<PIDetailState> {
-  final PIRepository _repository;
+@Riverpod(keepAlive: true)
+class PIDetailNotifier extends _$PIDetailNotifier {
+  @override
+  PIDetailState build() {
+    return const PIDetailState();
+  }
 
-  PIDetailNotifier(this._repository) : super(const PIDetailState());
+  PIRepository get _repository => ref.read(piRepositoryProvider);
 
   Future<void> load(String piId) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -292,11 +295,6 @@ class PIDetailNotifier extends StateNotifier<PIDetailState> {
   }
 }
 
-final piDetailProvider =
-    StateNotifierProvider<PIDetailNotifier, PIDetailState>((ref) {
-  return PIDetailNotifier(ref.watch(piRepositoryProvider));
-});
-
 // === Form State ===
 class PIFormState {
   final bool isLoading;
@@ -330,12 +328,19 @@ class PIFormState {
   }
 }
 
-class PIFormNotifier extends StateNotifier<PIFormState> {
-  final PIRepository _repository;
-  final String? _companyId;
+@Riverpod(keepAlive: true)
+class PIFormNotifier extends _$PIFormNotifier {
+  @override
+  PIFormState build() {
+    return const PIFormState();
+  }
 
-  PIFormNotifier(this._repository, this._companyId)
-      : super(const PIFormState());
+  PIRepository get _repository => ref.read(piRepositoryProvider);
+
+  String? get _companyId {
+    final appState = ref.read(appStateProvider);
+    return appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
+  }
 
   Future<void> generateNumber() async {
     if (_companyId == null) return;
@@ -394,20 +399,7 @@ class PIFormNotifier extends StateNotifier<PIFormState> {
   }
 }
 
-final piFormProvider =
-    StateNotifierProvider<PIFormNotifier, PIFormState>((ref) {
-  final repository = ref.watch(piRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
-  return PIFormNotifier(repository, companyId);
-});
-
-// === Dropdown Data Providers ===
-// NOTE: Counterparty and Currency use existing global providers:
-// - counterpartyListProvider from counterparty_provider.dart (uses 'get_counterparties' RPC)
-// - companyCurrenciesProvider from currency_providers.dart (uses existing currency system)
-
-/// Terms template state
+// === Terms Template State ===
 class TermsTemplateState {
   final List<TermsTemplateItem> items;
   final bool isLoading;
@@ -436,12 +428,19 @@ class TermsTemplateState {
   }
 }
 
-class TermsTemplateNotifier extends StateNotifier<TermsTemplateState> {
-  final PIRemoteDatasource _datasource;
-  final String? _companyId;
+@Riverpod(keepAlive: true)
+class TermsTemplateNotifier extends _$TermsTemplateNotifier {
+  @override
+  TermsTemplateState build() {
+    return const TermsTemplateState();
+  }
 
-  TermsTemplateNotifier(this._datasource, this._companyId)
-      : super(const TermsTemplateState());
+  PIRemoteDatasource get _datasource => ref.read(piDatasourceProvider);
+
+  String? get _companyId {
+    final appState = ref.read(appStateProvider);
+    return appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
+  }
 
   Future<void> load() async {
     if (_companyId == null) return;
@@ -456,7 +455,10 @@ class TermsTemplateNotifier extends StateNotifier<TermsTemplateState> {
     }
   }
 
-  Future<TermsTemplateItem?> saveAsTemplate(String templateName, String content) async {
+  Future<TermsTemplateItem?> saveAsTemplate(
+    String templateName,
+    String content,
+  ) async {
     if (_companyId == null) return null;
 
     state = state.copyWith(isSaving: true, error: null);
@@ -479,10 +481,18 @@ class TermsTemplateNotifier extends StateNotifier<TermsTemplateState> {
   }
 }
 
-final termsTemplateProvider =
-    StateNotifierProvider<TermsTemplateNotifier, TermsTemplateState>((ref) {
-  final datasource = ref.watch(piDatasourceProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen.isNotEmpty ? appState.companyChoosen : null;
-  return TermsTemplateNotifier(datasource, companyId);
-});
+// === Legacy Provider Aliases (for backward compatibility) ===
+// These aliases maintain backward compatibility with existing code
+// that uses the old provider names. Can be removed after full migration.
+
+/// @deprecated Use pIListNotifierProvider instead
+final piListProvider = pIListNotifierProvider;
+
+/// @deprecated Use pIDetailNotifierProvider instead
+final piDetailProvider = pIDetailNotifierProvider;
+
+/// @deprecated Use pIFormNotifierProvider instead
+final piFormProvider = pIFormNotifierProvider;
+
+/// @deprecated Use termsTemplateNotifierProvider instead
+final termsTemplateProvider = termsTemplateNotifierProvider;

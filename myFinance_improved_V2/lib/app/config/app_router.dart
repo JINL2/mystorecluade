@@ -73,6 +73,9 @@ import '../../features/purchase_order/presentation/pages/po_list_page.dart';
 import '../../features/purchase_order/presentation/pages/po_detail_page.dart';
 import '../../features/purchase_order/presentation/pages/po_form_page.dart';
 import '../../features/letter_of_credit/presentation/pages/letter_of_credit_page.dart';
+import '../../features/letter_of_credit/presentation/pages/lc_list_page.dart';
+import '../../features/letter_of_credit/presentation/pages/lc_form_page.dart';
+import '../../features/letter_of_credit/presentation/pages/lc_detail_page.dart';
 import '../../features/shipment/presentation/pages/shipment_page.dart';
 import '../../features/commercial_invoice/presentation/pages/commercial_invoice_page.dart';
 import '../../shared/themes/toss_colors.dart';
@@ -1013,13 +1016,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Letter of Credit (L/C)
+      // Letter of Credit (L/C) - Legacy route
       GoRoute(
         path: '/letterOfCredit',
         name: 'letterOfCredit',
         builder: (context, state) {
           final feature = state.extra;
           return LetterOfCreditPage(feature: feature);
+        },
+      ),
+
+      // Letter of Credit - New routes
+      GoRoute(
+        path: '/letter-of-credit',
+        name: 'letter-of-credit-list',
+        builder: (context, state) => const LCListPage(),
+      ),
+      GoRoute(
+        path: '/letter-of-credit/new',
+        name: 'letter-of-credit-new',
+        builder: (context, state) {
+          final poId = state.uri.queryParameters['poId'];
+          return LCFormPage(poId: poId);
+        },
+      ),
+      GoRoute(
+        path: '/letter-of-credit/:lcId',
+        name: 'letter-of-credit-detail',
+        builder: (context, state) {
+          final lcId = state.pathParameters['lcId']!;
+          return LCDetailPage(lcId: lcId);
+        },
+      ),
+      GoRoute(
+        path: '/letter-of-credit/:lcId/edit',
+        name: 'letter-of-credit-edit',
+        builder: (context, state) {
+          final lcId = state.pathParameters['lcId']!;
+          return LCFormPage(lcId: lcId);
         },
       ),
 

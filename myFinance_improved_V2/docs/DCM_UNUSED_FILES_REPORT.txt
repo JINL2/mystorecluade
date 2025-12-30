@@ -1,0 +1,164 @@
+[2K⠙ Checking unused files...[2K⠹ Checking unused files... 0.7s[2K⠸ Checking unused files... 0.9s[2K⠼ Checking unused files... 1.5s[2K⠴ Checking unused files... 1.5s[2K⠦ Checking unused files... 1.6s[2K⠧ Checking unused files... 1.7s[2K⠇ Checking unused files... 1.8s[2K⠏ Checking unused files... 1.9s[2K⠋ Checking unused files... 2.0s[2K⠙ Checking unused files... 2.0s[2K⠹ Checking unused files... 2.1s[2K⠸ Checking unused files... 2.2s[2K⠼ Checking unused files... 2.5s[2K⠴ Checking unused files... 2.6s[2K⠦ Checking unused files... 2.8s[2K⠧ Checking unused files... 2.9s[2K⠇ Checking unused files... 2.9s[2K⠏ Checking unused files... 3.0s[2K⠋ Checking unused files... 3.1s[2K⠙ Checking unused files... 3.2s[2K⠹ Checking unused files... 3.2s[2K⠸ Checking unused files... 3.3s[2K⠼ Checking unused files... 3.4s[2K⠴ Checking unused files... 3.4s[2K⠦ Checking unused files... 3.5s[2K⠧ Checking unused files... 3.6s[2K⠇ Checking unused files... 3.7s[2K⠏ Checking unused files... 5.0s[2K⠋ Checking unused files... 5.1s[2K⠙ Checking unused files... 5.1s[2K⠹ Checking unused files... 5.2s[2K⠸ Checking unused files... 5.3s[2K⠼ Checking unused files... 5.4s[2K⠴ Checking unused files... 5.5s[2K⠦ Checking unused files... 5.5s[2K⠧ Checking unused files... 5.6s[2K⠇ Checking unused files... 5.7s[2K⠏ Checking unused files... 5.8s[2K⠋ Checking unused files... 5.8s[2K⠙ Checking unused files... 5.9s[2K⠹ Checking unused files... 6.0s[2K⠸ Checking unused files... 6.1s[2K⠼ Checking unused files... 6.2s[2K⠴ Checking unused files... 6.2s[2K⠦ Checking unused files... 6.3s[2K⠧ Checking unused files... 6.4s[2K⠇ Checking unused files... 6.5s[2K⠏ Checking unused files... 6.6s[2K⠋ Checking unused files... 6.6s[2K⠙ Checking unused files... 6.7s[2K⠹ Checking unused files... 6.8s[2K⠸ Checking unused files... 6.9s[2K⠼ Checking unused files... 7.0s[2K⠴ Checking unused files... 7.0s[2K⠦ Checking unused files... 7.1s[2K⠧ Checking unused files... 7.2s[2K⠇ Checking unused files... 7.3s[2K⠏ Checking unused files... 7.4s[2K⠋ Checking unused files... 7.4s[2K⠙ Checking unused files... 7.5s[2K⠹ Checking unused files... 7.6s[2K⠸ Checking unused files... 7.7s[2K⠼ Checking unused files... 7.8s[2K⠴ Checking unused files... 7.8s[2K⠦ Checking unused files... 7.9s[2K⠧ Checking unused files... 8.0s[2K⠇ Checking unused files... 8.1s[2K⠏ Checking unused files... 8.2s[2K⠋ Checking unused files... 8.2s[2K⠙ Checking unused files... 8.3s[2K⠹ Checking unused files... 8.4s[2K⠸ Checking unused files... 8.5s[2K⠼ Checking unused files... 8.6s[2K⠴ Checking unused files... 8.6s[2K⠦ Checking unused files... 8.7s[2K⠧ Checking unused files... 8.8s[2K⠇ Checking unused files... 8.9s[2K⠏ Checking unused files... 9.0s[2K⠋ Checking unused files... 9.0s[2K⠙ Checking unused files... 9.1s[2K⠹ Checking unused files... 9.2s[2K⠸ Checking unused files... 9.3s[2K⠼ Checking unused files... 9.4s[2K⠴ Checking unused files... 9.4s[2K⠦ Checking unused files... 9.5s[2K⠧ Checking unused files... 9.6s[2K⠇ Checking unused files... 9.7s[2K⠏ Checking unused files... 9.8s[2K⠋ Checking unused files... 9.8s[2K⠙ Checking unused files... 9.9s[2K⠹ Checking unused files... 10.0s[2K⠸ Checking unused files... 10.1s[2K⠼ Checking unused files... 10.2s[2K⠴ Checking unused files... 10.2s[2K⠦ Checking unused files... 10.3s[2K⠧ Checking unused files... 10.4s[2K⠇ Checking unused files... 10.5s[2K⠏ Checking unused files... 10.6s[2K⠋ Checking unused files... 10.6s[2K⠙ Checking unused files... 10.7s[2K⠹ Checking unused files... 10.8s[2K⠸ Checking unused files... 10.9s[2K⠼ Checking unused files... 11.0s[2K⠴ Checking unused files... 11.0s[2K⠦ Checking unused files... 11.1s[2K⠧ Checking unused files... 11.2s[2K⠇ Checking unused files... 11.3s[2K⠏ Checking unused files... 11.4s[2K⠋ Checking unused files... 11.4s[2K⠙ Checking unused files... 11.5s[2K⠹ Checking unused files... 11.6s[2K⠸ Checking unused files... 11.7s[2K⠼ Checking unused files... 11.8s[2K⠴ Checking unused files... 11.8s[2K⠦ Checking unused files... 11.9s[2K⠧ Checking unused files... 12.0s[2K⠇ Checking unused files... 12.1s[2K⠏ Checking unused files... 12.2s[2K⠋ Checking unused files... 12.2s[2K⠙ Checking unused files... 12.3s[2K⠹ Checking unused files... 12.4s[2K⠸ Checking unused files... 12.5s[2K⠼ Checking unused files... 12.6s[2K⠴ Checking unused files... 12.6s[2K⠦ Checking unused files... 12.7s[2K⠧ Checking unused files... 12.8s[2K⠇ Checking unused files... 12.9s[2K⠏ Checking unused files... 13.0s[2K⠋ Checking unused files... 13.0s[2K⠙ Checking unused files... 13.1s[2K⠹ Checking unused files... 13.2s[2K⠸ Checking unused files... 13.3s[2K⠼ Checking unused files... 13.4s[2K⠴ Checking unused files... 13.4s[2K⠦ Checking unused files... 13.5s[2K⠧ Checking unused files... 13.6s[2K⠇ Checking unused files... 13.7s[2K⠏ Checking unused files... 13.8s[2K⠋ Checking unused files... 13.8s[2K⠙ Checking unused files... 13.9s[2K⠹ Checking unused files... 14.0s[2K⠸ Checking unused files... 14.1s[2K⠼ Checking unused files... 14.2s[2K⠴ Checking unused files... 14.3s[2K✔ Analysis is completed. Preparing the results: 14.3s
+lib/core/data/models/journal_entry_model.dart
+lib/core/infrastructure/state_synchronizer.dart
+lib/core/navigation/auth_navigator.dart
+lib/core/navigation/go_router_extensions.dart
+lib/core/navigation/safe_navigation.dart
+lib/core/notifications/firebase_stub.dart
+lib/core/notifications/services/token_manager_enhanced.dart
+lib/core/notifications/utils/production_monitoring.dart
+lib/core/services/inventory_service.dart
+lib/core/utils/color_opacity_helper.dart
+lib/core/utils/error_mapper.dart
+lib/core/utils/image_cache_helper.dart
+lib/core/utils/widget_migration_helper.dart
+lib/core/validators/phone_validator.dart
+lib/dev_tools/responsive_tester.dart
+lib/dev_tools/screen_size_debug.dart
+lib/dev_tools/theme_validator.dart
+lib/features/attendance/data/models/shift_overview_model.dart
+lib/features/attendance/domain/entities/shift_data.dart
+lib/features/attendance/domain/usecases/determine_shift_status.dart
+lib/features/attendance/domain/usecases/insert_shift_request.dart
+lib/features/attendance/domain/value_objects/month_bounds.dart
+lib/features/attendance/presentation/modals/shift_details_bottom_sheet.dart
+lib/features/attendance/presentation/pages/utils/schedule_month_builder.dart
+lib/features/attendance/presentation/pages/utils/schedule_week_builder.dart
+lib/features/attendance/presentation/pages/widgets/schedule_month_view.dart
+lib/features/attendance/presentation/pages/widgets/schedule_week_view.dart
+lib/features/attendance/presentation/providers/states/shift_overview_state.dart
+lib/features/attendance/presentation/widgets/check_in_out/attendance_content.dart
+lib/features/attendance/presentation/widgets/check_in_out/components/attendance_hero_section.dart
+lib/features/attendance/presentation/widgets/check_in_out/components/attendance_qr_button.dart
+lib/features/attendance/presentation/widgets/check_in_out/components/attendance_recent_activity.dart
+lib/features/attendance/presentation/widgets/check_in_out/components/attendance_stat_card.dart
+lib/features/attendance/presentation/widgets/check_in_out/components/attendance_week_schedule.dart
+lib/features/attendance/presentation/widgets/check_in_out/dialogs/activity_details_dialog.dart
+lib/features/attendance/presentation/widgets/check_in_out/helpers/row_widgets.dart
+lib/features/attendance/presentation/widgets/check_in_out/helpers/status_helpers.dart
+lib/features/attendance/presentation/widgets/check_in_out/utils/attendance_formatters.dart
+lib/features/attendance/presentation/widgets/check_in_out/utils/hero_section_helpers.dart
+lib/features/attendance/presentation/widgets/check_in_out/widgets/attendance_calendar_grid.dart
+lib/features/attendance/presentation/widgets/check_in_out/widgets/attendance_stat_card.dart
+lib/features/attendance/presentation/widgets/shift_register/dialogs/shift_registration_dialog.dart
+lib/features/attendance/presentation/widgets/shift_register/shift_register_tab.dart
+lib/features/attendance/presentation/widgets/shift_register/widgets/shift_info_card.dart
+lib/features/auth/data/models/company_model.dart
+lib/features/auth/data/models/store_model.dart
+lib/features/auth/data/models/user_model.dart
+lib/features/balance_sheet/presentation/pages/balance_sheet_page.dart
+lib/features/cash_ending/data/models/cash_ending_model.dart
+lib/features/cash_ending/data/models/location_model.dart
+lib/features/cash_ending/data/models/stock_flow_model.dart
+lib/features/cash_ending/data/models/store_model.dart
+lib/features/cash_ending/domain/usecases/create_cash_ending_entity_usecase.dart
+lib/features/cash_ending/presentation/widgets/cash_ending_complete_dialog.dart
+lib/features/cash_ending/presentation/widgets/currency_selector.dart
+lib/features/cash_ending/presentation/widgets/location_selector.dart
+lib/features/cash_ending/presentation/widgets/real_section_widget.dart
+lib/features/cash_ending/presentation/widgets/sheets/cash_ending_selection_helpers.dart
+lib/features/cash_ending/presentation/widgets/sheets/flow_detail_bottom_sheet.dart
+lib/features/cash_ending/presentation/widgets/sheets/location_selector_sheet.dart
+lib/features/cash_location/domain/entities/currency_type.dart
+lib/features/cash_location/presentation/notifiers/account_detail_notifier.dart
+lib/features/cash_location/presentation/widgets/balance_card.dart
+lib/features/cash_transaction/presentation/widgets/cash_transaction_icons.dart
+lib/features/cash_transaction/presentation/widgets/direction_selection_card.dart
+lib/features/cash_transaction/presentation/widgets/memo_with_photo_section.dart
+lib/features/cash_transaction/presentation/widgets/transaction_type_card.dart
+lib/features/counter_party/data/models/counter_party_stats_dto.dart
+lib/features/counter_party/presentation/providers/states/counter_party_state.dart
+lib/features/debt_control/data/datasources/debt_data_source.dart
+lib/features/delegate_role/domain/value_objects/role_tag.dart
+lib/features/delegate_role/presentation/widgets/delegation_list_item.dart
+lib/features/delegate_role/presentation/widgets/role_tags_widget.dart
+lib/features/design_library/presentation/pages/sections/common_widgets_page.dart
+lib/features/design_library/presentation/pages/sections/toss_widgets_page.dart
+lib/features/homepage/data/providers/homepage_providers.dart
+lib/features/homepage/data/providers/join_providers.dart
+lib/features/homepage/data/providers/store_providers.dart
+lib/features/homepage/presentation/providers/states/homepage_state.dart
+lib/features/homepage/presentation/widgets/feature_card.dart
+lib/features/homepage/presentation/widgets/modern_bottom_drawer.dart
+lib/features/inventory_management/presentation/extensions/stock_status_extension.dart
+lib/features/inventory_management/presentation/widgets/product_form/classification_section.dart
+lib/features/inventory_management/presentation/widgets/product_form/inventory_section.dart
+lib/features/inventory_management/presentation/widgets/product_form/pricing_section.dart
+lib/features/inventory_management/presentation/widgets/product_form/product_info_section.dart
+lib/features/inventory_management/presentation/widgets/product_form/product_status_section.dart
+lib/features/inventory_management/presentation/widgets/product_list_view.dart
+lib/features/register_denomination/presentation/providers/states/currency_state.dart
+lib/features/register_denomination/presentation/providers/states/denomination_state.dart
+lib/features/report_control/domain/entities/report_template.dart
+lib/features/report_control/domain/entities/templates/financial_summary/financial_report.dart
+lib/features/report_control/presentation/pages/templates/daily_attendance/attendance_preview.dart
+lib/features/report_control/presentation/pages/templates/daily_attendance/providers/attendance_providers.dart
+lib/features/report_control/presentation/widgets/templates/financial_summary/balance_sheet_overview.dart
+lib/features/report_control/presentation/widgets/templates/financial_summary/financial_changes_summary.dart
+lib/features/report_control/presentation/widgets/templates/financial_summary/hero_revenue_display.dart
+lib/features/report_control/presentation/widgets/templates/financial_summary/performance_cards_section.dart
+lib/features/sale_product/presentation/pages/invoice_attachment_page.dart
+lib/features/sale_product/presentation/providers/exchange_rate_provider.dart
+lib/features/sale_product/presentation/utils/stock_color_helper.dart
+lib/features/sale_product/presentation/widgets/modals/sort_options_bottom_sheet.dart
+lib/features/sales_invoice/data/repositories/repository_providers.dart
+lib/features/sales_invoice/domain/validators/invoice_validator.dart
+lib/features/sales_invoice/presentation/modals/invoice_detail_modal.dart
+lib/features/sales_invoice/presentation/pages/payment_method_page.dart
+lib/features/sales_invoice/presentation/widgets/invoice_list/invoice_list_section.dart
+lib/features/sales_invoice/presentation/widgets/invoice_list/pagination_controls.dart
+lib/features/sales_invoice/presentation/widgets/invoice_list/search_filter_section.dart
+lib/features/sales_invoice/presentation/widgets/invoice_list/today_sales_bottom_sheet.dart
+lib/features/sales_invoice/presentation/widgets/payment_method/payment_bottom_button.dart
+lib/features/sales_invoice/presentation/widgets/payment_method/sections/cash_location_section.dart
+lib/features/sales_invoice/presentation/widgets/payment_method/sections/currency_converter_section.dart
+lib/features/sales_invoice/presentation/widgets/payment_method/sections/discount_total_section.dart
+lib/features/session/presentation/providers/helpers/product_mapper.dart
+lib/features/session/presentation/providers/helpers/selected_products_manager.dart
+lib/features/session/presentation/widgets/create_session_dialog.dart
+lib/features/session/presentation/widgets/session_detail/search_result_card.dart
+lib/features/session/presentation/widgets/session_detail/session_detail_bottom_buttons.dart
+lib/features/session/presentation/widgets/session_detail/session_item_card.dart
+lib/features/time_table_manage/data/models/freezed/available_content_dto_mapper.dart
+lib/features/time_table_manage/data/models/freezed/available_employees_data_dto_mapper.dart
+lib/features/time_table_manage/data/models/freezed/card_input_result_dto_mapper.dart
+lib/features/time_table_manage/data/models/freezed/shift_request_dto_mapper.dart
+lib/features/time_table_manage/data/models/freezed/store_cards_dto_mapper.dart
+lib/features/time_table_manage/data/models/manager_overview_model.dart
+lib/features/time_table_manage/data/models/monthly_shift_status_model.dart
+lib/features/time_table_manage/domain/usecases/input_card_v4.dart
+lib/features/time_table_manage/presentation/pages/attention_list_page.dart
+lib/features/time_table_manage/presentation/pages/staff_timelog_detail/mixins/timelog_state_mixin.dart
+lib/features/time_table_manage/presentation/providers/notifiers/shift_details_form_notifier.dart
+lib/features/time_table_manage/presentation/providers/state/store_employees_provider.dart
+lib/features/time_table_manage/presentation/widgets/bottom_sheets/employee_selector_sheet.dart
+lib/features/time_table_manage/presentation/widgets/bottom_sheets/shift_details_bottom_sheet.dart
+lib/features/time_table_manage/presentation/widgets/calendar/calendar_month_header.dart
+lib/features/time_table_manage/presentation/widgets/calendar/shift_calendar_view.dart
+lib/features/time_table_manage/presentation/widgets/calendar/time_table_calendar.dart
+lib/features/time_table_manage/presentation/widgets/common/animated_tab_bar.dart
+lib/features/time_table_manage/presentation/widgets/common/shift_status_badge.dart
+lib/features/time_table_manage/presentation/widgets/common/stat_card_widget.dart
+lib/features/time_table_manage/presentation/widgets/common/store_selector_card.dart
+lib/features/time_table_manage/presentation/widgets/manage/manage_tab_view.dart
+lib/features/time_table_manage/presentation/widgets/overview/overview_tab_view.dart
+lib/features/time_table_manage/presentation/widgets/overview/shift_summary_section.dart
+lib/features/time_table_manage/presentation/widgets/schedule/daily_shift_card.dart
+lib/features/time_table_manage/presentation/widgets/schedule/schedule_approve_button.dart
+lib/features/time_table_manage/presentation/widgets/schedule/schedule_shift_data_section.dart
+lib/features/time_table_manage/presentation/widgets/schedule/schedule_tab_view.dart
+lib/features/time_table_manage/presentation/widgets/shift_details/shift_section_title.dart
+lib/features/time_table_manage/presentation/widgets/shift_management_card.dart
+lib/features/time_table_manage/presentation/widgets/timesheets/timelog_day_view.dart
+lib/features/transaction_history/presentation/providers/states/transaction_filter_state.dart
+lib/features/transaction_history/presentation/providers/states/transaction_history_state.dart
+lib/features/transaction_template/data/services/account_mapping_validator_impl.dart
+lib/features/transaction_template/domain/value_objects/template_debt_configuration.dart
+lib/features/transaction_template/presentation/providers/transaction_provider.dart
+lib/features/transaction_template/presentation/widgets/forms/collapsible_description.dart
+lib/features/transaction_template/presentation/widgets/forms/complex_template_card.dart
+lib/features/transaction_template/presentation/widgets/forms/essential_selectors.dart
+lib/features/transaction_template/presentation/widgets/forms/quick_amount_input.dart
+lib/features/transaction_template/presentation/widgets/forms/quick_status_indicator.dart
+lib/shared/themes/theme_extensions.dart
+✖ total unused files - 162

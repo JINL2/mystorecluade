@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../shared/widgets/common/toss_scaffold.dart';
+import '../../data/datasources/po_remote_datasource.dart';
 import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -429,7 +429,7 @@ class _CreateOptionTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Icon(icon, color: iconColor, size: 24),
@@ -465,7 +465,7 @@ class _CreateOptionTile extends StatelessWidget {
 }
 
 /// Bottom sheet for selecting PI to convert to PO
-class _PISelectionSheet extends ConsumerStatefulWidget {
+class _PISelectionSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final void Function(String piId) onPISelected;
 
@@ -475,150 +475,9 @@ class _PISelectionSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_PISelectionSheet> createState() => _PISelectionSheetState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final acceptedPIsAsync = ref.watch(acceptedPIsForConversionProvider);
 
-class _PISelectionSheetState extends ConsumerState<_PISelectionSheet> {
-  List<_PIListItem> _piList = [];
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAcceptedPIs();
-  }
-
-  Future<void> _loadAcceptedPIs() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      // Load accepted PIs that haven't been converted to PO yet
-      final supabase = Supabase.instance.client;
-
-      debugPrint('=== DEBUG: Starting PI load ===');
-
-      final response = await supabase
-          .from('trade_proforma_invoices')
-          .select('''
-            pi_id,
-            pi_number,
-            counterparty_id,
-            counterparty_info,
-            total_amount,
-            currency_id,
-            status,
-            created_at_utc
-          ''')
-          .eq('status', 'accepted')
-          .order('created_at_utc', ascending: false);
-
-      debugPrint('=== DEBUG: PI Response ===');
-      debugPrint('Response: $response');
-
-      // Get currency codes map
-      final currencyIds = (response as List)
-          .map((e) => (e as Map<String, dynamic>)['currency_id'] as String?)
-          .where((id) => id != null)
-          .toSet()
-          .toList();
-
-      // Get counterparty IDs for lookup
-      final counterpartyIds = (response as List)
-          .map((e) => (e as Map<String, dynamic>)['counterparty_id'] as String?)
-          .where((id) => id != null)
-          .toSet()
-          .toList();
-
-      Map<String, Map<String, String>> currencyMap = {};
-      if (currencyIds.isNotEmpty) {
-        final currencyResponse = await supabase
-            .from('currency_types')
-            .select('currency_id, currency_code, symbol')
-            .inFilter('currency_id', currencyIds);
-        for (final c in currencyResponse as List) {
-          final cMap = c as Map<String, dynamic>;
-          currencyMap[cMap['currency_id'] as String] = {
-            'code': cMap['currency_code'] as String? ?? 'USD',
-            'symbol': cMap['symbol'] as String? ?? '\$',
-          };
-        }
-      }
-
-      // Get counterparty names
-      debugPrint('=== DEBUG: counterpartyIds ===');
-      debugPrint('counterpartyIds: $counterpartyIds');
-
-      Map<String, String> counterpartyMap = {};
-      if (counterpartyIds.isNotEmpty) {
-        debugPrint('=== DEBUG: Fetching counterparties ===');
-        final counterpartyResponse = await supabase
-            .from('counterparties')
-            .select('counterparty_id, name')
-            .inFilter('counterparty_id', counterpartyIds);
-        debugPrint('counterpartyResponse: $counterpartyResponse');
-        for (final cp in counterpartyResponse as List) {
-          final cpMap = cp as Map<String, dynamic>;
-          counterpartyMap[cpMap['counterparty_id'] as String] =
-              cpMap['name'] as String? ?? 'Unknown';
-        }
-      }
-
-      final List<_PIListItem> items = [];
-      for (final row in response) {
-        final rowMap = row as Map<String, dynamic>;
-        final piId = rowMap['pi_id'] as String;
-
-        // Check if PI is already converted to PO
-        final poCheck = await supabase
-            .from('trade_purchase_orders')
-            .select('po_id')
-            .eq('pi_id', piId)
-            .maybeSingle();
-
-        if (poCheck == null) {
-          final counterpartyId = rowMap['counterparty_id'] as String?;
-          final counterpartyInfo = rowMap['counterparty_info'] as Map<String, dynamic>?;
-          final currencyId = rowMap['currency_id'] as String?;
-          final currency = currencyId != null ? currencyMap[currencyId] : null;
-
-          // Get buyer name: prefer counterparty table, then counterparty_info, then fallback
-          final buyerName = (counterpartyId != null ? counterpartyMap[counterpartyId] : null) ??
-              counterpartyInfo?['name'] as String? ??
-              counterpartyInfo?['company_name'] as String? ??
-              'Unknown Buyer';
-
-          items.add(_PIListItem(
-            piId: piId,
-            piNumber: rowMap['pi_number'] as String? ?? 'N/A',
-            buyerName: buyerName,
-            totalAmount: (rowMap['total_amount'] as num?)?.toDouble() ?? 0,
-            currencyCode: currency?['code'] ?? 'USD',
-            currencySymbol: currency?['symbol'] ?? '\$',
-          ));
-        }
-      }
-
-      setState(() {
-        _piList = items;
-        _isLoading = false;
-      });
-    } catch (e, stackTrace) {
-      debugPrint('=== DEBUG: ERROR ===');
-      debugPrint('Error: $e');
-      debugPrint('StackTrace: $stackTrace');
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
       children: [
         // Handle bar
@@ -662,98 +521,73 @@ class _PISelectionSheetState extends ConsumerState<_PISelectionSheet> {
 
         // Content
         Expanded(
-          child: _buildContent(),
+          child: acceptedPIsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+                  const SizedBox(height: TossSpacing.space3),
+                  Text(
+                    'Failed to load PIs',
+                    style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
+                  ),
+                  const SizedBox(height: TossSpacing.space2),
+                  TextButton(
+                    onPressed: () => ref.invalidate(acceptedPIsForConversionProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+            data: (piList) {
+              if (piList.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inbox_outlined, size: 64, color: TossColors.gray400),
+                      const SizedBox(height: TossSpacing.space4),
+                      Text(
+                        'No Available PIs',
+                        style: TossTextStyles.h3.copyWith(color: TossColors.gray600),
+                      ),
+                      const SizedBox(height: TossSpacing.space2),
+                      Text(
+                        'All accepted PIs have been converted to PO\nor there are no accepted PIs yet',
+                        textAlign: TextAlign.center,
+                        style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.separated(
+                controller: scrollController,
+                padding: const EdgeInsets.all(TossSpacing.space4),
+                itemCount: piList.length,
+                separatorBuilder: (_, __) => const SizedBox(height: TossSpacing.space3),
+                itemBuilder: (context, index) {
+                  final item = piList[index];
+                  return _PIItemCard(
+                    item: item,
+                    onTap: () => onPISelected(item.piId),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ],
     );
   }
-
-  Widget _buildContent() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
-            const SizedBox(height: TossSpacing.space3),
-            Text(
-              'Failed to load PIs',
-              style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            TextButton(
-              onPressed: _loadAcceptedPIs,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_piList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox_outlined, size: 64, color: TossColors.gray400),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'No Available PIs',
-              style: TossTextStyles.h3.copyWith(color: TossColors.gray600),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              'All accepted PIs have been converted to PO\nor there are no accepted PIs yet',
-              textAlign: TextAlign.center,
-              style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.separated(
-      controller: widget.scrollController,
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      itemCount: _piList.length,
-      separatorBuilder: (_, __) => const SizedBox(height: TossSpacing.space3),
-      itemBuilder: (context, index) {
-        final item = _piList[index];
-        return _PIItemCard(
-          item: item,
-          onTap: () => widget.onPISelected(item.piId),
-        );
-      },
-    );
-  }
-}
-
-/// PI list item data
-class _PIListItem {
-  final String piId;
-  final String piNumber;
-  final String buyerName;
-  final double totalAmount;
-  final String currencyCode;
-  final String currencySymbol;
-
-  const _PIListItem({
-    required this.piId,
-    required this.piNumber,
-    required this.buyerName,
-    required this.totalAmount,
-    required this.currencyCode,
-    required this.currencySymbol,
-  });
 }
 
 /// Card widget for PI item in selection list
 class _PIItemCard extends StatelessWidget {
-  final _PIListItem item;
+  final AcceptedPIForConversion item;
   final VoidCallback onTap;
 
   const _PIItemCard({
@@ -782,7 +616,7 @@ class _PIItemCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Icon(
@@ -833,7 +667,7 @@ class _PIItemCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.success.withOpacity(0.1),
+                      color: TossColors.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(

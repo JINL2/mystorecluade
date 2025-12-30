@@ -109,8 +109,8 @@ class NotificationService {
       await _storeNotificationInDatabase(
         title: message.notification?.title ?? 'MyFinance',
         body: message.notification?.body ?? '',
-        category: message.data['category'],
-        data: message.data,
+        category: message.data['category'] as String?,
+        data: message.data.cast<String, dynamic>(),
         imageUrl: message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
       );
       
@@ -224,7 +224,7 @@ class NotificationService {
                 _handleDatabaseNotification(item);
               }
             },
-            onError: (error) {
+            onError: (Object error) {
               // Handle realtime subscription error
               print('Realtime subscription error: $error');
               // Attempt to reconnect after delay

@@ -3,7 +3,7 @@
 // Core utilities for account type label generation
 // =====================================================
 
-import 'package:myfinance_improved/core/utils/string_extensions.dart';
+import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
 
 /// Account type label utilities
 class AccountTypeUtils {
