@@ -31,10 +31,17 @@ class TradePdfService {
   static pw.Font? _boldFont;
 
   /// Load Google Fonts for PDF
+  /// Uses Noto Sans SC (Simplified Chinese) which supports:
+  /// - Korean (한국어)
+  /// - Vietnamese (Tiếng Việt)
+  /// - Chinese (中文)
+  /// - Japanese (日本語)
+  /// - English and other Latin languages
   static Future<void> _loadFonts() async {
     if (_regularFont == null) {
-      _regularFont = await PdfGoogleFonts.notoSansRegular();
-      _boldFont = await PdfGoogleFonts.notoSansBold();
+      // Noto Sans SC supports CJK (Chinese, Japanese, Korean) + Vietnamese + Latin
+      _regularFont = await PdfGoogleFonts.notoSansSCRegular();
+      _boldFont = await PdfGoogleFonts.notoSansSCBold();
     }
   }
 
@@ -171,6 +178,19 @@ class TradePdfService {
           // Shipping & Delivery (keep on main pages)
           if (_hasShippingInfo(pi) || pi.incotermsCode != null)
             _buildShippingAndTerms(pi, dateFormat, config),
+
+          // Banking Information
+          if (pi.bankingInfo != null && pi.bankingInfo!.isNotEmpty) ...[
+            pw.SizedBox(height: 25),
+            _buildBankingInfoSection(
+              pi.bankingInfo,
+              pi.currencyCode,
+              pi.totalAmount,
+              config.primaryColor,
+              _regularFont!,
+              _boldFont!,
+            ),
+          ],
 
           // If no terms page, add signature here
           if (!hasTermsPage) ...[
@@ -359,6 +379,19 @@ class TradePdfService {
 
           // Shipping Terms
           _buildPOShippingTerms(po, dateFormat, config),
+
+          // Banking Information
+          if (po.bankingInfo != null && po.bankingInfo!.isNotEmpty) ...[
+            pw.SizedBox(height: 25),
+            _buildBankingInfoSection(
+              po.bankingInfo,
+              po.currencyCode,
+              po.totalAmount,
+              config.primaryColor,
+              _regularFont!,
+              _boldFont!,
+            ),
+          ],
 
           // If no notes page, add signature here
           if (!hasNotesPage) ...[
@@ -1917,6 +1950,142 @@ class TradePdfService {
     await Printing.layoutPdf(
       onLayout: (format) async => pdfBytes,
       name: 'Document Preview',
+    );
+  }
+
+  /// Build Banking Information section for PDF
+  static pw.Widget _buildBankingInfoSection(
+    List<Map<String, dynamic>>? bankingInfo,
+    String currencyCode,
+    double totalAmount,
+    PdfColor primaryColor,
+    pw.Font regularFont,
+    pw.Font boldFont,
+  ) {
+    if (bankingInfo == null || bankingInfo.isEmpty) {
+      return pw.SizedBox.shrink();
+    }
+
+    // Filter banks by currency if possible, otherwise show all
+    final relevantBanks = bankingInfo.where((bank) {
+      final bankCurrency = bank['currency_code'] as String?;
+      return bankCurrency == null || bankCurrency == currencyCode;
+    }).toList();
+
+    // If no matching currency, show all banks
+    final banksToShow = relevantBanks.isEmpty ? bankingInfo : relevantBanks;
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        // Total amount display
+        pw.Container(
+          alignment: pw.Alignment.centerRight,
+          margin: const pw.EdgeInsets.only(bottom: 15),
+          child: pw.Text(
+            'Total: $currencyCode ${NumberFormat('#,##0.00').format(totalAmount)}',
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: 14,
+              color: primaryColor,
+            ),
+          ),
+        ),
+        // Banking sections
+        ...banksToShow.map((bank) => _buildSingleBankInfo(
+              bank,
+              primaryColor,
+              regularFont,
+              boldFont,
+            )),
+      ],
+    );
+  }
+
+  /// Build single bank information box
+  static pw.Widget _buildSingleBankInfo(
+    Map<String, dynamic> bank,
+    PdfColor primaryColor,
+    pw.Font regularFont,
+    pw.Font boldFont,
+  ) {
+    final bankName = bank['bank_name'] as String? ?? '';
+    final bankBranch = bank['bank_branch'] as String? ?? '';
+    final bankAddress = bank['bank_address'] as String? ?? '';
+    final beneficiaryName = bank['beneficiary_name'] as String? ?? '';
+    final accountNumber = bank['bank_account'] as String? ?? '';
+    final swiftCode = bank['swift_code'] as String? ?? '';
+    final currencyCode = bank['currency_code'] as String? ?? '';
+    final accountType = bank['account_type'] as String? ?? '';
+
+    // Determine title
+    String title = 'Banking Information';
+    if (currencyCode.isNotEmpty) {
+      title = 'Banking Information ($currencyCode Account)';
+    } else if (accountType.isNotEmpty) {
+      title = 'Banking Information ($accountType)';
+    }
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 15),
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // Title
+          pw.Text(
+            title,
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: 11,
+              color: primaryColor,
+            ),
+          ),
+          pw.SizedBox(height: 10),
+          // Bank details
+          if (bankName.isNotEmpty)
+            _buildBankInfoRow('Bank Name:', '$bankName${bankBranch.isNotEmpty ? ' ($bankBranch)' : ''}', regularFont, boldFont),
+          if (beneficiaryName.isNotEmpty)
+            _buildBankInfoRow('Beneficiary Full Name:', beneficiaryName, regularFont, boldFont),
+          if (accountNumber.isNotEmpty)
+            _buildBankInfoRow('Account Number:', '$accountNumber${currencyCode.isNotEmpty ? ' ($currencyCode)' : ''}', regularFont, boldFont),
+          if (bankAddress.isNotEmpty)
+            _buildBankInfoRow('Bank Address:', bankAddress, regularFont, boldFont),
+          if (swiftCode.isNotEmpty)
+            _buildBankInfoRow('SWIFT Code:', swiftCode, regularFont, boldFont),
+        ],
+      ),
+    );
+  }
+
+  /// Build a single row in bank info
+  static pw.Widget _buildBankInfoRow(
+    String label,
+    String value,
+    pw.Font regularFont,
+    pw.Font boldFont,
+  ) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 4),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            '• $label ',
+            style: pw.TextStyle(font: regularFont, fontSize: 9, color: PdfColors.grey700),
+          ),
+          pw.Expanded(
+            child: pw.Text(
+              value,
+              style: pw.TextStyle(font: boldFont, fontSize: 9),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

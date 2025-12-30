@@ -55,8 +55,11 @@ class JournalEntryRepositoryImpl implements JournalEntryRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> getExchangeRates(String companyId) async {
-    return await _dataSource.getExchangeRates(companyId);
+  Future<Map<String, dynamic>> getExchangeRates(
+    String companyId, {
+    String? storeId,
+  }) async {
+    return await _dataSource.getExchangeRates(companyId, storeId: storeId);
   }
 
   @override

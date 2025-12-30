@@ -9,7 +9,10 @@
 /// Used by QuickStatusIndicator and EssentialSelectors for optimal UX.
 /// Clean Architecture: DOMAIN LAYER - Value Object
 library;
+
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
+
 import '../enums/template_enums.dart';
 
 class TemplateAnalysisResult extends Equatable {
@@ -359,6 +362,143 @@ class TemplateAnalysisResult extends Equatable {
   bool needsCashLocation() => missingItems.contains('cash_location');
   bool needsCounterparty() => missingItems.contains('counterparty');
   bool needsCounterpartyCashLocation() => missingItems.contains('counterparty_cash_location');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RPC Type Analysis - For Direct RPC Integration
+  // Added for TEMPLATE_USAGE_REFACTORING_PLAN.md implementation
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Determine RPC type from template data structure
+  ///
+  /// Analyzes the template's data entries to determine which RPC strategy
+  /// should be used for transaction creation.
+  ///
+  /// Returns: TemplateRpcType enum value
+  static TemplateRpcType determineRpcType(Map<String, dynamic> template) {
+    _debugLog('┌─────────────────────────────────────────────────────────────');
+    _debugLog('│ TemplateAnalysisResult.determineRpcType()');
+    _debugLog('├─────────────────────────────────────────────────────────────');
+    _debugLog('│ template name: ${template['name']}');
+    _debugLog('│ template id: ${template['id']}');
+
+    final data = template['data'] as List? ?? [];
+    _debugLog('│ data entries: ${data.length}');
+
+    if (data.isEmpty) {
+      _debugLog('│ ❌ Empty data array');
+      _debugLog('│ Result: unknown');
+      _debugLog('└─────────────────────────────────────────────────────────────');
+      return TemplateRpcType.unknown;
+    }
+
+    // Collect category tags from all entries
+    final categoryTags = <String>{};
+    bool hasLinkedCompanyId = false;
+    bool hasCashAccount = false;
+    bool hasExpenseOrRevenue = false;
+
+    _debugLog('│ Analyzing entries:');
+    for (var i = 0; i < data.length; i++) {
+      final entry = data[i];
+      final categoryTag = entry['category_tag']?.toString();
+      final linkedCompanyId = entry['linked_company_id'];
+      final accountCode = entry['account_code']?.toString();
+
+      _debugLog('│   [$i] category_tag: $categoryTag, linked_company_id: $linkedCompanyId, account_code: $accountCode');
+
+      if (categoryTag != null && categoryTag.isNotEmpty) {
+        categoryTags.add(categoryTag);
+      }
+
+      // Check for linked_company_id (internal transfer marker)
+      if (linkedCompanyId != null &&
+          linkedCompanyId.toString().isNotEmpty &&
+          linkedCompanyId.toString() != 'none') {
+        hasLinkedCompanyId = true;
+        _debugLog('│       → Found linked_company_id!');
+      }
+
+      // Check for cash account
+      if (categoryTag == 'cash') {
+        hasCashAccount = true;
+      }
+
+      // Check for expense/revenue by account_code range
+      if (accountCode != null && accountCode.isNotEmpty) {
+        final code = int.tryParse(accountCode);
+        if (code != null) {
+          // Revenue: 4000-4999, Expense: 5000-9999
+          if ((code >= 4000 && code <= 4999) || (code >= 5000 && code <= 9999)) {
+            hasExpenseOrRevenue = true;
+            _debugLog('│       → Found expense/revenue account (code: $code)');
+          }
+        }
+      }
+    }
+
+    _debugLog('│ Analysis summary:');
+    _debugLog('│   categoryTags: $categoryTags');
+    _debugLog('│   hasLinkedCompanyId: $hasLinkedCompanyId');
+    _debugLog('│   hasCashAccount: $hasCashAccount');
+    _debugLog('│   hasExpenseOrRevenue: $hasExpenseOrRevenue');
+
+    // Decision tree for RPC type
+    _debugLog('│ Decision tree:');
+
+    // 1. Internal transfer: has linked_company_id
+    if (hasLinkedCompanyId) {
+      _debugLog('│   ✓ Check 1: hasLinkedCompanyId → internal');
+      _debugLog('│ Result: internal');
+      _debugLog('└─────────────────────────────────────────────────────────────');
+      return TemplateRpcType.internal;
+    }
+    _debugLog('│   ✗ Check 1: no linked_company_id');
+
+    // 2. External debt: has payable/receivable without linked_company_id
+    if (categoryTags.contains('payable') || categoryTags.contains('receivable')) {
+      _debugLog('│   ✓ Check 2: has payable/receivable → externalDebt');
+      _debugLog('│ Result: externalDebt');
+      _debugLog('└─────────────────────────────────────────────────────────────');
+      return TemplateRpcType.externalDebt;
+    }
+    _debugLog('│   ✗ Check 2: no payable/receivable');
+
+    // 3. Cash-to-Cash: only cash accounts (no expense/revenue)
+    if (hasCashAccount && !hasExpenseOrRevenue) {
+      // Check if ALL entries are cash
+      final allCash = data.every((entry) => entry['category_tag'] == 'cash');
+      _debugLog('│   Check 3: hasCashAccount && !hasExpenseOrRevenue, allCash=$allCash');
+      if (allCash) {
+        _debugLog('│   ✓ Check 3: all entries are cash → cashCash');
+        _debugLog('│ Result: cashCash');
+        _debugLog('└─────────────────────────────────────────────────────────────');
+        return TemplateRpcType.cashCash;
+      }
+    }
+    _debugLog('│   ✗ Check 3: not all cash');
+
+    // 4. Expense/Revenue + Cash: has expense/revenue account with cash
+    if (hasExpenseOrRevenue && hasCashAccount) {
+      _debugLog('│   ✓ Check 4: hasExpenseOrRevenue && hasCashAccount → expenseRevenueCash');
+      _debugLog('│ Result: expenseRevenueCash');
+      _debugLog('└─────────────────────────────────────────────────────────────');
+      return TemplateRpcType.expenseRevenueCash;
+    }
+    _debugLog('│   ✗ Check 4: no expense/revenue + cash combo');
+
+    // 5. Unknown: cannot determine
+    _debugLog('│ ❌ No matching pattern found');
+    _debugLog('│ Result: unknown');
+    _debugLog('└─────────────────────────────────────────────────────────────');
+    return TemplateRpcType.unknown;
+  }
+
+  /// Debug logging helper (only prints in debug mode)
+  static void _debugLog(String message) {
+    if (kDebugMode) {
+      debugPrint('[TemplateAnalysisResult] $message');
+    }
+  }
 
   /// Creates a copy with updated analysis
   TemplateAnalysisResult copyWith({

@@ -340,14 +340,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 final companyId = appState.companyChoosen;
                 final currentStoreId = appState.storeChoosen;
 
-                // 현재 앱에서 선택된 store와 QR store가 다르면 에러
-                if (storeId != currentStoreId) {
-                  throw Exception(
-                    'Wrong store QR code.\n'
-                    'Please scan the QR code for your current store.',
-                  );
-                }
-
                 // ========================================
                 // 급여 타입에 따라 분기
                 // ========================================
@@ -356,6 +348,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 if (salaryType == 'monthly') {
                   // ========================================
                   // Monthly 직원 처리
+                  // Monthly는 스케줄 템플릿 기반이므로 store 검증 불필요
+                  // QR에서 읽은 storeId를 그대로 전달 (기록용)
                   // ========================================
                   await _processMonthlyCheckIn(
                     storeId: storeId,
@@ -367,7 +361,16 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
                 // ========================================
                 // Hourly 직원 처리 (기존 로직)
+                // Hourly는 shift_request 기반이므로 store 검증 필요
                 // ========================================
+
+                // 현재 앱에서 선택된 store와 QR store가 다르면 에러
+                if (storeId != currentStoreId) {
+                  throw Exception(
+                    'Wrong store QR code.\n'
+                    'Please scan the QR code for your current store.',
+                  );
+                }
 
                 // Fetch shift cards for the scanned store (QR store_id)
                 // QR 스캔한 store_id로 필터링 - update_shift_requests_v8과 일관성 유지

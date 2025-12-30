@@ -157,26 +157,3 @@ class TemplateDisplayInfoDto with _$TemplateDisplayInfoDto {
       _$TemplateDisplayInfoDtoFromJson(json);
 }
 
-/// Response DTO for create_transaction_from_template RPC
-@freezed
-class CreateTransactionResponseDto with _$CreateTransactionResponseDto {
-  const factory CreateTransactionResponseDto({
-    /// Whether the transaction was created successfully
-    required bool success,
-
-    /// Created journal ID (UUID)
-    @JsonKey(name: 'journal_id') String? journalId,
-
-    /// Success or error message
-    String? message,
-
-    /// Error type if failed (e.g., 'validation_error', 'account_mapping_required')
-    String? error,
-
-    /// Field that caused the error (for validation errors)
-    String? field,
-  }) = _CreateTransactionResponseDto;
-
-  factory CreateTransactionResponseDto.fromJson(Map<String, dynamic> json) =>
-      _$CreateTransactionResponseDtoFromJson(json);
-}

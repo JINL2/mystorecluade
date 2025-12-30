@@ -16,6 +16,7 @@ import '../../../register_denomination/domain/entities/currency.dart';
 import '../../../trade_shared/domain/entities/trade_item.dart';
 import '../../../trade_shared/presentation/pages/trade_item_picker_page.dart';
 import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
+import '../../../cash_location/presentation/providers/cash_location_providers.dart';
 import '../../domain/entities/proforma_invoice.dart';
 import '../../domain/repositories/pi_repository.dart';
 import '../providers/pi_providers.dart';
@@ -59,6 +60,9 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
   bool _transshipmentAllowed = true;
   String? _selectedTemplateId;
 
+  // Bank accounts for PDF
+  List<String> _selectedBankAccountIds = [];
+
   // Items
   List<PIItemFormData> _items = [];
 
@@ -71,13 +75,25 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
   bool get isEditMode => widget.piId != null;
 
   /// Check if all required fields are filled for Save button enabling
-  bool get _canSave =>
-      _counterpartyId != null &&
-      _counterpartyId!.isNotEmpty &&
-      _currencyId != null &&
-      _currencyId!.isNotEmpty &&
-      _validityDate != null &&
-      _items.isNotEmpty;
+  bool get _canSave {
+    final canSave = _counterpartyId != null &&
+        _counterpartyId!.isNotEmpty &&
+        _currencyId != null &&
+        _currencyId!.isNotEmpty &&
+        _validityDate != null &&
+        _items.isNotEmpty;
+
+    // Debug: print which conditions are not met
+    if (!canSave) {
+      debugPrint('🔴 [PIFormPage] _canSave = false');
+      debugPrint('🔴 [PIFormPage]   - counterpartyId: $_counterpartyId (${_counterpartyId != null && _counterpartyId!.isNotEmpty ? '✓' : '✗'})');
+      debugPrint('🔴 [PIFormPage]   - currencyId: $_currencyId (${_currencyId != null && _currencyId!.isNotEmpty ? '✓' : '✗'})');
+      debugPrint('🔴 [PIFormPage]   - validityDate: $_validityDate (${_validityDate != null ? '✓' : '✗'})');
+      debugPrint('🔴 [PIFormPage]   - items: ${_items.length} (${_items.isNotEmpty ? '✓' : '✗'})');
+    }
+
+    return canSave;
+  }
 
   @override
   void initState() {
@@ -138,6 +154,7 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
     _transshipmentAllowed = pi.transshipmentAllowed;
     _notesController.text = pi.notes ?? '';
     _termsController.text = pi.termsAndConditions ?? '';
+    _selectedBankAccountIds = List<String>.from(pi.bankAccountIds);
 
     _items = pi.items
         .map((item) => PIItemFormData(
@@ -187,19 +204,15 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
         title: Text(isEditMode ? 'Edit PI' : 'New PI'),
         actions: [
           TextButton(
-            onPressed: formState.isSaving || !_canSave ? null : _handleSave,
+            // Always allow tap, validation happens in _handleSave
+            onPressed: formState.isSaving ? null : _handleSave,
             child: formState.isSaving
                 ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(
-                    'Save',
-                    style: TextStyle(
-                      color: _canSave ? null : TossColors.gray400,
-                    ),
-                  ),
+                : const Text('Save'),
           ),
         ],
       ),
@@ -300,6 +313,12 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
 
                   // Items
                   _buildItemsSection(),
+                  const SizedBox(height: TossSpacing.space5),
+
+                  // Banking Information for PDF
+                  _buildSectionTitle('Banking Information'),
+                  const SizedBox(height: TossSpacing.space2),
+                  _buildBankAccountSelector(),
                   const SizedBox(height: TossSpacing.space5),
 
                   // Notes
@@ -913,6 +932,211 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
     );
   }
 
+  Widget _buildBankAccountSelector() {
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId == null) {
+      return const Text('No company selected');
+    }
+
+    final params = CashLocationQueryParams(
+      companyId: companyId,
+      locationType: 'bank',
+    );
+
+    final bankAccountsAsync = ref.watch(allCashLocationsProvider(params));
+
+    debugPrint('🏦 [PIFormPage] Loading bank accounts for companyId: $companyId');
+
+    return bankAccountsAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(TossSpacing.space4),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, _) => Text(
+        'Failed to load bank accounts: $error',
+        style: TextStyle(color: TossColors.error),
+      ),
+      data: (bankAccounts) {
+        debugPrint('🏦 [PIFormPage] Loaded ${bankAccounts.length} bank accounts');
+        for (final bank in bankAccounts) {
+          debugPrint('🏦 [PIFormPage] Bank: ${bank.locationName} (${bank.locationId})');
+          debugPrint('🏦 [PIFormPage]   - swiftCode: ${bank.swiftCode}');
+          debugPrint('🏦 [PIFormPage]   - beneficiaryName: ${bank.beneficiaryName}');
+        }
+
+        if (bankAccounts.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Text(
+              'No bank accounts registered. Add bank accounts in Cash Location settings.',
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+            ),
+          );
+        }
+
+        // Build TossDropdown items - show locationName as primary, bankName as subtitle
+        final tossDropdownItems = bankAccounts.map((bank) {
+          // Use locationName as primary display
+          final primaryName = bank.locationName;
+          final bankName = bank.bankName;
+          final currencyCode = bank.currencyCode ?? '';
+
+          // Format label: "locationName (currency)"
+          String label = primaryName;
+          if (currencyCode.isNotEmpty) {
+            label = '$primaryName ($currencyCode)';
+          }
+
+          // Subtitle: bankName if different from locationName
+          String? subtitle;
+          if (bankName != null && bankName.isNotEmpty && bankName != primaryName) {
+            subtitle = bankName;
+          }
+
+          return TossDropdownItem<String>(
+            value: bank.locationId,
+            label: label,
+            subtitle: subtitle,
+          );
+        }).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Bank dropdown using TossDropdown
+            TossDropdown<String>(
+              label: '',
+              hint: 'Select bank account',
+              value: _selectedBankAccountIds.isNotEmpty
+                  ? _selectedBankAccountIds.first
+                  : null,
+              items: tossDropdownItems,
+              onChanged: (value) {
+                setState(() {
+                  _selectedBankAccountIds.clear();
+                  if (value != null) {
+                    _selectedBankAccountIds.add(value);
+                  }
+                });
+              },
+            ),
+
+            // Show selected bank details
+            if (_selectedBankAccountIds.isNotEmpty) ...[
+              const SizedBox(height: TossSpacing.space3),
+              Builder(
+                builder: (context) {
+                  final selectedBank = bankAccounts.firstWhere(
+                    (b) => b.locationId == _selectedBankAccountIds.first,
+                    orElse: () => bankAccounts.first,
+                  );
+                  return _buildBankDetailCard(selectedBank);
+                },
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBankDetailCard(CashLocation bank) {
+    final details = <MapEntry<String, String>>[];
+
+    if (bank.bankName != null && bank.bankName!.isNotEmpty) {
+      details.add(MapEntry('Bank Name', bank.bankName!));
+    }
+    if (bank.bankAccount != null && bank.bankAccount!.isNotEmpty) {
+      details.add(MapEntry('Account No.', bank.bankAccount!));
+    }
+    if (bank.beneficiaryName != null && bank.beneficiaryName!.isNotEmpty) {
+      details.add(MapEntry('Beneficiary', bank.beneficiaryName!));
+    }
+    if (bank.swiftCode != null && bank.swiftCode!.isNotEmpty) {
+      details.add(MapEntry('SWIFT Code', bank.swiftCode!));
+    }
+    if (bank.bankBranch != null && bank.bankBranch!.isNotEmpty) {
+      details.add(MapEntry('Branch', bank.bankBranch!));
+    }
+    if (bank.bankAddress != null && bank.bankAddress!.isNotEmpty) {
+      details.add(MapEntry('Bank Address', bank.bankAddress!));
+    }
+    if (bank.currencyCode != null && bank.currencyCode!.isNotEmpty) {
+      details.add(MapEntry('Currency', bank.currencyCode!));
+    }
+    if (bank.accountType != null && bank.accountType!.isNotEmpty) {
+      details.add(MapEntry('Account Type', bank.accountType!));
+    }
+
+    if (details.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(TossSpacing.space3),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(color: TossColors.border),
+        ),
+        child: Text(
+          'No additional details available for this bank account.',
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(color: TossColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: details.asMap().entries.map((mapEntry) {
+          final entry = mapEntry.value;
+          final isLast = mapEntry.key == details.length - 1;
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : TossSpacing.space2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 110,
+                  child: Text(
+                    entry.key,
+                    style: TossTextStyles.label.copyWith(
+                      color: TossColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    entry.value,
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      color: TossColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildTermsTemplateSection() {
     final termsState = ref.watch(termsTemplateProvider);
 
@@ -1050,6 +1274,30 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Label with required indicator (matching TossDropdown style)
+        Row(
+          children: [
+            Text(
+              label,
+              style: TossTextStyles.label.copyWith(
+                color: hasError ? TossColors.error : TossColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (isRequired) ...[
+              const SizedBox(width: 2),
+              Text(
+                '*',
+                style: TossTextStyles.label.copyWith(
+                  color: TossColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: TossSpacing.space2),
+        // Date field
         InkWell(
           onTap: () async {
             final date = await showDatePicker(
@@ -1060,33 +1308,34 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
             );
             onChanged(date);
           },
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: isRequired ? '$label *' : label,
-              labelStyle: TextStyle(
-                color: hasError ? TossColors.error : null,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.surface,
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              border: Border.all(
+                color: hasError ? TossColors.error : TossColors.border,
+                width: hasError ? 2 : 1,
               ),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                borderSide: BorderSide(
-                  color: hasError ? TossColors.error : TossColors.gray300,
-                  width: hasError ? 2 : 1,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                borderSide: BorderSide(
-                  color: hasError ? TossColors.error : TossColors.gray300,
-                  width: hasError ? 2 : 1,
-                ),
-              ),
-              suffixIcon: const Icon(Icons.calendar_today, size: 20),
             ),
-            child: Text(
-              value != null ? DateFormat('yyyy-MM-dd').format(value) : '',
-              style: TossTextStyles.bodyMedium,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value != null ? DateFormat('yyyy-MM-dd').format(value) : 'Select date',
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      color: value != null ? TossColors.textPrimary : TossColors.textTertiary,
+                      fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                  color: TossColors.gray600,
+                ),
+              ],
             ),
           ),
         ),
@@ -1307,48 +1556,71 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
 
   /// Validates required fields and returns true if all valid
   bool _validateForm() {
+    debugPrint('🔍 [PIFormPage] _validateForm starting...');
+    debugPrint('🔍 [PIFormPage]   - counterpartyId: $_counterpartyId');
+    debugPrint('🔍 [PIFormPage]   - currencyId: $_currencyId');
+    debugPrint('🔍 [PIFormPage]   - validityDate: $_validityDate');
+    debugPrint('🔍 [PIFormPage]   - items count: ${_items.length}');
+
     bool isValid = true;
 
     // Validate Counterparty
     if (_counterpartyId == null || _counterpartyId!.isEmpty) {
       _counterpartyError = 'Please select a counterparty';
       isValid = false;
+      debugPrint('🔴 [PIFormPage] Counterparty validation FAILED');
     } else {
       _counterpartyError = null;
+      debugPrint('✅ [PIFormPage] Counterparty validation OK');
     }
 
     // Validate Currency
     if (_currencyId == null || _currencyId!.isEmpty) {
       _currencyError = 'Please select a currency';
       isValid = false;
+      debugPrint('🔴 [PIFormPage] Currency validation FAILED');
     } else {
       _currencyError = null;
+      debugPrint('✅ [PIFormPage] Currency validation OK');
     }
 
     // Validate Validity Date
     if (_validityDate == null) {
       _validityDateError = 'Please select a validity date';
       isValid = false;
+      debugPrint('🔴 [PIFormPage] Validity Date validation FAILED');
     } else {
       _validityDateError = null;
+      debugPrint('✅ [PIFormPage] Validity Date validation OK');
     }
 
     // Validate Items
     if (_items.isEmpty) {
       _itemsError = 'Please add at least one item';
       isValid = false;
+      debugPrint('🔴 [PIFormPage] Items validation FAILED');
     } else {
       _itemsError = null;
+      debugPrint('✅ [PIFormPage] Items validation OK');
     }
 
+    debugPrint('🔍 [PIFormPage] _validateForm result: $isValid');
     return isValid;
   }
 
   Future<void> _handleSave() async {
-    if (!_formKey.currentState!.validate()) return;
+    debugPrint('🟢 [PIFormPage] _handleSave called!');
+    debugPrint('🟢 [PIFormPage] Form validate result: ${_formKey.currentState!.validate()}');
+
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('🔴 [PIFormPage] Form validation failed - returning');
+      return;
+    }
 
     // Validate required fields
+    debugPrint('🟡 [PIFormPage] Calling _validateForm...');
     final isValid = _validateForm();
+    debugPrint('🟡 [PIFormPage] _validateForm result: $isValid');
     if (!isValid) {
       setState(() {}); // Refresh UI to show errors
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1414,6 +1686,7 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
       notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       internalNotes: null,
       termsAndConditions: _termsController.text.isNotEmpty ? _termsController.text : null,
+      bankAccountIds: _selectedBankAccountIds,
       items: _items
           .map((item) => PIItemParams(
                 productId: item.productId,
@@ -1430,14 +1703,45 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
           .toList(),
     );
 
+    debugPrint('🚀 [PIFormPage] Calling ${isEditMode ? 'update' : 'create'}...');
     final notifier = ref.read(piFormProvider.notifier);
-    final pi = isEditMode
-        ? await notifier.update(widget.piId!, params)
-        : await notifier.create(params);
+    try {
+      final pi = isEditMode
+          ? await notifier.update(widget.piId!, params)
+          : await notifier.create(params);
 
-    if (pi != null && mounted) {
-      ref.read(piListProvider.notifier).refresh();
-      context.go('/proforma-invoice/${pi.id}');
+      if (pi != null && mounted) {
+        debugPrint('✅ [PIFormPage] PI ${isEditMode ? 'updated' : 'created'} successfully! ID: ${pi.id}');
+        ref.read(piListProvider.notifier).refresh();
+        context.go('/proforma-invoice/${pi.id}');
+      } else {
+        // Get the actual error from piFormProvider state
+        final formState = ref.read(piFormProvider);
+        final errorMessage = formState.error ?? 'Unknown error occurred';
+        debugPrint('🔴 [PIFormPage] PI ${isEditMode ? 'update' : 'create'} returned null');
+        debugPrint('🔴 [PIFormPage] Error from state: $errorMessage');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save PI: $errorMessage'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      debugPrint('🔴 [PIFormPage] Error saving PI: $e');
+      debugPrint('🔴 [PIFormPage] StackTrace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 }

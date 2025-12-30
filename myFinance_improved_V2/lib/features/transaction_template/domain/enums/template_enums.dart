@@ -143,8 +143,110 @@ extension FormComplexityExtension on FormComplexity {
   }
 }
 
+/// Template RPC Type - Determines which RPC strategy to use
+///
+/// Purpose: Identifies the type of journal transaction for RPC parameter building.
+/// Used by TemplateLinesBuilder to construct the correct p_lines structure.
+///
+/// Clean Architecture: DOMAIN LAYER - Enum (Business Logic Classification)
+enum TemplateRpcType {
+  /// Cash-to-Cash transfer: Both sides are cash accounts
+  /// - Example: Transfer from wallet to safe
+  /// - p_lines: 2 entries with cash_location_id
+  cashCash,
+
+  /// Internal transfer between stores: Uses linked_company_id
+  /// - Example: Transfer to another company's store
+  /// - p_lines: 2 entries with counterparty_store_id reference
+  internal,
+
+  /// External debt transaction: Payable/Receivable with external counterparty
+  /// - Example: Loan to supplier, Payment from customer
+  /// - p_lines: Entry with debt object (counterparty_id, direction, category)
+  externalDebt,
+
+  /// Revenue/Expense with Cash: Income or expense transaction
+  /// - Example: Sales revenue, Utility expense
+  /// - p_lines: Revenue/Expense account + Cash account entry
+  expenseRevenueCash,
+
+  /// Unknown or unsupported template type
+  /// - Should trigger validation error in production
+  unknown,
+}
+
+/// Extension methods for TemplateRpcType enum
+extension TemplateRpcTypeExtension on TemplateRpcType {
+  /// Gets display name for the RPC type
+  String get displayName {
+    switch (this) {
+      case TemplateRpcType.cashCash:
+        return 'Cash Transfer';
+      case TemplateRpcType.internal:
+        return 'Internal Transfer';
+      case TemplateRpcType.externalDebt:
+        return 'External Debt';
+      case TemplateRpcType.expenseRevenueCash:
+        return 'Revenue/Expense';
+      case TemplateRpcType.unknown:
+        return 'Unknown';
+    }
+  }
+
+  /// Gets description for the RPC type
+  String get description {
+    switch (this) {
+      case TemplateRpcType.cashCash:
+        return 'Transfer between cash locations (wallet, safe, etc.)';
+      case TemplateRpcType.internal:
+        return 'Transfer between internal company stores';
+      case TemplateRpcType.externalDebt:
+        return 'Debt transaction with external counterparty';
+      case TemplateRpcType.expenseRevenueCash:
+        return 'Revenue or expense with cash payment';
+      case TemplateRpcType.unknown:
+        return 'Unable to determine transaction type';
+    }
+  }
+
+  /// Checks if this type requires cash location selection
+  bool get requiresCashLocation {
+    return this == TemplateRpcType.cashCash ||
+        this == TemplateRpcType.expenseRevenueCash;
+  }
+
+  /// Checks if this type requires counterparty selection
+  bool get requiresCounterparty {
+    return this == TemplateRpcType.externalDebt;
+  }
+
+  /// Checks if this type requires counterparty cash location
+  bool get requiresCounterpartyCashLocation {
+    return this == TemplateRpcType.internal;
+  }
+
+  /// Checks if this is a valid type for transaction creation
+  bool get isValid => this != TemplateRpcType.unknown;
+
+  /// Gets validation priority (higher = stricter validation)
+  int get validationPriority {
+    switch (this) {
+      case TemplateRpcType.internal:
+        return 10; // Highest - cross-company
+      case TemplateRpcType.externalDebt:
+        return 8; // High - external parties
+      case TemplateRpcType.cashCash:
+        return 5; // Medium - internal cash
+      case TemplateRpcType.expenseRevenueCash:
+        return 3; // Lower - standard transactions
+      case TemplateRpcType.unknown:
+        return 0; // Invalid
+    }
+  }
+}
+
 /// Account types for validation and business logic
-/// 
+///
 /// Used to determine specific validation requirements for different
 /// account types in transaction templates.
 enum AccountType {

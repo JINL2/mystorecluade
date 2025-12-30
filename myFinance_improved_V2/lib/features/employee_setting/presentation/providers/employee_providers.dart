@@ -379,6 +379,9 @@ Future<Map<String, dynamic>> Function({
 
 /// Refresh employees
 Future<void> refreshEmployees(WidgetRef ref) async {
+  // Clear mutable cache first - this is critical for immediate UI update
+  ref.read(mutableEmployeeListProvider.notifier).clear();
+  // Then invalidate providers to trigger fresh data fetch
   ref.invalidate(employeeSalaryListProvider);
   ref.invalidate(currencyTypesProvider);
   ref.invalidate(rolesProvider);

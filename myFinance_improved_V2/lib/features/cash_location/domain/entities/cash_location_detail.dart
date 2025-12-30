@@ -20,5 +20,11 @@ class CashLocationDetail with _$CashLocationDetail {
     required String companyId,
     String? storeId,
     @Default(false) bool isDeleted,
+    // Trade/International banking fields
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   }) = _CashLocationDetail;
 }

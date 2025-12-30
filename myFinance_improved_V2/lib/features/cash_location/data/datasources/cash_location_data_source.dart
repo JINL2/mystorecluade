@@ -17,17 +17,29 @@ class CashLocationDataSource {
 
   /// Get all cash locations (all types) for client-side filtering
   /// Uses v_cash_location view to get cash amounts for cash location page
+  /// [storeId] is optional - if null, returns all stores
+  /// [locationType] is optional - if provided, filters by location type (cash, bank, vault)
   Future<List<CashLocationModel>> getAllCashLocations({
     required String companyId,
-    required String storeId,
+    String? storeId,
+    String? locationType,
   }) async {
     try {
-      final response = await _supabase
+      var query = _supabase
           .from('v_cash_location')
           .select('*')
-          .eq('store_id', storeId)
           .eq('company_id', companyId)
-          .eq('is_deleted', false)
+          .eq('is_deleted', false);
+
+      // Apply optional filters
+      if (storeId != null) {
+        query = query.eq('store_id', storeId);
+      }
+      if (locationType != null) {
+        query = query.eq('location_type', locationType);
+      }
+
+      final response = await query
           .order('location_type')
           .order('location_name');
 
@@ -39,7 +51,7 @@ class CashLocationDataSource {
         e,
         stackTrace,
         hint: 'CashLocation: Failed to load cash locations',
-        extra: {'companyId': companyId, 'storeId': storeId},
+        extra: {'companyId': companyId, 'storeId': storeId, 'locationType': locationType},
       );
       throw Exception('Failed to load cash locations: ${e.toString()}');
     }
@@ -350,6 +362,12 @@ class CashLocationDataSource {
     String? accountNumber,
     String? currencyId,
     String? locationInfo,
+    // Trade/International banking fields
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   }) async {
     try {
       final data = <String, dynamic>{
@@ -363,6 +381,23 @@ class CashLocationDataSource {
       if (accountNumber != null) data['bank_account'] = accountNumber;
       if (currencyId != null) data['currency_id'] = currencyId;
       if (locationInfo != null) data['location_info'] = locationInfo;
+
+      // Trade/International banking fields
+      if (beneficiaryName != null && beneficiaryName.isNotEmpty) {
+        data['beneficiary_name'] = beneficiaryName;
+      }
+      if (bankAddress != null && bankAddress.isNotEmpty) {
+        data['bank_address'] = bankAddress;
+      }
+      if (swiftCode != null && swiftCode.isNotEmpty) {
+        data['swift_code'] = swiftCode;
+      }
+      if (bankBranch != null && bankBranch.isNotEmpty) {
+        data['bank_branch'] = bankBranch;
+      }
+      if (accountType != null && accountType.isNotEmpty) {
+        data['account_type'] = accountType;
+      }
 
       await _supabase.from('cash_locations').insert(data);
     } catch (e, stackTrace) {
@@ -384,23 +419,35 @@ class CashLocationDataSource {
     String? description,
     String? bankName,
     String? accountNumber,
+    // Trade/International banking fields
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   }) async {
     try {
       final updateData = <String, dynamic>{
-        'name': name,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
+        'location_name': name,
       };
 
       // Add optional fields only if provided
       if (note != null) updateData['note'] = note;
       if (description != null) updateData['description'] = description;
       if (bankName != null) updateData['bank_name'] = bankName;
-      if (accountNumber != null) updateData['account_number'] = accountNumber;
+      if (accountNumber != null) updateData['bank_account'] = accountNumber;
+
+      // Trade/International banking fields
+      if (beneficiaryName != null) updateData['beneficiary_name'] = beneficiaryName;
+      if (bankAddress != null) updateData['bank_address'] = bankAddress;
+      if (swiftCode != null) updateData['swift_code'] = swiftCode;
+      if (bankBranch != null) updateData['bank_branch'] = bankBranch;
+      if (accountType != null) updateData['account_type'] = accountType;
 
       await _supabase
           .from('cash_locations')
           .update(updateData)
-          .eq('id', locationId);
+          .eq('cash_location_id', locationId);
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -473,7 +520,6 @@ class CashLocationDataSource {
           .from('cash_locations')
           .update({
             'main_cash_location': isMain,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('cash_location_id', locationId);
     } catch (e, stackTrace) {

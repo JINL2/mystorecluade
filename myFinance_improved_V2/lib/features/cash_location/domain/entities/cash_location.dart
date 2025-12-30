@@ -20,7 +20,16 @@ class CashLocation with _$CashLocation {
     required String companyId,
     String? storeId,
     required String currencySymbol,
+    String? currencyCode,
     @Default(false) bool isDeleted,
+    // Bank-specific fields
+    String? bankName,
+    String? bankAccount,
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   }) = _CashLocation;
 
   // Business logic: Calculate error count or status

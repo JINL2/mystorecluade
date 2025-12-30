@@ -147,14 +147,17 @@ class ProductRemoteDataSource {
   }
 
   /// Get exchange rates
+  /// Uses get_exchange_rate_v3 which supports store-based currency sorting
   Future<Map<String, dynamic>?> getExchangeRates({
     required String companyId,
+    String? storeId,
   }) async {
     try {
       final response = await _client.rpc<Map<String, dynamic>?>(
-        'get_exchange_rate_v2',
+        'get_exchange_rate_v3',
         params: {
           'p_company_id': companyId,
+          if (storeId != null) 'p_store_id': storeId,
         },
       );
 

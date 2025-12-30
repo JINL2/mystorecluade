@@ -165,7 +165,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     
     try {
       // Use the existing provider to get exchange rates
-      final exchangeRatesData = await ref.read(exchangeRatesProvider(companyId).future);
+      final exchangeRatesData = await ref.read(
+        exchangeRatesProvider(ExchangeRatesParams(companyId: companyId)).future,
+      );
       
       final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
       // Show calculator only if there are multiple currencies (more than just base currency)

@@ -274,6 +274,8 @@ class EmployeeMonthlySummaryModel extends EmployeeMonthlySummary {
     super.totalBonus,
     super.totalOvertimePay,
     super.totalLateDeduction,
+    super.totalBasePay,
+    super.totalPayment,
   });
 
   factory EmployeeMonthlySummaryModel.fromJson(Map<String, dynamic> json) {
@@ -293,6 +295,9 @@ class EmployeeMonthlySummaryModel extends EmployeeMonthlySummary {
       totalOvertimePay: (json['total_overtime_pay'] as num?)?.toDouble() ?? 0,
       totalLateDeduction:
           (json['total_late_deduction'] as num?)?.toDouble() ?? 0,
+      // New fields from RPC (calculated in v_shift_request view)
+      totalBasePay: (json['total_base_pay'] as num?)?.toDouble() ?? 0,
+      totalPayment: (json['total_payment'] as num?)?.toDouble() ?? 0,
     );
   }
 }

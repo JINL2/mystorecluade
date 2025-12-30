@@ -389,17 +389,43 @@ Future<List<Map<String, dynamic>>> journalCashLocations(
   );
 }
 
+/// Params for exchange rates query
+class ExchangeRatesParams {
+  final String companyId;
+  final String? storeId;
+
+  const ExchangeRatesParams({
+    required this.companyId,
+    this.storeId,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ExchangeRatesParams &&
+          runtimeType == other.runtimeType &&
+          companyId == other.companyId &&
+          storeId == other.storeId;
+
+  @override
+  int get hashCode => companyId.hashCode ^ (storeId?.hashCode ?? 0);
+}
+
 /// Fetch exchange rates
+/// Uses get_exchange_rate_v3 which supports store-based currency sorting
 @riverpod
 Future<Map<String, dynamic>> exchangeRates(
   Ref ref,
-  String companyId,
+  ExchangeRatesParams params,
 ) async {
-  if (companyId.isEmpty) {
+  if (params.companyId.isEmpty) {
     throw Exception('Company ID is required');
   }
   final repository = ref.watch(journalEntryRepositoryProvider);
-  return await repository.getExchangeRates(companyId);
+  return await repository.getExchangeRates(
+    params.companyId,
+    storeId: params.storeId,
+  );
 }
 
 /// Get journal attachments

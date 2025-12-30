@@ -3,10 +3,12 @@
 /// Purpose: Handles all database communications for transaction templates:
 /// - Template creation, retrieval, update, deletion through Supabase
 /// - Direct SQL queries to transaction_templates table
-/// - RPC calls for template usage (get_template_for_usage, create_transaction_from_template)
+/// - RPC call for template usage analysis (get_template_for_usage)
 /// - Data transformation between domain entities and database format
 /// - Error handling and response processing
 /// - Follows Clean Architecture DataSource pattern
+///
+/// Note: Transaction creation is handled by TemplateRpcService using insert_journal_with_everything_utc
 ///
 /// Clean Architecture: DATA LAYER - DataSource (Infrastructure)
 library;
@@ -255,48 +257,4 @@ class TemplateDataSource {
     return TemplateUsageResponseDto.fromJson(response as Map<String, dynamic>);
   }
 
-  /// Create transaction from template
-  ///
-  /// Calls RPC: create_transaction_from_template
-  /// Returns: Created journal_id on success, error details on failure
-  Future<CreateTransactionResponseDto> createTransactionFromTemplate({
-    required String templateId,
-    required double amount,
-    required String companyId,
-    required String userId,
-    String? storeId,
-    String? description,
-    String? selectedCashLocationId,
-    String? selectedCounterpartyId,
-    String? selectedCounterpartyStoreId,
-    String? selectedCounterpartyCashLocationId,
-    DateTime? entryDate,
-  }) async {
-    final response = await _supabaseService.client.rpc(
-      'create_transaction_from_template',
-      params: {
-        'p_template_id': templateId,
-        'p_amount': amount,
-        'p_company_id': companyId,
-        'p_user_id': userId,
-        if (storeId != null) 'p_store_id': storeId,
-        if (description != null) 'p_description': description,
-        if (selectedCashLocationId != null) 'p_selected_cash_location_id': selectedCashLocationId,
-        if (selectedCounterpartyId != null) 'p_selected_counterparty_id': selectedCounterpartyId,
-        if (selectedCounterpartyStoreId != null) 'p_selected_counterparty_store_id': selectedCounterpartyStoreId,
-        if (selectedCounterpartyCashLocationId != null) 'p_selected_counterparty_cash_location_id': selectedCounterpartyCashLocationId,
-        if (entryDate != null) 'p_entry_date': entryDate.toIso8601String().split('T').first,
-      },
-    );
-
-    if (response == null) {
-      return const CreateTransactionResponseDto(
-        success: false,
-        error: 'null_response',
-        message: 'RPC returned null response',
-      );
-    }
-
-    return CreateTransactionResponseDto.fromJson(response as Map<String, dynamic>);
-  }
 }

@@ -35,7 +35,22 @@ mixin _$AccountSettingsState {
   String get accountNumber => throw _privateConstructorUsedError;
 
   /// Whether this is the main account
-  bool get isMainAccount => throw _privateConstructorUsedError;
+  bool get isMainAccount =>
+      throw _privateConstructorUsedError; // Trade/International banking fields
+  /// Beneficiary name for international transfers
+  String get beneficiaryName => throw _privateConstructorUsedError;
+
+  /// Bank address
+  String get bankAddress => throw _privateConstructorUsedError;
+
+  /// SWIFT/BIC code
+  String get swiftCode => throw _privateConstructorUsedError;
+
+  /// Bank branch
+  String get bankBranch => throw _privateConstructorUsedError;
+
+  /// Account type (Savings, Checking, Current, Business)
+  String get accountType => throw _privateConstructorUsedError;
 
   /// Loading state
   bool get isLoading => throw _privateConstructorUsedError;
@@ -70,6 +85,11 @@ abstract class $AccountSettingsStateCopyWith<$Res> {
       String bankName,
       String accountNumber,
       bool isMainAccount,
+      String beneficiaryName,
+      String bankAddress,
+      String swiftCode,
+      String bankBranch,
+      String accountType,
       bool isLoading,
       bool isSaving,
       String? errorMessage,
@@ -101,6 +121,11 @@ class _$AccountSettingsStateCopyWithImpl<$Res,
     Object? bankName = null,
     Object? accountNumber = null,
     Object? isMainAccount = null,
+    Object? beneficiaryName = null,
+    Object? bankAddress = null,
+    Object? swiftCode = null,
+    Object? bankBranch = null,
+    Object? accountType = null,
     Object? isLoading = null,
     Object? isSaving = null,
     Object? errorMessage = freezed,
@@ -135,6 +160,26 @@ class _$AccountSettingsStateCopyWithImpl<$Res,
           ? _value.isMainAccount
           : isMainAccount // ignore: cast_nullable_to_non_nullable
               as bool,
+      beneficiaryName: null == beneficiaryName
+          ? _value.beneficiaryName
+          : beneficiaryName // ignore: cast_nullable_to_non_nullable
+              as String,
+      bankAddress: null == bankAddress
+          ? _value.bankAddress
+          : bankAddress // ignore: cast_nullable_to_non_nullable
+              as String,
+      swiftCode: null == swiftCode
+          ? _value.swiftCode
+          : swiftCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      bankBranch: null == bankBranch
+          ? _value.bankBranch
+          : bankBranch // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountType: null == accountType
+          ? _value.accountType
+          : accountType // ignore: cast_nullable_to_non_nullable
+              as String,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -185,6 +230,11 @@ abstract class _$$AccountSettingsStateImplCopyWith<$Res>
       String bankName,
       String accountNumber,
       bool isMainAccount,
+      String beneficiaryName,
+      String bankAddress,
+      String swiftCode,
+      String bankBranch,
+      String accountType,
       bool isLoading,
       bool isSaving,
       String? errorMessage,
@@ -214,6 +264,11 @@ class __$$AccountSettingsStateImplCopyWithImpl<$Res>
     Object? bankName = null,
     Object? accountNumber = null,
     Object? isMainAccount = null,
+    Object? beneficiaryName = null,
+    Object? bankAddress = null,
+    Object? swiftCode = null,
+    Object? bankBranch = null,
+    Object? accountType = null,
     Object? isLoading = null,
     Object? isSaving = null,
     Object? errorMessage = freezed,
@@ -248,6 +303,26 @@ class __$$AccountSettingsStateImplCopyWithImpl<$Res>
           ? _value.isMainAccount
           : isMainAccount // ignore: cast_nullable_to_non_nullable
               as bool,
+      beneficiaryName: null == beneficiaryName
+          ? _value.beneficiaryName
+          : beneficiaryName // ignore: cast_nullable_to_non_nullable
+              as String,
+      bankAddress: null == bankAddress
+          ? _value.bankAddress
+          : bankAddress // ignore: cast_nullable_to_non_nullable
+              as String,
+      swiftCode: null == swiftCode
+          ? _value.swiftCode
+          : swiftCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      bankBranch: null == bankBranch
+          ? _value.bankBranch
+          : bankBranch // ignore: cast_nullable_to_non_nullable
+              as String,
+      accountType: null == accountType
+          ? _value.accountType
+          : accountType // ignore: cast_nullable_to_non_nullable
+              as String,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -279,6 +354,11 @@ class _$AccountSettingsStateImpl extends _AccountSettingsState {
       this.bankName = '',
       this.accountNumber = '',
       this.isMainAccount = false,
+      this.beneficiaryName = '',
+      this.bankAddress = '',
+      this.swiftCode = '',
+      this.bankBranch = '',
+      this.accountType = '',
       this.isLoading = false,
       this.isSaving = false,
       this.errorMessage,
@@ -318,6 +398,31 @@ class _$AccountSettingsStateImpl extends _AccountSettingsState {
   @override
   @JsonKey()
   final bool isMainAccount;
+// Trade/International banking fields
+  /// Beneficiary name for international transfers
+  @override
+  @JsonKey()
+  final String beneficiaryName;
+
+  /// Bank address
+  @override
+  @JsonKey()
+  final String bankAddress;
+
+  /// SWIFT/BIC code
+  @override
+  @JsonKey()
+  final String swiftCode;
+
+  /// Bank branch
+  @override
+  @JsonKey()
+  final String bankBranch;
+
+  /// Account type (Savings, Checking, Current, Business)
+  @override
+  @JsonKey()
+  final String accountType;
 
   /// Loading state
   @override
@@ -339,7 +444,7 @@ class _$AccountSettingsStateImpl extends _AccountSettingsState {
 
   @override
   String toString() {
-    return 'AccountSettingsState(location: $location, accountName: $accountName, note: $note, description: $description, bankName: $bankName, accountNumber: $accountNumber, isMainAccount: $isMainAccount, isLoading: $isLoading, isSaving: $isSaving, errorMessage: $errorMessage, successMessage: $successMessage)';
+    return 'AccountSettingsState(location: $location, accountName: $accountName, note: $note, description: $description, bankName: $bankName, accountNumber: $accountNumber, isMainAccount: $isMainAccount, beneficiaryName: $beneficiaryName, bankAddress: $bankAddress, swiftCode: $swiftCode, bankBranch: $bankBranch, accountType: $accountType, isLoading: $isLoading, isSaving: $isSaving, errorMessage: $errorMessage, successMessage: $successMessage)';
   }
 
   @override
@@ -360,6 +465,16 @@ class _$AccountSettingsStateImpl extends _AccountSettingsState {
                 other.accountNumber == accountNumber) &&
             (identical(other.isMainAccount, isMainAccount) ||
                 other.isMainAccount == isMainAccount) &&
+            (identical(other.beneficiaryName, beneficiaryName) ||
+                other.beneficiaryName == beneficiaryName) &&
+            (identical(other.bankAddress, bankAddress) ||
+                other.bankAddress == bankAddress) &&
+            (identical(other.swiftCode, swiftCode) ||
+                other.swiftCode == swiftCode) &&
+            (identical(other.bankBranch, bankBranch) ||
+                other.bankBranch == bankBranch) &&
+            (identical(other.accountType, accountType) ||
+                other.accountType == accountType) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isSaving, isSaving) ||
@@ -380,6 +495,11 @@ class _$AccountSettingsStateImpl extends _AccountSettingsState {
       bankName,
       accountNumber,
       isMainAccount,
+      beneficiaryName,
+      bankAddress,
+      swiftCode,
+      bankBranch,
+      accountType,
       isLoading,
       isSaving,
       errorMessage,
@@ -405,6 +525,11 @@ abstract class _AccountSettingsState extends AccountSettingsState {
       final String bankName,
       final String accountNumber,
       final bool isMainAccount,
+      final String beneficiaryName,
+      final String bankAddress,
+      final String swiftCode,
+      final String bankBranch,
+      final String accountType,
       final bool isLoading,
       final bool isSaving,
       final String? errorMessage,
@@ -437,7 +562,26 @@ abstract class _AccountSettingsState extends AccountSettingsState {
 
   /// Whether this is the main account
   @override
-  bool get isMainAccount;
+  bool get isMainAccount; // Trade/International banking fields
+  /// Beneficiary name for international transfers
+  @override
+  String get beneficiaryName;
+
+  /// Bank address
+  @override
+  String get bankAddress;
+
+  /// SWIFT/BIC code
+  @override
+  String get swiftCode;
+
+  /// Bank branch
+  @override
+  String get bankBranch;
+
+  /// Account type (Savings, Checking, Current, Business)
+  @override
+  String get accountType;
 
   /// Loading state
   @override

@@ -29,7 +29,11 @@ abstract class JournalEntryRepository {
   });
 
   /// Fetch exchange rates for a company
-  Future<Map<String, dynamic>> getExchangeRates(String companyId);
+  /// Uses get_exchange_rate_v3 which supports store-based currency sorting
+  Future<Map<String, dynamic>> getExchangeRates(
+    String companyId, {
+    String? storeId,
+  });
 
   /// Submit journal entry and return the created journal ID
   Future<String> submitJournalEntry({

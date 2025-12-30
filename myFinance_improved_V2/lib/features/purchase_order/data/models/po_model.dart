@@ -63,6 +63,10 @@ class POModel with _$POModel {
     @JsonKey(name: 'pi_number') String? piNumber,
     /// Seller (our company) info for PDF generation
     @JsonKey(name: 'seller_info') Map<String, dynamic>? sellerInfo,
+    /// Banking info for PDF (from cash_locations)
+    @JsonKey(name: 'banking_info') List<Map<String, dynamic>>? bankingInfo,
+    /// Selected bank account IDs (cash_location_ids) for PDF display
+    @JsonKey(name: 'bank_account_ids') @Default([]) List<String> bankAccountIds,
     @JsonKey(name: 'buyer_id') String? buyerId,
     @JsonKey(name: 'buyer_name') String? buyerName,
     @JsonKey(name: 'buyer_po_number') String? buyerPoNumber,
@@ -105,6 +109,12 @@ class POModel with _$POModel {
       piId: json['pi_id'] as String?,
       piNumber: json['pi_number'] as String?,
       sellerInfo: json['seller_info'] as Map<String, dynamic>?,
+      bankingInfo: (json['banking_info'] as List<dynamic>?)
+          ?.map((e) => Map<String, dynamic>.from(e as Map))
+          .toList(),
+      bankAccountIds: (json['bank_account_ids'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? [],
       buyerId: json['buyer_id'] as String?,
       buyerName: json['buyer_name'] as String?,
       buyerPoNumber: json['buyer_po_number'] as String?,
@@ -146,6 +156,8 @@ class POModel with _$POModel {
         piId: piId,
         piNumber: piNumber,
         sellerInfo: sellerInfo,
+        bankingInfo: bankingInfo,
+        bankAccountIds: bankAccountIds,
         buyerId: buyerId,
         buyerName: buyerName ?? buyerInfo?['name'] as String?,
         buyerPoNumber: buyerPoNumber,

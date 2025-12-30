@@ -62,6 +62,13 @@ _$PIModelImpl _$$PIModelImplFromJson(Map<String, dynamic> json) =>
       counterpartyName: json['counterparty_name'] as String?,
       counterpartyInfo: json['counterparty_info'] as Map<String, dynamic>?,
       sellerInfo: json['seller_info'] as Map<String, dynamic>?,
+      bankingInfo: (json['banking_info'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
+      bankAccountIds: (json['bank_account_ids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       currencyId: json['currency_id'] as String?,
       currencyCode: json['currency_code'] as String? ?? 'USD',
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0,
@@ -117,6 +124,8 @@ Map<String, dynamic> _$$PIModelImplToJson(_$PIModelImpl instance) =>
       'counterparty_name': instance.counterpartyName,
       'counterparty_info': instance.counterpartyInfo,
       'seller_info': instance.sellerInfo,
+      'banking_info': instance.bankingInfo,
+      'bank_account_ids': instance.bankAccountIds,
       'currency_id': instance.currencyId,
       'currency_code': instance.currencyCode,
       'subtotal': instance.subtotal,

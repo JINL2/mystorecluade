@@ -89,6 +89,7 @@ class POCreateParams {
   final bool transshipmentAllowed;
   final String? notes;
   final List<POItemCreateParams> items;
+  final List<String> bankAccountIds;
 
   POCreateParams({
     required this.companyId,
@@ -107,6 +108,7 @@ class POCreateParams {
     this.transshipmentAllowed = true,
     this.notes,
     this.items = const [],
+    this.bankAccountIds = const [],
   });
 }
 

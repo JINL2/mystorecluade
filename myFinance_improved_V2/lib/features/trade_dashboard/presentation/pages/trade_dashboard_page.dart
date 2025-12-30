@@ -8,9 +8,11 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+// trade_shared에서는 공유 위젯만 가져옴
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
-import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
-import '../../../trade_shared/domain/entities/dashboard_summary.dart';
+// Dashboard 관련은 trade_dashboard 자체 모듈에서 가져옴
+import '../providers/dashboard_providers.dart';
+import '../../domain/entities/dashboard_summary.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/dashboard_overview_section.dart';
 import '../widgets/dashboard_alerts_section.dart';
@@ -49,22 +51,22 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
       return;
     }
 
-    final dateRange = ref.read(dateRangeProvider);
+    final dateRange = ref.read(dateRangeNotifierProvider);
 
-    ref.read(dashboardSummaryProvider.notifier).loadDashboardSummary(
+    ref.read(dashboardSummaryNotifierProvider.notifier).loadDashboardSummary(
           companyId: companyId,
           storeId: storeId.isNotEmpty ? storeId : null,
           dateFrom: dateRange.dateFrom,
           dateTo: dateRange.dateTo,
         );
 
-    ref.read(recentActivitiesProvider.notifier).loadActivities(
+    ref.read(recentActivitiesNotifierProvider.notifier).loadActivities(
           companyId: companyId,
           storeId: storeId.isNotEmpty ? storeId : null,
           limit: 10,
         );
 
-    ref.read(tradeAlertsProvider.notifier).loadAlerts(
+    ref.read(tradeAlertsNotifierProvider.notifier).loadAlerts(
           companyId: companyId,
           refresh: true,
         );
@@ -72,10 +74,10 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final summaryState = ref.watch(dashboardSummaryProvider);
-    final activitiesState = ref.watch(recentActivitiesProvider);
-    final alertsState = ref.watch(tradeAlertsProvider);
-    final dateRange = ref.watch(dateRangeProvider);
+    final summaryState = ref.watch(dashboardSummaryNotifierProvider);
+    final activitiesState = ref.watch(recentActivitiesNotifierProvider);
+    final alertsState = ref.watch(tradeAlertsNotifierProvider);
+    final dateRange = ref.watch(dateRangeNotifierProvider);
 
     // Reload data when date range changes
     if (_previousDateRange != null && _previousDateRange!.label != dateRange.label) {
@@ -298,8 +300,8 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
   }
 
   Widget _buildDashboardContent(DashboardSummary summary) {
-    final activitiesState = ref.watch(recentActivitiesProvider);
-    final alertsState = ref.watch(tradeAlertsProvider);
+    final activitiesState = ref.watch(recentActivitiesNotifierProvider);
+    final alertsState = ref.watch(tradeAlertsNotifierProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,7 +404,7 @@ class _AlertsBottomSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final alertsState = ref.watch(tradeAlertsProvider);
+    final alertsState = ref.watch(tradeAlertsNotifierProvider);
 
     return Column(
       children: [
@@ -433,7 +435,7 @@ class _AlertsBottomSheet extends ConsumerWidget {
                 TextButton(
                   onPressed: () {
                     final appState = ref.read(appStateProvider);
-                    ref.read(tradeAlertsProvider.notifier).markAllAsRead(
+                    ref.read(tradeAlertsNotifierProvider.notifier).markAllAsRead(
                           companyId: appState.companyChoosen,
                           userId: appState.userId,
                         );
@@ -488,14 +490,14 @@ class _AlertsBottomSheet extends ConsumerWidget {
                         },
                         onMarkRead: () {
                           final appState = ref.read(appStateProvider);
-                          ref.read(tradeAlertsProvider.notifier).markAsRead(
+                          ref.read(tradeAlertsNotifierProvider.notifier).markAsRead(
                                 companyId: appState.companyChoosen,
                                 alertId: alert.id,
                               );
                         },
                         onDismiss: () {
                           final appState = ref.read(appStateProvider);
-                          ref.read(tradeAlertsProvider.notifier).dismissAlert(
+                          ref.read(tradeAlertsNotifierProvider.notifier).dismissAlert(
                                 companyId: appState.companyChoosen,
                                 alertId: alert.id,
                               );
@@ -516,7 +518,7 @@ class _DateFilterBottomSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dateRange = ref.watch(dateRangeProvider);
+    final dateRange = ref.watch(dateRangeNotifierProvider);
 
     return Padding(
       padding: const EdgeInsets.all(TossSpacing.space4),
@@ -552,7 +554,7 @@ class _DateFilterBottomSheet extends ConsumerWidget {
             label: 'All Time',
             isSelected: dateRange.label == 'All Time',
             onTap: () {
-              ref.read(dateRangeProvider.notifier).setAllTime();
+              ref.read(dateRangeNotifierProvider.notifier).setAllTime();
               Navigator.pop(context);
             },
           ),
@@ -562,7 +564,7 @@ class _DateFilterBottomSheet extends ConsumerWidget {
             label: 'This Month',
             isSelected: dateRange.label == 'This Month',
             onTap: () {
-              ref.read(dateRangeProvider.notifier).setThisMonth();
+              ref.read(dateRangeNotifierProvider.notifier).setThisMonth();
               Navigator.pop(context);
             },
           ),
@@ -572,7 +574,7 @@ class _DateFilterBottomSheet extends ConsumerWidget {
             label: 'Last Month',
             isSelected: dateRange.label == 'Last Month',
             onTap: () {
-              ref.read(dateRangeProvider.notifier).setLastMonth();
+              ref.read(dateRangeNotifierProvider.notifier).setLastMonth();
               Navigator.pop(context);
             },
           ),
@@ -582,7 +584,7 @@ class _DateFilterBottomSheet extends ConsumerWidget {
             label: 'This Year',
             isSelected: dateRange.label == 'This Year',
             onTap: () {
-              ref.read(dateRangeProvider.notifier).setThisYear();
+              ref.read(dateRangeNotifierProvider.notifier).setThisYear();
               Navigator.pop(context);
             },
           ),

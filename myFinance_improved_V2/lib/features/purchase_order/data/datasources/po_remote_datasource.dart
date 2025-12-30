@@ -244,6 +244,70 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
           'name': companyResponse['company_name'] as String?,
         };
       }
+
+      // Get banking info from cash_locations (bank type accounts for trade)
+      // If bank_account_ids is specified, filter by those IDs; otherwise get all bank accounts
+      final bankAccountIds = (poMap['bank_account_ids'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList();
+
+      dynamic bankingResponse;
+      if (bankAccountIds != null && bankAccountIds.isNotEmpty) {
+        // Filter by selected bank account IDs
+        bankingResponse = await _supabase
+            .from('cash_locations')
+            .select('''
+              cash_location_id,
+              location_name,
+              currency_code,
+              bank_name,
+              bank_account,
+              beneficiary_name,
+              bank_address,
+              swift_code,
+              bank_branch,
+              account_type
+            ''')
+            .eq('company_id', companyId)
+            .inFilter('cash_location_id', bankAccountIds)
+            .eq('is_deleted', false);
+      } else {
+        // Get all bank accounts for this company
+        bankingResponse = await _supabase
+            .from('cash_locations')
+            .select('''
+              cash_location_id,
+              location_name,
+              currency_code,
+              bank_name,
+              bank_account,
+              beneficiary_name,
+              bank_address,
+              swift_code,
+              bank_branch,
+              account_type
+            ''')
+            .eq('company_id', companyId)
+            .eq('location_type', 'bank')
+            .eq('is_deleted', false);
+      }
+
+      if (bankingResponse != null && (bankingResponse as List).isNotEmpty) {
+        poMap['banking_info'] = bankingResponse.map((bank) {
+          return {
+            'cash_location_id': bank['cash_location_id'],
+            'location_name': bank['location_name'],
+            'currency_code': bank['currency_code'],
+            'bank_name': bank['bank_name'],
+            'bank_account': bank['bank_account'],
+            'beneficiary_name': bank['beneficiary_name'],
+            'bank_address': bank['bank_address'],
+            'swift_code': bank['swift_code'],
+            'bank_branch': bank['bank_branch'],
+            'account_type': bank['account_type'],
+          };
+        }).toList();
+      }
     }
 
     // Get currency code
@@ -366,6 +430,9 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
           'version': 1,
           'shipped_percent': 0,
           'notes': params.notes,
+          'bank_account_ids': params.bankAccountIds.isNotEmpty
+              ? params.bankAccountIds
+              : null,
           'created_at_utc': DateTime.now().toUtc().toIso8601String(),
           'updated_at_utc': DateTime.now().toUtc().toIso8601String(),
         })

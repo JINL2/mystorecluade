@@ -97,6 +97,10 @@ class ProformaInvoice with _$ProformaInvoice {
     String? counterpartyName,
     Map<String, dynamic>? counterpartyInfo,
     Map<String, dynamic>? sellerInfo,
+    /// Banking info for PDF (from cash_locations)
+    List<Map<String, dynamic>>? bankingInfo,
+    /// Selected bank account IDs (cash_location_ids) for PDF display
+    @Default([]) List<String> bankAccountIds,
     String? currencyId,
     @Default('USD') String currencyCode,
     @Default(0) double subtotal,

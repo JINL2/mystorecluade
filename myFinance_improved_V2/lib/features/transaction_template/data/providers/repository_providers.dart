@@ -16,8 +16,9 @@ import '../../domain/repositories/template_repository.dart';
 import '../../domain/repositories/transaction_repository.dart';
 import '../cache/template_cache_repository.dart';
 import '../datasources/template_data_source.dart';
-import '../repositories/supabase_template_repository.dart';
-import '../repositories/supabase_transaction_repository.dart';
+import '../repositories/template_repository_impl.dart';
+import '../repositories/transaction_repository_impl.dart';
+import '../services/template_rpc_service.dart';
 
 /// Supabase service provider (Internal)
 final _supabaseServiceProvider = Provider<SupabaseService>((ref) {
@@ -39,10 +40,10 @@ final _templateCacheRepositoryProvider = Provider<TemplateCacheRepository>((ref)
 
 /// Template repository provider
 ///
-/// Provides SupabaseTemplateRepository implementation.
+/// Provides TemplateRepositoryImpl implementation.
 /// Presentation layer should use this provider.
 final templateRepositoryProvider = Provider<TemplateRepository>((ref) {
-  return SupabaseTemplateRepository(
+  return TemplateRepositoryImpl(
     dataSource: ref.read(templateDataSourceProvider),
     cacheRepository: ref.read(_templateCacheRepositoryProvider),
   );
@@ -50,10 +51,19 @@ final templateRepositoryProvider = Provider<TemplateRepository>((ref) {
 
 /// Transaction repository provider
 ///
-/// Provides SupabaseTransactionRepository implementation.
+/// Provides TransactionRepositoryImpl implementation.
 /// Presentation layer should use this provider.
 final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
-  return SupabaseTransactionRepository(
+  return TransactionRepositoryImpl(
     supabaseService: ref.read(_supabaseServiceProvider),
   );
+});
+
+/// Template RPC Service provider
+///
+/// Provides TemplateRpcService for direct RPC transaction creation.
+/// Uses insert_journal_with_everything_utc RPC instead of create_transaction_from_template.
+/// Reference: docs/TEMPLATE_USAGE_REFACTORING_PLAN.md
+final templateRpcServiceProvider = Provider<TemplateRpcService>((ref) {
+  return TemplateRpcService(ref.read(_supabaseServiceProvider));
 });

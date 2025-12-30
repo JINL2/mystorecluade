@@ -16,6 +16,12 @@ class CashLocationDetailModel {
   final String companyId;
   final String? storeId;
   final bool isDeleted;
+  // Trade/International banking fields
+  final String? beneficiaryName;
+  final String? bankAddress;
+  final String? swiftCode;
+  final String? bankBranch;
+  final String? accountType;
 
   CashLocationDetailModel({
     required this.locationId,
@@ -29,6 +35,12 @@ class CashLocationDetailModel {
     required this.companyId,
     this.storeId,
     this.isDeleted = false,
+    // Trade fields
+    this.beneficiaryName,
+    this.bankAddress,
+    this.swiftCode,
+    this.bankBranch,
+    this.accountType,
   });
 
   /// From JSON (Database) → Model
@@ -56,6 +68,12 @@ class CashLocationDetailModel {
       companyId: json['company_id'] as String? ?? '',
       storeId: json['store_id'] as String?,
       isDeleted: json['is_deleted'] as bool? ?? false,
+      // Trade/International banking fields
+      beneficiaryName: json['beneficiary_name'] as String?,
+      bankAddress: json['bank_address'] as String?,
+      swiftCode: json['swift_code'] as String?,
+      bankBranch: json['bank_branch'] as String?,
+      accountType: json['account_type'] as String?,
     );
   }
 
@@ -73,6 +91,12 @@ class CashLocationDetailModel {
       companyId: companyId,
       storeId: storeId,
       isDeleted: isDeleted,
+      // Trade/International banking fields
+      beneficiaryName: beneficiaryName,
+      bankAddress: bankAddress,
+      swiftCode: swiftCode,
+      bankBranch: bankBranch,
+      accountType: accountType,
     );
   }
 }

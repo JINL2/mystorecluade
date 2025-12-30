@@ -27,12 +27,14 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
   @override
   Future<List<CashLocation>> getAllCashLocations({
     required String companyId,
-    required String storeId,
+    String? storeId,
+    String? locationType,
   }) async {
     // Get models from data source
     final models = await dataSource.getAllCashLocations(
       companyId: companyId,
       storeId: storeId,
+      locationType: locationType,
     );
 
     // Convert models to domain entities
@@ -196,6 +198,12 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
     String? accountNumber,
     String? currencyId,
     String? locationInfo,
+    // Trade/International banking fields
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   }) async {
     await dataSource.createCashLocation(
       companyId: companyId,
@@ -206,6 +214,11 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
       accountNumber: accountNumber,
       currencyId: currencyId,
       locationInfo: locationInfo,
+      beneficiaryName: beneficiaryName,
+      bankAddress: bankAddress,
+      swiftCode: swiftCode,
+      bankBranch: bankBranch,
+      accountType: accountType,
     );
   }
 
@@ -217,6 +230,12 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
     String? description,
     String? bankName,
     String? accountNumber,
+    // Trade/International banking fields
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   }) async {
     await dataSource.updateCashLocation(
       locationId: locationId,
@@ -225,6 +244,11 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
       description: description,
       bankName: bankName,
       accountNumber: accountNumber,
+      beneficiaryName: beneficiaryName,
+      bankAddress: bankAddress,
+      swiftCode: swiftCode,
+      bankBranch: bankBranch,
+      accountType: accountType,
     );
   }
 

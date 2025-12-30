@@ -103,12 +103,19 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   Future<void> _loadExchangeRates() async {
     final appState = ref.read(appStateProvider);
     final String companyId = appState.companyChoosen;
+    final String storeId = appState.storeChoosen;
 
     if (companyId.isEmpty) return;
 
     try {
-      final exchangeRatesJson =
-          await ref.read(exchangeRatesProvider(companyId).future);
+      final exchangeRatesJson = await ref.read(
+        exchangeRatesProvider(
+          ExchangeRatesParams(
+            companyId: companyId,
+            storeId: storeId.isNotEmpty ? storeId : null,
+          ),
+        ).future,
+      );
       if (mounted) {
         setState(() {
           _exchangeRateData = ExchangeRateHelper.fromJson(exchangeRatesJson);

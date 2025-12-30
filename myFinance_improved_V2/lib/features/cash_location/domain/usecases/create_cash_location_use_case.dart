@@ -13,6 +13,13 @@ class CreateCashLocationParams {
   final String? currencyId;
   final String? description;
 
+  // Trade/International banking fields (optional)
+  final String? beneficiaryName;
+  final String? bankAddress;
+  final String? swiftCode;
+  final String? bankBranch;
+  final String? accountType;
+
   CreateCashLocationParams({
     required this.companyId,
     required this.storeId,
@@ -22,6 +29,12 @@ class CreateCashLocationParams {
     this.accountNumber,
     this.currencyId,
     this.description,
+    // Trade fields
+    this.beneficiaryName,
+    this.bankAddress,
+    this.swiftCode,
+    this.bankBranch,
+    this.accountType,
   });
 }
 
@@ -59,6 +72,12 @@ class CreateCashLocationUseCase implements UseCase<void, CreateCashLocationParam
       accountNumber: params.accountNumber,
       currencyId: params.currencyId,
       locationInfo: locationInfo,
+      // Trade fields
+      beneficiaryName: params.beneficiaryName,
+      bankAddress: params.bankAddress,
+      swiftCode: params.swiftCode,
+      bankBranch: params.bankBranch,
+      accountType: params.accountType,
     );
   }
 }

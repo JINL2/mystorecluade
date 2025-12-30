@@ -626,6 +626,10 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           }
         }
 
+        // Refresh employee data for immediate UI update
+        ref.read(mutableEmployeeListProvider.notifier).clear();
+        ref.invalidate(employeeSalaryListProvider);
+
         // Call the original callback to update local state with new values
         widget.onSave(
           amount,

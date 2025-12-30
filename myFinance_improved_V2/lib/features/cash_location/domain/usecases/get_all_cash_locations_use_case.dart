@@ -15,6 +15,7 @@ class GetAllCashLocationsUseCase
     return repository.getAllCashLocations(
       companyId: params.companyId,
       storeId: params.storeId,
+      locationType: params.locationType,
     );
   }
 }

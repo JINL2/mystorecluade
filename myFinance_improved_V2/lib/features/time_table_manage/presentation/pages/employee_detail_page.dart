@@ -472,17 +472,16 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
     final summary = monthlyData?.summary;
     final salaryInfo = monthlyData?.salary;
 
-    final totalWorkedHours = summary?.totalWorkedHours ?? (employee.completedShifts * 8.0);
     final salaryAmount = salaryInfo?.salaryAmount ?? employee.salaryAmount;
     final totalBonus = summary?.totalBonus ?? 0;
-    final totalLateMinutes = summary?.totalLateDeduction ?? 0;
     final unresolvedCount = summary?.unresolvedCount ?? 0;
 
     final formatter = NumberFormat('#,###');
     final currencySymbol = salaryInfo?.currencySymbol ?? '₫';
 
-    final basePay = totalWorkedHours * salaryAmount;
-    final totalPayment = basePay + totalBonus;
+    // Use RPC calculated values (from v_shift_request view)
+    final basePay = summary?.totalBasePay ?? 0;
+    final totalPayment = summary?.totalPayment ?? 0;
 
     final monthRange = monthlyData?.period.displayRange ?? _getMonthRange();
 
@@ -505,7 +504,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         const SizedBox(height: TossSpacing.space4),
         SalaryRow(
           label: 'Total confirmed time',
-          value: summary?.formattedWorkedHours ?? '${totalWorkedHours.toStringAsFixed(0)}h 0m',
+          value: summary?.formattedWorkedHours ?? '0h 0m',
         ),
         const SizedBox(height: 12),
         SalaryRow(
@@ -523,12 +522,6 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         SalaryRow(
           label: 'Bonus pay',
           value: '${formatter.format(totalBonus.toInt())}$currencySymbol',
-        ),
-        const SizedBox(height: 12),
-        SalaryRow(
-          label: 'Penalty deduction',
-          value: '-${totalLateMinutes.toInt()}m',
-          valueColor: TossColors.error,
         ),
         const SizedBox(height: 12),
         SalaryRow(

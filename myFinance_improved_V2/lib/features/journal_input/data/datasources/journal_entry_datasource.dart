@@ -157,16 +157,21 @@ class JournalEntryDataSource {
   }
 
   /// Fetch exchange rates using RPC
-  Future<Map<String, dynamic>> getExchangeRates(String companyId) async {
+  /// Uses get_exchange_rate_v3 which supports store-based currency sorting
+  Future<Map<String, dynamic>> getExchangeRates(
+    String companyId, {
+    String? storeId,
+  }) async {
     try {
       if (companyId.isEmpty) {
         throw Exception('Company ID is required');
       }
 
       final response = await _supabase.rpc<Map<String, dynamic>>(
-        'get_exchange_rate_v2',
+        'get_exchange_rate_v3',
         params: {
           'p_company_id': companyId,
+          if (storeId != null) 'p_store_id': storeId,
         },
       );
 

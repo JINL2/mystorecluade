@@ -7,7 +7,7 @@ part of 'exchange_rate_provider.dart';
 // **************************************************************************
 
 String _$saleExchangeRateNotifierHash() =>
-    r'ceb980e24361bbc2e9b558584434e4dfb80902ba';
+    r'1d07966331d1dff0e7f16a7805564e39fce1cbc0';
 
 /// Provider to fetch and manage exchange rates
 ///

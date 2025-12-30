@@ -359,6 +359,11 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
       // Clear any stale denomination data for this new currency
       ref.read(localDenominationListProvider.notifier).reset(selectedCurrencyId!);
 
+      // Invalidate providers first for immediate UI update on parent page
+      ref.invalidate(availableCurrenciesToAddProvider);
+      ref.invalidate(companyCurrenciesProvider);
+      ref.invalidate(companyCurrenciesStreamProvider);
+
       if (mounted) {
         context.pop();
 
@@ -372,13 +377,6 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
             primaryButtonText: 'OK',
           ),
         );
-
-        // Refresh providers after UI operations complete to sync with database
-        Future.microtask(() {
-          ref.invalidate(availableCurrenciesToAddProvider);
-          ref.invalidate(companyCurrenciesProvider);
-          ref.invalidate(companyCurrenciesStreamProvider);
-        });
       }
     } catch (e) {
       debugPrint('Error adding currency with exchange rate: $e');

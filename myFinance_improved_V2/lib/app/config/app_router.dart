@@ -71,6 +71,7 @@ import '../../features/proforma_invoice/presentation/pages/pi_form_page.dart';
 import '../../features/purchase_order/presentation/pages/purchase_order_page.dart';
 import '../../features/purchase_order/presentation/pages/po_list_page.dart';
 import '../../features/purchase_order/presentation/pages/po_detail_page.dart';
+import '../../features/purchase_order/presentation/pages/po_form_page.dart';
 import '../../features/letter_of_credit/presentation/pages/letter_of_credit_page.dart';
 import '../../features/shipment/presentation/pages/shipment_page.dart';
 import '../../features/commercial_invoice/presentation/pages/commercial_invoice_page.dart';
@@ -989,18 +990,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/purchase-order/new',
         name: 'purchase-order-new',
-        builder: (context, state) => const PurchaseOrderPage(),
+        builder: (context, state) => const POFormPage(),
       ),
 
       // PO Edit - MUST be before :poId route
-      // TODO: Create POFormPage similar to PIFormPage for edit functionality
       GoRoute(
         path: '/purchase-order/:poId/edit',
         name: 'purchase-order-edit',
         builder: (context, state) {
-          // final poId = state.pathParameters['poId']!;
-          // For now, use placeholder page. Will create POFormPage later.
-          return const PurchaseOrderPage();
+          final poId = state.pathParameters['poId']!;
+          return POFormPage(poId: poId);
         },
       ),
 

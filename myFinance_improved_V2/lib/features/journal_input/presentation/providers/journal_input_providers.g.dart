@@ -589,31 +589,35 @@ class _JournalCashLocationsProviderElement
       (origin as JournalCashLocationsProvider).params;
 }
 
-String _$exchangeRatesHash() => r'6a275a937ca38443d98b0fa2b099400b038fcc66';
+String _$exchangeRatesHash() => r'a5349eb349e9d6bfc7f7021df0c94199c7e4cdc9';
 
 /// Fetch exchange rates
+/// Uses get_exchange_rate_v3 which supports store-based currency sorting
 ///
 /// Copied from [exchangeRates].
 @ProviderFor(exchangeRates)
 const exchangeRatesProvider = ExchangeRatesFamily();
 
 /// Fetch exchange rates
+/// Uses get_exchange_rate_v3 which supports store-based currency sorting
 ///
 /// Copied from [exchangeRates].
 class ExchangeRatesFamily extends Family<AsyncValue<Map<String, dynamic>>> {
   /// Fetch exchange rates
+  /// Uses get_exchange_rate_v3 which supports store-based currency sorting
   ///
   /// Copied from [exchangeRates].
   const ExchangeRatesFamily();
 
   /// Fetch exchange rates
+  /// Uses get_exchange_rate_v3 which supports store-based currency sorting
   ///
   /// Copied from [exchangeRates].
   ExchangeRatesProvider call(
-    String companyId,
+    ExchangeRatesParams params,
   ) {
     return ExchangeRatesProvider(
-      companyId,
+      params,
     );
   }
 
@@ -622,7 +626,7 @@ class ExchangeRatesFamily extends Family<AsyncValue<Map<String, dynamic>>> {
     covariant ExchangeRatesProvider provider,
   ) {
     return call(
-      provider.companyId,
+      provider.params,
     );
   }
 
@@ -642,19 +646,21 @@ class ExchangeRatesFamily extends Family<AsyncValue<Map<String, dynamic>>> {
 }
 
 /// Fetch exchange rates
+/// Uses get_exchange_rate_v3 which supports store-based currency sorting
 ///
 /// Copied from [exchangeRates].
 class ExchangeRatesProvider
     extends AutoDisposeFutureProvider<Map<String, dynamic>> {
   /// Fetch exchange rates
+  /// Uses get_exchange_rate_v3 which supports store-based currency sorting
   ///
   /// Copied from [exchangeRates].
   ExchangeRatesProvider(
-    String companyId,
+    ExchangeRatesParams params,
   ) : this._internal(
           (ref) => exchangeRates(
             ref as ExchangeRatesRef,
-            companyId,
+            params,
           ),
           from: exchangeRatesProvider,
           name: r'exchangeRatesProvider',
@@ -665,7 +671,7 @@ class ExchangeRatesProvider
           dependencies: ExchangeRatesFamily._dependencies,
           allTransitiveDependencies:
               ExchangeRatesFamily._allTransitiveDependencies,
-          companyId: companyId,
+          params: params,
         );
 
   ExchangeRatesProvider._internal(
@@ -675,10 +681,10 @@ class ExchangeRatesProvider
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.companyId,
+    required this.params,
   }) : super.internal();
 
-  final String companyId;
+  final ExchangeRatesParams params;
 
   @override
   Override overrideWith(
@@ -693,7 +699,7 @@ class ExchangeRatesProvider
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        companyId: companyId,
+        params: params,
       ),
     );
   }
@@ -705,13 +711,13 @@ class ExchangeRatesProvider
 
   @override
   bool operator ==(Object other) {
-    return other is ExchangeRatesProvider && other.companyId == companyId;
+    return other is ExchangeRatesProvider && other.params == params;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, companyId.hashCode);
+    hash = _SystemHash.combine(hash, params.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -720,8 +726,8 @@ class ExchangeRatesProvider
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin ExchangeRatesRef on AutoDisposeFutureProviderRef<Map<String, dynamic>> {
-  /// The parameter `companyId` of this provider.
-  String get companyId;
+  /// The parameter `params` of this provider.
+  ExchangeRatesParams get params;
 }
 
 class _ExchangeRatesProviderElement
@@ -730,7 +736,7 @@ class _ExchangeRatesProviderElement
   _ExchangeRatesProviderElement(super.provider);
 
   @override
-  String get companyId => (origin as ExchangeRatesProvider).companyId;
+  ExchangeRatesParams get params => (origin as ExchangeRatesProvider).params;
 }
 
 String _$journalAttachmentsHash() =>

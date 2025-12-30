@@ -530,6 +530,15 @@ mixin _$POModel {
   /// Seller (our company) info for PDF generation
   @JsonKey(name: 'seller_info')
   Map<String, dynamic>? get sellerInfo => throw _privateConstructorUsedError;
+
+  /// Banking info for PDF (from cash_locations)
+  @JsonKey(name: 'banking_info')
+  List<Map<String, dynamic>>? get bankingInfo =>
+      throw _privateConstructorUsedError;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @JsonKey(name: 'bank_account_ids')
+  List<String> get bankAccountIds => throw _privateConstructorUsedError;
   @JsonKey(name: 'buyer_id')
   String? get buyerId => throw _privateConstructorUsedError;
   @JsonKey(name: 'buyer_name')
@@ -590,6 +599,8 @@ abstract class $POModelCopyWith<$Res> {
       @JsonKey(name: 'pi_id') String? piId,
       @JsonKey(name: 'pi_number') String? piNumber,
       @JsonKey(name: 'seller_info') Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info') List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids') List<String> bankAccountIds,
       @JsonKey(name: 'buyer_id') String? buyerId,
       @JsonKey(name: 'buyer_name') String? buyerName,
       @JsonKey(name: 'buyer_po_number') String? buyerPoNumber,
@@ -637,6 +648,8 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
     Object? piId = freezed,
     Object? piNumber = freezed,
     Object? sellerInfo = freezed,
+    Object? bankingInfo = freezed,
+    Object? bankAccountIds = null,
     Object? buyerId = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
@@ -689,6 +702,14 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
           ? _value.sellerInfo
           : sellerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      bankingInfo: freezed == bankingInfo
+          ? _value.bankingInfo
+          : bankingInfo // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      bankAccountIds: null == bankAccountIds
+          ? _value.bankAccountIds
+          : bankAccountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       buyerId: freezed == buyerId
           ? _value.buyerId
           : buyerId // ignore: cast_nullable_to_non_nullable
@@ -796,6 +817,8 @@ abstract class _$$POModelImplCopyWith<$Res> implements $POModelCopyWith<$Res> {
       @JsonKey(name: 'pi_id') String? piId,
       @JsonKey(name: 'pi_number') String? piNumber,
       @JsonKey(name: 'seller_info') Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info') List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids') List<String> bankAccountIds,
       @JsonKey(name: 'buyer_id') String? buyerId,
       @JsonKey(name: 'buyer_name') String? buyerName,
       @JsonKey(name: 'buyer_po_number') String? buyerPoNumber,
@@ -841,6 +864,8 @@ class __$$POModelImplCopyWithImpl<$Res>
     Object? piId = freezed,
     Object? piNumber = freezed,
     Object? sellerInfo = freezed,
+    Object? bankingInfo = freezed,
+    Object? bankAccountIds = null,
     Object? buyerId = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
@@ -893,6 +918,14 @@ class __$$POModelImplCopyWithImpl<$Res>
           ? _value._sellerInfo
           : sellerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      bankingInfo: freezed == bankingInfo
+          ? _value._bankingInfo
+          : bankingInfo // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      bankAccountIds: null == bankAccountIds
+          ? _value._bankAccountIds
+          : bankAccountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       buyerId: freezed == buyerId
           ? _value.buyerId
           : buyerId // ignore: cast_nullable_to_non_nullable
@@ -996,6 +1029,10 @@ class _$POModelImpl extends _POModel {
       @JsonKey(name: 'pi_id') this.piId,
       @JsonKey(name: 'pi_number') this.piNumber,
       @JsonKey(name: 'seller_info') final Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info')
+      final List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids')
+      final List<String> bankAccountIds = const [],
       @JsonKey(name: 'buyer_id') this.buyerId,
       @JsonKey(name: 'buyer_name') this.buyerName,
       @JsonKey(name: 'buyer_po_number') this.buyerPoNumber,
@@ -1020,6 +1057,8 @@ class _$POModelImpl extends _POModel {
       @JsonKey(name: 'updated_at_utc') this.updatedAtUtc,
       final List<POItemModel> items = const []})
       : _sellerInfo = sellerInfo,
+        _bankingInfo = bankingInfo,
+        _bankAccountIds = bankAccountIds,
         _buyerInfo = buyerInfo,
         _items = items,
         super._();
@@ -1055,6 +1094,32 @@ class _$POModelImpl extends _POModel {
     if (_sellerInfo is EqualUnmodifiableMapView) return _sellerInfo;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(value);
+  }
+
+  /// Banking info for PDF (from cash_locations)
+  final List<Map<String, dynamic>>? _bankingInfo;
+
+  /// Banking info for PDF (from cash_locations)
+  @override
+  @JsonKey(name: 'banking_info')
+  List<Map<String, dynamic>>? get bankingInfo {
+    final value = _bankingInfo;
+    if (value == null) return null;
+    if (_bankingInfo is EqualUnmodifiableListView) return _bankingInfo;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  final List<String> _bankAccountIds;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @override
+  @JsonKey(name: 'bank_account_ids')
+  List<String> get bankAccountIds {
+    if (_bankAccountIds is EqualUnmodifiableListView) return _bankAccountIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_bankAccountIds);
   }
 
   @override
@@ -1138,7 +1203,7 @@ class _$POModelImpl extends _POModel {
 
   @override
   String toString() {
-    return 'POModel(poId: $poId, poNumber: $poNumber, companyId: $companyId, storeId: $storeId, piId: $piId, piNumber: $piNumber, sellerInfo: $sellerInfo, buyerId: $buyerId, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, buyerInfo: $buyerInfo, currencyId: $currencyId, currencyCode: $currencyCode, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, paymentTermsCode: $paymentTermsCode, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, status: $status, version: $version, shippedPercent: $shippedPercent, notes: $notes, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items)';
+    return 'POModel(poId: $poId, poNumber: $poNumber, companyId: $companyId, storeId: $storeId, piId: $piId, piNumber: $piNumber, sellerInfo: $sellerInfo, bankingInfo: $bankingInfo, bankAccountIds: $bankAccountIds, buyerId: $buyerId, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, buyerInfo: $buyerInfo, currencyId: $currencyId, currencyCode: $currencyCode, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, paymentTermsCode: $paymentTermsCode, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, status: $status, version: $version, shippedPercent: $shippedPercent, notes: $notes, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items)';
   }
 
   @override
@@ -1157,6 +1222,10 @@ class _$POModelImpl extends _POModel {
                 other.piNumber == piNumber) &&
             const DeepCollectionEquality()
                 .equals(other._sellerInfo, _sellerInfo) &&
+            const DeepCollectionEquality()
+                .equals(other._bankingInfo, _bankingInfo) &&
+            const DeepCollectionEquality()
+                .equals(other._bankAccountIds, _bankAccountIds) &&
             (identical(other.buyerId, buyerId) || other.buyerId == buyerId) &&
             (identical(other.buyerName, buyerName) ||
                 other.buyerName == buyerName) &&
@@ -1209,6 +1278,8 @@ class _$POModelImpl extends _POModel {
         piId,
         piNumber,
         const DeepCollectionEquality().hash(_sellerInfo),
+        const DeepCollectionEquality().hash(_bankingInfo),
+        const DeepCollectionEquality().hash(_bankAccountIds),
         buyerId,
         buyerName,
         buyerPoNumber,
@@ -1251,6 +1322,9 @@ abstract class _POModel extends POModel {
       @JsonKey(name: 'pi_id') final String? piId,
       @JsonKey(name: 'pi_number') final String? piNumber,
       @JsonKey(name: 'seller_info') final Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info')
+      final List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids') final List<String> bankAccountIds,
       @JsonKey(name: 'buyer_id') final String? buyerId,
       @JsonKey(name: 'buyer_name') final String? buyerName,
       @JsonKey(name: 'buyer_po_number') final String? buyerPoNumber,
@@ -1300,6 +1374,16 @@ abstract class _POModel extends POModel {
   @override
   @JsonKey(name: 'seller_info')
   Map<String, dynamic>? get sellerInfo;
+
+  /// Banking info for PDF (from cash_locations)
+  @override
+  @JsonKey(name: 'banking_info')
+  List<Map<String, dynamic>>? get bankingInfo;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @override
+  @JsonKey(name: 'bank_account_ids')
+  List<String> get bankAccountIds;
   @override
   @JsonKey(name: 'buyer_id')
   String? get buyerId;

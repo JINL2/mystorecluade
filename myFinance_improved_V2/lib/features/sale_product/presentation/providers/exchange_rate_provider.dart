@@ -19,12 +19,14 @@ class SaleExchangeRateNotifier extends _$SaleExchangeRateNotifier {
   }
 
   /// Load exchange rates from server
+  /// Uses get_exchange_rate_v3 RPC which sorts currencies by foreign currency balance
   Future<void> loadExchangeRates() async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
 
       if (companyId.isEmpty) {
         throw Exception('Please select a company first');
@@ -33,6 +35,7 @@ class SaleExchangeRateNotifier extends _$SaleExchangeRateNotifier {
       final repository = ref.read(exchangeRateRepositoryProvider);
       final exchangeRateData = await repository.getExchangeRates(
         companyId: companyId,
+        storeId: storeId.isNotEmpty ? storeId : null,
       );
 
       if (exchangeRateData == null) {

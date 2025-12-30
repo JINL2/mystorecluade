@@ -34,10 +34,20 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _currencyController = TextEditingController(); // Fixed: No longer creates new instances
 
+  // Trade/International banking controllers
+  final TextEditingController _beneficiaryNameController = TextEditingController();
+  final TextEditingController _bankAddressController = TextEditingController();
+  final TextEditingController _swiftCodeController = TextEditingController();
+  final TextEditingController _bankBranchController = TextEditingController();
+  final TextEditingController _accountTypeController = TextEditingController();
+
   // Currency selection
   String? _selectedCurrencyId;
   CurrencyType? _selectedCurrency;
-  
+
+  // Trade info section expanded state
+  bool _isTradeInfoExpanded = false;
+
   // Track validation state
   bool _hasAttemptedSubmit = false;
   final Set<String> _filledFields = <String>{};
@@ -114,7 +124,13 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     _bankNameController.dispose();
     _accountNumberController.dispose();
     _descriptionController.dispose();
-    _currencyController.dispose(); // Fixed: Dispose currency controller
+    _currencyController.dispose();
+    // Trade controllers
+    _beneficiaryNameController.dispose();
+    _bankAddressController.dispose();
+    _swiftCodeController.dispose();
+    _bankBranchController.dispose();
+    _accountTypeController.dispose();
     super.dispose();
   }
   
@@ -168,7 +184,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                         hintText: 'Enter bank name',
                         fieldName: 'bankName',
                       ),
-                      
+
                       const SizedBox(height: TossSpacing.space6),
                       _buildSectionTitle('Account Number', fieldName: 'accountNumber'),
                       const SizedBox(height: TossSpacing.space2),
@@ -178,11 +194,15 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                         fieldName: 'accountNumber',
                         keyboardType: TextInputType.number,
                       ),
-                      
+
                       const SizedBox(height: TossSpacing.space6),
                       _buildSectionTitle('Currency', fieldName: 'currency'),
                       const SizedBox(height: TossSpacing.space2),
                       _buildCurrencyDropdown(),
+
+                      // Trade/International Banking Info (Expandable)
+                      const SizedBox(height: TossSpacing.space6),
+                      _buildTradeInfoSection(),
                     ],
                     
                     // Description field (for cash/vault locations)
@@ -454,7 +474,246 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       });
     }
   }
-  
+
+  /// Expandable trade/international banking info section
+  Widget _buildTradeInfoSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray300),
+      ),
+      child: Column(
+        children: [
+          // Header (clickable to expand/collapse)
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isTradeInfoExpanded = !_isTradeInfoExpanded;
+              });
+            },
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.public,
+                    size: 20,
+                    color: TossColors.gray600,
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'International Banking Info',
+                          style: TossTextStyles.body.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'For international trade & wire transfers',
+                          style: TossTextStyles.caption.copyWith(
+                            fontSize: 12,
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _isTradeInfoExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: TossColors.gray400,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Expandable content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: _buildTradeInfoFields(),
+            crossFadeState: _isTradeInfoExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTradeInfoFields() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        TossSpacing.space4,
+        0,
+        TossSpacing.space4,
+        TossSpacing.space4,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(height: 1, color: TossColors.gray200),
+          const SizedBox(height: TossSpacing.space4),
+
+          // Beneficiary Name
+          _buildTradeFieldLabel('Beneficiary Name'),
+          const SizedBox(height: TossSpacing.space2),
+          _buildTradeTextField(
+            controller: _beneficiaryNameController,
+            hintText: 'Enter beneficiary name',
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // SWIFT Code
+          _buildTradeFieldLabel('SWIFT / BIC Code'),
+          const SizedBox(height: TossSpacing.space2),
+          _buildTradeTextField(
+            controller: _swiftCodeController,
+            hintText: 'e.g., BKCHKHHH',
+            textCapitalization: TextCapitalization.characters,
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // Bank Branch
+          _buildTradeFieldLabel('Bank Branch'),
+          const SizedBox(height: TossSpacing.space2),
+          _buildTradeTextField(
+            controller: _bankBranchController,
+            hintText: 'Enter bank branch',
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // Bank Address
+          _buildTradeFieldLabel('Bank Address'),
+          const SizedBox(height: TossSpacing.space2),
+          _buildTradeTextField(
+            controller: _bankAddressController,
+            hintText: 'Enter bank address',
+            maxLines: 2,
+          ),
+
+          const SizedBox(height: TossSpacing.space4),
+
+          // Account Type
+          _buildTradeFieldLabel('Account Type'),
+          const SizedBox(height: TossSpacing.space2),
+          _buildAccountTypeSelector(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTradeFieldLabel(String label) {
+    return Text(
+      label,
+      style: TossTextStyles.body.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: TossColors.gray600,
+      ),
+    );
+  }
+
+  Widget _buildTradeTextField({
+    required TextEditingController controller,
+    required String hintText,
+    int maxLines = 1,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+        border: Border.all(color: TossColors.gray200),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        textCapitalization: textCapitalization,
+        style: TossTextStyles.body.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TossTextStyles.body.copyWith(
+            fontSize: 14,
+            color: TossColors.gray400,
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3,
+            vertical: TossSpacing.space3,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccountTypeSelector() {
+    final accountTypes = ['Savings', 'Checking', 'Current', 'Business'];
+    final selectedType = _accountTypeController.text;
+
+    return Wrap(
+      spacing: TossSpacing.space2,
+      runSpacing: TossSpacing.space2,
+      children: accountTypes.map((type) {
+        final isSelected = selectedType == type;
+        return InkWell(
+          onTap: () {
+            setState(() {
+              _accountTypeController.text = isSelected ? '' : type;
+            });
+          },
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space2,
+            ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                  : TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.full),
+              border: Border.all(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : TossColors.gray200,
+              ),
+            ),
+            child: Text(
+              type,
+              style: TossTextStyles.body.copyWith(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : TossColors.gray600,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildBottomButton() {
     // Check if account name is filled
     final bool isAccountNameFilled = _nameController.text.trim().isNotEmpty;
@@ -567,7 +826,13 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         accountNumber: widget.locationType == 'bank' ? _accountNumberController.text.trim() : null,
         currencyId: _selectedCurrencyId,
         description: _descriptionController.text.trim(),
-      ),);
+        // Trade/International banking fields (only for bank accounts)
+        beneficiaryName: widget.locationType == 'bank' ? _beneficiaryNameController.text.trim() : null,
+        bankAddress: widget.locationType == 'bank' ? _bankAddressController.text.trim() : null,
+        swiftCode: widget.locationType == 'bank' ? _swiftCodeController.text.trim() : null,
+        bankBranch: widget.locationType == 'bank' ? _bankBranchController.text.trim() : null,
+        accountType: widget.locationType == 'bank' ? _accountTypeController.text.trim() : null,
+      ));
       
       // Close loading dialog
       if (mounted) context.pop();

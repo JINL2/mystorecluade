@@ -9,6 +9,12 @@ class UpdateCashLocationParams {
   final String? accountNumber;
   final String? currencyId;
   final String? locationInfo;
+  // Trade/International banking fields
+  final String? beneficiaryName;
+  final String? bankAddress;
+  final String? swiftCode;
+  final String? bankBranch;
+  final String? accountType;
 
   UpdateCashLocationParams({
     required this.locationId,
@@ -17,6 +23,12 @@ class UpdateCashLocationParams {
     this.accountNumber,
     this.currencyId,
     this.locationInfo,
+    // Trade fields
+    this.beneficiaryName,
+    this.bankAddress,
+    this.swiftCode,
+    this.bankBranch,
+    this.accountType,
   });
 }
 
@@ -42,6 +54,12 @@ class UpdateCashLocationUseCase
       description: params.locationInfo,
       bankName: params.bankName,
       accountNumber: params.accountNumber,
+      // Trade fields
+      beneficiaryName: params.beneficiaryName,
+      bankAddress: params.bankAddress,
+      swiftCode: params.swiftCode,
+      bankBranch: params.bankBranch,
+      accountType: params.accountType,
     );
   }
 }

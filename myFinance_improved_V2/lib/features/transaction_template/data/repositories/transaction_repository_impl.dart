@@ -29,16 +29,16 @@ import '../../domain/value_objects/transaction_metadata.dart';
 import '../../domain/value_objects/transaction_status.dart';
 import '../dtos/transaction_dto.dart';
 
-class SupabaseTransactionRepository implements TransactionRepository {
+class TransactionRepositoryImpl implements TransactionRepository {
   final SupabaseService _supabaseService;
 
-  SupabaseTransactionRepository({
+  TransactionRepositoryImpl({
     required SupabaseService supabaseService,
   }) : _supabaseService = supabaseService;
 
   /// Factory constructor with default dependencies
-  factory SupabaseTransactionRepository.create() {
-    return SupabaseTransactionRepository(
+  factory TransactionRepositoryImpl.create() {
+    return TransactionRepositoryImpl(
       supabaseService: SupabaseService(),
     );
   }

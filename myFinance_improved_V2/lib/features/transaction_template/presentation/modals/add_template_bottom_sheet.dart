@@ -14,7 +14,7 @@ import '../../domain/factories/template_line_factory.dart';
 import '../../domain/usecases/create_template_usecase.dart';
 import '../dialogs/template_creation_dialogs.dart';
 import '../providers/template_provider.dart';
-import '../widgets/wizard/account_selector_card.dart';
+import '../widgets/add_template/add_template_widgets.dart';
 import '../widgets/wizard/permissions_form.dart';
 import '../widgets/wizard/step_indicator.dart';
 import '../widgets/wizard/template_basic_info_form.dart';
@@ -143,17 +143,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
     setState(() => _isCreating = true);
 
     try {
-      // 🔍 DEBUG: Log all selected values
-      print('═══════════════════════════════════════════════════════════');
-      print('🔍 TEMPLATE CREATION DEBUG LOG - START');
-      print('═══════════════════════════════════════════════════════════');
-      print('📝 Template Name: ${_nameController.text}');
-      print('📄 Description: ${_descriptionController.text}');
-      print('🔐 Visibility: $_selectedVisibility');
-      print('🔒 Permission: $_selectedPermission');
-      print('');
-
-      // ✅ FIXED: Get account data for correct data structure building
+      // Get account data for data structure building
       final debitAccountAsync = ref.read(accountByIdProvider(_selectedDebitAccountId ?? ''));
       final creditAccountAsync = ref.read(accountByIdProvider(_selectedCreditAccountId ?? ''));
 
@@ -165,7 +155,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         data: (account) => account?.name,
         orElse: () => null,
       );
-
       final creditAccountCategoryTag = creditAccountAsync.maybeWhen(
         data: (account) => account?.categoryTag,
         orElse: () => null,
@@ -174,8 +163,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         data: (account) => account?.name,
         orElse: () => null,
       );
-
-      // ✅ NEW: Get account codes for expense account detection
       final debitAccountCode = debitAccountAsync.maybeWhen(
         data: (account) => account?.accountCode,
         orElse: () => null,
@@ -185,203 +172,129 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         orElse: () => null,
       );
 
-      print('💳 DEBIT ACCOUNT:');
-      print('  - ID: $_selectedDebitAccountId');
-      print('  - Name: $debitAccountName');
-      print('  - Category Tag: $debitAccountCategoryTag');
-      print('  - My Cash Location ID: $_selectedDebitMyCashLocationId');
-      print('  - My Cash Location Name: $_selectedDebitMyCashLocationName');
-      print('  - Counterparty ID: $_selectedDebitCounterpartyId');
-      print('  - Counterparty Data: $_selectedDebitCounterpartyData');
-      print('  - Store ID: $_selectedDebitStoreId');
-      print('  - Store Name: $_selectedDebitStoreName');
-      print('  - Counterparty Cash Location ID: $_selectedDebitCashLocationId');
-      print('  - Counterparty Cash Location Name: $_selectedDebitCashLocationName');
-      print('');
-
-      print('💳 CREDIT ACCOUNT:');
-      print('  - ID: $_selectedCreditAccountId');
-      print('  - Name: $creditAccountName');
-      print('  - Category Tag: $creditAccountCategoryTag');
-      print('  - My Cash Location ID: $_selectedCreditMyCashLocationId');
-      print('  - My Cash Location Name: $_selectedCreditMyCashLocationName');
-      print('  - Counterparty ID: $_selectedCreditCounterpartyId');
-      print('  - Counterparty Data: $_selectedCreditCounterpartyData');
-      print('  - Store ID: $_selectedCreditStoreId');
-      print('  - Store Name: $_selectedCreditStoreName');
-      print('  - Counterparty Cash Location ID: $_selectedCreditCashLocationId');
-      print('  - Counterparty Cash Location Name: $_selectedCreditCashLocationName');
-      print('');
-
-      // Use cash location names from state (already received from selector callback)
-      final debitCashLocationName = _selectedDebitMyCashLocationName;
-      final creditCashLocationName = _selectedCreditMyCashLocationName;
-
       // Get counterparty names
       final debitCounterpartyName = _selectedDebitCounterpartyData?['name'] as String?;
       final creditCounterpartyName = _selectedCreditCounterpartyData?['name'] as String?;
 
-      // Use counterparty cash location names from state (already received from selector callback)
-      final debitCounterpartyCashLocationId = _selectedDebitCashLocationId;
-      final debitCounterpartyCashLocationName = _selectedDebitCashLocationName;
-      final creditCounterpartyCashLocationId = _selectedCreditCashLocationId;
-      final creditCounterpartyCashLocationName = _selectedCreditCashLocationName;
-
-      // ✅ CLEAN ARCHITECTURE: Use Domain Factory to create transaction lines with FLAT structure
-      print('🏭 Creating transaction lines using TemplateLineFactory...');
+      // Create transaction lines using Domain Factory
       final data = TemplateLineFactory.createLines(
         templateName: _nameController.text,
-        // Debit line parameters
         debitAccountId: _selectedDebitAccountId,
         debitAccountName: debitAccountName,
         debitCategoryTag: debitAccountCategoryTag,
-        debitAccountCode: debitAccountCode, // For expense account detection
+        debitAccountCode: debitAccountCode,
         debitCashLocationId: _selectedDebitMyCashLocationId,
-        debitCashLocationName: debitCashLocationName,
+        debitCashLocationName: _selectedDebitMyCashLocationName,
         debitCounterpartyId: _selectedDebitCounterpartyId,
         debitCounterpartyName: debitCounterpartyName,
-        debitCounterpartyCashLocationId: debitCounterpartyCashLocationId,
-        debitCounterpartyCashLocationName: debitCounterpartyCashLocationName,
-        // Credit line parameters
+        debitCounterpartyCashLocationId: _selectedDebitCashLocationId,
+        debitCounterpartyCashLocationName: _selectedDebitCashLocationName,
         creditAccountId: _selectedCreditAccountId,
         creditAccountName: creditAccountName,
         creditCategoryTag: creditAccountCategoryTag,
-        creditAccountCode: creditAccountCode, // For expense account detection
+        creditAccountCode: creditAccountCode,
         creditCashLocationId: _selectedCreditMyCashLocationId,
-        creditCashLocationName: creditCashLocationName,
+        creditCashLocationName: _selectedCreditMyCashLocationName,
         creditCounterpartyId: _selectedCreditCounterpartyId,
         creditCounterpartyName: creditCounterpartyName,
-        creditCounterpartyCashLocationId: creditCounterpartyCashLocationId,
-        creditCounterpartyCashLocationName: creditCounterpartyCashLocationName,
+        creditCounterpartyCashLocationId: _selectedCreditCashLocationId,
+        creditCounterpartyCashLocationName: _selectedCreditCashLocationName,
       );
 
-      print('✅ Generated transaction lines (data array):');
-      for (int i = 0; i < data.length; i++) {
-        print('  Line ${i + 1}: ${data[i]}');
-      }
-      print('');
+      // Build tags for categorization
+      final tags = _buildTemplateTags(
+        debitAccountCategoryTag: debitAccountCategoryTag,
+        creditAccountCategoryTag: creditAccountCategoryTag,
+        debitCounterpartyName: debitCounterpartyName,
+        creditCounterpartyName: creditCounterpartyName,
+      );
 
-      // Build tags object for categorization
-      final accountIds = <String>[];
-      if (_selectedDebitAccountId != null) accountIds.add(_selectedDebitAccountId!);
-      if (_selectedCreditAccountId != null) accountIds.add(_selectedCreditAccountId!);
-
-      final categories = <String>[];
-      if (debitAccountCategoryTag != null) categories.add(debitAccountCategoryTag);
-      if (creditAccountCategoryTag != null) categories.add(creditAccountCategoryTag);
-      final uniqueCategories = categories.toSet().toList();
-
-      final cashLocationIds = <String>[];
-      if (_selectedDebitMyCashLocationId != null) cashLocationIds.add(_selectedDebitMyCashLocationId!);
-      if (_selectedCreditMyCashLocationId != null) cashLocationIds.add(_selectedCreditMyCashLocationId!);
-
-      final tags = <String, dynamic>{
-        'accounts': accountIds,
-        'categories': uniqueCategories,
-        'cash_locations': cashLocationIds,
-      };
-
-      // Add counterparty store ID and name if internal transfer
-      if (_selectedDebitStoreId != null) {
-        tags['counterparty_store_id'] = _selectedDebitStoreId;
-        tags['counterparty_store_name'] = _selectedDebitStoreName;
-      } else if (_selectedCreditStoreId != null) {
-        tags['counterparty_store_id'] = _selectedCreditStoreId;
-        tags['counterparty_store_name'] = _selectedCreditStoreName;
-      }
-
-      // Add counterparty name to tags for compatibility with legacy templates
-      if (debitCounterpartyName != null) {
-        tags['counterparty_name'] = debitCounterpartyName;
-      } else if (creditCounterpartyName != null) {
-        tags['counterparty_name'] = creditCounterpartyName;
-      }
-
-      // Convert permission display name to UUID
-      final permissionUUID = TemplateConstants.getPermissionUUID(_selectedPermission);
-
-      print('📦 Creating CreateTemplateCommand...');
+      // Create command
       final command = CreateTemplateCommand(
         name: _nameController.text,
         templateDescription: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-        data: data, // Domain data structure with FLAT format
-        tags: tags, // JSONB categorization tags
-        visibilityLevel: _selectedVisibility, // 'public' or 'private'
-        permission: permissionUUID, // UUID format
+        data: data,
+        tags: tags,
+        visibilityLevel: _selectedVisibility,
+        permission: TemplateConstants.getPermissionUUID(_selectedPermission),
         counterpartyId: _selectedDebitCounterpartyId ?? _selectedCreditCounterpartyId,
         counterpartyCashLocationId: _selectedDebitCashLocationId ?? _selectedCreditCashLocationId,
         companyId: ref.read(appStateProvider).companyChoosen.toString(),
         storeId: ref.read(appStateProvider).storeChoosen.toString(),
-        createdBy: ref.read(userDisplayDataProvider)['user_id']?.toString(), // ✅ Get user ID from app state
-        requiredAttachment: _requiredAttachment, // ✅ Whether attachment is required when using template
+        createdBy: ref.read(userDisplayDataProvider)['user_id']?.toString(),
+        requiredAttachment: _requiredAttachment,
       );
 
-      print('📋 Command Details:');
-      print('  - Name: ${command.name}');
-      print('  - Description: ${command.templateDescription}');
-      print('  - Visibility Level: ${command.visibilityLevel}');
-      print('  - Permission UUID: ${command.permission}');
-      print('  - Company ID: ${command.companyId}');
-      print('  - Store ID: ${command.storeId}');
-      print('  - Created By: ${command.createdBy}');
-      print('  - Counterparty ID: ${command.counterpartyId}');
-      print('  - Counterparty Cash Location ID: ${command.counterpartyCashLocationId}');
-      print('  - Data Lines: ${command.data.length}');
-      print('  - Tags: ${command.tags}');
-      print('');
-
-      print('🚀 Executing CreateTemplateUseCase...');
-      final createUseCase = ref.read(createTemplateUseCaseProvider);
-      final result = await createUseCase.execute(command);
-
-      print('📊 Result: ${result.isSuccess ? "✅ SUCCESS" : "❌ FAILED"}');
-      if (!result.isSuccess) {
-        print('❌ Error: ${result.error}');
-      }
-      print('═══════════════════════════════════════════════════════════');
-      print('🔍 TEMPLATE CREATION DEBUG LOG - END');
-      print('═══════════════════════════════════════════════════════════');
-      print('');
+      // Execute use case
+      final result = await ref.read(createTemplateUseCaseProvider).execute(command);
 
       if (mounted) {
         if (result.isSuccess) {
-          // ✅ FIX: Reload templates to show the newly created template
-          final appState = ref.read(appStateProvider);
-          final notifier = ref.read(templateNotifierProvider.notifier);
-          await notifier.loadTemplates(
+          await ref.read(templateNotifierProvider.notifier).loadTemplates(
             companyId: command.companyId,
             storeId: command.storeId,
           );
-
           await TemplateCreationDialogs.showSuccess(context);
         } else {
           await TemplateCreationDialogs.showError(context, result.error ?? 'Unknown error');
         }
       }
-    } catch (e, stackTrace) {
-      // 🔍 DEBUG: Log detailed error information
-      print('═══════════════════════════════════════════════════════════');
-      print('❌ TEMPLATE CREATION ERROR');
-      print('═══════════════════════════════════════════════════════════');
-      print('Error Type: ${e.runtimeType}');
-      print('Error Message: $e');
-      print('');
-      print('Stack Trace:');
-      print(stackTrace);
-      print('═══════════════════════════════════════════════════════════');
-      print('');
-
-      // Extract detailed error information
-      String errorMessage = e.toString();
-
+    } catch (e) {
       if (mounted) {
-        await TemplateCreationDialogs.showError(context, errorMessage);
+        await TemplateCreationDialogs.showError(context, e.toString());
       }
     } finally {
       if (mounted) {
         setState(() => _isCreating = false);
       }
     }
+  }
+
+  /// Build template tags for categorization
+  Map<String, dynamic> _buildTemplateTags({
+    String? debitAccountCategoryTag,
+    String? creditAccountCategoryTag,
+    String? debitCounterpartyName,
+    String? creditCounterpartyName,
+  }) {
+    final accountIds = <String>[
+      if (_selectedDebitAccountId != null) _selectedDebitAccountId!,
+      if (_selectedCreditAccountId != null) _selectedCreditAccountId!,
+    ];
+
+    final categories = <String>{
+      if (debitAccountCategoryTag != null) debitAccountCategoryTag,
+      if (creditAccountCategoryTag != null) creditAccountCategoryTag,
+    }.toList();
+
+    final cashLocationIds = <String>[
+      if (_selectedDebitMyCashLocationId != null) _selectedDebitMyCashLocationId!,
+      if (_selectedCreditMyCashLocationId != null) _selectedCreditMyCashLocationId!,
+    ];
+
+    final tags = <String, dynamic>{
+      'accounts': accountIds,
+      'categories': categories,
+      'cash_locations': cashLocationIds,
+    };
+
+    // Add counterparty store info
+    if (_selectedDebitStoreId != null) {
+      tags['counterparty_store_id'] = _selectedDebitStoreId;
+      tags['counterparty_store_name'] = _selectedDebitStoreName;
+    } else if (_selectedCreditStoreId != null) {
+      tags['counterparty_store_id'] = _selectedCreditStoreId;
+      tags['counterparty_store_name'] = _selectedCreditStoreName;
+    }
+
+    // Add counterparty name for legacy compatibility
+    if (debitCounterpartyName != null) {
+      tags['counterparty_name'] = debitCounterpartyName;
+    } else if (creditCounterpartyName != null) {
+      tags['counterparty_name'] = creditCounterpartyName;
+    }
+
+    return tags;
   }
 
   /// Check account mapping for internal counterparty
@@ -612,7 +525,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
               descriptionController: _descriptionController,
               onChanged: () => setState(() {}),
             ),
-            _buildStep2Content(ref),
+            _buildStep2ContentWidget(ref),
             PermissionsForm(
               selectedVisibility: _selectedVisibility,
               selectedPermission: _selectedPermission,
@@ -730,10 +643,11 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
   }
 
 
-  Widget _buildStep2Content(WidgetRef ref) {
+  /// Build Step 2 content using extracted Step2Content widget
+  Widget _buildStep2ContentWidget(WidgetRef ref) {
     final debitAccountAsync = ref.watch(accountByIdProvider(_selectedDebitAccountId ?? ''));
     final creditAccountAsync = ref.watch(accountByIdProvider(_selectedCreditAccountId ?? ''));
-    
+
     final debitRequiresCounterparty = debitAccountAsync.maybeWhen(
       data: (account) => account?.categoryTag == 'payable' || account?.categoryTag == 'receivable',
       orElse: () => false,
@@ -750,404 +664,186 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       data: (account) => account?.categoryTag == 'cash',
       orElse: () => false,
     );
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Step 2: Transaction Details',
-            style: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space5),
-          
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Debit Account Card
-                  AccountSelectorCard(
-                    type: AccountType.debit,
-                    selectedAccountId: _selectedDebitAccountId,
-                    selectedAccountCategoryTag: _selectedDebitAccountCategoryTag,  // ✅ NEW
-                    selectedCounterpartyId: _selectedDebitCounterpartyId,
-                    selectedCounterpartyData: _selectedDebitCounterpartyData,
-                    selectedStoreId: _selectedDebitStoreId,
-                    selectedCashLocationId: _selectedDebitCashLocationId,
-                    selectedMyCashLocationId: _selectedDebitMyCashLocationId,
-                    otherAccountIsCash: creditIsCashAccount,
-                    otherAccountRequiresCounterparty: creditRequiresCounterparty,
-                    onAccountChanged: (accountId) {
-                      setState(() {
-                        _selectedDebitAccountId = accountId;
-                      });
-                    },
-                    // ✅ NEW: Type-safe callback receives all data
-                    onAccountChangedWithData: (accountId, accountName, categoryTag) {
-                      setState(() {
-                        _selectedDebitAccountId = accountId;
-                        _selectedDebitAccountName = accountName;
-                        _selectedDebitAccountCategoryTag = categoryTag;
-                        // Reset dependent selections
-                        _selectedDebitCounterpartyId = null;
-                        _selectedDebitCounterpartyData = null;
-                        _selectedDebitMyCashLocationId = null;
-                        _selectedDebitStoreId = null;
-                        _selectedDebitCashLocationId = null;
-                        // Reset mapping check when account changes
-                        _debitAccountMapping = null;
-                        _debitMappingError = null;
-                      });
-                    },
-                    onCounterpartyChanged: (counterpartyId) {
-                      setState(() {
-                        _selectedDebitCounterpartyId = counterpartyId;
-                        _selectedDebitCounterpartyData = null;
-                        _selectedDebitStoreId = null;
-                        _selectedDebitCashLocationId = null;
-                      });
-                    },
-                    onStoreChanged: (storeId, storeName) {
-                      setState(() {
-                        _selectedDebitStoreId = storeId;
-                        _selectedDebitStoreName = storeName;
-                        _selectedDebitCashLocationId = null;
-                      });
-                    },
-                    onCashLocationChanged: (locationId) {
-                      setState(() {
-                        _selectedDebitCashLocationId = locationId;
-                      });
-                    },
-                    onCashLocationChangedWithName: (locationId, locationName) {
-                      setState(() {
-                        _selectedDebitCashLocationId = locationId;
-                        _selectedDebitCashLocationName = locationName;
-                      });
-                    },
-                    onMyCashLocationChanged: (locationId) {
-                      setState(() {
-                        _selectedDebitMyCashLocationId = locationId;
-                      });
-                    },
-                    onMyCashLocationChangedWithName: (locationId, locationName) {
-                      setState(() {
-                        _selectedDebitMyCashLocationId = locationId;
-                        _selectedDebitMyCashLocationName = locationName;
-                      });
-                    },
-                    onCounterpartyDataChanged: (data) {
-                      setState(() {
-                        _selectedDebitCounterpartyData = data;
-                        // Reset mapping check when counterparty changes
-                        _debitAccountMapping = null;
-                        _debitMappingError = null;
-                      });
-                      // ✅ Check account mapping for internal counterparty
-                      if (data != null &&
-                          data['is_internal'] == true &&
-                          _selectedDebitAccountId != null &&
-                          _selectedDebitCounterpartyId != null) {
-                        _checkAccountMapping(
-                          counterpartyId: _selectedDebitCounterpartyId!,
-                          accountId: _selectedDebitAccountId!,
-                          isDebit: true,
-                        );
-                      }
-                    },
-                  ),
 
-                  const SizedBox(height: TossSpacing.space4),
-
-                  // Credit Account Card
-                  AccountSelectorCard(
-                    type: AccountType.credit,
-                    selectedAccountId: _selectedCreditAccountId,
-                    selectedAccountCategoryTag: _selectedCreditAccountCategoryTag,  // ✅ NEW
-                    selectedCounterpartyId: _selectedCreditCounterpartyId,
-                    selectedCounterpartyData: _selectedCreditCounterpartyData,
-                    selectedStoreId: _selectedCreditStoreId,
-                    selectedCashLocationId: _selectedCreditCashLocationId,
-                    selectedMyCashLocationId: _selectedCreditMyCashLocationId,
-                    otherAccountIsCash: debitIsCashAccount,
-                    otherAccountRequiresCounterparty: debitRequiresCounterparty,
-                    onAccountChanged: (accountId) {
-                      setState(() {
-                        _selectedCreditAccountId = accountId;
-                      });
-                    },
-                    // ✅ NEW: Type-safe callback receives all data
-                    onAccountChangedWithData: (accountId, accountName, categoryTag) {
-                      setState(() {
-                        _selectedCreditAccountId = accountId;
-                        _selectedCreditAccountName = accountName;
-                        _selectedCreditAccountCategoryTag = categoryTag;
-                        // Reset dependent selections
-                        _selectedCreditCounterpartyId = null;
-                        _selectedCreditCounterpartyData = null;
-                        _selectedCreditMyCashLocationId = null;
-                        _selectedCreditStoreId = null;
-                        _selectedCreditCashLocationId = null;
-                        // Reset mapping check when account changes
-                        _creditAccountMapping = null;
-                        _creditMappingError = null;
-                      });
-                    },
-                    onCounterpartyChanged: (counterpartyId) {
-                      setState(() {
-                        _selectedCreditCounterpartyId = counterpartyId;
-                        _selectedCreditCounterpartyData = null;
-                        _selectedCreditStoreId = null;
-                        _selectedCreditCashLocationId = null;
-                      });
-                    },
-                    onStoreChanged: (storeId, storeName) {
-                      setState(() {
-                        _selectedCreditStoreId = storeId;
-                        _selectedCreditStoreName = storeName;
-                        _selectedCreditCashLocationId = null;
-                      });
-                    },
-                    onCashLocationChanged: (locationId) {
-                      setState(() {
-                        _selectedCreditCashLocationId = locationId;
-                      });
-                    },
-                    onCashLocationChangedWithName: (locationId, locationName) {
-                      setState(() {
-                        _selectedCreditCashLocationId = locationId;
-                        _selectedCreditCashLocationName = locationName;
-                      });
-                    },
-                    onMyCashLocationChanged: (locationId) {
-                      setState(() {
-                        _selectedCreditMyCashLocationId = locationId;
-                      });
-                    },
-                    onMyCashLocationChangedWithName: (locationId, locationName) {
-                      setState(() {
-                        _selectedCreditMyCashLocationId = locationId;
-                        _selectedCreditMyCashLocationName = locationName;
-                      });
-                    },
-                    onCounterpartyDataChanged: (data) {
-                      setState(() {
-                        _selectedCreditCounterpartyData = data;
-                        // Reset mapping check when counterparty changes
-                        _creditAccountMapping = null;
-                        _creditMappingError = null;
-                      });
-                      // ✅ Check account mapping for internal counterparty
-                      if (data != null &&
-                          data['is_internal'] == true &&
-                          _selectedCreditAccountId != null &&
-                          _selectedCreditCounterpartyId != null) {
-                        _checkAccountMapping(
-                          counterpartyId: _selectedCreditCounterpartyId!,
-                          accountId: _selectedCreditAccountId!,
-                          isDebit: false,
-                        );
-                      }
-                    },
-                  ),
-
-                  const SizedBox(height: TossSpacing.space3),
-
-                  // Account mapping error display
-                  _buildAccountMappingWarnings(),
-
-                  const SizedBox(height: TossSpacing.space3),
-
-                  // Helpful explanation
-                  Container(
-                    padding: const EdgeInsets.all(TossSpacing.space3),
-                    decoration: BoxDecoration(
-                      color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          size: 16,
-                          color: TossColors.gray600,
-                        ),
-                        const SizedBox(width: TossSpacing.space2),
-                        Expanded(
-                          child: Text(
-                            'Debit increases assets/expenses, decreases liabilities/income.\nCredit increases liabilities/income, decreases assets/expenses.',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray600,
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build account mapping warning messages
-  Widget _buildAccountMappingWarnings() {
-    final List<Widget> warnings = [];
-
-    // Debit mapping check status
-    if (_isCheckingDebitMapping) {
-      warnings.add(_buildMappingStatusRow(
-        isLoading: true,
-        message: 'Checking debit account mapping...',
-      ));
-    } else if (_debitMappingError != null) {
-      warnings.add(_buildMappingStatusRow(
-        isError: true,
-        message: 'Debit: $_debitMappingError',
-        counterpartyId: _selectedDebitCounterpartyId,
-        counterpartyName: _selectedDebitCounterpartyData?['name']?.toString(),
-      ));
-    } else if (_debitAccountMapping != null) {
-      warnings.add(_buildMappingStatusRow(
-        isSuccess: true,
-        message: 'Debit account mapping verified',
-      ));
-    }
-
-    // Credit mapping check status
-    if (_isCheckingCreditMapping) {
-      warnings.add(_buildMappingStatusRow(
-        isLoading: true,
-        message: 'Checking credit account mapping...',
-      ));
-    } else if (_creditMappingError != null) {
-      warnings.add(_buildMappingStatusRow(
-        isError: true,
-        message: 'Credit: $_creditMappingError',
-        counterpartyId: _selectedCreditCounterpartyId,
-        counterpartyName: _selectedCreditCounterpartyData?['name']?.toString(),
-      ));
-    } else if (_creditAccountMapping != null) {
-      warnings.add(_buildMappingStatusRow(
-        isSuccess: true,
-        message: 'Credit account mapping verified',
-      ));
-    }
-
-    if (warnings.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      children: warnings,
+    return Step2Content(
+      // Debit account state
+      selectedDebitAccountId: _selectedDebitAccountId,
+      selectedDebitAccountCategoryTag: _selectedDebitAccountCategoryTag,
+      selectedDebitCounterpartyId: _selectedDebitCounterpartyId,
+      selectedDebitCounterpartyData: _selectedDebitCounterpartyData,
+      selectedDebitStoreId: _selectedDebitStoreId,
+      selectedDebitCashLocationId: _selectedDebitCashLocationId,
+      selectedDebitMyCashLocationId: _selectedDebitMyCashLocationId,
+      // Credit account state
+      selectedCreditAccountId: _selectedCreditAccountId,
+      selectedCreditAccountCategoryTag: _selectedCreditAccountCategoryTag,
+      selectedCreditCounterpartyId: _selectedCreditCounterpartyId,
+      selectedCreditCounterpartyData: _selectedCreditCounterpartyData,
+      selectedCreditStoreId: _selectedCreditStoreId,
+      selectedCreditCashLocationId: _selectedCreditCashLocationId,
+      selectedCreditMyCashLocationId: _selectedCreditMyCashLocationId,
+      // Account type flags
+      debitIsCashAccount: debitIsCashAccount,
+      creditIsCashAccount: creditIsCashAccount,
+      debitRequiresCounterparty: debitRequiresCounterparty,
+      creditRequiresCounterparty: creditRequiresCounterparty,
+      // Account mapping state
+      isCheckingDebitMapping: _isCheckingDebitMapping,
+      isCheckingCreditMapping: _isCheckingCreditMapping,
+      debitMappingError: _debitMappingError,
+      creditMappingError: _creditMappingError,
+      debitAccountMapping: _debitAccountMapping,
+      creditAccountMapping: _creditAccountMapping,
+      // Debit callbacks
+      onDebitAccountChanged: (accountId) {
+        setState(() => _selectedDebitAccountId = accountId);
+      },
+      onDebitAccountChangedWithData: (accountId, accountName, categoryTag) {
+        setState(() {
+          _selectedDebitAccountId = accountId;
+          _selectedDebitAccountName = accountName;
+          _selectedDebitAccountCategoryTag = categoryTag;
+          _selectedDebitCounterpartyId = null;
+          _selectedDebitCounterpartyData = null;
+          _selectedDebitMyCashLocationId = null;
+          _selectedDebitStoreId = null;
+          _selectedDebitCashLocationId = null;
+          _debitAccountMapping = null;
+          _debitMappingError = null;
+        });
+      },
+      onDebitCounterpartyChanged: (counterpartyId) {
+        setState(() {
+          _selectedDebitCounterpartyId = counterpartyId;
+          _selectedDebitCounterpartyData = null;
+          _selectedDebitStoreId = null;
+          _selectedDebitCashLocationId = null;
+        });
+      },
+      onDebitStoreChanged: (storeId, storeName) {
+        setState(() {
+          _selectedDebitStoreId = storeId;
+          _selectedDebitStoreName = storeName;
+          _selectedDebitCashLocationId = null;
+        });
+      },
+      onDebitCashLocationChanged: (locationId) {
+        setState(() => _selectedDebitCashLocationId = locationId);
+      },
+      onDebitCashLocationChangedWithName: (locationId, locationName) {
+        setState(() {
+          _selectedDebitCashLocationId = locationId;
+          _selectedDebitCashLocationName = locationName;
+        });
+      },
+      onDebitMyCashLocationChanged: (locationId) {
+        setState(() => _selectedDebitMyCashLocationId = locationId);
+      },
+      onDebitMyCashLocationChangedWithName: (locationId, locationName) {
+        setState(() {
+          _selectedDebitMyCashLocationId = locationId;
+          _selectedDebitMyCashLocationName = locationName;
+        });
+      },
+      onDebitCounterpartyDataChanged: (data) {
+        setState(() {
+          _selectedDebitCounterpartyData = data;
+          _debitAccountMapping = null;
+          _debitMappingError = null;
+        });
+        if (data != null &&
+            data['is_internal'] == true &&
+            _selectedDebitAccountId != null &&
+            _selectedDebitCounterpartyId != null) {
+          _checkAccountMapping(
+            counterpartyId: _selectedDebitCounterpartyId!,
+            accountId: _selectedDebitAccountId!,
+            isDebit: true,
+          );
+        }
+      },
+      // Credit callbacks
+      onCreditAccountChanged: (accountId) {
+        setState(() => _selectedCreditAccountId = accountId);
+      },
+      onCreditAccountChangedWithData: (accountId, accountName, categoryTag) {
+        setState(() {
+          _selectedCreditAccountId = accountId;
+          _selectedCreditAccountName = accountName;
+          _selectedCreditAccountCategoryTag = categoryTag;
+          _selectedCreditCounterpartyId = null;
+          _selectedCreditCounterpartyData = null;
+          _selectedCreditMyCashLocationId = null;
+          _selectedCreditStoreId = null;
+          _selectedCreditCashLocationId = null;
+          _creditAccountMapping = null;
+          _creditMappingError = null;
+        });
+      },
+      onCreditCounterpartyChanged: (counterpartyId) {
+        setState(() {
+          _selectedCreditCounterpartyId = counterpartyId;
+          _selectedCreditCounterpartyData = null;
+          _selectedCreditStoreId = null;
+          _selectedCreditCashLocationId = null;
+        });
+      },
+      onCreditStoreChanged: (storeId, storeName) {
+        setState(() {
+          _selectedCreditStoreId = storeId;
+          _selectedCreditStoreName = storeName;
+          _selectedCreditCashLocationId = null;
+        });
+      },
+      onCreditCashLocationChanged: (locationId) {
+        setState(() => _selectedCreditCashLocationId = locationId);
+      },
+      onCreditCashLocationChangedWithName: (locationId, locationName) {
+        setState(() {
+          _selectedCreditCashLocationId = locationId;
+          _selectedCreditCashLocationName = locationName;
+        });
+      },
+      onCreditMyCashLocationChanged: (locationId) {
+        setState(() => _selectedCreditMyCashLocationId = locationId);
+      },
+      onCreditMyCashLocationChangedWithName: (locationId, locationName) {
+        setState(() {
+          _selectedCreditMyCashLocationId = locationId;
+          _selectedCreditMyCashLocationName = locationName;
+        });
+      },
+      onCreditCounterpartyDataChanged: (data) {
+        setState(() {
+          _selectedCreditCounterpartyData = data;
+          _creditAccountMapping = null;
+          _creditMappingError = null;
+        });
+        if (data != null &&
+            data['is_internal'] == true &&
+            _selectedCreditAccountId != null &&
+            _selectedCreditCounterpartyId != null) {
+          _checkAccountMapping(
+            counterpartyId: _selectedCreditCounterpartyId!,
+            accountId: _selectedCreditAccountId!,
+            isDebit: false,
+          );
+        }
+      },
+      // Navigation callback
+      onNavigateToSettings: _navigateToAccountSettings,
     );
   }
 
   /// Navigate to Account Settings page for the counterparty
   void _navigateToAccountSettings(String counterpartyId, String counterpartyName) {
-    // Close the current modal first
     Navigator.of(context).pop();
-    // Navigate to debt account settings page
     context.pushNamed(
       'debtAccountSettings',
       pathParameters: {
         'counterpartyId': counterpartyId,
         'name': counterpartyName,
       },
-    );
-  }
-
-  Widget _buildMappingStatusRow({
-    bool isLoading = false,
-    bool isError = false,
-    bool isSuccess = false,
-    required String message,
-    String? counterpartyId,
-    String? counterpartyName,
-  }) {
-    Color backgroundColor;
-    Color borderColor;
-    Color textColor;
-    Widget leadingWidget;
-
-    if (isLoading) {
-      backgroundColor = TossColors.gray50;
-      borderColor = TossColors.gray200;
-      textColor = TossColors.gray600;
-      leadingWidget = const SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
-    } else if (isError) {
-      backgroundColor = TossColors.error.withOpacity(0.1);
-      borderColor = TossColors.error.withOpacity(0.3);
-      textColor = TossColors.error;
-      leadingWidget = const Icon(Icons.warning, color: TossColors.error, size: 18);
-    } else if (isSuccess) {
-      backgroundColor = TossColors.success.withOpacity(0.1);
-      borderColor = TossColors.success.withOpacity(0.3);
-      textColor = TossColors.success;
-      leadingWidget = const Icon(Icons.check_circle, color: TossColors.success, size: 18);
-    } else {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          leadingWidget,
-          const SizedBox(width: TossSpacing.space2),
-          Expanded(
-            child: Text(
-              message,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: textColor,
-                fontWeight: isError ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
-          ),
-          // Show "Go to Settings" button for error state with counterparty info
-          if (isError && counterpartyId != null && counterpartyName != null)
-            GestureDetector(
-              onTap: () => _navigateToAccountSettings(counterpartyId, counterpartyName),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space2,
-                  vertical: TossSpacing.space1,
-                ),
-                decoration: BoxDecoration(
-                  color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Text(
-                  'Set Up',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

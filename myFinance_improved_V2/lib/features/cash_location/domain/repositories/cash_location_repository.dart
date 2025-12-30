@@ -13,9 +13,12 @@ import '../entities/vault_real_entry.dart';
 /// Implementation will be in data layer
 abstract class CashLocationRepository {
   /// Get all cash locations for a company and store
+  /// [storeId] is optional - if null, returns all stores
+  /// [locationType] is optional - if provided, filters by location type (cash, bank, vault)
   Future<List<CashLocation>> getAllCashLocations({
     required String companyId,
-    required String storeId,
+    String? storeId,
+    String? locationType,
   });
 
   /// Get single cash location by ID with full details
@@ -97,6 +100,12 @@ abstract class CashLocationRepository {
     String? accountNumber,
     String? currencyId,
     String? locationInfo,
+    // Trade/International banking fields
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   });
 
   /// Update cash location details
@@ -107,6 +116,12 @@ abstract class CashLocationRepository {
     String? description,
     String? bankName,
     String? accountNumber,
+    // Trade/International banking fields
+    String? beneficiaryName,
+    String? bankAddress,
+    String? swiftCode,
+    String? bankBranch,
+    String? accountType,
   });
 
   /// Delete cash location

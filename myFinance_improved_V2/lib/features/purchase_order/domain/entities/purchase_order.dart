@@ -126,6 +126,10 @@ class PurchaseOrder with _$PurchaseOrder {
     String? piNumber,
     /// Seller (our company) info for PDF generation
     Map<String, dynamic>? sellerInfo,
+    /// Banking info for PDF (from cash_locations)
+    List<Map<String, dynamic>>? bankingInfo,
+    /// Selected bank account IDs (cash_location_ids) for PDF display
+    @Default([]) List<String> bankAccountIds,
     String? buyerId,
     String? buyerName,
     String? buyerPoNumber,

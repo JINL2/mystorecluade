@@ -385,6 +385,9 @@ class EmployeeMonthlySummary {
   final double totalBonus;
   final double totalOvertimePay;
   final double totalLateDeduction;
+  // New fields from RPC (calculated in v_shift_request view)
+  final double totalBasePay;
+  final double totalPayment;
 
   const EmployeeMonthlySummary({
     this.totalShifts = 0,
@@ -400,6 +403,8 @@ class EmployeeMonthlySummary {
     this.totalBonus = 0,
     this.totalOvertimePay = 0,
     this.totalLateDeduction = 0,
+    this.totalBasePay = 0,
+    this.totalPayment = 0,
   });
 
   /// Format worked hours as "XXXh XXm"

@@ -68,7 +68,7 @@ class ExchangeRateItem {
       };
 }
 
-/// Exchange rate response from get_exchange_rate_v2 RPC
+/// Exchange rate response from get_exchange_rate_v3 RPC
 class ExchangeRateResponse {
   final BaseCurrency? baseCurrency;
   final List<ExchangeRateItem> exchangeRates;

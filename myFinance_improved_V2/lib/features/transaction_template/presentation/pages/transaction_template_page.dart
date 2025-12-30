@@ -542,7 +542,7 @@ class _TemplateCard extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: TossColors.textPrimary.withOpacity(0.02),
+            color: TossColors.textPrimary.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -573,7 +573,7 @@ class _TemplateCard extends ConsumerWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: TossColors.primary.withOpacity(0.1),
+                        color: TossColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: const Icon(

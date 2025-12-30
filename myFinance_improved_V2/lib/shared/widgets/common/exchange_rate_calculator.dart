@@ -155,10 +155,21 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
   @override
   Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
-    final exchangeRatesAsync = ref.watch(exchangeRatesProvider(appState.companyChoosen));
+    final exchangeRatesAsync = ref.watch(
+      exchangeRatesProvider(
+        ExchangeRatesParams(
+          companyId: appState.companyChoosen,
+          storeId: appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
+        ),
+      ),
+    );
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxHeight = screenHeight * 0.8; // 80% of screen height
 
-    return Container(
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Container(
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
@@ -236,109 +247,109 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
               final baseCode = _baseCurrency?['currency_code'] ?? '';
               final baseSymbol = _baseCurrency?['symbol'] ?? baseCode;
 
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Input section label
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      TossSpacing.paddingMD,
-                      TossSpacing.space2,
-                      TossSpacing.paddingMD,
-                      TossSpacing.space2,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Enter amount in:',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
+              return Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Input section label
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        TossSpacing.paddingMD,
+                        TossSpacing.space2,
+                        TossSpacing.paddingMD,
+                        TossSpacing.space2,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Enter amount in:',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray500,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Currency input cards
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingMD),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (int i = 0; i < nonBaseCurrencies.length; i++) ...[
-                          _buildCurrencyInputCard(nonBaseCurrencies[i]),
-                          if (i < nonBaseCurrencies.length - 1)
-                            const SizedBox(height: TossSpacing.space2),
                         ],
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: TossSpacing.space4),
-
-                  // Arrow indicator
-                  const Icon(
-                    Icons.arrow_downward_rounded,
-                    color: TossColors.gray300,
-                    size: TossSpacing.iconMD,
-                  ),
-
-                  const SizedBox(height: TossSpacing.space3),
-
-                  // Result section - always visible
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingMD),
-                    padding: const EdgeInsets.all(TossSpacing.paddingMD),
-                    decoration: BoxDecoration(
-                      color: formattedAmount.isNotEmpty
-                          ? TossColors.primarySurface
-                          : TossColors.gray50,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      border: Border.all(
-                        color: formattedAmount.isNotEmpty
-                            ? TossColors.primary.withValues(alpha: 0.2)
-                            : TossColors.gray100,
                       ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Converted to $baseCode',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
-                        const SizedBox(height: TossSpacing.space2),
-                        Text(
-                          formattedAmount.isNotEmpty
-                              ? '$baseSymbol $formattedAmount'
-                              : '$baseSymbol 0',
-                          style: TossTextStyles.h2.copyWith(
-                            color: formattedAmount.isNotEmpty
-                                ? TossColors.primary
-                                : TossColors.gray300,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
 
-                  // Footer button
-                  Container(
-                    padding: EdgeInsets.fromLTRB(
-                      TossSpacing.paddingMD,
-                      TossSpacing.space4,
-                      TossSpacing.paddingMD,
-                      TossSpacing.space3 + bottomPadding,
+                    // Currency input cards - scrollable
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingMD),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: nonBaseCurrencies.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: TossSpacing.space2),
+                          itemBuilder: (context, index) => _buildCurrencyInputCard(nonBaseCurrencies[index]),
+                        ),
+                      ),
                     ),
-                    child: TossPrimaryButton(
-                      text: formattedAmount.isEmpty ? 'Enter amount above' : 'Use $baseSymbol $formattedAmount',
-                      onPressed: formattedAmount.isEmpty ? null : _confirmAmount,
-                      fullWidth: true,
+
+                    const SizedBox(height: TossSpacing.space4),
+
+                    // Arrow indicator
+                    const Icon(
+                      Icons.arrow_downward_rounded,
+                      color: TossColors.gray300,
+                      size: TossSpacing.iconMD,
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: TossSpacing.space3),
+
+                    // Result section - always visible
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingMD),
+                      padding: const EdgeInsets.all(TossSpacing.paddingMD),
+                      decoration: BoxDecoration(
+                        color: formattedAmount.isNotEmpty
+                            ? TossColors.primarySurface
+                            : TossColors.gray50,
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        border: Border.all(
+                          color: formattedAmount.isNotEmpty
+                              ? TossColors.primary.withValues(alpha: 0.2)
+                              : TossColors.gray100,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Converted to $baseCode',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray500,
+                            ),
+                          ),
+                          const SizedBox(height: TossSpacing.space2),
+                          Text(
+                            formattedAmount.isNotEmpty
+                                ? '$baseSymbol $formattedAmount'
+                                : '$baseSymbol 0',
+                            style: TossTextStyles.h2.copyWith(
+                              color: formattedAmount.isNotEmpty
+                                  ? TossColors.primary
+                                  : TossColors.gray300,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Footer button
+                    Container(
+                      padding: EdgeInsets.fromLTRB(
+                        TossSpacing.paddingMD,
+                        TossSpacing.space4,
+                        TossSpacing.paddingMD,
+                        TossSpacing.space3 + bottomPadding,
+                      ),
+                      child: TossPrimaryButton(
+                        text: formattedAmount.isEmpty ? 'Enter amount above' : 'Use $baseSymbol $formattedAmount',
+                        onPressed: formattedAmount.isEmpty ? null : _confirmAmount,
+                        fullWidth: true,
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
             loading: () => const Padding(
@@ -363,6 +374,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
             ),
           ),
         ],
+      ),
       ),
     );
   }

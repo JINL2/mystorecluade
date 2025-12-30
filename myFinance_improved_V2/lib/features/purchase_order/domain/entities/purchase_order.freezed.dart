@@ -464,6 +464,13 @@ mixin _$PurchaseOrder {
 
   /// Seller (our company) info for PDF generation
   Map<String, dynamic>? get sellerInfo => throw _privateConstructorUsedError;
+
+  /// Banking info for PDF (from cash_locations)
+  List<Map<String, dynamic>>? get bankingInfo =>
+      throw _privateConstructorUsedError;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  List<String> get bankAccountIds => throw _privateConstructorUsedError;
   String? get buyerId => throw _privateConstructorUsedError;
   String? get buyerName => throw _privateConstructorUsedError;
   String? get buyerPoNumber => throw _privateConstructorUsedError;
@@ -508,6 +515,8 @@ abstract class $PurchaseOrderCopyWith<$Res> {
       String? piId,
       String? piNumber,
       Map<String, dynamic>? sellerInfo,
+      List<Map<String, dynamic>>? bankingInfo,
+      List<String> bankAccountIds,
       String? buyerId,
       String? buyerName,
       String? buyerPoNumber,
@@ -554,6 +563,8 @@ class _$PurchaseOrderCopyWithImpl<$Res, $Val extends PurchaseOrder>
     Object? piId = freezed,
     Object? piNumber = freezed,
     Object? sellerInfo = freezed,
+    Object? bankingInfo = freezed,
+    Object? bankAccountIds = null,
     Object? buyerId = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
@@ -606,6 +617,14 @@ class _$PurchaseOrderCopyWithImpl<$Res, $Val extends PurchaseOrder>
           ? _value.sellerInfo
           : sellerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      bankingInfo: freezed == bankingInfo
+          ? _value.bankingInfo
+          : bankingInfo // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      bankAccountIds: null == bankAccountIds
+          ? _value.bankAccountIds
+          : bankAccountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       buyerId: freezed == buyerId
           ? _value.buyerId
           : buyerId // ignore: cast_nullable_to_non_nullable
@@ -714,6 +733,8 @@ abstract class _$$PurchaseOrderImplCopyWith<$Res>
       String? piId,
       String? piNumber,
       Map<String, dynamic>? sellerInfo,
+      List<Map<String, dynamic>>? bankingInfo,
+      List<String> bankAccountIds,
       String? buyerId,
       String? buyerName,
       String? buyerPoNumber,
@@ -758,6 +779,8 @@ class __$$PurchaseOrderImplCopyWithImpl<$Res>
     Object? piId = freezed,
     Object? piNumber = freezed,
     Object? sellerInfo = freezed,
+    Object? bankingInfo = freezed,
+    Object? bankAccountIds = null,
     Object? buyerId = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
@@ -810,6 +833,14 @@ class __$$PurchaseOrderImplCopyWithImpl<$Res>
           ? _value._sellerInfo
           : sellerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      bankingInfo: freezed == bankingInfo
+          ? _value._bankingInfo
+          : bankingInfo // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      bankAccountIds: null == bankAccountIds
+          ? _value._bankAccountIds
+          : bankAccountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       buyerId: freezed == buyerId
           ? _value.buyerId
           : buyerId // ignore: cast_nullable_to_non_nullable
@@ -913,6 +944,8 @@ class _$PurchaseOrderImpl extends _PurchaseOrder {
       this.piId,
       this.piNumber,
       final Map<String, dynamic>? sellerInfo,
+      final List<Map<String, dynamic>>? bankingInfo,
+      final List<String> bankAccountIds = const [],
       this.buyerId,
       this.buyerName,
       this.buyerPoNumber,
@@ -936,6 +969,8 @@ class _$PurchaseOrderImpl extends _PurchaseOrder {
       this.updatedAtUtc,
       final List<POItem> items = const []})
       : _sellerInfo = sellerInfo,
+        _bankingInfo = bankingInfo,
+        _bankAccountIds = bankAccountIds,
         _buyerInfo = buyerInfo,
         _items = items,
         super._();
@@ -964,6 +999,31 @@ class _$PurchaseOrderImpl extends _PurchaseOrder {
     if (_sellerInfo is EqualUnmodifiableMapView) return _sellerInfo;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(value);
+  }
+
+  /// Banking info for PDF (from cash_locations)
+  final List<Map<String, dynamic>>? _bankingInfo;
+
+  /// Banking info for PDF (from cash_locations)
+  @override
+  List<Map<String, dynamic>>? get bankingInfo {
+    final value = _bankingInfo;
+    if (value == null) return null;
+    if (_bankingInfo is EqualUnmodifiableListView) return _bankingInfo;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  final List<String> _bankAccountIds;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @override
+  @JsonKey()
+  List<String> get bankAccountIds {
+    if (_bankAccountIds is EqualUnmodifiableListView) return _bankAccountIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_bankAccountIds);
   }
 
   @override
@@ -1034,7 +1094,7 @@ class _$PurchaseOrderImpl extends _PurchaseOrder {
 
   @override
   String toString() {
-    return 'PurchaseOrder(poId: $poId, poNumber: $poNumber, companyId: $companyId, storeId: $storeId, piId: $piId, piNumber: $piNumber, sellerInfo: $sellerInfo, buyerId: $buyerId, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, buyerInfo: $buyerInfo, currencyId: $currencyId, currencyCode: $currencyCode, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, paymentTermsCode: $paymentTermsCode, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, status: $status, version: $version, shippedPercent: $shippedPercent, notes: $notes, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items)';
+    return 'PurchaseOrder(poId: $poId, poNumber: $poNumber, companyId: $companyId, storeId: $storeId, piId: $piId, piNumber: $piNumber, sellerInfo: $sellerInfo, bankingInfo: $bankingInfo, bankAccountIds: $bankAccountIds, buyerId: $buyerId, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, buyerInfo: $buyerInfo, currencyId: $currencyId, currencyCode: $currencyCode, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, paymentTermsCode: $paymentTermsCode, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, status: $status, version: $version, shippedPercent: $shippedPercent, notes: $notes, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items)';
   }
 
   @override
@@ -1053,6 +1113,10 @@ class _$PurchaseOrderImpl extends _PurchaseOrder {
                 other.piNumber == piNumber) &&
             const DeepCollectionEquality()
                 .equals(other._sellerInfo, _sellerInfo) &&
+            const DeepCollectionEquality()
+                .equals(other._bankingInfo, _bankingInfo) &&
+            const DeepCollectionEquality()
+                .equals(other._bankAccountIds, _bankAccountIds) &&
             (identical(other.buyerId, buyerId) || other.buyerId == buyerId) &&
             (identical(other.buyerName, buyerName) ||
                 other.buyerName == buyerName) &&
@@ -1105,6 +1169,8 @@ class _$PurchaseOrderImpl extends _PurchaseOrder {
         piId,
         piNumber,
         const DeepCollectionEquality().hash(_sellerInfo),
+        const DeepCollectionEquality().hash(_bankingInfo),
+        const DeepCollectionEquality().hash(_bankAccountIds),
         buyerId,
         buyerName,
         buyerPoNumber,
@@ -1147,6 +1213,8 @@ abstract class _PurchaseOrder extends PurchaseOrder {
       final String? piId,
       final String? piNumber,
       final Map<String, dynamic>? sellerInfo,
+      final List<Map<String, dynamic>>? bankingInfo,
+      final List<String> bankAccountIds,
       final String? buyerId,
       final String? buyerName,
       final String? buyerPoNumber,
@@ -1187,6 +1255,14 @@ abstract class _PurchaseOrder extends PurchaseOrder {
   /// Seller (our company) info for PDF generation
   @override
   Map<String, dynamic>? get sellerInfo;
+
+  /// Banking info for PDF (from cash_locations)
+  @override
+  List<Map<String, dynamic>>? get bankingInfo;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @override
+  List<String> get bankAccountIds;
   @override
   String? get buyerId;
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../trade_shared/domain/entities/dashboard_summary.dart';
+import '../../domain/entities/dashboard_summary.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 
 /// Dashboard overview section with key metrics - Simple clean design

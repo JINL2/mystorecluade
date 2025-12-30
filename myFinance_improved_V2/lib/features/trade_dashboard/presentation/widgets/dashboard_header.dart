@@ -4,7 +4,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
+import '../providers/dashboard_providers.dart';
 
 /// Dashboard header with date range selector
 class DashboardHeader extends ConsumerWidget {
@@ -12,7 +12,7 @@ class DashboardHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dateRange = ref.watch(dateRangeProvider);
+    final dateRange = ref.watch(dateRangeNotifierProvider);
 
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),

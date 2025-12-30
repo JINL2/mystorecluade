@@ -101,6 +101,12 @@ class AccountSettingsNotifier extends _$AccountSettingsNotifier {
       bankName: location.bankName ?? '',
       accountNumber: location.accountNumber ?? '',
       isMainAccount: location.isMainLocation,
+      // Trade fields
+      beneficiaryName: location.beneficiaryName ?? '',
+      bankAddress: location.bankAddress ?? '',
+      swiftCode: location.swiftCode ?? '',
+      bankBranch: location.bankBranch ?? '',
+      accountType: location.accountType ?? '',
     );
   }
 
@@ -128,6 +134,12 @@ class AccountSettingsNotifier extends _$AccountSettingsNotifier {
       bankName: location.bankName ?? '',
       accountNumber: location.accountNumber ?? '',
       isMainAccount: location.isMainLocation,
+      // Trade fields
+      beneficiaryName: location.beneficiaryName ?? '',
+      bankAddress: location.bankAddress ?? '',
+      swiftCode: location.swiftCode ?? '',
+      bankBranch: location.bankBranch ?? '',
+      accountType: location.accountType ?? '',
     );
   }
 
@@ -254,6 +266,191 @@ class AccountSettingsNotifier extends _$AccountSettingsNotifier {
   /// Update account number (local state only, no DB update currently)
   void updateAccountNumber(String newAccountNumber) {
     state = state.copyWith(accountNumber: newAccountNumber);
+  }
+
+  /// Update beneficiary name
+  Future<bool> updateBeneficiaryName(String newBeneficiaryName) async {
+    state = state.copyWith(isSaving: true, errorMessage: null, successMessage: null);
+
+    try {
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
+
+      await useCase(
+        UpdateCashLocationParams(
+          locationId: params.locationId,
+          locationName: state.accountName,
+          beneficiaryName: newBeneficiaryName,
+        ),
+      );
+
+      state = state.copyWith(
+        isSaving: false,
+        beneficiaryName: newBeneficiaryName,
+        successMessage: 'Beneficiary name updated successfully',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsNotifier: Failed to update beneficiary name',
+        extra: {'locationId': params.locationId},
+      );
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: 'Failed to update beneficiary name: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  /// Update bank address
+  Future<bool> updateBankAddress(String newBankAddress) async {
+    state = state.copyWith(isSaving: true, errorMessage: null, successMessage: null);
+
+    try {
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
+
+      await useCase(
+        UpdateCashLocationParams(
+          locationId: params.locationId,
+          locationName: state.accountName,
+          bankAddress: newBankAddress,
+        ),
+      );
+
+      state = state.copyWith(
+        isSaving: false,
+        bankAddress: newBankAddress,
+        successMessage: 'Bank address updated successfully',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsNotifier: Failed to update bank address',
+        extra: {'locationId': params.locationId},
+      );
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: 'Failed to update bank address: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  /// Update SWIFT code
+  Future<bool> updateSwiftCode(String newSwiftCode) async {
+    state = state.copyWith(isSaving: true, errorMessage: null, successMessage: null);
+
+    try {
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
+
+      await useCase(
+        UpdateCashLocationParams(
+          locationId: params.locationId,
+          locationName: state.accountName,
+          swiftCode: newSwiftCode,
+        ),
+      );
+
+      state = state.copyWith(
+        isSaving: false,
+        swiftCode: newSwiftCode,
+        successMessage: 'SWIFT code updated successfully',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsNotifier: Failed to update SWIFT code',
+        extra: {'locationId': params.locationId},
+      );
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: 'Failed to update SWIFT code: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  /// Update bank branch
+  Future<bool> updateBankBranch(String newBankBranch) async {
+    state = state.copyWith(isSaving: true, errorMessage: null, successMessage: null);
+
+    try {
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
+
+      await useCase(
+        UpdateCashLocationParams(
+          locationId: params.locationId,
+          locationName: state.accountName,
+          bankBranch: newBankBranch,
+        ),
+      );
+
+      state = state.copyWith(
+        isSaving: false,
+        bankBranch: newBankBranch,
+        successMessage: 'Bank branch updated successfully',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsNotifier: Failed to update bank branch',
+        extra: {'locationId': params.locationId},
+      );
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: 'Failed to update bank branch: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  /// Update account type
+  Future<bool> updateAccountType(String newAccountType) async {
+    state = state.copyWith(isSaving: true, errorMessage: null, successMessage: null);
+
+    try {
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
+
+      await useCase(
+        UpdateCashLocationParams(
+          locationId: params.locationId,
+          locationName: state.accountName,
+          accountType: newAccountType,
+        ),
+      );
+
+      state = state.copyWith(
+        isSaving: false,
+        accountType: newAccountType,
+        successMessage: 'Account type updated successfully',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsNotifier: Failed to update account type',
+        extra: {'locationId': params.locationId},
+      );
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: 'Failed to update account type: ${e.toString()}',
+      );
+      return false;
+    }
   }
 
   /// Update main account status

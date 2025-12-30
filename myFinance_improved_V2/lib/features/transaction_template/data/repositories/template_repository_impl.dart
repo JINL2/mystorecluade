@@ -18,18 +18,18 @@ import '../../domain/repositories/template_repository.dart';
 import '../cache/template_cache_repository.dart';
 import '../datasources/template_data_source.dart';
 
-class SupabaseTemplateRepository implements TemplateRepository {
+class TemplateRepositoryImpl implements TemplateRepository {
   final TemplateDataSource _dataSource;
   final TemplateCacheRepository _cacheRepository;
 
-  SupabaseTemplateRepository({
+  TemplateRepositoryImpl({
     required TemplateDataSource dataSource,
     required TemplateCacheRepository cacheRepository,
   }) : _dataSource = dataSource, _cacheRepository = cacheRepository;
 
   /// Factory constructor with default dependencies
-  factory SupabaseTemplateRepository.create() {
-    return SupabaseTemplateRepository(
+  factory TemplateRepositoryImpl.create() {
+    return TemplateRepositoryImpl(
       dataSource: TemplateDataSource(SupabaseService()),
       cacheRepository: TemplateCacheRepository(),
     );

@@ -2,11 +2,13 @@
 
 class CashLocationQueryParams {
   final String companyId;
-  final String storeId;
+  final String? storeId;
+  final String? locationType;
 
   CashLocationQueryParams({
     required this.companyId,
-    required this.storeId,
+    this.storeId,
+    this.locationType,
   });
 
   @override
@@ -15,8 +17,9 @@ class CashLocationQueryParams {
       other is CashLocationQueryParams &&
           runtimeType == other.runtimeType &&
           companyId == other.companyId &&
-          storeId == other.storeId;
+          storeId == other.storeId &&
+          locationType == other.locationType;
 
   @override
-  int get hashCode => companyId.hashCode ^ storeId.hashCode;
+  int get hashCode => companyId.hashCode ^ (storeId?.hashCode ?? 0) ^ (locationType?.hashCode ?? 0);
 }

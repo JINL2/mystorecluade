@@ -70,6 +70,10 @@ class PIModel with _$PIModel {
     @JsonKey(name: 'counterparty_name') String? counterpartyName,
     @JsonKey(name: 'counterparty_info') Map<String, dynamic>? counterpartyInfo,
     @JsonKey(name: 'seller_info') Map<String, dynamic>? sellerInfo,
+    /// Banking info for PDF (from cash_locations)
+    @JsonKey(name: 'banking_info') List<Map<String, dynamic>>? bankingInfo,
+    /// Selected bank account IDs (cash_location_ids) for PDF display
+    @JsonKey(name: 'bank_account_ids') @Default([]) List<String> bankAccountIds,
     @JsonKey(name: 'currency_id') String? currencyId,
     @JsonKey(name: 'currency_code') @Default('USD') String currencyCode,
     @Default(0) double subtotal,
@@ -116,6 +120,8 @@ class PIModel with _$PIModel {
         counterpartyName: counterpartyName,
         counterpartyInfo: counterpartyInfo,
         sellerInfo: sellerInfo,
+        bankingInfo: bankingInfo,
+        bankAccountIds: bankAccountIds,
         currencyId: currencyId,
         currencyCode: currencyCode,
         subtotal: subtotal,

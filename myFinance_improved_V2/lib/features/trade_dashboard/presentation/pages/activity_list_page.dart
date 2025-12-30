@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
+// Dashboard 관련은 trade_dashboard 자체 모듈에서 가져옴
+import '../providers/dashboard_providers.dart';
+// 공유 위젯은 trade_shared에서 가져옴
 import '../../../trade_shared/presentation/widgets/trade_timeline_widget.dart';
 
 /// Page to display all trade activities
@@ -28,11 +31,12 @@ class _ActivityListPageState extends ConsumerState<ActivityListPage> {
   }
 
   void _loadActivities() {
-    final companyId = ref.read(supabaseClientProvider).auth.currentUser?.userMetadata?['company_id'] as String? ?? '';
-    final storeId = ref.read(supabaseClientProvider).auth.currentUser?.userMetadata?['store_id'] as String? ?? '';
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
 
     if (companyId.isNotEmpty) {
-      ref.read(recentActivitiesProvider.notifier).loadActivities(
+      ref.read(recentActivitiesNotifierProvider.notifier).loadActivities(
             companyId: companyId,
             storeId: storeId.isNotEmpty ? storeId : null,
             entityType: _selectedEntityType,
@@ -43,7 +47,7 @@ class _ActivityListPageState extends ConsumerState<ActivityListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final activitiesState = ref.watch(recentActivitiesProvider);
+    final activitiesState = ref.watch(recentActivitiesNotifierProvider);
 
     // Filter activities client-side based on selected entity type
     final filteredActivities = _selectedEntityType == null

@@ -49,6 +49,7 @@ class PICreateParams {
   final String? notes;
   final String? internalNotes;
   final String? termsAndConditions;
+  final List<String> bankAccountIds;
   final List<PIItemParams> items;
 
   const PICreateParams({
@@ -74,6 +75,7 @@ class PICreateParams {
     this.notes,
     this.internalNotes,
     this.termsAndConditions,
+    this.bankAccountIds = const [],
     this.items = const [],
   });
 }

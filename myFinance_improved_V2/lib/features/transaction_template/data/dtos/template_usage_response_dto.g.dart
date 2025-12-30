@@ -165,23 +165,3 @@ Map<String, dynamic> _$$TemplateDisplayInfoDtoImplToJson(
       'credit_category': instance.creditCategory,
       'transaction_type': instance.transactionType,
     };
-
-_$CreateTransactionResponseDtoImpl _$$CreateTransactionResponseDtoImplFromJson(
-        Map<String, dynamic> json) =>
-    _$CreateTransactionResponseDtoImpl(
-      success: json['success'] as bool,
-      journalId: json['journal_id'] as String?,
-      message: json['message'] as String?,
-      error: json['error'] as String?,
-      field: json['field'] as String?,
-    );
-
-Map<String, dynamic> _$$CreateTransactionResponseDtoImplToJson(
-        _$CreateTransactionResponseDtoImpl instance) =>
-    <String, dynamic>{
-      'success': instance.success,
-      'journal_id': instance.journalId,
-      'message': instance.message,
-      'error': instance.error,
-      'field': instance.field,
-    };

@@ -7,28 +7,16 @@
 /// - ✅ Can depend on Domain Layer (Use Cases)
 /// - ✅ Can depend on Data Layer (Repository implementations)
 /// - ✅ Provides dependency injection
+///
+/// Note: Transaction creation from template is handled by TemplateRpcService
+///       via templateRpcServiceProvider in repository_providers.dart
 library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
 import '../../domain/entities/template_attachment.dart';
-import '../../domain/usecases/create_transaction_from_template_usecase.dart';
 import '../../domain/usecases/update_template_usecase.dart';
-
-/// Provider for CreateTransactionFromTemplateUseCase
-///
-/// **Dependency Flow**:
-/// Presentation → Domain Use Case → Repository Interface ← Data Implementation
-final createTransactionFromTemplateUseCaseProvider = Provider<CreateTransactionFromTemplateUseCase>((ref) {
-  // Get repository implementation from Data layer
-  final transactionRepository = ref.read(transactionRepositoryProvider);
-
-  // Inject repository into Use Case
-  return CreateTransactionFromTemplateUseCase(
-    transactionRepository: transactionRepository,
-  );
-});
 
 // =============================================================================
 // Attachment Providers

@@ -3,7 +3,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../trade_shared/domain/entities/dashboard_summary.dart';
+import '../../domain/entities/dashboard_summary.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 
 /// Dashboard recent activity section

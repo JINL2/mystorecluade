@@ -14,7 +14,16 @@ class CashLocationModel {
   final String companyId;
   final String? storeId;
   final String currencySymbol;
+  final String? currencyCode;
   final bool isDeleted;
+  // Bank-specific fields
+  final String? bankName;
+  final String? bankAccount;
+  final String? beneficiaryName;
+  final String? bankAddress;
+  final String? swiftCode;
+  final String? bankBranch;
+  final String? accountType;
 
   CashLocationModel({
     required this.locationId,
@@ -25,8 +34,16 @@ class CashLocationModel {
     required this.cashDifference,
     required this.companyId,
     required this.currencySymbol,
+    this.currencyCode,
     this.storeId,
     this.isDeleted = false,
+    this.bankName,
+    this.bankAccount,
+    this.beneficiaryName,
+    this.bankAddress,
+    this.swiftCode,
+    this.bankBranch,
+    this.accountType,
   });
 
   /// From JSON (API/Database) → Model
@@ -45,7 +62,16 @@ class CashLocationModel {
       companyId: json['company_id'] as String? ?? '',
       storeId: json['store_id'] as String?,
       currencySymbol: json['primary_currency_symbol'] as String? ?? '',
+      currencyCode: json['primary_currency_code'] as String?,
       isDeleted: json['is_deleted'] as bool? ?? false,
+      // Bank-specific fields
+      bankName: json['bank_name'] as String?,
+      bankAccount: json['bank_account'] as String?,
+      beneficiaryName: json['beneficiary_name'] as String?,
+      bankAddress: json['bank_address'] as String?,
+      swiftCode: json['swift_code'] as String?,
+      bankBranch: json['bank_branch'] as String?,
+      accountType: json['account_type'] as String?,
     );
   }
 
@@ -61,7 +87,15 @@ class CashLocationModel {
       companyId: companyId,
       storeId: storeId,
       currencySymbol: currencySymbol,
+      currencyCode: currencyCode,
       isDeleted: isDeleted,
+      bankName: bankName,
+      bankAccount: bankAccount,
+      beneficiaryName: beneficiaryName,
+      bankAddress: bankAddress,
+      swiftCode: swiftCode,
+      bankBranch: bankBranch,
+      accountType: accountType,
     );
   }
 
@@ -77,7 +111,15 @@ class CashLocationModel {
       companyId: entity.companyId,
       storeId: entity.storeId,
       currencySymbol: entity.currencySymbol,
+      currencyCode: entity.currencyCode,
       isDeleted: entity.isDeleted,
+      bankName: entity.bankName,
+      bankAccount: entity.bankAccount,
+      beneficiaryName: entity.beneficiaryName,
+      bankAddress: entity.bankAddress,
+      swiftCode: entity.swiftCode,
+      bankBranch: entity.bankBranch,
+      accountType: entity.accountType,
     );
   }
 }

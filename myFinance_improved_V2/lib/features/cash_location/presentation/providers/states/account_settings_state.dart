@@ -33,6 +33,22 @@ class AccountSettingsState with _$AccountSettingsState {
     /// Whether this is the main account
     @Default(false) bool isMainAccount,
 
+    // Trade/International banking fields
+    /// Beneficiary name for international transfers
+    @Default('') String beneficiaryName,
+
+    /// Bank address
+    @Default('') String bankAddress,
+
+    /// SWIFT/BIC code
+    @Default('') String swiftCode,
+
+    /// Bank branch
+    @Default('') String bankBranch,
+
+    /// Account type (Savings, Checking, Current, Business)
+    @Default('') String accountType,
+
     /// Loading state
     @Default(false) bool isLoading,
 

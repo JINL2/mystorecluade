@@ -25,7 +25,16 @@ mixin _$CashLocation {
   String get companyId => throw _privateConstructorUsedError;
   String? get storeId => throw _privateConstructorUsedError;
   String get currencySymbol => throw _privateConstructorUsedError;
-  bool get isDeleted => throw _privateConstructorUsedError;
+  String? get currencyCode => throw _privateConstructorUsedError;
+  bool get isDeleted =>
+      throw _privateConstructorUsedError; // Bank-specific fields
+  String? get bankName => throw _privateConstructorUsedError;
+  String? get bankAccount => throw _privateConstructorUsedError;
+  String? get beneficiaryName => throw _privateConstructorUsedError;
+  String? get bankAddress => throw _privateConstructorUsedError;
+  String? get swiftCode => throw _privateConstructorUsedError;
+  String? get bankBranch => throw _privateConstructorUsedError;
+  String? get accountType => throw _privateConstructorUsedError;
 
   /// Create a copy of CashLocation
   /// with the given fields replaced by the non-null parameter values.
@@ -50,7 +59,15 @@ abstract class $CashLocationCopyWith<$Res> {
       String companyId,
       String? storeId,
       String currencySymbol,
-      bool isDeleted});
+      String? currencyCode,
+      bool isDeleted,
+      String? bankName,
+      String? bankAccount,
+      String? beneficiaryName,
+      String? bankAddress,
+      String? swiftCode,
+      String? bankBranch,
+      String? accountType});
 }
 
 /// @nodoc
@@ -77,7 +94,15 @@ class _$CashLocationCopyWithImpl<$Res, $Val extends CashLocation>
     Object? companyId = null,
     Object? storeId = freezed,
     Object? currencySymbol = null,
+    Object? currencyCode = freezed,
     Object? isDeleted = null,
+    Object? bankName = freezed,
+    Object? bankAccount = freezed,
+    Object? beneficiaryName = freezed,
+    Object? bankAddress = freezed,
+    Object? swiftCode = freezed,
+    Object? bankBranch = freezed,
+    Object? accountType = freezed,
   }) {
     return _then(_value.copyWith(
       locationId: null == locationId
@@ -116,10 +141,42 @@ class _$CashLocationCopyWithImpl<$Res, $Val extends CashLocation>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
+      currencyCode: freezed == currencyCode
+          ? _value.currencyCode
+          : currencyCode // ignore: cast_nullable_to_non_nullable
+              as String?,
       isDeleted: null == isDeleted
           ? _value.isDeleted
           : isDeleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      bankName: freezed == bankName
+          ? _value.bankName
+          : bankName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankAccount: freezed == bankAccount
+          ? _value.bankAccount
+          : bankAccount // ignore: cast_nullable_to_non_nullable
+              as String?,
+      beneficiaryName: freezed == beneficiaryName
+          ? _value.beneficiaryName
+          : beneficiaryName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankAddress: freezed == bankAddress
+          ? _value.bankAddress
+          : bankAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      swiftCode: freezed == swiftCode
+          ? _value.swiftCode
+          : swiftCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankBranch: freezed == bankBranch
+          ? _value.bankBranch
+          : bankBranch // ignore: cast_nullable_to_non_nullable
+              as String?,
+      accountType: freezed == accountType
+          ? _value.accountType
+          : accountType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -142,7 +199,15 @@ abstract class _$$CashLocationImplCopyWith<$Res>
       String companyId,
       String? storeId,
       String currencySymbol,
-      bool isDeleted});
+      String? currencyCode,
+      bool isDeleted,
+      String? bankName,
+      String? bankAccount,
+      String? beneficiaryName,
+      String? bankAddress,
+      String? swiftCode,
+      String? bankBranch,
+      String? accountType});
 }
 
 /// @nodoc
@@ -167,7 +232,15 @@ class __$$CashLocationImplCopyWithImpl<$Res>
     Object? companyId = null,
     Object? storeId = freezed,
     Object? currencySymbol = null,
+    Object? currencyCode = freezed,
     Object? isDeleted = null,
+    Object? bankName = freezed,
+    Object? bankAccount = freezed,
+    Object? beneficiaryName = freezed,
+    Object? bankAddress = freezed,
+    Object? swiftCode = freezed,
+    Object? bankBranch = freezed,
+    Object? accountType = freezed,
   }) {
     return _then(_$CashLocationImpl(
       locationId: null == locationId
@@ -206,10 +279,42 @@ class __$$CashLocationImplCopyWithImpl<$Res>
           ? _value.currencySymbol
           : currencySymbol // ignore: cast_nullable_to_non_nullable
               as String,
+      currencyCode: freezed == currencyCode
+          ? _value.currencyCode
+          : currencyCode // ignore: cast_nullable_to_non_nullable
+              as String?,
       isDeleted: null == isDeleted
           ? _value.isDeleted
           : isDeleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      bankName: freezed == bankName
+          ? _value.bankName
+          : bankName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankAccount: freezed == bankAccount
+          ? _value.bankAccount
+          : bankAccount // ignore: cast_nullable_to_non_nullable
+              as String?,
+      beneficiaryName: freezed == beneficiaryName
+          ? _value.beneficiaryName
+          : beneficiaryName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankAddress: freezed == bankAddress
+          ? _value.bankAddress
+          : bankAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      swiftCode: freezed == swiftCode
+          ? _value.swiftCode
+          : swiftCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bankBranch: freezed == bankBranch
+          ? _value.bankBranch
+          : bankBranch // ignore: cast_nullable_to_non_nullable
+              as String?,
+      accountType: freezed == accountType
+          ? _value.accountType
+          : accountType // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -227,7 +332,15 @@ class _$CashLocationImpl extends _CashLocation {
       required this.companyId,
       this.storeId,
       required this.currencySymbol,
-      this.isDeleted = false})
+      this.currencyCode,
+      this.isDeleted = false,
+      this.bankName,
+      this.bankAccount,
+      this.beneficiaryName,
+      this.bankAddress,
+      this.swiftCode,
+      this.bankBranch,
+      this.accountType})
       : super._();
 
   @override
@@ -249,12 +362,29 @@ class _$CashLocationImpl extends _CashLocation {
   @override
   final String currencySymbol;
   @override
+  final String? currencyCode;
+  @override
   @JsonKey()
   final bool isDeleted;
+// Bank-specific fields
+  @override
+  final String? bankName;
+  @override
+  final String? bankAccount;
+  @override
+  final String? beneficiaryName;
+  @override
+  final String? bankAddress;
+  @override
+  final String? swiftCode;
+  @override
+  final String? bankBranch;
+  @override
+  final String? accountType;
 
   @override
   String toString() {
-    return 'CashLocation(locationId: $locationId, locationName: $locationName, locationType: $locationType, totalJournalCashAmount: $totalJournalCashAmount, totalRealCashAmount: $totalRealCashAmount, cashDifference: $cashDifference, companyId: $companyId, storeId: $storeId, currencySymbol: $currencySymbol, isDeleted: $isDeleted)';
+    return 'CashLocation(locationId: $locationId, locationName: $locationName, locationType: $locationType, totalJournalCashAmount: $totalJournalCashAmount, totalRealCashAmount: $totalRealCashAmount, cashDifference: $cashDifference, companyId: $companyId, storeId: $storeId, currencySymbol: $currencySymbol, currencyCode: $currencyCode, isDeleted: $isDeleted, bankName: $bankName, bankAccount: $bankAccount, beneficiaryName: $beneficiaryName, bankAddress: $bankAddress, swiftCode: $swiftCode, bankBranch: $bankBranch, accountType: $accountType)';
   }
 
   @override
@@ -279,8 +409,24 @@ class _$CashLocationImpl extends _CashLocation {
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.currencySymbol, currencySymbol) ||
                 other.currencySymbol == currencySymbol) &&
+            (identical(other.currencyCode, currencyCode) ||
+                other.currencyCode == currencyCode) &&
             (identical(other.isDeleted, isDeleted) ||
-                other.isDeleted == isDeleted));
+                other.isDeleted == isDeleted) &&
+            (identical(other.bankName, bankName) ||
+                other.bankName == bankName) &&
+            (identical(other.bankAccount, bankAccount) ||
+                other.bankAccount == bankAccount) &&
+            (identical(other.beneficiaryName, beneficiaryName) ||
+                other.beneficiaryName == beneficiaryName) &&
+            (identical(other.bankAddress, bankAddress) ||
+                other.bankAddress == bankAddress) &&
+            (identical(other.swiftCode, swiftCode) ||
+                other.swiftCode == swiftCode) &&
+            (identical(other.bankBranch, bankBranch) ||
+                other.bankBranch == bankBranch) &&
+            (identical(other.accountType, accountType) ||
+                other.accountType == accountType));
   }
 
   @override
@@ -295,7 +441,15 @@ class _$CashLocationImpl extends _CashLocation {
       companyId,
       storeId,
       currencySymbol,
-      isDeleted);
+      currencyCode,
+      isDeleted,
+      bankName,
+      bankAccount,
+      beneficiaryName,
+      bankAddress,
+      swiftCode,
+      bankBranch,
+      accountType);
 
   /// Create a copy of CashLocation
   /// with the given fields replaced by the non-null parameter values.
@@ -317,7 +471,15 @@ abstract class _CashLocation extends CashLocation {
       required final String companyId,
       final String? storeId,
       required final String currencySymbol,
-      final bool isDeleted}) = _$CashLocationImpl;
+      final String? currencyCode,
+      final bool isDeleted,
+      final String? bankName,
+      final String? bankAccount,
+      final String? beneficiaryName,
+      final String? bankAddress,
+      final String? swiftCode,
+      final String? bankBranch,
+      final String? accountType}) = _$CashLocationImpl;
   const _CashLocation._() : super._();
 
   @override
@@ -339,7 +501,23 @@ abstract class _CashLocation extends CashLocation {
   @override
   String get currencySymbol;
   @override
-  bool get isDeleted;
+  String? get currencyCode;
+  @override
+  bool get isDeleted; // Bank-specific fields
+  @override
+  String? get bankName;
+  @override
+  String? get bankAccount;
+  @override
+  String? get beneficiaryName;
+  @override
+  String? get bankAddress;
+  @override
+  String? get swiftCode;
+  @override
+  String? get bankBranch;
+  @override
+  String? get accountType;
 
   /// Create a copy of CashLocation
   /// with the given fields replaced by the non-null parameter values.

@@ -37,6 +37,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     with WidgetsBindingObserver {
   late final AccountSettingsParams _params;
 
+  // Trade info section expanded state
+  bool _isTradeInfoExpanded = false;
+
   @override
   void initState() {
     super.initState();
@@ -95,6 +98,11 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                           _buildAccountInfo(state.accountName),
                           const SizedBox(height: TossSpacing.space4),
                           _buildSettingsOptions(state),
+                          // Trade info section (only for bank accounts)
+                          if (widget.locationType == 'bank') ...[
+                            const SizedBox(height: TossSpacing.space4),
+                            _buildTradeInfoSection(state),
+                          ],
                           const SizedBox(height: TossSpacing.space4),
                           _buildDeleteSection(),
                         ],
@@ -301,6 +309,154 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     );
   }
 
+  /// Expandable trade/international banking info section
+  Widget _buildTradeInfoSection(AccountSettingsState state) {
+    // Check if any trade field has data
+    final hasTradeData = state.beneficiaryName.isNotEmpty ||
+        state.bankAddress.isNotEmpty ||
+        state.swiftCode.isNotEmpty ||
+        state.bankBranch.isNotEmpty ||
+        state.accountType.isNotEmpty;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        boxShadow: TossShadows.card,
+      ),
+      child: Column(
+        children: [
+          // Header (clickable to expand/collapse)
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isTradeInfoExpanded = !_isTradeInfoExpanded;
+              });
+            },
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            child: Padding(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.public,
+                    size: 20,
+                    color: hasTradeData
+                        ? Theme.of(context).colorScheme.primary
+                        : TossColors.gray600,
+                  ),
+                  const SizedBox(width: TossSpacing.space3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'International Banking Info',
+                          style: TossTextStyles.body.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          hasTradeData
+                              ? 'Tap to view/edit'
+                              : 'For international trade & wire transfers',
+                          style: TossTextStyles.caption.copyWith(
+                            fontSize: 12,
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _isTradeInfoExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: TossColors.gray400,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Expandable content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: _buildTradeInfoFields(state),
+            crossFadeState: _isTradeInfoExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTradeInfoFields(AccountSettingsState state) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        TossSpacing.space5,
+        0,
+        TossSpacing.space5,
+        TossSpacing.space4,
+      ),
+      child: Column(
+        children: [
+          const Divider(height: 1, color: TossColors.gray200),
+          const SizedBox(height: TossSpacing.space2),
+
+          // Beneficiary Name
+          _buildInputField(
+            'Beneficiary Name',
+            state.beneficiaryName,
+            hintText: 'Add beneficiary',
+            onTap: () => _showBeneficiaryNameEditBottomSheet(state.beneficiaryName),
+          ),
+
+          // SWIFT Code
+          _buildInputField(
+            'SWIFT / BIC Code',
+            state.swiftCode,
+            hintText: 'Add SWIFT code',
+            onTap: () => _showSwiftCodeEditBottomSheet(state.swiftCode),
+          ),
+
+          // Bank Branch
+          _buildInputField(
+            'Bank Branch',
+            state.bankBranch,
+            hintText: 'Add branch',
+            onTap: () => _showBankBranchEditBottomSheet(state.bankBranch),
+          ),
+
+          // Bank Address
+          _buildInputField(
+            'Bank Address',
+            state.bankAddress,
+            hintText: 'Add address',
+            onTap: () => _showBankAddressEditBottomSheet(state.bankAddress),
+          ),
+
+          // Account Type
+          _buildInputField(
+            'Account Type',
+            state.accountType,
+            hintText: 'Select type',
+            onTap: () => _showAccountTypeSelector(state.accountType),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Bottom sheet methods
   void _showNameEditBottomSheet(String currentName) {
     _showEditBottomSheet(
@@ -367,6 +523,126 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             .read(accountSettingsNotifierProvider(_params).notifier)
             .updateAccountNumber(newAccountNumber);
         return true;
+      },
+    );
+  }
+
+  // Trade info bottom sheet methods
+  void _showBeneficiaryNameEditBottomSheet(String currentValue) {
+    _showEditBottomSheet(
+      title: 'Edit beneficiary name',
+      initialText: currentValue,
+      hintText: 'Enter beneficiary name',
+      onSave: (newValue) async {
+        final success = await ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateBeneficiaryName(newValue);
+        return success;
+      },
+    );
+  }
+
+  void _showSwiftCodeEditBottomSheet(String currentValue) {
+    _showEditBottomSheet(
+      title: 'Edit SWIFT/BIC code',
+      initialText: currentValue,
+      hintText: 'e.g., BKCHKHHH',
+      onSave: (newValue) async {
+        final success = await ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateSwiftCode(newValue.toUpperCase());
+        return success;
+      },
+    );
+  }
+
+  void _showBankBranchEditBottomSheet(String currentValue) {
+    _showEditBottomSheet(
+      title: 'Edit bank branch',
+      initialText: currentValue,
+      hintText: 'Enter bank branch',
+      onSave: (newValue) async {
+        final success = await ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateBankBranch(newValue);
+        return success;
+      },
+    );
+  }
+
+  void _showBankAddressEditBottomSheet(String currentValue) {
+    _showEditBottomSheet(
+      title: 'Edit bank address',
+      initialText: currentValue,
+      hintText: 'Enter bank address',
+      multiline: true,
+      onSave: (newValue) async {
+        final success = await ref
+            .read(accountSettingsNotifierProvider(_params).notifier)
+            .updateBankAddress(newValue);
+        return success;
+      },
+    );
+  }
+
+  void _showAccountTypeSelector(String currentValue) {
+    final accountTypes = ['Savings', 'Checking', 'Current', 'Business'];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: TossColors.transparent,
+      builder: (BuildContext modalContext) {
+        return Container(
+          padding: const EdgeInsets.all(TossSpacing.space5),
+          decoration: const BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(TossBorderRadius.xl),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select Account Type',
+                style: TossTextStyles.body.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              ...accountTypes.map((type) {
+                final isSelected = currentValue == type;
+                return ListTile(
+                  title: Text(
+                    type,
+                    style: TossTextStyles.body.copyWith(
+                      fontSize: 16,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : TossColors.gray800,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(
+                          Icons.check,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () async {
+                    Navigator.of(modalContext).pop();
+                    await ref
+                        .read(accountSettingsNotifierProvider(_params).notifier)
+                        .updateAccountType(type);
+                  },
+                );
+              }),
+              const SizedBox(height: TossSpacing.space4),
+            ],
+          ),
+        );
       },
     );
   }

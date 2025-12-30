@@ -15,6 +15,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../di/providers.dart';
 import '../../domain/entities/currency.dart';
+import '../providers/currency_providers.dart';
 import 'edit_exchange_rate/currency_info_header.dart';
 import 'edit_exchange_rate/current_rate_info.dart';
 import 'edit_exchange_rate/exchange_rate_input_field.dart';
@@ -206,6 +207,10 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       });
 
       if (mounted) {
+        // Invalidate providers first for immediate UI update
+        ref.invalidate(companyCurrenciesProvider);
+        ref.invalidate(companyCurrenciesStreamProvider);
+
         await showDialog<bool>(
           context: context,
           barrierDismissible: true,

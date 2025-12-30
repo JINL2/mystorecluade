@@ -603,6 +603,15 @@ mixin _$PIModel {
       throw _privateConstructorUsedError;
   @JsonKey(name: 'seller_info')
   Map<String, dynamic>? get sellerInfo => throw _privateConstructorUsedError;
+
+  /// Banking info for PDF (from cash_locations)
+  @JsonKey(name: 'banking_info')
+  List<Map<String, dynamic>>? get bankingInfo =>
+      throw _privateConstructorUsedError;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @JsonKey(name: 'bank_account_ids')
+  List<String> get bankAccountIds => throw _privateConstructorUsedError;
   @JsonKey(name: 'currency_id')
   String? get currencyId => throw _privateConstructorUsedError;
   @JsonKey(name: 'currency_code')
@@ -687,6 +696,8 @@ abstract class $PIModelCopyWith<$Res> {
       @JsonKey(name: 'counterparty_info')
       Map<String, dynamic>? counterpartyInfo,
       @JsonKey(name: 'seller_info') Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info') List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids') List<String> bankAccountIds,
       @JsonKey(name: 'currency_id') String? currencyId,
       @JsonKey(name: 'currency_code') String currencyCode,
       double subtotal,
@@ -744,6 +755,8 @@ class _$PIModelCopyWithImpl<$Res, $Val extends PIModel>
     Object? counterpartyName = freezed,
     Object? counterpartyInfo = freezed,
     Object? sellerInfo = freezed,
+    Object? bankingInfo = freezed,
+    Object? bankAccountIds = null,
     Object? currencyId = freezed,
     Object? currencyCode = null,
     Object? subtotal = null,
@@ -810,6 +823,14 @@ class _$PIModelCopyWithImpl<$Res, $Val extends PIModel>
           ? _value.sellerInfo
           : sellerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      bankingInfo: freezed == bankingInfo
+          ? _value.bankingInfo
+          : bankingInfo // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      bankAccountIds: null == bankAccountIds
+          ? _value.bankAccountIds
+          : bankAccountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       currencyId: freezed == currencyId
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
@@ -959,6 +980,8 @@ abstract class _$$PIModelImplCopyWith<$Res> implements $PIModelCopyWith<$Res> {
       @JsonKey(name: 'counterparty_info')
       Map<String, dynamic>? counterpartyInfo,
       @JsonKey(name: 'seller_info') Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info') List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids') List<String> bankAccountIds,
       @JsonKey(name: 'currency_id') String? currencyId,
       @JsonKey(name: 'currency_code') String currencyCode,
       double subtotal,
@@ -1014,6 +1037,8 @@ class __$$PIModelImplCopyWithImpl<$Res>
     Object? counterpartyName = freezed,
     Object? counterpartyInfo = freezed,
     Object? sellerInfo = freezed,
+    Object? bankingInfo = freezed,
+    Object? bankAccountIds = null,
     Object? currencyId = freezed,
     Object? currencyCode = null,
     Object? subtotal = null,
@@ -1080,6 +1105,14 @@ class __$$PIModelImplCopyWithImpl<$Res>
           ? _value._sellerInfo
           : sellerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      bankingInfo: freezed == bankingInfo
+          ? _value._bankingInfo
+          : bankingInfo // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>?,
+      bankAccountIds: null == bankAccountIds
+          ? _value._bankAccountIds
+          : bankAccountIds // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       currencyId: freezed == currencyId
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
@@ -1225,6 +1258,10 @@ class _$PIModelImpl extends _PIModel {
       @JsonKey(name: 'counterparty_info')
       final Map<String, dynamic>? counterpartyInfo,
       @JsonKey(name: 'seller_info') final Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info')
+      final List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids')
+      final List<String> bankAccountIds = const [],
       @JsonKey(name: 'currency_id') this.currencyId,
       @JsonKey(name: 'currency_code') this.currencyCode = 'USD',
       this.subtotal = 0,
@@ -1260,6 +1297,8 @@ class _$PIModelImpl extends _PIModel {
       @JsonKey(name: 'item_count') this.itemCount = 0})
       : _counterpartyInfo = counterpartyInfo,
         _sellerInfo = sellerInfo,
+        _bankingInfo = bankingInfo,
+        _bankAccountIds = bankAccountIds,
         _items = items,
         super._();
 
@@ -1304,6 +1343,32 @@ class _$PIModelImpl extends _PIModel {
     if (_sellerInfo is EqualUnmodifiableMapView) return _sellerInfo;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(value);
+  }
+
+  /// Banking info for PDF (from cash_locations)
+  final List<Map<String, dynamic>>? _bankingInfo;
+
+  /// Banking info for PDF (from cash_locations)
+  @override
+  @JsonKey(name: 'banking_info')
+  List<Map<String, dynamic>>? get bankingInfo {
+    final value = _bankingInfo;
+    if (value == null) return null;
+    if (_bankingInfo is EqualUnmodifiableListView) return _bankingInfo;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  final List<String> _bankAccountIds;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @override
+  @JsonKey(name: 'bank_account_ids')
+  List<String> get bankAccountIds {
+    if (_bankAccountIds is EqualUnmodifiableListView) return _bankAccountIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_bankAccountIds);
   }
 
   @override
@@ -1410,7 +1475,7 @@ class _$PIModelImpl extends _PIModel {
 
   @override
   String toString() {
-    return 'PIModel(piId: $piId, piNumber: $piNumber, companyId: $companyId, storeId: $storeId, counterpartyId: $counterpartyId, counterpartyName: $counterpartyName, counterpartyInfo: $counterpartyInfo, sellerInfo: $sellerInfo, currencyId: $currencyId, currencyCode: $currencyCode, subtotal: $subtotal, discountPercent: $discountPercent, discountAmount: $discountAmount, taxPercent: $taxPercent, taxAmount: $taxAmount, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, portOfLoading: $portOfLoading, portOfDischarge: $portOfDischarge, finalDestination: $finalDestination, countryOfOrigin: $countryOfOrigin, paymentTermsCode: $paymentTermsCode, paymentTermsDetail: $paymentTermsDetail, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, shippingMethodCode: $shippingMethodCode, estimatedShipmentDate: $estimatedShipmentDate, leadTimeDays: $leadTimeDays, validityDate: $validityDate, status: $status, version: $version, notes: $notes, internalNotes: $internalNotes, termsAndConditions: $termsAndConditions, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items, itemCount: $itemCount)';
+    return 'PIModel(piId: $piId, piNumber: $piNumber, companyId: $companyId, storeId: $storeId, counterpartyId: $counterpartyId, counterpartyName: $counterpartyName, counterpartyInfo: $counterpartyInfo, sellerInfo: $sellerInfo, bankingInfo: $bankingInfo, bankAccountIds: $bankAccountIds, currencyId: $currencyId, currencyCode: $currencyCode, subtotal: $subtotal, discountPercent: $discountPercent, discountAmount: $discountAmount, taxPercent: $taxPercent, taxAmount: $taxAmount, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, portOfLoading: $portOfLoading, portOfDischarge: $portOfDischarge, finalDestination: $finalDestination, countryOfOrigin: $countryOfOrigin, paymentTermsCode: $paymentTermsCode, paymentTermsDetail: $paymentTermsDetail, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, shippingMethodCode: $shippingMethodCode, estimatedShipmentDate: $estimatedShipmentDate, leadTimeDays: $leadTimeDays, validityDate: $validityDate, status: $status, version: $version, notes: $notes, internalNotes: $internalNotes, termsAndConditions: $termsAndConditions, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items, itemCount: $itemCount)';
   }
 
   @override
@@ -1432,6 +1497,10 @@ class _$PIModelImpl extends _PIModel {
                 .equals(other._counterpartyInfo, _counterpartyInfo) &&
             const DeepCollectionEquality()
                 .equals(other._sellerInfo, _sellerInfo) &&
+            const DeepCollectionEquality()
+                .equals(other._bankingInfo, _bankingInfo) &&
+            const DeepCollectionEquality()
+                .equals(other._bankAccountIds, _bankAccountIds) &&
             (identical(other.currencyId, currencyId) ||
                 other.currencyId == currencyId) &&
             (identical(other.currencyCode, currencyCode) ||
@@ -1506,6 +1575,8 @@ class _$PIModelImpl extends _PIModel {
         counterpartyName,
         const DeepCollectionEquality().hash(_counterpartyInfo),
         const DeepCollectionEquality().hash(_sellerInfo),
+        const DeepCollectionEquality().hash(_bankingInfo),
+        const DeepCollectionEquality().hash(_bankAccountIds),
         currencyId,
         currencyCode,
         subtotal,
@@ -1567,6 +1638,9 @@ abstract class _PIModel extends PIModel {
       @JsonKey(name: 'counterparty_info')
       final Map<String, dynamic>? counterpartyInfo,
       @JsonKey(name: 'seller_info') final Map<String, dynamic>? sellerInfo,
+      @JsonKey(name: 'banking_info')
+      final List<Map<String, dynamic>>? bankingInfo,
+      @JsonKey(name: 'bank_account_ids') final List<String> bankAccountIds,
       @JsonKey(name: 'currency_id') final String? currencyId,
       @JsonKey(name: 'currency_code') final String currencyCode,
       final double subtotal,
@@ -1629,6 +1703,16 @@ abstract class _PIModel extends PIModel {
   @override
   @JsonKey(name: 'seller_info')
   Map<String, dynamic>? get sellerInfo;
+
+  /// Banking info for PDF (from cash_locations)
+  @override
+  @JsonKey(name: 'banking_info')
+  List<Map<String, dynamic>>? get bankingInfo;
+
+  /// Selected bank account IDs (cash_location_ids) for PDF display
+  @override
+  @JsonKey(name: 'bank_account_ids')
+  List<String> get bankAccountIds;
   @override
   @JsonKey(name: 'currency_id')
   String? get currencyId;

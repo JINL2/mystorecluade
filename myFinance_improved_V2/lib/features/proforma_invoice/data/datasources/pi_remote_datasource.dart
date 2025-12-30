@@ -280,8 +280,8 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
 
     // Ensure seller_info has company name (fallback for existing records)
     var sellerInfo = piMap['seller_info'] as Map<String, dynamic>?;
+    final companyId = piMap['company_id'] as String?;
     if (sellerInfo == null || sellerInfo['name'] == null) {
-      final companyId = piMap['company_id'] as String?;
       if (companyId != null) {
         final companyResponse = await _supabase
             .from('companies')
@@ -293,6 +293,72 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
           sellerInfo['name'] = companyResponse['company_name'] as String?;
           piMap['seller_info'] = sellerInfo;
         }
+      }
+    }
+
+    // Get banking info from cash_locations (bank type accounts for trade)
+    // If bank_account_ids is specified, filter by those IDs; otherwise get all bank accounts
+    if (companyId != null) {
+      final bankAccountIds = (piMap['bank_account_ids'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList();
+
+      dynamic bankingResponse;
+      if (bankAccountIds != null && bankAccountIds.isNotEmpty) {
+        // Filter by selected bank account IDs
+        bankingResponse = await _supabase
+            .from('cash_locations')
+            .select('''
+              cash_location_id,
+              location_name,
+              currency_code,
+              bank_name,
+              bank_account,
+              beneficiary_name,
+              bank_address,
+              swift_code,
+              bank_branch,
+              account_type
+            ''')
+            .eq('company_id', companyId)
+            .inFilter('cash_location_id', bankAccountIds)
+            .eq('is_deleted', false);
+      } else {
+        // Get all bank accounts for this company
+        bankingResponse = await _supabase
+            .from('cash_locations')
+            .select('''
+              cash_location_id,
+              location_name,
+              currency_code,
+              bank_name,
+              bank_account,
+              beneficiary_name,
+              bank_address,
+              swift_code,
+              bank_branch,
+              account_type
+            ''')
+            .eq('company_id', companyId)
+            .eq('location_type', 'bank')
+            .eq('is_deleted', false);
+      }
+
+      if (bankingResponse != null && (bankingResponse as List).isNotEmpty) {
+        piMap['banking_info'] = bankingResponse.map((bank) {
+          return {
+            'cash_location_id': bank['cash_location_id'],
+            'location_name': bank['location_name'],
+            'currency_code': bank['currency_code'],
+            'bank_name': bank['bank_name'],
+            'bank_account': bank['bank_account'],
+            'beneficiary_name': bank['beneficiary_name'],
+            'bank_address': bank['bank_address'],
+            'swift_code': bank['swift_code'],
+            'bank_branch': bank['bank_branch'],
+            'account_type': bank['account_type'],
+          };
+        }).toList();
       }
     }
 
@@ -426,6 +492,7 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
           'notes': params.notes,
           'internal_notes': params.internalNotes,
           'terms_and_conditions': params.termsAndConditions,
+          'bank_account_ids': params.bankAccountIds.isNotEmpty ? params.bankAccountIds : null,
           'created_at_utc': DateTime.now().toUtc().toIso8601String(),
           'updated_at_utc': DateTime.now().toUtc().toIso8601String(),
         })
@@ -499,6 +566,7 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
           'notes': params.notes,
           'internal_notes': params.internalNotes,
           'terms_and_conditions': params.termsAndConditions,
+          'bank_account_ids': params.bankAccountIds.isNotEmpty ? params.bankAccountIds : null,
           'updated_at_utc': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('pi_id', piId);
