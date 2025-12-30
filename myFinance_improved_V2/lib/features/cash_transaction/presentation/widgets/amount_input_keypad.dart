@@ -224,7 +224,7 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
   Widget _buildKeyButton(String key, {bool isIcon = false}) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(TossSpacing.space1),
         child: Material(
           color: TossColors.transparent,
           child: InkWell(

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/report_detail.dart';
 
 /// Financial Changes Summary
@@ -26,12 +26,11 @@ class FinancialChangesSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section title
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
+        Padding(
+          padding: const EdgeInsets.only(bottom: TossSpacing.space3),
           child: Text(
             'Financial Changes',
-            style: TextStyle(
-              fontSize: 16,
+            style: TossTextStyles.titleMedium.copyWith(
               fontWeight: FontWeight.bold,
               color: TossColors.gray900,
             ),
@@ -40,10 +39,10 @@ class FinancialChangesSummary extends StatelessWidget {
 
         // Company-wide summary card
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(TossSpacing.space5),
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
@@ -59,10 +58,10 @@ class FinancialChangesSummary extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(TossSpacing.space2),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: const Icon(
                       LucideIcons.building2,
@@ -71,10 +70,9 @@ class FinancialChangesSummary extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Company-Wide',
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: TossTextStyles.body.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray900,
                     ),
@@ -176,10 +174,10 @@ class _ChangeCard extends StatelessWidget {
     final formatted = _formatCurrency(value.abs());
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: color.withOpacity(0.2),
           width: 1,
@@ -200,8 +198,7 @@ class _ChangeCard extends StatelessWidget {
           // Label
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 11,
+            style: TossTextStyles.labelSmall.copyWith(
               fontWeight: FontWeight.w500,
               color: TossColors.gray600,
             ),
@@ -222,8 +219,7 @@ class _ChangeCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   '${isPositive && label != 'Income' ? '+' : ''}$formatted',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: TossTextStyles.bodySmall.copyWith(
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
@@ -258,11 +254,11 @@ class _StoreChangeCard extends StatelessWidget {
     final storeTotals = _calculateStoreTotals();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -278,10 +274,10 @@ class _StoreChangeCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: const Icon(
                   LucideIcons.store,
@@ -293,8 +289,7 @@ class _StoreChangeCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   store.storeName,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray900,
                   ),
@@ -302,15 +297,14 @@ class _StoreChangeCard extends StatelessWidget {
               ),
               // Revenue badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Text(
                   _formatCurrency(store.revenue),
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TossTextStyles.labelSmall.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.primary,
                   ),
@@ -410,8 +404,7 @@ class _MiniChangeCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 10,
+          style: TossTextStyles.labelSmall.copyWith(
             color: TossColors.gray600,
           ),
         ),
@@ -428,8 +421,7 @@ class _MiniChangeCard extends StatelessWidget {
             Expanded(
               child: Text(
                 _formatShort(value),
-                style: TextStyle(
-                  fontSize: 12,
+                style: TossTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.w600,
                   color: color,
                 ),

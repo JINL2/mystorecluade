@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -136,7 +137,7 @@ class _ActivityLogSectionState extends State<ActivityLogSection> {
               _isExpanded = !_isExpanded;
             });
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(

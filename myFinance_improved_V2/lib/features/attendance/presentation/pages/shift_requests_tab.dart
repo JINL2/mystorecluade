@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/index.dart';
 import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../shared/widgets/toss/toss_dropdown.dart';
@@ -296,7 +295,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
           if (widget.stores.length > 1)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, 0),
                 child: TossDropdown<String>(
                   label: 'Store',
                   value: widget.selectedStoreId,
@@ -317,7 +316,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
           // Week Navigation
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, TossSpacing.space2),
               child: TossWeekNavigation(
                 weekLabel: _controller.getWeekLabel(_currentWeekOffset),
                 dateRange: _controller.getDateRange(weekStartDate),
@@ -331,7 +330,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
           // Week Dates Picker (7 circles)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.only(bottom: TossSpacing.space5),
               child: WeekDatesPicker(
                 selectedDate: selectedDate,
                 weekStartDate: weekStartDate,
@@ -344,7 +343,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
           // "Available Shifts on {date}" header
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space2, TossSpacing.space4, TossSpacing.space3),
               child: Text(
                 'Available Shifts on ${DateFormat.MMMd().format(selectedDate)}',
                 style: TossTextStyles.label.copyWith(
@@ -360,7 +359,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
           shifts.isEmpty
               ? SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(TossSpacing.space8),
                     child: Center(
                       child: Text(
                         'No shifts available',
@@ -373,7 +372,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                   ),
                 )
               : SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -397,7 +396,7 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                         final isLoading = _loadingShiftId == shift.shiftId;
 
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: TossSpacing.space3),
                           child: ShiftSignupCard(
                             shiftType: shift.shiftName,
                             timeRange: ShiftStatusHelper.formatTimeRange(shift.startTime, shift.endTime),

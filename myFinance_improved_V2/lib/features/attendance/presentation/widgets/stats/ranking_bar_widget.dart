@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../../../shared/widgets/common/toss_white_card.dart';
 
 /// Compact ranking card for 2x2 grid layout
@@ -28,7 +27,7 @@ class RankingBarWidget extends StatelessWidget {
     final icon = _getRankingIcon(score);
 
     return TossWhiteCard(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/index.dart';
 import '../../domain/entities/shift_card.dart';
 
 /// Public helper class for calendar-related utilities
@@ -102,14 +100,14 @@ class CalendarHelpers {
         GestureDetector(
           onTap: () => onDateSelected(date),
           child: Container(
-            margin: const EdgeInsets.all(2),
+            margin: const EdgeInsets.all(TossSpacing.space1),
             decoration: BoxDecoration(
               color: isSelected
                   ? TossColors.primary
                   : hasShift
                       ? _getShiftStatusColor(shiftStatus).withOpacity(0.1)
                       : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
               border: isToday
                   ? Border.all(
                       color: TossColors.primary,

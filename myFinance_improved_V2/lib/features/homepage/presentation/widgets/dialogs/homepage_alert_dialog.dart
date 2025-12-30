@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
@@ -52,7 +53,7 @@ class _HomepageAlertDialogState extends State<HomepageAlertDialog> {
               },
               activeColor: TossColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
           ),

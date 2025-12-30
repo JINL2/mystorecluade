@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -44,7 +45,7 @@ class SubscriptionHeroSection extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
@@ -54,7 +55,7 @@ class SubscriptionHeroSection extends StatelessWidget {
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
               child: Image.asset(
                 'assets/images/app icon.png',
                 fit: BoxFit.cover,

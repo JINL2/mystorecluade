@@ -130,15 +130,15 @@ extension DebouncedGoRouterExtension on BuildContext {
   }
 
   /// Debounced pushReplacement with duplicate click prevention
-  Future<T?> debouncedPushReplacement<T extends Object?>(
+  void debouncedPushReplacement(
     String location, {
     Object? extra,
-  }) async {
+  }) {
     final actionKey = 'pushReplacement_${location}_$hashCode';
 
     if (_NavigationDebouncer.instance.isDebounced(actionKey)) {
       debugPrint('[Navigation] PushReplacement debounced: $location');
-      return null;
+      return;
     }
 
     // Mark as debounced
@@ -149,9 +149,8 @@ extension DebouncedGoRouterExtension on BuildContext {
 
     // Execute pushReplacement
     if (mounted) {
-      return pushReplacement<T>(location, extra: extra);
+      pushReplacement(location, extra: extra);
     }
-    return null;
   }
 }
 

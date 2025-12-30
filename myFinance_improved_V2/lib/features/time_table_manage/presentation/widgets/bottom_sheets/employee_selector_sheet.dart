@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_spacing.dart';
+
 /// Employee Selector Sheet
 ///
 /// Sheet for selecting employees for shift assignment (placeholder)
@@ -18,7 +20,7 @@ class EmployeeSelectorSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(TossSpacing.space6),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

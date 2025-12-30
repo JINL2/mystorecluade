@@ -9,7 +9,7 @@ import '../../themes/toss_border_radius.dart';
 import '../../themes/toss_colors.dart';
 import '../../themes/toss_spacing.dart';
 import '../../themes/toss_text_styles.dart';
-import '../toss/keyboard/toss_numberpad_modal.dart';
+import '../toss/keyboard/toss_currency_exchange_modal.dart';
 import '../toss/toss_primary_button.dart';
 import 'toss_loading_view.dart';
 
@@ -137,7 +137,7 @@ class _ExchangeRateCalculatorState extends ConsumerState<ExchangeRateCalculator>
       _selectedCurrencyId = currencyId;
     });
 
-    TossNumberpadModal.show(
+    TossCurrencyExchangeModal.show(
       context: context,
       title: rate['currency_code'] as String? ?? '',
       initialValue: _currencyControllers[currencyId]?.text.replaceAll(',', ''),

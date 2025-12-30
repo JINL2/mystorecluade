@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/report_detail.dart';
 
 /// Red Flags Section
@@ -30,18 +30,17 @@ class RedFlagsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section header
-        const Row(
+        Row(
           children: [
-            Icon(
+            const Icon(
               LucideIcons.alertTriangle,
               size: 20,
               color: TossColors.error,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               'Red Flags',
-              style: TextStyle(
-                fontSize: 16,
+              style: TossTextStyles.titleMedium.copyWith(
                 fontWeight: FontWeight.bold,
                 color: TossColors.gray900,
               ),
@@ -101,7 +100,7 @@ class _FlagCategoryCardState extends State<_FlagCategoryCard> {
     return Container(
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: widget.color.withOpacity(0.2),
           width: 1,
@@ -117,7 +116,7 @@ class _FlagCategoryCardState extends State<_FlagCategoryCard> {
               });
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: widget.color.withOpacity(0.05),
                 borderRadius: const BorderRadius.only(
@@ -128,10 +127,10 @@ class _FlagCategoryCardState extends State<_FlagCategoryCard> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(TossSpacing.space2),
                     decoration: BoxDecoration(
                       color: widget.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Icon(
                       widget.icon,
@@ -146,8 +145,7 @@ class _FlagCategoryCardState extends State<_FlagCategoryCard> {
                       children: [
                         Text(
                           widget.title,
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
                             color: TossColors.gray900,
                           ),
@@ -155,8 +153,7 @@ class _FlagCategoryCardState extends State<_FlagCategoryCard> {
                         const SizedBox(height: 2),
                         Text(
                           '${widget.flags.length} items',
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray600,
                           ),
                         ),
@@ -176,7 +173,7 @@ class _FlagCategoryCardState extends State<_FlagCategoryCard> {
           // Content
           if (_isExpanded)
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 children: widget.flags
                     .take(10) // Show max 10 items
@@ -198,11 +195,11 @@ class _TransactionFlagRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray200,
           width: 1,
@@ -216,8 +213,7 @@ class _TransactionFlagRow extends StatelessWidget {
             children: [
               Text(
                 flag.formatted,
-                style: const TextStyle(
-                  fontSize: 15,
+                style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.bold,
                   color: TossColors.gray900,
                 ),
@@ -225,15 +221,14 @@ class _TransactionFlagRow extends StatelessWidget {
               const Spacer(),
               if (flag.severity != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                   decoration: BoxDecoration(
                     color: _getSeverityColor(flag.severity).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Text(
                     flag.severity!.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10,
+                    style: TossTextStyles.labelSmall.copyWith(
                       fontWeight: FontWeight.w700,
                       color: _getSeverityColor(flag.severity),
                       letterSpacing: 0.5,
@@ -249,8 +244,7 @@ class _TransactionFlagRow extends StatelessWidget {
           if (flag.description != null)
             Text(
               flag.description!,
-              style: const TextStyle(
-                fontSize: 13,
+              style: TossTextStyles.bodySmall.copyWith(
                 color: TossColors.gray700,
               ),
             ),
@@ -270,8 +264,7 @@ class _TransactionFlagRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     flag.employee!,
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
                     ),
                   ),
@@ -286,8 +279,7 @@ class _TransactionFlagRow extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   flag.store!,
-                  style: const TextStyle(
-                    fontSize: 12,
+                  style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray600,
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/manager_memo.dart';
 
@@ -92,7 +93,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
                   : const Radius.circular(TossBorderRadius.lg),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Row(
                 children: [
                   // Title
@@ -110,7 +111,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
                         // Status badge in header
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TossSpacing.space2,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
@@ -149,7 +150,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
               color: TossColors.gray100,
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -188,7 +189,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -299,7 +300,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
               borderSide:
                   const BorderSide(color: TossColors.primary, width: 1.5),
             ),
-            contentPadding: const EdgeInsets.all(12),
+            contentPadding: const EdgeInsets.all(TossSpacing.space3),
           ),
           onChanged: widget.onMemoChanged,
         ),
@@ -310,8 +311,8 @@ class _IssueReportCardState extends State<IssueReportCard> {
   Widget _buildMemoItem(ManagerMemo memo) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),

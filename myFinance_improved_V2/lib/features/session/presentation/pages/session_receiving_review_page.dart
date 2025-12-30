@@ -348,11 +348,11 @@ class _SessionReceivingReviewPageState
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             flex: 2,
             child: Text(
               'Product',
-              style: TextStyle(fontSize: 13, color: TossColors.textSecondary, fontWeight: FontWeight.w500),
+              style: TossTextStyles.bodySmall.copyWith(color: TossColors.textSecondary, fontWeight: FontWeight.w500),
             ),
           ),
           _buildHeaderCell('Shipped'),
@@ -370,7 +370,7 @@ class _SessionReceivingReviewPageState
       width: 52,
       child: Text(
         text,
-        style: const TextStyle(fontSize: 10, color: TossColors.textSecondary, fontWeight: FontWeight.w500),
+        style: TossTextStyles.labelSmall.copyWith(color: TossColors.textSecondary, fontWeight: FontWeight.w500),
         textAlign: TextAlign.center,
       ),
     );

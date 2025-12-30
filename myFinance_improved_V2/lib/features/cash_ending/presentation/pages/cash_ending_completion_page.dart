@@ -8,7 +8,7 @@ import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../shared/widgets/toss/toss_button.dart';
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/balance_summary.dart';
 import '../../domain/usecases/create_error_adjustment_usecase.dart';
@@ -258,7 +258,7 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
             // Bottom button
             Padding(
               padding: const EdgeInsets.all(TossSpacing.space4),
-              child: TossButton1.primary(
+              child: TossButton.primary(
                 text: 'Close',
                 fullWidth: true,
                 textStyle: TossTextStyles.titleLarge.copyWith(

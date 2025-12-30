@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_error_view.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
@@ -72,7 +74,7 @@ class _OverviewTabViewState extends ConsumerState<OverviewTabView> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -162,10 +164,10 @@ class _OverviewTabViewState extends ConsumerState<OverviewTabView> {
     required String subtitle,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: backgroundColor == TossColors.background
             ? Border.all(color: TossColors.gray200)
             : null,
@@ -217,7 +219,7 @@ class _OverviewTabViewState extends ConsumerState<OverviewTabView> {
               ),
               const SizedBox(width: 4),
               Padding(
-                padding: const EdgeInsets.only(bottom: 2),
+                padding: const EdgeInsets.only(bottom: TossSpacing.space1 / 2),
                 child: Text(
                   subtitle,
                   style: TossTextStyles.bodySmall.copyWith(

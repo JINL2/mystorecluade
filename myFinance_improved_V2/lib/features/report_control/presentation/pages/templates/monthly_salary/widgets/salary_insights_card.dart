@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/monthly_salary_report.dart';
 
 /// AI Insights Card for Salary Report
@@ -19,10 +19,10 @@ class SalaryInsightsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -36,7 +36,7 @@ class SalaryInsightsCard extends StatelessWidget {
                 height: 32,
                 decoration: BoxDecoration(
                   color: const Color(0xFFEDE9FE),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: const Icon(
                   LucideIcons.sparkles,
@@ -45,10 +45,9 @@ class SalaryInsightsCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'AI Insights',
-                style: TextStyle(
-                  fontSize: 14,
+                style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w600,
                   color: TossColors.gray900,
                 ),
@@ -62,8 +61,7 @@ class SalaryInsightsCard extends StatelessWidget {
           if (insights.summary.isNotEmpty) ...[
             Text(
               insights.summary,
-              style: const TextStyle(
-                fontSize: 13,
+              style: TossTextStyles.bodySmall.copyWith(
                 color: TossColors.gray700,
                 height: 1.5,
               ),
@@ -110,8 +108,7 @@ class SalaryInsightsCard extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 12,
+              style: TossTextStyles.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
                 color: color,
               ),
@@ -127,7 +124,7 @@ class SalaryInsightsCard extends StatelessWidget {
                   Container(
                     width: 4,
                     height: 4,
-                    margin: const EdgeInsets.only(top: 6, right: 8),
+                    margin: EdgeInsets.only(top: 6, right: TossSpacing.space2),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
@@ -136,8 +133,7 @@ class SalaryInsightsCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       item,
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray600,
                         height: 1.4,
                       ),

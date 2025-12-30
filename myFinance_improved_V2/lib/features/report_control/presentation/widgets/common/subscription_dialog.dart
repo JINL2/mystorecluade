@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/utils/datetime_utils.dart';
-import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../constants/report_constants.dart';
 import '../../constants/report_strings.dart';
 import '../../constants/report_icons.dart';
@@ -87,10 +87,10 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
     final frequency = widget.template.frequency.toLowerCase();
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.xl)),
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(TossSpacing.space6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +104,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                     height: 48,
                     decoration: BoxDecoration(
                       color: _getCategoryColor().withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Icon(
                       ReportIcons.getCategoryIcon(widget.template.categoryName),
@@ -119,16 +119,14 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                       children: [
                         Text(
                           widget.template.templateName,
-                          style: const TextStyle(
-                            fontSize: 20,
+                          style: TossTextStyles.h3.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _getFrequencyText(frequency),
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: TossTextStyles.body.copyWith(
                             color: TossColors.gray600,
                           ),
                         ),
@@ -150,8 +148,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                 const SizedBox(height: 16),
                 Text(
                   widget.template.description!,
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: TossTextStyles.body.copyWith(
                     color: TossColors.gray700,
                   ),
                 ),
@@ -175,10 +172,9 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
               // Days picker (for weekly frequency)
               if (frequency == 'weekly') ...[
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Delivery days',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: TossTextStyles.titleMedium.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -246,9 +242,9 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                         onPressed: _isLoading ? null : _handleUpdateSettings,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: TossColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                           elevation: 0,
                         ),
@@ -262,10 +258,9 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                                       Colors.white),
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 'Update',
-                                style: TextStyle(
-                                  fontSize: 14,
+                                style: TossTextStyles.body.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -281,15 +276,14 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                           foregroundColor: TossColors.error,
                           side: const BorderSide(
                               color: TossColors.error, width: 1),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Delete',
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -305,9 +299,9 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                     onPressed: _isLoading ? null : _handleSubscribe,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TossColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
                       elevation: 0,
                     ),
@@ -321,10 +315,9 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                                   AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text(
+                        : Text(
                             'Subscribe',
-                            style: TextStyle(
-                              fontSize: 14,
+                            style: TossTextStyles.body.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),

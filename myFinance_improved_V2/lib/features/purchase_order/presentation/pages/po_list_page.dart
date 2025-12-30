@@ -834,7 +834,7 @@ class _PIItemCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.success.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(
                       'Accepted',

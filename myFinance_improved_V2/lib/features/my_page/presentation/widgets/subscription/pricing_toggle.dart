@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -19,10 +20,10 @@ class PricingToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(TossSpacing.space1),
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Row(
         children: [
@@ -34,7 +35,7 @@ class PricingToggle extends StatelessWidget {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: !isAnnual ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
@@ -68,7 +69,7 @@ class PricingToggle extends StatelessWidget {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: isAnnual ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
@@ -95,10 +96,10 @@ class PricingToggle extends StatelessWidget {
                     const SizedBox(width: 6),
                     // Savings badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1 + 2, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xFF10B981),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                       child: Text(
                         '-40%',

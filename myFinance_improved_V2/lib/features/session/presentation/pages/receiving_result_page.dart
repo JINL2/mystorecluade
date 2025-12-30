@@ -125,7 +125,7 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.warning,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Text(
                       '${_newItems.length}',
@@ -350,7 +350,7 @@ class _StockChangeRow extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: TossColors.warning,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
               child: Text(
                 'NEW',
@@ -416,7 +416,7 @@ class _StockChangeRow extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: TossColors.success.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
             child: Text(
               '+${item.quantityReceived}',

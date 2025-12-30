@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../../../shared/widgets/toss/toss_button.dart';
 import '../../../providers/cash_ending_state.dart';
 import '../../../providers/cash_tab_state.dart';
 
@@ -34,7 +34,7 @@ class CashSubmitButton extends StatelessWidget {
 
     // If no currency available, disable submit button
     if (selectedCurrencyId == null) {
-      return TossButton1.primary(
+      return TossButton.primary(
         text: 'Submit Ending',
         isLoading: false,
         isEnabled: false,
@@ -54,7 +54,7 @@ class CashSubmitButton extends StatelessWidget {
     // At this point selectedCurrencyId is guaranteed to be non-null
     final currencyId = selectedCurrencyId;
 
-    return TossButton1.primary(
+    return TossButton.primary(
       text: 'Submit Ending',
       isLoading: tabState.isSaving,
       isEnabled: !tabState.isSaving,

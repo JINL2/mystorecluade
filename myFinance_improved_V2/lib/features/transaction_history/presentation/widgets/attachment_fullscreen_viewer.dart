@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myfinance_improved/core/utils/storage_url_helper.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -121,7 +122,7 @@ class _AttachmentFullscreenViewerState
                         ),
                         decoration: BoxDecoration(
                           color: Colors.black45,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Text(
                           '${_currentIndex + 1} / ${imageAttachments.length}',
@@ -261,7 +262,7 @@ class _AttachmentFullscreenViewerState
           height: 8,
           decoration: BoxDecoration(
             color: index == _currentIndex ? TossColors.white : Colors.white38,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
       ),

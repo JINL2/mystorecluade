@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 
 /// Dot indicator showing count
@@ -27,7 +28,7 @@ class DotIndicator extends StatelessWidget {
             margin: EdgeInsets.only(left: index > 0 ? 2 : 0),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
           ),
         ),
@@ -43,7 +44,7 @@ class DotIndicator extends StatelessWidget {
           height: 8,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
         const SizedBox(width: 2),

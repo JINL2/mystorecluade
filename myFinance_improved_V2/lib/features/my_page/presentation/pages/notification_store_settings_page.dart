@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -111,7 +112,7 @@ class _NotificationStoreSettingsPageState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.only(top: TossSpacing.space1 / 2),
                     child: Icon(
                       Icons.info_outline,
                       size: 16,
@@ -146,7 +147,7 @@ class _NotificationStoreSettingsPageState
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             ),
             child: Row(
               children: [
@@ -155,7 +156,7 @@ class _NotificationStoreSettingsPageState
                   height: 48,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Icon(
                     settings.allStoresEnabled
@@ -252,7 +253,7 @@ class _NotificationStoreSettingsPageState
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.gray200,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Text(
                     '$enabledCount/$totalCount',
@@ -283,7 +284,7 @@ class _NotificationStoreSettingsPageState
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space3,
@@ -291,7 +292,7 @@ class _NotificationStoreSettingsPageState
         ),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary : TossColors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray200,
             width: isSelected ? 1.5 : 1,
@@ -527,12 +528,12 @@ class _NotificationStoreSettingsPageState
   }) {
     return InkWell(
       onTap: onToggle,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: enabledCount > 0
                 ? TossColors.primary.withValues(alpha: 0.2)
@@ -582,10 +583,10 @@ class _NotificationStoreSettingsPageState
             ),
             // Expand/collapse indicator
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(TossSpacing.space1 + 2),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,

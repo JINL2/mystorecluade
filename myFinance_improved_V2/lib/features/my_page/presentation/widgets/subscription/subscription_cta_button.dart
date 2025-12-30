@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -137,7 +138,7 @@ class SubscriptionCtaButton extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: bannerColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 border: Border.all(
                   color: bannerColor.withValues(alpha: 0.3),
                 ),
@@ -289,7 +290,7 @@ class SubscriptionCtaButton extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     decoration: BoxDecoration(
                       color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: Border.all(
                         color: Colors.blue.withValues(alpha: 0.3),
                       ),
@@ -327,7 +328,7 @@ class SubscriptionCtaButton extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     decoration: BoxDecoration(
                       color: TossColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: Border.all(
                         color: TossColors.error.withValues(alpha: 0.3),
                       ),

@@ -2,16 +2,16 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/selectors/toss_base_selector.dart';
+import '../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../domain/entities/store.dart';
 
-/// Store selector widget using TossSingleSelector (shared component)
+/// Store selector widget using TossDropdown
 ///
 /// Displays a dropdown to select store from a list
-/// Uses same simple style as Time Table Manage (store name only, no subtitle/icon)
 class StoreSelector extends StatelessWidget {
   final List<Store> stores;
   final String? selectedStoreId;
@@ -35,7 +35,7 @@ class StoreSelector extends StatelessWidget {
         padding: const EdgeInsets.all(TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Center(
           child: Text(
@@ -49,24 +49,18 @@ class StoreSelector extends StatelessWidget {
       );
     }
 
-    return TossSingleSelector<Store>(
-      items: stores,
-      selectedItem: selectedStoreId != null
-          ? stores.firstWhere(
-              (s) => s.storeId == selectedStoreId,
-              orElse: () => stores.first,
-            )
-          : null,
-      onChanged: onChanged,
+    return TossDropdown<String>(
+      label: label,
+      hint: 'Select a store',
+      value: selectedStoreId,
       isLoading: isLoading,
-      config: SelectorConfig(
-        label: label,
-        hint: 'Select a store',
-        showSearch: false,
-      ),
-      itemIdBuilder: (store) => store.storeId,
-      itemTitleBuilder: (store) => store.storeName,
-      itemSubtitleBuilder: (store) => '',
+      items: stores
+          .map((store) => TossDropdownItem(
+                value: store.storeId,
+                label: store.storeName,
+              ))
+          .toList(),
+      onChanged: onChanged,
     );
   }
 }

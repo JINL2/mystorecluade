@@ -4,9 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/features/attendance/domain/entities/shift_card.dart';
 import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
 import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 
@@ -166,9 +165,9 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
           builder: (context, setBottomSheetState) {
             return Padding(
               padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 24,
+                left: TossSpacing.space4,
+                right: TossSpacing.space4,
+                top: TossSpacing.space6,
                 bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 48,
               ),
               child: Column(
@@ -193,7 +192,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                   Container(
                     decoration: BoxDecoration(
                       color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       border: Border.all(color: TossColors.gray200, width: 1),
                     ),
                     child: TextField(
@@ -207,7 +206,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                           color: TossColors.gray400,
                         ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(16),
+                        contentPadding: const EdgeInsets.all(TossSpacing.space4),
                         counterStyle: TossTextStyles.caption.copyWith(
                           color: TossColors.gray500,
                         ),
@@ -221,7 +220,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: TossButton1.secondary(
+                        child: TossButton.secondary(
                           text: 'Cancel',
                           fullWidth: true,
                           isEnabled: !isSubmitting,
@@ -232,7 +231,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: TossButton1.primary(
+                        child: TossButton.primary(
                           text: isSubmitting ? 'Submitting...' : 'OK',
                           fullWidth: true,
                           isEnabled: !isSubmitting,
@@ -325,7 +324,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TossSpacing.space4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -401,7 +400,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                   ),
                   const GrayDividerSpace(),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -426,7 +425,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
+            padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space4, TossSpacing.space4, 48),
             decoration: BoxDecoration(
               color: TossColors.white,
               border: Border(
@@ -437,7 +436,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
               ),
             ),
             child: widget.shift.isReported
-                ? TossButton1.secondary(
+                ? TossButton.secondary(
                     text: 'Report an issue with this shift',
                     leadingIcon: const Icon(Icons.error_outline, size: 18),
                     fullWidth: true,
@@ -445,7 +444,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                     isEnabled: false,
                     onPressed: null,
                   )
-                : TossButton1.primary(
+                : TossButton.primary(
                     text: 'Report an issue with this shift',
                     leadingIcon: const Icon(Icons.error_outline, size: 18),
                     fullWidth: true,

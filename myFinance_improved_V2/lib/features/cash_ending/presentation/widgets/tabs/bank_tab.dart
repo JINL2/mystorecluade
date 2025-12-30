@@ -11,7 +11,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_icons.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../../shared/widgets/toss/toss_button.dart';
 import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../providers/bank_tab_provider.dart';
@@ -171,7 +171,7 @@ class _BankTabState extends ConsumerState<BankTab> {
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 border: Border.all(color: TossColors.gray300, width: 1),
               ),
               child: Row(
@@ -292,7 +292,7 @@ class _BankTabState extends ConsumerState<BankTab> {
           height: 56,
           decoration: BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: _bankAmountController.text.isNotEmpty
                   ? TossColors.primary.withOpacity(0.5)
@@ -335,15 +335,15 @@ class _BankTabState extends ConsumerState<BankTab> {
                 vertical: TossSpacing.space4,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: BorderSide.none,
               ),
               fillColor: TossColors.white,
@@ -364,7 +364,7 @@ class _BankTabState extends ConsumerState<BankTab> {
       builder: (context) {
         final tabState = ref.watch(bankTabProvider);
         final isEnabled = hasCurrency && !tabState.isSaving;
-        return TossButton1.primary(
+        return TossButton.primary(
           text: 'Submit Ending',
           isLoading: tabState.isSaving,
           isEnabled: isEnabled,

@@ -343,7 +343,7 @@ class TransactionListItem extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200, width: 0.5),
       ),
       child: Row(
@@ -379,7 +379,7 @@ class TransactionListItem extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: BoxDecoration(
         color: TossColors.primarySurface.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
           color: TossColors.primary.withValues(alpha: 0.2),
           width: 0.5,

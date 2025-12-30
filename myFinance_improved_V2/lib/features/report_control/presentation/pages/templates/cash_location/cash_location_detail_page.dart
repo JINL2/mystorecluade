@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../domain/entities/report_notification.dart';
@@ -102,7 +102,7 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
         backgroundColor: TossColors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -213,10 +213,10 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
   Widget _buildBalancedFilterView(int balancedCount) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(TossSpacing.space8),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -237,18 +237,16 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
           const SizedBox(height: 16),
           Text(
             '$balancedCount Balanced Locations',
-            style: const TextStyle(
-              fontSize: 18,
+            style: TossTextStyles.h4.copyWith(
               fontWeight: FontWeight.bold,
-              color: Color(0xFF10B981),
+              color: const Color(0xFF10B981),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'These locations have matching book and actual amounts.\nNo action required.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
+            style: TossTextStyles.bodySmall.copyWith(
               color: TossColors.gray500,
               height: 1.5,
             ),
@@ -266,10 +264,10 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(TossSpacing.space8),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -282,8 +280,7 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
           const SizedBox(height: 16),
           Text(
             'No $filterName found',
-            style: const TextStyle(
-              fontSize: 16,
+            style: TossTextStyles.titleMedium.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray600,
             ),
@@ -291,8 +288,7 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
           const SizedBox(height: 8),
           Text(
             'Tap the filter again to see all issues',
-            style: TextStyle(
-              fontSize: 13,
+            style: TossTextStyles.bodySmall.copyWith(
               color: TossColors.gray400,
             ),
           ),
@@ -317,8 +313,7 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(
-                fontSize: 14,
+              style: TossTextStyles.body.copyWith(
                 color: TossColors.gray700,
               ),
               textAlign: TextAlign.center,
@@ -347,10 +342,10 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
 
   Widget _buildDateBadge(String reportDate) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -363,8 +358,7 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
           const SizedBox(width: 6),
           Text(
             reportDate,
-            style: const TextStyle(
-              fontSize: 13,
+            style: TossTextStyles.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray700,
             ),
@@ -382,23 +376,21 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 14,
+          style: TossTextStyles.body.copyWith(
             fontWeight: FontWeight.w600,
             color: TossColors.gray700,
           ),
         ),
         const SizedBox(width: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: 2),
           decoration: BoxDecoration(
             color: TossColors.gray200,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             '$count',
-            style: const TextStyle(
-              fontSize: 11,
+            style: TossTextStyles.labelSmall.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray600,
             ),

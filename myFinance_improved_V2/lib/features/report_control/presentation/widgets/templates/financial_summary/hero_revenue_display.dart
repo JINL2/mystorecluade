@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 
 /// Hero Revenue Display
 ///
@@ -25,10 +25,10 @@ class HeroRevenueDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(TossSpacing.space6),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -41,10 +41,9 @@ class HeroRevenueDisplay extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Label
-          const Text(
+          Text(
             'Total Revenue Today',
-            style: TextStyle(
-              fontSize: 14,
+            style: TossTextStyles.body.copyWith(
               color: TossColors.gray600,
               fontWeight: FontWeight.w500,
             ),
@@ -55,8 +54,7 @@ class HeroRevenueDisplay extends StatelessWidget {
           // Hero number
           Text(
             amount,
-            style: const TextStyle(
-              fontSize: 36,
+            style: TossTextStyles.display.copyWith(
               fontWeight: FontWeight.bold,
               color: TossColors.gray900,
               height: 1.2,
@@ -76,8 +74,7 @@ class HeroRevenueDisplay extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 '${isPositiveChange ? '+' : ''}${changePercent.toStringAsFixed(1)}% vs previous',
-                style: TextStyle(
-                  fontSize: 14,
+                style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w600,
                   color: isPositiveChange ? TossColors.success : TossColors.error,
                 ),

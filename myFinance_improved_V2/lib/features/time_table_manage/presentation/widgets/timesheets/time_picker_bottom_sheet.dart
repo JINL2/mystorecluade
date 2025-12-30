@@ -3,7 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
 
 /// A custom time picker bottom sheet for confirming check-in/check-out times.
 ///
@@ -125,8 +125,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
             child: Text(
               widget.title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 17,
+              style: TossTextStyles.titleMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: TossColors.gray900,
               ),
@@ -144,7 +143,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
 
   Widget _buildContent() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, TossSpacing.space4),
       child: Column(
         children: [
           // Summary Row
@@ -257,7 +256,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
 
   Widget _buildFooter() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space2, TossSpacing.space4, TossSpacing.space4),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: TossColors.gray100)),
       ),
@@ -265,7 +264,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
         children: [
           // Cancel Button
           Expanded(
-            child: TossButton1.secondary(
+            child: TossButton.secondary(
               text: 'Cancel',
               fullWidth: true,
               onPressed: () => Navigator.of(context).pop(),
@@ -275,7 +274,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
 
           // Confirm Button
           Expanded(
-            child: TossButton1.primary(
+            child: TossButton.primary(
               text: 'Confirm time',
               fullWidth: true,
               onPressed: () {

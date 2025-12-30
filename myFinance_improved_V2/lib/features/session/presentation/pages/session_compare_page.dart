@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -141,7 +142,7 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
                 fontWeight: FontWeight.w600,
               ),
               unselectedLabelStyle: TossTextStyles.caption,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+              labelPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
               tabs: [
                 Tab(
                   text: '${_truncate(widget.targetSessionName, 8)} (${_compareResult!.onlyInTarget.length})',
@@ -262,7 +263,7 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
           'and "${widget.targetSessionName}" will be deactivated.',
         ),
         actionsAlignment: MainAxisAlignment.center,
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actionsPadding: const EdgeInsets.fromLTRB(TossSpacing.space4, 0, TossSpacing.space4, TossSpacing.space4),
         actions: [
           Row(
             children: [
@@ -272,24 +273,24 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
                   style: OutlinedButton.styleFrom(
                     foregroundColor: TossColors.gray700,
                     side: const BorderSide(color: TossColors.gray300),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                   ),
                   child: const Text('Cancel'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context, true),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: TossColors.primary,
                     foregroundColor: TossColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                   ),
                   child: const Text('Merge'),

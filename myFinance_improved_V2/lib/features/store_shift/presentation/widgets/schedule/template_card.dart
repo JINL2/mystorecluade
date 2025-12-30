@@ -77,7 +77,7 @@ class TemplateCard extends StatelessWidget {
             padding: const EdgeInsets.all(TossSpacing.space2),
             decoration: BoxDecoration(
               color: TossColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: const Icon(
               LucideIcons.calendarClock,
@@ -113,7 +113,7 @@ class TemplateCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.success.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Text(
                           'Default',
@@ -234,7 +234,7 @@ class TemplateCard extends StatelessWidget {
                   color: isActive
                       ? TossColors.primary.withOpacity(0.1)
                       : TossColors.gray100,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Center(
                   child: Text(

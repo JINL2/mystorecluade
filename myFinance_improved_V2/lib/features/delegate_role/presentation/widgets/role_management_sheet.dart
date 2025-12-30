@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button_1.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_modal.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 
 import '../providers/role_providers.dart';
@@ -53,24 +54,66 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
     required bool canEdit,
     required bool canDelegate,
   }) {
-    return TossModal.show(
+    return TossBottomSheet.showWithBuilder(
       context: context,
-      title: roleName,
-      subtitle: canEdit ? 'Edit role details and permissions' : 'View role details',
-      height: MediaQuery.of(context).size.height * 0.8,
-      enableKeyboardToolbar: true,
-      enableTapDismiss: true,
-      keyboardDoneText: 'Done',
-      padding: EdgeInsets.zero,
-      child: RoleManagementSheet(
-        roleId: roleId,
-        roleName: roleName,
-        description: description,
-        tags: tags,
-        permissions: permissions,
-        memberCount: memberCount,
-        canEdit: canEdit,
-        canDelegate: canDelegate,
+      heightFactor: 0.85,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: TossColors.white,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Title
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space4),
+              child: Column(
+                children: [
+                  Text(
+                    roleName,
+                    style: TossTextStyles.h4.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: TossColors.gray900,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    canEdit ? 'Edit role details and permissions' : 'View role details',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Content
+            Expanded(
+              child: RoleManagementSheet(
+                roleId: roleId,
+                roleName: roleName,
+                description: description,
+                tags: tags,
+                permissions: permissions,
+                memberCount: memberCount,
+                canEdit: canEdit,
+                canDelegate: canDelegate,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -209,7 +252,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             TossSpacing.space5,
             TossSpacing.space4,
           ),
-          child: TossButton1.primary(
+          child: TossButton.primary(
             text: 'Save Changes',
             fullWidth: true,
             isLoading: _isLoading,

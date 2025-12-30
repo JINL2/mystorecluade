@@ -53,7 +53,7 @@ class SessionHistoryCard extends StatelessWidget {
                     top: -4,
                     right: -4,
                     child: Container(
-                      padding: const EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(TossSpacing.space1),
                       decoration: BoxDecoration(
                         color: TossColors.info,
                         shape: BoxShape.circle,
@@ -75,7 +75,7 @@ class SessionHistoryCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                       decoration: BoxDecoration(
                         color: TossColors.warning,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         border: Border.all(color: TossColors.white, width: 1.5),
                       ),
                       child: Text(
@@ -123,7 +123,7 @@ class SessionHistoryCard extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: TossColors.info.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,

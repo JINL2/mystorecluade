@@ -295,7 +295,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -385,7 +385,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(TossSpacing.space6),
           decoration: BoxDecoration(
             color: TossColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           ),
           child: const TossLoadingView(),
         ),

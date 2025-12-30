@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../providers/states/time_table_state.dart';
 import '../../providers/time_table_providers.dart';
@@ -132,7 +133,7 @@ class _ShiftCalendarViewState extends ConsumerState<ShiftCalendarView> {
     return Container(
       color: TossColors.white,
       child: GridView.builder(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(TossSpacing.space2),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 7,
           childAspectRatio: 0.8,

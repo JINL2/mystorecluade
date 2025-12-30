@@ -234,7 +234,7 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
                       hintText: 'e.g., Standard Office Hours',
                       prefixIcon: const Icon(LucideIcons.tag),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       ),
                     ),
                     validator: (value) {
@@ -353,7 +353,7 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
         HapticFeedback.selectionClick();
         onTap();
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space3,
@@ -361,7 +361,7 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
         ),
         decoration: BoxDecoration(
           border: Border.all(color: TossColors.gray300),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/monthly_salary_report.dart';
 
 /// Manager Quality Card for Salary Report
@@ -26,10 +26,10 @@ class ManagerQualityCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: colors.border),
       ),
       child: Column(
@@ -43,7 +43,7 @@ class ManagerQualityCard extends StatelessWidget {
                 height: 32,
                 decoration: BoxDecoration(
                   color: colors.background,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
                   LucideIcons.shield,
@@ -52,11 +52,10 @@ class ManagerQualityCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Manager Quality',
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray900,
                   ),
@@ -64,10 +63,10 @@ class ManagerQualityCard extends StatelessWidget {
               ),
               // Quality score badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                 decoration: BoxDecoration(
                   color: colors.background,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -80,8 +79,7 @@ class ManagerQualityCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       '${quality.qualityScore.toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        fontSize: 13,
+                      style: TossTextStyles.bodySmall.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colors.primary,
                       ),
@@ -129,10 +127,10 @@ class ManagerQualityCard extends StatelessWidget {
             const SizedBox(height: 14),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: colors.background,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,8 +144,7 @@ class ManagerQualityCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       quality.qualityMessage,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: colors.text,
                         height: 1.4,
                       ),
@@ -179,8 +176,7 @@ class ManagerQualityCard extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TossTextStyles.labelSmall.copyWith(
                   color: TossColors.gray500,
                 ),
               ),
@@ -189,8 +185,7 @@ class ManagerQualityCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 18,
+            style: TossTextStyles.h4.copyWith(
               fontWeight: FontWeight.bold,
               color: color,
             ),

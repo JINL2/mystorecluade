@@ -222,8 +222,7 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
+          style: TossTextStyles.bodySmall.copyWith(
             color: isSelected ? TossColors.white : TossColors.gray600,
             fontWeight: FontWeight.w600,
           ),
@@ -239,16 +238,14 @@ class _DiscountTotalSectionState extends ConsumerState<DiscountTotalSection> {
         controller: _discountController,
         keyboardType:
             TextInputType.numberWithOptions(decimal: !_isPercentageDiscount),
-        style: const TextStyle(
-          fontSize: 15,
+        style: TossTextStyles.body.copyWith(
           fontWeight: FontWeight.w600,
           color: TossColors.gray900,
         ),
         textAlign: TextAlign.right,
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           hintText: '0',
-          hintStyle: TextStyle(
-            fontSize: 15,
+          hintStyle: TossTextStyles.body.copyWith(
             color: TossColors.gray400,
           ),
           border: InputBorder.none,

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/cash_location_report.dart';
 
 /// Issue Location Card
@@ -23,8 +23,8 @@ class IssueLocationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(10),
@@ -41,8 +41,7 @@ class IssueLocationCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   issue.locationName,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.gray900,
                   ),
@@ -90,7 +89,7 @@ class IssueLocationCard extends StatelessWidget {
       height: 28,
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Icon(icon, size: 14, color: TossColors.gray600),
     );
@@ -104,12 +103,11 @@ class IssueLocationCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: isShortage ? TossColors.errorLight : TossColors.warningLight,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         isShortage ? 'Shortage' : 'Surplus',
-        style: TextStyle(
-          fontSize: 10,
+        style: TossTextStyles.labelSmall.copyWith(
           fontWeight: FontWeight.w600,
           color: isShortage ? TossColors.error : TossColors.warning,
         ),
@@ -131,16 +129,14 @@ class IssueLocationCard extends StatelessWidget {
             children: [
               Text(
                 'Book',
-                style: TextStyle(
-                  fontSize: 10,
+                style: TossTextStyles.labelSmall.copyWith(
                   color: TossColors.gray500,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 issue.bookFormatted,
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TossTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.w500,
                   color: TossColors.gray700,
                 ),
@@ -155,16 +151,14 @@ class IssueLocationCard extends StatelessWidget {
             children: [
               Text(
                 'Actual',
-                style: TextStyle(
-                  fontSize: 10,
+                style: TossTextStyles.labelSmall.copyWith(
                   color: TossColors.gray500,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 issue.actualFormatted,
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TossTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.w500,
                   color: TossColors.gray700,
                 ),
@@ -178,16 +172,14 @@ class IssueLocationCard extends StatelessWidget {
           children: [
             Text(
               'Diff',
-              style: TextStyle(
-                fontSize: 10,
+              style: TossTextStyles.labelSmall.copyWith(
                 color: TossColors.gray500,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               issue.differenceFormatted,
-              style: TextStyle(
-                fontSize: 12,
+              style: TossTextStyles.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
                 color: diffColor,
               ),
@@ -202,10 +194,10 @@ class IssueLocationCard extends StatelessWidget {
     final entry = issue.lastEntry!;
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,8 +213,7 @@ class IssueLocationCard extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 'Last Entry',
-                style: TextStyle(
-                  fontSize: 10,
+                style: TossTextStyles.labelSmall.copyWith(
                   fontWeight: FontWeight.w500,
                   color: TossColors.gray500,
                 ),
@@ -247,8 +238,7 @@ class IssueLocationCard extends StatelessWidget {
                     entry.employeeName.isNotEmpty
                         ? entry.employeeName[0].toUpperCase()
                         : '?',
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: TossTextStyles.labelSmall.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.gray600,
                     ),
@@ -262,16 +252,14 @@ class IssueLocationCard extends StatelessWidget {
                   children: [
                     Text(
                       entry.employeeName,
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.gray800,
                       ),
                     ),
                     Text(
                       '${entry.entryDate} • ${entry.entryTime}',
-                      style: TextStyle(
-                        fontSize: 10,
+                      style: TossTextStyles.labelSmall.copyWith(
                         color: TossColors.gray500,
                       ),
                     ),
@@ -281,8 +269,7 @@ class IssueLocationCard extends StatelessWidget {
               // Amount - gray (not colored)
               Text(
                 entry.formattedAmount,
-                style: TextStyle(
-                  fontSize: 12,
+                style: TossTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.w500,
                   color: TossColors.gray700,
                 ),
@@ -295,8 +282,7 @@ class IssueLocationCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               entry.description!,
-              style: TextStyle(
-                fontSize: 11,
+              style: TossTextStyles.labelSmall.copyWith(
                 color: TossColors.gray500,
               ),
             ),

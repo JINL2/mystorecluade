@@ -125,7 +125,7 @@ class DashboardActivitySection extends StatelessWidget {
                         height: 14,
                         decoration: BoxDecoration(
                           color: TossColors.gray100,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -134,7 +134,7 @@ class DashboardActivitySection extends StatelessWidget {
                         height: 12,
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                       ),
                     ],

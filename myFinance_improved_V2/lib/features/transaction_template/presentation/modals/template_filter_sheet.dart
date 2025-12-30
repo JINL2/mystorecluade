@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/app/providers/account_provider.dart';
+import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
+import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
@@ -49,9 +49,12 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final accountsAsync = ref.watch(currentAccountsProvider);
+    final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
+    final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
     final screenHeight = MediaQuery.of(context).size.height;
     final maxHeight = screenHeight * 0.85; // Use 85% of screen height max
-    
+
     return TossBottomSheet(
       content: ConstrainedBox(
         constraints: BoxConstraints(
@@ -79,73 +82,89 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: TossSpacing.space4),
-              
+
               // Search Field
               _buildSearchField(),
-              
+
               const SizedBox(height: TossSpacing.space4),
-              
-              // Account Selector - Enhanced with type-safe callback
-              EnhancedAccountSelector(
-                selectedAccountId: _selectedAccountIds?.isNotEmpty == true ? _selectedAccountIds!.first : null,
-                contextType: 'template_filter',
-                showQuickAccess: true,
-                maxQuickItems: 5,
-                // ✅ Type-safe callback
-                onAccountSelected: (account) {
-                  setState(() {
-                    _selectedAccountIds = [account.id];
-                  });
-                },
+
+              // Account Selector - TossDropdown
+              TossDropdown<String>(
                 label: 'Account',
                 hint: 'All Accounts',
-                showSearch: true,
-                showTransactionCount: false,
+                value: _selectedAccountIds?.isNotEmpty == true ? _selectedAccountIds!.first : null,
+                isLoading: accountsAsync.isLoading,
+                items: accountsAsync.maybeWhen(
+                  data: (accounts) => accounts
+                      .map((a) => TossDropdownItem(
+                            value: a.id,
+                            label: a.name,
+                            subtitle: a.categoryTag,
+                          ))
+                      .toList(),
+                  orElse: () => [],
+                ),
+                onChanged: (accountId) {
+                  setState(() {
+                    _selectedAccountIds = accountId != null ? [accountId] : null;
+                  });
+                },
               ),
-              
-              const SizedBox(height: TossSpacing.space4),
-              
-              // Entity Selectors
-              Column(
-                children: [
-                  // Counterparty Selector
-                  AutonomousCounterpartySelector(
-                    selectedCounterpartyId: _selectedCounterpartyId,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCounterpartyId = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: TossSpacing.space4),
-                  
-                  // Cash Location Selector
-                  Builder(
-                    builder: (context) {
-                      final appState = ref.watch(appStateProvider);
-                      final currentStoreId = appState.storeChoosen;
 
-                      return AutonomousCashLocationSelector(
-                        selectedLocationId: _selectedCashLocationId,
-                        storeId: currentStoreId, // ✅ 필터용이지만 Store 탭 필터링을 위해 전달
-                        showScopeTabs: true, // ✅ 필터 시트에서도 탭 사용 가능
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedCashLocationId = value;
-                          });
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: TossSpacing.space4),
-                ],
+              const SizedBox(height: TossSpacing.space4),
+
+              // Counterparty Selector - TossDropdown
+              TossDropdown<String>(
+                label: 'Counterparty',
+                hint: 'All Counterparties',
+                value: _selectedCounterpartyId,
+                isLoading: counterpartiesAsync.isLoading,
+                items: counterpartiesAsync.maybeWhen(
+                  data: (counterparties) => counterparties
+                      .map((c) => TossDropdownItem(
+                            value: c.id,
+                            label: c.name,
+                            subtitle: c.type,
+                          ))
+                      .toList(),
+                  orElse: () => [],
+                ),
+                onChanged: (counterpartyId) {
+                  setState(() {
+                    _selectedCounterpartyId = counterpartyId;
+                  });
+                },
               ),
-              
-              
+
+              const SizedBox(height: TossSpacing.space4),
+
+              // Cash Location Selector - TossDropdown
+              TossDropdown<String>(
+                label: 'Cash Location',
+                hint: 'All Cash Locations',
+                value: _selectedCashLocationId,
+                isLoading: cashLocationsAsync.isLoading,
+                items: cashLocationsAsync.maybeWhen(
+                  data: (locations) => locations
+                      .map((l) => TossDropdownItem(
+                            value: l.id,
+                            label: l.name,
+                            subtitle: l.type,
+                          ))
+                      .toList(),
+                  orElse: () => [],
+                ),
+                onChanged: (locationId) {
+                  setState(() {
+                    _selectedCashLocationId = locationId;
+                  });
+                },
+              ),
+
               const SizedBox(height: TossSpacing.space6),
-              
+
               // Action Buttons
               Row(
                 children: [
@@ -164,7 +183,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: TossSpacing.space4),
             ],
           ),
@@ -188,7 +207,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
         TossTextField(
           controller: _searchController,
           hintText: 'Search by name or description...',
-          suffixIcon: _searchController.text.isNotEmpty 
+          suffixIcon: _searchController.text.isNotEmpty
               ? InkWell(
                   onTap: () => setState(() => _searchController.clear()),
                   child: const Icon(

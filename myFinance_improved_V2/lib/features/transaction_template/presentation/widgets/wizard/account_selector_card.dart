@@ -10,14 +10,14 @@
 library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/app/providers/account_provider.dart';
+import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
+import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../common/store_selector.dart';
 
@@ -26,14 +26,14 @@ enum AccountType { debit, credit }
 class AccountSelectorCard extends ConsumerStatefulWidget {
   final AccountType type;
   final String? selectedAccountId;
-  final String? selectedAccountCategoryTag;  // ✅ NEW: Pass category tag from parent
+  final String? selectedAccountCategoryTag;
   final String? selectedCounterpartyId;
   final Map<String, dynamic>? selectedCounterpartyData;
   final String? selectedStoreId;
   final String? selectedCashLocationId;
   final String? selectedMyCashLocationId;
   final Function(String?) onAccountChanged;
-  final Function(String?, String?, String?) onAccountChangedWithData;  // ✅ NEW: (id, name, categoryTag)
+  final Function(String?, String?, String?) onAccountChangedWithData;
   final Function(String?) onCounterpartyChanged;
   final Function(String?, String?) onStoreChanged;
   final Function(String?) onCashLocationChanged;
@@ -43,19 +43,19 @@ class AccountSelectorCard extends ConsumerStatefulWidget {
   final Function(Map<String, dynamic>?) onCounterpartyDataChanged;
   final bool otherAccountIsCash;
   final bool otherAccountRequiresCounterparty;
-  
+
   const AccountSelectorCard({
     super.key,
     required this.type,
     this.selectedAccountId,
-    this.selectedAccountCategoryTag,  // ✅ NEW
+    this.selectedAccountCategoryTag,
     this.selectedCounterpartyId,
     this.selectedCounterpartyData,
     this.selectedStoreId,
     this.selectedCashLocationId,
     this.selectedMyCashLocationId,
     required this.onAccountChanged,
-    required this.onAccountChangedWithData,  // ✅ NEW
+    required this.onAccountChangedWithData,
     required this.onCounterpartyChanged,
     required this.onStoreChanged,
     required this.onCashLocationChanged,
@@ -68,12 +68,11 @@ class AccountSelectorCard extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AccountSelectorCard> createState() => _AccountSelectorCardState();
+  ConsumerState<AccountSelectorCard> createState() =>
+      _AccountSelectorCardState();
 }
 
 class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
-
-  // ✅ IMPROVED: Use categoryTag passed from parent instead of Provider re-fetch
   bool get _requiresCounterparty {
     final categoryTag = widget.selectedAccountCategoryTag?.toLowerCase();
     return categoryTag == 'payable' || categoryTag == 'receivable';
@@ -83,20 +82,26 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
     final categoryTag = widget.selectedAccountCategoryTag?.toLowerCase();
     return categoryTag == 'cash';
   }
-  
+
   bool get _showCounterpartyCashLocationWarning {
-    return (_requiresCounterparty && widget.otherAccountIsCash) || 
-           (_isCashAccount && widget.otherAccountRequiresCounterparty);
+    return (_requiresCounterparty && widget.otherAccountIsCash) ||
+        (_isCashAccount && widget.otherAccountRequiresCounterparty);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDebit = widget.type == AccountType.debit;
-    final badgeColor = isDebit ? TossColors.errorLight : TossColors.successLight;
+    final badgeColor =
+        isDebit ? TossColors.errorLight : TossColors.successLight;
     final textColor = isDebit ? TossColors.error : TossColors.success;
-    final iconData = isDebit ? Icons.remove_circle_outline : Icons.add_circle_outline;
+    final iconData =
+        isDebit ? Icons.remove_circle_outline : Icons.add_circle_outline;
     final label = isDebit ? 'DEBIT' : 'CREDIT';
-    
+
+    final accountsAsync = ref.watch(currentAccountsProvider);
+    final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
+    final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
+
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
@@ -140,99 +145,128 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
             ],
           ),
           const SizedBox(height: TossSpacing.space3),
-          
-          // Account selector - Enhanced with type-safe callback
-          EnhancedAccountSelector(
-            selectedAccountId: widget.selectedAccountId,
-            contextType: 'template',
-            showQuickAccess: true,
-            maxQuickItems: 5,
-            // ✅ Type-safe callback: Pass all data to parent
-            onAccountSelected: (account) {
-              widget.onAccountChanged(account.id);
-              // ✅ NEW: Pass account data (id, name, categoryTag)
-              widget.onAccountChangedWithData(account.id, account.name, account.categoryTag);
 
-              // Reset dependent selections when account changes
-              widget.onCounterpartyChanged(null);
-              widget.onCounterpartyDataChanged(null);
-              widget.onMyCashLocationChanged(null);
-              widget.onStoreChanged(null, null);
-              widget.onCashLocationChanged(null);
-            },
+          // Account selector - TossDropdown
+          TossDropdown<String>(
             label: '${isDebit ? 'Debit' : 'Credit'} Account',
             hint: 'Select account to ${isDebit ? 'debit' : 'credit'}',
-            showTransactionCount: false,
+            value: widget.selectedAccountId,
+            isLoading: accountsAsync.isLoading,
+            items: accountsAsync.maybeWhen(
+              data: (accounts) => accounts
+                  .map((a) => TossDropdownItem(
+                        value: a.id,
+                        label: a.name,
+                        subtitle: a.categoryTag,
+                      ))
+                  .toList(),
+              orElse: () => [],
+            ),
+            onChanged: (accountId) {
+              if (accountId != null) {
+                // Find account data from the list
+                accountsAsync.whenData((accounts) {
+                  final account = accounts.firstWhere(
+                    (a) => a.id == accountId,
+                    orElse: () => accounts.first,
+                  );
+                  widget.onAccountChanged(account.id);
+                  widget.onAccountChangedWithData(
+                      account.id, account.name, account.categoryTag);
+
+                  // Reset dependent selections when account changes
+                  widget.onCounterpartyChanged(null);
+                  widget.onCounterpartyDataChanged(null);
+                  widget.onMyCashLocationChanged(null);
+                  widget.onStoreChanged(null, null);
+                  widget.onCashLocationChanged(null);
+                });
+              }
+            },
           ),
-          
+
           // Counterparty section
           if (_requiresCounterparty && widget.selectedAccountId != null) ...[
             const SizedBox(height: TossSpacing.space3),
-            AutonomousCounterpartySelector(
-              selectedCounterpartyId: widget.selectedCounterpartyId,
-              // ✅ NEW: Type-safe callback
-              onCounterpartySelected: (counterparty) {
-                widget.onCounterpartyChanged(counterparty.id);
-                // Pass full counterparty data
-                widget.onCounterpartyDataChanged({
-                  'name': counterparty.name,
-                  'is_internal': counterparty.isInternal,
-                  'linked_company_id': counterparty.linkedCompanyId,
-                });
-                // Reset dependent selections
-                widget.onStoreChanged(null, null);
-                widget.onCashLocationChanged(null);
-              },
-              // ✅ Legacy callback for null case
+            TossDropdown<String>(
+              label: 'Counterparty',
+              hint: 'Select counterparty',
+              value: widget.selectedCounterpartyId,
+              isLoading: counterpartiesAsync.isLoading,
+              items: counterpartiesAsync.maybeWhen(
+                data: (counterparties) => counterparties
+                    .map((c) => TossDropdownItem(
+                          value: c.id,
+                          label: c.name,
+                          subtitle: c.type,
+                        ))
+                    .toList(),
+                orElse: () => [],
+              ),
               onChanged: (counterpartyId) {
-                if (counterpartyId == null) {
+                if (counterpartyId != null) {
+                  counterpartiesAsync.whenData((counterparties) {
+                    final counterparty = counterparties.firstWhere(
+                      (c) => c.id == counterpartyId,
+                      orElse: () => counterparties.first,
+                    );
+                    widget.onCounterpartyChanged(counterparty.id);
+                    widget.onCounterpartyDataChanged({
+                      'name': counterparty.name,
+                      'is_internal': counterparty.isInternal,
+                      'linked_company_id': counterparty.linkedCompanyId,
+                    });
+                    // Reset dependent selections
+                    widget.onStoreChanged(null, null);
+                    widget.onCashLocationChanged(null);
+                  });
+                } else {
                   widget.onCounterpartyChanged(null);
                   widget.onCounterpartyDataChanged(null);
                   widget.onStoreChanged(null, null);
                   widget.onCashLocationChanged(null);
                 }
               },
-              label: 'Counterparty',
-              hint: 'Select counterparty',
-              showSearch: true,
-              showTransactionCount: false,
             ),
-            
+
             // Internal counterparty store and cash location
             if (widget.selectedCounterpartyId != null)
               _buildInternalCounterpartySection(),
           ],
-          
+
           // My company's cash location for cash accounts
           if (_isCashAccount && widget.selectedAccountId != null) ...[
             const SizedBox(height: TossSpacing.space3),
-            Builder(
-              builder: (context) {
-                // ✅ 내 Cash Location: 현재 선택된 스토어의 storeId 사용
-                final appState = ref.watch(appStateProvider);
-                final myStoreId = appState.storeChoosen;
-
-                return AutonomousCashLocationSelector(
-                  selectedLocationId: widget.selectedMyCashLocationId,
-                  storeId: myStoreId, // ✅ 내 storeId 전달
-                  // ✅ NEW: Type-safe callback
-                  onCashLocationSelected: (cashLocation) {
-                    widget.onMyCashLocationChanged(cashLocation.id);
-                    widget.onMyCashLocationChangedWithName(cashLocation.id, cashLocation.name);
-                  },
-                  // ✅ Legacy callback for null case
-                  onChanged: (locationId) {
-                    if (locationId == null) {
-                      widget.onMyCashLocationChanged(null);
-                      widget.onMyCashLocationChangedWithName(null, null);
-                    }
-                  },
-                  label: 'Cash Location',
-                  hint: 'Select cash location',
-                  showSearch: true,
-                  showTransactionCount: false,
-                  showScopeTabs: true,
-                );
+            TossDropdown<String>(
+              label: 'Cash Location',
+              hint: 'Select cash location',
+              value: widget.selectedMyCashLocationId,
+              isLoading: cashLocationsAsync.isLoading,
+              items: cashLocationsAsync.maybeWhen(
+                data: (locations) => locations
+                    .map((l) => TossDropdownItem(
+                          value: l.id,
+                          label: l.name,
+                          subtitle: l.type,
+                        ))
+                    .toList(),
+                orElse: () => [],
+              ),
+              onChanged: (locationId) {
+                if (locationId != null) {
+                  cashLocationsAsync.whenData((locations) {
+                    final location = locations.firstWhere(
+                      (l) => l.id == locationId,
+                      orElse: () => locations.first,
+                    );
+                    widget.onMyCashLocationChanged(location.id);
+                    widget.onMyCashLocationChangedWithName(
+                        location.id, location.name);
+                  });
+                } else {
+                  widget.onMyCashLocationChanged(null);
+                  widget.onMyCashLocationChangedWithName(null, null);
+                }
               },
             ),
           ],
@@ -240,9 +274,8 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
       ),
     );
   }
-  
+
   Widget _buildInternalCounterpartySection() {
-    // ✅ IMPROVED: Use data passed from callback instead of Provider re-fetch
     if (widget.selectedCounterpartyData == null) {
       return const SizedBox.shrink();
     }
@@ -252,87 +285,104 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
     final linkedCompanyId = counterpartyData['linked_company_id'] as String?;
 
     if (isInternal && linkedCompanyId != null) {
-          return Column(
-            children: [
-              const SizedBox(height: TossSpacing.space3),
-              
-              // Store selector
-              StoreSelector(
-                linkedCompanyId: counterpartyData['linked_company_id'] as String?,
-                selectedStoreId: widget.selectedStoreId,
-                onChanged: (storeId, storeName) {
-                  widget.onStoreChanged(storeId, storeName);
-                  widget.onCashLocationChanged(null);
-                },
-                label: 'Counterparty Store',
-                hint: 'Select store',
-              ),
-              
-              // Cash location selector with business rule warning
-              if (widget.selectedStoreId != null) ...[
-                const SizedBox(height: TossSpacing.space3),
-                
-                // Business rule warning
-                if (_showCounterpartyCashLocationWarning) ...[
-                  Container(
-                    padding: const EdgeInsets.all(TossSpacing.space2),
-                    margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-                    decoration: BoxDecoration(
-                      color: TossColors.warningLight.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                      border: Border.all(
-                        color: TossColors.warning.withValues(alpha: 0.3),
-                        width: 1,
+      // Get counterparty cash locations using the linked company ID
+      final counterpartyCashLocationsAsync = ref.watch(
+        counterpartyCompanyCashLocationsProvider(linkedCompanyId),
+      );
+
+      return Column(
+        children: [
+          const SizedBox(height: TossSpacing.space3),
+
+          // Store selector
+          StoreSelector(
+            linkedCompanyId: counterpartyData['linked_company_id'] as String?,
+            selectedStoreId: widget.selectedStoreId,
+            onChanged: (storeId, storeName) {
+              widget.onStoreChanged(storeId, storeName);
+              widget.onCashLocationChanged(null);
+            },
+            label: 'Counterparty Store',
+            hint: 'Select store',
+          ),
+
+          // Cash location selector with business rule warning
+          if (widget.selectedStoreId != null) ...[
+            const SizedBox(height: TossSpacing.space3),
+
+            // Business rule warning
+            if (_showCounterpartyCashLocationWarning) ...[
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space2),
+                margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+                decoration: BoxDecoration(
+                  color: TossColors.warningLight.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  border: Border.all(
+                    color: TossColors.warning.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: TossColors.warning,
+                    ),
+                    const SizedBox(width: TossSpacing.space1),
+                    Expanded(
+                      child: Text(
+                        'Required: Where will the cash be received in the internal company?',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.warning,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          size: 16,
-                          color: TossColors.warning,
-                        ),
-                        const SizedBox(width: TossSpacing.space1),
-                        Expanded(
-                          child: Text(
-                            'Required: Where will the cash be received in the internal company?',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.warning,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                
-                // Counterparty cash location selector
-                AutonomousCashLocationSelector(
-                  companyId: counterpartyData['linked_company_id'] as String?,
-                  storeId: widget.selectedStoreId,
-                  selectedLocationId: widget.selectedCashLocationId,
-                  // ✅ NEW: Type-safe callback
-                  onCashLocationSelected: (cashLocation) {
-                    widget.onCashLocationChanged(cashLocation.id);
-                    widget.onCashLocationChangedWithName(cashLocation.id, cashLocation.name);
-                  },
-                  // ✅ Legacy callback for null case
-                  onChanged: (locationId) {
-                    if (locationId == null) {
-                      widget.onCashLocationChanged(null);
-                      widget.onCashLocationChangedWithName(null, null);
-                    }
-                  },
-                  label: 'Counterparty Cash Location',
-                  hint: 'Select counterparty cash location',
-                  showSearch: true,
-                  showTransactionCount: false,
-                  showScopeTabs: widget.selectedStoreId != null,
+                  ],
                 ),
-              ],
+              ),
             ],
-          );
+
+            // Counterparty cash location selector - TossDropdown
+            TossDropdown<String>(
+              label: 'Counterparty Cash Location',
+              hint: 'Select counterparty cash location',
+              value: widget.selectedCashLocationId,
+              isLoading: counterpartyCashLocationsAsync.isLoading,
+              items: counterpartyCashLocationsAsync.maybeWhen(
+                data: (locations) => locations
+                    .where((l) =>
+                        l.storeId == widget.selectedStoreId || l.isCompanyWide)
+                    .map((l) => TossDropdownItem(
+                          value: l.id,
+                          label: l.name,
+                          subtitle: l.type,
+                        ))
+                    .toList(),
+                orElse: () => [],
+              ),
+              onChanged: (locationId) {
+                if (locationId != null) {
+                  counterpartyCashLocationsAsync.whenData((locations) {
+                    final location = locations.firstWhere(
+                      (l) => l.id == locationId,
+                      orElse: () => locations.first,
+                    );
+                    widget.onCashLocationChanged(location.id);
+                    widget.onCashLocationChangedWithName(
+                        location.id, location.name);
+                  });
+                } else {
+                  widget.onCashLocationChanged(null);
+                  widget.onCashLocationChangedWithName(null, null);
+                }
+              },
+            ),
+          ],
+        ],
+      );
     } else {
       return const SizedBox.shrink();
     }

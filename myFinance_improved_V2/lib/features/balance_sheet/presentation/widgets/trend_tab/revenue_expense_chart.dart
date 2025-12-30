@@ -111,7 +111,7 @@ class RevenueExpenseChart extends StatelessWidget {
                 borderData: FlBorderData(show: false),
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
-                    tooltipPadding: const EdgeInsets.all(8),
+                    tooltipPadding: const EdgeInsets.all(TossSpacing.space2),
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       if (groupIndex < 0 || groupIndex >= data.length) {
                         return null;

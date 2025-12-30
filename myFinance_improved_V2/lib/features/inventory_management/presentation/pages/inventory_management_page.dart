@@ -224,7 +224,7 @@ class _InventoryManagementPageState
         ),
         // Product list
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+          padding: const EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space1, TossSpacing.space3, 100),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {

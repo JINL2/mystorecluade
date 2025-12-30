@@ -560,7 +560,7 @@ class _InvoiceSuccessBottomSheetState
         children: [
           // Thumbnail
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             child: ProductImageWidget(
               imageUrl: product.images.mainImage,
               size: 48,

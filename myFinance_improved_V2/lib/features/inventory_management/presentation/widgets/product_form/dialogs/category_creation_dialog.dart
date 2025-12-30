@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../di/inventory_providers.dart';
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../../domain/entities/inventory_metadata.dart';
@@ -134,7 +136,7 @@ class _CategoryCreationDialogState
       isScrollControlled: true,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -179,7 +181,7 @@ class _CategoryCreationDialogState
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       title: Text(
         'Add Category',
@@ -208,11 +210,11 @@ class _CategoryCreationDialogState
               decoration: InputDecoration(
                 hintText: 'Enter category name',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
+                  horizontal: TossSpacing.space3,
+                  vertical: TossSpacing.space3,
                 ),
               ),
               autofocus: true,
@@ -240,7 +242,7 @@ class _CategoryCreationDialogState
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: TossColors.gray300),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Row(
                   children: [
@@ -295,7 +297,7 @@ class _CategoryCreationDialogState
                       : Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                 ),
                 child: _isCreating

@@ -8,10 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/constants/auth_constants.dart';
-import '../../../../shared/themes/toss_animations.dart';
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/index.dart';
 import '../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../../homepage/presentation/providers/homepage_providers.dart';
 import '../providers/repository_providers.dart';
@@ -280,7 +277,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
                   height: 44,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Icon(
                     Icons.camera_alt_rounded,
@@ -306,7 +303,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
                   height: 44,
                   decoration: BoxDecoration(
                     color: TossColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Icon(
                     Icons.photo_library_rounded,
@@ -333,7 +330,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
                     height: 44,
                     decoration: BoxDecoration(
                       color: TossColors.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Icon(
                       Icons.delete_outline_rounded,
@@ -456,7 +453,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
           foregroundColor: TossColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
           ),
         ),
         child: _isLoading

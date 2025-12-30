@@ -36,7 +36,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(TossSpacing.space1),
                   decoration: BoxDecoration(
                     color: TossColors.success.withValues(alpha: 0.1),
                     shape: BoxShape.circle,

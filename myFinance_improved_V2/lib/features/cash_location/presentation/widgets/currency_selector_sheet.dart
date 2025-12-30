@@ -219,7 +219,7 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
               child: Center(
                 child: Text(
                   currency.flagEmoji,
-                  style: const TextStyle(fontSize: 28),
+                  style: TossTextStyles.h2,
                 ),
               ),
             ),
@@ -233,8 +233,7 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
                 children: [
                   Text(
                     currency.currencyName,
-                    style: TossTextStyles.body.copyWith(
-                      fontSize: 16,
+                    style: TossTextStyles.titleMedium.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: TossColors.gray900,
                     ),
@@ -242,8 +241,7 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
                   const SizedBox(height: 2),
                   Text(
                     currency.currencyCode,
-                    style: TossTextStyles.caption.copyWith(
-                      fontSize: 14,
+                    style: TossTextStyles.body.copyWith(
                       color: TossColors.gray500,
                     ),
                   ),

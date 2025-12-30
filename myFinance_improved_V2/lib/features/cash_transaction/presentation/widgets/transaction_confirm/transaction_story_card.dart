@@ -198,7 +198,7 @@ class TransactionStoryCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(TossSpacing.space1 + 2),
                   decoration: const BoxDecoration(
                     color: TossColors.gray200,
                     shape: BoxShape.circle,

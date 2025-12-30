@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/cash_location_report.dart';
 import 'issue_location_card.dart';
 
@@ -49,10 +49,10 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
     );
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -62,7 +62,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Row(
                 children: [
                   // Store icon - GRAY (no color)
@@ -71,7 +71,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                     height: 36,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Icon(
                       LucideIcons.store,
@@ -88,8 +88,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                       children: [
                         Text(
                           widget.storeName,
-                          style: const TextStyle(
-                            fontSize: 15,
+                          style: TossTextStyles.body.copyWith(
                             fontWeight: FontWeight.w600,
                             color: TossColors.gray900,
                           ),
@@ -105,12 +104,11 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                               ),
                               decoration: BoxDecoration(
                                 color: TossColors.gray100,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                               ),
                               child: Text(
                                 '${widget.issues.length} issue${widget.issues.length > 1 ? 's' : ''}',
-                                style: TextStyle(
-                                  fontSize: 10,
+                                style: TossTextStyles.labelSmall.copyWith(
                                   fontWeight: FontWeight.w500,
                                   color: TossColors.gray600,
                                 ),
@@ -120,8 +118,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                             // Total difference - COLORED (only colored element)
                             Text(
                               _formatAmount(totalDifference),
-                              style: TextStyle(
-                                fontSize: 12,
+                              style: TossTextStyles.bodySmall.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: totalDifference >= 0
                                     ? TossColors.warning
@@ -156,7 +153,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
               children: [
                 const Divider(height: 1),
                 Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(TossSpacing.space3),
                   child: Column(
                     children: widget.issues
                         .map((issue) => IssueLocationCard(issue: issue))

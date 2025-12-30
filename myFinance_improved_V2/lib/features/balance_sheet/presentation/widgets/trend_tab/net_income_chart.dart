@@ -150,7 +150,7 @@ class NetIncomeChart extends StatelessWidget {
                 ],
                 lineTouchData: LineTouchData(
                   touchTooltipData: LineTouchTooltipData(
-                    tooltipPadding: const EdgeInsets.all(8),
+                    tooltipPadding: const EdgeInsets.all(TossSpacing.space2),
                     getTooltipItems: (touchedSpots) {
                       return touchedSpots.map((spot) {
                         final index = spot.spotIndex;

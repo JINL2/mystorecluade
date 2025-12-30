@@ -230,7 +230,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                             itemBuilder: (context, index) {
                               if (index == filteredEntries.length) {
                                 return const Padding(
-                                  padding: EdgeInsets.all(16.0),
+                                  padding: EdgeInsets.all(TossSpacing.space4),
                                   child: Center(child: CircularProgressIndicator()),
                                 );
                               }

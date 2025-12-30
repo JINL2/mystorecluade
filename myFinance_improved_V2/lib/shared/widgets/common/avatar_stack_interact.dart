@@ -268,7 +268,7 @@ class AvatarStackInteract extends StatelessWidget {
         radius: avatarSize / 2,
         backgroundColor: TossColors.gray200,
         backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-        onBackgroundImageError: (_, __) {},
+        onBackgroundImageError: user.avatarUrl != null ? (_, __) {} : null,
         child: user.avatarUrl == null
             ? Icon(
                 Icons.person,
@@ -479,7 +479,7 @@ class _UsersBottomSheet extends StatelessWidget {
               radius: 20,
               backgroundColor: TossColors.gray200,
               backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-              onBackgroundImageError: (_, __) {},
+              onBackgroundImageError: user.avatarUrl != null ? (_, __) {} : null,
               child: user.avatarUrl == null
                   ? const Icon(Icons.person, size: 20, color: TossColors.gray500)
                   : null,

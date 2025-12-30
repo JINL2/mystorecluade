@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
@@ -362,7 +363,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         ),
         decoration: BoxDecoration(
           color: isValidDiscount ? TossColors.primary : TossColors.gray200,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -389,7 +390,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   '-${PaymentHelpers.formatNumber(discount.round())}',

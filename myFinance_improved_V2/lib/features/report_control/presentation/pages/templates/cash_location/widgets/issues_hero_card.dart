@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../domain/entities/cash_location_report.dart';
 
 /// Filter type for cash location issues
@@ -33,10 +33,10 @@ class IssuesHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(color: TossColors.gray200),
         boxShadow: [
           BoxShadow(
@@ -70,10 +70,9 @@ class IssuesHeroCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Cash Reconciliation',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
                         fontWeight: FontWeight.w500,
                       ),
@@ -81,8 +80,7 @@ class IssuesHeroCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${stats.issuesCount} locations need attention',
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TossTextStyles.body.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.gray900,
                       ),
@@ -98,18 +96,17 @@ class IssuesHeroCard extends StatelessWidget {
           // Net difference (hero number)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Total Discrepancy',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray500,
                     fontWeight: FontWeight.w500,
                   ),
@@ -117,8 +114,7 @@ class IssuesHeroCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   stats.netDifferenceFormatted,
-                  style: TextStyle(
-                    fontSize: 28,
+                  style: TossTextStyles.h2.copyWith(
                     fontWeight: FontWeight.bold,
                     color: stats.netDifference < 0
                         ? const Color(0xFFDC2626)
@@ -135,13 +131,12 @@ class IssuesHeroCard extends StatelessWidget {
           // Filter hint
           if (onFilterChanged != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.only(bottom: TossSpacing.space2),
               child: Text(
                 activeFilter == CashLocationFilter.all
                     ? 'Tap to filter by type'
                     : 'Tap again to clear filter',
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TossTextStyles.labelSmall.copyWith(
                   color: TossColors.gray400,
                 ),
               ),
@@ -204,7 +199,7 @@ class IssuesHeroCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           decoration: BoxDecoration(
             color: isActive ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
               color: isActive ? color : color.withValues(alpha: 0.2),
               width: isActive ? 2 : 1,
@@ -217,8 +212,7 @@ class IssuesHeroCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 value,
-                style: TextStyle(
-                  fontSize: 14,
+                style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),

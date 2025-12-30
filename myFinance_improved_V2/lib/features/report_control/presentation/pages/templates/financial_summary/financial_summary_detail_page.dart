@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../domain/entities/report_detail.dart';
@@ -42,7 +42,7 @@ class _FinancialSummaryDetailPageState
         backgroundColor: TossColors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

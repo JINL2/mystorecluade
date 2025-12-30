@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../shared/widgets/toss/toss_button.dart';
 import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../domain/entities/user_shift_stats.dart';
 import '../providers/attendance_providers.dart';
@@ -124,7 +124,7 @@ class _StatsTabState extends ConsumerState<StatsTab> {
               style: TextStyle(color: TossColors.gray600),
             ),
             const SizedBox(height: 8),
-            TossButton1.secondary(
+            TossButton.secondary(
               text: 'Retry',
               onPressed: () => ref.invalidate(userShiftStatsProvider),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/toss_error_view.dart';
 import '../../../../../shared/widgets/common/toss_loading_view.dart';
@@ -59,7 +60,7 @@ class _ScheduleTabViewState extends ConsumerState<ScheduleTabView> {
       children: [
         // Calendar header
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(TossSpacing.space4),
           color: TossColors.white,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

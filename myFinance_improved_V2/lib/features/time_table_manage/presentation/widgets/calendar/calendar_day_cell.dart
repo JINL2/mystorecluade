@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
@@ -46,7 +47,7 @@ class CalendarDayCell extends StatelessWidget {
             color: isSelected ? TossColors.primary : Colors.transparent,
             width: isSelected ? 2 : 0,
           ),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -144,7 +144,7 @@ class TradeDocumentListItem extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         type.toUpperCase(),
@@ -375,7 +375,7 @@ class TradeDocumentChecklist extends StatelessWidget {
                 ),
                 const SizedBox(height: TossSpacing.space2),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   child: LinearProgressIndicator(
                     value: progress,
                     backgroundColor: TossColors.gray200,

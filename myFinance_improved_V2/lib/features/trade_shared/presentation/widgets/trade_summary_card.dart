@@ -313,7 +313,7 @@ class TradeAmountCard extends StatelessWidget {
             if (progress != null) ...[
               const SizedBox(height: TossSpacing.space2),
               ClipRRect(
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 child: LinearProgressIndicator(
                   value: progress!.clamp(0.0, 1.0),
                   backgroundColor: TossColors.gray200,

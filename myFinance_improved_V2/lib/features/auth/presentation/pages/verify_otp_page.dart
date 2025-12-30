@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/config/app_router.dart';
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/index.dart';
 import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../providers/auth_service.dart';
 
@@ -145,7 +143,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
             backgroundColor: TossColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );
@@ -166,7 +164,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
             backgroundColor: TossColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
           ),
         );
@@ -225,7 +223,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
                       height: 80,
                       decoration: BoxDecoration(
                         color: TossColors.primarySurface,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                       ),
                       child: const Icon(
                         Icons.pin_outlined,
@@ -273,7 +271,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
                         padding: const EdgeInsets.all(TossSpacing.space3),
                         decoration: BoxDecoration(
                           color: TossColors.errorLight,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         ),
                         child: Row(
                           children: [
@@ -401,22 +399,22 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
               filled: true,
               fillColor: TossColors.gray100,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: const BorderSide(
                   color: TossColors.primary,
                   width: 2,
                 ),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: const BorderSide(
                   color: TossColors.error,
                   width: 1,

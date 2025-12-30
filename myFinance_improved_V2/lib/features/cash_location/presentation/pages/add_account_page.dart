@@ -237,8 +237,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     bool showError = fieldName != null && _shouldShowError(fieldName);
     return Text(
       title,
-      style: TossTextStyles.body.copyWith(
-        fontSize: 16,
+      style: TossTextStyles.titleMedium.copyWith(
         fontWeight: FontWeight.w600,
         color: showError ? TossColors.error : TossColors.black87,
       ),
@@ -279,14 +278,12 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             });
           }
         },
-        style: TossTextStyles.body.copyWith(
-          fontSize: 16,
+        style: TossTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TossTextStyles.body.copyWith(
-            fontSize: 16,
+          hintStyle: TossTextStyles.titleMedium.copyWith(
             color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
           ),
           border: OutlineInputBorder(
@@ -327,14 +324,12 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       ),
       child: TextField(
         controller: controller,
-        style: TossTextStyles.body.copyWith(
-          fontSize: 16,
+        style: TossTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TossTextStyles.body.copyWith(
-            fontSize: 16,
+          hintStyle: TossTextStyles.titleMedium.copyWith(
             color: TossColors.gray400,
           ),
           border: InputBorder.none,
@@ -385,15 +380,14 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                             // Flag emoji
                             Text(
                               selectedCurrency.flagEmoji,
-                              style: const TextStyle(fontSize: 24),
+                              style: TossTextStyles.h2,
                             ),
                             const SizedBox(width: TossSpacing.space3),
                             // Currency name
                             Expanded(
                               child: Text(
                                 selectedCurrency.currencyName,
-                                style: TossTextStyles.body.copyWith(
-                                  fontSize: 16,
+                                style: TossTextStyles.titleMedium.copyWith(
                                   fontWeight: FontWeight.w500,
                                   color: TossColors.black87,
                                 ),
@@ -404,8 +398,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                             // Currency code
                             Text(
                               selectedCurrency.currencyCode,
-                              style: TossTextStyles.caption.copyWith(
-                                fontSize: 14,
+                              style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray600,
                               ),
                             ),
@@ -413,8 +406,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                         )
                       : Text(
                           'Select currency',
-                          style: TossTextStyles.body.copyWith(
-                            fontSize: 16,
+                          style: TossTextStyles.titleMedium.copyWith(
                             color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
                           ),
                         ),
@@ -450,9 +442,8 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         padding: const EdgeInsets.all(TossSpacing.space4),
         child: Text(
           'Failed to load currencies',
-          style: TossTextStyles.body.copyWith(
+          style: TossTextStyles.titleMedium.copyWith(
             color: TossColors.error,
-            fontSize: 16,
           ),
         ),
       ),
@@ -749,9 +740,8 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             ),
             child: Text(
               'Confirm',
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.titleMedium.copyWith(
                 color: isButtonEnabled ? TossColors.white : TossColors.gray500,
-                fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
             ),

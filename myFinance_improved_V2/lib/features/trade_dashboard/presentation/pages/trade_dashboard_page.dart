@@ -106,7 +106,7 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(TossSpacing.space1),
                     decoration: BoxDecoration(
                       color: TossColors.error,
                       shape: BoxShape.circle,

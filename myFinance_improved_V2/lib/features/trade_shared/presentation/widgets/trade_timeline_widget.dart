@@ -156,7 +156,7 @@ class TradeTimelineItem extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: _getEntityTypeColor().withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                           ),
                           child: Text(
                             activity.entityType.toUpperCase(),

@@ -360,7 +360,7 @@ class TradeExpiryCalendarItem extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: TossColors.gray100,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Text(
                           entityType,

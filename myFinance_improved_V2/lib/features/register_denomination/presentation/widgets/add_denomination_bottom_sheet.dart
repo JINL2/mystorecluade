@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
+import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_currency_exchange_modal.dart';
 
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/denomination.dart';
@@ -106,7 +106,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                   const SizedBox(height: TossSpacing.space2),
                   GestureDetector(
                     onTap: () async {
-                      await TossNumberpadModal.show(
+                      await TossCurrencyExchangeModal.show(
                         context: context,
                         title: 'Enter Amount',
                         initialValue: _amountController.text,

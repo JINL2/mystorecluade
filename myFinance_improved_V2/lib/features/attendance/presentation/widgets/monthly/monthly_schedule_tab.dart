@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../../../shared/widgets/toss/toss_month_navigation.dart';
@@ -96,7 +97,7 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
           // ============================================
           Container(
             color: TossColors.white,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: _buildTodayCard(todayAttendance),
           ),
 
@@ -110,7 +111,7 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
           // ============================================
           Container(
             color: TossColors.white,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TossSpacing.space4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -301,7 +302,7 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
   Widget _buildErrorView(String error) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

@@ -203,7 +203,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+      padding: const EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space1, TossSpacing.space3, TossSpacing.space4),
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final product = _searchResults[index];

@@ -40,7 +40,7 @@ class _ShiftInfoCardState extends State<ShiftInfoCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         border: Border.all(color: TossColors.gray100, width: 1),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -143,7 +143,7 @@ class _ShiftInfoCardState extends State<ShiftInfoCard> {
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: Text(
                 _showAllTags ? 'Less' : '+$hiddenCount',

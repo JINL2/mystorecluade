@@ -16,9 +16,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as legacy;
 import 'package:myfinance_improved/core/services/supabase_service.dart';
+import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
+import 'package:myfinance_improved/app/providers/counterparty_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 class TestTemplateMapppingPage extends ConsumerStatefulWidget {
   const TestTemplateMapppingPage({super.key});
@@ -481,12 +482,12 @@ Journal ID: $result''';
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Template selector
-                  const Text('1. Select Template', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('1. Select Template', style: TossTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   SizedBox(
                     height: 120,
@@ -501,14 +502,14 @@ Journal ID: $result''';
                           child: Container(
                             width: 150,
                             margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(TossSpacing.space3),
                             decoration: BoxDecoration(
                               color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
                               border: Border.all(
                                 color: isSelected ? TossColors.primary : TossColors.gray300,
                                 width: isSelected ? 2 : 1,
                               ),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,8 +526,7 @@ Journal ID: $result''';
                                 const Spacer(),
                                 Text(
                                   '${(template['data'] as List?)?.length ?? 0} lines',
-                                  style: TextStyle(
-                                    fontSize: 12,
+                                  style: TossTextStyles.bodySmall.copyWith(
                                     color: TossColors.gray600,
                                   ),
                                 ),
@@ -541,25 +541,25 @@ Journal ID: $result''';
                   const SizedBox(height: 24),
 
                   // Analysis result
-                  const Text('2. Template Analysis', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('2. Template Analysis', style: TossTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: SelectableText(
                       _analysisResult.isEmpty ? 'Select a template to analyze' : _analysisResult,
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                      style: TossTextStyles.bodySmall.copyWith(fontFamily: 'monospace'),
                     ),
                   ),
 
                   const SizedBox(height: 24),
 
                   // User inputs
-                  const Text('3. User Inputs', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('3. User Inputs', style: TossTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _amountController,
@@ -571,30 +571,61 @@ Journal ID: $result''';
                   ),
                   const SizedBox(height: 12),
 
-                  // Cash Location Selector - using real selector widget
-                  AutonomousCashLocationSelector(
-                    selectedLocationId: _selectedCashLocationId,
-                    label: 'Cash Location',
-                    hint: 'Select Cash Location',
-                    showScopeTabs: true,
-                    onChanged: (locationId) {
-                      setState(() {
-                        _selectedCashLocationId = locationId;
-                      });
+                  // Cash Location Selector - TossDropdown
+                  Builder(
+                    builder: (context) {
+                      final cashLocationsAsync = ref.watch(companyCashLocationsProvider);
+                      return TossDropdown<String>(
+                        label: 'Cash Location',
+                        hint: 'Select Cash Location',
+                        value: _selectedCashLocationId,
+                        isLoading: cashLocationsAsync.isLoading,
+                        items: cashLocationsAsync.maybeWhen(
+                          data: (locations) => locations
+                              .map((l) => TossDropdownItem(
+                                    value: l.id,
+                                    label: l.name,
+                                    subtitle: l.type,
+                                  ))
+                              .toList(),
+                          orElse: () => [],
+                        ),
+                        onChanged: (locationId) {
+                          setState(() {
+                            _selectedCashLocationId = locationId;
+                          });
+                        },
+                      );
                     },
                   ),
                   const SizedBox(height: 12),
 
-                  // Counterparty Selector - using real selector widget (External only)
-                  AutonomousCounterpartySelector(
-                    selectedCounterpartyId: _selectedCounterpartyId,
-                    label: 'Counterparty (External)',
-                    hint: 'Select Counterparty',
-                    isInternal: false, // Only show external counterparties
-                    onChanged: (counterpartyId) {
-                      setState(() {
-                        _selectedCounterpartyId = counterpartyId;
-                      });
+                  // Counterparty Selector - TossDropdown (External only)
+                  Builder(
+                    builder: (context) {
+                      final counterpartiesAsync = ref.watch(currentCounterpartiesProvider);
+                      return TossDropdown<String>(
+                        label: 'Counterparty (External)',
+                        hint: 'Select Counterparty',
+                        value: _selectedCounterpartyId,
+                        isLoading: counterpartiesAsync.isLoading,
+                        items: counterpartiesAsync.maybeWhen(
+                          data: (counterparties) => counterparties
+                              .where((c) => !c.isInternal) // Only external
+                              .map((c) => TossDropdownItem(
+                                    value: c.id,
+                                    label: c.name,
+                                    subtitle: c.type,
+                                  ))
+                              .toList(),
+                          orElse: () => [],
+                        ),
+                        onChanged: (counterpartyId) {
+                          setState(() {
+                            _selectedCounterpartyId = counterpartyId;
+                          });
+                        },
+                      );
                     },
                   ),
 
@@ -613,20 +644,20 @@ Journal ID: $result''';
                   const SizedBox(height: 12),
 
                   // Lines JSON
-                  const Text('4. p_lines JSON', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('4. p_lines JSON', style: TossTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     height: 200,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: SingleChildScrollView(
                       child: SelectableText(
                         _linesJson.isEmpty ? 'Click "Build p_lines JSON" to generate' : _linesJson,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+                        style: TossTextStyles.labelSmall.copyWith(fontFamily: 'monospace'),
                       ),
                     ),
                   ),
@@ -666,18 +697,18 @@ Journal ID: $result''';
                   const SizedBox(height: 12),
 
                   // RPC Result
-                  const Text('5. RPC Result', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('5. RPC Result', style: TossTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: _rpcResult.startsWith('SUCCESS')
                           ? Colors.green.withOpacity(0.1)
                           : _rpcResult.startsWith('ERROR')
                               ? Colors.red.withOpacity(0.1)
                               : TossColors.gray100,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: Border.all(
                         color: _rpcResult.startsWith('SUCCESS')
                             ? Colors.green
@@ -688,7 +719,7 @@ Journal ID: $result''';
                     ),
                     child: SelectableText(
                       _rpcResult.isEmpty ? 'Click "Test RPC" to send' : _rpcResult,
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                      style: TossTextStyles.bodySmall.copyWith(fontFamily: 'monospace'),
                     ),
                   ),
 

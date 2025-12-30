@@ -6,7 +6,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/category_chip.dart';
-import '../../../../shared/widgets/toss/toss_button_1.dart';
+import '../../../../shared/widgets/toss/toss_button.dart';
 import '../../domain/entities/currency.dart';
 
 /// Currency pill selector with remove buttons
@@ -41,7 +41,7 @@ class CurrencyPillSelector extends StatelessWidget {
                 letterSpacing: 0.5,
               ),
             ),
-            TossButton1.textButton(
+            TossButton.textButton(
               text: 'Add currency',
               onPressed: onAddCurrency,
               leadingIcon: const Icon(Icons.add, size: 16),

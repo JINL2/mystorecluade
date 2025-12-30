@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_icons.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
@@ -54,7 +55,7 @@ class VaultLocationSelector extends StatelessWidget {
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray300, width: 1),
       ),
       child: Row(

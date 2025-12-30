@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/index.dart';
 
 /// Progress Indicator Widget for multi-step forms
 ///
@@ -33,7 +33,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
                 color: isActive || isCompleted
                     ? TossColors.primary
                     : TossColors.gray300,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             if (index < totalSteps - 1) const SizedBox(width: 8),

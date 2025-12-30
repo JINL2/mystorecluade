@@ -6,7 +6,6 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_list_tile.dart';
 
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../app/providers/locale_provider.dart';
@@ -314,38 +313,69 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
     final isSelected = _selectedLanguage == language['name'];
     final languageCode = language['code']!.toUpperCase();
 
-    return TossListTile(
-      title: language['name']!,
-      subtitle: language['native']!,
-      leading: Container(
-        width: TossSpacing.space10,
-        height: TossSpacing.space10,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? TossColors.primary
-              : TossColors.gray100,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+    return InkWell(
+      onTap: () => _selectLanguage(language['code']!, language['name']!),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
         ),
-        child: Center(
-          child: Text(
-            languageCode,
-            style: TossTextStyles.caption.copyWith(
-              color: isSelected ? TossColors.white : TossColors.gray700,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-              letterSpacing: -0.5,
+        child: Row(
+          children: [
+            // Language code badge
+            Container(
+              width: TossSpacing.space10,
+              height: TossSpacing.space10,
+              decoration: BoxDecoration(
+                color: isSelected ? TossColors.primary : TossColors.gray100,
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Center(
+                child: Text(
+                  languageCode,
+                  style: TossTextStyles.caption.copyWith(
+                    color: isSelected ? TossColors.white : TossColors.gray700,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: TossSpacing.space3),
+            // Title and subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    language['name']!,
+                    style: TossTextStyles.body.copyWith(
+                      color: isSelected ? TossColors.primary : TossColors.gray900,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    language['native']!,
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Check icon for selected
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: TossColors.primary,
+                size: TossSpacing.iconMD,
+              ),
+          ],
         ),
       ),
-      trailing: isSelected
-          ? const Icon(
-              Icons.check_circle,
-              color: TossColors.primary,
-              size: TossSpacing.iconMD,
-            )
-          : null, // No arrow - direct selection, not a submenu
-      onTap: () => _selectLanguage(language['code']!, language['name']!),
     );
   }
 }

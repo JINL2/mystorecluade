@@ -6,7 +6,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/keyboard/toss_numberpad_modal.dart';
+import '../../../../../shared/widgets/toss/keyboard/toss_currency_exchange_modal.dart';
 import '../../../domain/entities/trade_item.dart';
 
 /// Trade item tile widget - displays a product that can be selected for trade documents
@@ -39,7 +39,7 @@ class _TradeItemTileState extends State<TradeItemTile> {
 
   void _showQuantityModal() {
     HapticFeedback.lightImpact();
-    TossNumberpadModal.show(
+    TossCurrencyExchangeModal.show(
       context: context,
       title: 'Enter Quantity',
       initialValue: _formatQuantity(widget.item.quantity),
@@ -223,7 +223,7 @@ class _TradeItemTileState extends State<TradeItemTile> {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         '$stockQuantity',

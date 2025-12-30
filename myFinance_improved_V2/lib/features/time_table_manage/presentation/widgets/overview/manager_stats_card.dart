@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
@@ -31,7 +32,7 @@ class ManagerStatsCard extends StatelessWidget {
       padding: const EdgeInsets.all(TossSpacing.paddingLG),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -43,7 +44,7 @@ class ManagerStatsCard extends StatelessWidget {
                 padding: const EdgeInsets.all(TossSpacing.paddingXS),
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
                   icon,

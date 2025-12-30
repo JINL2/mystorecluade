@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
@@ -41,7 +42,7 @@ class DailyShiftCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: TossSpacing.marginMD),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         side: BorderSide(
           color: shift.isUnderStaffed ? TossColors.error : TossColors.gray200,
           width: shift.isUnderStaffed ? 2 : 1,
@@ -49,7 +50,7 @@ class DailyShiftCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.paddingMD),
           child: Column(
@@ -91,7 +92,7 @@ class DailyShiftCard extends StatelessWidget {
                   padding: const EdgeInsets.all(TossSpacing.paddingLG),
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Center(
                     child: Text(
@@ -132,7 +133,7 @@ class DailyShiftCard extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         text,
@@ -165,7 +166,7 @@ class DailyShiftCard extends StatelessWidget {
           padding: const EdgeInsets.all(TossSpacing.paddingMD),
           decoration: BoxDecoration(
             color: isApproved ? TossColors.gray50 : TossColors.warningLight,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
           ),
           child: Row(
             children: [
@@ -209,7 +210,7 @@ class DailyShiftCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.successLight,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
                     'Approve',

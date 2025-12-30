@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../domain/entities/report_notification.dart';
@@ -95,7 +95,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
         backgroundColor: TossColors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -194,10 +194,10 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
   Widget _buildEmptyView() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(TossSpacing.space8),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -216,17 +216,15 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
             _activeFilter == SalaryFilter.noWarnings
                 ? 'All employees have warnings'
                 : 'No employees found',
-            style: const TextStyle(
-              fontSize: 16,
+            style: TossTextStyles.titleMedium.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray600,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Tap the filter again to see all employees',
-            style: TextStyle(
-              fontSize: 13,
+            style: TossTextStyles.bodySmall.copyWith(
               color: TossColors.gray400,
             ),
           ),
@@ -249,11 +247,10 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
             const Icon(LucideIcons.alertCircle, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space8),
               child: Text(
                 message,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.gray700,
                 ),
                 textAlign: TextAlign.center,
@@ -285,7 +282,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -298,8 +295,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
           const SizedBox(width: 6),
           Text(
             formattedMonth,
-            style: const TextStyle(
-              fontSize: 13,
+            style: TossTextStyles.bodySmall.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray700,
             ),
@@ -317,8 +313,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 14,
+          style: TossTextStyles.body.copyWith(
             fontWeight: FontWeight.w600,
             color: TossColors.gray700,
           ),
@@ -332,8 +327,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
           ),
           child: Text(
             '$count',
-            style: const TextStyle(
-              fontSize: 11,
+            style: TossTextStyles.labelSmall.copyWith(
               fontWeight: FontWeight.w600,
               color: TossColors.gray600,
             ),
