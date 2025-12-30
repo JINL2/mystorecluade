@@ -20,6 +20,7 @@ import '../../../trade_shared/presentation/pages/trade_item_picker_page.dart';
 import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
 import '../../../cash_location/presentation/providers/cash_location_providers.dart';
 import '../../../cash_location/domain/value_objects/cash_location_query_params.dart';
+import '../../../cash_location/domain/entities/cash_location.dart';
 import '../../domain/entities/purchase_order.dart';
 import '../../domain/repositories/po_repository.dart';
 import '../providers/po_providers.dart';
