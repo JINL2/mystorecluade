@@ -642,21 +642,128 @@ class _POFormPageState extends ConsumerState<POFormPage> {
           );
         }).toList();
 
-        return TossDropdown<String>(
-          label: '',
-          hint: 'Select bank account',
-          value: _selectedBankAccountIds.isNotEmpty ? _selectedBankAccountIds.first : null,
-          items: tossDropdownItems,
-          onChanged: (value) {
-            setState(() {
-              _selectedBankAccountIds.clear();
-              if (value != null) {
-                _selectedBankAccountIds.add(value);
-              }
-            });
-          },
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TossDropdown<String>(
+              label: '',
+              hint: 'Select bank account',
+              value: _selectedBankAccountIds.isNotEmpty ? _selectedBankAccountIds.first : null,
+              items: tossDropdownItems,
+              onChanged: (value) {
+                setState(() {
+                  _selectedBankAccountIds.clear();
+                  if (value != null) {
+                    _selectedBankAccountIds.add(value);
+                  }
+                });
+              },
+            ),
+            // Show selected bank details
+            if (_selectedBankAccountIds.isNotEmpty) ...[
+              const SizedBox(height: TossSpacing.space3),
+              Builder(
+                builder: (context) {
+                  final selectedBank = bankAccounts.firstWhere(
+                    (b) => b.locationId == _selectedBankAccountIds.first,
+                    orElse: () => bankAccounts.first,
+                  );
+                  return _buildBankDetailCard(selectedBank);
+                },
+              ),
+            ],
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildBankDetailCard(CashLocation bank) {
+    final details = <MapEntry<String, String>>[];
+
+    if (bank.bankName != null && bank.bankName!.isNotEmpty) {
+      details.add(MapEntry('Bank Name', bank.bankName!));
+    }
+    if (bank.bankAccount != null && bank.bankAccount!.isNotEmpty) {
+      details.add(MapEntry('Account No.', bank.bankAccount!));
+    }
+    if (bank.beneficiaryName != null && bank.beneficiaryName!.isNotEmpty) {
+      details.add(MapEntry('Beneficiary', bank.beneficiaryName!));
+    }
+    if (bank.swiftCode != null && bank.swiftCode!.isNotEmpty) {
+      details.add(MapEntry('SWIFT Code', bank.swiftCode!));
+    }
+    if (bank.bankBranch != null && bank.bankBranch!.isNotEmpty) {
+      details.add(MapEntry('Branch', bank.bankBranch!));
+    }
+    if (bank.bankAddress != null && bank.bankAddress!.isNotEmpty) {
+      details.add(MapEntry('Bank Address', bank.bankAddress!));
+    }
+    if (bank.currencyCode != null && bank.currencyCode!.isNotEmpty) {
+      details.add(MapEntry('Currency', bank.currencyCode!));
+    }
+    if (bank.accountType != null && bank.accountType!.isNotEmpty) {
+      details.add(MapEntry('Account Type', bank.accountType!));
+    }
+
+    if (details.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(TossSpacing.space3),
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(color: TossColors.border),
+        ),
+        child: Text(
+          'No additional details available for this bank account.',
+          style: TossTextStyles.label.copyWith(
+            color: TossColors.textSecondary,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.surface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(color: TossColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: details.asMap().entries.map((mapEntry) {
+          final entry = mapEntry.value;
+          final isLast = mapEntry.key == details.length - 1;
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : TossSpacing.space2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 110,
+                  child: Text(
+                    entry.key,
+                    style: TossTextStyles.label.copyWith(
+                      color: TossColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    entry.value,
+                    style: TossTextStyles.bodyLarge.copyWith(
+                      color: TossColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
