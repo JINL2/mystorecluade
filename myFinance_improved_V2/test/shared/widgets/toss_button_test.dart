@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
 
 void main() {
   group('TossButton', () {

@@ -117,6 +117,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
   mocktail: ^1.0.0
 
+  # Widgetbook - Widget Catalog & Testing
+  widgetbook: ^3.10.0
+  widgetbook_annotation: ^3.2.0
+
   # Custom Lint for Design System Enforcement
   custom_lint: ^0.7.0
 

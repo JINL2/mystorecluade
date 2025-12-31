@@ -4,11 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import '../lib/main.dart' as app;
-import '../lib/core/themes/index.dart';
-import '../lib/presentation/widgets/common/toss_button.dart';
-import '../lib/presentation/widgets/common/toss_card.dart';
-import '../lib/presentation/widgets/toss/toss_text_field.dart';
+import 'package:myfinance_improved/main.dart' as app;
+import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/display/toss_card.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/inputs/toss_text_field.dart';
 
 /// Visual regression testing suite for theme consistency
 /// 
