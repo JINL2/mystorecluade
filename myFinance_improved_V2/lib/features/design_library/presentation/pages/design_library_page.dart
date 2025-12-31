@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 
+import 'sections/ai_widgets_section.dart';
 import 'sections/calendar_widgets_page.dart';
 import 'sections/core_widgets_page.dart';
 import 'sections/domain_widgets_page.dart';
@@ -9,6 +10,8 @@ import 'sections/feedback_widgets_page.dart';
 import 'sections/foundation_page.dart';
 import 'sections/navigation_widgets_page.dart';
 import 'sections/overlays_widgets_page.dart';
+import 'sections/selectors_section.dart';
+import 'sections/toss_extended_section.dart';
 
 /// Design Library Page
 /// Visual showcase of all design system components organized by folder structure
@@ -60,6 +63,21 @@ class _DesignLibraryPageState extends State<DesignLibraryPage> {
       activeIcon: Icons.business,
       label: 'domain',
     ),
+    _NavItem(
+      icon: Icons.smart_toy_outlined,
+      activeIcon: Icons.smart_toy,
+      label: 'AI',
+    ),
+    _NavItem(
+      icon: Icons.check_box_outlined,
+      activeIcon: Icons.check_box,
+      label: 'selectors',
+    ),
+    _NavItem(
+      icon: Icons.extension_outlined,
+      activeIcon: Icons.extension,
+      label: 'toss',
+    ),
   ];
 
   @override
@@ -95,6 +113,9 @@ class _DesignLibraryPageState extends State<DesignLibraryPage> {
                 NavigationWidgetsPage(),
                 CalendarWidgetsPage(),
                 DomainWidgetsPage(),
+                AIWidgetsSection(),
+                SelectorsSection(),
+                TossExtendedSection(),
               ],
             ),
           ),

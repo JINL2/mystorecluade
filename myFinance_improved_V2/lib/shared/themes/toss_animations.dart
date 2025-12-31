@@ -1,73 +1,340 @@
 import 'package:flutter/material.dart';
-import 'toss_colors.dart';
 
-/// Toss Animation System - Smooth & Professional
-/// Based on Toss's actual animation timings
-/// 
-/// Core Principles:
-/// - 200-250ms for most transitions (sweet spot)
-/// - No bouncy effects (professional feel)
-/// - Ease-out for entering, ease-in for exiting
-/// - Consistent timing creates rhythm
-/// - Subtle micro-interactions (50-100ms)
+import 'toss_border_radius.dart';
+import 'toss_colors.dart';
+import 'toss_spacing.dart';
+
+/// ============================================================================
+/// TOSS ANIMATION SYSTEM - Design Guideline & Implementation
+/// ============================================================================
+///
+/// ## 핵심 원칙
+/// - 200-250ms가 대부분의 전환에 적합한 "sweet spot"
+/// - 바운스 효과 사용 금지 (프로페셔널한 느낌 유지)
+/// - 진입: ease-out, 퇴장: ease-in
+/// - 일관된 타이밍으로 리듬감 부여
+/// - 마이크로 인터랙션은 50-100ms
+///
+/// ## 언제 어떤 애니메이션을 적용해야 하는가?
+///
+/// ┌─────────────────────────────────────────────────────────────────────────┐
+/// │ 상황                        │ 사용할 애니메이션          │ Duration    │
+/// ├─────────────────────────────────────────────────────────────────────────┤
+/// │ 버튼 누르기                  │ TossAnimations.fast       │ 150ms      │
+/// │ 칩/토글 선택                 │ TossAnimations.fast       │ 150ms      │
+/// │ 섹션 펼치기/접기 아이콘 회전  │ TossAnimations.fast       │ 150ms      │
+/// │ 섹션 내용 펼치기/접기        │ TossAnimations.fast       │ 150ms      │
+/// │ 카드 호버/프레스             │ TossAnimations.normal     │ 200ms      │
+/// │ 일반 상태 변화               │ TossAnimations.normal     │ 200ms      │
+/// │ 탭 전환                     │ TossAnimations.medium     │ 250ms      │
+/// │ 페이지 전환                  │ TossAnimations.medium     │ 250ms      │
+/// │ 바텀시트 열기/닫기           │ TossAnimations.medium     │ 250ms      │
+/// │ 복잡한 전환                  │ TossAnimations.slow       │ 300ms      │
+/// │ 주요 장면 변경               │ TossAnimations.slower     │ 400ms      │
+/// └─────────────────────────────────────────────────────────────────────────┘
+///
+/// ## 위젯별 적용 가이드
+///
+/// ### 1. Expandable Section (펼치기/접기 섹션)
+/// ```dart
+/// // 아이콘 회전
+/// AnimatedRotation(
+///   turns: isExpanded ? 0.25 : 0,  // 90도 회전
+///   duration: TossAnimations.fast,
+///   child: Icon(Icons.chevron_right),
+/// )
+///
+/// // 내용 펼치기
+/// AnimatedCrossFade(
+///   duration: TossAnimations.fast,
+///   crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+///   firstChild: expandedContent,
+///   secondChild: const SizedBox.shrink(),
+/// )
+/// ```
+///
+/// ### 2. Selection Chip (선택 칩)
+/// ```dart
+/// AnimatedContainer(
+///   duration: TossAnimations.fast,
+///   decoration: BoxDecoration(
+///     color: isSelected ? TossColors.gray900 : TossColors.gray100,
+///     borderRadius: BorderRadius.circular(TossBorderRadius.full),
+///   ),
+///   child: Text(label, style: ...),
+/// )
+/// ```
+///
+/// ### 3. Tab Bar
+/// ```dart
+/// TabBar(
+///   indicator: BoxDecoration(
+///     color: TossColors.white,
+///     borderRadius: BorderRadius.circular(TossBorderRadius.md),
+///   ),
+///   // TabController가 자동으로 애니메이션 처리
+/// )
+/// ```
+///
+/// ### 4. Bottom Sheet
+/// ```dart
+/// showModalBottomSheet(
+///   transitionAnimationController: AnimationController(
+///     duration: TossAnimations.medium,
+///     vsync: this,
+///   ),
+/// )
+/// ```
+///
+/// ### 5. Loading State
+/// ```dart
+/// AnimatedSwitcher(
+///   duration: TossAnimations.normal,
+///   child: isLoading ? TossLoadingIndicator() : content,
+/// )
+/// ```
+///
+/// ## 마이그레이션 체크리스트
+///
+/// 기존 코드에서 다음을 찾아 교체:
+/// - `Duration(milliseconds: 150)` → `TossAnimations.fast`
+/// - `Duration(milliseconds: 200)` → `TossAnimations.normal`
+/// - `Duration(milliseconds: 250)` → `TossAnimations.medium`
+/// - `Duration(milliseconds: 300)` → `TossAnimations.slow`
+/// - `Curves.easeInOut` → `TossAnimations.standard`
+/// - `Curves.easeOut` → `TossAnimations.decelerate`
+///
+/// ============================================================================
+
 class TossAnimations {
   TossAnimations._();
 
   // ==================== DURATION CONSTANTS ====================
   // Toss uses consistent, predictable timing
-  
-  /// Instant (50ms) - Immediate feedback
+
+  /// Instant (50ms) - 즉각적인 피드백
+  /// 사용: 터치 피드백, 즉시 반응이 필요한 경우
   static const Duration instant = Duration(milliseconds: 50);
-  
-  /// Quick (100ms) - Micro-interactions
+
+  /// Quick (100ms) - 마이크로 인터랙션
+  /// 사용: 아주 빠른 상태 변화, 체크박스 토글
   static const Duration quick = Duration(milliseconds: 100);
-  
-  /// Fast (150ms) - Button presses, hovers
+
+  /// Fast (150ms) - 버튼 누르기, 호버, 칩 선택, 섹션 펼치기/접기 ⭐
+  /// 사용: 버튼 프레스, 선택 칩, expandable section, 아이콘 회전
   static const Duration fast = Duration(milliseconds: 150);
-  
-  /// Normal (200ms) - Default for most animations ⭐
+
+  /// Normal (200ms) - 기본 애니메이션 ⭐
+  /// 사용: 카드 상태 변화, 일반적인 UI 전환, 로딩 상태 전환
   static const Duration normal = Duration(milliseconds: 200);
-  
-  /// Medium (250ms) - Page transitions ⭐
+
+  /// Medium (250ms) - 페이지/탭 전환 ⭐
+  /// 사용: 페이지 네비게이션, 탭 전환, 바텀시트
   static const Duration medium = Duration(milliseconds: 250);
-  
-  /// Slow (300ms) - Complex transitions
+
+  /// Slow (300ms) - 복잡한 전환
+  /// 사용: 다중 요소가 함께 움직이는 전환
   static const Duration slow = Duration(milliseconds: 300);
-  
-  /// Slower (400ms) - Major scene changes
+
+  /// Slower (400ms) - 주요 장면 변경
+  /// 사용: 온보딩 화면 전환, 대규모 레이아웃 변경
   static const Duration slower = Duration(milliseconds: 400);
 
   // ==================== CURVE CONSTANTS ====================
   // Toss avoids bouncy effects for professional feel
-  
+
   /// Standard curve - Smooth and professional ⭐
+  /// 사용: 대부분의 애니메이션에 기본 적용
   static const Curve standard = Curves.easeInOutCubic;
-  
+
   /// Enter curve - Smooth deceleration ⭐
+  /// 사용: 요소가 화면에 진입할 때
   static const Curve enter = Curves.easeOutCubic;
-  
+
   /// Exit curve - Smooth acceleration
+  /// 사용: 요소가 화면에서 퇴장할 때
   static const Curve exit = Curves.easeInCubic;
-  
+
   /// Emphasis curve - Slight overshoot (no bounce)
+  /// 사용: 강조가 필요한 애니메이션
   static const Curve emphasis = Curves.fastOutSlowIn;
-  
+
   /// Linear - Constant speed (progress bars)
+  /// 사용: 프로그레스 바, 로딩 인디케이터
   static const Curve linear = Curves.linear;
-  
+
   /// Accelerate - Speed up gradually
+  /// 사용: 퇴장 애니메이션
   static const Curve accelerate = Curves.easeIn;
-  
+
   /// Decelerate - Slow down gradually ⭐
+  /// 사용: 진입 애니메이션
   static const Curve decelerate = Curves.easeOut;
-  
+
   /// Sharp - Quick response
+  /// 사용: 즉각적인 반응이 필요할 때
   static const Curve sharp = Curves.easeOutExpo;
-  
+
   /// NO BOUNCE - Toss doesn't use elasticOut or bounceOut
+  /// 바운스 효과는 프로페셔널하지 않으므로 사용 금지
+
+  // ==================== EXPANDABLE SECTION ====================
+  // 펼치기/접기 섹션에 사용 (balance_sheet 스타일)
+
+  /// Expandable 섹션의 chevron 아이콘 회전 위젯
+  ///
+  /// 사용 예:
+  /// ```dart
+  /// TossAnimations.expandIcon(
+  ///   isExpanded: _isExpanded,
+  ///   child: Icon(Icons.chevron_right, size: 20, color: TossColors.gray400),
+  /// )
+  /// ```
+  static Widget expandIcon({
+    required bool isExpanded,
+    required Widget child,
+  }) {
+    return AnimatedRotation(
+      turns: isExpanded ? 0.25 : 0,
+      duration: fast,
+      child: child,
+    );
+  }
+
+  /// Expandable 섹션의 내용 펼치기/접기 위젯
+  ///
+  /// 사용 예:
+  /// ```dart
+  /// TossAnimations.expandContent(
+  ///   isExpanded: _isExpanded,
+  ///   child: _buildExpandedContent(),
+  /// )
+  /// ```
+  static Widget expandContent({
+    required bool isExpanded,
+    required Widget child,
+  }) {
+    return AnimatedCrossFade(
+      duration: fast,
+      crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+      firstChild: child,
+      secondChild: const SizedBox.shrink(),
+      sizeCurve: decelerate,
+    );
+  }
+
+  // ==================== SELECTION CHIP ====================
+  // 선택 칩/토글에 사용 (period_selector 스타일)
+
+  /// 선택 칩 데코레이션 (AnimatedContainer와 함께 사용)
+  ///
+  /// 사용 예:
+  /// ```dart
+  /// AnimatedContainer(
+  ///   duration: TossAnimations.fast,
+  ///   padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
+  ///   decoration: TossAnimations.selectionChipDecoration(isSelected: isSelected),
+  ///   child: Text(label),
+  /// )
+  /// ```
+  static BoxDecoration selectionChipDecoration({
+    required bool isSelected,
+    Color? selectedColor,
+    Color? unselectedColor,
+  }) {
+    return BoxDecoration(
+      color: isSelected
+          ? (selectedColor ?? TossColors.gray900)
+          : (unselectedColor ?? TossColors.gray100),
+      borderRadius: BorderRadius.circular(TossBorderRadius.full),
+    );
+  }
+
+  /// 선택 칩 전체 위젯 (간편 사용)
+  ///
+  /// 사용 예:
+  /// ```dart
+  /// TossAnimations.selectionChip(
+  ///   label: 'Today',
+  ///   isSelected: selectedPeriod == QuickPeriod.today,
+  ///   onTap: () => onPeriodChanged(QuickPeriod.today),
+  /// )
+  /// ```
+  static Widget selectionChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Color? selectedColor,
+    Color? unselectedColor,
+    Color? selectedTextColor,
+    Color? unselectedTextColor,
+    EdgeInsets? padding,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: fast,
+        padding: padding ?? const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        decoration: selectionChipDecoration(
+          isSelected: isSelected,
+          selectedColor: selectedColor,
+          unselectedColor: unselectedColor,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? (selectedTextColor ?? TossColors.white)
+                : (unselectedTextColor ?? TossColors.gray600),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==================== TAB INDICATOR ====================
+  // 탭바 인디케이터 스타일 (financial_statements_page 스타일)
+
+  /// Toss 스타일 탭 인디케이터 데코레이션
+  ///
+  /// 사용 예:
+  /// ```dart
+  /// TabBar(
+  ///   indicator: TossAnimations.tabIndicatorDecoration(),
+  ///   indicatorSize: TabBarIndicatorSize.tab,
+  ///   indicatorPadding: EdgeInsets.all(TossSpacing.space1 - 1),
+  ///   ...
+  /// )
+  /// ```
+  static BoxDecoration tabIndicatorDecoration() {
+    return BoxDecoration(
+      color: TossColors.white,
+      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      boxShadow: [
+        BoxShadow(
+          color: TossColors.black.withValues(alpha: 0.06),
+          blurRadius: 4,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    );
+  }
+
+  /// 탭바 배경 컨테이너 데코레이션
+  static BoxDecoration tabBarBackgroundDecoration() {
+    return BoxDecoration(
+      color: TossColors.gray100,
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+    );
+  }
 
   // ==================== COMMON TRANSITIONS ====================
-  
+
   /// Fade transition for smooth opacity changes
   static Widget fadeTransition({
     required Widget child,
@@ -78,7 +345,7 @@ class TossAnimations {
       child: child,
     );
   }
-  
+
   /// Slide transition from bottom (sheets, modals)
   static Widget slideFromBottom({
     required Widget child,
@@ -95,7 +362,7 @@ class TossAnimations {
       child: child,
     );
   }
-  
+
   /// Slide transition from right (page navigation)
   static Widget slideFromRight({
     required Widget child,
@@ -112,7 +379,7 @@ class TossAnimations {
       child: child,
     );
   }
-  
+
   /// Scale transition for emphasis
   static Widget scaleTransition({
     required Widget child,
@@ -132,7 +399,7 @@ class TossAnimations {
   }
 
   // ==================== MICRO INTERACTIONS ====================
-  
+
   /// Button press scale animation
   static AnimationController createButtonController(TickerProvider vsync) {
     return AnimationController(
@@ -140,7 +407,7 @@ class TossAnimations {
       vsync: vsync,
     );
   }
-  
+
   /// Card hover/press animation
   static AnimationController createCardController(TickerProvider vsync) {
     return AnimationController(
@@ -148,7 +415,7 @@ class TossAnimations {
       vsync: vsync,
     );
   }
-  
+
   /// List item animation controller
   static AnimationController createListItemController(TickerProvider vsync) {
     return AnimationController(
@@ -158,7 +425,7 @@ class TossAnimations {
   }
 
   // ==================== PAGE ROUTE TRANSITIONS ====================
-  
+
   /// Toss-style page route with slide and fade
   static PageRouteBuilder<T> pageRoute<T>({
     required Widget Function(BuildContext, Animation<double>, Animation<double>) pageBuilder,
@@ -175,7 +442,7 @@ class TossAnimations {
         final offsetAnimation = animation.drive(
           tween.chain(CurveTween(curve: standard)),
         );
-        
+
         return SlideTransition(
           position: offsetAnimation,
           child: FadeTransition(
@@ -186,7 +453,7 @@ class TossAnimations {
       },
     );
   }
-  
+
   /// Bottom sheet route animation
   static PageRouteBuilder<T> bottomSheetRoute<T>({
     required Widget Function(BuildContext) builder,
@@ -209,7 +476,7 @@ class TossAnimations {
   }
 
   // ==================== STAGGER ANIMATIONS ====================
-  
+
   /// Creates staggered animation intervals for lists
   static List<Interval> createStaggerIntervals(int itemCount, {double delay = 0.05}) {
     return List.generate(itemCount, (index) {
@@ -224,7 +491,7 @@ class TossAnimations {
   }
 
   // ==================== ANIMATED WIDGETS ====================
-  
+
   /// Animated container with Toss defaults
   static Widget animatedContainer({
     required Widget child,
@@ -247,7 +514,7 @@ class TossAnimations {
       child: child,
     );
   }
-  
+
   /// Animated opacity with Toss defaults
   static Widget animatedOpacity({
     required Widget child,
@@ -262,7 +529,7 @@ class TossAnimations {
       child: child,
     );
   }
-  
+
   /// Animated scale with Toss defaults
   static Widget animatedScale({
     required Widget child,
@@ -277,7 +544,7 @@ class TossAnimations {
       child: child,
     );
   }
-  
+
   /// Animated slide with Toss defaults
   static Widget animatedSlide({
     required Widget child,
@@ -294,7 +561,7 @@ class TossAnimations {
   }
 
   // ==================== LOADING ANIMATIONS ====================
-  
+
   /// Toss-style shimmer effect for loading states
   static LinearGradient shimmerGradient = const LinearGradient(
     colors: [
@@ -306,7 +573,7 @@ class TossAnimations {
     begin: Alignment(-1.0, -0.3),
     end: Alignment(1.0, 0.3),
   );
-  
+
   /// Pulse animation for loading indicators
   static Animation<double> createPulseAnimation(AnimationController controller) {
     return Tween<double>(
@@ -319,7 +586,7 @@ class TossAnimations {
   }
 
   // ==================== GESTURE ANIMATIONS ====================
-  
+
   /// Creates a tap scale animation
   static Animation<double> createTapAnimation(AnimationController controller) {
     return Tween<double>(
@@ -330,7 +597,7 @@ class TossAnimations {
       curve: Curves.easeInOut,
     ),);
   }
-  
+
   /// Creates a long press scale animation
   static Animation<double> createLongPressAnimation(AnimationController controller) {
     return Tween<double>(
@@ -341,7 +608,7 @@ class TossAnimations {
       curve: Curves.easeInOut,
     ),);
   }
-  
+
   /// Creates a swipe animation
   static Animation<Offset> createSwipeAnimation(
     AnimationController controller,
@@ -358,7 +625,7 @@ class TossAnimations {
   }
 
   // ==================== SCROLL ANIMATIONS ====================
-  
+
   /// Fade in on scroll animation
   static Widget fadeInOnScroll({
     required Widget child,
@@ -372,7 +639,7 @@ class TossAnimations {
             ? scrollController.offset
             : 0.0;
         final opacity = (offset / triggerOffset).clamp(0.0, 1.0);
-        
+
         return Opacity(
           opacity: opacity,
           child: child,
@@ -380,7 +647,7 @@ class TossAnimations {
       },
     );
   }
-  
+
   /// Parallax scroll effect
   static Widget parallaxScroll({
     required Widget child,
@@ -393,7 +660,7 @@ class TossAnimations {
         final offset = scrollController.hasClients
             ? scrollController.offset * speed
             : 0.0;
-        
+
         return Transform.translate(
           offset: Offset(0, -offset),
           child: child,
@@ -403,6 +670,10 @@ class TossAnimations {
   }
 }
 
+// ============================================================================
+// REUSABLE ANIMATED WIDGETS
+// ============================================================================
+
 /// Toss-style animated widget wrapper for micro-interactions
 class TossAnimatedWidget extends StatefulWidget {
   final Widget child;
@@ -411,7 +682,7 @@ class TossAnimatedWidget extends StatefulWidget {
   final VoidCallback? onTap;
   final Duration duration;
   final Curve curve;
-  
+
   const TossAnimatedWidget({
     super.key,
     required this.child,
@@ -421,7 +692,7 @@ class TossAnimatedWidget extends StatefulWidget {
     this.duration = TossAnimations.quick,
     this.curve = TossAnimations.standard,
   });
-  
+
   @override
   State<TossAnimatedWidget> createState() => _TossAnimatedWidgetState();
 }
@@ -430,7 +701,7 @@ class _TossAnimatedWidgetState extends State<TossAnimatedWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -446,7 +717,7 @@ class _TossAnimatedWidgetState extends State<TossAnimatedWidget>
       curve: widget.curve,
     ),);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -469,10 +740,185 @@ class _TossAnimatedWidgetState extends State<TossAnimatedWidget>
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+}
+
+/// Toss-style Expandable Section Widget
+///
+/// 사용 예:
+/// ```dart
+/// TossExpandableSection(
+///   title: 'Account Details',
+///   trailing: Text('3 items'),
+///   initiallyExpanded: false,
+///   children: [
+///     _buildAccountRow('Cash', 1000),
+///     _buildAccountRow('Bank', 5000),
+///   ],
+/// )
+/// ```
+class TossExpandableSection extends StatefulWidget {
+  final String title;
+  final Widget? trailing;
+  final List<Widget> children;
+  final bool initiallyExpanded;
+  final EdgeInsets? titlePadding;
+  final EdgeInsets? contentPadding;
+  final Color? expandedBackgroundColor;
+  final VoidCallback? onExpansionChanged;
+
+  const TossExpandableSection({
+    super.key,
+    required this.title,
+    this.trailing,
+    required this.children,
+    this.initiallyExpanded = false,
+    this.titlePadding,
+    this.contentPadding,
+    this.expandedBackgroundColor,
+    this.onExpansionChanged,
+  });
+
+  @override
+  State<TossExpandableSection> createState() => _TossExpandableSectionState();
+}
+
+class _TossExpandableSectionState extends State<TossExpandableSection> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.initiallyExpanded;
+  }
+
+  void _toggleExpansion() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+    widget.onExpansionChanged?.call();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Header
+        InkWell(
+          onTap: _toggleExpansion,
+          child: Padding(
+            padding: widget.titlePadding ?? const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space3,
+            ),
+            child: Row(
+              children: [
+                // Expand icon with rotation animation
+                TossAnimations.expandIcon(
+                  isExpanded: _isExpanded,
+                  child: const Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: TossColors.gray400,
+                  ),
+                ),
+
+                const SizedBox(width: TossSpacing.space2),
+
+                // Title
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: const TextStyle(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+
+                // Trailing widget
+                if (widget.trailing != null) widget.trailing!,
+              ],
+            ),
+          ),
+        ),
+
+        // Content with expand/collapse animation
+        TossAnimations.expandContent(
+          isExpanded: _isExpanded,
+          child: Container(
+            color: widget.expandedBackgroundColor ?? TossColors.gray50,
+            padding: widget.contentPadding,
+            child: Column(
+              children: widget.children,
+            ),
+          ),
+        ),
+
+        // Divider
+        Container(height: 1, color: TossColors.gray100),
+      ],
+    );
+  }
+}
+
+/// Toss-style Selection Chip Group
+///
+/// 사용 예:
+/// ```dart
+/// TossSelectionChipGroup<QuickPeriod>(
+///   items: [
+///     (QuickPeriod.today, 'Today'),
+///     (QuickPeriod.week, 'Week'),
+///     (QuickPeriod.month, 'Month'),
+///   ],
+///   selectedValue: selectedPeriod,
+///   onChanged: (value) => setState(() => selectedPeriod = value),
+/// )
+/// ```
+class TossSelectionChipGroup<T> extends StatelessWidget {
+  final List<(T, String)> items;
+  final T selectedValue;
+  final ValueChanged<T> onChanged;
+  final EdgeInsets? padding;
+  final double spacing;
+
+  const TossSelectionChipGroup({
+    super.key,
+    required this.items,
+    required this.selectedValue,
+    required this.onChanged,
+    this.padding,
+    this.spacing = TossSpacing.space2,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: padding,
+      child: Row(
+        children: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final isLast = index == items.length - 1;
+
+          return Padding(
+            padding: EdgeInsets.only(right: isLast ? 0 : spacing),
+            child: TossAnimations.selectionChip(
+              label: item.$2,
+              isSelected: selectedValue == item.$1,
+              onTap: () => onChanged(item.$1),
+            ),
+          );
+        }).toList(),
+      ),
+    );
   }
 }

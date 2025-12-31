@@ -7,30 +7,10 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import '../../../domain/entities/attribute_types.dart';
 
-/// Attribute types available for selection
-enum AttributeType {
-  text('Text', LucideIcons.type),
-  number('Number', LucideIcons.hash),
-  date('Date', LucideIcons.calendar),
-  barcode('Barcode', LucideIcons.scanLine);
-
-  final String label;
-  final IconData icon;
-
-  const AttributeType(this.label, this.icon);
-}
-
-/// Result from add attribute dialog
-class AddAttributeResult {
-  final String name;
-  final AttributeType type;
-
-  const AddAttributeResult({
-    required this.name,
-    required this.type,
-  });
-}
+// Re-export for backward compatibility (prevents DCM false positive)
+export '../../../domain/entities/attribute_types.dart';
 
 /// Dialog for adding a new attribute
 class AddAttributeFormDialog extends StatefulWidget {

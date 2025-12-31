@@ -13,7 +13,6 @@ import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../constants/report_strings.dart';
 import '../../../domain/entities/report_notification.dart';
 import '../../../domain/entities/report_detail.dart';
-import '../../../domain/entities/templates/financial_summary/example_report_data.dart';
 import '../../providers/report_provider.dart';
 import '../../providers/report_state.dart';
 import '../../utils/template_registry.dart';

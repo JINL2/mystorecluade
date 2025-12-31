@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../../shared/themes/index.dart';
 import '../../../../../shared/widgets/toss/toss_button.dart';
+import '../../../domain/entities/shift_signup_status.dart';
 
-/// Shift signup status determining the action button state
-enum ShiftSignupStatus {
-  available, // Can apply - shows blue "+ Apply" button
-  waitlist, // Full but can waitlist - shows gray "+ Waitlist" button
-  onWaitlist, // User is on waitlist - shows gray outline "- Leave" button
-  applied, // Already applied - shows blue outline "- Withdraw" button
-  assigned, // Already assigned - shows gray "Assigned" badge
-}
+// Re-export for backward compatibility (prevents DCM false positive)
+export '../../../domain/entities/shift_signup_status.dart';
 
 /// ShiftSignupCard - Card showing shift details with action button
 ///

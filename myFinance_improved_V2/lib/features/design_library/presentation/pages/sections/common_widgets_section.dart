@@ -11,6 +11,10 @@ import 'package:myfinance_improved/shared/widgets/common/toss_section_header.dar
 import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
 import 'package:myfinance_improved/shared/widgets/common/avatar_stack_interact.dart';
 import 'package:myfinance_improved/shared/widgets/common/toss_info_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
+import 'package:myfinance_improved/shared/widgets/common/toss_fab.dart';
 import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 
 /// Common Widgets Section - Showcases widgets from /lib/shared/widgets/common
@@ -299,6 +303,337 @@ class _CommonWidgetsSectionState extends State<CommonWidgetsSection> {
             date: DateTime.now(),
             placeholder: 'Select Date',
             onDateChanged: (date) {},
+          ),
+        ),
+
+        // TossConfirmCancelDialog
+        _ComponentShowcase(
+          name: 'TossConfirmCancelDialog',
+          description: 'Confirm/Cancel dialog for user action confirmation (delete, save, discard)',
+          filename: 'toss_confirm_cancel_dialog.dart',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: TossSpacing.space2,
+                runSpacing: TossSpacing.space2,
+                children: [
+                  TossPrimaryButton(
+                    text: 'Confirm Dialog',
+                    onPressed: () {
+                      TossConfirmCancelDialog.show(
+                        context: context,
+                        title: 'Confirm Action',
+                        message: 'Are you sure you want to proceed with this action?',
+                        confirmButtonText: 'Confirm',
+                        cancelButtonText: 'Cancel',
+                      );
+                    },
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      TossConfirmCancelDialog.showDelete(
+                        context: context,
+                        title: 'Delete Item',
+                        message: 'This action cannot be undone.',
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TossColors.error,
+                    ),
+                    child: const Text('Delete Dialog'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // TossDialog (Success/Error)
+        _ComponentShowcase(
+          name: 'TossDialog',
+          description: 'Success/Error result dialog with icon and message',
+          filename: 'toss_success_error_dialog.dart',
+          child: Wrap(
+            spacing: TossSpacing.space2,
+            runSpacing: TossSpacing.space2,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => TossDialog.success(
+                      title: 'Success!',
+                      message: 'Your changes have been saved successfully.',
+                      primaryButtonText: 'OK',
+                      onPrimaryPressed: () => Navigator.pop(context),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.check_circle, size: 16),
+                label: const Text('Success'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: TossColors.success,
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => TossDialog.error(
+                      title: 'Error',
+                      message: 'Something went wrong. Please try again.',
+                      primaryButtonText: 'OK',
+                      onPrimaryPressed: () => Navigator.pop(context),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.error, size: 16),
+                label: const Text('Error'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: TossColors.error,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // GrayDividerSpace
+        _ComponentShowcase(
+          name: 'GrayDividerSpace & GrayVerticalDivider',
+          description: 'Full-width horizontal divider and vertical divider for section separation',
+          filename: 'gray_divider_space.dart',
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space3),
+                color: TossColors.white,
+                child: const Text('Section 1'),
+              ),
+              const GrayDividerSpace(height: 12),
+              Container(
+                padding: const EdgeInsets.all(TossSpacing.space3),
+                color: TossColors.white,
+                child: const Text('Section 2'),
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text('Metric 1'),
+                    GrayVerticalDivider(height: 20),
+                    Text('Metric 2'),
+                    GrayVerticalDivider(height: 20),
+                    Text('Metric 3'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // TossFAB
+        _ComponentShowcase(
+          name: 'TossFAB',
+          description: 'Floating action button with Toss styling',
+          filename: 'toss_fab.dart',
+          child: Row(
+            children: [
+              TossFAB(
+                onPressed: () {},
+                icon: Icons.add,
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              TossFAB(
+                onPressed: () {},
+                icon: Icons.edit,
+                size: 44,
+                iconSize: 20,
+              ),
+            ],
+          ),
+        ),
+
+        // TossFAB.expandable
+        _ComponentShowcase(
+          name: 'TossFAB.expandable',
+          description: 'Expandable FAB with multiple action buttons',
+          filename: 'toss_fab.dart',
+          child: Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Stack(
+              children: [
+                const Center(
+                  child: Text('Tap the FAB to expand'),
+                ),
+                Positioned(
+                  right: TossSpacing.space4,
+                  bottom: TossSpacing.space4,
+                  child: TossFAB.expandable(
+                    actions: [
+                      TossFABAction(
+                        icon: Icons.receipt,
+                        label: 'New Invoice',
+                        onPressed: () {},
+                      ),
+                      TossFABAction(
+                        icon: Icons.shopping_cart,
+                        label: 'New Order',
+                        onPressed: () {},
+                      ),
+                      TossFABAction(
+                        icon: Icons.person_add,
+                        label: 'New Customer',
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Exchange Rate Calculator & Keyboard Toolbar (Documentation only)
+        _ComponentShowcase(
+          name: 'ExchangeRateCalculator',
+          description: 'Currency converter widget with numberpad input (requires Riverpod)',
+          filename: 'exchange_rate_calculator.dart',
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.primarySurface,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              border: Border.all(color: TossColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.currency_exchange, color: TossColors.primary, size: 20),
+                    const SizedBox(width: TossSpacing.space2),
+                    Text(
+                      'Exchange Rate Calculator',
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'Converts foreign currency to base currency using Riverpod providers.',
+                  style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'Usage: Used in JournalInput for multi-currency transactions.',
+                  style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // KeyboardToolbar1
+        _ComponentShowcase(
+          name: 'KeyboardToolbar1',
+          description: 'Keyboard accessory toolbar with done button and custom actions',
+          filename: 'keyboard_toolbar_1.dart',
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.keyboard, color: TossColors.gray600, size: 20),
+                    const SizedBox(width: TossSpacing.space2),
+                    Text(
+                      'Keyboard Toolbar',
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.gray700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'Toolbar that appears above the keyboard with Done button and optional actions.',
+                  style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // CachedProductImage
+        _ComponentShowcase(
+          name: 'CachedProductImage',
+          description: 'Network image with caching and placeholder support',
+          filename: 'cached_product_image.dart',
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.image, color: TossColors.gray600, size: 20),
+                    const SizedBox(width: TossSpacing.space2),
+                    Text(
+                      'Cached Product Image',
+                      style: TossTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.gray700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'Displays product images with network caching, loading placeholders, and error handling.',
+                  style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+                ),
+                const SizedBox(height: TossSpacing.space2),
+                Row(
+                  children: [
+                    // Placeholder example
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: TossColors.gray200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.inventory_2, color: TossColors.gray400),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                    Text(
+                      'Placeholder shown\nwhile loading',
+                      style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ],

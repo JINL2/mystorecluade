@@ -1,8 +1,8 @@
+import '../../../domain/entities/attention_item_data.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../providers/state/coverage_gap_provider.dart';
 import '../../providers/states/time_table_state.dart';
-import 'attention_card.dart';
 
 /// Builder class for attention items in OverviewTab
 ///

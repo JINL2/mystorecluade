@@ -5,13 +5,10 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/widgets/toss/toss_button.dart';
+import '../../../../domain/entities/vault_transaction_type.dart';
 
-/// Transaction type for vault operations
-enum VaultTransactionType {
-  debit,  // In
-  credit, // Out
-  recount,
-}
+// Re-export for backward compatibility (prevents DCM false positive)
+export '../../../../domain/entities/vault_transaction_type.dart';
 
 /// Debit/Credit/Recount toggle widget for vault tab
 ///
@@ -87,33 +84,6 @@ class DebitCreditToggle extends StatelessWidget {
         fullWidth: true,
         borderRadius: TossBorderRadius.lg,
       );
-    }
-  }
-}
-
-/// Extension to convert between string and enum
-extension VaultTransactionTypeExtension on VaultTransactionType {
-  String get stringValue {
-    switch (this) {
-      case VaultTransactionType.debit:
-        return 'debit';
-      case VaultTransactionType.credit:
-        return 'credit';
-      case VaultTransactionType.recount:
-        return 'recount';
-    }
-  }
-
-  static VaultTransactionType fromString(String value) {
-    switch (value) {
-      case 'debit':
-        return VaultTransactionType.debit;
-      case 'credit':
-        return VaultTransactionType.credit;
-      case 'recount':
-        return VaultTransactionType.recount;
-      default:
-        return VaultTransactionType.debit;
     }
   }
 }
