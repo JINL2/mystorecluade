@@ -11,7 +11,7 @@ import 'package:myfinance_improved/shared/widgets/feedback/states/index.dart';
 import 'package:myfinance_improved/shared/widgets/feedback/indicators/index.dart';
 
 // Buttons for demos
-import 'package:myfinance_improved/shared/widgets/core/buttons/index.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 
 import '../component_showcase.dart';
 

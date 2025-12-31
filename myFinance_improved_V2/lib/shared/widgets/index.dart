@@ -1,7 +1,7 @@
 /// Shared Widgets Library
 ///
-/// Organized by functional category following Atomic Design principles:
-/// - core/      : Atomic primitives (buttons, inputs, display, containers)
+/// Organized by functional category:
+/// - toss/      : Toss-style UI components (buttons, inputs, cards, etc.)
 /// - common/    : Shared UI components (scaffolds, dialogs, state views)
 /// - feedback/  : User communication (dialogs, states, indicators)
 /// - overlays/  : Modal/overlay interactions (sheets, pickers, menus)
@@ -14,8 +14,8 @@
 /// - ai_chat/   : AI Chat feature (mini-feature)
 library;
 
-// Core widgets (Atomic primitives)
-export 'core/index.dart';
+// Toss widgets (Main UI components)
+export 'toss/index.dart';
 
 // Common widgets (Shared UI components)
 export 'common/index.dart';

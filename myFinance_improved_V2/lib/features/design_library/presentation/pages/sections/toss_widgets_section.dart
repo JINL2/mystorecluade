@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
-// Core: Buttons
-import 'package:myfinance_improved/shared/widgets/core/buttons/index.dart';
-
-// Core: Inputs
-import 'package:myfinance_improved/shared/widgets/core/inputs/index.dart';
-
-// Core: Display
-import 'package:myfinance_improved/shared/widgets/core/display/index.dart';
-
-// Core: Containers
-import 'package:myfinance_improved/shared/widgets/core/containers/index.dart';
+// Toss widgets
+import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_quantity_input.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_chip.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
+import 'package:myfinance_improved/shared/widgets/toss/toss_card_safe.dart';
+import 'package:myfinance_improved/shared/widgets/toss/category_chip.dart';
 
 // Feedback: Indicators
 import 'package:myfinance_improved/shared/widgets/feedback/indicators/index.dart';
