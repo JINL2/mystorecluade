@@ -60,10 +60,3 @@ final joinByCodeUseCaseProvider = Provider<JoinByCode>((ref) {
 // Selection Use Cases
 // ============================================================================
 
-/// Auto Select Company/Store Use Case provider
-///
-/// Handles business logic for automatically selecting company and store
-/// based on last selection or default (first) values
-final autoSelectCompanyStoreProvider = Provider<AutoSelectCompanyStore>((ref) {
-  return AutoSelectCompanyStore();
-});

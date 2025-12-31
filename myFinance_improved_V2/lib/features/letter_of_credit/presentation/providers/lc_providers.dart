@@ -56,36 +56,6 @@ class LCListState {
   }
 }
 
-/// LC List state notifier
-class LCListNotifier extends StateNotifier<LCListState> {
-  LCListNotifier() : super(const LCListState());
-
-  void setSearchQuery(String? query) {
-    state = state.copyWith(searchQuery: query, page: 1);
-  }
-
-  void setStatusFilter(List<LCStatus>? statuses) {
-    state = state.copyWith(statusFilter: statuses, page: 1);
-  }
-
-  void setPage(int page) {
-    state = state.copyWith(page: page);
-  }
-
-  void nextPage() {
-    state = state.copyWith(page: state.page + 1);
-  }
-
-  void resetFilters() {
-    state = const LCListState();
-  }
-}
-
-final lcListStateProvider =
-    StateNotifierProvider<LCListNotifier, LCListState>((ref) {
-  return LCListNotifier();
-});
-
 /// LC List provider with auto-refresh
 final lcListProvider = FutureProvider.autoDispose
     .family<PaginatedLCResponse, LCListParams>((ref, params) async {
@@ -184,40 +154,4 @@ final lcFormNotifierProvider =
     StateNotifierProvider<LCFormNotifier, AsyncValue<LetterOfCredit?>>((ref) {
   final repository = ref.watch(lcRepositoryProvider);
   return LCFormNotifier(repository);
-});
-
-/// Active LC count for dashboard
-final activeLCCountProvider =
-    FutureProvider.autoDispose.family<int, String>((ref, companyId) async {
-  final repository = ref.watch(lcRepositoryProvider);
-  final response = await repository.getList(LCListParams(
-    companyId: companyId,
-    statuses: [
-      LCStatus.issued,
-      LCStatus.advised,
-      LCStatus.confirmed,
-      LCStatus.amended
-    ],
-    pageSize: 1,
-  ));
-  return response.totalCount;
-});
-
-/// Expiring LC list (within 14 days)
-final expiringLCListProvider = FutureProvider.autoDispose
-    .family<List<LCListItem>, String>((ref, companyId) async {
-  final repository = ref.watch(lcRepositoryProvider);
-  final response = await repository.getList(LCListParams(
-    companyId: companyId,
-    statuses: [
-      LCStatus.issued,
-      LCStatus.advised,
-      LCStatus.confirmed,
-      LCStatus.amended
-    ],
-    pageSize: 100,
-  ));
-
-  // Filter to only those expiring within 14 days
-  return response.data.where((lc) => lc.isExpiryApproaching).toList();
 });

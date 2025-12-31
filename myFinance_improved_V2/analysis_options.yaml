@@ -155,14 +155,15 @@ custom_lint:
     
     # Widget consistency rules
     - prefer_toss_widgets:
-        severity: info
+        severity: warning
         description: "Prefer Toss-themed widgets for consistency"
         widget_suggestions:
           "ElevatedButton": "TossButton.primary"
-          "OutlinedButton": "TossButton.secondary"  
-          "TextButton": "TossButton.text"
+          "OutlinedButton": "TossButton.outlined"
+          "TextButton": "TossButton.textButton"
           "TextField": "TossTextField"
-          "Card": "Consider TossCard for consistency"
+          "TextFormField": "TossTextField"
+          "Card": "TossCard"
     
     # Animation consistency rules
     - enforce_animation_durations:

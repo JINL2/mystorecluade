@@ -139,7 +139,7 @@ class NotificationService {
     if (response.payload != null) {
       try {
         final data = jsonDecode(response.payload!);
-        _handleNotificationNavigation(null, data: data);
+        _handleNotificationNavigation(null, data: data as Map<String, dynamic>?);
       } catch (e) {
         // Failed to parse notification payload
       }

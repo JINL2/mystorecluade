@@ -73,3 +73,42 @@ clean:
 
 codegen:
 	dart run build_runner build --delete-conflicting-outputs
+
+# ============================================
+# Design System 채택률 검사
+# ============================================
+
+# 위젯 채택률 리포트
+widget-report:
+	@echo "📊 Widget Adoption Report"
+	@echo "========================="
+	@echo ""
+	@TF_TOSS=$$(grep -r "TossTextField" lib/features --include="*.dart" 2>/dev/null | wc -l | tr -d ' '); \
+	TF_DIRECT=$$(grep -r "TextField(" lib/features --include="*.dart" 2>/dev/null | wc -l | tr -d ' '); \
+	TF_TOTAL=$$((TF_TOSS + TF_DIRECT)); \
+	if [ $$TF_TOTAL -gt 0 ]; then TF_RATE=$$((TF_TOSS * 100 / TF_TOTAL)); else TF_RATE=0; fi; \
+	echo "TextField:  $$TF_TOSS Toss / $$TF_DIRECT Direct = $$TF_RATE%"
+	@BTN_TOSS=$$(grep -rE "TossButton|TossPrimaryButton|TossSecondaryButton" lib/features --include="*.dart" 2>/dev/null | wc -l | tr -d ' '); \
+	BTN_DIRECT=$$(grep -rE "ElevatedButton|TextButton\(|OutlinedButton" lib/features --include="*.dart" 2>/dev/null | wc -l | tr -d ' '); \
+	BTN_TOTAL=$$((BTN_TOSS + BTN_DIRECT)); \
+	if [ $$BTN_TOTAL -gt 0 ]; then BTN_RATE=$$((BTN_TOSS * 100 / BTN_TOTAL)); else BTN_RATE=0; fi; \
+	echo "Button:     $$BTN_TOSS Toss / $$BTN_DIRECT Direct = $$BTN_RATE%"
+	@CARD_TOSS=$$(grep -rE "TossCard|TossExpandableCard" lib/features --include="*.dart" 2>/dev/null | wc -l | tr -d ' '); \
+	CARD_DIRECT=$$(grep -r "Card(" lib/features --include="*.dart" 2>/dev/null | wc -l | tr -d ' '); \
+	CARD_TOTAL=$$((CARD_TOSS + CARD_DIRECT)); \
+	if [ $$CARD_TOTAL -gt 0 ]; then CARD_RATE=$$((CARD_TOSS * 100 / CARD_TOTAL)); else CARD_RATE=0; fi; \
+	echo "Card:       $$CARD_TOSS Toss / $$CARD_DIRECT Direct = $$CARD_RATE%"
+	@echo ""
+	@echo "🎯 Target: 70%"
+
+# custom_lint 실행
+lint-custom:
+	dart run custom_lint
+
+# Flutter analyze + custom lint
+lint-all:
+	@echo "🔍 Running Flutter analyze..."
+	flutter analyze --no-fatal-infos
+	@echo ""
+	@echo "🔍 Running custom_lint..."
+	dart run custom_lint || true

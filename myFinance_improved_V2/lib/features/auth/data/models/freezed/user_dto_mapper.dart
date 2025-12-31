@@ -61,21 +61,3 @@ extension UserDtoMapper on UserDto {
     return map;
   }
 }
-
-/// User Entity to DTO extension
-extension UserEntityMapper on User {
-  /// Convert Entity to DTO
-  UserDto toDto() {
-    return UserDto(
-      userId: id,
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      profileImage: profileImage,
-      createdAt: DateTimeUtils.toUtc(createdAt),
-      lastLoginAt:
-          lastLoginAt != null ? DateTimeUtils.toUtc(lastLoginAt!) : null,
-      isEmailVerified: isEmailVerified,
-    );
-  }
-}

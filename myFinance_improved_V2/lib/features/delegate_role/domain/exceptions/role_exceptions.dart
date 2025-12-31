@@ -43,14 +43,6 @@ class RoleUpdateException extends RoleException {
   String toString() => 'RoleUpdateException: $message';
 }
 
-/// Exception for role deletion failures
-class RoleDeletionException extends RoleException {
-  const RoleDeletionException(super.message, [super.stackTrace]);
-
-  @override
-  String toString() => 'RoleDeletionException: $message';
-}
-
 /// Exception for role not found
 class RoleNotFoundException extends RoleException {
   const RoleNotFoundException(super.message, [super.stackTrace]);

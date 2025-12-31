@@ -38,39 +38,3 @@ final cashEndingProvider =
   );
 });
 
-/// Derived providers for easy access to specific state slices
-
-/// Provider for selected store ID
-final selectedStoreIdProvider = Provider<String?>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.selectedStoreId));
-});
-
-/// Provider for selected location ID (based on current tab)
-final currentLocationIdProvider = Provider<String?>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.currentSelectedLocationId));
-});
-
-/// Provider for selected currency ID (based on current tab)
-final currentCurrencyIdProvider = Provider<String?>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.currentSelectedCurrencyId));
-});
-
-/// Provider for current tab index
-final currentTabIndexProvider = Provider<int>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.currentTabIndex));
-});
-
-/// Provider for loading state
-final isLoadingProvider = Provider<bool>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.isLoading));
-});
-
-/// Provider for error message
-final errorMessageProvider = Provider<String?>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.errorMessage));
-});
-
-/// Provider for success message
-final successMessageProvider = Provider<String?>((ref) {
-  return ref.watch(cashEndingProvider.select((state) => state.successMessage));
-});

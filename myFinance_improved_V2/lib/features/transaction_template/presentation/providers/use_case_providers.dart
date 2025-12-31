@@ -37,28 +37,6 @@ final uploadTemplateAttachmentsProvider = Provider<Future<List<TemplateAttachmen
   },
 );
 
-/// Get journal attachments
-final templateJournalAttachmentsProvider = FutureProvider.family<List<TemplateAttachment>, String>(
-  (ref, journalId) async {
-    if (journalId.isEmpty) return [];
-    final repository = ref.watch(transactionRepositoryProvider);
-    return await repository.getJournalAttachments(journalId);
-  },
-);
-
-/// Delete an attachment
-final deleteTemplateAttachmentProvider = Provider<Future<void> Function(String, String)>(
-  (ref) {
-    return (String attachmentId, String fileUrl) async {
-      final repository = ref.read(transactionRepositoryProvider);
-      await repository.deleteAttachment(
-        attachmentId: attachmentId,
-        fileUrl: fileUrl,
-      );
-    };
-  },
-);
-
 // =============================================================================
 // Template Update Provider
 // =============================================================================

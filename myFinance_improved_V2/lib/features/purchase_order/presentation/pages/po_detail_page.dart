@@ -73,6 +73,12 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
                 const PopupMenuItem(
                     value: 'complete', child: Text('Mark Completed')),
               const PopupMenuDivider(),
+              // LC 생성 옵션 - Confirmed 상태 이후에만 가능
+              if (state.po != null && state.po!.status != POStatus.draft)
+                const PopupMenuItem(
+                  value: 'create_lc',
+                  child: Text('Create LC', style: TextStyle(color: TossColors.primary)),
+                ),
               const PopupMenuItem(value: 'share_pdf', child: Text('Share PDF')),
               const PopupMenuItem(value: 'print', child: Text('Print')),
               if (state.po?.piId != null)
@@ -463,6 +469,11 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
         if (po.piId != null) {
           context.push('/proforma-invoice/${po.piId}');
         }
+        break;
+
+      case 'create_lc':
+        // PO에서 LC 생성 - PO ID를 전달하여 데이터 자동 로드
+        context.push('/letter-of-credit/new?poId=${po.poId}');
         break;
 
       case 'share_pdf':

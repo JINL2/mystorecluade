@@ -139,6 +139,10 @@ class _LCListPageState extends ConsumerState<LCListPage> {
       LCStatus.expired,
     ];
 
+    final isActiveSelected = _selectedStatuses != null &&
+        _selectedStatuses!.contains(LCStatus.issued) &&
+        _selectedStatuses!.contains(LCStatus.advised);
+
     return SizedBox(
       height: 40,
       child: ListView(
@@ -146,40 +150,29 @@ class _LCListPageState extends ConsumerState<LCListPage> {
         padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         children: [
           // All filter
-          Padding(
-            padding: const EdgeInsets.only(right: TossSpacing.space2),
-            child: FilterChip(
-              label: const Text('All'),
-              selected: _selectedStatuses == null,
-              onSelected: (_) {
-                setState(() => _selectedStatuses = null);
-              },
-              backgroundColor: TossColors.gray100,
-              selectedColor: TossColors.primary.withOpacity(0.2),
-            ),
+          _buildFilterChip(
+            label: 'All',
+            isSelected: _selectedStatuses == null,
+            onTap: () => setState(() => _selectedStatuses = null),
           ),
+          const SizedBox(width: TossSpacing.space2),
           // Active filter
-          Padding(
-            padding: const EdgeInsets.only(right: TossSpacing.space2),
-            child: FilterChip(
-              label: const Text('Active'),
-              selected: _selectedStatuses != null &&
-                  _selectedStatuses!.contains(LCStatus.issued) &&
-                  _selectedStatuses!.contains(LCStatus.advised),
-              onSelected: (_) {
-                setState(() {
-                  _selectedStatuses = [
-                    LCStatus.issued,
-                    LCStatus.advised,
-                    LCStatus.confirmed,
-                    LCStatus.amended,
-                  ];
-                });
-              },
-              backgroundColor: TossColors.gray100,
-              selectedColor: TossColors.success.withOpacity(0.2),
-            ),
+          _buildFilterChip(
+            label: 'Active',
+            isSelected: isActiveSelected,
+            selectedColor: TossColors.success,
+            onTap: () {
+              setState(() {
+                _selectedStatuses = [
+                  LCStatus.issued,
+                  LCStatus.advised,
+                  LCStatus.confirmed,
+                  LCStatus.amended,
+                ];
+              });
+            },
           ),
+          const SizedBox(width: TossSpacing.space2),
           // Individual status filters
           ...allStatuses.map((status) {
             final isSelected = _selectedStatuses != null &&
@@ -187,20 +180,58 @@ class _LCListPageState extends ConsumerState<LCListPage> {
                 _selectedStatuses!.first == status;
             return Padding(
               padding: const EdgeInsets.only(right: TossSpacing.space2),
-              child: FilterChip(
-                label: Text(status.label),
-                selected: isSelected,
-                onSelected: (_) {
+              child: _buildFilterChip(
+                label: status.label,
+                isSelected: isSelected,
+                onTap: () {
                   setState(() {
                     _selectedStatuses = isSelected ? null : [status];
                   });
                 },
-                backgroundColor: TossColors.gray100,
-                selectedColor: _getStatusColor(status).withOpacity(0.2),
               ),
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Color? selectedColor,
+  }) {
+    final bgColor = isSelected ? (selectedColor ?? TossColors.primary) : TossColors.gray200;
+    final textColor = isSelected ? Colors.white : TossColors.gray600;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected) ...[
+              Icon(Icons.check, size: 14, color: textColor),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TossTextStyles.caption.copyWith(
+                color: textColor,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

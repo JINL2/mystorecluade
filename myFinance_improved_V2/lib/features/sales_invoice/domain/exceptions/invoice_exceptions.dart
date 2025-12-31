@@ -37,39 +37,3 @@ class InvoiceDataException extends InvoiceException {
   @override
   String toString() => 'InvoiceDataException: $message';
 }
-
-/// Exception for not found errors
-class InvoiceNotFoundException extends InvoiceException {
-  InvoiceNotFoundException(
-    super.message, {
-    super.code,
-    super.originalError,
-  });
-
-  @override
-  String toString() => 'InvoiceNotFoundException: $message';
-}
-
-/// Exception for validation errors
-class InvoiceValidationException extends InvoiceException {
-  InvoiceValidationException(
-    super.message, {
-    super.code,
-    super.originalError,
-  });
-
-  @override
-  String toString() => 'InvoiceValidationException: $message';
-}
-
-/// Exception for business logic errors
-class InvoiceBusinessException extends InvoiceException {
-  InvoiceBusinessException(
-    super.message, {
-    super.code,
-    super.originalError,
-  });
-
-  @override
-  String toString() => 'InvoiceBusinessException: $message';
-}

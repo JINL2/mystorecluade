@@ -197,22 +197,3 @@ class TagValidationResult {
     return 'TagValidationResult(isValid: $isValid, errors: ${errors.length}, warnings: ${warnings.length})';
   }
 }
-
-/// Extension to provide validation methods for List<String>
-extension TagListValidation on List<String> {
-  /// Validates this list of tags
-  TagValidationResult validate() => TagValidator.validateTags(this);
-  
-  /// Returns true if all tags in this list are valid
-  bool get areValid => TagValidator.validateTags(this).isValid;
-  
-  /// Returns a new list with only valid tags
-  List<String> get validOnly => where((tag) => TagValidator.isValid(tag)).toList();
-  
-  /// Returns a new list with sanitized tags (null entries removed)
-  List<String> get sanitized => 
-      map((tag) => TagValidator.sanitizeTag(tag))
-          .where((tag) => tag != null)
-          .cast<String>()
-          .toList();
-}

@@ -40,37 +40,3 @@ final userDisplayDataProvider = Provider<Map<String, dynamic>>((ref) {
   return {};
 });
 
-/// Provider specifically for user profile image URL
-final userProfileImageProvider = Provider<String>((ref) {
-  final displayData = ref.watch(userDisplayDataProvider);
-  return (displayData['profile_image'] ?? '').toString();
-});
-
-/// Provider specifically for user first name
-final userFirstNameProvider = Provider<String>((ref) {
-  final displayData = ref.watch(userDisplayDataProvider);
-  return (displayData['user_first_name'] ?? 'User').toString();
-});
-
-/// Provider specifically for user full name
-final userFullNameProvider = Provider<String>((ref) {
-  final displayData = ref.watch(userDisplayDataProvider);
-  final firstName = (displayData['user_first_name'] ?? '').toString();
-  final lastName = (displayData['user_last_name'] ?? '').toString();
-
-  if (firstName.isEmpty && lastName.isEmpty) {
-    return 'User';
-  }
-  return '$firstName $lastName'.trim();
-});
-
-/// Provider for user initials (for avatar fallback)
-final userInitialsProvider = Provider<String>((ref) {
-  final displayData = ref.watch(userDisplayDataProvider);
-  final firstName = (displayData['user_first_name'] ?? '').toString();
-
-  if (firstName.isNotEmpty) {
-    return firstName[0].toUpperCase();
-  }
-  return 'U';
-});

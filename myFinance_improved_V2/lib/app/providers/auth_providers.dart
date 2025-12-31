@@ -64,12 +64,6 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
   );
 });
 
-/// Check if auth state is still loading
-final isAuthLoadingProvider = Provider<bool>((ref) {
-  final authState = ref.watch(authStateProvider);
-  return authState.isLoading;
-});
-
 /// Get current user
 ///
 /// Derived from authStateProvider

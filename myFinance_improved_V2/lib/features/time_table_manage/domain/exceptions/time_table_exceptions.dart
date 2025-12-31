@@ -50,18 +50,6 @@ class ShiftApprovalException extends TimeTableException {
   String toString() => 'ShiftApprovalException: $message';
 }
 
-/// Exception for shift creation operations
-class ShiftCreationException extends TimeTableException {
-  const ShiftCreationException(
-    super.message, {
-    super.originalError,
-    super.stackTrace,
-  });
-
-  @override
-  String toString() => 'ShiftCreationException: $message';
-}
-
 /// Exception for shift deletion operations
 class ShiftDeletionException extends TimeTableException {
   const ShiftDeletionException(
@@ -72,16 +60,4 @@ class ShiftDeletionException extends TimeTableException {
 
   @override
   String toString() => 'ShiftDeletionException: $message';
-}
-
-/// Exception for invalid shift parameters
-class InvalidShiftParametersException extends TimeTableException {
-  const InvalidShiftParametersException(
-    super.message, {
-    super.originalError,
-    super.stackTrace,
-  });
-
-  @override
-  String toString() => 'InvalidShiftParametersException: $message';
 }

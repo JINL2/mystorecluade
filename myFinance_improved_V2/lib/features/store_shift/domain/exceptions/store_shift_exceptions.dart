@@ -25,14 +25,6 @@ class StoreNotFoundException extends StoreShiftException {
   String toString() => 'StoreNotFoundException: $message';
 }
 
-/// Exception thrown when shift data validation fails
-class InvalidShiftDataException extends StoreShiftException {
-  const InvalidShiftDataException([super.message = 'Invalid shift data', super.stackTrace]);
-
-  @override
-  String toString() => 'InvalidShiftDataException: $message';
-}
-
 /// Exception thrown when shift creation fails
 class ShiftCreationException extends StoreShiftException {
   const ShiftCreationException([super.message = 'Failed to create shift', super.stackTrace]);
@@ -63,12 +55,4 @@ class StoreLocationUpdateException extends StoreShiftException {
 
   @override
   String toString() => 'StoreLocationUpdateException: $message';
-}
-
-/// Exception thrown when user is unauthorized to perform operation
-class UnauthorizedException extends StoreShiftException {
-  const UnauthorizedException([super.message = 'User is not authenticated', super.stackTrace]);
-
-  @override
-  String toString() => 'UnauthorizedException: $message';
 }

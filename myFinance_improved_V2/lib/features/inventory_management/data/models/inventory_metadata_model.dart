@@ -46,31 +46,3 @@ class InventoryMetadataModel extends InventoryMetadataDto {
   }
 }
 
-// Supporting Models - maintained for backward compatibility
-
-/// @deprecated Use InventoryStatsDto instead
-typedef InventoryStatsModel = InventoryStatsDto;
-
-/// @deprecated Use BrandDto instead
-typedef BrandModel = BrandDto;
-
-/// @deprecated Use CurrencyDto instead
-typedef CurrencyModel = CurrencyDto;
-
-/// @deprecated Use CategoryDto instead
-typedef CategoryModel = CategoryDto;
-
-/// @deprecated Use StoreInfoDto instead
-typedef StoreInfoModel = StoreInfoDto;
-
-/// @deprecated Use ProductTypeDto instead
-typedef ProductTypeModel = ProductTypeDto;
-
-/// @deprecated Use ValidationRulesDto instead
-typedef ValidationRulesModel = ValidationRulesDto;
-
-/// @deprecated Use AllowCustomValuesDto instead
-typedef AllowCustomValuesModel = AllowCustomValuesDto;
-
-/// @deprecated Use StockStatusLevelDto instead
-typedef StockStatusLevelModel = StockStatusLevelDto;

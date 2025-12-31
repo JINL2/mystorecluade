@@ -81,6 +81,7 @@ class _AiChatFabState extends ConsumerState<AiChatFab>
     final state = ref.watch(aiChatProvider(widget.featureName));
 
     return FloatingActionButton(
+      heroTag: 'ai_chat_fab_${widget.featureName}',
       onPressed: () {
         // Mark as read when opening
         ref.read(aiChatProvider(widget.featureName).notifier).setChatOpen(true);

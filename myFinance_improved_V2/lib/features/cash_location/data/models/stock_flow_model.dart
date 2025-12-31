@@ -161,26 +161,6 @@ class CounterAccountModel {
   }
 }
 
-class CurrencyInfoModel {
-  static CurrencyInfo fromJson(Map<String, dynamic> json) {
-    return CurrencyInfo(
-      currencyId: (json['currency_id'] ?? '').toString(),
-      currencyCode: (json['currency_code'] ?? '').toString(),
-      currencyName: (json['currency_name'] ?? '').toString(),
-      symbol: (json['symbol'] ?? '').toString(),
-    );
-  }
-}
-
-class CreatedByModel {
-  static CreatedBy fromJson(Map<String, dynamic> json) {
-    return CreatedBy(
-      userId: (json['user_id'] ?? '').toString(),
-      fullName: (json['full_name'] ?? '').toString(),
-    );
-  }
-}
-
 class DenominationDetailModel {
   static DenominationDetail fromJson(Map<String, dynamic> json) {
     return DenominationDetail(

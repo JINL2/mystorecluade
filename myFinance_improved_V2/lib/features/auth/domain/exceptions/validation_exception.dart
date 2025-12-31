@@ -36,21 +36,3 @@ class ValidationException implements Exception {
     return 'ValidationException$fieldStr: ${errors.join(', ')}';
   }
 }
-
-/// Entity validation failed
-class EntityValidationException extends ValidationException {
-  final String entityName;
-
-  const EntityValidationException({
-    required this.entityName,
-    required List<String> errors,
-  }) : super(
-          '$entityName validation failed',
-          errors: errors,
-        );
-
-  @override
-  String toString() {
-    return 'EntityValidationException: $entityName - ${errors.join(', ')}';
-  }
-}

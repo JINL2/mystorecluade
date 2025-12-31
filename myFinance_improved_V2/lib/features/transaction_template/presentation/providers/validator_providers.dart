@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/template_entity.dart';
 import '../../domain/validators/template_validator.dart';
-import '../../domain/validators/transaction_validator.dart';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Validator Providers
@@ -11,11 +10,6 @@ import '../../domain/validators/transaction_validator.dart';
 /// Template Validator Provider
 final templateValidatorProvider = Provider<TemplateValidator>((ref) {
   return _MockTemplateValidator();
-});
-
-/// Transaction Validator Provider
-final transactionValidatorProvider = Provider<TransactionValidator>((ref) {
-  return const TransactionValidator();
 });
 
 /// Mock Template Validator - Provides basic validation for development

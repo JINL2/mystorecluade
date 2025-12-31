@@ -8,17 +8,6 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../widgets/add_attribute_dialog.dart';
 
-/// Generic attribute value for selection
-class AttributeValue {
-  final String id;
-  final String name;
-
-  const AttributeValue({
-    required this.id,
-    required this.name,
-  });
-}
-
 /// A reusable page for selecting or adding attribute values (Category, Brand, etc.)
 ///
 /// Shows a search bar at the top with a + button to add new values.

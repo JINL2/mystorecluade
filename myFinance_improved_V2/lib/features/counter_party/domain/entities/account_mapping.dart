@@ -27,18 +27,3 @@ class AccountMapping with _$AccountMapping {
     String? linkedAccountType,
   }) = _AccountMapping;
 }
-
-/// Helper extension for AccountMapping
-extension AccountMappingX on AccountMapping {
-  /// Get human-readable description of the mapping
-  String get mappingDescription {
-    final myAccount = myAccountName ?? 'Unknown Account';
-    final linkedAccount = linkedAccountName ?? 'Unknown Account';
-    final linkedCompany = linkedCompanyName ?? 'Unknown Company';
-
-    return "When I record '$myAccount', $linkedCompany records '$linkedAccount'";
-  }
-
-  /// Check if mapping is bidirectional
-  bool get isBidirectional => direction == 'bidirectional';
-}

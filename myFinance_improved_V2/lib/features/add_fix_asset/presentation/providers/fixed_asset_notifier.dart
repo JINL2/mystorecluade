@@ -141,37 +141,3 @@ class FixedAssetNotifier extends StateNotifier<FixedAssetState> {
     state = const FixedAssetState();
   }
 }
-
-/// Fixed Asset Form Notifier - 폼 생성/수정 전용 상태 관리
-class FixedAssetFormNotifier extends StateNotifier<FixedAssetFormState> {
-  FixedAssetFormNotifier() : super(const FixedAssetFormState());
-
-  /// 필드 에러 설정
-  void setFieldError(String fieldName, String error) {
-    final updatedErrors = Map<String, String>.from(state.fieldErrors);
-    updatedErrors[fieldName] = error;
-    state = state.copyWith(fieldErrors: updatedErrors);
-  }
-
-  /// 필드 에러 지우기
-  void clearFieldError(String fieldName) {
-    final updatedErrors = Map<String, String>.from(state.fieldErrors);
-    updatedErrors.remove(fieldName);
-    state = state.copyWith(fieldErrors: updatedErrors);
-  }
-
-  /// 모든 에러 지우기
-  void clearAllErrors() {
-    state = state.copyWith(fieldErrors: {}, errorMessage: null);
-  }
-
-  /// 에러 메시지 설정
-  void setError(String message) {
-    state = state.copyWith(errorMessage: message);
-  }
-
-  /// 상태 초기화
-  void reset() {
-    state = const FixedAssetFormState();
-  }
-}

@@ -72,17 +72,6 @@ class NotFoundFailure extends Failure {
   String toString() => 'NotFoundFailure(message: $message, code: $code)';
 }
 
-/// Network failure (connectivity issues)
-class NetworkFailure extends Failure {
-  const NetworkFailure({
-    required super.message,
-    required super.code,
-  });
-
-  @override
-  String toString() => 'NetworkFailure(message: $message, code: $code)';
-}
-
 /// Unknown failure (unexpected errors)
 class UnknownFailure extends Failure {
   const UnknownFailure({

@@ -10,20 +10,6 @@ final exchangeRateProvider = FutureProvider.autoDispose.family<double?, Exchange
   return await service.getExchangeRate(params.baseCurrency, params.targetCurrency);
 });
 
-// Provider to fetch multiple exchange rates
-final multipleExchangeRatesProvider = FutureProvider.autoDispose.family<Map<String, double>, MultipleExchangeRateParams>((ref, params) async {
-  final service = ref.watch(exchangeRateServiceProvider);
-  
-  return await service.getMultipleExchangeRates(params.baseCurrency, params.targetCurrencies);
-});
-
-// Provider to get supported currencies
-final supportedCurrenciesProvider = FutureProvider.autoDispose<List<String>>((ref) async {
-  final service = ref.watch(exchangeRateServiceProvider);
-  
-  return await service.getSupportedCurrencies();
-});
-
 // Parameter classes for the providers
 class ExchangeRateParams {
   final String baseCurrency;

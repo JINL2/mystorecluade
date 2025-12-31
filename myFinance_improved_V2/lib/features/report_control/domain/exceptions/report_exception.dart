@@ -29,10 +29,3 @@ class RpcException extends ReportException {
   String toString() => 'RpcException: $message';
 }
 
-/// Exception thrown when subscription operation fails
-class SubscriptionException extends ReportException {
-  const SubscriptionException(super.message, {super.originalError});
-
-  @override
-  String toString() => 'SubscriptionException: $message';
-}

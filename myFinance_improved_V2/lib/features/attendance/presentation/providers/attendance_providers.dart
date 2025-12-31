@@ -17,6 +17,7 @@ import '../../domain/usecases/get_user_shift_stats.dart';
 import '../../domain/usecases/register_shift_request.dart';
 import '../../domain/usecases/report_shift_issue.dart';
 import '../../domain/usecases/update_shift_card_after_scan.dart';
+import '../pages/utils/schedule_date_utils.dart';
 
 import 'repository_providers.dart';
 
@@ -136,12 +137,29 @@ Future<ShiftCard?> currentShift(CurrentShiftRef ref) async {
     (failure) => throw Exception(failure.message),
     (shiftCards) {
       // Return the first shift that is currently active (checked in but not checked out)
+      // WITH grace period check - don't return stale shifts past grace period
       if (shiftCards.isEmpty) return null;
 
-      return shiftCards.firstWhere(
-        (card) => card.isCheckedIn && !card.isCheckedOut,
-        orElse: () => shiftCards.first,
-      );
+      for (final card in shiftCards) {
+        if (card.isCheckedIn && !card.isCheckedOut) {
+          final endTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime);
+
+          // If shift hasn't ended yet, it's active
+          if (endTime == null || !now.isAfter(endTime)) {
+            return card;
+          }
+
+          // Shift ended - check grace period
+          final nextShiftStart = ScheduleDateUtils.findNextShiftStartTime(shiftCards, endTime);
+          if (ScheduleDateUtils.isWithinCheckoutWindow(endTime, nextShiftStart, now)) {
+            return card;
+          }
+          // Grace period passed - skip this shift
+        }
+      }
+
+      // No active shift found, return first shift
+      return shiftCards.first;
     },
   );
 }

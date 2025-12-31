@@ -120,32 +120,3 @@ class ShiftData {
   }
 }
 
-/// Day status for week picker
-enum DayStatus {
-  past,
-  today,
-  upcoming,
-  future,
-}
-
-/// Registration status for week picker dots
-enum RegistrationStatus {
-  none,
-  available,
-  registered,
-}
-
-/// Week day data for week picker
-class WeekDayData {
-  final DateTime date;
-  final DayStatus status;
-  final RegistrationStatus registrationStatus;
-  final bool hasShifts;
-
-  WeekDayData({
-    required this.date,
-    required this.status,
-    required this.registrationStatus,
-    required this.hasShifts,
-  });
-}

@@ -137,38 +137,3 @@ sealed class Problem with _$Problem {
   }) = ReportedProblem;
 }
 
-/// LocationProblem 헬퍼 (invalid_checkin, invalid_checkout 통합)
-extension LocationProblemExt on Problem {
-  bool get isLocationProblem =>
-      this is InvalidCheckinProblem || this is InvalidCheckoutProblem;
-
-  String get type {
-    return switch (this) {
-      LateProblem() => 'late',
-      OvertimeProblem() => 'overtime',
-      EarlyLeaveProblem() => 'early_leave',
-      AbsenceProblem() => 'absence',
-      NoCheckoutProblem() => 'no_checkout',
-      InvalidCheckinProblem() => 'invalid_checkin',
-      InvalidCheckoutProblem() => 'invalid_checkout',
-      ReportedProblem() => 'reported',
-    };
-  }
-}
-
-/// LocationProblem 추상화 (invalid_checkin/invalid_checkout 공통)
-typedef LocationProblem = ({String type, int distance});
-
-extension ProblemDetailsLocationExt on ProblemDetails {
-  LocationProblem? get locationProblemData {
-    for (final p in problems) {
-      if (p is InvalidCheckinProblem) {
-        return (type: 'invalid_checkin', distance: p.distance);
-      }
-      if (p is InvalidCheckoutProblem) {
-        return (type: 'invalid_checkout', distance: p.distance);
-      }
-    }
-    return null;
-  }
-}

@@ -199,12 +199,27 @@ class ScheduleDateUtils {
   }) {
     if (shiftCards.isEmpty) return ChainDetectionResult.empty;
 
-    // Step 1: Find in-progress shift (checked in but not out)
+    final now = currentTime ?? DateTime.now();
+
+    // Step 1: Find in-progress shift (checked in but not out) WITH grace period check
     ShiftCard? inProgressShift;
     for (final card in shiftCards) {
       if (card.isApproved && card.isCheckedIn && !card.isCheckedOut) {
-        inProgressShift = card;
-        break;
+        final endTime = parseShiftDateTime(card.shiftEndTime);
+
+        // If shift hasn't ended yet, it's in-progress
+        if (endTime == null || !now.isAfter(endTime)) {
+          inProgressShift = card;
+          break;
+        }
+
+        // Shift ended - check grace period
+        final nextShiftStart = findNextShiftStartTime(shiftCards, endTime);
+        if (isWithinCheckoutWindow(endTime, nextShiftStart, now)) {
+          inProgressShift = card;
+          break;
+        }
+        // Grace period passed - skip this shift
       }
     }
 
@@ -376,72 +391,25 @@ class ScheduleDateUtils {
     List<ShiftCard> shiftCards,
     DateTime now,
   ) {
-    // First priority: Find in-progress shift (checked in but not out)
+    // Find in-progress shift (checked in but not out) WITH grace period check
     for (final card in shiftCards) {
       if (card.isApproved && card.isCheckedIn && !card.isCheckedOut) {
-        return card;
+        final endTime = parseShiftDateTime(card.shiftEndTime);
+
+        // If shift hasn't ended yet, it's definitely in-progress
+        if (endTime == null || !now.isAfter(endTime)) {
+          return card;
+        }
+
+        // Shift has ended - check if within grace period
+        final nextShiftStart = findNextShiftStartTime(shiftCards, endTime);
+        if (isWithinCheckoutWindow(endTime, nextShiftStart, now)) {
+          return card;
+        }
+        // Grace period passed - skip this shift, allow check-in to next
       }
     }
 
-    // Second priority: Find recently ended shift within grace period
-    // This handles the case where night shift ended at 01:00 and it's now 03:00
-    final recentlyEndedShift = _findRecentlyEndedShiftWithinGracePeriod(shiftCards, now);
-    if (recentlyEndedShift != null) {
-      return recentlyEndedShift;
-    }
-
-    return null;
-  }
-
-  /// Find a shift that ended recently but user should still checkout
-  /// (We're within the checkout window based on grace period rules)
-  ///
-  /// Uses [isWithinCheckoutWindow] for consistent deadline calculation.
-  static ShiftCard? _findRecentlyEndedShiftWithinGracePeriod(
-    List<ShiftCard> shiftCards,
-    DateTime now,
-  ) {
-    // Find shifts that:
-    // 1. Are approved
-    // 2. Have check-in but no check-out
-    // 3. Ended within the last maxGraceHours (reasonable window)
-    final recentlyCompleted = <ShiftCard>[];
-    for (final card in shiftCards) {
-      if (!card.isApproved) continue;
-      if (!card.isCheckedIn || card.isCheckedOut) continue;
-
-      final endTime = parseShiftDateTime(card.shiftEndTime);
-      if (endTime == null) continue;
-
-      // Check if shift ended within last maxGraceHours
-      final hoursSinceEnd = now.difference(endTime).inHours;
-      if (hoursSinceEnd >= 0 && hoursSinceEnd <= maxGraceHours) {
-        recentlyCompleted.add(card);
-      }
-    }
-
-    if (recentlyCompleted.isEmpty) return null;
-
-    // Sort by end_time (most recent first)
-    recentlyCompleted.sort((a, b) {
-      final aEnd = parseShiftDateTime(a.shiftEndTime);
-      final bEnd = parseShiftDateTime(b.shiftEndTime);
-      if (aEnd == null || bEnd == null) return 0;
-      return bEnd.compareTo(aEnd); // Descending
-    });
-
-    final mostRecentShift = recentlyCompleted.first;
-    final mostRecentEndTime = parseShiftDateTime(mostRecentShift.shiftEndTime)!;
-
-    // Find the next upcoming shift start time
-    final nextShiftStart = findNextShiftStartTime(shiftCards, mostRecentEndTime);
-
-    // Use unified checkout window calculation
-    if (isWithinCheckoutWindow(mostRecentEndTime, nextShiftStart, now)) {
-      return mostRecentShift;
-    }
-
-    // Past checkout deadline, user can check into next shift
     return null;
   }
 

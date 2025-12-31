@@ -172,50 +172,6 @@ Future<List<BusinessHours>> businessHours(Ref ref) async {
 }
 
 /// ========================================
-/// UI State Providers (Freezed States)
-/// ========================================
-
-/// Shift Page State Provider
-final shiftPageStateProvider = StateProvider.autoDispose<ShiftPageState>((ref) {
-  return ShiftPageState.initial();
-});
-
-/// Shift Filter State Provider
-final shiftFilterStateProvider = StateProvider.autoDispose<ShiftFilterState>((ref) {
-  return const ShiftFilterState();
-});
-
-/// Shift Form State Provider
-final shiftFormStateProvider = StateProvider.autoDispose<ShiftFormState>((ref) {
-  return ShiftFormState.initial();
-});
-
-/// Shift Deletion State Provider
-final shiftDeletionStateProvider = StateProvider.autoDispose<ShiftDeletionState>((ref) {
-  return ShiftDeletionState.initial();
-});
-
-/// Store Settings State Provider
-final storeSettingsStateProvider = StateProvider.autoDispose<StoreSettingsState>((ref) {
-  return StoreSettingsState.initial();
-});
-
-/// Operating Hours State Provider
-final operatingHoursStateProvider = StateProvider.autoDispose<OperatingHoursState>((ref) {
-  return OperatingHoursState.initial();
-});
-
-/// Store Location State Provider
-final storeLocationStateProvider = StateProvider.autoDispose<StoreLocationState>((ref) {
-  return StoreLocationState.initial();
-});
-
-/// Operational Settings State Provider
-final operationalSettingsStateProvider = StateProvider.autoDispose<OperationalSettingsState>((ref) {
-  return OperationalSettingsState.initial();
-});
-
-/// ========================================
 /// Helper Methods (as extensions or separate providers)
 /// ========================================
 

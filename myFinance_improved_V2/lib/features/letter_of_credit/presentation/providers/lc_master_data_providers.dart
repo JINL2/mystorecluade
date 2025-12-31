@@ -35,42 +35,8 @@ final lcPaymentTermsProvider =
       .toList();
 });
 
-/// All Payment Terms (for general use)
-final allPaymentTermsProvider =
-    FutureProvider.autoDispose<List<LCPaymentTerm>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
-
-  final response = await supabase
-      .from('trade_payment_terms')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', ascending: true);
-
-  final data = response as List;
-  return data
-      .map((e) => LCPaymentTerm.fromJson(e as Map<String, dynamic>))
-      .toList();
-});
-
 // Note: Bank selection uses cash_locations via allCashLocationsProvider
 // from cash_location feature (locationType: 'bank')
-
-/// Currency types provider
-final currencyTypesProvider =
-    FutureProvider.autoDispose<List<CurrencyType>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
-
-  final response = await supabase
-      .from('currency_types')
-      .select('currency_id, currency_code, currency_name, symbol')
-      .eq('is_active', true)
-      .order('currency_code', ascending: true);
-
-  final data = response as List;
-  return data
-      .map((e) => CurrencyType.fromJson(e as Map<String, dynamic>))
-      .toList();
-});
 
 /// Simple Currency Type model
 class CurrencyType {
@@ -95,23 +61,6 @@ class CurrencyType {
     );
   }
 }
-
-/// Incoterms provider
-final incotermsProvider =
-    FutureProvider.autoDispose<List<IncotermType>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
-
-  final response = await supabase
-      .from('trade_incoterms')
-      .select('incoterm_id, code, name, description, version')
-      .eq('is_active', true)
-      .order('code', ascending: true);
-
-  final data = response as List;
-  return data
-      .map((e) => IncotermType.fromJson(e as Map<String, dynamic>))
-      .toList();
-});
 
 /// Simple Incoterm model
 class IncotermType {
@@ -139,23 +88,6 @@ class IncotermType {
     );
   }
 }
-
-/// Shipping Methods provider
-final shippingMethodsProvider =
-    FutureProvider.autoDispose<List<ShippingMethod>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
-
-  final response = await supabase
-      .from('trade_shipping_methods')
-      .select('shipping_method_id, code, name, description')
-      .eq('is_active', true)
-      .order('code', ascending: true);
-
-  final data = response as List;
-  return data
-      .map((e) => ShippingMethod.fromJson(e as Map<String, dynamic>))
-      .toList();
-});
 
 /// Simple Shipping Method model
 class ShippingMethod {

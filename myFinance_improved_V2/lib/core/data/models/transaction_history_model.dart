@@ -107,14 +107,6 @@ class TransactionAttachment with _$TransactionAttachment {
   }
 }
 
-extension TransactionDataExtension on TransactionData {
-  // Computed properties for compatibility with widgets
-  double get amount => totalAmount;
-  bool get isBalanced => (totalDebit - totalCredit).abs() < 0.01;
-  int get attachmentCount => attachments.length;
-  // storeName is now available directly from the model, no need to override
-}
-
 @freezed
 class TransactionLine with _$TransactionLine {
   const factory TransactionLine({
@@ -157,13 +149,6 @@ class TransactionLine with _$TransactionLine {
   }
 }
 
-extension TransactionLineExtension on TransactionLine {
-  // Computed properties for compatibility with widgets
-  double get debitAmount => debit;
-  double get creditAmount => credit;
-  double get amount => isDebit ? debit : credit;
-}
-
 // Enum for transaction scope
 enum TransactionScope {
   store,  // Show only current store (default)
@@ -202,25 +187,6 @@ class TransactionSummary with _$TransactionSummary {
   }) = _TransactionSummary;
 
   factory TransactionSummary.fromJson(Map<String, dynamic> json) => _$TransactionSummaryFromJson(json);
-}
-
-// Simple filter options classes without freezed for better compatibility
-class TransactionFilterOptions {
-  final List<FilterOption> stores;
-  final List<FilterOption> accounts;
-  final List<FilterOption> cashLocations;
-  final List<FilterOption> counterparties;
-  final List<FilterOption> journalTypes;
-  final List<FilterOption> users; // Users who created transactions
-
-  const TransactionFilterOptions({
-    this.stores = const [],
-    this.accounts = const [],
-    this.cashLocations = const [],
-    this.counterparties = const [],
-    this.journalTypes = const [],
-    this.users = const [],
-  });
 }
 
 class FilterOption {

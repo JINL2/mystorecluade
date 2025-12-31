@@ -251,21 +251,3 @@ final sessionManagerProvider =
     StateNotifierProvider<SessionManagerNotifier, SessionState>((ref) {
   return SessionManagerNotifier();
 });
-
-/// Convenience provider to check if user data should be fetched
-final shouldFetchUserDataProvider = Provider<bool>((ref) {
-  final sessionManager = ref.read(sessionManagerProvider.notifier);
-  return sessionManager.shouldFetchUserData();
-});
-
-/// Convenience provider to check if features should be fetched
-final shouldFetchFeaturesProvider = Provider<bool>((ref) {
-  final sessionManager = ref.read(sessionManagerProvider.notifier);
-  return sessionManager.shouldFetchFeatures();
-});
-
-/// Convenience provider to check if this is a fresh login
-final isFreshLoginProvider = Provider<bool>((ref) {
-  final sessionState = ref.watch(sessionManagerProvider);
-  return sessionState.isFreshLogin;
-});

@@ -39,11 +39,6 @@ final fixedAssetProvider = StateNotifierProvider<FixedAssetNotifier, FixedAssetS
   );
 });
 
-/// Fixed Asset Form Provider - 폼 상태 관리
-final fixedAssetFormProvider = StateNotifierProvider<FixedAssetFormNotifier, FixedAssetFormState>((ref) {
-  return FixedAssetFormNotifier();
-});
-
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Helper Providers (Computed/Utility)
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

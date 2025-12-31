@@ -108,6 +108,7 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
     // Simple FAB without actions
     if (widget.actions == null || widget.actions!.isEmpty) {
       return FloatingActionButton(
+        heroTag: 'toss_fab_simple_${widget.hashCode}',
         onPressed: widget.onPressed,
         backgroundColor: bgColor,
         child: Icon(widget.icon, color: fgColor, size: widget.iconSize),
@@ -188,6 +189,7 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
             }),
             // Main FAB
             FloatingActionButton(
+              heroTag: 'toss_fab_main_${widget.hashCode}',
               onPressed: _toggle,
               backgroundColor: bgColor,
               child: AnimatedRotation(

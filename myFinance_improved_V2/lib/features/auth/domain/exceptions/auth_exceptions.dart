@@ -48,53 +48,6 @@ class EmailNotVerifiedException extends AuthException {
         );
 }
 
-/// User not found
-class UserNotFoundException extends AuthException {
-  const UserNotFoundException({String? userId})
-      : super(
-          userId != null ? 'User "$userId" not found' : 'User not found',
-          code: 'USER_NOT_FOUND',
-        );
-}
-
-/// Account locked (too many failed attempts)
-class AccountLockedException extends AuthException {
-  const AccountLockedException()
-      : super(
-          'Account locked due to too many failed login attempts',
-          code: 'ACCOUNT_LOCKED',
-        );
-}
-
-/// Account disabled by admin
-class AccountDisabledException extends AuthException {
-  const AccountDisabledException()
-      : super(
-          'Account has been disabled. Please contact support.',
-          code: 'ACCOUNT_DISABLED',
-        );
-}
-
-/// Session expired
-class SessionExpiredException extends AuthException {
-  const SessionExpiredException()
-      : super(
-          'Your session has expired. Please log in again.',
-          code: 'SESSION_EXPIRED',
-        );
-}
-
-/// Token invalid or expired
-class InvalidTokenException extends AuthException {
-  const InvalidTokenException({String? tokenType})
-      : super(
-          tokenType != null
-              ? 'Invalid or expired $tokenType token'
-              : 'Invalid or expired token',
-          code: 'INVALID_TOKEN',
-        );
-}
-
 /// Weak password (doesn't meet requirements)
 class WeakPasswordException extends AuthException {
   final List<String> requirements;
@@ -111,15 +64,6 @@ class WeakPasswordException extends AuthException {
   }
 }
 
-/// Terms and conditions not agreed
-class TermsNotAgreedException extends AuthException {
-  const TermsNotAgreedException()
-      : super(
-          'You must agree to the terms and conditions',
-          code: 'TERMS_NOT_AGREED',
-        );
-}
-
 /// Network error during authentication
 class NetworkException extends AuthException {
   const NetworkException({String? details})
@@ -128,26 +72,6 @@ class NetworkException extends AuthException {
               ? 'Network error: $details'
               : 'Network error occurred',
           code: 'NETWORK_ERROR',
-        );
-}
-
-/// Company not found
-class CompanyNotFoundException extends AuthException {
-  const CompanyNotFoundException({String? companyId})
-      : super(
-          companyId != null
-              ? 'Company "$companyId" not found'
-              : 'Company not found',
-          code: 'COMPANY_NOT_FOUND',
-        );
-}
-
-/// Store not found
-class StoreNotFoundException extends AuthException {
-  const StoreNotFoundException({String? storeId})
-      : super(
-          storeId != null ? 'Store "$storeId" not found' : 'Store not found',
-          code: 'STORE_NOT_FOUND',
         );
 }
 
@@ -170,17 +94,6 @@ class StoreCodeExistsException extends AuthException {
               ? 'Store code "$code" already exists'
               : 'Store code already exists',
           code: 'STORE_CODE_EXISTS',
-        );
-}
-
-/// Permission denied
-class PermissionDeniedException extends AuthException {
-  const PermissionDeniedException({String? action})
-      : super(
-          action != null
-              ? 'Permission denied: $action'
-              : 'Permission denied',
-          code: 'PERMISSION_DENIED',
         );
 }
 

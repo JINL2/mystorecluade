@@ -46,6 +46,13 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
   final _specialConditionsController = TextEditingController();
   final _notesController = TextEditingController();
 
+  // Bank text controllers (for manual entry)
+  final _issuingBankNameController = TextEditingController();
+  final _issuingBankSwiftController = TextEditingController();
+  final _issuingBankAddressController = TextEditingController();
+  final _confirmingBankNameController = TextEditingController();
+  final _confirmingBankSwiftController = TextEditingController();
+
   // Form values
   String? _applicantId;
   String? _currencyId;
@@ -63,13 +70,15 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
   bool _isLoading = false;
 
   // Bank IDs and info (JSONB)
-  String? _issuingBankId;
-  String? _advisingBankId;
-  String? _confirmingBankId;
+  // Issuing Bank: 구매자 은행 - 텍스트 입력 (ID 없음)
+  // Advising Bank: 우리 은행 - cash_location 선택
+  // Confirming Bank: 확인 은행 - 텍스트 입력 (선택사항)
+  String? _advisingBankId; // Only advising bank uses cash_location
   Map<String, dynamic>? _issuingBankInfo;
   Map<String, dynamic>? _advisingBankInfo;
   Map<String, dynamic>? _confirmingBankInfo;
   Map<String, dynamic>? _beneficiaryInfo;
+  Map<String, dynamic>? _applicantInfo; // From PO buyer_info
 
   // PO/PI references
   String? _piId;
@@ -134,6 +143,7 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
       setState(() {
         // Applicant from PO buyer
         _applicantId = po.buyerId;
+        _applicantInfo = po.buyerInfo; // buyer_info → applicant_info
 
         // Currency and amount
         _currencyId = po.currencyId;
@@ -150,6 +160,15 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
         _paymentTermsCode = po.paymentTermsCode;
         _partialShipmentAllowed = po.partialShipmentAllowed;
         _transshipmentAllowed = po.transshipmentAllowed;
+
+        // Advising Bank from PO (우리 은행)
+        if (po.bankAccountIds.isNotEmpty) {
+          _advisingBankId = po.bankAccountIds.first;
+          // bankingInfo에서 해당 은행 정보 찾기
+          if (po.bankingInfo != null && po.bankingInfo!.isNotEmpty) {
+            _advisingBankInfo = po.bankingInfo!.first;
+          }
+        }
 
         // Note: Shipping info (port of loading/discharge, shipping method)
         // needs to be filled manually for LC - PO doesn't have these fields
@@ -209,13 +228,26 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
       _partialShipmentAllowed = lc.partialShipmentAllowed;
       _transshipmentAllowed = lc.transshipmentAllowed;
 
-      // Bank IDs and info
-      _issuingBankId = lc.issuingBankId;
+      // Bank info
+      // Advising bank uses cash_location
       _advisingBankId = lc.advisingBankId;
-      _confirmingBankId = lc.confirmingBankId;
-      _issuingBankInfo = lc.issuingBankInfo;
       _advisingBankInfo = lc.advisingBankInfo;
+
+      // Issuing bank - populate text fields from JSONB
+      _issuingBankInfo = lc.issuingBankInfo;
+      if (lc.issuingBankInfo != null) {
+        _issuingBankNameController.text = lc.issuingBankInfo!['name'] as String? ?? '';
+        _issuingBankSwiftController.text = lc.issuingBankInfo!['swift'] as String? ?? '';
+        _issuingBankAddressController.text = lc.issuingBankInfo!['address'] as String? ?? '';
+      }
+
+      // Confirming bank - populate text fields from JSONB
       _confirmingBankInfo = lc.confirmingBankInfo;
+      if (lc.confirmingBankInfo != null) {
+        _confirmingBankNameController.text = lc.confirmingBankInfo!['name'] as String? ?? '';
+        _confirmingBankSwiftController.text = lc.confirmingBankInfo!['swift'] as String? ?? '';
+      }
+
       _beneficiaryInfo = lc.beneficiaryInfo;
 
       // PO/PI references
@@ -250,6 +282,12 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
     _portOfDischargeController.dispose();
     _specialConditionsController.dispose();
     _notesController.dispose();
+    // Bank controllers
+    _issuingBankNameController.dispose();
+    _issuingBankSwiftController.dispose();
+    _issuingBankAddressController.dispose();
+    _confirmingBankNameController.dispose();
+    _confirmingBankSwiftController.dispose();
     super.dispose();
   }
 
@@ -314,30 +352,51 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
 
             const SizedBox(height: TossSpacing.space4),
 
-            // Banks Section
+            // Issuing Bank Section (구매자 은행 - 텍스트 입력)
             _buildSection(
-              'Banks',
+              'Issuing Bank (구매자 은행)',
               [
-                _buildBankDropdown('Issuing Bank *', _issuingBankId, (bank) {
-                  setState(() {
-                    _issuingBankId = bank?.locationId;
-                    _issuingBankInfo = _cashLocationToBankInfo(bank);
-                  });
-                }),
+                _buildTextField('Bank Name *', _issuingBankNameController),
                 const SizedBox(height: TossSpacing.space3),
-                _buildBankDropdown('Advising Bank', _advisingBankId, (bank) {
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextField('SWIFT Code', _issuingBankSwiftController),
+                    ),
+                    const SizedBox(width: TossSpacing.space3),
+                    Expanded(
+                      flex: 2,
+                      child: _buildTextField('Address', _issuingBankAddressController),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: TossSpacing.space4),
+
+            // Advising Bank Section (우리 은행 - cash_location 선택)
+            _buildSection(
+              'Advising Bank (우리 은행)',
+              [
+                _buildBankDropdown('Select Bank Account *', _advisingBankId, (bank) {
                   setState(() {
                     _advisingBankId = bank?.locationId;
                     _advisingBankInfo = _cashLocationToBankInfo(bank);
                   });
                 }),
+              ],
+            ),
+
+            const SizedBox(height: TossSpacing.space4),
+
+            // Confirming Bank Section (선택사항)
+            _buildSection(
+              'Confirming Bank (선택사항)',
+              [
+                _buildTextField('Bank Name', _confirmingBankNameController),
                 const SizedBox(height: TossSpacing.space3),
-                _buildBankDropdown('Confirming Bank', _confirmingBankId, (bank) {
-                  setState(() {
-                    _confirmingBankId = bank?.locationId;
-                    _confirmingBankInfo = _cashLocationToBankInfo(bank);
-                  });
-                }),
+                _buildTextField('SWIFT Code', _confirmingBankSwiftController),
               ],
             ),
 
@@ -1077,6 +1136,30 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
     return isValid;
   }
 
+  /// Build issuing bank info from text controllers
+  Map<String, dynamic>? _buildIssuingBankInfo() {
+    final name = _issuingBankNameController.text.trim();
+    if (name.isEmpty) return null;
+    return {
+      'name': name,
+      if (_issuingBankSwiftController.text.trim().isNotEmpty)
+        'swift': _issuingBankSwiftController.text.trim(),
+      if (_issuingBankAddressController.text.trim().isNotEmpty)
+        'address': _issuingBankAddressController.text.trim(),
+    };
+  }
+
+  /// Build confirming bank info from text controllers
+  Map<String, dynamic>? _buildConfirmingBankInfo() {
+    final name = _confirmingBankNameController.text.trim();
+    if (name.isEmpty) return null;
+    return {
+      'name': name,
+      if (_confirmingBankSwiftController.text.trim().isNotEmpty)
+        'swift': _confirmingBankSwiftController.text.trim(),
+    };
+  }
+
   Future<void> _save() async {
     if (!_validate()) return;
 
@@ -1085,6 +1168,10 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
     try {
       final appState = ref.read(appStateProvider);
 
+      // Build bank info from inputs
+      final issuingBankInfo = _buildIssuingBankInfo();
+      final confirmingBankInfo = _buildConfirmingBankInfo();
+
       final params = LCCreateParams(
         companyId: appState.companyChoosen,
         storeId: appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
@@ -1092,14 +1179,14 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
         poId: widget.poId,
         lcTypeCode: _lcTypeCode,
         applicantId: _applicantId,
-        applicantInfo: null, // Will be populated by datasource
+        applicantInfo: _applicantInfo, // From PO buyer_info
         beneficiaryInfo: _beneficiaryInfo,
-        issuingBankId: _issuingBankId,
-        issuingBankInfo: _issuingBankInfo,
+        issuingBankId: null, // Issuing bank is text entry, no ID
+        issuingBankInfo: issuingBankInfo,
         advisingBankId: _advisingBankId,
         advisingBankInfo: _advisingBankInfo,
-        confirmingBankId: _confirmingBankId,
-        confirmingBankInfo: _confirmingBankInfo,
+        confirmingBankId: null, // Confirming bank is text entry, no ID
+        confirmingBankInfo: confirmingBankInfo,
         currencyId: _currencyId,
         amount: double.parse(_amountController.text),
         tolerancePlusPercent: double.tryParse(_tolerancePlusController.text) ?? 0,

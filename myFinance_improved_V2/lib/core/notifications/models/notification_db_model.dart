@@ -70,18 +70,3 @@ class UserNotificationSettingsModel with _$UserNotificationSettingsModel {
       _$UserNotificationSettingsModelFromJson(json);
 }
 
-/// Extension to convert between models
-extension NotificationDbModelExtensions on NotificationDbModel {
-  /// Convert to display model for UI
-  Map<String, dynamic> toDisplayMap() {
-    return {
-      'id': id ?? '',
-      'title': title ?? 'Notification',
-      'body': body ?? '',
-      'category': category ?? 'general',
-      'time': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
-      'isRead': isRead,
-      'data': data ?? {},
-    };
-  }
-}

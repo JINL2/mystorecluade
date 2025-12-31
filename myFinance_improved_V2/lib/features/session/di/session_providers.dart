@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/datasources/session_datasource.dart';
 import '../data/repositories/session_repository_impl.dart';
 import '../domain/repositories/session_repository.dart';
-import '../domain/usecases/add_session_items.dart';
 import '../domain/usecases/close_session.dart';
 import '../domain/usecases/compare_sessions.dart';
 import '../domain/usecases/create_session.dart';
@@ -16,7 +15,6 @@ import '../domain/usecases/get_shipment_list.dart';
 import '../domain/usecases/get_user_session_items.dart';
 import '../domain/usecases/join_session.dart';
 import '../domain/usecases/merge_sessions.dart';
-import '../domain/usecases/search_products.dart';
 import '../domain/usecases/submit_session.dart';
 import '../domain/usecases/update_session_items.dart';
 
@@ -33,22 +31,10 @@ final getSessionListUseCaseProvider = Provider<GetSessionList>((ref) {
   return GetSessionList(repository);
 });
 
-/// Provider for SearchProducts UseCase
-final searchProductsUseCaseProvider = Provider<SearchProducts>((ref) {
-  final repository = ref.watch(sessionRepositoryProvider);
-  return SearchProducts(repository);
-});
-
 /// Provider for GetInventoryPage UseCase
 final getInventoryPageUseCaseProvider = Provider<GetInventoryPage>((ref) {
   final repository = ref.watch(sessionRepositoryProvider);
   return GetInventoryPage(repository);
-});
-
-/// Provider for AddSessionItems UseCase
-final addSessionItemsUseCaseProvider = Provider<AddSessionItems>((ref) {
-  final repository = ref.watch(sessionRepositoryProvider);
-  return AddSessionItems(repository);
 });
 
 /// Provider for GetSessionReviewItems UseCase

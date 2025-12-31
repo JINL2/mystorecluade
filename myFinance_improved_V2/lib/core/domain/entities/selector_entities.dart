@@ -349,13 +349,6 @@ class SelectorItem with _$SelectorItem {
 typedef SingleSelectionCallback = void Function(String? selectedId);
 typedef SingleSelectionWithNameCallback = void Function(String? selectedId, String? selectedName);
 typedef MultiSelectionCallback = void Function(List<String>? selectedIds);
-typedef DataSelectionCallback<T> = void Function(T? selectedData);
-
-// ✅ Type-safe callback types for entity-based selectors
-typedef OnCounterpartySelectedCallback = void Function(CounterpartyData counterparty);
-typedef OnCashLocationSelectedCallback = void Function(CashLocationData cashLocation);
-typedef OnMultiCounterpartySelectedCallback = void Function(List<CounterpartyData> counterparties);
-typedef MultiDataSelectionCallback<T> = void Function(List<T>? selectedData);
 
 // =====================================================
 // HELPER EXTENSIONS

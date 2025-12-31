@@ -174,8 +174,3 @@ class AppInitService {
   bool get isInitialized => _isInitialized;
   InitScenario? get lastScenario => _lastScenario;
 }
-
-/// Provider for AppInitService
-final appInitServiceProvider = Provider<AppInitService>((ref) {
-  return AppInitService();
-});
