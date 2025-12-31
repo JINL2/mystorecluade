@@ -1,4 +1,4 @@
-import '../attention_card.dart';
+import '../../../../domain/entities/attention_item_data.dart';
 
 /// Summary of attention items for a single date
 class DateAttentionSummary {
