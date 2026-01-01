@@ -7,14 +7,13 @@ final tossLoadingViewComponent = WidgetbookComponent(
   useCases: [
     WidgetbookUseCase(
       name: 'Default',
-      builder: (context) => const TossLoadingView(),
-    ),
-    WidgetbookUseCase(
-      name: 'With Message',
-      builder: (context) => TossLoadingView(
-        message: context.knobs.string(
-          label: 'Message',
-          initialValue: 'Loading...',
+      builder: (context) => SizedBox(
+        height: 200,
+        child: TossLoadingView(
+          message: context.knobs.string(
+            label: 'Message',
+            initialValue: 'Loading...',
+          ),
         ),
       ),
     ),

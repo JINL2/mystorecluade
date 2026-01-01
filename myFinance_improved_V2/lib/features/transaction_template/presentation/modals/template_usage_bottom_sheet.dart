@@ -37,8 +37,8 @@ import '../../data/providers/repository_providers.dart';
 import '../providers/use_case_providers.dart';
 import '../widgets/template_attachment_picker_section.dart';
 import 'edit_template_bottom_sheet.dart';
-// 🧮 Exchange rate calculator
-import '../../../journal_input/presentation/providers/journal_input_providers.dart';
+// 🧮 Exchange rate calculator (Autonomous Selector)
+import 'package:myfinance_improved/shared/widgets/selectors/exchange_rate/index.dart';
 
 // ✅ Extracted widgets
 import '../widgets/template_usage/template_usage_widgets.dart';
@@ -283,7 +283,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
 
     try {
       final exchangeRatesData = await ref.read(
-        exchangeRatesProvider(ExchangeRatesParams(companyId: companyId)).future,
+        calculatorExchangeRateDataProvider(CalculatorExchangeRateParams(companyId: companyId)).future,
       );
       final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
 

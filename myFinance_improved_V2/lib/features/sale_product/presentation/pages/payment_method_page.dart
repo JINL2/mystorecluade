@@ -11,8 +11,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 // Shared imports - widgets
-// Feature imports - journal_input (for exchangeRatesProvider)
-import '../../../journal_input/presentation/providers/journal_input_providers.dart';
+// 🧮 Exchange rate calculator (Autonomous Selector)
+import 'package:myfinance_improved/shared/widgets/selectors/exchange_rate/index.dart';
 // Feature imports - sale_product domain
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/exchange_rate_data.dart';
@@ -107,8 +107,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
     try {
       final exchangeRatesJson = await ref.read(
-        exchangeRatesProvider(
-          ExchangeRatesParams(
+        calculatorExchangeRateDataProvider(
+          CalculatorExchangeRateParams(
             companyId: companyId,
             storeId: storeId.isNotEmpty ? storeId : null,
           ),

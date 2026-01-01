@@ -9,12 +9,18 @@ final tossChipComponent = WidgetbookComponent(
       name: 'Default',
       builder: (context) => Padding(
         padding: const EdgeInsets.all(16),
-        child: TossChip(
-          label: context.knobs.string(
-            label: 'Label',
-            initialValue: 'Chip Label',
-          ),
-          onTap: () {},
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            bool isSelected = false;
+            return TossChip(
+              label: context.knobs.string(
+                label: 'Label',
+                initialValue: 'Chip',
+              ),
+              isSelected: isSelected,
+              onTap: () => setState(() => isSelected = !isSelected),
+            );
+          },
         ),
       ),
     ),
@@ -23,22 +29,8 @@ final tossChipComponent = WidgetbookComponent(
       builder: (context) => Padding(
         padding: const EdgeInsets.all(16),
         child: TossChip(
-          label: context.knobs.string(
-            label: 'Label',
-            initialValue: 'Category',
-          ),
-          icon: Icons.category,
-          onTap: () {},
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Selected',
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: TossChip(
-          label: 'Selected Chip',
-          isSelected: true,
+          label: 'With Icon',
+          icon: Icons.star,
           onTap: () {},
         ),
       ),
@@ -48,9 +40,14 @@ final tossChipComponent = WidgetbookComponent(
       builder: (context) => Padding(
         padding: const EdgeInsets.all(16),
         child: TossChip(
-          label: 'Items',
+          label: 'Count',
           showCount: true,
-          count: 5,
+          count: context.knobs.int.slider(
+            label: 'Count',
+            initialValue: 5,
+            min: 0,
+            max: 100,
+          ),
           onTap: () {},
         ),
       ),

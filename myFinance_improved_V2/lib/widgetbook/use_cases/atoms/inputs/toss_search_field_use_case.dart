@@ -15,28 +15,7 @@ final tossSearchFieldComponent = WidgetbookComponent(
             initialValue: 'Search...',
           ),
           onChanged: (value) {},
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'With Clear Button',
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: TossSearchField(
-          hintText: 'Search products',
-          onChanged: (value) {},
           onClear: () {},
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Autofocus',
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: TossSearchField(
-          hintText: 'Start typing...',
-          autofocus: true,
-          onChanged: (value) {},
         ),
       ),
     ),

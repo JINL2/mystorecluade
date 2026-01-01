@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_empty_view.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 
 final tossEmptyViewComponent = WidgetbookComponent(
   name: 'TossEmptyView',
@@ -12,28 +12,34 @@ final tossEmptyViewComponent = WidgetbookComponent(
       builder: (context) => TossEmptyView(
         title: context.knobs.string(
           label: 'Title',
-          initialValue: 'No data available',
+          initialValue: 'No items found',
         ),
         description: context.knobs.string(
           label: 'Description',
           initialValue: 'Try adding some items',
-        icon: Icon(
+        ),
+        icon: const Icon(
           Icons.inbox_outlined,
           size: 48,
           color: TossColors.gray400,
+        ),
       ),
     ),
+    WidgetbookUseCase(
       name: 'With Action',
-        title: 'No transactions yet',
-        description: 'Start by adding your first transaction',
-          Icons.receipt_long_outlined,
+      builder: (context) => TossEmptyView(
+        title: 'No items found',
+        description: 'Try adding some items',
+        icon: const Icon(
+          Icons.inbox_outlined,
+          size: 48,
+          color: TossColors.gray400,
+        ),
         action: TossButton.primary(
-          text: 'Add Transaction',
+          text: 'Add Item',
           onPressed: () {},
-      name: 'Compact',
-        title: 'No results',
-        compact: true,
-          Icons.search_off,
-          size: 32,
+        ),
+      ),
+    ),
   ],
 );

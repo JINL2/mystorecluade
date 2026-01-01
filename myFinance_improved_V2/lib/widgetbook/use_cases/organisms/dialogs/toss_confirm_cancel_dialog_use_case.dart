@@ -7,77 +7,43 @@ final tossConfirmCancelDialogComponent = WidgetbookComponent(
   useCases: [
     WidgetbookUseCase(
       name: 'Default',
-      builder: (context) => Center(
-        child: ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => TossConfirmCancelDialog(
-                title: context.knobs.string(
-                  label: 'Title',
-                  initialValue: 'Confirm Action',
+      builder: (context) => Scaffold(
+        body: Center(
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => TossConfirmCancelDialog(
+                  title: 'Confirm Action',
+                  message: 'Are you sure you want to proceed?',
+                  onConfirm: () => Navigator.pop(context),
+                  onCancel: () => Navigator.pop(context),
                 ),
-                message: context.knobs.string(
-                  label: 'Message',
-                  initialValue: 'Are you sure you want to proceed?',
+              );
+            },
+            child: const Text('Show Dialog'),
+          ),
+        ),
+      ),
+    ),
+    WidgetbookUseCase(
+      name: 'Delete',
+      builder: (context) => Scaffold(
+        body: Center(
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => TossConfirmCancelDialog.delete(
+                  title: 'Delete Item',
+                  message: 'This action cannot be undone.',
+                  onConfirm: () => Navigator.pop(context),
+                  onCancel: () => Navigator.pop(context),
                 ),
-                confirmButtonText: 'OK',
-                cancelButtonText: 'Cancel',
-              ),
-            );
-          },
-          child: const Text('Show Dialog'),
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Delete Confirmation',
-      builder: (context) => Center(
-        child: ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => TossConfirmCancelDialog.delete(
-                title: 'Delete Item',
-                message: 'This action cannot be undone.',
-              ),
-            );
-          },
-          child: const Text('Show Delete Dialog'),
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Save Confirmation',
-      builder: (context) => Center(
-        child: ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => TossConfirmCancelDialog.save(
-                title: 'Save Changes',
-                message: 'Do you want to save your changes?',
-              ),
-            );
-          },
-          child: const Text('Show Save Dialog'),
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Discard Confirmation',
-      builder: (context) => Center(
-        child: ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => TossConfirmCancelDialog.discard(
-                title: 'Discard Changes',
-                message: 'Are you sure you want to discard your changes?',
-              ),
-            );
-          },
-          child: const Text('Show Discard Dialog'),
+              );
+            },
+            child: const Text('Show Delete Dialog'),
+          ),
         ),
       ),
     ),

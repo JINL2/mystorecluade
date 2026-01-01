@@ -13,42 +13,62 @@ final tossBadgeComponent = WidgetbookComponent(
         child: TossBadge(
           label: context.knobs.string(
             label: 'Label',
-            initialValue: 'New',
+            initialValue: 'Badge',
           ),
         ),
       ),
     ),
     WidgetbookUseCase(
-      name: 'With Icon',
-      builder: (context) => const Padding(
-        padding: EdgeInsets.all(16),
-        child: TossBadge(
-          label: 'Verified',
-          icon: Icons.check_circle,
-          backgroundColor: TossColors.successLight,
-          textColor: TossColors.success,
+      name: 'Status Badges',
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            TossBadge(
+              label: 'Success',
+              backgroundColor: TossColors.successLight,
+              textColor: TossColors.success,
+            ),
+            TossBadge(
+              label: 'Warning',
+              backgroundColor: TossColors.warningLight,
+              textColor: TossColors.warning,
+            ),
+            TossBadge(
+              label: 'Error',
+              backgroundColor: TossColors.errorLight,
+              textColor: TossColors.error,
+            ),
+            TossBadge(
+              label: 'Info',
+              backgroundColor: TossColors.infoLight,
+              textColor: TossColors.info,
+            ),
+          ],
         ),
       ),
     ),
+  ],
+);
+
+final tossStatusBadgeComponent = WidgetbookComponent(
+  name: 'TossStatusBadge',
+  useCases: [
     WidgetbookUseCase(
-      name: 'Error',
+      name: 'All Statuses',
       builder: (context) => const Padding(
         padding: EdgeInsets.all(16),
-        child: TossBadge(
-          label: 'Failed',
-          backgroundColor: TossColors.errorLight,
-          textColor: TossColors.error,
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Primary',
-      builder: (context) => const Padding(
-        padding: EdgeInsets.all(16),
-        child: TossBadge(
-          label: 'Active',
-          backgroundColor: TossColors.primarySurface,
-          textColor: TossColors.primary,
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            TossStatusBadge(label: 'Success', status: BadgeStatus.success),
+            TossStatusBadge(label: 'Warning', status: BadgeStatus.warning),
+            TossStatusBadge(label: 'Error', status: BadgeStatus.error),
+            TossStatusBadge(label: 'Info', status: BadgeStatus.info),
+          ],
         ),
       ),
     ),

@@ -128,9 +128,6 @@ class FeatureGrid extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Manual Library Card (always visible)
-              const _LibraryCard(),
-
               // Categories (only with features)
               ...categoriesWithFeatures.map((category) => _CategorySection(
                     category: category,
@@ -441,97 +438,3 @@ class _ErrorFeatures extends StatelessWidget {
   }
 }
 
-/// Library Card - Manual card for Design Library
-class _LibraryCard extends StatelessWidget {
-  const _LibraryCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Category Header
-          Text(
-            'Design System',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.4,
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space4),
-
-          // Library Feature Item
-          Material(
-            color: TossColors.transparent,
-            child: InkWell(
-              onTap: () {
-                context.push('/library');
-              },
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              splashColor: TossColors.primary.withValues(alpha: 0.08),
-              highlightColor: TossColors.primary.withValues(alpha: 0.04),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: TossSpacing.space3,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Icon
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: TossColors.gray100,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.palette_outlined,
-                          size: 20,
-                          color: TossColors.gray700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space3),
-
-                    // Feature Name
-                    Expanded(
-                      child: Text(
-                        'Design Library',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          letterSpacing: -0.4,
-                          height: 1.3,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ),
-
-                    // Arrow
-                    const Icon(
-                      Icons.chevron_right,
-                      color: TossColors.textTertiary,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

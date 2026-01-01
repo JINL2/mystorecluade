@@ -8,7 +8,7 @@ final tossFabComponent = WidgetbookComponent(
     WidgetbookUseCase(
       name: 'Simple',
       builder: (context) => Scaffold(
-        backgroundColor: Colors.grey[100],
+        body: const Center(child: Text('Floating Action Button Demo')),
         floatingActionButton: TossFAB(
           icon: Icons.add,
           onPressed: () {},
@@ -18,7 +18,7 @@ final tossFabComponent = WidgetbookComponent(
     WidgetbookUseCase(
       name: 'Expandable',
       builder: (context) => Scaffold(
-        backgroundColor: Colors.grey[100],
+        body: const Center(child: Text('Expandable FAB Demo')),
         floatingActionButton: TossFAB.expandable(
           actions: [
             TossFABAction(
@@ -29,11 +29,6 @@ final tossFabComponent = WidgetbookComponent(
             TossFABAction(
               icon: Icons.delete,
               label: 'Delete',
-              onPressed: () {},
-            ),
-            TossFABAction(
-              icon: Icons.share,
-              label: 'Share',
               onPressed: () {},
             ),
           ],

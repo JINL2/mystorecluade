@@ -1,60 +1,78 @@
 import 'package:widgetbook/widgetbook.dart';
 
+// Buttons
 import 'buttons/toss_button_use_case.dart';
 import 'buttons/toggle_button_use_case.dart';
-import 'display/toss_card_use_case.dart';
-import 'display/toss_chip_use_case.dart';
+import 'buttons/toss_primary_button_use_case.dart';
+import 'buttons/toss_secondary_button_use_case.dart';
+
+// Display
 import 'display/toss_badge_use_case.dart';
-import 'feedback/toss_error_view_use_case.dart';
-import 'feedback/toss_empty_view_use_case.dart';
+import 'display/toss_card_use_case.dart';
+import 'display/toss_card_safe_use_case.dart';
+import 'display/toss_chip_use_case.dart';
+import 'display/cached_product_image_use_case.dart';
+import 'display/employee_profile_avatar_use_case.dart';
+
+// Feedback
 import 'feedback/toss_loading_view_use_case.dart';
+import 'feedback/toss_empty_view_use_case.dart';
+import 'feedback/toss_error_view_use_case.dart';
+import 'feedback/toss_refresh_indicator_use_case.dart';
+
+// Inputs
 import 'inputs/toss_text_field_use_case.dart';
 import 'inputs/toss_search_field_use_case.dart';
-import 'layout/toss_section_header_use_case.dart';
 
-/// Atoms Directory - Basic building blocks
-final atomsDirectory = WidgetbookFolder(
-  name: 'Atoms',
+// Layout
+import 'layout/toss_section_header_use_case.dart';
+import 'layout/gray_divider_space_use_case.dart';
+
+final atomsDirectory = WidgetbookCategory(
+  name: 'Atoms (18)',
   children: [
-    // Buttons
     WidgetbookFolder(
-      name: 'Buttons',
+      name: 'Buttons (4)',
       children: [
         tossButtonComponent,
         toggleButtonComponent,
+        tossPrimaryButtonComponent,
+        tossSecondaryButtonComponent,
       ],
     ),
-    // Display
     WidgetbookFolder(
-      name: 'Display',
+      name: 'Display (6)',
       children: [
-        tossCardComponent,
-        tossChipComponent,
         tossBadgeComponent,
+        tossStatusBadgeComponent,
+        tossCardComponent,
+        tossCardSafeComponent,
+        tossChipComponent,
+        cachedProductImageComponent,
+        employeeProfileAvatarComponent,
       ],
     ),
-    // Feedback
     WidgetbookFolder(
-      name: 'Feedback',
+      name: 'Feedback (4)',
       children: [
-        tossErrorViewComponent,
-        tossEmptyViewComponent,
         tossLoadingViewComponent,
+        tossEmptyViewComponent,
+        tossErrorViewComponent,
+        tossRefreshIndicatorComponent,
       ],
     ),
-    // Inputs
     WidgetbookFolder(
-      name: 'Inputs',
+      name: 'Inputs (2)',
       children: [
         tossTextFieldComponent,
         tossSearchFieldComponent,
       ],
     ),
-    // Layout
     WidgetbookFolder(
-      name: 'Layout',
+      name: 'Layout (2)',
       children: [
         tossSectionHeaderComponent,
+        grayDividerSpaceComponent,
       ],
     ),
   ],

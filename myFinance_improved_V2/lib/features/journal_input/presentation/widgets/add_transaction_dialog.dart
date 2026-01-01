@@ -8,6 +8,8 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 // Use feature-level providers (Clean Architecture compliant)
 import '../providers/journal_input_providers.dart';
+// 🧮 Exchange rate calculator (Autonomous Selector)
+import 'package:myfinance_improved/shared/widgets/selectors/exchange_rate/index.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -156,9 +158,9 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     }
     
     try {
-      // Use the existing provider to get exchange rates
+      // Use the shared exchange rate selector provider
       final exchangeRatesData = await ref.read(
-        exchangeRatesProvider(ExchangeRatesParams(companyId: companyId)).future,
+        calculatorExchangeRateDataProvider(CalculatorExchangeRateParams(companyId: companyId)).future,
       );
       
       final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];

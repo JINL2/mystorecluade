@@ -40,6 +40,8 @@ export 'shift/toss_today_shift_card.dart';
 export 'shift/toss_week_shift_card.dart';
 
 // ═══════════════════════════════════════════════════════════════
-// UTILITIES - Complex utility components
+// UTILITIES - Re-exported from selectors for backward compatibility
+// New imports should use: selectors/exchange_rate/
 // ═══════════════════════════════════════════════════════════════
-export 'utilities/exchange_rate_calculator.dart';
+export 'utilities/exchange_rate_calculator.dart'
+    show ExchangeRateCalculator;

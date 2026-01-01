@@ -92,6 +92,7 @@ export 'base/index.dart';
 export 'account/index.dart';
 export 'cash_location/index.dart';
 export 'counterparty/index.dart';
+export 'exchange_rate/index.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // COMPATIBILITY: Legacy file re-exports

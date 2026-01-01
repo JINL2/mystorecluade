@@ -18,21 +18,10 @@ final tossTextFieldComponent = WidgetbookComponent(
             label: 'Hint',
             initialValue: 'Enter your email',
           ),
-          enabled: context.knobs.boolean(
-            label: 'Enabled',
-            initialValue: true,
+          isRequired: context.knobs.boolean(
+            label: 'Required',
+            initialValue: false,
           ),
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Required Field',
-      builder: (context) => const Padding(
-        padding: EdgeInsets.all(16),
-        child: TossTextField(
-          label: 'Email',
-          hintText: 'Enter your email',
-          isRequired: true,
         ),
       ),
     ),
@@ -42,19 +31,9 @@ final tossTextFieldComponent = WidgetbookComponent(
         padding: EdgeInsets.all(16),
         child: TossTextField(
           label: 'Password',
-          hintText: 'Enter your password',
+          hintText: 'Enter password',
+          isRequired: true,
           obscureText: true,
-        ),
-      ),
-    ),
-    WidgetbookUseCase(
-      name: 'Multiline',
-      builder: (context) => const Padding(
-        padding: EdgeInsets.all(16),
-        child: TossTextField(
-          label: 'Description',
-          hintText: 'Enter description...',
-          maxLines: 4,
         ),
       ),
     ),

@@ -12,7 +12,7 @@ final tossSectionHeaderComponent = WidgetbookComponent(
         child: TossSectionHeader(
           title: context.knobs.string(
             label: 'Title',
-            initialValue: 'Recent Transactions',
+            initialValue: 'Section Title',
           ),
         ),
       ),
@@ -22,17 +22,18 @@ final tossSectionHeaderComponent = WidgetbookComponent(
       builder: (context) => Padding(
         padding: const EdgeInsets.all(16),
         child: TossSectionHeader(
-          title: 'Settings',
+          title: 'Section Title',
           icon: Icons.settings,
         ),
       ),
     ),
     WidgetbookUseCase(
-      name: 'With Action',
+      name: 'With Trailing',
       builder: (context) => Padding(
         padding: const EdgeInsets.all(16),
         child: TossSectionHeader(
-          title: 'Products',
+          title: 'Section Title',
+          icon: Icons.settings,
           trailing: TextButton(
             onPressed: () {},
             child: const Text('See All'),
