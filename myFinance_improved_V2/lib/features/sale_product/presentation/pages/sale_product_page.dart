@@ -246,7 +246,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return TossAppBar1(
+    return TossAppBar(
       title: 'Sale',
       backgroundColor: TossColors.white,
       leading: IconButton(

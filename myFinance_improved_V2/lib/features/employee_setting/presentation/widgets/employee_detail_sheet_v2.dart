@@ -5,6 +5,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../domain/entities/employee_salary.dart';
 import '../providers/employee_providers.dart';
@@ -211,33 +212,10 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
   }
   
   Widget _buildAvatar(EmployeeSalary employee, {double size = 52}) {
-    if (employee.profileImage != null && 
-        employee.profileImage!.isNotEmpty) {
-      return CircleAvatar(
-        radius: size / 2,
-        backgroundImage: NetworkImage(employee.profileImage!),
-        backgroundColor: TossColors.gray100,
-      );
-    }
-    
-    final initials = employee.fullName
-        .split(' ')
-        .map((name) => name.isNotEmpty ? name[0] : '')
-        .take(2)
-        .join()
-        .toUpperCase();
-    
-    return CircleAvatar(
-      radius: size / 2,
-      backgroundColor: TossColors.gray100,
-      child: Text(
-        initials,
-        style: TossTextStyles.bodyLarge.copyWith(
-          color: TossColors.gray900,
-          fontWeight: FontWeight.w600,
-          fontSize: size * 0.4,
-        ),
-      ),
+    return EmployeeProfileAvatar(
+      imageUrl: employee.profileImage,
+      name: employee.fullName,
+      size: size,
     );
   }
 }

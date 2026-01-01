@@ -171,7 +171,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
         !perspectiveSummary.hasValue;
 
     return TossScaffold(
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Debt Control',
       ),
       backgroundColor: TossColors.background,
@@ -183,7 +183,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
               child: Column(
                 children: [
                   // Tab Bar
-                  TossTabBar1(
+                  TossTabBar(
                     tabs: const ['Company', 'Store'],
                     onTabChanged: _onTabChanged,
                   ),

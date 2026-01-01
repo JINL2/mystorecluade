@@ -42,7 +42,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Privacy & Security',
       ),
       body: SingleChildScrollView(

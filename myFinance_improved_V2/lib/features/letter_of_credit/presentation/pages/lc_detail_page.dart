@@ -23,7 +23,7 @@ class LCDetailPage extends ConsumerWidget {
 
     return lcAsync.when(
       loading: () => TossScaffold(
-        appBar: TossAppBar1(
+        appBar: TossAppBar(
           title: 'LC Details',
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -33,7 +33,7 @@ class LCDetailPage extends ConsumerWidget {
         body: const TossLoadingView(message: 'Loading...'),
       ),
       error: (error, _) => TossScaffold(
-        appBar: TossAppBar1(
+        appBar: TossAppBar(
           title: 'LC Details',
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -79,7 +79,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
     final lc = widget.lc;
 
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: lc.lcNumber,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -463,28 +463,11 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
   Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: TossTextStyles.bodyMedium.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TossTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
-                color: valueColor ?? TossColors.gray800,
-              ),
-            ),
-          ),
-        ],
+      child: InfoRow.fixed(
+        label: label,
+        value: value,
+        labelWidth: 140,
+        valueColor: valueColor,
       ),
     );
   }

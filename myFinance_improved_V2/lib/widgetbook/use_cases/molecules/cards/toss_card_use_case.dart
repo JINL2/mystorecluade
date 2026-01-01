@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/display/toss_card.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/cards/toss_card.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 final tossCardComponent = WidgetbookComponent(

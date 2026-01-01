@@ -87,7 +87,7 @@ class _CashCountingSectionState extends ConsumerState<CashCountingSection> {
 
         // Keyboard toolbar
         if (widget.toolbarController != null)
-          KeyboardToolbar1(
+          KeyboardToolbar(
             controller: widget.toolbarController,
             showToolbar: true,
             onPrevious: () => widget.toolbarController!.focusPrevious?.call(),

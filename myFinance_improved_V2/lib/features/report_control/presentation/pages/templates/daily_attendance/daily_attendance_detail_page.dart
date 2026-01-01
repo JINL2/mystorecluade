@@ -44,7 +44,7 @@ class DailyAttendanceDetailPage extends StatelessWidget {
 
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Daily Attendance Report',
         backgroundColor: TossColors.white,
       ),
@@ -90,7 +90,7 @@ class DailyAttendanceDetailPage extends StatelessWidget {
   Widget _buildErrorPage(String message) {
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Error',
         backgroundColor: TossColors.white,
       ),

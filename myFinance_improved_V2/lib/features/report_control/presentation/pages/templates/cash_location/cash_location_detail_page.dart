@@ -96,7 +96,7 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
 
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: title ?? 'Cash Location Report',
         backgroundColor: TossColors.white,
       ),
@@ -300,7 +300,7 @@ class _CashLocationDetailPageState extends State<CashLocationDetailPage> {
   Widget _buildErrorPage(String message) {
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Error',
         backgroundColor: TossColors.white,
       ),

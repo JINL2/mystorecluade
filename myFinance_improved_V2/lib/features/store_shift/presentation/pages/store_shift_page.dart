@@ -287,14 +287,14 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Staff & Store Settings',
         backgroundColor: TossColors.gray100,
       ),
       body: Column(
         children: [
           // Tab Bar - Shift (store-level), Schedule (company-level), Store (store-level)
-          TossTabBar1(
+          TossTabBar(
             controller: _tabController,
             tabs: const ['Shift', 'Schedule', 'Store'],
           ),

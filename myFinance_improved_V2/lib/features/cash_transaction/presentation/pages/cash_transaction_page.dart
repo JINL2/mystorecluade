@@ -458,7 +458,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: TossColors.white,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Cash Transaction',
         automaticallyImplyLeading: true,
       ),
@@ -639,7 +639,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     return Column(
       children: [
         // Expense card
-        EntryTypeCard(
+        TossSelectionCard.entryType(
           label: MainEntryType.expense.label,
           description: MainEntryType.expense.description,
           icon: MainEntryType.expense.icon,
@@ -648,7 +648,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
         ),
         const SizedBox(height: TossSpacing.space2),
         // Debt card
-        EntryTypeCard(
+        TossSelectionCard.entryType(
           label: MainEntryType.debt.label,
           description: MainEntryType.debt.description,
           icon: MainEntryType.debt.icon,
@@ -657,7 +657,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
         ),
         const SizedBox(height: TossSpacing.space2),
         // Transfer card
-        EntryTypeCard(
+        TossSelectionCard.entryType(
           label: MainEntryType.transfer.label,
           description: MainEntryType.transfer.description,
           icon: MainEntryType.transfer.icon,
@@ -673,7 +673,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     return Column(
       children: [
         // Pay card
-        ExpenseSubTypeCard(
+        TossSelectionCard.expenseSubType(
           label: ExpenseSubType.pay.label,
           description: ExpenseSubType.pay.description,
           icon: ExpenseSubType.pay.icon,
@@ -682,7 +682,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
         ),
         const SizedBox(height: TossSpacing.space2),
         // Refund card
-        ExpenseSubTypeCard(
+        TossSelectionCard.expenseSubType(
           label: ExpenseSubType.refund.label,
           description: ExpenseSubType.refund.description,
           icon: ExpenseSubType.refund.icon,
@@ -846,7 +846,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
             final isSelected = _selectedCounterpartyId == counterparty.counterpartyId;
             return Padding(
               padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: _buildSelectionCard(
+              child: TossSelectionCard(
                 title: counterparty.name,
                 icon: Icons.business,
                 isSelected: isSelected,
@@ -863,62 +863,6 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
         child: Text(
           'Error loading counterparties',
           style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSelectionCard({
-    required String title,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: Icon(
-                  icon,
-                  color: TossColors.gray600,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Text(
-                title,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: TossColors.gray900,
-                ),
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check : Icons.chevron_right,
-              color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
-            ),
-          ],
         ),
       ),
     );

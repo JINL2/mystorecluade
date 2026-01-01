@@ -22,7 +22,7 @@ class SessionHistoryDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: session.sessionName,
       ),
       body: SingleChildScrollView(

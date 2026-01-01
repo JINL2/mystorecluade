@@ -4,6 +4,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'session_user_model.dart';
 
 /// Session user card widget for count detail page
@@ -103,25 +104,10 @@ class SessionUserCard extends StatelessWidget {
   }
 
   Widget _buildDetailRow(String label, String value) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+    return InfoRow.fixed(
+      label: label,
+      value: value,
+      labelWidth: 80,
     );
   }
 

@@ -131,24 +131,7 @@ class SalaryTab extends StatelessWidget {
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-          Text(
-            value,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+      child: InfoRow.between(label: label, value: value),
     );
   }
 }

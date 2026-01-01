@@ -186,7 +186,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Language',
         backgroundColor: TossColors.gray100,
         actions: _hasUnsavedChanges

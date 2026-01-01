@@ -145,7 +145,7 @@ class _DebtAccountSettingsPageState
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Account Settings',
         backgroundColor: TossColors.gray100,
         leading: IconButton(

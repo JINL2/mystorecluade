@@ -146,7 +146,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: _pageTitle,
         backgroundColor: TossColors.gray50,
       ),

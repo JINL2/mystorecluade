@@ -70,7 +70,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
     // 초기 로딩 중일 때 전체 화면 로딩 뷰 표시
     if (state.isLoading && state.items.isEmpty) {
       return TossScaffold(
-        appBar: TossAppBar1(
+        appBar: TossAppBar(
           title: 'Proforma Invoice',
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -88,7 +88,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
     }
 
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Proforma Invoice',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

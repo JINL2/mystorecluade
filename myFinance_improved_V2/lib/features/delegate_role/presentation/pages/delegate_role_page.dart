@@ -66,7 +66,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
 
     return TossScaffold(
       backgroundColor: TossColors.background,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Team Roles',
         backgroundColor: TossColors.background,
         primaryActionText: 'Add',
@@ -91,7 +91,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
 
   Widget _buildNoCompanyView() {
     return TossScaffold(
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Role Delegation',
         backgroundColor: TossColors.background,
       ),

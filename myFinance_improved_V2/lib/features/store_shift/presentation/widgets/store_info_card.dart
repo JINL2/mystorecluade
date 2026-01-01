@@ -23,33 +23,7 @@ class StoreInfoCard extends StatelessWidget {
     this.onShowQR,
   });
 
-  Widget _buildDetailRow(String label, String value, {Color? color}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            label,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray600,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TossTextStyles.body.copyWith(
-              color: color ?? TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
+@override
   Widget build(BuildContext context) {
     return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space5),
@@ -108,23 +82,36 @@ class StoreInfoCard extends StatelessWidget {
           const SizedBox(height: TossSpacing.space4),
 
           // Store Details
-          _buildDetailRow('Store Code', store['store_code']?.toString() ?? 'N/A'),
+          InfoRow.fixed(
+            label: 'Store Code',
+            value: store['store_code']?.toString() ?? 'N/A',
+            labelWidth: 100,
+          ),
           const SizedBox(height: TossSpacing.space2),
 
           if (store['store_address'] != null && store['store_address'].toString().isNotEmpty) ...[
-            _buildDetailRow('Address', store['store_address'].toString()),
+            InfoRow.fixed(
+              label: 'Address',
+              value: store['store_address'].toString(),
+              labelWidth: 100,
+            ),
             const SizedBox(height: TossSpacing.space2),
           ],
 
           if (store['store_phone'] != null && store['store_phone'].toString().isNotEmpty) ...[
-            _buildDetailRow('Phone', store['store_phone'].toString()),
+            InfoRow.fixed(
+              label: 'Phone',
+              value: store['store_phone'].toString(),
+              labelWidth: 100,
+            ),
             const SizedBox(height: TossSpacing.space2),
           ],
 
-          _buildDetailRow(
-            'Status',
-            store['is_deleted'] == true ? 'Inactive' : 'Active',
-            color: store['is_deleted'] == true ? TossColors.error : TossColors.success,
+          InfoRow.fixed(
+            label: 'Status',
+            value: store['is_deleted'] == true ? 'Inactive' : 'Active',
+            labelWidth: 100,
+            valueColor: store['is_deleted'] == true ? TossColors.error : TossColors.success,
           ),
         ],
       ),

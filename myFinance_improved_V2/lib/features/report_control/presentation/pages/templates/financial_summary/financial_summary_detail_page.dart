@@ -36,7 +36,7 @@ class _FinancialSummaryDetailPageState
   Widget build(BuildContext context) {
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Daily Financial Summary',
         backgroundColor: TossColors.white,
       ),

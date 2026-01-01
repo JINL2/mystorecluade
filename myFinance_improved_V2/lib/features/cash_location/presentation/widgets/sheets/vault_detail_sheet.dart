@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Import domain entities
 import '../../../domain/entities/bank_real_entry.dart' as bank;
@@ -189,29 +190,10 @@ class VaultDetailSheet extends StatelessWidget {
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
+      child: InfoRow.fixed(
+        label: label,
+        value: value,
+        labelWidth: 80,
       ),
     );
   }

@@ -190,7 +190,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return TossScaffold(
-        appBar: const TossAppBar1(
+        appBar: const TossAppBar(
           title: 'Cash Control',
           backgroundColor: TossColors.gray100,
         ),
@@ -223,7 +223,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     ),);
     
     return TossScaffold(
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Cash Control',
         backgroundColor: TossColors.gray100,
       ),
@@ -383,7 +383,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
   // Removed _buildHeader method - now using TossAppBar
   
   Widget _buildTabBar() {
-    return TossTabBar1(
+    return TossTabBar(
       tabs: const ['Cash', 'Bank', 'Vault'],
       controller: _tabController,
       onTabChanged: (index) {

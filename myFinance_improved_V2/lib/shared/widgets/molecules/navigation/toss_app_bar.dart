@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
-class TossAppBar1 extends StatelessWidget implements PreferredSizeWidget {
-  const TossAppBar1({
+class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const TossAppBar({
     super.key,
     required this.title,
     this.leading,

@@ -96,18 +96,11 @@ class ProblemCard extends StatelessWidget {
                   color: TossColors.gray600,
                 ),
               )
-            else if (problem.avatarUrl != null)
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: TossColors.gray200,
-                backgroundImage: NetworkImage(problem.avatarUrl!),
-                onBackgroundImageError: (_, __) {},
-              )
             else
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: TossColors.gray200,
-                child: const Icon(Icons.person, size: 20, color: TossColors.gray500),
+              EmployeeProfileAvatar(
+                imageUrl: problem.avatarUrl,
+                name: problem.name,
+                size: 40,
               ),
 
             const SizedBox(width: TossSpacing.space3),

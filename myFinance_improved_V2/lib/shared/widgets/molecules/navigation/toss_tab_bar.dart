@@ -5,12 +5,12 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 ///
 /// Example usage:
 /// ```dart
-/// TossTabBar1(
+/// TossTabBar(
 ///   tabs: ['Cash', 'Bank', 'Vault'],
 ///   onTabChanged: (index) => print('Selected tab: $index'),
 /// )
 /// ```
-class TossTabBar1 extends StatefulWidget {
+class TossTabBar extends StatefulWidget {
   /// List of tab labels to display
   final List<String> tabs;
 
@@ -44,7 +44,7 @@ class TossTabBar1 extends StatefulWidget {
   /// External tab controller (optional)
   final TabController? controller;
 
-  const TossTabBar1({
+  const TossTabBar({
     super.key,
     required this.tabs,
     this.onTabChanged,
@@ -60,10 +60,10 @@ class TossTabBar1 extends StatefulWidget {
   });
 
   @override
-  State<TossTabBar1> createState() => _TossTabBar1State();
+  State<TossTabBar> createState() => _TossTabBarState();
 }
 
-class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStateMixin {
+class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   TabController? _internalController;
 
@@ -85,7 +85,7 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
   }
   
   @override
-  void didUpdateWidget(TossTabBar1 oldWidget) {
+  void didUpdateWidget(TossTabBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     
     // Update controller if external controller changed
@@ -192,7 +192,7 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
 /// 
 /// Example usage:
 /// ```dart
-/// TossTabBarView1(
+/// TossTabBarView(
 ///   tabs: ['Tab 1', 'Tab 2', 'Tab 3'],
 ///   children: [
 ///     Container(child: Text('Content 1')),
@@ -202,7 +202,7 @@ class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStat
 ///   onTabChanged: (index) => print('Selected tab: $index'),
 /// )
 /// ```
-class TossTabBarView1 extends StatefulWidget {
+class TossTabBarView extends StatefulWidget {
   /// List of tab labels
   final List<String> tabs;
   
@@ -239,7 +239,7 @@ class TossTabBarView1 extends StatefulWidget {
   /// Whether the TabBarView should be scrollable
   final ScrollPhysics? physics;
 
-  const TossTabBarView1({
+  const TossTabBarView({
     super.key,
     required this.tabs,
     required this.children,
@@ -256,10 +256,10 @@ class TossTabBarView1 extends StatefulWidget {
   }) : assert(tabs.length == children.length, 'tabs and children must have the same length');
 
   @override
-  State<TossTabBarView1> createState() => _TossTabBarView1State();
+  State<TossTabBarView> createState() => _TossTabBarViewState();
 }
 
-class _TossTabBarView1State extends State<TossTabBarView1> with SingleTickerProviderStateMixin {
+class _TossTabBarViewState extends State<TossTabBarView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   
   @override
@@ -279,7 +279,7 @@ class _TossTabBarView1State extends State<TossTabBarView1> with SingleTickerProv
   }
   
   @override
-  void didUpdateWidget(TossTabBarView1 oldWidget) {
+  void didUpdateWidget(TossTabBarView oldWidget) {
     super.didUpdateWidget(oldWidget);
     
     if (widget.tabs.length != oldWidget.tabs.length) {
@@ -309,7 +309,7 @@ class _TossTabBarView1State extends State<TossTabBarView1> with SingleTickerProv
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TossTabBar1(
+        TossTabBar(
           tabs: widget.tabs,
           controller: _tabController,
           selectedLabelStyle: widget.selectedLabelStyle,

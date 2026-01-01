@@ -40,7 +40,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
 
     if (companyId.isEmpty) {
       return TossScaffold(
-        appBar: TossAppBar1(
+        appBar: TossAppBar(
           title: 'Letter of Credit',
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -61,7 +61,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
     final lcListAsync = ref.watch(lcListProvider(params));
 
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Letter of Credit',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

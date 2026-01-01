@@ -7,6 +7,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Grand total section displayed at the bottom
 ///
@@ -292,50 +293,25 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
       child: Column(
         children: [
           // Journal row
-          _buildDetailRow(
+          InfoRow.between(
             label: 'Journal',
             value: formattedJournal,
             valueColor: TossColors.gray600,
           ),
           const SizedBox(height: TossSpacing.space2),
           // Difference row
-          _buildDetailRow(
+          InfoRow.between(
             label: 'Difference',
             value: formattedDifference,
             valueColor: differenceColor,
-            isBold: !isBalanced,
+            valueStyle: TossTextStyles.body.copyWith(
+              color: differenceColor,
+              fontSize: 14,
+              fontWeight: !isBalanced ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ],
       ),
-    );
-  }
-
-  /// Build a single detail row (Toss style - subtle)
-  Widget _buildDetailRow({
-    required String label,
-    required String value,
-    required Color valueColor,
-    bool isBold = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray500,
-            fontSize: 14,
-          ),
-        ),
-        Text(
-          value,
-          style: TossTextStyles.body.copyWith(
-            color: valueColor,
-            fontSize: 14,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
     );
   }
 

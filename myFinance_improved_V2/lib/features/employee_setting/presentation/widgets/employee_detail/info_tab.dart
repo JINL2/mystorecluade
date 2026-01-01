@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/employee_salary.dart';
 
@@ -156,35 +157,13 @@ class InfoTab extends StatelessWidget {
   }
 
   Widget _buildInfoRow(String label, String value) {
-    final isEmpty = value.isEmpty || value == 'Not specified' || value == 'Not assigned' || value == 'No role assigned';
-
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Text(
-              value,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: isEmpty ? TossColors.gray400 : TossColors.gray900,
-                fontWeight: isEmpty ? FontWeight.w400 : FontWeight.w500,
-                fontStyle: isEmpty ? FontStyle.italic : FontStyle.normal,
-              ),
-            ),
-          ),
-        ],
+      child: InfoRow.fixed(
+        label: label,
+        value: value,
+        labelWidth: 140,
+        showEmptyStyle: true,
       ),
     );
   }

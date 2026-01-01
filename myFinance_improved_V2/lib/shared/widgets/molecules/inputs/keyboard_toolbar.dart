@@ -10,7 +10,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 ///
 /// Example usage:
 /// ```dart
-/// KeyboardToolbar1(
+/// KeyboardToolbar(
 ///   focusNode: _myFocusNode,
 ///   showToolbar: true,
 ///   onPrevious: _focusPreviousField,
@@ -18,7 +18,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 ///   onDone: _dismissKeyboard,
 /// )
 /// ```
-class KeyboardToolbar1 extends StatefulWidget {
+class KeyboardToolbar extends StatefulWidget {
   /// Focus node to monitor keyboard visibility
   /// Can be a single FocusNode or will use controller's currentFocusNode
   final FocusNode? focusNode;
@@ -53,7 +53,7 @@ class KeyboardToolbar1 extends StatefulWidget {
   /// Icon for next button (default: chevron_down)
   final IconData? nextIcon;
 
-  const KeyboardToolbar1({
+  const KeyboardToolbar({
     super.key,
     this.focusNode,
     this.controller,
@@ -72,10 +72,10 @@ class KeyboardToolbar1 extends StatefulWidget {
         );
 
   @override
-  State<KeyboardToolbar1> createState() => _KeyboardToolbar1State();
+  State<KeyboardToolbar> createState() => _KeyboardToolbarState();
 }
 
-class _KeyboardToolbar1State extends State<KeyboardToolbar1> {
+class _KeyboardToolbarState extends State<KeyboardToolbar> {
   OverlayEntry? _overlayEntry;
 
   @override
@@ -92,7 +92,7 @@ class _KeyboardToolbar1State extends State<KeyboardToolbar1> {
   }
 
   @override
-  void didUpdateWidget(KeyboardToolbar1 oldWidget) {
+  void didUpdateWidget(KeyboardToolbar oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     // Handle focus node/controller changes

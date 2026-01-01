@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/index.dart';
 import '../../providers/session_review_provider.dart';
 import '../../providers/states/session_review_state.dart';
 
@@ -395,16 +396,9 @@ class ReviewItemDetailSheet extends ConsumerWidget {
       child: Row(
         children: [
           // User Avatar
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: TossColors.primary.withValues(alpha: 0.1),
-            child: Text(
-              user.userName.isNotEmpty ? user.userName[0].toUpperCase() : '?',
-              style: TossTextStyles.bodyMedium.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          EmployeeProfileAvatar(
+            name: user.userName,
+            size: 40,
           ),
           const SizedBox(width: TossSpacing.space3),
 

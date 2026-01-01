@@ -4,6 +4,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/monthly_attendance.dart';
 
 /// 선택된 날짜의 출퇴근 상세 정보 (심플 버전)
@@ -94,22 +95,10 @@ class MonthlyDayDetail extends StatelessWidget {
   }
 
   Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
-            color: valueColor ?? TossColors.gray900,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-      ],
+    return InfoRow.between(
+      label: label,
+      value: value,
+      valueColor: valueColor,
     );
   }
 

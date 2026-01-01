@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/transfer_scope.dart';
 import '../amount_input_keypad.dart';
-import 'transfer_selection_cards.dart';
 import 'transfer_summary_widgets.dart';
 
 /// Amount Input Section - Final step for all transfer types
@@ -47,7 +47,9 @@ class AmountInputSection extends StatelessWidget {
         // Debt transaction notice
         if (selectedScope?.isDebtTransaction == true) ...[
           const SizedBox(height: TossSpacing.space2),
-          const DebtTransactionNotice(),
+          TossNoticeCard.warning(
+            message: 'This transfer will create a debt entry between stores/companies.',
+          ),
         ],
 
         const SizedBox(height: TossSpacing.space3),

@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/manager_memo.dart';
 import '../../../domain/entities/problem_details.dart';
@@ -114,19 +115,11 @@ class StaffTimelogCard extends StatelessWidget {
         child: Row(
           children: [
             // Avatar
-            if (record.avatarUrl != null)
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: TossColors.gray200,
-                backgroundImage: NetworkImage(record.avatarUrl!),
-                onBackgroundImageError: (_, __) {},
-              )
-            else
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: TossColors.gray200,
-                child: const Icon(Icons.person, size: 14, color: TossColors.gray500),
-              ),
+            EmployeeProfileAvatar(
+              imageUrl: record.avatarUrl,
+              name: record.staffName,
+              size: 28,
+            ),
 
             const SizedBox(width: TossSpacing.space3),
 

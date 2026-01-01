@@ -177,7 +177,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
         if (_tabController == null) {
           return TossScaffold(
             backgroundColor: TossColors.background,
-            appBar: const TossAppBar1(
+            appBar: const TossAppBar(
               title: 'Attendance',
               backgroundColor: TossColors.background,
             ),
@@ -187,14 +187,14 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
 
         return TossScaffold(
           backgroundColor: TossColors.background,
-          appBar: const TossAppBar1(
+          appBar: const TossAppBar(
             title: 'Attendance',
             backgroundColor: TossColors.background,
           ),
           body: SafeArea(
             child: Column(
               children: [
-                TossTabBar1(
+                TossTabBar(
                   tabs: isMonthly
                       ? const ['My Schedule', 'Stats']
                       : const ['My Schedule', 'Shift Sign Up', 'Stats'],
@@ -241,7 +241,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
       },
       loading: () => TossScaffold(
         backgroundColor: TossColors.background,
-        appBar: const TossAppBar1(
+        appBar: const TossAppBar(
           title: 'Attendance',
           backgroundColor: TossColors.background,
         ),
@@ -259,7 +259,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
         if (_tabController == null) {
           return TossScaffold(
             backgroundColor: TossColors.background,
-            appBar: const TossAppBar1(
+            appBar: const TossAppBar(
               title: 'Attendance',
               backgroundColor: TossColors.background,
             ),
@@ -269,14 +269,14 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
 
         return TossScaffold(
           backgroundColor: TossColors.background,
-          appBar: const TossAppBar1(
+          appBar: const TossAppBar(
             title: 'Attendance',
             backgroundColor: TossColors.background,
           ),
           body: SafeArea(
             child: Column(
               children: [
-                TossTabBar1(
+                TossTabBar(
                   tabs: const ['My Schedule', 'Shift Sign Up', 'Stats'],
                   controller: _tabController!,
                 ),

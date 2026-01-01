@@ -4,6 +4,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/session_history_item.dart';
 
 /// Session header section widget for history detail
@@ -117,26 +118,10 @@ class HistoryHeaderSection extends StatelessWidget {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: TossColors.textTertiary),
-        const SizedBox(width: TossSpacing.space2),
-        Text(
-          '$label: ',
-          style: TossTextStyles.bodySmall.copyWith(
-            color: TossColors.textTertiary,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
+    return IconInfoRow(
+      icon: icon,
+      label: label,
+      value: value,
     );
   }
 

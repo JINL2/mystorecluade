@@ -176,7 +176,7 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Counter Party',
         backgroundColor: TossColors.gray100,
         leading: IconButton(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/shift_card.dart';
 import '../../providers/attendance_providers.dart';
@@ -33,25 +34,11 @@ class PaymentSummaryCard extends ConsumerWidget {
     TextStyle? labelStyle,
     TextStyle? valueStyle,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: labelStyle ??
-              TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-        ),
-        Text(
-          value,
-          style: valueStyle ??
-              TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-      ],
+    return InfoRow.between(
+      label: label,
+      value: value,
+      labelStyle: labelStyle,
+      valueStyle: valueStyle,
     );
   }
 

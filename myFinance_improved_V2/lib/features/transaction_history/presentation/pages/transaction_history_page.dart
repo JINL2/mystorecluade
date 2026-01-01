@@ -99,7 +99,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: widget.counterpartyName != null
           ? '${widget.counterpartyName} Transactions'
           : 'Transaction History',

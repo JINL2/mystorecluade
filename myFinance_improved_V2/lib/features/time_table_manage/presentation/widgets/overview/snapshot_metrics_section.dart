@@ -243,16 +243,10 @@ class _MetricBottomSheet extends StatelessWidget {
                     child: Row(
                       children: [
                         // Avatar
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: TossColors.gray200,
-                          backgroundImage: user.avatarUrl != null
-                              ? NetworkImage(user.avatarUrl!)
-                              : null,
-                          onBackgroundImageError: (_, __) {},
-                          child: user.avatarUrl == null
-                              ? const Icon(Icons.person, size: 20, color: TossColors.gray500)
-                              : null,
+                        EmployeeProfileAvatar(
+                          imageUrl: user.avatarUrl,
+                          name: user.name,
+                          size: 40,
                         ),
                         const SizedBox(width: 12),
 

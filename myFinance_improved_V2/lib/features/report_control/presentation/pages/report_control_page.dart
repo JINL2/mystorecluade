@@ -129,7 +129,7 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
 
     return TossScaffold(
       backgroundColor: TossColors.white,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Report Control',
         backgroundColor: TossColors.white,
         bottom: TabBar(

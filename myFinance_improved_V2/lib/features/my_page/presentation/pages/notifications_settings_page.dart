@@ -37,7 +37,7 @@ class _NotificationsSettingsPageState
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Notifications',
         backgroundColor: TossColors.gray100,
       ),

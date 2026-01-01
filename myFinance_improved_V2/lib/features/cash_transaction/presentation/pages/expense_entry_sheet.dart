@@ -332,7 +332,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             const SizedBox(height: TossSpacing.space3),
 
             // Cash location summary (read-only, from main page)
-            _buildSummaryCard(
+            TossSummaryCard(
               icon: Icons.account_balance_wallet,
               label: 'Cash Location',
               value: widget.cashLocationName,
@@ -376,7 +376,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
                 final isSelected = _selectedAccountId == account.accountId;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: _buildSelectionCard(
+                  child: TossSelectionCard(
                     title: account.accountName,
                     subtitle: 'Code: ${account.accountCode}',
                     icon: Icons.receipt_long,
@@ -401,7 +401,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
                 final isSelected = _selectedAccountId == account.accountId;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: _buildSelectionCard(
+                  child: TossSelectionCard(
                     title: account.accountName,
                     subtitle: 'Code: ${account.accountCode}',
                     icon: Icons.receipt_long,
@@ -509,92 +509,18 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     );
   }
 
-  Widget _buildSelectionCard({
-    required String title,
-    String? subtitle,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-    Widget? trailing,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: isSelected ? TossColors.gray900 : TossColors.gray200,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              child: Center(
-                child: Icon(
-                  icon,
-                  color: TossColors.gray600,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: TossSpacing.space3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (trailing != null) ...[
-              trailing,
-              const SizedBox(width: TossSpacing.space2),
-            ],
-            Icon(
-              isSelected ? Icons.check : Icons.chevron_right,
-              color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAmountInput() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Summary cards (no top padding - header has enough)
-        _buildSummaryCard(
+        TossSummaryCard(
           icon: Icons.account_balance_wallet,
           label: 'Cash Location',
           value: widget.cashLocationName,
         ),
         const SizedBox(height: TossSpacing.space2),
-        _buildSummaryCard(
+        TossSummaryCard(
           icon: Icons.receipt_long,
           label: 'Expense',
           value: _selectedAccountName ?? '',
@@ -613,58 +539,6 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
         // Bottom padding for fixed button
         const SizedBox(height: 80),
       ],
-    );
-  }
-
-  Widget _buildSummaryCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    VoidCallback? onEdit,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: TossColors.gray600, size: 18),
-          const SizedBox(width: TossSpacing.space2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (onEdit != null)
-            GestureDetector(
-              onTap: onEdit,
-              child: Text(
-                'Change',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray600,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

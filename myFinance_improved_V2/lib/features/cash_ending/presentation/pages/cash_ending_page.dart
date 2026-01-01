@@ -129,14 +129,14 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
 
     return TossScaffold(
       backgroundColor: TossColors.white,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Cash Ending',
         backgroundColor: TossColors.white,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
             color: TossColors.white,
-            child: TossTabBar1(
+            child: TossTabBar(
               tabs: const ['Cash', 'Bank', 'Vault'],
               controller: _tabController,
             ),

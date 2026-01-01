@@ -119,7 +119,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
 
     return Scaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Transaction Templates',
         backgroundColor: TossColors.gray50,
         leading: IconButton(
@@ -247,7 +247,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       children: [
         // Tab Bar - show Admin tab only if user has permission
         if (_tabController != null)
-          TossTabBar1(
+          TossTabBar(
             tabs: hasAdminPermission ? const ['General', 'Admin'] : const ['General'],
             controller: _tabController,
             padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),

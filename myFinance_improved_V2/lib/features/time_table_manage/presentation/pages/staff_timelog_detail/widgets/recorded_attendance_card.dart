@@ -43,21 +43,9 @@ class RecordedAttendanceCard extends StatelessWidget {
   }
 
   Widget _buildInfoRow({required String label, required String value}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
-        ),
-        Text(
-          value,
-          style: TossTextStyles.bodyLarge.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+    return InfoRow.between(
+      label: label,
+      value: value,
     );
   }
 }

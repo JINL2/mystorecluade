@@ -240,6 +240,50 @@ class AppTheme {
         color: TossColors.textSecondary,
       ),
     ),
+
+    // ═══════════════════════════════════════════════════════════════
+    // IconButton - 전역 스타일 통일
+    // ═══════════════════════════════════════════════════════════════
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        foregroundColor: TossColors.gray600,
+        iconSize: TossSpacing.iconMD,
+        padding: const EdgeInsets.all(TossSpacing.space2),
+      ),
+    ),
+
+    // ═══════════════════════════════════════════════════════════════
+    // Switch - 전역 스타일 통일
+    // ═══════════════════════════════════════════════════════════════
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((states) =>
+        states.contains(WidgetState.selected)
+          ? TossColors.white
+          : TossColors.gray300,
+      ),
+      trackColor: WidgetStateProperty.resolveWith((states) =>
+        states.contains(WidgetState.selected)
+          ? TossColors.primary
+          : TossColors.gray200,
+      ),
+      trackOutlineColor: WidgetStateProperty.all(TossColors.transparent),
+    ),
+
+    // ═══════════════════════════════════════════════════════════════
+    // Checkbox - 전역 스타일 통일
+    // ═══════════════════════════════════════════════════════════════
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith((states) =>
+        states.contains(WidgetState.selected)
+          ? TossColors.primary
+          : TossColors.transparent,
+      ),
+      checkColor: WidgetStateProperty.all(TossColors.white),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4),
+      ),
+      side: const BorderSide(color: TossColors.gray300, width: 1.5),
+    ),
     
     dialogTheme: DialogThemeData(
       backgroundColor: TossColors.surface,

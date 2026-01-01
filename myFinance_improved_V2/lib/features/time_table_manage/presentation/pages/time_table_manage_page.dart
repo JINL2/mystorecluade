@@ -165,7 +165,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-        appBar: const TossAppBar1(
+        appBar: const TossAppBar(
           title: 'Time Table Manage',
           backgroundColor: TossColors.background,
         ),
@@ -174,7 +174,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
           child: Column(
             children: [
               // Tab Bar
-              TossTabBar1(
+              TossTabBar(
                 controller: _tabController,
                 tabs: const ['Overview', 'Schedule', 'Problems', 'Stats'],
                 padding: EdgeInsets.zero,

@@ -604,8 +604,8 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     );
   }
 
-  TossAppBar1 _buildAppBar() {
-    return TossAppBar1(
+  TossAppBar _buildAppBar() {
+    return TossAppBar(
       title: widget.accountName,
       backgroundColor: TossColors.gray50,
       secondaryActionIcon: Icons.settings_outlined,

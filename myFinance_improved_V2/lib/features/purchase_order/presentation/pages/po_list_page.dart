@@ -233,7 +233,7 @@ class _POListPageState extends ConsumerState<POListPage> {
     // 초기 로딩 중일 때 전체 화면 로딩 뷰 표시
     if (state.isLoading && state.items.isEmpty) {
       return TossScaffold(
-        appBar: TossAppBar1(
+        appBar: TossAppBar(
           title: 'Purchase Orders',
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -251,7 +251,7 @@ class _POListPageState extends ConsumerState<POListPage> {
     }
 
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Purchase Orders',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),

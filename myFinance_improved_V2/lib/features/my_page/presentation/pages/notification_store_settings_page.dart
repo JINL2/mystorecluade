@@ -53,7 +53,7 @@ class _NotificationStoreSettingsPageState
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: widget.featureName,
       ),
       body: state.isLoading

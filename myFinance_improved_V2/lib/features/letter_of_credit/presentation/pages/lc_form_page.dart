@@ -292,7 +292,7 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return TossScaffold(
-        appBar: TossAppBar1(
+        appBar: TossAppBar(
           title: _isEdit ? 'Edit LC' : 'New LC',
           leading: IconButton(
             icon: const Icon(Icons.close),
@@ -304,7 +304,7 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
     }
 
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: _isEdit ? 'Edit LC' : 'New Letter of Credit',
         leading: IconButton(
           icon: const Icon(Icons.close),

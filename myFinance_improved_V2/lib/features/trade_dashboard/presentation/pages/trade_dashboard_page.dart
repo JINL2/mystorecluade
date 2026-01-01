@@ -202,13 +202,7 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
   }
 
   Widget _buildSkeletonCard({required double height}) {
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-    );
+    return TossSkeleton.card(height: height);
   }
 
   Widget _buildErrorState(String error) {

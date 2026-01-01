@@ -168,7 +168,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: _pageTitle,
         backgroundColor: TossColors.gray50,
       ),

@@ -345,7 +345,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     return TossScaffold(
       backgroundColor: TossColors.gray100,
       resizeToAvoidBottomInset: false,
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Journal Entry',
         backgroundColor: TossColors.gray100,
         leading: IconButton(

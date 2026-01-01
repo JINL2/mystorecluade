@@ -4,6 +4,7 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/widgets/index.dart';
 import '../../../../domain/entities/manager_memo.dart';
 
 /// Issue report card - Expandable card style with Manager Memo integrated
@@ -201,26 +202,10 @@ class _IssueReportCardState extends State<IssueReportCard> {
               Row(
                 children: [
                   // Avatar
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: TossColors.gray200,
-                    backgroundImage: widget.employeeAvatarUrl != null &&
-                            widget.employeeAvatarUrl!.isNotEmpty
-                        ? NetworkImage(widget.employeeAvatarUrl!)
-                        : null,
-                    child: widget.employeeAvatarUrl == null ||
-                            widget.employeeAvatarUrl!.isEmpty
-                        ? Text(
-                            widget.employeeName.isNotEmpty
-                                ? widget.employeeName[0].toUpperCase()
-                                : '?',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray600,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 10,
-                            ),
-                          )
-                        : null,
+                  EmployeeProfileAvatar(
+                    imageUrl: widget.employeeAvatarUrl,
+                    name: widget.employeeName,
+                    size: 28,
                   ),
                   const SizedBox(width: 8),
                   // Name

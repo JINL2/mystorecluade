@@ -18,7 +18,7 @@ class SessionPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Inventory',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, size: 24),

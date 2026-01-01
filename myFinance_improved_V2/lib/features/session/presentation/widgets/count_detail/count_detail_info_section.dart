@@ -65,30 +65,27 @@ class CountDetailInfoSection extends StatelessWidget {
     String? value,
     Widget? child,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray500,
-            ),
-          ),
-        ),
-        if (child != null)
-          child
-        else
-          Expanded(
+    if (child != null) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
             child: Text(
-              value ?? '',
+              label,
               style: TossTextStyles.body.copyWith(
-                color: TossColors.gray900,
+                color: TossColors.gray500,
               ),
             ),
           ),
-      ],
+          child,
+        ],
+      );
+    }
+    return InfoRow.fixed(
+      label: label,
+      value: value ?? '',
+      labelWidth: 80,
     );
   }
 

@@ -22,7 +22,7 @@ class SessionHistoryPage extends ConsumerWidget {
     final filter = state.filter;
 
     return Scaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'History',
         actions: [
           // Filter button

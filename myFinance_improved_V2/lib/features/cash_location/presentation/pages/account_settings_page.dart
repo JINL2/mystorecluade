@@ -77,7 +77,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     });
 
     return TossScaffold(
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Account Settings',
         backgroundColor: TossColors.gray50,
       ),

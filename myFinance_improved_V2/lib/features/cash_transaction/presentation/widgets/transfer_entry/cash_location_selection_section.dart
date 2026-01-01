@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/transfer_scope.dart';
 import '../../providers/cash_transaction_providers.dart';
-import 'transfer_selection_cards.dart';
 import 'transfer_summary_widgets.dart';
 
 /// Cash Location entity for this widget
@@ -56,7 +56,7 @@ class WithinStoreCashLocationSection extends ConsumerWidget {
         ),
 
         // Arrow
-        const TransferArrow(),
+        const TossTransferArrow(),
 
         Text(
           'Which Cash Location?',
@@ -96,7 +96,7 @@ class WithinStoreCashLocationSection extends ConsumerWidget {
                 final isSelected = selectedCashLocationId == location.cashLocationId;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: SelectionCard(
+                  child: TossSelectionCard(
                     title: location.locationName,
                     icon: Icons.account_balance_wallet,
                     isSelected: isSelected,
@@ -170,10 +170,10 @@ class InterEntityCashLocationSection extends ConsumerWidget {
         ),
 
         // Arrow
-        const TransferArrow(),
+        const TossTransferArrow(),
 
         // To store summary
-        SummaryCard(
+        TossSummaryCard(
           icon: Icons.store,
           label: selectedScope == TransferScope.betweenCompanies
               ? targetCompanyName ?? ''
@@ -217,7 +217,7 @@ class InterEntityCashLocationSection extends ConsumerWidget {
                 final isSelected = selectedCashLocationId == location.cashLocationId;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: SelectionCard(
+                  child: TossSelectionCard(
                     title: location.locationName,
                     icon: Icons.account_balance_wallet,
                     isSelected: isSelected,

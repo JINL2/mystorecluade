@@ -27,7 +27,7 @@ class RegisterDenominationPage extends ConsumerWidget {
     
     return TossScaffold(
       backgroundColor: TossColors.background,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Denomination',
         centerTitle: true,
         backgroundColor: TossColors.background,

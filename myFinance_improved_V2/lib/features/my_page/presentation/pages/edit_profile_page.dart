@@ -187,7 +187,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const TossScaffold(
-        appBar: TossAppBar1(
+        appBar: TossAppBar(
           title: 'Edit Profile',
         ),
         body: TossLoadingView(
@@ -198,7 +198,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
     if (_profile == null) {
       return TossScaffold(
-        appBar: const TossAppBar1(
+        appBar: const TossAppBar(
           title: 'Edit Profile',
         ),
         body: TossErrorView(
@@ -215,7 +215,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     return TossScaffold(
-      appBar: TossAppBar1(
+      appBar: TossAppBar(
         title: 'Edit Profile',
         actions: _hasChanges && !_isLoading
             ? [

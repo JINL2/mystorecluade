@@ -178,7 +178,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
       mainAxisSize: MainAxisSize.min,
       children: [
         // Tab bar
-        TossTabBar1(
+        TossTabBar(
           tabs: const ['Details', 'Permissions', 'Members'],
           controller: _tabController,
           padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),

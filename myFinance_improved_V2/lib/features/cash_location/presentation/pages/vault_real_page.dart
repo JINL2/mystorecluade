@@ -147,7 +147,7 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
     
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: const TossAppBar1(
+      appBar: const TossAppBar(
         title: 'Vault Total Real',
         backgroundColor: TossColors.gray50,
       ),
