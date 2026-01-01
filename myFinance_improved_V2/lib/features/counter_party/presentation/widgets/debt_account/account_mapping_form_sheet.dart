@@ -323,7 +323,7 @@ class _AccountMappingFormSheetState
             child: Row(
               children: [
                 Expanded(
-                  child: TossSecondaryButton(
+                  child: TossButton.secondary(
                     text: 'Cancel',
                     onPressed: () => context.pop(),
                   ),
@@ -331,7 +331,7 @@ class _AccountMappingFormSheetState
                 const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   flex: 2,
-                  child: TossPrimaryButton(
+                  child: TossButton.primary(
                     text: widget.accountMapping == null ? 'Create' : 'Save',
                     onPressed: _isLoading ? null : _saveMapping,
                     isLoading: _isLoading,

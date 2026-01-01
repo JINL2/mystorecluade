@@ -323,7 +323,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
                     const SizedBox(height: TossSpacing.space8),
 
                     // Verify button
-                    TossPrimaryButton(
+                    TossButton.primary(
                       text: _isLoading ? 'Verifying...' : 'Verify email',
                       onPressed: _isLoading || !_isOtpComplete
                           ? null

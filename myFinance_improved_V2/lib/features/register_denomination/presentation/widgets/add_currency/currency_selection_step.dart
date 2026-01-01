@@ -287,7 +287,7 @@ class _CurrencySelectionStepState extends ConsumerState<CurrencySelectionStep> {
       child: availableCurrenciesAsync.maybeWhen(
         data: (currencies) {
           if (currencies.isEmpty) {
-            return TossPrimaryButton(
+            return TossButton.primary(
               text: 'Close',
               onPressed: () => context.pop(),
             );
@@ -297,7 +297,7 @@ class _CurrencySelectionStepState extends ConsumerState<CurrencySelectionStep> {
             children: [
               // Cancel button
               Expanded(
-                child: TossSecondaryButton(
+                child: TossButton.secondary(
                   text: 'Cancel',
                   onPressed: () => context.pop(),
                 ),
@@ -307,7 +307,7 @@ class _CurrencySelectionStepState extends ConsumerState<CurrencySelectionStep> {
               // Next/Add button
               Expanded(
                 flex: 2,
-                child: TossPrimaryButton(
+                child: TossButton.primary(
                   text: 'Next',
                   isLoading: widget.isLoading,
                   isEnabled: widget.selectedCurrencyId != null && !widget.isLoading,

@@ -148,7 +148,7 @@ class _BusinessHoursContentState extends ConsumerState<_BusinessHoursContent> {
           const SizedBox(height: TossSpacing.space6),
 
           // Save Button
-          TossPrimaryButton(
+          TossButton.primary(
             text: 'Save Changes',
             onPressed: _isSubmitting ? null : _handleSave,
             fullWidth: true,

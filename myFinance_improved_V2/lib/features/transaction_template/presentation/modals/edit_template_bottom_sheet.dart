@@ -64,7 +64,7 @@ class EditTemplateBottomSheet extends ConsumerStatefulWidget {
           child: ValueListenableBuilder<bool>(
             valueListenable: buttonStateNotifier,
             builder: (context, isSubmitting, _) {
-              return TossSecondaryButton(
+              return TossButton.secondary(
                 text: 'Cancel',
                 fullWidth: true,
                 isEnabled: !isSubmitting,
@@ -83,7 +83,7 @@ class EditTemplateBottomSheet extends ConsumerStatefulWidget {
                 builder: (context, isFormValid, _) {
                   final isButtonEnabled = isFormValid && !isSubmitting;
 
-                  return TossPrimaryButton(
+                  return TossButton.primary(
                     text: isSubmitting ? 'Saving...' : 'Save Changes',
                     fullWidth: true,
                     isEnabled: isButtonEnabled,

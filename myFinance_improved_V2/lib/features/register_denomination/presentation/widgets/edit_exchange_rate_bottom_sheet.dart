@@ -317,7 +317,7 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
                         // Update button
                         SizedBox(
                           width: double.infinity,
-                          child: TossPrimaryButton(
+                          child: TossButton.primary(
                             text: 'Update Exchange Rate',
                             onPressed: isLoading ? null : _updateExchangeRate,
                             isLoading: isLoading,

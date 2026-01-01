@@ -72,7 +72,7 @@ class EmployeeFilterSheet extends ConsumerWidget {
                 ),
                 const Spacer(),
                 if (hasActiveFilters)
-                  TossSecondaryButton(
+                  TossButton.secondary(
                     text: 'Clear All',
                     onPressed: onClearAll,
                   ),

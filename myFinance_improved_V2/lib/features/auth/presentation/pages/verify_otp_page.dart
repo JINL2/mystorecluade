@@ -297,7 +297,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
                     const SizedBox(height: TossSpacing.space8),
 
                     // Verify button
-                    TossPrimaryButton(
+                    TossButton.primary(
                       text: _isLoading ? 'Verifying...' : 'Verify code',
                       onPressed: _isLoading || !_isOtpComplete
                           ? null

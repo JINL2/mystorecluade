@@ -17,4 +17,4 @@
 library;
 
 export 'exchange_rate_calculator.dart';
-export 'exchange_rate_provider.dart' show CalculatorExchangeRateParams;
+export 'exchange_rate_provider.dart';

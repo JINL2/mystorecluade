@@ -545,7 +545,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                 child: Column(
                   children: [
                     // Add Transaction Button
-                    TossSecondaryButton(
+                    TossButton.secondary(
                       text: 'Add Transaction',
                       onPressed: () => _addTransactionLine(),
                       leadingIcon: const Icon(Icons.add_circle_outline, size: 20),
@@ -553,7 +553,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                     ),
                     const SizedBox(height: TossSpacing.space3),
                     // Submit Button
-                    TossPrimaryButton(
+                    TossButton.primary(
                       text: 'Submit Journal Entry',
                       onPressed: journalEntry.canSubmit() && !_isSubmitting
                           ? _submitJournalEntry

@@ -40,7 +40,7 @@ class DialogFooter extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: TossSecondaryButton(
+                child: TossButton.secondary(
                   text: 'Cancel',
                   onPressed: () => context.pop(),
                   fullWidth: true,
@@ -48,7 +48,7 @@ class DialogFooter extends StatelessWidget {
               ),
               const SizedBox(width: TossSpacing.space3),
               Expanded(
-                child: TossPrimaryButton(
+                child: TossButton.primary(
                   text: isEditing ? 'Update' : 'Add',
                   onPressed: onSave,
                   fullWidth: true,

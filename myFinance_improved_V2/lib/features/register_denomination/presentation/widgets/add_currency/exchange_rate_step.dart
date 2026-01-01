@@ -270,7 +270,7 @@ class ExchangeRateStep extends StatelessWidget {
         children: [
           // Cancel button
           Expanded(
-            child: TossSecondaryButton(
+            child: TossButton.secondary(
               text: 'Cancel',
               onPressed: () => context.pop(),
             ),
@@ -280,7 +280,7 @@ class ExchangeRateStep extends StatelessWidget {
           // Add button
           Expanded(
             flex: 2,
-            child: TossPrimaryButton(
+            child: TossButton.primary(
               text: 'Add Currency',
               isLoading: isLoading,
               isEnabled: isEnabled,

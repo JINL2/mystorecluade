@@ -292,7 +292,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                   // Join button
                   SizedBox(
                     width: double.infinity,
-                    child: TossPrimaryButton(
+                    child: TossButton.primary(
                       text: widget.title,
                       onPressed: isLoading ? null : _handleJoin,
                     ),

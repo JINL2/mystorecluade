@@ -7,7 +7,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 // For full functionality, run the actual app with proper provider setup.
 
 final selectorsDirectory = WidgetbookCategory(
-  name: 'Selectors (18)',
+  name: 'Selectors (15)',
   children: [
     WidgetbookFolder(
       name: 'Account (6)',
@@ -41,14 +41,6 @@ final selectorsDirectory = WidgetbookCategory(
       children: [
         _placeholderComponent('SingleSelector', 'base/single_selector.dart'),
         _placeholderComponent('MultiSelector', 'base/multi_selector.dart'),
-      ],
-    ),
-    WidgetbookFolder(
-      name: 'Autonomous (3)',
-      children: [
-        _placeholderComponent('AutonomousCashLocationSelector', 'autonomous_cash_location_selector.dart'),
-        _placeholderComponent('AutonomousCounterpartySelector', 'autonomous_counterparty_selector.dart'),
-        _placeholderComponent('EnhancedAccountSelector', 'enhanced_account_selector.dart'),
       ],
     ),
     WidgetbookFolder(

@@ -97,7 +97,7 @@ class RoleTab extends ConsumerWidget {
                 // Change Role Button
                 SizedBox(
                   width: double.infinity,
-                  child: TossPrimaryButton(
+                  child: TossButton.primary(
                     text: hasRole ? 'Change Role' : 'Assign Role',
                     onPressed: onManage,
                     fullWidth: true,

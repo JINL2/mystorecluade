@@ -353,7 +353,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
 
                         return SizedBox(
                           width: double.infinity,
-                          child: TossPrimaryButton(
+                          child: TossButton.primary(
                             text: 'Create Store',
                             onPressed: isValid && !isLoading ? _createStore : null,
                           ),

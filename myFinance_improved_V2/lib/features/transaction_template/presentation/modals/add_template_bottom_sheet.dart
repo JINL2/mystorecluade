@@ -559,7 +559,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
       case 1:
         return SizedBox(
           width: double.infinity,
-          child: TossPrimaryButton(
+          child: TossButton.primary(
             text: 'Next',
             onPressed: _nameController.text.isNotEmpty ? _nextStep : null,
             isEnabled: _nameController.text.isNotEmpty,
@@ -595,14 +595,14 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             return Row(
               children: [
                 Expanded(
-                  child: TossSecondaryButton(
+                  child: TossButton.secondary(
                     text: 'Back',
                     onPressed: _previousStep,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
                 Expanded(
-                  child: TossPrimaryButton(
+                  child: TossButton.primary(
                     text: 'Next',
                     onPressed: _isStep2Valid(debitRequiresCounterparty, creditRequiresCounterparty,
                                             debitIsCashAccount, creditIsCashAccount,) 
@@ -620,14 +620,14 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         return Row(
           children: [
             Expanded(
-              child: TossSecondaryButton(
+              child: TossButton.secondary(
                 text: 'Back',
                 onPressed: _previousStep,
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
-              child: TossPrimaryButton(
+              child: TossButton.primary(
                 text: _isCreating ? 'Creating...' : 'Create',
                 onPressed: _isCreating ? null : (_isStep3Valid() ? _createTemplate : null),
                 isEnabled: !_isCreating && _isStep3Valid(),

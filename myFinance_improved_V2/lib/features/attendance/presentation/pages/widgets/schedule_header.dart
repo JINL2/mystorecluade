@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/shift_card.dart';
+import '../../../domain/entities/shift_status.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Header component with Today's Shift Card only

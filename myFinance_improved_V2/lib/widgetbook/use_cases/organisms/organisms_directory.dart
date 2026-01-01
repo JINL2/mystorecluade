@@ -18,12 +18,8 @@ import 'pickers/toss_time_picker_use_case.dart';
 import 'sheets/toss_bottom_sheet_use_case.dart';
 import 'sheets/toss_selection_bottom_sheet_use_case.dart';
 
-// Shift
-import 'shift/toss_today_shift_card_use_case.dart';
-import 'shift/toss_week_shift_card_use_case.dart';
-
 final organismsDirectory = WidgetbookCategory(
-  name: 'Organisms (12)',
+  name: 'Organisms (10)',
   children: [
     WidgetbookFolder(
       name: 'Calendars (3)',
@@ -53,13 +49,6 @@ final organismsDirectory = WidgetbookCategory(
       children: [
         tossBottomSheetComponent,
         tossSelectionBottomSheetComponent,
-      ],
-    ),
-    WidgetbookFolder(
-      name: 'Shift (2)',
-      children: [
-        tossTodayShiftCardComponent,
-        tossWeekShiftCardComponent,
       ],
     ),
   ],

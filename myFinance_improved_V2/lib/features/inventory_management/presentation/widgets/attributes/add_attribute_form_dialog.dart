@@ -205,7 +205,7 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TossPrimaryButton(
+                  child: TossButton.primary(
                     text: 'Add',
                     onPressed: _onAdd,
                   ),

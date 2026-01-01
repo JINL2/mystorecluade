@@ -249,14 +249,14 @@ class _TransactionFilterSheetState
     return Row(
       children: [
         Expanded(
-          child: TossSecondaryButton(
+          child: TossButton.secondary(
             text: 'Clear All',
             onPressed: _clearFilters,
           ),
         ),
         const SizedBox(width: TossSpacing.space3),
         Expanded(
-          child: TossPrimaryButton(
+          child: TossButton.primary(
             text: 'Apply Filter',
             onPressed: _applyFilters,
           ),

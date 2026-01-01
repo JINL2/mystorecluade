@@ -265,7 +265,7 @@ class _CreateRoleSheetState extends ConsumerState<CreateRoleSheet> {
       ),
       child: SafeArea(
         top: false,
-        child: TossPrimaryButton(
+        child: TossButton.primary(
           onPressed: _handleStepAction,
           isLoading: _isCreating,
           isEnabled: !_isCreating && _canProceed(),

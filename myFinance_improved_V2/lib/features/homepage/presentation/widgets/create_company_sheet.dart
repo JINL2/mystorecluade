@@ -417,7 +417,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                     // Create Button
                     SizedBox(
                       width: double.infinity,
-                      child: TossPrimaryButton(
+                      child: TossButton.primary(
                         text: 'Create Company',
                         onPressed: state.maybeWhen(
                           loading: () => null,

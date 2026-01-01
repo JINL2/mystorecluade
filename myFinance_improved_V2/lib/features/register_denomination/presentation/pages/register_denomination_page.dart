@@ -156,7 +156,7 @@ class RegisterDenominationPage extends ConsumerWidget {
       description: 'Add your first currency to start managing denominations\n\nPull down to refresh if currencies don\'t appear',
       action: SizedBox(
         width: 200,
-        child: TossPrimaryButton(
+        child: TossButton.primary(
           text: 'Add Currency',
           onPressed: () => _showAddCurrencySheet(context),
         ),

@@ -209,7 +209,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                 const SizedBox(height: TossSpacing.space8),
 
                 // Submit button
-                TossPrimaryButton(
+                TossButton.primary(
                   text: _isLoading ? 'Updating...' : 'Reset password',
                   onPressed: _isLoading ? null : _handleResetPassword,
                   isLoading: _isLoading,

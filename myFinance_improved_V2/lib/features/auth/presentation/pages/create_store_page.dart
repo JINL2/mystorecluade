@@ -529,7 +529,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
   Widget _buildCreateButton() {
     final canCreate = _isStoreNameValid;
 
-    return TossPrimaryButton(
+    return TossButton.primary(
       text: _isLoading ? 'Creating store...' : 'Create Store',
       onPressed: _isLoading || !canCreate ? null : _handleCreateStore,
       isLoading: _isLoading,
@@ -785,7 +785,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                       ),
                     ],
                     const SizedBox(height: TossSpacing.space8),
-                    TossPrimaryButton(
+                    TossButton.primary(
                       text: 'Go to Dashboard',
                       onPressed: _navigateToDashboard,
                       leadingIcon: const Icon(

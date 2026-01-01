@@ -29,7 +29,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/keyboard/toss_currency_exchange_modal.dart';
 
@@ -429,7 +429,7 @@ class _ExchangeRateCalculatorState
               TossSpacing.paddingMD,
               TossSpacing.space3 + bottomPadding,
             ),
-            child: TossPrimaryButton(
+            child: TossButton.primary(
               text: formattedAmount.isEmpty
                   ? 'Enter amount above'
                   : 'Use $baseSymbol $formattedAmount',

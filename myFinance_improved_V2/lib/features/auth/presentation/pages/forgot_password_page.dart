@@ -149,7 +149,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       const SizedBox(height: TossSpacing.space8),
 
                       // Submit button
-                      TossPrimaryButton(
+                      TossButton.primary(
                         text: _isLoading ? 'Sending...' : 'Send code',
                         onPressed: _isLoading ? null : _handleSendOtp,
                         isLoading: _isLoading,

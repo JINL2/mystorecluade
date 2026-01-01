@@ -3,13 +3,10 @@ import 'package:widgetbook/widgetbook.dart';
 // Buttons
 import 'buttons/toss_button_use_case.dart';
 import 'buttons/toggle_button_use_case.dart';
-import 'buttons/toss_primary_button_use_case.dart';
-import 'buttons/toss_secondary_button_use_case.dart';
 
 // Display
 import 'display/toss_badge_use_case.dart';
 import 'display/toss_card_use_case.dart';
-import 'display/toss_card_safe_use_case.dart';
 import 'display/toss_chip_use_case.dart';
 import 'display/cached_product_image_use_case.dart';
 import 'display/employee_profile_avatar_use_case.dart';
@@ -29,24 +26,21 @@ import 'layout/toss_section_header_use_case.dart';
 import 'layout/gray_divider_space_use_case.dart';
 
 final atomsDirectory = WidgetbookCategory(
-  name: 'Atoms (18)',
+  name: 'Atoms (15)',
   children: [
     WidgetbookFolder(
-      name: 'Buttons (4)',
+      name: 'Buttons (2)',
       children: [
         tossButtonComponent,
         toggleButtonComponent,
-        tossPrimaryButtonComponent,
-        tossSecondaryButtonComponent,
       ],
     ),
     WidgetbookFolder(
-      name: 'Display (6)',
+      name: 'Display (5)',
       children: [
         tossBadgeComponent,
         tossStatusBadgeComponent,
         tossCardComponent,
-        tossCardSafeComponent,
         tossChipComponent,
         cachedProductImageComponent,
         employeeProfileAvatarComponent,

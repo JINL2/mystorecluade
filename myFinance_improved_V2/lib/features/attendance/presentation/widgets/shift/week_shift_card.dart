@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
-enum ShiftCardStatus {
-  upcoming,      // No left border - future shift
-  inProgress,    // Green left border - currently working
-  completed,     // No left border - completed
-  late,          // Red left border - late check-in
-  onTime,        // Green badge text - on-time
-  undone,        // Gray badge text - past but no check-in
-  absent,        // Red badge - marked as absent
-  noCheckout,    // Orange badge - no checkout recorded
-  earlyLeave,    // Orange badge - left early
-  reported,      // Orange badge - issue reported
-  resolved,      // Green badge - issue resolved
-}
+import '../../../domain/entities/shift_card_status.dart';
+
+// Re-export for backward compatibility
+export '../../../domain/entities/shift_card_status.dart';
 
 class TossWeekShiftCard extends StatelessWidget {
   final String date;

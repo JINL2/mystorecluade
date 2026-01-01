@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_secondary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
 
 enum TossDialogType {
   success,
@@ -440,12 +439,12 @@ class _TossDialogState extends State<TossDialog>
                   child: SizedBox(
                     width: double.infinity,
                     child: action.isPrimary
-                        ? TossPrimaryButton(
+                        ? TossButton.primary(
                             text: action.text,
                             onPressed: action.onPressed,
                             fullWidth: true,
                           )
-                        : TossSecondaryButton(
+                        : TossButton.secondary(
                             text: action.text,
                             onPressed: action.onPressed,
                             fullWidth: true,
@@ -459,7 +458,7 @@ class _TossDialogState extends State<TossDialog>
     // Default action buttons
     return Column(
       children: [
-        TossPrimaryButton(
+        TossButton.primary(
           text: widget.primaryButtonText,
           onPressed: widget.onPrimaryPressed ?? () => Navigator.of(context).pop(true),
           fullWidth: true,

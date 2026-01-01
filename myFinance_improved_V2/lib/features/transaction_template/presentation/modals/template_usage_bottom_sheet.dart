@@ -103,7 +103,7 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
           child: ValueListenableBuilder<bool>(
             valueListenable: buttonStateNotifier,
             builder: (context, isSubmitting, _) {
-              return TossSecondaryButton(
+              return TossButton.secondary(
                 text: 'Edit',
                 fullWidth: true,
                 isEnabled: !isSubmitting,
@@ -128,7 +128,7 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
               builder: (context, isFormValid, _) {
                 final isButtonEnabled = isFormValid && !isSubmitting;
 
-                return TossPrimaryButton(
+                return TossButton.primary(
                   text: isSubmitting ? 'Creating...' : 'Create Transaction',
                   fullWidth: true,
                   isEnabled: isButtonEnabled,

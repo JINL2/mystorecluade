@@ -93,13 +93,3 @@ export 'account/index.dart';
 export 'cash_location/index.dart';
 export 'counterparty/index.dart';
 export 'exchange_rate/index.dart';
-
-// ═══════════════════════════════════════════════════════════════
-// COMPATIBILITY: Legacy file re-exports
-// These are kept for backward compatibility with existing imports
-// ═══════════════════════════════════════════════════════════════
-// Old: import '.../selectors/toss_base_selector.dart'
-// Old: import '.../selectors/enhanced_account_selector.dart'
-// Old: import '.../selectors/autonomous_cash_location_selector.dart'
-// Old: import '.../selectors/autonomous_counterparty_selector.dart'
-// All above imports still work via the compatibility layer files

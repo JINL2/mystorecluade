@@ -233,7 +233,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       case 1:
         return SizedBox(
           width: double.infinity,
-          child: TossPrimaryButton(
+          child: TossButton.primary(
             text: 'Continue',
             onPressed: _isBusinessNameValid ? () => setState(() => _currentStep = 2) : null,
             fullWidth: true,
@@ -244,7 +244,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
             (_isCustomTypeSelected && _customTypeController.text.trim().isNotEmpty);
         return SizedBox(
           width: double.infinity,
-          child: TossPrimaryButton(
+          child: TossButton.primary(
             text: 'Continue',
             onPressed: hasValidType ? () => setState(() => _currentStep = 3) : null,
             fullWidth: true,
@@ -253,7 +253,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       case 3:
         return SizedBox(
           width: double.infinity,
-          child: TossPrimaryButton(
+          child: TossButton.primary(
             text: _isLoading ? 'Creating Company...' : 'Create Company',
             onPressed: _selectedCurrencyId != null && !_isLoading ? _handleCreateBusiness : null,
             isLoading: _isLoading,

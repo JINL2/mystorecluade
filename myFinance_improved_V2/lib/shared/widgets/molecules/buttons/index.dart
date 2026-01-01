@@ -1,5 +1,4 @@
-/// Button Molecules - FAB and SpeedDial
+/// Button Molecules - FAB
 library;
 
 export 'toss_fab.dart';
-export 'toss_speed_dial.dart';

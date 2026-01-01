@@ -104,7 +104,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
           ),
           title: 'No company selected',
           description: 'Please select a company to manage role delegations',
-          action: TossPrimaryButton(
+          action: TossButton.primary(
             text: 'Go to Home',
             onPressed: () => context.go('/'),
           ),

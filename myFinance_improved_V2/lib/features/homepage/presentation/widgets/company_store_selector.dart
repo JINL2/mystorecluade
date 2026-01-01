@@ -149,7 +149,7 @@ class CompanyStoreSelector extends ConsumerWidget {
             ),
             child: SizedBox(
               width: double.infinity,
-              child: TossPrimaryButton(
+              child: TossButton.primary(
                 text: 'Create Company',
                 leadingIcon: const Icon(LucideIcons.plus, size: 20),
                 onPressed: () => _showCompanyActionsBottomSheet(context, ref),

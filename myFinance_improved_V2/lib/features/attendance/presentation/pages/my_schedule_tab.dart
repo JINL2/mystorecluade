@@ -18,6 +18,7 @@ import '../../domain/entities/problem_details.dart';
 import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import '../widgets/shift/week_shift_card.dart' show ShiftCardStatus;
 
 /// MyScheduleTab - Main tab with Week view and expandable Month calendar
 ///

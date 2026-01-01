@@ -293,7 +293,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             Row(
               children: [
                 Expanded(
-                  child: TossSecondaryButton(
+                  child: TossButton.secondary(
                     text: 'Cancel',
                     onPressed: _toggleChangePassword,
                     fullWidth: true,
@@ -301,7 +301,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 ),
                 const SizedBox(width: TossSpacing.space3),
                 Expanded(
-                  child: TossPrimaryButton(
+                  child: TossButton.primary(
                     text: 'Update Password',
                     onPressed: _isLoading ? null : _changePassword,
                     isLoading: _isLoading,

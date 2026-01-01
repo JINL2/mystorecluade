@@ -139,7 +139,7 @@ class _SessionBottomBarState extends State<SessionBottomBar> {
       ),
       child: SizedBox(
         width: double.infinity,
-        child: TossPrimaryButton(
+        child: TossButton.primary(
           text: 'Save',
           onPressed: widget.onSave,
         ),

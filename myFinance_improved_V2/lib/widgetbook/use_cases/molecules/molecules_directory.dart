@@ -2,7 +2,6 @@ import 'package:widgetbook/widgetbook.dart';
 
 // Buttons
 import 'buttons/toss_fab_use_case.dart';
-import 'buttons/toss_speed_dial_use_case.dart';
 
 // Cards
 import 'cards/toss_expandable_card_use_case.dart';
@@ -30,13 +29,12 @@ import 'navigation/toss_app_bar_use_case.dart';
 import 'navigation/toss_tab_bar_use_case.dart';
 
 final moleculesDirectory = WidgetbookCategory(
-  name: 'Molecules (15)',
+  name: 'Molecules (14)',
   children: [
     WidgetbookFolder(
-      name: 'Buttons (2)',
+      name: 'Buttons (1)',
       children: [
         tossFabComponent,
-        tossSpeedDialComponent,
       ],
     ),
     WidgetbookFolder(

@@ -116,7 +116,7 @@ class SalaryTab extends StatelessWidget {
           child: SafeArea(
             child: SizedBox(
               width: double.infinity,
-              child: TossPrimaryButton(
+              child: TossButton.primary(
                 text: 'Edit Salary',
                 onPressed: onEdit,
                 fullWidth: true,

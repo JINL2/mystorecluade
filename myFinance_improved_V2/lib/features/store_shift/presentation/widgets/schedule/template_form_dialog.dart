@@ -327,7 +327,7 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
                   // Save Button
                   SizedBox(
                     width: double.infinity,
-                    child: TossPrimaryButton(
+                    child: TossButton.primary(
                       text: widget.isEditing ? 'Save Changes' : 'Create Template',
                       onPressed: _isLoading ? null : _save,
                       isLoading: _isLoading,

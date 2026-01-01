@@ -263,16 +263,16 @@ class _InventoryManagementPageState
   }
 
   Widget _buildFloatingAddButton() {
-    return TossSpeedDial(
+    return TossFAB.expandable(
       actions: [
-        TossSpeedDialAction(
+        TossFABAction(
           icon: Icons.add,
           label: 'Add New Product',
           onPressed: () {
             context.push('/inventoryManagement/addProduct');
           },
         ),
-        TossSpeedDialAction(
+        TossFABAction(
           icon: Icons.download_outlined,
           label: 'Record Stock In',
           onPressed: () {
@@ -280,7 +280,7 @@ class _InventoryManagementPageState
             context.push('/session/action/receiving');
           },
         ),
-        TossSpeedDialAction(
+        TossFABAction(
           icon: Icons.format_list_numbered,
           label: 'Start Inventory Count',
           onPressed: () {

@@ -34,14 +34,7 @@ export 'calendars/week_dates_picker.dart';
 export 'calendars/calendar_time_range.dart';
 
 // ═══════════════════════════════════════════════════════════════
-// SHIFT - Business-specific shift card components
+// SHIFT - Re-exported from features/attendance
 // ═══════════════════════════════════════════════════════════════
-export 'shift/toss_today_shift_card.dart';
-export 'shift/toss_week_shift_card.dart';
-
-// ═══════════════════════════════════════════════════════════════
-// UTILITIES - Re-exported from selectors for backward compatibility
-// New imports should use: selectors/exchange_rate/
-// ═══════════════════════════════════════════════════════════════
-export 'utilities/exchange_rate_calculator.dart'
-    show ExchangeRateCalculator;
+export 'package:myfinance_improved/features/attendance/presentation/widgets/shift/today_shift_card.dart';
+export 'package:myfinance_improved/features/attendance/presentation/widgets/shift/week_shift_card.dart';

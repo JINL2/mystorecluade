@@ -403,7 +403,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         _passwordController.text.isNotEmpty &&
         _showPasswordField;
 
-    return TossPrimaryButton(
+    return TossButton.primary(
       text: _isLoading ? 'Signing in...' : AuthConstants.buttonSignIn,
       onPressed: _isLoading || !canLogin ? null : _handleLogin,
       isLoading: _isLoading,
