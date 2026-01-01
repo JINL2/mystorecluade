@@ -80,11 +80,11 @@ import '../../features/commercial_invoice/presentation/pages/commercial_invoice_
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
 import '../../shared/themes/toss_text_styles.dart';
-import '../../shared/widgets/common/toss_scaffold.dart';
 import '../providers/app_state.dart';
 import '../providers/app_state_provider.dart';
 import '../providers/auth_providers.dart';
 import '../../features/homepage/presentation/providers/homepage_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Router notifier to listen to auth and app state changes
 class RouterNotifier extends ChangeNotifier {

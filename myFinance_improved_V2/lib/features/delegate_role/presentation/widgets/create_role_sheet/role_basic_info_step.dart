@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Step 1: Basic Role Information
 ///

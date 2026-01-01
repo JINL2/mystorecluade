@@ -3,10 +3,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/widgets/toss/toss_bottom_sheet.dart';
-import '../../../../../shared/widgets/common/toss_white_card.dart';
 import 'reliability_radar_chart.dart';
 import 'ranking_bar_widget.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Bottom sheet showing reliability score breakdown
 /// Matches app's design system - clean, minimal, professional

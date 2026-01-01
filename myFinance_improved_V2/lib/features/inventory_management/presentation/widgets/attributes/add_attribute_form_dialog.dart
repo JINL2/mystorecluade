@@ -5,9 +5,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../domain/entities/attribute_types.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Re-export for backward compatibility (prevents DCM false positive)
 export '../../../domain/entities/attribute_types.dart';

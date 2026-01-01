@@ -6,13 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/monitoring/sentry_config.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/vault_recount.dart';
 import '../../../domain/entities/vault_transaction.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/vault_tab_provider.dart';
 import '../cash_ending_completion_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Handler for saving Vault Transaction
 /// Extracted from CashEndingPage to reduce file size

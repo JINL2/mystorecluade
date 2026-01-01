@@ -7,13 +7,11 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/keyboard_toolbar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 
 import 'role_basic_info_step.dart';
 import 'role_permissions_step.dart';
 import 'role_tags_step.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Create Role Bottom Sheet
 ///

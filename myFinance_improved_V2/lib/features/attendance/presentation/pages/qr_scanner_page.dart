@@ -14,14 +14,12 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../providers/attendance_providers.dart';
 import '../providers/monthly_attendance_providers.dart';
 import '../providers/qr_scanner_state.dart';
 import '../widgets/check_in_out/utils/attendance_helper_methods.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});

@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toss_button.dart';
 import '../../../providers/cash_ending_state.dart';
 import '../../../providers/cash_tab_state.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Submit Button for Cash Tab
 class CashSubmitButton extends StatelessWidget {

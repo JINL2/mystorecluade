@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toss_expandable_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Recorded Attendance Card widget
 ///

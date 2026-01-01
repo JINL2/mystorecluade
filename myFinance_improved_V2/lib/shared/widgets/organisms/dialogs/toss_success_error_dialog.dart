@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_secondary_button.dart';
+
 enum TossDialogType {
   success,
   error,

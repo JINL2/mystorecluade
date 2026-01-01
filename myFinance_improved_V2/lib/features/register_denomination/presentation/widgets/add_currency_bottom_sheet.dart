@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
 import '../../di/providers.dart';
@@ -13,6 +12,7 @@ import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
 import 'add_currency/currency_selection_step.dart';
 import 'add_currency/exchange_rate_step.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class AddCurrencyBottomSheet extends ConsumerStatefulWidget {
   const AddCurrencyBottomSheet({super.key});

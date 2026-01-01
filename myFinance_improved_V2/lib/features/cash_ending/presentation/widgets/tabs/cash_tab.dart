@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../domain/entities/currency.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/cash_tab_provider.dart';
 import 'cash_tab/cash_tab_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Cash Tab - Denomination-based cash counting
 ///

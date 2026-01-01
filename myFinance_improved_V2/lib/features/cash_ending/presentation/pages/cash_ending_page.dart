@@ -7,9 +7,6 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../providers/cash_ending_provider.dart';
 import '../providers/cash_ending_state.dart';
@@ -19,6 +16,7 @@ import '../widgets/tabs/vault_tab.dart';
 
 // Handlers
 import 'handlers/handlers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Cash Ending Page
 ///

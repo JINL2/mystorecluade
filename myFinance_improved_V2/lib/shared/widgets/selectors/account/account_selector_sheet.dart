@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/core/utils/account_type_utils.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/inputs/toss_search_field.dart';
 
 import 'account_quick_access.dart';
 

@@ -6,8 +6,6 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 
 import '../../domain/entities/template_entity.dart';
 import '../../domain/enums/template_constants.dart';
@@ -17,6 +15,7 @@ import '../modals/template_filter_sheet.dart';
 import '../modals/template_usage_bottom_sheet.dart';
 import '../providers/states/template_state.dart';
 import '../providers/template_provider.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TransactionTemplatePage extends ConsumerStatefulWidget {
   const TransactionTemplatePage({super.key});

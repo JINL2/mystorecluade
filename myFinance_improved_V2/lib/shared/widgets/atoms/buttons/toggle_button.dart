@@ -6,7 +6,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 class ToggleButtonGroup extends StatelessWidget {
   final List<ToggleButtonItem> items;
   final String selectedId;
-  final Function(String) onToggle;
+  final void Function(String) onToggle;
   final double height;
 
   const ToggleButtonGroup({

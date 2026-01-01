@@ -1,45 +1,28 @@
-/// Shared Widgets Library
+/// Shared Widgets Library - Atomic Design Structure
 ///
-/// Organized by functional category:
-/// - toss/      : Toss-style UI components (buttons, inputs, cards, etc.)
-/// - common/    : Shared UI components (scaffolds, dialogs, state views)
-/// - feedback/  : User communication (dialogs, states, indicators)
-/// - overlays/  : Modal/overlay interactions (sheets, pickers, menus)
-/// - navigation/: App structure & navigation
-/// - calendar/  : Date/time specialized components
-/// - keyboard/  : Custom keyboard modal system
-/// - selectors/ : Autonomous data-fetching selectors (Account, CashLocation, etc.)
-/// - domain/    : Business-specific widgets
-/// - ai/        : AI display components
-/// - ai_chat/   : AI Chat feature (mini-feature)
+/// Organized by Atomic Design pattern:
+/// - atoms/      : Basic building blocks (buttons, inputs, display, feedback, layout)
+/// - molecules/  : Combinations of atoms (dropdowns, cards, navigation, menus)
+/// - organisms/  : Complex UI sections (dialogs, sheets, pickers, calendars, selectors)
+/// - templates/  : Page layouts (scaffold)
+/// - ai/         : AI display components
+/// - ai_chat/    : AI Chat feature (mini-feature)
 library;
 
-// Toss widgets (Main UI components)
-export 'toss/index.dart';
+// Atomic Design - Atoms (smallest components)
+export 'atoms/index.dart';
 
-// Common widgets (Shared UI components)
-export 'common/index.dart';
+// Atomic Design - Molecules (atom combinations)
+export 'molecules/index.dart';
 
-// Feedback widgets
-export 'feedback/index.dart';
+// Atomic Design - Organisms (complex UI sections)
+export 'organisms/index.dart';
 
-// Overlay widgets
-export 'overlays/index.dart';
-
-// Navigation widgets
-export 'navigation/index.dart';
-
-// Calendar widgets
-export 'calendar/index.dart';
-
-// Keyboard widgets
-export 'keyboard/index.dart';
+// Atomic Design - Templates (page layouts)
+export 'templates/index.dart';
 
 // Selector widgets (Autonomous - self-managing state)
 export 'selectors/index.dart';
-
-// Domain-specific widgets
-export 'domain/index.dart';
 
 // AI widgets
 export 'ai/index.dart';

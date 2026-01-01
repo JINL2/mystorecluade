@@ -6,13 +6,11 @@ import 'package:intl/intl.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/gray_divider_space.dart';
-import '../../../../../shared/widgets/toss/toss_month_navigation.dart';
-import '../../../../../shared/widgets/toss/toss_today_shift_card.dart';
 import '../../../domain/entities/monthly_attendance.dart';
 import '../../providers/monthly_attendance_providers.dart';
 import 'monthly_calendar.dart';
 import 'monthly_day_detail.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Monthly 직원용 스케줄 탭
 ///

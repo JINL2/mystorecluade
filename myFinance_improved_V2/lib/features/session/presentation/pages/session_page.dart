@@ -6,8 +6,8 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../providers/session_type_provider.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Main session page - entry point for counting/receiving features
 class SessionPage extends ConsumerWidget {

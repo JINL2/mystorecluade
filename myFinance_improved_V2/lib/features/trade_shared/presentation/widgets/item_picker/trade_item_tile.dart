@@ -6,8 +6,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/keyboard/toss_currency_exchange_modal.dart';
 import '../../../domain/entities/trade_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Trade item tile widget - displays a product that can be selected for trade documents
 class TradeItemTile extends StatefulWidget {

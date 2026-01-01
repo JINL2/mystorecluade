@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -18,6 +17,7 @@ import '../widgets/dashboard_overview_section.dart';
 import '../widgets/dashboard_alerts_section.dart';
 import '../widgets/dashboard_activity_section.dart';
 import '../widgets/dashboard_quick_actions.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TradeDashboardPage extends ConsumerStatefulWidget {
   final dynamic feature;

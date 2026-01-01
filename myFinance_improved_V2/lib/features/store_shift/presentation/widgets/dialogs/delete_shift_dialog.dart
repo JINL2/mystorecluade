@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/store_shift.dart';
 import '../../providers/store_shift_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Show Delete Confirmation Dialog
 void showDeleteShiftDialog(

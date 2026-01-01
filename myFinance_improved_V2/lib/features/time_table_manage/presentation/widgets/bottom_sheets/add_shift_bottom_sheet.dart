@@ -13,11 +13,9 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 // Shared widgets
-import '../../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 // Feature providers
 import '../../providers/time_table_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// AddShiftBottomSheet
 ///

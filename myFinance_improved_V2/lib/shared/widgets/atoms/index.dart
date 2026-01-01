@@ -1,21 +1,24 @@
 /// Atoms - Basic UI building blocks
 ///
 /// The smallest, indivisible UI components:
-/// - buttons/  : TossButton, ToggleButton
-/// - inputs/   : TossTextField, TossSearchField, TossEnhancedTextField
+/// - buttons/  : TossButton, TossPrimaryButton, TossSecondaryButton, ToggleButton
+/// - inputs/   : TossTextField, TossSearchField
 /// - display/  : TossBadge, TossChip, TossCard, Avatars, Images
 /// - feedback/ : TossLoadingView, TossEmptyView, TossErrorView, TossRefreshIndicator
 /// - layout/   : GrayDividerSpace, TossSectionHeader
+///
+/// NOTE: TossEnhancedTextField is a Molecule (not Atom) - uses molecules/inputs/
 library;
 
 // ═══════════════════════════════════════════════════════════════
 // BUTTONS
 export 'buttons/toss_button.dart';
+export 'buttons/toss_primary_button.dart';
+export 'buttons/toss_secondary_button.dart';
 export 'buttons/toggle_button.dart';
 // INPUTS
 export 'inputs/toss_text_field.dart';
 export 'inputs/toss_search_field.dart';
-export 'inputs/toss_enhanced_text_field.dart';
 // DISPLAY
 export 'display/toss_badge.dart';
 export 'display/toss_chip.dart';

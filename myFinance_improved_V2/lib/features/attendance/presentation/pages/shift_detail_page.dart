@@ -5,14 +5,12 @@ import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/features/attendance/domain/entities/shift_card.dart';
 import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
-import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 
 import '../widgets/shift_detail/shift_info_card.dart';
 import '../widgets/shift_detail/payment_summary_card.dart';
 import '../widgets/shift_detail/activity_log_section.dart';
 import '../widgets/shift_detail/report_response_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shift Detail Page - Shows detailed information about a specific shift
 class ShiftDetailPage extends ConsumerStatefulWidget {

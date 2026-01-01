@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/index.dart';
-import '../../../../../shared/widgets/toss/toss_chip.dart';
-import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../domain/entities/template_with_subscription.dart';
 import '../../constants/report_strings.dart';
 import '../../providers/report_provider.dart';
 import '../../providers/report_state.dart';
 import 'template_subscription_card.dart';
 import 'subscription_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Tab for subscribing to report templates
 /// Shows available templates with category filtering and subscription status sorting

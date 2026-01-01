@@ -15,20 +15,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 // Autonomous Selectors
-import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
 import '../../domain/entities/transaction_filter.dart';
 import '../providers/transaction_providers.dart';
 import 'filter_sheet/date_range_section.dart';
 import 'filter_sheet/filter_options_section.dart';
 import 'filter_sheet/quick_date_filters_section.dart';
 import 'filter_sheet/scope_toggle_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Transaction filter bottom sheet
 class TransactionFilterSheet extends ConsumerStatefulWidget {

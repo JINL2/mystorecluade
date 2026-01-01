@@ -8,10 +8,10 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/ai/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
 import '../../domain/entities/transaction.dart';
 import 'transaction_detail_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TransactionListItem extends ConsumerWidget {
   final Transaction transaction;

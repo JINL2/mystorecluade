@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/cached_product_image.dart';
 import '../../providers/states/session_detail_state.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Product item widget for inventory list display
 class InventoryProductItem extends StatelessWidget {

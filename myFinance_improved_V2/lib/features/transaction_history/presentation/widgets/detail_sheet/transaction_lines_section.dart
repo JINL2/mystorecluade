@@ -11,8 +11,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_card.dart';
 import '../../../domain/entities/transaction.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Transaction lines section showing debit/credit entries
 class TransactionLinesSection extends StatelessWidget {

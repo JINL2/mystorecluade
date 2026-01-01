@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../shared/themes/index.dart';
-import '../../../../../shared/widgets/common/toss_white_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Salary trend chart section with interactive line graph
 class SalaryTrendSection extends StatefulWidget {

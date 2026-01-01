@@ -5,8 +5,6 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
 import '../../domain/entities/counter_party.dart';
 import '../../domain/value_objects/counter_party_type.dart';
@@ -17,6 +15,7 @@ import 'form/company_dropdown.dart';
 import 'form/step_indicator.dart';
 import 'form/step_navigation.dart';
 import 'form/type_selector.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 class CounterPartyForm extends ConsumerStatefulWidget {
   final CounterParty? counterParty;
 

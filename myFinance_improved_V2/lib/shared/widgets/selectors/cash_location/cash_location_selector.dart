@@ -280,7 +280,7 @@ class _CashLocationSelectorState extends ConsumerState<CashLocationSelector> {
           ? storeLocations
           : locations;
 
-      showModalBottomSheet(
+      showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: TossColors.transparent,
@@ -296,7 +296,7 @@ class _CashLocationSelectorState extends ConsumerState<CashLocationSelector> {
       );
     } else {
       // Scoped mode with tabs
-      showModalBottomSheet(
+      showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: TossColors.transparent,

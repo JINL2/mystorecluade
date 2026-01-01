@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 
 import 'profile_form_section.dart';
 import 'text_formatters.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Bank information section with bank name, account number, and holder name
 class BankInfoSection extends StatelessWidget {

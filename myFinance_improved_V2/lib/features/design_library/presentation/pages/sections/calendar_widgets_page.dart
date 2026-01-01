@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 // Calendar
-import 'package:myfinance_improved/shared/widgets/calendar/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/calendars/index.dart';
 
 // Buttons for demos
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
 
 import '../component_showcase.dart';
 

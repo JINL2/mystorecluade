@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
 
 import '../widgets/stats/stats_leaderboard.dart';
 import 'employee_detail_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Ranking criteria enum for filtering employees
 enum RankingCriteria {

@@ -7,12 +7,12 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../trade_shared/presentation/services/trade_pdf_service.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 import '../../domain/entities/purchase_order.dart';
 import '../providers/po_providers.dart';
 import '../widgets/po_list_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class PODetailPage extends ConsumerStatefulWidget {
   final String poId;

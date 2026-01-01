@@ -9,10 +9,6 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
 import '../../../../app/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
@@ -21,6 +17,7 @@ import '../widgets/profile_avatar_section.dart';
 import '../widgets/profile_header_section.dart';
 import '../widgets/settings_section.dart';
 import '../widgets/subscription_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class MyPage extends ConsumerStatefulWidget {
   const MyPage({super.key});

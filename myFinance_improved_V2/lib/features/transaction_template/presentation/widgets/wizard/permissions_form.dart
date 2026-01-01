@@ -8,12 +8,13 @@
 ///
 /// Usage: PermissionsForm(onVisibilityChanged: callback, onPermissionChanged: callback)
 library;
+
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 class PermissionsForm extends StatelessWidget {
   final String selectedVisibility;

@@ -3,11 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/index.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../../shared/widgets/toss/toss_week_navigation.dart';
-import '../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../../attendance/domain/entities/monthly_shift_status.dart';
 import '../../../attendance/domain/entities/shift_metadata.dart';
 import '../widgets/shift_requests/shift_availability_helper.dart';
@@ -15,6 +10,7 @@ import '../widgets/shift_requests/shift_requests_actions.dart';
 import '../widgets/shift_requests/shift_requests_controller.dart';
 import '../widgets/shift_requests/shift_status_helper.dart';
 import '../widgets/shift_signup/shift_signup_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// ShiftRequestsTab - Shift requests page with new UI design
 ///

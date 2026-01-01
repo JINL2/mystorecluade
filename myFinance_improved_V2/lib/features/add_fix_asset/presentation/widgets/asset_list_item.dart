@@ -3,8 +3,8 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/safe_popup_menu.dart';
 import '../../domain/entities/fixed_asset.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class AssetListItem extends StatelessWidget {
   final FixedAsset asset;

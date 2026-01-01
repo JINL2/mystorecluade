@@ -5,8 +5,8 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_shadows.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_confirm_cancel_dialog.dart';
 import '../../../domain/entities/account_mapping.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Account Mapping List Item Widget
 ///

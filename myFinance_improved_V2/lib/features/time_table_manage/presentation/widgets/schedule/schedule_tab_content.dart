@@ -6,16 +6,13 @@ import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/month_dates_picker.dart';
-import '../../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../../../shared/widgets/toss/toss_week_navigation.dart';
-import '../../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../models/schedule_models.dart';
 import '../../providers/state/coverage_gap_provider.dart';
 import '../../providers/time_table_providers.dart';
 import 'mixins/schedule_approval_handler.dart';
 import 'mixins/schedule_date_helpers.dart';
 import 'schedule_shift_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Schedule Tab Content - Redesigned
 ///

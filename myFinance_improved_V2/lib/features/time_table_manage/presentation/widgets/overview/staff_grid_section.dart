@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/employee_profile_avatar.dart';
 import 'shift_info_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Staff Grid Section
 ///

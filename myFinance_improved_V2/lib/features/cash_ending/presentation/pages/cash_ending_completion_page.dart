@@ -8,7 +8,6 @@ import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_button.dart';
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/balance_summary.dart';
 import '../../domain/usecases/create_error_adjustment_usecase.dart';
@@ -21,6 +20,7 @@ import 'cash_ending_completion/auto_balance_type.dart';
 import 'cash_ending_completion/auto_balance_dialogs.dart';
 import 'cash_ending_completion/expandable_currency_breakdown.dart';
 import 'cash_ending_completion/completion_summary_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Cash Ending Completion Page
 ///

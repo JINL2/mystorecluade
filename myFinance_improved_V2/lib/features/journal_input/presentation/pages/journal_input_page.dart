@@ -11,14 +11,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 // Shared widgets
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_empty_view.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/common/toss_white_card.dart';
-import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../shared/widgets/toss/toss_secondary_button.dart';
 // Domain
 import '../../domain/entities/transaction_line.dart';
 // Presentation
@@ -26,6 +18,7 @@ import '../providers/journal_input_providers.dart';
 import '../widgets/add_transaction_dialog.dart';
 import '../widgets/attachment_picker_section.dart';
 import '../widgets/transaction_line_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class JournalInputPage extends ConsumerStatefulWidget {
   const JournalInputPage({super.key});

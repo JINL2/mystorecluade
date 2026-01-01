@@ -6,12 +6,12 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../../domain/entities/exchange_rate_data.dart';
 import '../helpers/payment_helpers.dart';
 
 // Import real-time exchange rate provider
 import '../../../../../register_denomination/presentation/providers/exchange_rate_provider.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Exchange rate panel showing converted amounts in different currencies
 /// Uses real-time exchange rates from exchangerate-api.com

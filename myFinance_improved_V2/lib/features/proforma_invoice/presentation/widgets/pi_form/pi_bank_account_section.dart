@@ -6,8 +6,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../cash_location/presentation/providers/cash_location_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Bank account selector section for PI form
 class PIBankAccountSection extends ConsumerWidget {

@@ -5,12 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../domain/entities/bank_balance.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../providers/cash_ending_state.dart';
 import '../../providers/bank_tab_provider.dart';
 import '../cash_ending_completion_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Handler for saving Bank Balance
 /// Extracted from CashEndingPage to reduce file size

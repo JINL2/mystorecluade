@@ -9,12 +9,12 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/value_objects/invoice_filter.dart';
 import '../../domain/value_objects/invoice_period.dart';
 import '../providers/invoice_providers.dart';
 import '../widgets/invoice_list/invoice_list_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Invoice Search Page
 class InvoiceSearchPage extends ConsumerStatefulWidget {

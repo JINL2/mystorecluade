@@ -8,8 +8,6 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../dialogs/save_confirm_dialog.dart';
 import '../providers/session_detail_provider.dart';
 import '../providers/session_list_provider.dart';
@@ -18,6 +16,7 @@ import '../widgets/session_detail/inventory_product_item.dart';
 import '../widgets/session_detail/session_bottom_bar.dart';
 import '../widgets/session_detail/session_empty_state.dart';
 import '../widgets/session_detail/session_quantity_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Session detail page - view and manage session items
 /// Redesigned to match BoxHero's StockInTaskSheetPage

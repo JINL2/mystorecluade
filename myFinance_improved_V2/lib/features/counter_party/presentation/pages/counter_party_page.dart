@@ -7,11 +7,6 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 
 import '../../domain/entities/counter_party.dart';
 import '../providers/counter_party_providers.dart';
@@ -20,6 +15,7 @@ import '../widgets/filter/filter_sheet.dart';
 import '../widgets/filter/filter_sort_bar.dart';
 import '../widgets/list/counter_party_list_section.dart';
 import '../widgets/stats/counter_party_stats_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class CounterPartyPage extends ConsumerStatefulWidget {
   const CounterPartyPage({super.key});

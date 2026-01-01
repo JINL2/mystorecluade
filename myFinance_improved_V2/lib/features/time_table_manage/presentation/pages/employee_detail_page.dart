@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
-import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 
 import '../../domain/entities/employee_monthly_detail.dart';
 import '../providers/state/employee_monthly_detail_provider.dart';
@@ -16,6 +14,7 @@ import '../widgets/employee_detail/metric_card.dart';
 import '../widgets/employee_detail/month_picker_sheet.dart';
 import '../widgets/employee_detail/salary_row.dart';
 import '../widgets/stats/stats_leaderboard.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Employee Detail Page
 class EmployeeDetailPage extends ConsumerStatefulWidget {

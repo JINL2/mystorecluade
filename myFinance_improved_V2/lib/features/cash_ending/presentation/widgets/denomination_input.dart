@@ -10,8 +10,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_quantity_input.dart';
 import '../../domain/entities/denomination.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Denomination input widget - exact legacy UI/UX from denomination_widgets.dart
 ///

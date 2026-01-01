@@ -5,9 +5,9 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../providers/journal_input_providers.dart';
 import 'store_selection_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// A widget for selecting a counterparty's store
 ///

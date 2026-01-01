@@ -9,7 +9,6 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../register_denomination/domain/entities/currency.dart';
 import '../../../trade_shared/domain/entities/trade_item.dart';
 import '../../../trade_shared/presentation/pages/trade_item_picker_page.dart';
@@ -18,6 +17,7 @@ import '../../domain/entities/proforma_invoice.dart';
 import '../../domain/repositories/pi_repository.dart';
 import '../providers/pi_providers.dart';
 import '../widgets/pi_form/pi_form_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class PIFormPage extends ConsumerStatefulWidget {
   final String? piId; // null for create, non-null for edit

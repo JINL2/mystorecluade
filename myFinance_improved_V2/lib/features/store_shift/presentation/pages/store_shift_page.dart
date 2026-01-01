@@ -7,13 +7,6 @@ import '../../../../core/utils/location_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_confirm_cancel_dialog.dart';
-import '../../../../shared/widgets/common/toss_empty_view.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/store_shift.dart';
 import '../providers/store_shift_providers.dart';
 import '../widgets/business_hours_section.dart';
@@ -24,6 +17,7 @@ import '../widgets/store_info_card.dart';
 import '../widgets/store_selector_widget.dart';
 import '../widgets/schedule/schedule_tab.dart';
 import 'store_shift_page_dialogs.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Store Shift Page
 ///

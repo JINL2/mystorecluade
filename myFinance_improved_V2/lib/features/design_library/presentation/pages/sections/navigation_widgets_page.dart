@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 // Navigation
-import 'package:myfinance_improved/shared/widgets/navigation/index.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/navigation/index.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/buttons/toss_fab.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/buttons/toss_speed_dial.dart';
 
 import '../component_showcase.dart';
 

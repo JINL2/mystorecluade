@@ -7,8 +7,6 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../../domain/entities/store_shift.dart';
 import '../../providers/store_shift_providers.dart';
 import 'dialog_utils.dart';
@@ -16,6 +14,7 @@ import 'widgets/duration_display.dart';
 import 'widgets/shift_save_button.dart';
 import 'widgets/shift_settings_section.dart';
 import 'widgets/time_settings_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Show Edit Shift Dialog
 void showEditShiftDialog(

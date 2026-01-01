@@ -12,11 +12,6 @@ import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/ai_chat/ai_chat.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 import '../providers/cash_location_providers.dart';
 import '../widgets/cash_account_card.dart';
 import 'add_account_page.dart';
@@ -24,6 +19,7 @@ import 'bank_real_page.dart';
 import 'total_journal_page.dart';
 import 'total_real_page.dart';
 import 'vault_real_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class CashLocationPage extends ConsumerStatefulWidget {
   /// Feature data - can be TopFeature, Feature, or Map<String, dynamic>

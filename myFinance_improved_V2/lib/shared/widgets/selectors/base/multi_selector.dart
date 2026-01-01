@@ -22,7 +22,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_selection_bottom_sheet.dart';
 
 import 'selector_config.dart';
 
@@ -149,7 +149,7 @@ class TossMultiSelector<T> extends StatelessWidget {
     // This is a simplified version
     final currentSelectedIds = Set<String>.from(tempSelectedIds);
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,

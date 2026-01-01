@@ -19,8 +19,6 @@ import 'package:intl/intl.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../sale_product/presentation/pages/sale_product_page.dart';
 import '../../domain/entities/invoice.dart';
 import '../providers/invoice_list_provider.dart';
@@ -36,6 +34,7 @@ import '../widgets/invoice_list/invoice_list_item.dart';
 import '../widgets/invoice_list/invoice_sort_options.dart';
 import '../widgets/invoice_list/sort_bottom_sheet.dart';
 import 'invoice_search_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class SalesInvoicePage extends ConsumerStatefulWidget {
   const SalesInvoicePage({super.key});

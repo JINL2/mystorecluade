@@ -87,8 +87,8 @@ class CategoryChip extends StatelessWidget {
 /// Group of category chips with wrapping layout
 class CategoryChipGroup extends StatelessWidget {
   final List<CategoryChipItem> items;
-  final Function(CategoryChipItem)? onChipTap;
-  final Function(CategoryChipItem)? onChipRemove;
+  final void Function(CategoryChipItem)? onChipTap;
+  final void Function(CategoryChipItem)? onChipRemove;
   final double spacing;
   final double runSpacing;
   final bool showRemoveButton;

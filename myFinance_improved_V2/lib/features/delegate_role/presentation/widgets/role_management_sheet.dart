@@ -5,13 +5,10 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_tab_bar_1.dart';
 
 import '../providers/role_providers.dart';
 import 'role_management/role_management.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Role Management Sheet - Main container for role editing
 ///

@@ -7,12 +7,11 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../providers/financial_statements_provider.dart';
 import '../widgets/pnl_tab_content.dart';
 import '../widgets/bs_tab_content.dart';
 import '../widgets/trend_tab_content.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Financial Statements Page with 3 tabs: P&L, B/S, Trend
 class FinancialStatementsPage extends ConsumerStatefulWidget {

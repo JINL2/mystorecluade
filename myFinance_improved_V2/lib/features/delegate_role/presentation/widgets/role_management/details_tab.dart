@@ -3,10 +3,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 
 import 'tag_selection_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Details Tab for role management - displays and edits role info
 class DetailsTab extends StatelessWidget {

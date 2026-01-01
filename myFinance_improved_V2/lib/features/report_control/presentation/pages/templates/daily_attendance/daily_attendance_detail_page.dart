@@ -8,11 +8,10 @@ import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../shared/themes/toss_shadows.dart';
-import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../domain/entities/report_notification.dart';
 import '../../../../domain/entities/templates/daily_attendance/attendance_report.dart';
 import '../../../utils/report_parser.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Daily Attendance Report Detail Page
 ///

@@ -7,9 +7,9 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_button.dart';
 import '../../../domain/entities/balance_summary.dart';
 import '../../../domain/entities/currency.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Summary section for cash ending completion page
 ///

@@ -4,12 +4,12 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_badge.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_info_types.dart';
 import '../../../domain/entities/snapshot_data.dart';
 import 'snapshot_metrics_section.dart';
 import 'staff_grid_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Re-export for backward compatibility (prevents DCM false positive)
 export '../../../domain/entities/shift_info_types.dart';

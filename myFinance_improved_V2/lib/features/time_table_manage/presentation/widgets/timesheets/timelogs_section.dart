@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_empty_view.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_week_navigation.dart';
-import 'package:myfinance_improved/shared/widgets/toss/week_dates_picker.dart';
-import 'package:myfinance_improved/shared/widgets/toss/month_dates_picker.dart';
 import '../../pages/staff_timelog_detail_page.dart';
 import 'shift_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Timelogs section widget for TimesheetsTab
 /// Displays calendar navigation and shift timelogs

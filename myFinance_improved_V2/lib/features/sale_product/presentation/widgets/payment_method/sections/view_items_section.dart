@@ -4,10 +4,10 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/common/toss_white_card.dart';
 import '../../../../domain/entities/sales_product.dart';
 import '../../common/product_image_widget.dart';
 import '../helpers/payment_helpers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// View items section with expandable product list
 class ViewItemsSection extends StatefulWidget {

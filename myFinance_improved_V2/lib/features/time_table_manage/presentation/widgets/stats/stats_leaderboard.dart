@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
 
 import '../../../domain/entities/leaderboard_employee.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 export '../../../domain/entities/leaderboard_employee.dart';
 

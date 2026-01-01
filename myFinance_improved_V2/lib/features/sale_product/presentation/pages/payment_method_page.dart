@@ -11,10 +11,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 // Shared imports - widgets
-import '../../../../shared/widgets/common/gray_divider_space.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_button.dart';
 // Feature imports - journal_input (for exchangeRatesProvider)
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 // Feature imports - sale_product domain
@@ -36,6 +32,7 @@ import '../widgets/payment_method/sections/exchange_rate_panel.dart';
 import '../widgets/payment_method/sections/payment_breakdown_section.dart';
 import '../widgets/payment_method/sections/payment_method_section.dart';
 import '../widgets/payment_method/sections/view_items_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class PaymentMethodPage extends ConsumerStatefulWidget {
   final List<SalesProduct> selectedProducts;

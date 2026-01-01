@@ -12,22 +12,13 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/keyboard/toss_currency_exchange_modal.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
-import '../../../../shared/widgets/common/exchange_rate_calculator.dart';
 // Autonomous Selectors
-import '../../../../shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import '../../../../shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import '../../../../shared/widgets/selectors/enhanced_account_selector.dart';
 import '../../domain/entities/debt_category.dart';
 import '../../domain/entities/transaction_line.dart';
 
 // Extracted widgets
 import 'add_transaction/add_transaction_widgets.dart';
-
-
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class AddTransactionDialog extends ConsumerStatefulWidget {
   final TransactionLine? existingLine;

@@ -7,8 +7,8 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_icons.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../domain/entities/location.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Vault location selector widget
 ///

@@ -9,14 +9,12 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
 
 import '../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
 import '../providers/employee_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 class SalaryEditModal extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
   final void Function(double, String, String, String, String) onSave;

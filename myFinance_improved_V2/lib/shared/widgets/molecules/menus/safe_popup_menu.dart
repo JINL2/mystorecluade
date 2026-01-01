@@ -49,7 +49,7 @@ class _SafePopupMenuButtonState<T> extends State<SafePopupMenuButton<T>> {
         }
         
         // Use a small delay to ensure the popup is fully closed
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
         
         // Check if widget is still mounted before calling onSelected
         if (mounted) {

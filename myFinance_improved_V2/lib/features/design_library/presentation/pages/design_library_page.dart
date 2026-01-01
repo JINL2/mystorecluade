@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
+import 'package:myfinance_improved/shared/widgets/templates/toss_scaffold.dart';
 
 import 'sections/ai_widgets_section.dart';
 import 'sections/calendar_widgets_page.dart';

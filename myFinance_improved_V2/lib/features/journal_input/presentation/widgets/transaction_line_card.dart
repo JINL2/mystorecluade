@@ -6,8 +6,8 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_white_card.dart';
 import '../../domain/entities/transaction_line.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TransactionLineCard extends StatelessWidget {
   final TransactionLine line;

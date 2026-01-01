@@ -7,9 +7,6 @@ import 'package:myfinance_improved/core/utils/number_formatter.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 
 import '../providers/cash_location_providers.dart';
 import '../widgets/account_balance_card_widget.dart';
@@ -17,6 +14,7 @@ import '../widgets/journal_detail_sheet.dart';
 import '../widgets/real_detail_sheet.dart';
 import '../widgets/account_detail/account_detail_widgets.dart';
 import 'account_settings_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class AccountDetailPage extends ConsumerStatefulWidget {
   final String? locationId;

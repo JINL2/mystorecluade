@@ -6,9 +6,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 
 import '../providers/employee_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Search and filter controls section for employee management
 class EmployeeSearchFilterSection extends ConsumerWidget {

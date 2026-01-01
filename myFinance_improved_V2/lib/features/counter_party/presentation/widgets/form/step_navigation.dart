@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_button.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Step navigation buttons for multi-step counter party form
 ///

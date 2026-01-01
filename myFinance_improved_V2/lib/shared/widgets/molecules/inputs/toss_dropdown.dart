@@ -19,7 +19,6 @@ class TossDropdown<T> extends StatelessWidget {
   static const double _handleBarWidth = 36.0;
   static const double _handleBarHeight = 4.0;
   static const double _iconSize = TossSpacing.iconMD;
-  static const double _checkIconSize = TossSpacing.iconXS;
 
   const TossDropdown({
     super.key,
@@ -160,7 +159,7 @@ class TossDropdown<T> extends StatelessWidget {
   }
   
   void _showSelectionBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
       barrierColor: TossColors.black54, // Standard barrier color to prevent double barriers

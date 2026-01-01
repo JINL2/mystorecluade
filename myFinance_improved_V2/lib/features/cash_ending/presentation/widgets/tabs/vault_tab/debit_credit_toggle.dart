@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/widgets/toss/toss_button.dart';
 import '../../../../domain/entities/vault_transaction_type.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Re-export for backward compatibility (prevents DCM false positive)
 export '../../../../domain/entities/vault_transaction_type.dart';

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../../pages/barcode_scanner_page.dart';
 import 'barcode_input_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// A bottom sheet for selecting SKU input method
 ///

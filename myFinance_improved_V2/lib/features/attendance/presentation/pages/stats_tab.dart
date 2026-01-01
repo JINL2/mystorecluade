@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/toss/toss_button.dart';
-import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../domain/entities/user_shift_stats.dart';
 import '../providers/attendance_providers.dart';
 import '../widgets/stats/hero_salary_display.dart';
@@ -12,7 +10,7 @@ import '../widgets/stats/salary_breakdown_card.dart';
 import '../widgets/stats/salary_trend_section.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/gray_divider_space.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// StatsTab - Attendance statistics and salary overview
 /// Shows company-wide salary data (not store-specific)

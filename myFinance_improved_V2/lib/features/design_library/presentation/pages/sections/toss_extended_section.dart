@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_quantity_stepper.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toggle_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_chip.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_dropdown.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/inputs/toss_quantity_stepper.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_secondary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toggle_button.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/cards/toss_expandable_card.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/inputs/toss_text_field.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/inputs/toss_search_field.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/display/toss_card.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/display/toss_badge.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/display/toss_chip.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/inputs/toss_dropdown.dart';
 
 /// Toss Widgets Section - Interactive demos of shared/widgets/toss/
 class TossExtendedSection extends StatefulWidget {

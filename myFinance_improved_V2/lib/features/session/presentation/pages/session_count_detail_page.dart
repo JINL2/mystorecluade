@@ -9,9 +9,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/gray_divider_space.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../providers/session_list_provider.dart';
@@ -21,6 +18,7 @@ import '../widgets/count_detail/merge_session_bottom_sheet.dart';
 import '../widgets/count_detail/session_user_model.dart';
 import '../widgets/count_detail/session_user_section.dart';
 import 'session_compare_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Session Count Detail Page
 /// Shows session info and task sheets list

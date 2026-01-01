@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/monitoring/sentry_config.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/currency.dart';
@@ -21,6 +20,7 @@ import '../../pages/cash_ending_completion_page.dart';
 
 // Extracted widgets
 import 'vault_tab/vault_tab_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Vault Tab - Denomination-based counting with Debit/Credit (In/Out)
 ///

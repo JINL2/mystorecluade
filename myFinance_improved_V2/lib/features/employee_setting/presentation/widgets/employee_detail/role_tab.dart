@@ -6,12 +6,12 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 
 import '../../../data/repositories/repository_providers.dart';
 import '../../../domain/entities/employee_salary.dart';
 import '../../providers/employee_providers.dart';
 import 'delete_employee_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class RoleTab extends ConsumerWidget {
   final EmployeeSalary employee;

@@ -1,6 +1,6 @@
-import '../../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_metadata.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Helper class for shift availability calculations
 class ShiftAvailabilityHelper {

@@ -50,9 +50,9 @@ class AccountSelector extends ConsumerStatefulWidget {
   final List<String>? selectedAccountIds;
 
   // Legacy callbacks (deprecated but maintained for backward compatibility)
-  final Function(String?)? onChanged;
-  final Function(String?, Map<String, dynamic>?)? onChangedWithData;
-  final Function(List<String>?)? onMultiChanged;
+  final void Function(String?)? onChanged;
+  final void Function(String?, Map<String, dynamic>?)? onChangedWithData;
+  final void Function(List<String>?)? onMultiChanged;
 
   // NEW: Type-safe callbacks
   final OnAccountSelectedCallback? onAccountSelected;
@@ -299,7 +299,7 @@ class _AccountSelectorState extends ConsumerState<AccountSelector> {
   }
 
   void _showSingleSelectionSheet(List<AccountData> allAccounts) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
@@ -324,7 +324,7 @@ class _AccountSelectorState extends ConsumerState<AccountSelector> {
   }
 
   void _showMultiSelectionSheet(List<AccountData> allAccounts) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,

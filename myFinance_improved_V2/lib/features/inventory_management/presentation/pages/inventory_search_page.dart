@@ -11,8 +11,6 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/value_objects/pagination_params.dart';
@@ -20,6 +18,7 @@ import '../../domain/value_objects/product_filter.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/inventory_product_card.dart';
 import '../widgets/move_stock_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Inventory Search Page
 class InventorySearchPage extends ConsumerStatefulWidget {

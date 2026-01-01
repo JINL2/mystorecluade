@@ -10,7 +10,6 @@ import '../../../../core/notifications/services/production_token_service.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../../attendance/presentation/providers/attendance_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../domain/providers/repository_providers.dart';
@@ -22,6 +21,7 @@ import '../widgets/quick_access_section.dart';
 import '../widgets/revenue_card.dart';
 import '../widgets/revenue_chart_card.dart';
 import '../widgets/salary_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class Homepage extends ConsumerStatefulWidget {
   const Homepage({super.key}); // ✅ Removed const to allow rebuilds

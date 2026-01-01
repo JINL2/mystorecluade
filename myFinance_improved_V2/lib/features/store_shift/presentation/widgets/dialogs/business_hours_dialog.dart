@@ -4,15 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../../shared/widgets/toss/toss_bottom_sheet.dart';
-import '../../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../../shared/widgets/toss/toss_time_picker.dart';
 import '../../../domain/entities/business_hours.dart';
 import '../../providers/store_shift_providers.dart';
 import 'widgets/day_hours_data.dart';
 import 'widgets/day_item.dart';
 import 'widgets/quick_fill_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Show Business Hours Dialog
 void showBusinessHoursDialog(

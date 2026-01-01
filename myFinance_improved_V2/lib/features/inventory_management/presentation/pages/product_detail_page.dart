@@ -9,13 +9,12 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/move_stock_dialog.dart';
 import '../widgets/product_detail/product_detail_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Product Detail Page - New design with compact header and location list
 class ProductDetailPage extends ConsumerStatefulWidget {

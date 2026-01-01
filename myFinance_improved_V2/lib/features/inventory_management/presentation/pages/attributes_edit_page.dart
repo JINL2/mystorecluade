@@ -6,9 +6,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../widgets/attributes/add_attribute_form_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Attribute item model for display
 class AttributeItem {

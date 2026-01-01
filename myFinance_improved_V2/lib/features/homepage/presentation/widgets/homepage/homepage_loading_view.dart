@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/widgets/common/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Loading view for homepage states
 class HomepageLoadingView extends StatelessWidget {

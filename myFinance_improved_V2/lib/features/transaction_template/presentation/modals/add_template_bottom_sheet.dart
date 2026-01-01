@@ -4,9 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/account_provider.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/modal_keyboard_patterns.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 import '../../domain/enums/template_constants.dart';
@@ -18,6 +15,7 @@ import '../widgets/add_template/add_template_widgets.dart';
 import '../widgets/wizard/permissions_form.dart';
 import '../widgets/wizard/step_indicator.dart';
 import '../widgets/wizard/template_basic_info_form.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class AddTemplateBottomSheet extends ConsumerStatefulWidget {
   const AddTemplateBottomSheet({super.key});
@@ -641,7 +639,6 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         return null;
     }
   }
-
 
   /// Build Step 2 content using extracted Step2Content widget
   Widget _buildStep2ContentWidget(WidgetRef ref) {

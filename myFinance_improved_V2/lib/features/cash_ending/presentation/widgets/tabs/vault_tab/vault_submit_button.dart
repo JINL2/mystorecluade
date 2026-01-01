@@ -6,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toss_button.dart';
 import '../../../providers/cash_ending_state.dart';
 import '../../../providers/vault_tab_provider.dart';
 import '../../../providers/vault_tab_state.dart';
 import 'debit_credit_toggle.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Vault Submit Button Widget
 /// Handles submit and recount button based on transaction type

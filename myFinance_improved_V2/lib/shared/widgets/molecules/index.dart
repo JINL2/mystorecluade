@@ -8,7 +8,7 @@ library;
 // ═══════════════════════════════════════════════════════════════
 // BUTTONS - Button combinations and floating actions
 // ═══════════════════════════════════════════════════════════════
-export 'buttons/toss_fab.dart';
+export 'buttons/index.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // CARDS - Card components with multiple elements
@@ -27,6 +27,7 @@ export 'display/avatar_stack_interact.dart';
 export 'inputs/toss_dropdown.dart';
 export 'inputs/toss_quantity_stepper.dart';
 export 'inputs/toss_quantity_input.dart';
+export 'inputs/toss_enhanced_text_field.dart';
 export 'inputs/category_chip.dart';
 export 'inputs/keyboard_toolbar_1.dart';
 

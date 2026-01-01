@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 // Feedback: Dialogs
-import 'package:myfinance_improved/shared/widgets/feedback/dialogs/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/dialogs/index.dart';
 
 // Feedback: States
-import 'package:myfinance_improved/shared/widgets/feedback/states/index.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/feedback/index.dart';
 
 // Feedback: Indicators
-import 'package:myfinance_improved/shared/widgets/feedback/indicators/index.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/feedback/index.dart';
 
 // Buttons for demos
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
 
 import '../component_showcase.dart';
 

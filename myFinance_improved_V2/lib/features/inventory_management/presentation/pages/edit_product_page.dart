@@ -8,12 +8,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/gray_divider_space.dart';
-import '../../../../shared/widgets/common/toss_info_dialog.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_button.dart';
-import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/inventory_metadata.dart';
 import '../../domain/entities/product.dart';
@@ -23,6 +17,7 @@ import '../utils/store_utils.dart';
 import '../widgets/product_form/product_form_widgets.dart';
 import 'attribute_value_selector_page.dart';
 import 'attributes_edit_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Edit Product Page - Redesigned to match Add Product Page layout
 class EditProductPage extends ConsumerStatefulWidget {

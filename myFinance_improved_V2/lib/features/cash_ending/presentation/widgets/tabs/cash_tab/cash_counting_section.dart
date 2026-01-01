@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/common/keyboard_toolbar_1.dart';
 import '../../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../../domain/entities/denomination.dart';
@@ -16,6 +15,7 @@ import '../../collapsible_currency_section.dart';
 import '../../currency_pill_selector.dart';
 import '../../grand_total_section.dart';
 import '../../sheets/currency_selector_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Cash Counting Section Widget
 /// Displays currency selection and denomination inputs

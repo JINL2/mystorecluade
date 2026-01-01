@@ -7,14 +7,13 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/feature.dart';
 import '../../../../shared/themes/index.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../homepage/domain/entities/top_feature.dart';
 import '../constants/report_strings.dart';
 import '../providers/report_provider.dart';
 import '../utils/template_initializer.dart';
 import '../widgets/common/received_reports_tab.dart';
 import '../widgets/common/subscribe_reports_tab.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Report Control Page
 ///

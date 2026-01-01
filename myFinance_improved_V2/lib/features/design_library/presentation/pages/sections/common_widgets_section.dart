@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/employee_profile_avatar.dart';
-import 'package:myfinance_improved/shared/widgets/common/safe_popup_menu.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_date_picker.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_empty_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_error_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_section_header.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
-import 'package:myfinance_improved/shared/widgets/common/avatar_stack_interact.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_info_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_fab.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/display/employee_profile_avatar.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/menus/safe_popup_menu.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/navigation/toss_app_bar_1.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_empty_view.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_error_view.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_loading_view.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/layout/toss_section_header.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/cards/toss_white_card.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/display/avatar_stack_interact.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/dialogs/toss_info_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/dialogs/toss_confirm_cancel_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/dialogs/toss_success_error_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/layout/gray_divider_space.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/buttons/toss_fab.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
 
 /// Common Widgets Section - Showcases widgets from /lib/shared/widgets/common
 class CommonWidgetsSection extends StatefulWidget {

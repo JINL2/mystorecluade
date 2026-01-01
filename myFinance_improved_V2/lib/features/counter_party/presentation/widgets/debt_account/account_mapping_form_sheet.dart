@@ -7,12 +7,9 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../../shared/widgets/toss/toss_secondary_button.dart';
 import '../../../domain/entities/account_mapping.dart';
 import '../../providers/account_mapping_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Account Mapping Form Sheet
 ///

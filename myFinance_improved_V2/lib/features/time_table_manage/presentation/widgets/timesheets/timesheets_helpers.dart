@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/shared/widgets/toss/month_dates_picker.dart' show ProblemStatus;
+import 'package:myfinance_improved/shared/widgets/organisms/calendars/month_dates_picker.dart' show ProblemStatus;
 
 import '../../../domain/entities/shift_card.dart';
 import '../../providers/time_table_providers.dart';

@@ -6,7 +6,6 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
 import '../providers/session_review_provider.dart';
 import '../providers/states/session_review_state.dart';
 import '../widgets/receiving_review/receiving_empty_view.dart';
@@ -15,6 +14,7 @@ import '../widgets/receiving_review/receiving_filter_chip.dart';
 import '../widgets/receiving_review/receiving_item_row.dart';
 import '../widgets/receiving_review/receiving_submit_dialog.dart';
 import '../widgets/receiving_review/receiving_summary_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Filter types for receiving review items
 enum ReceivingFilter {

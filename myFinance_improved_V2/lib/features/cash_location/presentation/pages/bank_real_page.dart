@@ -8,11 +8,9 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 import '../providers/cash_location_providers.dart';
 import '../widgets/sheets/bank_detail_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class BankRealPage extends ConsumerStatefulWidget {
   const BankRealPage({super.key});

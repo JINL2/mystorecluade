@@ -4,11 +4,11 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
 
 import '../../../domain/value_objects/counter_party_filter.dart';
 import '../../../domain/value_objects/counter_party_type.dart';
 import '../../providers/counter_party_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Filter sheet widget for counter party filtering
 class CounterPartyFilterSheet extends ConsumerWidget {

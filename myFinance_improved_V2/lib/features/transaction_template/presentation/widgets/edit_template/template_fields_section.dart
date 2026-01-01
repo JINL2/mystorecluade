@@ -8,9 +8,10 @@
 /// Clean Architecture: PRESENTATION LAYER - Widget
 library;
 
+import 'package:myfinance_improved/shared/widgets/index.dart';
+
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 import '../../../domain/enums/template_constants.dart';
 

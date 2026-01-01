@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../../domain/entities/product.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Hero stats section showing Attributes, Cost, and Price
 class ProductHeroStats extends StatelessWidget {

@@ -16,6 +16,8 @@ library;
 
 import 'dart:async';
 
+import 'package:myfinance_improved/shared/widgets/index.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -23,14 +25,7 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/keyboard/toss_textfield_keyboard_modal.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 // Autonomous Selectors
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
 
 // ✅ Clean Architecture: Domain layer entities
 import '../../domain/entities/template_attachment.dart';
@@ -43,7 +38,6 @@ import '../providers/use_case_providers.dart';
 import '../widgets/template_attachment_picker_section.dart';
 import 'edit_template_bottom_sheet.dart';
 // 🧮 Exchange rate calculator
-import '../../../../shared/widgets/common/exchange_rate_calculator.dart';
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 
 // ✅ Extracted widgets

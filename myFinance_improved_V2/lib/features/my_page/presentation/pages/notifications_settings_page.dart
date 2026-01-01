@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 
 import '../providers/notification_settings_provider.dart';
 import '../widgets/notification_settings/notification_settings_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Messenger-inspired notification settings page following 2025 UX best practices
 /// Inspired by WhatsApp, Telegram, Signal, and Facebook Messenger

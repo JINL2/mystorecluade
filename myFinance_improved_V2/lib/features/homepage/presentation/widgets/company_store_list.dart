@@ -12,10 +12,10 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
 import 'bottom_sheets/store_actions_sheet.dart';
 import 'view_invite_codes_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Company & Store List Widget
 ///

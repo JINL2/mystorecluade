@@ -9,11 +9,11 @@
 /// Clean Architecture: PRESENTATION LAYER - Widget
 library;
 
+import 'package:myfinance_improved/shared/widgets/index.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 import 'entry_edit_state.dart';
 import 'counterparty_section.dart';

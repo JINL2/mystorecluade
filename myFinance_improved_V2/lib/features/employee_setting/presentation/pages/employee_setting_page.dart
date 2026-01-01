@@ -5,11 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_empty_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_error_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 
 import '../../domain/entities/employee_salary.dart';
 import '../providers/employee_providers.dart';
@@ -20,6 +15,7 @@ import '../widgets/employee_search_filter_section.dart';
 import '../widgets/employee_sort_sheet.dart';
 import '../widgets/role_selection_helper.dart';
 import '../widgets/salary_edit_modal.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class EmployeeSettingPageV2 extends ConsumerStatefulWidget {
   const EmployeeSettingPageV2({super.key});

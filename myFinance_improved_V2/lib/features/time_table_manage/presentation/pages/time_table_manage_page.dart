@@ -7,9 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/daily_shift_data.dart';
 import '../providers/state/reliability_score_provider.dart';
 import '../providers/time_table_providers.dart';
@@ -18,6 +15,7 @@ import '../widgets/overview/overview_tab.dart';
 import '../widgets/schedule/schedule_tab_content.dart';
 import '../widgets/timesheets/timesheets_tab.dart';
 import 'shift_stats_tab.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {
   final dynamic feature;

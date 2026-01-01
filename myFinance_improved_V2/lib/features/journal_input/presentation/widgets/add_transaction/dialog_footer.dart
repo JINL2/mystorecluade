@@ -3,8 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../../shared/widgets/toss/toss_secondary_button.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Footer widget for AddTransactionDialog
 ///

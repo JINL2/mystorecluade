@@ -9,9 +9,9 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/constants/auth_constants.dart';
 import '../../../../shared/themes/index.dart';
-import '../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../../homepage/presentation/providers/homepage_providers.dart';
 import '../providers/repository_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Complete Profile Page - For Email Signup and Apple Sign-In Users
 ///

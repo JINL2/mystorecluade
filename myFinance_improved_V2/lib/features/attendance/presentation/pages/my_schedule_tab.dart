@@ -7,7 +7,6 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/index.dart';
-import '../../../../shared/widgets/common/gray_divider_space.dart';
 import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/shift_card.dart';
 import '../../domain/entities/shift_metadata.dart';
@@ -15,15 +14,10 @@ import '../providers/attendance_providers.dart';
 import '../widgets/check_in_out/dialogs/report_issue_dialog.dart';
 import 'utils/schedule_date_utils.dart';
 import 'utils/schedule_shift_finder.dart';
-import '../../../../shared/widgets/toss/month_dates_picker.dart';
-import '../../../../shared/widgets/toss/toss_dropdown.dart';
-import '../../../../shared/widgets/toss/toss_month_navigation.dart';
-import '../../../../shared/widgets/toss/toss_week_navigation.dart';
-import '../../../../shared/widgets/toss/toss_week_shift_card.dart';
-import '../../../../shared/widgets/toss/week_dates_picker.dart';
 import '../../domain/entities/problem_details.dart';
 import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// MyScheduleTab - Main tab with Week view and expandable Month calendar
 ///

@@ -7,11 +7,11 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../trade_shared/presentation/services/trade_pdf_service.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 import '../../domain/entities/proforma_invoice.dart';
 import '../providers/pi_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class PIDetailPage extends ConsumerStatefulWidget {
   final String piId;

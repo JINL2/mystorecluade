@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_white_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Salary breakdown card showing itemized payment details
 class SalaryBreakdownCard extends StatelessWidget {

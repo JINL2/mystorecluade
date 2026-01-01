@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 // Overlays: Sheets
-import 'package:myfinance_improved/shared/widgets/overlays/sheets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/index.dart';
 
 // Overlays: Pickers
-import 'package:myfinance_improved/shared/widgets/overlays/pickers/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/pickers/index.dart';
 
 // Overlays: Menus
-import 'package:myfinance_improved/shared/widgets/overlays/menus/index.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/menus/index.dart';
 
 // Buttons for demos
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_primary_button.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_secondary_button.dart';
 
 import '../component_showcase.dart';
 

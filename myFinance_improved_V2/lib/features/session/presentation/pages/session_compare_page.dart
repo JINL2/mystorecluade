@@ -6,13 +6,13 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_compare_result.dart';
 import '../widgets/compare/compare_error_view.dart';
 import '../widgets/compare/compare_item_card.dart';
 import '../widgets/compare/compare_merge_button.dart';
 import '../widgets/compare/compare_session_info_header.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Page for comparing two sessions
 /// Shows items that exist in target session but not in source session

@@ -21,6 +21,7 @@ class TossInfoDialog extends StatelessWidget {
   final List<String> bulletPoints;
   final String buttonText;
   final VoidCallback? onButtonPressed;
+
   const TossInfoDialog({
     super.key,
     required this.title,
@@ -28,6 +29,7 @@ class TossInfoDialog extends StatelessWidget {
     this.buttonText = 'OK',
     this.onButtonPressed,
   });
+
   /// Shows the info dialog
   static Future<void> show({
     required BuildContext context,
@@ -46,12 +48,14 @@ class TossInfoDialog extends StatelessWidget {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: TossColors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -82,13 +86,23 @@ class TossInfoDialog extends StatelessWidget {
                 text: buttonText,
                 fullWidth: true,
                 onPressed: onButtonPressed ?? () => Navigator.pop(context),
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
 }
+
 /// Bullet point widget with default caption text style
 class _TossInfoBulletPoint extends StatelessWidget {
   final String text;
+
   const _TossInfoBulletPoint({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -100,7 +114,9 @@ class _TossInfoBulletPoint extends StatelessWidget {
             decoration: const BoxDecoration(
               color: TossColors.gray600,
               shape: BoxShape.circle,
+            ),
           ),
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -108,4 +124,10 @@ class _TossInfoBulletPoint extends StatelessWidget {
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray700,
               height: 1.5,
+            ),
+          ),
+        ),
       ],
+    );
+  }
+}

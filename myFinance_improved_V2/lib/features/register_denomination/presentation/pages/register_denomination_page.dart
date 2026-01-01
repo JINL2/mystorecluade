@@ -7,21 +7,14 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_empty_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_error_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 // Shared - Widgets
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
 
 // Feature - Providers
 import '../providers/currency_providers.dart';
 import '../widgets/add_currency_bottom_sheet.dart';
 // Feature - Widgets
 import '../widgets/currency_overview_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class RegisterDenominationPage extends ConsumerWidget {
   const RegisterDenominationPage({super.key});

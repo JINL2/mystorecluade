@@ -8,7 +8,7 @@ class TossSimpleWheelDatePicker extends StatefulWidget {
   final String title;
   final DateTime firstDate;
   final DateTime lastDate;
-  final Function(DateTime?) onDateSelected;
+  final void Function(DateTime?) onDateSelected;
 
   const TossSimpleWheelDatePicker({
     super.key,
@@ -216,7 +216,7 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
   Widget _buildTossWheelPicker({
     required FixedExtentScrollController controller,
     required List<String> items,
-    required Function(int) onSelectedItemChanged,
+    required void Function(int) onSelectedItemChanged,
   }) {
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
@@ -304,7 +304,7 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
 class TossDatePicker extends StatelessWidget {
   final DateTime? date;
   final String placeholder;
-  final Function(DateTime) onDateChanged;
+  final void Function(DateTime) onDateChanged;
   final DateTime? firstDate;
   final DateTime? lastDate;
   

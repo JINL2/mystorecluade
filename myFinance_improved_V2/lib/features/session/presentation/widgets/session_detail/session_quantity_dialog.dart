@@ -4,9 +4,9 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_quantity_stepper.dart';
 import '../../providers/states/session_detail_state.dart';
 import 'rejected_quantity_stepper.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Dialog for entering session quantity with optional rejected quantity
 class SessionQuantityDialog extends StatefulWidget {

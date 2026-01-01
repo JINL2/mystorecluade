@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/category_chip.dart';
-import '../../../../shared/widgets/toss/toss_button.dart';
 import '../../domain/entities/currency.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Currency pill selector with remove buttons
 ///

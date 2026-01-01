@@ -5,11 +5,11 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 // Dashboard 관련은 trade_dashboard 자체 모듈에서 가져옴
 import '../providers/dashboard_providers.dart';
 // 공유 위젯은 trade_shared에서 가져옴
 import '../../../trade_shared/presentation/widgets/trade_timeline_widget.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Page to display all trade activities
 class ActivityListPage extends ConsumerStatefulWidget {

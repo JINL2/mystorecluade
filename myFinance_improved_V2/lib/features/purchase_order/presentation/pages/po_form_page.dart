@@ -9,7 +9,6 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../register_denomination/domain/entities/currency.dart';
 import '../../../trade_shared/domain/entities/trade_item.dart';
 import '../../../trade_shared/presentation/pages/trade_item_picker_page.dart';
@@ -18,6 +17,7 @@ import '../../domain/entities/purchase_order.dart';
 import '../../domain/repositories/po_repository.dart';
 import '../providers/po_providers.dart';
 import '../widgets/po_form/po_form_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class POFormPage extends ConsumerStatefulWidget {
   final String? poId; // null for create, non-null for edit

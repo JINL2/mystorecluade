@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_expandable_card.dart';
 
 import '../../../domain/entities/shift_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Report and response card widget - shows user report and manager response
 class ReportResponseCard extends StatelessWidget {

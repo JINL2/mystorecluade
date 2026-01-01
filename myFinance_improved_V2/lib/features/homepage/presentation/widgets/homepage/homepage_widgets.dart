@@ -8,4 +8,4 @@ export 'homepage_loading_view.dart';
 export 'profile_menu.dart';
 
 // Re-export common loading view for convenience
-export '../../../../../shared/widgets/common/toss_loading_view.dart';
+export '../../../../../shared/widgets/atoms/feedback/toss_loading_view.dart';

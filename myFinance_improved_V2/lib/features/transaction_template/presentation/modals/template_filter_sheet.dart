@@ -4,18 +4,12 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 // Autonomous Selectors
-import 'package:myfinance_improved/shared/widgets/selectors/enhanced_account_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_counterparty_selector.dart';
-import 'package:myfinance_improved/shared/widgets/selectors/autonomous_cash_location_selector.dart';
 
 import '../../domain/value_objects/template_filter.dart';
 // Updated imports to use new application layer providers
 import '../providers/template_provider.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TemplateFilterSheet extends ConsumerStatefulWidget {
   const TemplateFilterSheet({super.key});
@@ -212,9 +206,6 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
       ],
     );
   }
-
-
-
 
   void _clearFilters() {
     setState(() {

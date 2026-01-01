@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 // Domain: Profile
-import 'package:myfinance_improved/shared/widgets/domain/profile/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/index.dart';
 
-// Common widgets needed
-import 'package:myfinance_improved/shared/widgets/common/toss_section_header.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
+// Atoms
+import 'package:myfinance_improved/shared/widgets/atoms/display/employee_profile_avatar.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/layout/toss_section_header.dart';
+
+// Molecules
+import 'package:myfinance_improved/shared/widgets/molecules/cards/toss_white_card.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/display/avatar_stack_interact.dart';
 
 import '../component_showcase.dart';
 

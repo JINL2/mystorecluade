@@ -8,16 +8,12 @@ import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_refresh_indicator.dart';
-import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../../domain/entities/perspective_summary.dart';
 import '../providers/currency_provider.dart';
 import '../providers/debt_control_providers.dart';
 import '../widgets/perspective_summary_card.dart';
 import '../widgets/smart_debt_control/smart_debt_control_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Smart Debt Control Page
 ///

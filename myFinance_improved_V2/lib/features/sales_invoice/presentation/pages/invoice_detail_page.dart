@@ -8,8 +8,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai/ai_description_box.dart';
-import '../../../../shared/widgets/common/gray_divider_space.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_detail.dart';
 import '../providers/invoice_detail_provider.dart';
@@ -19,6 +17,7 @@ import '../widgets/invoice_detail/invoice_confirmation_dialogs.dart';
 import '../widgets/invoice_detail/payment_breakdown_section.dart';
 import '../widgets/invoice_detail/payment_method_section.dart';
 import '../widgets/invoice_detail/view_items_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Invoice Detail Page - Full page view for invoice details
 ///

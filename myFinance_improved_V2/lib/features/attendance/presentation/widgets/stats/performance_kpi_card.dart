@@ -3,8 +3,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/widgets/common/toss_white_card.dart';
 import 'reliability_score_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Performance KPI card with 3 horizontal metrics
 class PerformanceKpiCard extends StatelessWidget {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_enhanced_text_field.dart';
 
 import 'date_picker_field.dart';
 import 'profile_form_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Personal information section with name, date of birth, and phone fields
 class PersonalInfoSection extends StatelessWidget {

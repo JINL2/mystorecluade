@@ -6,7 +6,6 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/constants/auth_constants.dart';
-import '../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../../homepage/presentation/providers/homepage_providers.dart';
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
@@ -14,6 +13,7 @@ import '../../domain/value_objects/company_type.dart';
 import '../../domain/value_objects/currency.dart';
 import '../providers/company_service.dart';
 import '../widgets/create_business/create_business_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Create Business Page - Clean Architecture Version
 ///

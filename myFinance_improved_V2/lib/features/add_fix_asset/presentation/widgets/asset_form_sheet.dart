@@ -3,11 +3,9 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_date_picker.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_enhanced_text_field.dart';
 import '../../domain/entities/fixed_asset.dart';
 import '../../domain/value_objects/asset_financial_info.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 enum AssetFormMode { create, edit }
 

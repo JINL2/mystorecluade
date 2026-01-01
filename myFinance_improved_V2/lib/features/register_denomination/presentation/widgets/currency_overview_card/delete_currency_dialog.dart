@@ -7,11 +7,11 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
 
 import '../../../di/providers.dart';
 import '../../../domain/entities/currency.dart';
 import '../../providers/currency_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Dialog helper for deleting currencies
 class DeleteCurrencyDialog {

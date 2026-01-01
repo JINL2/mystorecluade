@@ -7,10 +7,10 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_card.dart';
 import '../../domain/entities/business_hours.dart';
 import '../providers/store_shift_providers.dart';
 import 'dialogs/business_hours_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Business Hours Section Widget
 ///

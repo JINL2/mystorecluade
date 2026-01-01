@@ -4,8 +4,8 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toss_badge.dart';
 import '../../../../domain/entities/problem_details.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shift info card showing date, name, time range and status
 class ShiftInfoCard extends StatefulWidget {

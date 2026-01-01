@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Homepage Alert Dialog with "Don't show again" checkbox
 ///

@@ -5,12 +5,11 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/calendar_time_range.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../utils/store_utils.dart';
 import '../widgets/inventory_history/history_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Inventory History Page - Shows history of all stock movements in the store
 class InventoryHistoryPage extends ConsumerStatefulWidget {

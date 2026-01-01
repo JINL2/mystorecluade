@@ -4,8 +4,6 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_card.dart';
 
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/denomination.dart';
@@ -17,6 +15,7 @@ import 'currency_overview_card/currency_header.dart';
 import 'currency_overview_card/delete_currency_dialog.dart';
 import 'denomination_grid.dart';
 import 'edit_exchange_rate_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Currency overview card displaying currency info and expandable denominations
 class CurrencyOverviewCard extends ConsumerWidget {

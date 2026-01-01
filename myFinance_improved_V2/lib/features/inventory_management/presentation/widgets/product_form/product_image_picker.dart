@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Image source options for the picker
 enum ImageSourceOption {

@@ -7,13 +7,13 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_badge.dart';
 import '../../domain/entities/inventory_session.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../providers/session_list_provider.dart';
 import '../providers/states/session_list_state.dart';
 import 'create_session_page.dart';
 import 'session_count_detail_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Session action page - shows session list with app bar add button
 /// Design matches stock_in_page.dart

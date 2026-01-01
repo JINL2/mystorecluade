@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/common/gray_divider_space.dart';
 import '../../../domain/entities/manager_memo.dart';
 import '../../providers/time_table_providers.dart';
 import 'problems_section.dart';
 import 'timelogs_section.dart';
 import 'store_selector.dart';
 import 'timesheets_helpers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Timesheets tab - Problems view for attendance tracking
 class TimesheetsTab extends ConsumerStatefulWidget {

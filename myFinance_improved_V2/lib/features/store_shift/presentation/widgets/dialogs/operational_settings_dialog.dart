@@ -5,12 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../../shared/widgets/toss/toss_bottom_sheet.dart';
-import '../../../../../shared/widgets/toss/toss_primary_button.dart';
-import '../../../../../shared/widgets/toss/toss_text_field.dart';
 import '../../../domain/value_objects/shift_params.dart';
 import '../../providers/store_shift_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Show Operational Settings Dialog
 void showOperationalSettingsDialog(BuildContext context, Map<String, dynamic> store) {

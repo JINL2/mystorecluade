@@ -7,15 +7,12 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_selection_bottom_sheet.dart';
 import '../../domain/entities/fixed_asset.dart';
 import '../providers/fixed_asset_providers.dart';
 import '../providers/states/fixed_asset_state.dart';
 import '../widgets/asset_form_sheet.dart';
 import '../widgets/asset_list_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class AddFixAssetPage extends ConsumerStatefulWidget {
   const AddFixAssetPage({super.key});

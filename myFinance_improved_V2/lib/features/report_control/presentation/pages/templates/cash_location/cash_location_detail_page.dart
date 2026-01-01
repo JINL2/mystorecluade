@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/index.dart';
-import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../domain/entities/report_notification.dart';
 import '../../../utils/report_parser.dart';
 import 'domain/entities/cash_location_report.dart';
 import 'widgets/issues_hero_card.dart';
 import 'widgets/store_issues_card.dart';
 import 'widgets/ai_recommendations_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Cash Location Report Detail Page
 ///

@@ -8,8 +8,6 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/index.dart';
-import '../../../../../shared/widgets/toss/toss_chip.dart';
-import '../../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../constants/report_strings.dart';
 import '../../../domain/entities/report_notification.dart';
 import '../../../domain/entities/report_detail.dart';
@@ -19,6 +17,7 @@ import '../../utils/template_registry.dart';
 import 'report_notification_card.dart';
 import '../../pages/templates/daily_attendance/daily_attendance_detail_page.dart';
 import '../../pages/templates/cash_location/cash_location_template.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Tab for displaying received reports
 ///

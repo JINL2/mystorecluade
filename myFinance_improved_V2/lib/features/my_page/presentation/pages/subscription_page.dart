@@ -10,9 +10,9 @@ import 'package:myfinance_improved/features/my_page/presentation/providers/subsc
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
 
 import '../widgets/subscription/subscription_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Subscription Page - High-Converting Paywall Design
 ///

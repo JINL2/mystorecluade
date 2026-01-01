@@ -6,12 +6,12 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 // Core - Constants & Navigation
 import '../../../../core/constants/auth_constants.dart';
 // Shared - Widgets
-import '../../../../shared/widgets/toss/toss_text_field.dart';
 // Domain Layer - Exceptions
 import '../../domain/exceptions/auth_exceptions.dart';
 import '../../domain/exceptions/validation_exception.dart';
 // Presentation - Providers
 import '../providers/auth_service.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Signup Page - Clean Architecture Version
 ///

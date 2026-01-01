@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_primary_button.dart';
 import '../../providers/states/session_detail_state.dart';
 import 'counted_item_row.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Bottom bar widget for session detail page
 /// Shows summary and save button with expandable item list

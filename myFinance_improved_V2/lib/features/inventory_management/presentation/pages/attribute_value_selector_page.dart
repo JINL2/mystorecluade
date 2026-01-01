@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_search_field.dart';
 import '../widgets/add_attribute_dialog.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// A reusable page for selecting or adding attribute values (Category, Brand, etc.)
 ///

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
 
 /// Keyboard toolbar that provides intuitive Done button and navigation
 class TossKeyboardToolbar extends StatelessWidget {
@@ -10,6 +9,7 @@ class TossKeyboardToolbar extends StatelessWidget {
   final String doneText;
   final bool showNavigation;
   final bool enabled;
+
   const TossKeyboardToolbar({
     super.key,
     this.onDone,
@@ -19,6 +19,7 @@ class TossKeyboardToolbar extends StatelessWidget {
     this.showNavigation = false,
     this.enabled = true,
   });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -41,68 +42,108 @@ class TossKeyboardToolbar extends StatelessWidget {
               onPressed: enabled ? onPrevious : null,
               tooltip: 'Previous field',
             ),
+            _buildNavButton(
               icon: Icons.keyboard_arrow_down,
               onPressed: enabled ? onNext : null,
               tooltip: 'Next field',
+            ),
             const SizedBox(width: TossSpacing.space2),
           ],
           
           const Spacer(),
-          // Done button - Uses TossButton Atom for consistent design
-          Padding(
-            padding: const EdgeInsets.symmetric(
+          
+          // Done button - Prominent blue button matching app design
+          Container(
+            margin: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
               vertical: TossSpacing.space2,
-            child: TossButton.primary(
-              text: doneText,
+            ),
+            child: ElevatedButton(
               onPressed: enabled ? onDone : null,
-              isEnabled: enabled,
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space2,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TossColors.primary,
+                foregroundColor: TossColors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space4,
+                  vertical: TossSpacing.space2,
+                ),
+                minimumSize: const Size(60, 32),
               ),
-              borderRadius: TossBorderRadius.sm,
-              fontSize: TossTextStyles.bodySmall.fontSize,
+              child: Text(
+                doneText,
+                style: TossTextStyles.bodySmall.copyWith(
+                  color: TossColors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
         ],
+      ),
     );
   }
+
   Widget _buildNavButton({
     required IconData icon,
     required VoidCallback? onPressed,
     required String tooltip,
   }) {
+    return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space1,
         vertical: TossSpacing.space2,
+      ),
       child: IconButton(
         onPressed: onPressed,
         icon: Icon(
           icon,
-          size: TossSpacing.iconSM,
+          size: 20,
           color: onPressed != null ? TossColors.gray600 : TossColors.gray300,
+        ),
         tooltip: tooltip,
         constraints: const BoxConstraints(
           minWidth: 32,
           minHeight: 32,
+        ),
         padding: EdgeInsets.zero,
+      ),
+    );
+  }
 }
+
 /// Wrapper widget that provides keyboard toolbar functionality to any widget
 class TossKeyboardWrapper extends StatelessWidget {
   final Widget child;
   final VoidCallback? onKeyboardDone;
   final VoidCallback? onKeyboardNext;
   final VoidCallback? onKeyboardPrevious;
+  final String doneText;
+  final bool showNavigation;
   final bool enableTapDismiss;
+
   const TossKeyboardWrapper({
+    super.key,
     required this.child,
     this.onKeyboardDone,
     this.onKeyboardNext,
     this.onKeyboardPrevious,
+    this.doneText = 'Done',
+    this.showNavigation = false,
     this.enableTapDismiss = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final keyboardHeight = mediaQuery.viewInsets.bottom;
     final showToolbar = keyboardHeight > 0;
+
     Widget content = child;
+
     // Wrap with tap-to-dismiss if enabled
     if (enableTapDismiss) {
       content = GestureDetector(
@@ -111,6 +152,7 @@ class TossKeyboardWrapper extends StatelessWidget {
         child: content,
       );
     }
+
     return Column(
       children: [
         Expanded(child: content),
@@ -129,5 +171,8 @@ class TossKeyboardWrapper extends StatelessWidget {
                   showNavigation: showNavigation,
                 )
               : null,
+        ),
       ],
+    );
+  }
 }

@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../shared/widgets/toss/toggle_button.dart';
 import '../../../../domain/entities/sales_product.dart';
 import '../../../providers/payment_providers.dart';
 import '../helpers/payment_helpers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Payment breakdown section with subtotal, discount, and total
 class PaymentBreakdownSection extends ConsumerStatefulWidget {

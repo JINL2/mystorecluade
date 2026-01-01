@@ -7,8 +7,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../counter_party/presentation/widgets/counter_party_form.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Buyer selector section for PO form
 class POBuyerSection extends ConsumerStatefulWidget {

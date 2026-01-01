@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 
 import '../../../domain/entities/currency.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Exchange rate step widget for add currency flow
 class ExchangeRateStep extends StatelessWidget {

@@ -7,9 +7,6 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/utils/datetime_utils.dart';
@@ -19,6 +16,7 @@ import '../providers/currency_providers.dart';
 import 'edit_exchange_rate/currency_info_header.dart';
 import 'edit_exchange_rate/current_rate_info.dart';
 import 'edit_exchange_rate/exchange_rate_input_field.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Bottom sheet for editing exchange rates
 class EditExchangeRateBottomSheet extends ConsumerStatefulWidget {

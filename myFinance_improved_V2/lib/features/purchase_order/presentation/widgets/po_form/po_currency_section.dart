@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../shared/widgets/toss/toss_dropdown.dart';
 import '../../../../register_denomination/domain/entities/currency.dart';
 import '../../../../register_denomination/presentation/providers/currency_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Currency selector section for PO form
 class POCurrencySection extends ConsumerWidget {

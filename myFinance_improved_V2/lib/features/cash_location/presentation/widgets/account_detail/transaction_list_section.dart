@@ -4,12 +4,12 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
 
 import '../../providers/cash_location_providers.dart';
 import '../../formatters/cash_location_formatters.dart';
 import '../journal_flow_item.dart';
 import '../actual_flow_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Transaction list section widget that displays Journal and Real tabs
 /// with filtering and pagination support

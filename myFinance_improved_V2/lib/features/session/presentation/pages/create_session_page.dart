@@ -6,7 +6,6 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../auth/di/auth_providers.dart';
 import '../../../auth/domain/entities/store_entity.dart';
 import '../../di/session_providers.dart';
@@ -14,6 +13,7 @@ import '../../domain/entities/shipment.dart';
 import '../widgets/create_session/inline_text_field_row.dart';
 import '../widgets/create_session/location_picker_sheet.dart';
 import '../widgets/create_session/shipment_picker_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Full-page session creation
 /// Design matches new_stock_in_record_page.dart

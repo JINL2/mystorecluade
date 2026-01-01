@@ -316,7 +316,7 @@ class AvatarStackInteract extends StatelessWidget {
 
   /// Show bottom sheet with full user list
   void _showUsersBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,

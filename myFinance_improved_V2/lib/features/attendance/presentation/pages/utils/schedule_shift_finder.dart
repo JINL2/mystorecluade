@@ -1,6 +1,6 @@
-import '../../../../../shared/widgets/toss/toss_week_shift_card.dart';
 import '../../../domain/entities/shift_card.dart';
 import 'schedule_date_utils.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Result of findCurrentShift with chain info
 class CurrentShiftResult {

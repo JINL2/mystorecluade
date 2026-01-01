@@ -3,16 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/toss/toss_tab_bar_1.dart';
 import '../providers/attendance_providers.dart';
 import '../providers/monthly_attendance_providers.dart';
 import '../widgets/monthly/monthly_schedule_tab.dart';
 import 'shift_requests_tab.dart';
 import 'my_schedule_tab.dart';
 import 'stats_tab.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// AttendanceMainPage - Main page with tabs
 ///

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/widgets/toss/toss_today_shift_card.dart';
 import '../../../domain/entities/shift_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Header component with Today's Shift Card only
 /// (View toggle removed - now using calendar icon button in navigation)

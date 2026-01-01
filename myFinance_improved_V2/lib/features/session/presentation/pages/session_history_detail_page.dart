@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../../domain/entities/session_history_item.dart';
 import '../widgets/history_detail/history_header_section.dart';
 import '../widgets/history_detail/history_items_section.dart';
@@ -9,6 +8,7 @@ import '../widgets/history_detail/history_members_section.dart';
 import '../widgets/history_detail/history_merge_info_section.dart';
 import '../widgets/history_detail/history_receiving_info_section.dart';
 import '../widgets/history_detail/history_statistics_summary.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Session history detail page - view all details of a past session
 class SessionHistoryDetailPage extends StatelessWidget {

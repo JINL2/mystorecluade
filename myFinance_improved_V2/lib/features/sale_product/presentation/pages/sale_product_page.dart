@@ -6,8 +6,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/toss/toss_search_field.dart';
 
 import '../../../debt_control/presentation/providers/currency_provider.dart';
 import 'payment_method_page.dart';
@@ -21,6 +19,7 @@ import '../providers/sales_product_provider.dart';
 import '../providers/states/sales_product_state.dart';
 import '../widgets/cart/cart_summary_bar.dart';
 import '../widgets/list/selectable_product_tile.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class SaleProductPage extends ConsumerStatefulWidget {
   const SaleProductPage({super.key});

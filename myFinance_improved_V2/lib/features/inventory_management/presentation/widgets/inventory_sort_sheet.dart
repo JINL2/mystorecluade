@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../domain/entities/inventory_sort_types.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Re-export for backward compatibility (prevents DCM false positive)
 export '../../domain/entities/inventory_sort_types.dart';

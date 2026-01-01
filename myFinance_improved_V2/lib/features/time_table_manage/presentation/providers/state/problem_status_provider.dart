@@ -5,8 +5,9 @@
 /// avoiding redundant calculations on every build.
 library;
 
+import 'package:myfinance_improved/shared/widgets/index.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:myfinance_improved/shared/widgets/toss/month_dates_picker.dart';
 
 import '../../../domain/entities/shift_card.dart';
 import 'manager_shift_cards_provider.dart';

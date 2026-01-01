@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_search_field.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
 
 import '../../../domain/entities/currency.dart';
 import '../../providers/currency_providers.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Currency selection step widget for add currency flow
 class CurrencySelectionStep extends ConsumerStatefulWidget {

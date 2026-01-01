@@ -66,9 +66,7 @@ class TossTabBar1 extends StatefulWidget {
 class _TossTabBar1State extends State<TossTabBar1> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   TabController? _internalController;
-  
-  TabController get _effectiveController => widget.controller ?? _internalController!;
-  
+
   @override
   void initState() {
     super.initState();

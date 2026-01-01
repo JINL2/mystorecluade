@@ -4,12 +4,11 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_confirm_cancel_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_bottom_sheet.dart';
 
 import '../../domain/entities/counter_party.dart';
 import '../../domain/value_objects/counter_party_type.dart';
 import '../../domain/value_objects/relative_time.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class CounterPartyListItem extends StatelessWidget {
   final CounterParty counterParty;
@@ -204,7 +203,6 @@ class CounterPartyListItem extends StatelessWidget {
       ],
     );
   }
-
 
   void _showDeleteConfirmation(BuildContext context) {
     TossConfirmCancelDialog.showDelete(

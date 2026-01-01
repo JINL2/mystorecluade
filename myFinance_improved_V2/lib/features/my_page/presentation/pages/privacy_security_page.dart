@@ -6,16 +6,10 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_app_bar_1.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_scaffold.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_success_error_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/common/toss_white_card.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_primary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_secondary_button.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
 
 import '../../../auth/di/auth_providers.dart';
 import '../widgets/common_widgets.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class PrivacySecurityPage extends ConsumerStatefulWidget {
   const PrivacySecurityPage({super.key});

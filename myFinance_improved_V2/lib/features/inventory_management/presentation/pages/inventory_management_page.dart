@@ -12,10 +12,6 @@ import '../utils/store_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_speed_dial.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_success_error_dialog.dart';
-import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
@@ -26,6 +22,7 @@ import '../widgets/inventory_sort_sheet.dart';
 import '../widgets/move_stock_dialog.dart';
 import 'inventory_history_page.dart';
 import 'inventory_search_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Inventory Management Page
 class InventoryManagementPage extends ConsumerStatefulWidget {

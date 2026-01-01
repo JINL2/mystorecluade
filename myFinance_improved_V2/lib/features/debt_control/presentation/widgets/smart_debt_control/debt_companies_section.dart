@@ -5,10 +5,9 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/common/toss_empty_view.dart';
-import '../../../../../shared/widgets/toss/toss_chip.dart';
 import '../../providers/states/debt_control_state.dart';
 import 'debt_company_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Debt Companies Section Widget
 ///

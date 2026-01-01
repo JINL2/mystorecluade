@@ -5,12 +5,12 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
 import '../providers/session_history_provider.dart';
 import '../providers/states/session_history_filter_state.dart';
 import '../providers/states/session_history_state.dart';
 import '../widgets/history/session_history_card.dart';
 import '../widgets/history/session_history_filter_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Session history page - view past sessions and their results
 class SessionHistoryPage extends ConsumerWidget {

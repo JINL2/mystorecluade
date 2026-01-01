@@ -14,7 +14,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/widgets/toss/toss_bottom_sheet.dart';
 import '../../domain/entities/transaction.dart';
 import 'detail_sheet/balance_check_section.dart';
 import 'detail_sheet/detail_header_section.dart';
@@ -22,6 +21,7 @@ import 'detail_sheet/transaction_attachments_section.dart';
 import 'detail_sheet/transaction_info_card.dart';
 import 'detail_sheet/transaction_lines_section.dart';
 import 'detail_sheet/transaction_metadata_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Transaction detail bottom sheet
 class TransactionDetailSheet extends StatelessWidget {

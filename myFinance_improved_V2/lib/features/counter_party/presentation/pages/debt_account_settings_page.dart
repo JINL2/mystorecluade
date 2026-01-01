@@ -7,13 +7,12 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../domain/entities/account_mapping.dart';
 import '../providers/account_mapping_providers.dart';
 import '../widgets/debt_account/account_mapping_form_sheet.dart';
 import '../widgets/debt_account/account_mapping_list_item.dart';
 import '../widgets/debt_account/debt_settings_header.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Debt Account Settings Page
 ///

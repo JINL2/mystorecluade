@@ -3,9 +3,9 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_badge.dart';
 
 import '../../../domain/entities/attendance_problem.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Re-export for backward compatibility (prevents DCM false positive)
 export '../../../domain/entities/attendance_problem.dart';

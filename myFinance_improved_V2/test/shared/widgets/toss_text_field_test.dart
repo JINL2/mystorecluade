@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_text_field.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/inputs/toss_text_field.dart';
 
 void main() {
   group('TossTextField', () {

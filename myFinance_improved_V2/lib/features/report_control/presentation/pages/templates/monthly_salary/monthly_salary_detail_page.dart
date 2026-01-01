@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/index.dart';
-import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../domain/entities/report_notification.dart';
 import '../../../utils/report_parser.dart';
 import 'domain/entities/monthly_salary_report.dart';
@@ -14,6 +12,7 @@ import 'widgets/employee_salary_card.dart';
 import 'widgets/salary_insights_card.dart';
 import 'widgets/salary_notices_card.dart';
 import 'widgets/manager_quality_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Monthly Salary Report Detail Page
 ///

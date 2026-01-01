@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../../shared/themes/index.dart';
-import '../../../../../shared/widgets/common/toss_white_card.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Compact ranking card for 2x2 grid layout
 class RankingBarWidget extends StatelessWidget {

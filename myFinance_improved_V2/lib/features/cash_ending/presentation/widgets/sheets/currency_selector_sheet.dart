@@ -8,9 +8,9 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/widgets/toss/toss_search_field.dart';
 import '../../../domain/entities/currency.dart';
 import '../../providers/cash_ending_provider.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Currency selector bottom sheet
 ///

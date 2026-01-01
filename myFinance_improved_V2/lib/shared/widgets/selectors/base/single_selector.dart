@@ -19,7 +19,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/toss/toss_selection_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_selection_bottom_sheet.dart';
 
 import 'selector_config.dart';
 
@@ -136,7 +136,7 @@ class TossSingleSelector<T> extends StatelessWidget {
   }
 
   void _showSelector(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,

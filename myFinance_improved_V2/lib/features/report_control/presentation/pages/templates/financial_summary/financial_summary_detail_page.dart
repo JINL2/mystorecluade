@@ -3,14 +3,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../shared/themes/index.dart';
-import '../../../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../../../shared/widgets/common/toss_scaffold.dart';
 import '../../../../domain/entities/report_detail.dart';
 import '../../../widgets/templates/financial_summary/account_changes_section.dart';
 import '../../../widgets/templates/financial_summary/red_flags_section.dart';
 import '../../../widgets/templates/financial_summary/ai_insights_section.dart';
 import 'domain/entities/cpa_audit_data.dart';
 import 'widgets/all_transactions_section.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Financial Summary Detail Page
 ///

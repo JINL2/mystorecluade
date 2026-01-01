@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/widgets/common/toss_scaffold.dart';
-import '../../../../shared/widgets/common/toss_app_bar_1.dart';
-import '../../../../shared/widgets/common/toss_loading_view.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -13,6 +10,7 @@ import '../../domain/entities/proforma_invoice.dart';
 import '../providers/pi_providers.dart';
 import '../widgets/pi_list_item.dart';
 import '../widgets/pi_filter_chips.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class PIListPage extends ConsumerStatefulWidget {
   const PIListPage({super.key});

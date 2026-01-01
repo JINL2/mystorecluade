@@ -7,7 +7,7 @@ class TossSimpleWheelTimePicker extends StatefulWidget {
   final TimeOfDay? initialTime;
   final String title;
   final bool use24HourFormat;
-  final Function(TimeOfDay?) onTimeSelected;
+  final void Function(TimeOfDay?) onTimeSelected;
 
   const TossSimpleWheelTimePicker({
     super.key,
@@ -248,7 +248,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
   Widget _buildTossWheelPicker({
     required FixedExtentScrollController controller,
     required List<String> items,
-    required Function(int) onSelectedItemChanged,
+    required void Function(int) onSelectedItemChanged,
   }) {
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
@@ -336,7 +336,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
 class TossTimePicker extends StatelessWidget {
   final TimeOfDay? time;
   final String placeholder;
-  final Function(TimeOfDay) onTimeChanged;
+  final void Function(TimeOfDay) onTimeChanged;
   final bool use24HourFormat;
   
   const TossTimePicker({
