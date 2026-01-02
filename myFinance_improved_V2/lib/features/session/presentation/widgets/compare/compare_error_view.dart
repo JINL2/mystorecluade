@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Error view widget for session compare page
 class CompareErrorView extends StatelessWidget {
@@ -44,10 +45,10 @@ class CompareErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: TossSpacing.space4),
-            TextButton.icon(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              leadingIcon: const Icon(Icons.refresh),
             ),
           ],
         ),

@@ -201,21 +201,15 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
       appBar: AppBar(
         title: Text(isEditMode ? 'Edit PI' : 'New PI'),
         actions: [
-          TextButton(
-            // Always allow tap, validation happens in _handleSave
+          TossButton.textButton(
+            text: 'Save',
+            isLoading: formState.isSaving,
             onPressed: formState.isSaving ? null : _handleSave,
-            child: formState.isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Save'),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const TossLoadingView()
           : Form(
               key: _formKey,
               child: ListView(
@@ -558,7 +552,7 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
         vertical: TossSpacing.space1,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray300),
       ),
@@ -722,21 +716,14 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
     debugPrint('🟡 [PIFormPage] _validateForm result: $isValid');
     if (!isValid) {
       setState(() {}); // Refresh UI to show errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      TossToast.error(context, 'Please fill in all required fields');
       return;
     }
 
     final appStateRead = ref.read(appStateProvider);
     final companyId = appStateRead.companyChoosen;
     if (companyId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Company not selected')),
-      );
+      TossToast.error(context, 'Company not selected');
       return;
     }
 
@@ -820,26 +807,14 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
         debugPrint('🔴 [PIFormPage] PI ${isEditMode ? 'update' : 'create'} returned null');
         debugPrint('🔴 [PIFormPage] Error from state: $errorMessage');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to save PI: $errorMessage'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 5),
-            ),
-          );
+          TossToast.error(context, 'Failed to save PI: $errorMessage');
         }
       }
     } catch (e, stackTrace) {
       debugPrint('🔴 [PIFormPage] Error saving PI: $e');
       debugPrint('🔴 [PIFormPage] StackTrace: $stackTrace');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        TossToast.error(context, 'Error: $e');
       }
     }
   }

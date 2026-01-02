@@ -75,7 +75,7 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: TossAnimations.normal,
       vsync: this,
     );
   }
@@ -139,10 +139,10 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
               final action = entry.value;
               return AnimatedOpacity(
                 opacity: _isExpanded ? 1.0 : 0.0,
-                duration: Duration(milliseconds: 100 + (index * 50)),
+                duration: TossAnimations.quick + Duration(milliseconds: index * 50),
                 child: AnimatedSlide(
                   offset: _isExpanded ? Offset.zero : const Offset(0, 0.5),
-                  duration: Duration(milliseconds: 100 + (index * 50)),
+                  duration: TossAnimations.quick + Duration(milliseconds: index * 50),
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Row(
@@ -194,7 +194,7 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
               backgroundColor: bgColor,
               child: AnimatedRotation(
                 turns: _isExpanded ? 0.125 : 0,
-                duration: const Duration(milliseconds: 200),
+                duration: TossAnimations.normal,
                 child: Icon(Icons.add, color: fgColor, size: widget.iconSize),
               ),
             ),

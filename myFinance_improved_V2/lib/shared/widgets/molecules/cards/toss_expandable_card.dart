@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -147,7 +148,7 @@ class TossExpandableCardAnimated extends StatefulWidget {
     this.borderColor,
     this.dividerColor,
     this.borderRadius = 12,
-    this.animationDuration = const Duration(milliseconds: 200),
+    this.animationDuration = TossAnimations.fast,
   });
 
   @override
@@ -170,7 +171,7 @@ class _TossExpandableCardAnimatedState
     );
     _expandAnimation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: TossAnimations.standard,
     );
 
     if (widget.isExpanded) {

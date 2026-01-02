@@ -25,7 +25,7 @@ class ReviewItemCard extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => ReviewItemDetailSheet(
         item: item,
         params: params,

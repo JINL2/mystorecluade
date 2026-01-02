@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/themes/toss_animations.dart';
 
 /// Animated toggle widget for selecting Debit or Credit transaction type
 ///
@@ -31,8 +32,8 @@ class DebitCreditToggle extends StatelessWidget {
           // Animated selection indicator
           AnimatedAlign(
             alignment: isDebit ? Alignment.centerLeft : Alignment.centerRight,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
+            duration: TossAnimations.medium,
+            curve: TossAnimations.standard,
             child: FractionallySizedBox(
               widthFactor: 0.5,
               child: Container(
@@ -103,7 +104,7 @@ class _TypeButton extends StatelessWidget {
         color: TossColors.transparent,
         child: Center(
           child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
             style: TossTextStyles.body.copyWith(
               color: isSelected ? TossColors.white : TossColors.gray600,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

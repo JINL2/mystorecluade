@@ -153,26 +153,17 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
         Navigator.pop(context);
 
         if (result['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                widget.isEditing
-                    ? 'Template updated successfully'
-                    : 'Template created successfully',
-              ),
-              backgroundColor: TossColors.success,
-            ),
+          TossToast.success(
+            context,
+            widget.isEditing
+                ? 'Template updated successfully'
+                : 'Template created successfully',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, 'Error: $e');
       }
     } finally {
       if (mounted) {

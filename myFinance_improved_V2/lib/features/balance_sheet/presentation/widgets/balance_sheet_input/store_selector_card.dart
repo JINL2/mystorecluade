@@ -6,6 +6,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/index.dart';
 import 'store_selector_sheet.dart';
 
 /// Store selector card widget
@@ -55,11 +56,7 @@ class StoreSelectorCard extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+            const TossLoadingView.inline(size: 16),
             const SizedBox(width: TossSpacing.space2),
             Text(
               message,

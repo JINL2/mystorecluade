@@ -153,14 +153,7 @@ class _BusinessHoursContentState extends ConsumerState<_BusinessHoursContent> {
             onPressed: _isSubmitting ? null : _handleSave,
             fullWidth: true,
             leadingIcon: _isSubmitting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: TossColors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
+                ? TossLoadingView.inline(size: 20, color: TossColors.white)
                 : null,
           ),
         ],

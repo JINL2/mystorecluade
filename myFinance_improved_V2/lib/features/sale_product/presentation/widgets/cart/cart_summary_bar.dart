@@ -6,6 +6,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/cart_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Sticky cart dock at bottom of sale page
 /// Expandable design - tap chevron to show/hide selected items
@@ -163,24 +164,9 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
               ),
               child: SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: TossButton.primary(
+                  text: 'Create invoice',
                   onPressed: widget.onCreateInvoice,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    foregroundColor: TossColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Create invoice',
-                    style: TossTextStyles.titleMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.white,
-                    ),
-                  ),
                 ),
               ),
             ),
@@ -208,7 +194,7 @@ class _CartItemRow extends StatelessWidget {
     final formatter = NumberFormat('#,###');
 
     return Material(
-      color: Colors.transparent,
+      color: TossColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),

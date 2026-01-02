@@ -140,6 +140,36 @@ class TossAnimations {
   /// 사용: 온보딩 화면 전환, 대규모 레이아웃 변경
   static const Duration slower = Duration(milliseconds: 400);
 
+  // ==================== LOADING DURATION CONSTANTS ====================
+
+  /// 로딩 펄스 애니메이션 (스켈레톤용)
+  /// 사용: 스켈레톤 shimmer 효과
+  static const Duration loadingPulse = Duration(milliseconds: 1200);
+
+  /// 로딩 스피너 한 바퀴 (원형 인디케이터)
+  /// 사용: CircularProgressIndicator 회전
+  static const Duration loadingRotation = Duration(milliseconds: 1500);
+
+  /// 디바운스 딜레이 (검색 입력)
+  /// 사용: 검색 입력 후 API 호출 대기
+  static const Duration debounceDelay = Duration(milliseconds: 300);
+
+  /// 스낵바/토스트 표시 시간
+  /// 사용: Toast, SnackBar 자동 닫기
+  static const Duration toastDuration = Duration(seconds: 3);
+
+  /// 다이얼로그 등장 애니메이션 (600ms)
+  /// 사용: TossDialog 등장 시
+  static const Duration dialogEnter = Duration(milliseconds: 600);
+
+  /// 아이콘 강조 애니메이션 (800ms)
+  /// 사용: 다이얼로그 아이콘 등장
+  static const Duration iconEmphasis = Duration(milliseconds: 800);
+
+  /// 타이핑 인디케이터 애니메이션 (600ms)
+  /// 사용: AI 타이핑 인디케이터 도트 애니메이션
+  static const Duration typingDot = Duration(milliseconds: 600);
+
   // ==================== CURVE CONSTANTS ====================
   // Toss avoids bouncy effects for professional feel
 

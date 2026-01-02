@@ -203,7 +203,8 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                           ),
                         ),
                         const SizedBox(height: TossSpacing.space4),
-                        ElevatedButton(
+                        TossButton.primary(
+                          text: 'Retry',
                           onPressed: () {
                             // Reset state and refresh the data
                             setState(() {
@@ -222,7 +223,6 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                               ),
                             ),);
                           },
-                          child: const Text('Retry'),
                         ),
                       ],
                     ),

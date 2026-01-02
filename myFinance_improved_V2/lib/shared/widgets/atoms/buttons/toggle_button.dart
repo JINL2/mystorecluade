@@ -34,8 +34,8 @@ class ToggleButtonGroup extends StatelessWidget {
           return GestureDetector(
             onTap: () => onToggle(item.id),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
+              duration: TossAnimations.normal,
+              curve: TossAnimations.standard,
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 0,

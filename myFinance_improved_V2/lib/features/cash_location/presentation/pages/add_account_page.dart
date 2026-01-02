@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -516,7 +517,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                   ),
                   AnimatedRotation(
                     turns: _isTradeInfoExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
+                    duration: TossAnimations.normal,
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: TossColors.gray400,
@@ -535,7 +536,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             crossFadeState: _isTradeInfoExpanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
           ),
         ],
       ),
@@ -720,27 +721,19 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         child: SizedBox(
           width: double.infinity,
           height: 56,
-          child: ElevatedButton(
+          child: TossButton.primary(
+            text: 'Confirm',
             onPressed: isButtonEnabled ? () {
               // Handle confirm action
               _handleConfirm();
             } : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isButtonEnabled 
-                  ? Theme.of(context).colorScheme.primary 
-                  : TossColors.gray300,
-              disabledBackgroundColor: TossColors.gray300,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              elevation: 0,
-            ),
-            child: Text(
-              'Confirm',
-              style: TossTextStyles.titleMedium.copyWith(
-                color: isButtonEnabled ? TossColors.white : TossColors.gray500,
-                fontWeight: FontWeight.w600,
-              ),
+            isEnabled: isButtonEnabled,
+            fullWidth: true,
+            height: 56,
+            borderRadius: TossBorderRadius.md,
+            textStyle: TossTextStyles.titleMedium.copyWith(
+              color: isButtonEnabled ? TossColors.white : TossColors.gray500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

@@ -337,48 +337,11 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
 
   Widget _buildFetchRateButton() {
     return Center(
-      child: SizedBox(
-        width: 250,
-        height: 56,
-        child: OutlinedButton(
-          onPressed: isFetchingRate ? null : _fetchLatestExchangeRate,
-          style: OutlinedButton.styleFrom(
-            backgroundColor: TossColors.white,
-            foregroundColor: TossColors.primary,
-            side: const BorderSide(
-              color: TossColors.primary,
-              width: 1.5,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-            ),
-            elevation: 0,
-          ),
-          child: isFetchingRate
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.refresh, size: 20),
-                    const SizedBox(width: TossSpacing.space2),
-                    Text(
-                      'Fetch Latest Rate',
-                      style: TossTextStyles.button.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
+      child: TossButton.outlined(
+        text: 'Fetch Latest Rate',
+        onPressed: isFetchingRate ? null : _fetchLatestExchangeRate,
+        leadingIcon: const Icon(Icons.refresh, size: 20),
+        isLoading: isFetchingRate,
       ),
     );
   }

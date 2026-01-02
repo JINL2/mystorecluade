@@ -199,61 +199,29 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
             // Bottom buttons
             Container(
               padding: EdgeInsets.fromLTRB(
-                20, 
-                24, 
-                20, 
+                20,
+                24,
+                20,
                 16 + MediaQuery.of(context).padding.bottom,
               ),
               child: Row(
                 children: [
                   // Cancel button
                   Expanded(
-                    child: TextButton(
+                    child: TossButton.outlinedGray(
+                      text: 'Cancel',
                       onPressed: () => context.pop(),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          side: const BorderSide(color: TossColors.gray200, width: 1),
-                        ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: TossTextStyles.button.copyWith(
-                          color: TossColors.gray700,
-                        ),
-                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  
+
                   // Add button
                   Expanded(
                     flex: 2,
-                    child: ElevatedButton(
+                    child: TossButton.primary(
+                      text: 'Add Denomination',
                       onPressed: isValid && !isLoading ? _addDenomination : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isValid ? TossColors.primary : TossColors.gray200,
-                        foregroundColor: isValid ? TossColors.white : TossColors.gray400,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        ),
-                      ),
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                              ),
-                            )
-                          : Text(
-                              'Add Denomination',
-                              style: TossTextStyles.button,
-                            ),
+                      isLoading: isLoading,
                     ),
                   ),
                 ],

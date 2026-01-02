@@ -603,9 +603,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: TossColors.error),
-    );
+    TossToast.error(context, message);
   }
 
   // ============================================================================

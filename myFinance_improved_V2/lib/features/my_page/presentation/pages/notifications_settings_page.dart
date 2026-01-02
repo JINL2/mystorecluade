@@ -42,7 +42,7 @@ class _NotificationsSettingsPageState
         backgroundColor: TossColors.gray100,
       ),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const TossLoadingView()
           : state.errorMessage != null
               ? NotificationErrorView(
                   errorMessage: state.errorMessage!,

@@ -404,25 +404,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
   }
 
   void _showSuccessMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: TossColors.white),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              'Transaction recorded',
-              style: TossTextStyles.body.copyWith(color: TossColors.white),
-            ),
-          ],
-        ),
-        backgroundColor: TossColors.gray900,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        ),
-      ),
-    );
+    TossToast.success(context, 'Transaction recorded');
   }
 
   void _resetForm() {
@@ -623,9 +605,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
           }).toList(),
         );
       },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      loading: () => const TossLoadingView(),
       error: (error, _) => Center(
         child: Text(
           'Error loading cash locations',
@@ -856,9 +836,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
           }).toList(),
         );
       },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      loading: () => const TossLoadingView(),
       error: (error, _) => Center(
         child: Text(
           'Error loading counterparties',

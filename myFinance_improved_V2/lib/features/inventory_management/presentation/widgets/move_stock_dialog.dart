@@ -315,13 +315,9 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                       ),
                       alignment: Alignment.center,
                       child: _isSubmitting
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: TossColors.white,
-                              ),
+                          ? TossLoadingView.inline(
+                              size: 20,
+                              color: TossColors.white,
                             )
                           : Text(
                               'Submit',
@@ -380,14 +376,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                   const SizedBox(width: 8),
                   // Stock badge with loading state
                   _isLoading
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: TossColors.primary,
-                          ),
-                        )
+                      ? TossLoadingView.inline(size: 16)
                       : Container(
                           padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                           decoration: BoxDecoration(

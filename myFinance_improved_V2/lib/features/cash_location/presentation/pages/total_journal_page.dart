@@ -211,7 +211,8 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                           ),
                         ),
                         const SizedBox(height: TossSpacing.space4),
-                        ElevatedButton(
+                        TossButton.primary(
+                          text: 'Retry',
                           onPressed: () {
                             // Reset state and refresh the data
                             setState(() {
@@ -230,7 +231,6 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                               ),
                             ),);
                           },
-                          child: const Text('Retry'),
                         ),
                       ],
                     ),

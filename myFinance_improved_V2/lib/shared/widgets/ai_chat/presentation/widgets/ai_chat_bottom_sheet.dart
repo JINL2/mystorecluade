@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../themes/toss_animations.dart';
 import '../../../../themes/toss_border_radius.dart';
 import '../../../../themes/toss_colors.dart';
 import '../../../../themes/toss_spacing.dart';
 import '../../../../themes/toss_text_styles.dart';
+import '../../../atoms/feedback/toss_toast.dart';
 import '../providers/ai_chat_provider.dart';
 import '../providers/ai_chat_state.dart';
 import 'chat_bubble.dart';
@@ -53,12 +55,12 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
         });
       } else {
         // Smooth scroll for streaming
-        Future.delayed(const Duration(milliseconds: 50), () {
+        Future.delayed(TossAnimations.instant, () {
           if (_scrollController.hasClients) {
             _scrollController.animateTo(
               _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
+              duration: TossAnimations.fast,
+              curve: TossAnimations.decelerate,
             );
           }
           _isScrolling = false;
@@ -98,21 +100,16 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
         _scrollToBottom(immediate: true);
       }
 
-      // Show error snackbar
+      // Show error toast
       if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, next.error!);
         notifier.clearError();
       }
     });
 
     return AnimatedPadding(
       padding: EdgeInsets.only(bottom: keyboardHeight),
-      duration: const Duration(milliseconds: 100),
+      duration: TossAnimations.quick,
       child: DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 
 import 'profile_form_section.dart';
@@ -61,7 +62,7 @@ class BankInfoSection extends StatelessWidget {
             onChanged: (value) {
               // Real-time validation
               if (value.isNotEmpty) {
-                Future.delayed(const Duration(milliseconds: 300), () {
+                Future.delayed(TossAnimations.slow, () {
                   formKey.currentState?.validate();
                 });
               }
@@ -111,7 +112,7 @@ class BankInfoSection extends StatelessWidget {
             onChanged: (value) {
               // Real-time validation
               if (value.isNotEmpty) {
-                Future.delayed(const Duration(milliseconds: 300), () {
+                Future.delayed(TossAnimations.slow, () {
                   formKey.currentState?.validate();
                 });
               }
@@ -144,7 +145,7 @@ class BankInfoSection extends StatelessWidget {
             onChanged: (value) {
               // Real-time validation
               if (value.isNotEmpty) {
-                Future.delayed(const Duration(milliseconds: 300), () {
+                Future.delayed(TossAnimations.slow, () {
                   formKey.currentState?.validate();
                 });
               }

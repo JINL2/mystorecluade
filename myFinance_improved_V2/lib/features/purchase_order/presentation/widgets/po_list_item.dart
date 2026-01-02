@@ -22,12 +22,12 @@ class POListItemWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -174,13 +174,13 @@ class POStatusChip extends StatelessWidget {
       case POStatus.inProduction:
         return (TossColors.warning, TossColors.warningLight);
       case POStatus.readyToShip:
-        return (Colors.amber.shade800, Colors.amber.shade50);
+        return (TossColors.warning, TossColors.warningLight);
       case POStatus.partiallyShipped:
         return (TossColors.info, TossColors.infoLight);
       case POStatus.shipped:
         return (TossColors.success, TossColors.successLight);
       case POStatus.completed:
-        return (Colors.green.shade800, Colors.green.shade50);
+        return (TossColors.success, TossColors.successLight);
       case POStatus.cancelled:
         return (TossColors.error, TossColors.errorLight);
     }

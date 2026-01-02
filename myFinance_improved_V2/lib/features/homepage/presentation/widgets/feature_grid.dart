@@ -12,6 +12,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class FeatureGrid extends ConsumerWidget {
   const FeatureGrid({super.key});
@@ -334,9 +335,7 @@ class _LoadingFeatures extends StatelessWidget {
               ),
             ),
             const SizedBox(height: TossSpacing.space6),
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
+            const TossLoadingView(),
           ],
         ),
       ),

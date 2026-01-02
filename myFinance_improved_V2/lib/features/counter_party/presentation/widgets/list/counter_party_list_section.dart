@@ -145,15 +145,9 @@ class CounterPartyListSection extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: TossSpacing.space4),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: onRetry,
-              child: Text(
-                'Retry',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
           ],
         ),

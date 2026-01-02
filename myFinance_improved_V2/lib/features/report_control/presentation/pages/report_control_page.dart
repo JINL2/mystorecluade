@@ -157,7 +157,7 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
                       child: Text(
                         '${state.unreadCount}',
                         style: TossTextStyles.labelSmall.copyWith(
-                          color: Colors.white,
+                          color: TossColors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

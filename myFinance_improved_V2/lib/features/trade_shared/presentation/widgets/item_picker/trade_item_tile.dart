@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -149,8 +150,8 @@ class _TradeItemTileState extends State<TradeItemTile> {
           memCacheHeight: (size * 2).toInt(),
           placeholder: (context, url) => _buildPlaceholder(size),
           errorWidget: (context, url, error) => _buildFallback(size),
-          fadeInDuration: const Duration(milliseconds: 150),
-          fadeOutDuration: const Duration(milliseconds: 150),
+          fadeInDuration: TossAnimations.fast,
+          fadeOutDuration: TossAnimations.fast,
         ),
       );
     }
@@ -167,13 +168,9 @@ class _TradeItemTileState extends State<TradeItemTile> {
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: const Center(
-        child: SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray300),
-          ),
+        child: TossLoadingView.inline(
+          size: 16,
+          color: TossColors.gray300,
         ),
       ),
     );

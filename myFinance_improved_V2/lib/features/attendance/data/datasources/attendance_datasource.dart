@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/monitoring/sentry_config.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../../domain/exceptions/attendance_exceptions.dart';
 
@@ -267,16 +268,93 @@ class AttendanceDatasource {
         },
       );
 
+      // Log response for debugging
+      SentryConfig.addBreadcrumb(
+        message: 'reportShiftIssue RPC response',
+        category: 'attendance',
+        data: {
+          'shiftRequestId': shiftRequestId,
+          'responseType': response.runtimeType.toString(),
+          'response': response?.toString() ?? 'null',
+        },
+      );
+
       if (response == null) {
+        SentryConfig.captureMessage(
+          'reportShiftIssue: RPC returned null',
+          extra: {'shiftRequestId': shiftRequestId},
+        );
         return false;
       }
 
-      final Map<String, dynamic> result = response is Map<String, dynamic>
-          ? response
-          : Map<String, dynamic>.from(response as Map);
+      // Handle different response types robustly
+      // Case 1: response is already a bool
+      if (response is bool) {
+        return response;
+      }
 
-      return result['success'] == true;
-    } catch (e) {
+      // Case 2: response is a Map
+      if (response is Map<String, dynamic>) {
+        return response['success'] == true;
+      }
+
+      // Case 3: response is a Map but not Map<String, dynamic>
+      if (response is Map) {
+        try {
+          final Map<String, dynamic> result = Map<String, dynamic>.from(response);
+          return result['success'] == true;
+        } catch (e) {
+          SentryConfig.captureException(
+            e,
+            StackTrace.current,
+            hint: 'reportShiftIssue: Failed to convert Map response',
+            extra: {
+              'shiftRequestId': shiftRequestId,
+              'responseType': response.runtimeType.toString(),
+              'response': response.toString(),
+            },
+          );
+          return false;
+        }
+      }
+
+      // Case 4: response is a List (unexpected but handle gracefully)
+      if (response is List && response.isNotEmpty) {
+        final firstItem = response.first;
+        if (firstItem is bool) return firstItem;
+        if (firstItem is Map<String, dynamic>) {
+          return firstItem['success'] == true;
+        }
+        if (firstItem is Map) {
+          try {
+            final Map<String, dynamic> result = Map<String, dynamic>.from(firstItem);
+            return result['success'] == true;
+          } catch (e) {
+            // Fall through to error logging
+          }
+        }
+      }
+
+      // Unexpected response type - log and return false
+      SentryConfig.captureMessage(
+        'reportShiftIssue: Unexpected response type',
+        extra: {
+          'shiftRequestId': shiftRequestId,
+          'responseType': response.runtimeType.toString(),
+          'response': response.toString(),
+        },
+      );
+      return false;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'reportShiftIssue failed',
+        extra: {
+          'shiftRequestId': shiftRequestId,
+          'reportReason': reportReason,
+        },
+      );
       return false;
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -171,7 +172,7 @@ class _FinancialStatementsPageState
         onTap();
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: TossAnimations.fast,
         padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space3,
           vertical: TossSpacing.space2,

@@ -219,15 +219,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         title: 'Edit Profile',
         actions: _hasChanges && !_isLoading
             ? [
-                TextButton(
+                TossButton.textButton(
+                  text: 'Save',
                   onPressed: _saveProfile,
-                  child: Text(
-                    'Save',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  textColor: TossColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ]
             : null,

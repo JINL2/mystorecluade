@@ -139,11 +139,11 @@ class _TossSkeletonState extends State<TossSkeleton>
     super.initState();
     if (widget.enableShimmer) {
       _controller = AnimationController(
-        duration: const Duration(milliseconds: 1200),
+        duration: TossAnimations.loadingPulse,
         vsync: this,
       )..repeat();
       _animation = Tween<double>(begin: -2, end: 2).animate(
-        CurvedAnimation(parent: _controller!, curve: Curves.easeInOut),
+        CurvedAnimation(parent: _controller!, curve: TossAnimations.standard),
       );
     }
   }

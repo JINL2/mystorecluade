@@ -346,7 +346,7 @@ class _LevelTab extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isActive ? TossColors.primary : Colors.transparent,
+              color: isActive ? TossColors.primary : TossColors.transparent,
               width: 3,
             ),
           ),
@@ -378,87 +378,90 @@ class _RankingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: TossSpacing.space5),
-        child: Row(
-        children: [
-          // Rank number (red for needs attention, blue for top reliability)
-          SizedBox(
-            width: 28,
-            child: Text(
-              employee.rank.toString(),
-              textAlign: TextAlign.center,
-              style: TossTextStyles.body.copyWith(
-                color: isNeedsAttention ? TossColors.error : TossColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-
-          // Avatar
-          EmployeeProfileAvatar(
-            imageUrl: employee.avatarUrl,
-            name: employee.name,
-            size: 48,
-            showBorder: true,
-            borderColor: TossColors.gray200,
-          ),
-          const SizedBox(width: TossSpacing.space3),
-
-          // Name and subtitle
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  employee.name,
-                  style: TossTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  employee.subtitle,
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w400,
-                    color: TossColors.gray600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          // Score and change
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: TossSpacing.space5),
+          child: Row(
             children: [
-              Text(
-                employee.score.toString(),
-                style: TossTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (employee.change != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  '${employee.change! >= 0 ? '+' : ''}${employee.change}',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: employee.change! >= 0
-                        ? TossColors.primary
-                        : TossColors.error,
+              // Rank number (red for needs attention, blue for top reliability)
+              SizedBox(
+                width: 28,
+                child: Text(
+                  employee.rank.toString(),
+                  textAlign: TextAlign.center,
+                  style: TossTextStyles.body.copyWith(
+                    color: isNeedsAttention ? TossColors.error : TossColors.primary,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(width: TossSpacing.space3),
+
+              // Avatar
+              EmployeeProfileAvatar(
+                imageUrl: employee.avatarUrl,
+                name: employee.name,
+                size: 48,
+                showBorder: true,
+                borderColor: TossColors.gray200,
+              ),
+              const SizedBox(width: TossSpacing.space3),
+
+              // Name and subtitle
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      employee.name,
+                      style: TossTextStyles.titleMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      employee.subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: TossColors.gray600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+
+              // Score and change
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    employee.score.toString(),
+                    style: TossTextStyles.titleMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (employee.change != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '${employee.change! >= 0 ? '+' : ''}${employee.change}',
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: employee.change! >= 0
+                            ? TossColors.primary
+                            : TossColors.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
-        ],
         ),
       ),
     );

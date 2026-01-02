@@ -103,15 +103,9 @@ class DeleteCurrencyDialog {
           ],
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Understood',
             onPressed: () => context.pop(),
-            child: Text(
-              'Understood',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
         ],
       ),
@@ -136,56 +130,28 @@ class DeleteCurrencyDialog {
           ),
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => dialogContext.pop(),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
           Consumer(
             builder: (context, ref, _) {
               final currencyOperations = ref.watch(currencyOperationsProvider);
 
               return currencyOperations.maybeWhen(
-                loading: () => const TextButton(
+                loading: () => TossButton.textButton(
+                  text: 'Removing...',
                   onPressed: null,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-                        ),
-                      ),
-                      SizedBox(width: TossSpacing.space2),
-                      Text('Removing...'),
-                    ],
-                  ),
+                  isLoading: true,
                 ),
-                orElse: () => TextButton(
+                orElse: () => TossButton.textButton(
+                  text: 'Remove',
                   onPressed: () {
                     final operationState = ref.read(currencyOperationsProvider);
                     if (!operationState.isLoading) {
                       _deleteCurrency(dialogContext, ref);
                     }
                   },
-                  style: TextButton.styleFrom(
-                    foregroundColor: TossColors.error,
-                  ),
-                  child: Text(
-                    'Remove',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
               );
             },

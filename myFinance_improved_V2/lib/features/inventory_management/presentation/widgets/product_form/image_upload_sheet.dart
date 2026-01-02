@@ -24,7 +24,7 @@ class ImageUploadSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => ImageUploadSheet(
         onImagesSelected: onImagesSelected,

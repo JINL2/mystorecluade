@@ -251,13 +251,9 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
 
     if (isInitialLoading || isMetadataLoading) {
       return [
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.all(TossSpacing.space8),
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-            ),
-          ),
+        const Padding(
+          padding: EdgeInsets.all(TossSpacing.space8),
+          child: TossLoadingView(),
         ),
       ];
     }

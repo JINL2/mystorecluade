@@ -383,11 +383,6 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
 
   void _showComingSoon(String feature) {
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature feature coming soon'),
-        backgroundColor: TossColors.primary,
-      ),
-    );
+    TossToast.info(context, '$feature feature coming soon');
   }
 }

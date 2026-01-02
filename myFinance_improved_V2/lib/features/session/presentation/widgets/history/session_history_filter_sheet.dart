@@ -9,6 +9,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/session_history_provider.dart';
 import '../../providers/states/session_history_filter_state.dart';
 import 'filter_chip_widget.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Filter bottom sheet for session history
 class SessionHistoryFilterSheet extends ConsumerStatefulWidget {
@@ -196,14 +197,9 @@ class _SessionHistoryFilterSheetState
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Clear All',
             onPressed: _clearFilters,
-            child: Text(
-              'Clear All',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.primary,
-              ),
-            ),
           ),
         ],
       ),
@@ -218,26 +214,11 @@ class _SessionHistoryFilterSheetState
         TossSpacing.space5,
         MediaQuery.of(context).padding.bottom + TossSpacing.space4,
       ),
-      child: SizedBox(
-        width: double.infinity,
+      child: TossButton.primary(
+        text: 'Apply Filters',
+        onPressed: _applyFilters,
+        fullWidth: true,
         height: 52,
-        child: ElevatedButton(
-          onPressed: _applyFilters,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: TossColors.primary,
-            foregroundColor: TossColors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            elevation: 0,
-          ),
-          child: Text(
-            'Apply Filters',
-            style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     );
   }

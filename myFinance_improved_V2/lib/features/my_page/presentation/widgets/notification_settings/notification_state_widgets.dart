@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Error view for notification settings
 class NotificationErrorView extends StatelessWidget {
@@ -48,20 +49,9 @@ class NotificationErrorView extends StatelessWidget {
             style: TossTextStyles.body.copyWith(color: TossColors.gray600),
           ),
           const SizedBox(height: TossSpacing.space4),
-          ElevatedButton(
+          TossButton.primary(
+            text: 'Retry',
             onPressed: onRetry,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space6,
-                vertical: TossSpacing.space3,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-            ),
-            child: const Text('Retry'),
           ),
         ],
       ),

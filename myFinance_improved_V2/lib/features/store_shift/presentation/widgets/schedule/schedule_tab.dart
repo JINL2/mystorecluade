@@ -151,14 +151,10 @@ class ScheduleTab extends ConsumerWidget {
                 'Create templates to define working hours for monthly employees',
           ),
           const SizedBox(height: TossSpacing.space4),
-          ElevatedButton.icon(
+          TossButton.primary(
             onPressed: () => _showAddTemplateDialog(context, ref),
-            icon: const Icon(LucideIcons.plus, size: TossSpacing.iconSM),
-            label: const Text('Create Template'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-            ),
+            leadingIcon: const Icon(LucideIcons.plus, size: 20, color: TossColors.white),
+            text: 'Create Template',
           ),
         ],
       );
@@ -210,7 +206,7 @@ class ScheduleTab extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => const TemplateFormDialog(),
     );
   }
@@ -224,7 +220,7 @@ class ScheduleTab extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => TemplateFormDialog(template: template),
     );
   }
@@ -247,15 +243,15 @@ class ScheduleTab extends ConsumerWidget {
               : 'Are you sure you want to delete "${template.templateName}"?',
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            text: 'Cancel',
           ),
           if (template.employeeCount == 0)
-            TextButton(
+            TossButton.textButton(
               onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(foregroundColor: TossColors.error),
-              child: const Text('Delete'),
+              text: 'Delete',
+              textColor: TossColors.error,
             ),
         ],
       ),
@@ -268,21 +264,11 @@ class ScheduleTab extends ConsumerWidget {
         );
 
         if (result['success'] == true && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Template deleted successfully'),
-              backgroundColor: TossColors.success,
-            ),
-          );
+          TossToast.success(context, 'Template deleted successfully');
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete: $e'),
-              backgroundColor: TossColors.error,
-            ),
-          );
+          TossToast.error(context, 'Failed to delete: $e');
         }
       }
     }

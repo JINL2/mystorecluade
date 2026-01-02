@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -41,14 +42,7 @@ class CountDetailHeaderSection extends StatelessWidget {
             GestureDetector(
               onTap: isDeleting ? null : onDelete,
               child: isDeleting
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: TossColors.loss,
-                      ),
-                    )
+                  ? TossLoadingView.inline(size: 22, color: TossColors.loss)
                   : const Icon(
                       Icons.delete_outline,
                       color: TossColors.loss,

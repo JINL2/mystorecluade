@@ -10,6 +10,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../domain/entities/template_attachment.dart';
 
 /// Section widget for picking and displaying template transaction attachments
@@ -165,13 +166,7 @@ class _TemplateAttachmentPickerSectionState
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: TossColors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    TossToast.error(context, message);
   }
 
   void _removeAttachment(int index) {
@@ -318,22 +313,11 @@ class _TemplateAttachmentPickerSectionState
             ),
             // Add button
             if (widget.canAddMore)
-              TextButton.icon(
+              TossButton.textButton(
+                text: _isPickingImages ? 'Loading...' : 'Add',
                 onPressed: _isPickingImages ? null : _showSourceSelectionDialog,
-                icon: _isPickingImages
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.add_photo_alternate_outlined, size: 18),
-                label: Text(_isPickingImages ? 'Loading...' : 'Add'),
-                style: TextButton.styleFrom(
-                  foregroundColor: TossColors.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space2,
-                  ),
-                ),
+                leadingIcon: _isPickingImages ? null : const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                isLoading: _isPickingImages,
               ),
           ],
         ),

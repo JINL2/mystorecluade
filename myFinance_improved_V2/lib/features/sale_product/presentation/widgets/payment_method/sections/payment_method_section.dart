@@ -8,6 +8,7 @@ import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/cash_location.dart';
 import '../../../providers/payment_providers.dart';
 import '../../../providers/states/payment_method_state.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Payment method section with expandable Cash/Bank/Vault options
 class PaymentMethodSection extends ConsumerStatefulWidget {
@@ -75,14 +76,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Row(
         children: [
-          const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: TossColors.primary,
-            ),
-          ),
+          const TossLoadingView.inline(size: 20),
           const SizedBox(width: TossSpacing.space3),
           Text(
             'Loading payment methods...',
@@ -128,10 +122,10 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
-        TextButton(
+        TossButton.textButton(
+          text: 'Retry',
           onPressed: () =>
               ref.read(paymentMethodNotifierProvider.notifier).loadCurrencyData(),
-          child: const Text('Retry'),
         ),
       ],
     );
@@ -217,66 +211,72 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
 
     return Column(
       children: [
-        // Type header row - always expandable
-        GestureDetector(
-          onTap: () {
-            // Toggle expand/collapse
-            setState(() {
-              _expandedType = isExpanded ? null : type;
-            });
+        // Type header row - always expandable with ink ripple effect
+        Material(
+          color: TossColors.transparent,
+          child: InkWell(
+            onTap: () {
+              // Toggle expand/collapse
+              setState(() {
+                _expandedType = isExpanded ? null : type;
+              });
 
-            if (isExpanded) {
-              // Collapsing - clear selection
-              ref
-                  .read(paymentMethodNotifierProvider.notifier)
-                  .selectCashLocation(null);
-            } else {
-              // Expanding - auto-select first location
-              if (locations.isNotEmpty) {
+              if (isExpanded) {
+                // Collapsing - clear selection
                 ref
                     .read(paymentMethodNotifierProvider.notifier)
-                    .selectCashLocation(locations.first);
-                // Notify parent to scroll down
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  widget.onExpand?.call();
-                });
+                    .selectCashLocation(null);
+              } else {
+                // Expanding - auto-select first location
+                if (locations.isNotEmpty) {
+                  ref
+                      .read(paymentMethodNotifierProvider.notifier)
+                      .selectCashLocation(locations.first);
+                  // Notify parent to scroll down
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    widget.onExpand?.call();
+                  });
+                }
               }
-            }
-          },
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Icon(
-                        icon,
-                        size: 18,
-                        color: TossColors.gray600,
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Text(
-                        label,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
+            },
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: TossSpacing.space2,
+                horizontal: TossSpacing.space2,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          icon,
+                          size: 18,
+                          color: TossColors.gray600,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: TossSpacing.space2),
+                        Text(
+                          label,
+                          style: TossTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.gray900,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                // Always show expand/collapse arrow
-                Icon(
-                  isExpanded
-                      ? Icons.keyboard_arrow_down
-                      : Icons.keyboard_arrow_right,
-                  size: 18,
-                  color: TossColors.gray600,
-                ),
-              ],
+                  // Always show expand/collapse arrow
+                  Icon(
+                    isExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_right,
+                    size: 18,
+                    color: TossColors.gray600,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -310,7 +310,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
                   .read(paymentMethodNotifierProvider.notifier)
                   .selectCashLocation(location);
             },
-            child: Container(
+            child: Padding(
               padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

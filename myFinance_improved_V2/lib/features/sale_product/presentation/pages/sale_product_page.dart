@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -50,9 +51,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
       ref.invalidate(salesProductNotifierProvider);
       ref.invalidate(inventoryMetadataNotifierProvider);
       ref.invalidate(salePreloadNotifierProvider);
-      // Load metadata, exchange rates, and cash locations
+      // Load metadata (salePreloadNotifierProvider loads automatically in build())
       ref.read(inventoryMetadataNotifierProvider.notifier).loadMetadata();
-      ref.read(salePreloadNotifierProvider.notifier).loadAll();
     });
 
     _scrollController.addListener(_onScroll);
@@ -86,7 +86,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
   void _onSearchChanged(String value) {
     _searchDebounceTimer?.cancel();
-    _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+    _searchDebounceTimer = Timer(TossAnimations.debounceDelay, () {
       ref.read(salesProductNotifierProvider.notifier).search(value);
     });
   }
@@ -126,17 +126,17 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
         _scrollController.animateTo(
           clampedOffset,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
+          duration: TossAnimations.slow,
+          curve: TossAnimations.standard,
         ).then((_) {
           // After rough scroll, use GlobalKey to fine-tune position
-          Future.delayed(const Duration(milliseconds: 100), () {
+          Future.delayed(TossAnimations.quick, () {
             final key = _productKeys[productId];
             if (key?.currentContext != null) {
               Scrollable.ensureVisible(
                 key!.currentContext!,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
+                duration: TossAnimations.normal,
+                curve: TossAnimations.standard,
                 alignment: 0.0,
               );
             }
@@ -168,17 +168,14 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
           style: TossTextStyles.body.copyWith(color: TossColors.gray600),
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancel',
-                style: TossTextStyles.body
-                    .copyWith(color: TossColors.gray600, fontWeight: FontWeight.w600)),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Discard',
+            textColor: TossColors.error,
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text('Discard',
-                style: TossTextStyles.body
-                    .copyWith(color: TossColors.error, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -301,11 +298,11 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
             onTap: () => setState(() => _selectedBrand = brand),
             child: Center(
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
+                duration: TossAnimations.normal,
+                curve: TossAnimations.standard,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? TossColors.gray100 : Colors.transparent,
+                  color: isSelected ? TossColors.gray100 : TossColors.transparent,
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Text(
@@ -332,7 +329,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   ) {
     // Show loading if still loading and no products at all
     if (salesState.isLoading && allProducts.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (salesState.errorMessage != null && displayProducts.isEmpty) {
@@ -344,9 +341,9 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
             const SizedBox(height: TossSpacing.space3),
             Text(salesState.errorMessage ?? 'Error loading products', style: TossTextStyles.body),
             const SizedBox(height: TossSpacing.space3),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: () => ref.read(salesProductNotifierProvider.notifier).refresh(),
-              child: const Text('Retry'),
             ),
           ],
         ),
@@ -380,7 +377,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         if (index == displayProducts.length) {
           return const Padding(
             padding: EdgeInsets.all(TossSpacing.space4),
-            child: Center(child: CircularProgressIndicator()),
+            child: TossLoadingView(),
           );
         }
 
@@ -408,7 +405,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     );
   }
 
-  void _navigateToPayment(List<CartItem> cartItems) {
+  Future<void> _navigateToPayment(List<CartItem> cartItems) async {
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
     final selectedProductsList = cartNotifier.cartProducts;
     final productQuantities = <String, int>{};
@@ -418,7 +415,27 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
     // Get preloaded data (exchange rates + cash locations)
     final preloadAsync = ref.read(salePreloadNotifierProvider);
-    final preloadData = preloadAsync.valueOrNull ?? const SalePreloadData();
+    SalePreloadData preloadData;
+
+    // If data is already loaded, navigate immediately (no delay)
+    if (preloadAsync.hasValue) {
+      preloadData = preloadAsync.requireValue;
+    } else {
+      // Show loading overlay while waiting for data
+      _showNavigationLoading();
+
+      try {
+        preloadData = await ref.read(salePreloadNotifierProvider.future);
+      } catch (e) {
+        if (mounted) Navigator.of(context).pop(); // Close loading
+        preloadData = const SalePreloadData();
+      }
+
+      // Close loading overlay
+      if (mounted) Navigator.of(context).pop();
+    }
+
+    if (!mounted) return;
 
     Navigator.push(
       context,
@@ -428,6 +445,19 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
           productQuantities: productQuantities,
           exchangeRateData: preloadData.exchangeRateData,
           cashLocations: preloadData.cashLocations,
+        ),
+      ),
+    );
+  }
+
+  void _showNavigationLoading() {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black26,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: TossColors.primary,
         ),
       ),
     );

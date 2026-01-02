@@ -65,25 +65,10 @@ class POShippingTermsSection extends ConsumerWidget {
         ),
         const SizedBox(width: TossSpacing.space3),
         Expanded(
-          child: TextFormField(
+          child: TossTextField.filled(
             controller: incotermsPlaceController,
-            decoration: InputDecoration(
-              labelText: 'Place',
-              filled: true,
-              fillColor: TossColors.gray50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                borderSide: BorderSide(color: TossColors.primary),
-              ),
-            ),
+            inlineLabel: 'Place',
+            hintText: '',
           ),
         ),
       ],
@@ -159,7 +144,7 @@ class POShipmentOptionsSection extends StatelessWidget {
         vertical: TossSpacing.space1,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray300),
       ),

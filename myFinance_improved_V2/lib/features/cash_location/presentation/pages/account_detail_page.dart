@@ -652,9 +652,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
             style: TossTextStyles.body.copyWith(color: TossColors.gray500),
           ),
           SizedBox(height: TossSpacing.space2),
-          ElevatedButton(
+          TossButton.primary(
+            text: 'Retry',
             onPressed: _onRefresh,
-            child: Text('Retry'),
           ),
         ],
       ),

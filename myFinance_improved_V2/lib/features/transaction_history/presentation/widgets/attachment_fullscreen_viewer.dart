@@ -2,10 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myfinance_improved/core/utils/storage_url_helper.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../domain/entities/transaction.dart';
 
@@ -65,7 +67,7 @@ class _AttachmentFullscreenViewerState
         widget.attachments.where((a) => a.isImage).toList();
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: TossColors.black,
       body: Stack(
         children: [
           // Image PageView
@@ -95,8 +97,8 @@ class _AttachmentFullscreenViewerState
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: 0.6),
-                      Colors.transparent,
+                      TossColors.black.withValues(alpha: 0.6),
+                      TossColors.transparent,
                     ],
                   ),
                 ),
@@ -107,7 +109,7 @@ class _AttachmentFullscreenViewerState
                     IconButton(
                       icon: const Icon(
                         Icons.close,
-                        color: Colors.white,
+                        color: TossColors.white,
                         size: 28,
                       ),
                       onPressed: () => Navigator.of(context).pop(),
@@ -121,13 +123,13 @@ class _AttachmentFullscreenViewerState
                           vertical: TossSpacing.space1,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black45,
+                          color: TossColors.black.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Text(
                           '${_currentIndex + 1} / ${imageAttachments.length}',
                           style: TossTextStyles.caption.copyWith(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -154,8 +156,8 @@ class _AttachmentFullscreenViewerState
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withValues(alpha: 0.6),
-                      Colors.transparent,
+                      TossColors.black.withValues(alpha: 0.6),
+                      TossColors.transparent,
                     ],
                   ),
                 ),
@@ -166,7 +168,7 @@ class _AttachmentFullscreenViewerState
                     Text(
                       imageAttachments[_currentIndex].fileName,
                       style: TossTextStyles.caption.copyWith(
-                        color: Colors.white70,
+                        color: TossColors.white.withValues(alpha: 0.7),
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -206,9 +208,7 @@ class _AttachmentFullscreenViewerState
                   httpHeaders: authHeaders,
                   fit: BoxFit.contain,
                   placeholder: (context, url) => const Center(
-                    child: CircularProgressIndicator(
-                      color: TossColors.white,
-                    ),
+                    child: TossLoadingView.inline(color: TossColors.white),
                   ),
                   errorWidget: (context, url, error) => Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -256,12 +256,12 @@ class _AttachmentFullscreenViewerState
       children: List.generate(
         count,
         (index) => AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: TossAnimations.normal,
           margin: const EdgeInsets.symmetric(horizontal: 3),
           width: index == _currentIndex ? 20 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: index == _currentIndex ? TossColors.white : Colors.white38,
+            color: index == _currentIndex ? TossColors.white : TossColors.white.withValues(alpha: 0.38),
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),

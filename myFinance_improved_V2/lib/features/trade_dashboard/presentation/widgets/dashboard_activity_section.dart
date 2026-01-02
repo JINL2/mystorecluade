@@ -3,6 +3,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../domain/entities/dashboard_summary.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 
@@ -54,31 +55,10 @@ class DashboardActivitySection extends StatelessWidget {
                   ),
                 ),
                 if (activities.isNotEmpty && onViewAll != null)
-                  TextButton(
+                  TossButton.textButton(
+                    text: 'View all',
                     onPressed: onViewAll,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space2,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'View all',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.arrow_forward,
-                          size: 14,
-                          color: TossColors.primary,
-                        ),
-                      ],
-                    ),
+                    trailingIcon: const Icon(Icons.arrow_forward, size: 14),
                   ),
               ],
             ),

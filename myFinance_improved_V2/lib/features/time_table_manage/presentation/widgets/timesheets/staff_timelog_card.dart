@@ -105,61 +105,64 @@ class StaffTimelogCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final problemTags = _buildProblemTags();
 
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        child: Row(
-          children: [
-            // Avatar
-            EmployeeProfileAvatar(
-              imageUrl: record.avatarUrl,
-              name: record.staffName,
-              size: 28,
-            ),
-
-            const SizedBox(width: TossSpacing.space3),
-
-            // Name, Time, and Tags
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    record.staffName,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  // Time row - show actual → confirmed if different
-                  _buildTimeRow(),
-                  // Problem tags row (if any)
-                  if (problemTags.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: problemTags,
-                    ),
-                  ],
-                ],
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              // Avatar
+              EmployeeProfileAvatar(
+                imageUrl: record.avatarUrl,
+                name: record.staffName,
+                size: 28,
               ),
-            ),
 
-            const SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: TossSpacing.space3),
 
-            // Chevron
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: TossColors.gray400,
-            ),
-          ],
+              // Name, Time, and Tags
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.staffName,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    // Time row - show actual → confirmed if different
+                    _buildTimeRow(),
+                    // Problem tags row (if any)
+                    if (problemTags.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: problemTags,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: TossSpacing.space2),
+
+              // Chevron
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: TossColors.gray400,
+              ),
+            ],
+          ),
         ),
       ),
     );

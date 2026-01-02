@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../domain/entities/counter_party.dart';
 import '../../domain/value_objects/counter_party_type.dart';
 import '../providers/counter_party_params.dart';
 import '../providers/counter_party_providers.dart';
-import 'common/counter_party_text_field.dart';
 import 'form/company_dropdown.dart';
 import 'form/step_indicator.dart';
 import 'form/step_navigation.dart';
 import 'form/type_selector.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
+
 class CounterPartyForm extends ConsumerStatefulWidget {
   final CounterParty? counterParty;
 
@@ -58,14 +59,14 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: TossAnimations.slow,
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _animationController, curve: TossAnimations.standard),
     );
     _slideAnimation = Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _animationController, curve: TossAnimations.standard),
     );
     _animationController.forward();
     
@@ -312,12 +313,16 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Name field
-        CounterPartyTextField(
+        TossTextField(
           controller: _nameController,
           label: 'Name',
-          placeholder: 'Enter full name',
-          icon: Icons.person_outline,
-          required: true,
+          hintText: 'Enter full name',
+          prefixIcon: const Icon(
+            Icons.person_outline,
+            size: 20,
+            color: TossColors.gray500,
+          ),
+          isRequired: true,
           validator: (value) {
             if (value == null || value.isEmpty) return 'Name is required';
             return null;
@@ -341,31 +346,43 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CounterPartyTextField(
+        TossTextField(
           controller: _emailController,
           label: 'Email',
-          placeholder: 'email@example.com',
-          icon: Icons.email_outlined,
+          hintText: 'email@example.com',
+          prefixIcon: const Icon(
+            Icons.email_outlined,
+            size: 20,
+            color: TossColors.gray500,
+          ),
           keyboardType: TextInputType.emailAddress,
         ),
 
         const SizedBox(height: 20),
 
-        CounterPartyTextField(
+        TossTextField(
           controller: _phoneController,
           label: 'Phone',
-          placeholder: '+1 234 567 8900',
-          icon: Icons.phone_outlined,
+          hintText: '+1 234 567 8900',
+          prefixIcon: const Icon(
+            Icons.phone_outlined,
+            size: 20,
+            color: TossColors.gray500,
+          ),
           keyboardType: TextInputType.phone,
         ),
 
         const SizedBox(height: 20),
 
-        CounterPartyTextField(
+        TossTextField(
           controller: _addressController,
           label: 'Address',
-          placeholder: 'Enter address',
-          icon: Icons.location_on_outlined,
+          hintText: 'Enter address',
+          prefixIcon: const Icon(
+            Icons.location_on_outlined,
+            size: 20,
+            color: TossColors.gray500,
+          ),
         ),
 
         const SizedBox(height: TossSpacing.space4),
@@ -377,11 +394,15 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CounterPartyTextField(
+        TossTextField(
           controller: _notesController,
           label: 'Notes',
-          placeholder: 'Additional notes or comments',
-          icon: Icons.note_outlined,
+          hintText: 'Additional notes or comments',
+          prefixIcon: const Icon(
+            Icons.note_outlined,
+            size: 20,
+            color: TossColors.gray500,
+          ),
           maxLines: 3,
         ),
 

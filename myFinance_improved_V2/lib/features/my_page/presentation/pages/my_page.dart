@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -58,7 +59,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
   void _setupAnimations() {
     _entryController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: TossAnimations.dialogEnter,
       vsync: this,
     );
 
@@ -238,7 +239,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => AvatarOptionsBottomSheet(
         hasProfileImage: profile.hasProfileImage,
         onPickImage: _pickImage,
@@ -500,16 +501,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
             _isLoggingOut = false;
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Sign out failed: $e'),
-              backgroundColor: TossColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-            ),
-          );
+          TossToast.error(context, 'Sign out failed: $e');
         }
       }
     }

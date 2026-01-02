@@ -239,7 +239,7 @@ class PISwitchTile extends StatelessWidget {
         vertical: TossSpacing.space1,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray300),
       ),

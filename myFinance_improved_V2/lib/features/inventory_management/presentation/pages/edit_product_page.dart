@@ -571,7 +571,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     if (_product == null) {
       return const TossScaffold(
         backgroundColor: TossColors.white,
-        body: Center(child: CircularProgressIndicator()),
+        body: TossLoadingView(),
       );
     }
 

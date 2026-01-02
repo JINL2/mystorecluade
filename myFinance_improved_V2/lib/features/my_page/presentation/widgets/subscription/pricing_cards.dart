@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import 'subscription_models.dart';
 
@@ -35,7 +37,7 @@ class PricingCards extends ConsumerWidget {
     return plansAsync.when(
       loading: () => const SizedBox(
         height: 260,
-        child: Center(child: CircularProgressIndicator()),
+        child: TossLoadingView(),
       ),
       error: (e, _) => _buildFallbackPricingCards(context),
       data: (dbPlans) {
@@ -126,14 +128,14 @@ class PricingCards extends ConsumerWidget {
               onPlanSelected(index);
             },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: TossAnimations.normal,
               width: MediaQuery.of(context).size.width * 0.44,
               margin: EdgeInsets.only(
                 right: index < plans.length - 1 ? TossSpacing.space3 : 0,
               ),
               padding: const EdgeInsets.all(TossSpacing.space4),
               decoration: BoxDecoration(
-                color: isSelected ? plan.color : Colors.white,
+                color: isSelected ? plan.color : TossColors.white,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                 border: Border.all(
                   color: isSelected ? plan.color : TossColors.gray200,
@@ -158,14 +160,14 @@ class PricingCards extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.white.withValues(alpha: 0.2)
+                            ? TossColors.white.withValues(alpha: 0.2)
                             : plan.color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
                       child: Text(
                         '⭐ BEST VALUE',
                         style: TossTextStyles.small.copyWith(
-                          color: isSelected ? Colors.white : plan.color,
+                          color: isSelected ? TossColors.white : plan.color,
                           fontWeight: FontWeight.w700,
                           fontSize: 10,
                           letterSpacing: 0.5,
@@ -177,7 +179,7 @@ class PricingCards extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.white.withValues(alpha: 0.2)
+                            ? TossColors.white.withValues(alpha: 0.2)
                             : TossColors.gray100,
                         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       ),
@@ -187,13 +189,13 @@ class PricingCards extends ConsumerWidget {
                           Icon(
                             LucideIcons.check,
                             size: 10,
-                            color: isSelected ? Colors.white : TossColors.gray600,
+                            color: isSelected ? TossColors.white : TossColors.gray600,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'CURRENT',
                             style: TossTextStyles.small.copyWith(
-                              color: isSelected ? Colors.white : TossColors.gray600,
+                              color: isSelected ? TossColors.white : TossColors.gray600,
                               fontWeight: FontWeight.w700,
                               fontSize: 10,
                               letterSpacing: 0.5,
@@ -211,7 +213,7 @@ class PricingCards extends ConsumerWidget {
                   Text(
                     plan.name,
                     style: TossTextStyles.h3.copyWith(
-                      color: isSelected ? Colors.white : TossColors.gray900,
+                      color: isSelected ? TossColors.white : TossColors.gray900,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -226,7 +228,7 @@ class PricingCards extends ConsumerWidget {
                         '\$$price',
                         style: TossTextStyles.h1.copyWith(
                           fontSize: 36,
-                          color: isSelected ? Colors.white : plan.color,
+                          color: isSelected ? TossColors.white : plan.color,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -236,7 +238,7 @@ class PricingCards extends ConsumerWidget {
                           '/mo',
                           style: TossTextStyles.caption.copyWith(
                             color: isSelected
-                                ? Colors.white.withValues(alpha: 0.7)
+                                ? TossColors.white.withValues(alpha: 0.7)
                                 : TossColors.gray500,
                           ),
                         ),
@@ -250,7 +252,7 @@ class PricingCards extends ConsumerWidget {
                       'Billed annually',
                       style: TossTextStyles.small.copyWith(
                         color: isSelected
-                            ? Colors.white.withValues(alpha: 0.7)
+                            ? TossColors.white.withValues(alpha: 0.7)
                             : TossColors.gray400,
                         fontSize: 11,
                       ),
@@ -268,7 +270,7 @@ class PricingCards extends ConsumerWidget {
                               LucideIcons.check,
                               size: 14,
                               color: isSelected
-                                  ? Colors.white.withValues(alpha: 0.9)
+                                  ? TossColors.white.withValues(alpha: 0.9)
                                   : TossColors.gray500,
                             ),
                             const SizedBox(width: 6),
@@ -276,7 +278,7 @@ class PricingCards extends ConsumerWidget {
                               feature,
                               style: TossTextStyles.small.copyWith(
                                 color: isSelected
-                                    ? Colors.white.withValues(alpha: 0.9)
+                                    ? TossColors.white.withValues(alpha: 0.9)
                                     : TossColors.gray600,
                                 fontWeight: FontWeight.w500,
                               ),

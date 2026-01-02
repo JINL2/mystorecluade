@@ -90,11 +90,7 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
     return TossScaffold(
       appBar: _buildAppBar(context, detail),
       body: detailState.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-              ),
-            )
+          ? const TossLoadingView()
           : detailState.error != null
               ? _buildErrorState(detailState.error!)
               : Column(
@@ -195,17 +191,13 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
             ),
           ),
           const SizedBox(height: TossSpacing.space4),
-          ElevatedButton(
+          TossButton.primary(
+            text: 'Retry',
             onPressed: () {
               ref
                   .read(invoiceDetailNotifierProvider.notifier)
                   .loadDetail(invoice.invoiceId);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-            ),
-            child: const Text('Retry'),
           ),
         ],
       ),
@@ -295,45 +287,22 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
           top: BorderSide(color: TossColors.gray100),
         ),
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-            InvoiceConfirmationDialogs.showRefundConfirmation(
-              context,
-              invoice: invoice,
-              currencySymbol: _symbol,
-              onConfirm: () {
-                Navigator.pop(context); // Close page
-                widget.onRefundPressed?.call(invoice);
-              },
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: TossColors.error,
-            foregroundColor: TossColors.white,
-            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-            elevation: 0,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.replay, size: 20),
-              const SizedBox(width: TossSpacing.space2),
-              Text(
-                'Refund',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: TossColors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
+      child: TossButton.destructive(
+        text: 'Refund',
+        onPressed: () {
+          HapticFeedback.mediumImpact();
+          InvoiceConfirmationDialogs.showRefundConfirmation(
+            context,
+            invoice: invoice,
+            currencySymbol: _symbol,
+            onConfirm: () {
+              Navigator.pop(context); // Close page
+              widget.onRefundPressed?.call(invoice);
+            },
+          );
+        },
+        leadingIcon: const Icon(Icons.replay, size: 20, color: TossColors.white),
+        fullWidth: true,
       ),
     );
   }

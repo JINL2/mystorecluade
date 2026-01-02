@@ -71,94 +71,97 @@ class ProblemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space3,
-        ),
-        child: Row(
-          children: [
-            // Avatar or Shift Icon
-            if (problem.isShiftProblem)
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3,
+            vertical: TossSpacing.space3,
+          ),
+          child: Row(
+            children: [
+              // Avatar or Shift Icon
+              if (problem.isShiftProblem)
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: TossColors.gray100,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: Icon(
+                    Icons.access_time,
+                    size: 20,
+                    color: TossColors.gray600,
+                  ),
+                )
+              else
+                EmployeeProfileAvatar(
+                  imageUrl: problem.avatarUrl,
+                  name: problem.name,
+                  size: 40,
                 ),
-                child: Icon(
-                  Icons.access_time,
-                  size: 20,
-                  color: TossColors.gray600,
+
+              const SizedBox(width: TossSpacing.space3),
+
+              // Name and Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      problem.name,
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.gray900,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_formatDate(problem.date)} • ${problem.shiftName}',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                    ),
+                  ],
                 ),
-              )
-            else
-              EmployeeProfileAvatar(
-                imageUrl: problem.avatarUrl,
-                name: problem.name,
-                size: 40,
               ),
 
-            const SizedBox(width: TossSpacing.space3),
+              const SizedBox(width: TossSpacing.space2),
 
-            // Name and Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              // Problem Badges (multiple if shift has multiple problems)
+              // Use filteredTypes to exclude premature problems for in-progress shifts
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
                 children: [
-                  Text(
-                    problem.name,
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
+                  // Show "In Progress" badge if shift is ongoing with checkin
+                  if (problem.isInProgress && problem.clockIn != null)
+                    TossStatusBadge(
+                      label: 'In Progress',
+                      status: BadgeStatus.success,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${_formatDate(problem.date)} • ${problem.shiftName}',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
+                  // Show remaining problem badges (filtered)
+                  ...problem.filteredTypes.map((type) => TossStatusBadge(
+                    label: _getProblemLabel(type),
+                    status: _getBadgeStatus(type),
+                  )),
                 ],
               ),
-            ),
 
-            const SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: TossSpacing.space2),
 
-            // Problem Badges (multiple if shift has multiple problems)
-            // Use filteredTypes to exclude premature problems for in-progress shifts
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                // Show "In Progress" badge if shift is ongoing with checkin
-                if (problem.isInProgress && problem.clockIn != null)
-                  TossStatusBadge(
-                    label: 'In Progress',
-                    status: BadgeStatus.success,
-                  ),
-                // Show remaining problem badges (filtered)
-                ...problem.filteredTypes.map((type) => TossStatusBadge(
-                  label: _getProblemLabel(type),
-                  status: _getBadgeStatus(type),
-                )),
-              ],
-            ),
-
-            const SizedBox(width: TossSpacing.space2),
-
-            // Chevron
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: TossColors.gray400,
-            ),
-          ],
+              // Chevron
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: TossColors.gray400,
+              ),
+            ],
+          ),
         ),
       ),
     );

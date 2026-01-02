@@ -114,8 +114,8 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         _currentStep++;
       });
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: TossAnimations.slow,
+        curve: TossAnimations.standard,
       );
     }
   }
@@ -126,8 +126,8 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         _currentStep--;
       });
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: TossAnimations.slow,
+        curve: TossAnimations.standard,
       );
     }
   }

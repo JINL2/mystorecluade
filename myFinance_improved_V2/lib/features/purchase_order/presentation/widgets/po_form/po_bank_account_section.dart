@@ -39,11 +39,9 @@ class POBankAccountSection extends ConsumerWidget {
     final bankAccountsAsync = ref.watch(allCashLocationsProvider(params));
 
     return bankAccountsAsync.when(
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          child: CircularProgressIndicator(),
-        ),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: TossLoadingView(),
       ),
       error: (error, _) => Text(
         'Failed to load bank accounts: $error',

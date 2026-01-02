@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -370,7 +371,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                   ),
                   AnimatedRotation(
                     turns: _isTradeInfoExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
+                    duration: TossAnimations.normal,
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: TossColors.gray400,
@@ -389,7 +390,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             crossFadeState: _isTradeInfoExpanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
           ),
         ],
       ),
@@ -744,7 +745,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           );
         }
 
-        await Future.delayed(const Duration(milliseconds: 300));
+        await Future.delayed(TossAnimations.slow);
 
         if (mounted) {
           context.go('/cashLocation');

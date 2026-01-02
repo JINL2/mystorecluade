@@ -105,7 +105,7 @@ class _SessionReceivingReviewPageState
 
   Widget _buildBody(SessionReviewState state) {
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (state.hasError) {
@@ -384,28 +384,12 @@ class _SessionReceivingReviewPageState
         boxShadow: [BoxShadow(color: TossColors.shadow, blurRadius: 8, offset: Offset(0, -2))],
       ),
       child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: state.isSubmitting ? null : _showConfirmDialog,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
-              elevation: 0,
-            ),
-            child: state.isSubmitting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: TossColors.white),
-                  )
-                : Text(
-                    'Submit',
-                    style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: TossColors.white),
-                  ),
-          ),
+        child: TossButton.primary(
+          text: 'Submit',
+          onPressed: state.isSubmitting ? null : _showConfirmDialog,
+          isEnabled: !state.isSubmitting,
+          isLoading: state.isSubmitting,
+          fullWidth: true,
         ),
       ),
     );

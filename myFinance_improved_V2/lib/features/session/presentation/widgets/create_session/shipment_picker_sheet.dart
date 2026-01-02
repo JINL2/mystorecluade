@@ -4,6 +4,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/index.dart';
 import '../../../domain/entities/shipment.dart';
 
 /// Bottom sheet picker for selecting shipment
@@ -27,12 +28,7 @@ class ShipmentPickerSheet extends StatelessWidget {
     required void Function(Shipment shipment) onSelected,
   }) {
     if (shipments.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No pending shipments available'),
-          backgroundColor: TossColors.gray600,
-        ),
-      );
+      TossToast.info(context, 'No pending shipments available');
       return Future.value();
     }
 

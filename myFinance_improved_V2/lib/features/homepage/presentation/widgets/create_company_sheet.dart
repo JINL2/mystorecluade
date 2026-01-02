@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../core/homepage_logger.dart';
@@ -100,9 +101,9 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
             ],
           ),
           actions: [
-            TextButton(
+            TossButton.primary(
+              text: 'OK',
               onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
             ),
           ],
         ),
@@ -120,13 +121,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Code "$text" copied to clipboard!'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    TossToast.success(context, 'Code "$text" copied to clipboard!');
   }
 
   @override
@@ -146,14 +141,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
             SnackBar(
               content: const Row(
                 children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
+                  TossLoadingView.inline(size: 20, color: TossColors.white),
                   SizedBox(width: 12),
                   Text('Creating company...'),
                 ],
@@ -171,16 +159,16 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
+                  const Icon(Icons.error_outline, color: TossColors.white),
                   const SizedBox(width: 12),
                   Expanded(child: Text(message)),
                 ],
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: TossColors.error,
               duration: const Duration(seconds: 4),
               action: SnackBarAction(
                 label: 'Retry',
-                textColor: Colors.white,
+                textColor: TossColors.white,
                 onPressed: _createCompany,
               ),
             ),
@@ -217,19 +205,19 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const Icon(Icons.check_circle_outline, color: TossColors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text('Company "${company.name}" created successfully!'),
                   ),
                 ],
               ),
-              backgroundColor: Colors.green,
+              backgroundColor: TossColors.success,
               duration: const Duration(seconds: 3),
               action: company.code.isNotEmpty
                   ? SnackBarAction(
                       label: 'Share Code',
-                      textColor: Colors.white,
+                      textColor: TossColors.white,
                       onPressed: () => _copyToClipboard(company.code),
                     )
                   : null,
@@ -314,29 +302,12 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                     // Company Name Input
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Company Name',
-                          style: TossTextStyles.caption.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: TossSpacing.space1),
-                        TextField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter company name',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                            ),
-                          ),
-                          autofocus: true,
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ],
+                    TossTextField.filled(
+                      label: 'Company Name',
+                      controller: _nameController,
+                      hintText: 'Enter company name',
+                      autofocus: true,
+                      onChanged: (_) => setState(() {}),
                     ),
 
                     const SizedBox(height: TossSpacing.space6),

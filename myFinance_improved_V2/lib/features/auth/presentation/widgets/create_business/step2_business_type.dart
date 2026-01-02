@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/themes/toss_animations.dart';
 import '../../../domain/value_objects/company_type.dart';
 
 /// Step 2: Business Type Selection
@@ -60,13 +62,13 @@ class Step2BusinessType extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () {
             onTypeSelected(type.companyTypeId);
             if (isOthersType) {
               onCustomTypeToggled(true);
-              Future.delayed(const Duration(milliseconds: 100), () {
+              Future.delayed(TossAnimations.quick, () {
                 customTypeFocusNode.requestFocus();
               });
             } else {
@@ -109,25 +111,11 @@ class Step2BusinessType extends StatelessWidget {
                   ),
                   const SizedBox(width: TossSpacing.space6),
                   Expanded(
-                    child: TextField(
+                    child: TossTextField.inline(
                       controller: customTypeController,
                       focusNode: customTypeFocusNode,
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Type your company type',
-                        hintStyle: TossTextStyles.body.copyWith(
-                          color: TossColors.textSecondary.withOpacity(0.5),
-                        ),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        isDense: true,
-                      ),
-                      textInputAction: TextInputAction.done,
+                      hintText: 'Type your company type',
+                      textAlign: TextAlign.start,
                     ),
                   ),
                 ],

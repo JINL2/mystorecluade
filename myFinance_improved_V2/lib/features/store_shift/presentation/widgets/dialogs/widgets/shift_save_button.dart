@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shift Save Button Widget
 ///
@@ -24,28 +23,10 @@ class ShiftSaveButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 56,
-      child: ElevatedButton(
+      child: TossButton.primary(
         onPressed: isSubmitting ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: TossColors.primary,
-          foregroundColor: TossColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-        ),
-        child: isSubmitting
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: TossColors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : Text(
-                buttonText,
-                style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w600),
-              ),
+        text: buttonText,
+        isLoading: isSubmitting,
       ),
     );
   }

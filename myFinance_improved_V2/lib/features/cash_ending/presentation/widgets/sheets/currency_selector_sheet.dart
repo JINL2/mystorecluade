@@ -37,7 +37,7 @@ class CurrencySelectorSheet extends ConsumerStatefulWidget {
   }) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => CurrencySelectorSheet(
         currencies: currencies,

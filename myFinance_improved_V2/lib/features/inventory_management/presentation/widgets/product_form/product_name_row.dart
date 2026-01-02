@@ -40,7 +40,7 @@ class ProductNameRow extends StatelessWidget {
                 const TextSpan(
                   text: ' *',
                   style: TextStyle(
-                    color: Colors.red,
+                    color: TossColors.error,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

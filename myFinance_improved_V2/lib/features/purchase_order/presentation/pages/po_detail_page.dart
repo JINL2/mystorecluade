@@ -90,12 +90,12 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
               if (state.po?.canCancel == true)
                 const PopupMenuItem(
                   value: 'cancel',
-                  child: Text('Cancel', style: TextStyle(color: Colors.orange)),
+                  child: Text('Cancel', style: TextStyle(color: TossColors.warning)),
                 ),
               if (state.po?.isEditable == true)
                 const PopupMenuItem(
                   value: 'delete',
-                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                  child: Text('Delete', style: TextStyle(color: TossColors.error)),
                 ),
             ],
           ),
@@ -107,7 +107,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
 
   Widget _buildBody(PODetailState state) {
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (state.error != null) {
@@ -119,10 +119,10 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
                 size: 48, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(state.error!, style: TossTextStyles.bodyMedium),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: () =>
                   ref.read(poDetailProvider.notifier).load(widget.poId),
-              child: const Text('Retry'),
             ),
           ],
         ),
@@ -406,9 +406,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
         await ref.read(poDetailProvider.notifier).confirm();
         if (mounted) {
           ref.read(poListProvider.notifier).refresh();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PO confirmed')),
-          );
+          TossToast.success(context, 'PO confirmed');
         }
         break;
 
@@ -416,9 +414,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
         await ref.read(poDetailProvider.notifier).startProduction();
         if (mounted) {
           ref.read(poListProvider.notifier).refresh();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Production started')),
-          );
+          TossToast.success(context, 'Production started');
         }
         break;
 
@@ -426,9 +422,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
         await ref.read(poDetailProvider.notifier).markReadyToShip();
         if (mounted) {
           ref.read(poListProvider.notifier).refresh();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Marked as ready to ship')),
-          );
+          TossToast.success(context, 'Marked as ready to ship');
         }
         break;
 
@@ -436,9 +430,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
         await ref.read(poDetailProvider.notifier).markShipped();
         if (mounted) {
           ref.read(poListProvider.notifier).refresh();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Marked as shipped')),
-          );
+          TossToast.success(context, 'Marked as shipped');
         }
         break;
 
@@ -446,9 +438,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
         await ref.read(poDetailProvider.notifier).complete();
         if (mounted) {
           ref.read(poListProvider.notifier).refresh();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PO completed')),
-          );
+          TossToast.success(context, 'PO completed');
         }
         break;
 
@@ -458,9 +448,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
           await ref.read(poDetailProvider.notifier).cancel(reason: reason);
           if (mounted) {
             ref.read(poListProvider.notifier).refresh();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('PO cancelled')),
-            );
+            TossToast.success(context, 'PO cancelled');
           }
         }
         break;
@@ -491,14 +479,14 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
             title: const Text('Delete PO?'),
             content: const Text('This action cannot be undone.'),
             actions: [
-              TextButton(
+              TossButton.textButton(
+                text: 'Cancel',
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
               ),
-              TextButton(
+              TossButton.textButton(
+                text: 'Delete',
+                textColor: TossColors.error,
                 onPressed: () => Navigator.pop(context, true),
-                child:
-                    const Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -526,25 +514,23 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
           children: [
             const Text('Are you sure you want to cancel this PO?'),
             const SizedBox(height: TossSpacing.space3),
-            TextField(
+            TossTextField.filled(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Reason (optional)',
-                border: OutlineInputBorder(),
-              ),
+              inlineLabel: 'Reason (optional)',
+              hintText: '',
               maxLines: 2,
             ),
           ],
         ),
         actions: [
-          TextButton(
+          TossButton.secondary(
+            text: 'Back',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Back'),
           ),
-          TextButton(
+          TossButton.primary(
+            text: 'Cancel PO',
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Cancel PO',
-                style: TextStyle(color: Colors.orange)),
+            backgroundColor: TossColors.warning,
           ),
         ],
       ),
@@ -556,9 +542,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const TossLoadingView(),
     );
 
     try {
@@ -571,9 +555,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Dismiss loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate PDF: $e')),
-        );
+        TossToast.error(context, 'Failed to generate PDF: $e');
       }
     }
   }
@@ -583,9 +565,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const TossLoadingView(),
     );
 
     try {
@@ -598,9 +578,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Dismiss loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to print PDF: $e')),
-        );
+        TossToast.error(context, 'Failed to print PDF: $e');
       }
     }
   }
@@ -659,7 +637,7 @@ class _POItemCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),

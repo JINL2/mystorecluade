@@ -44,7 +44,7 @@ class ReliabilityRadarChart extends StatelessWidget {
             fontSize: 10,
             color: TossColors.gray500,
           ),
-          radarBackgroundColor: Colors.transparent,
+          radarBackgroundColor: TossColors.transparent,
           dataSets: [
             RadarDataSet(
               fillColor: TossColors.primary.withOpacity(0.15),

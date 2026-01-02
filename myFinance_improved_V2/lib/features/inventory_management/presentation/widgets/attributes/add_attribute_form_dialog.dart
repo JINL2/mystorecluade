@@ -104,38 +104,10 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
             const SizedBox(height: 24),
 
             // Name input
-            Text(
-              'Name',
-              style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w500,
-                color: TossColors.gray600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            TossTextField(
+              label: 'Name',
               controller: _nameController,
-              decoration: InputDecoration(
-                hintText: 'Enter attribute name',
-                hintStyle: TossTextStyles.body.copyWith(
-                  color: TossColors.gray400,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: const BorderSide(color: TossColors.gray200),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: const BorderSide(color: TossColors.gray200),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: const BorderSide(color: TossColors.primary),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-              ),
+              hintText: 'Enter attribute name',
             ),
             const SizedBox(height: 20),
 
@@ -185,22 +157,9 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
             Row(
               children: [
                 Expanded(
-                  child: TextButton(
+                  child: TossButton.textButton(
+                    text: 'Cancel',
                     onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray600,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 12),

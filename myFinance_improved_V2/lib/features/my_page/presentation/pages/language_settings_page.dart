@@ -153,13 +153,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Language changed to $languageName'),
-            backgroundColor: TossColors.success,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        TossToast.success(context, 'Language changed to $languageName');
       }
     } catch (e) {
       debugPrint('Error changing language: $e');
@@ -171,13 +165,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to change language: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        TossToast.error(context, 'Failed to change language: ${e.toString()}');
       }
     }
   }
@@ -191,25 +179,17 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
         backgroundColor: TossColors.gray100,
         actions: _hasUnsavedChanges
             ? [
-                TextButton(
+                TossButton.textButton(
+                  text: 'Save',
                   onPressed: _applyLanguageChange,
-                  child: Text(
-                    'Save',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  textColor: TossColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ]
             : null,
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: TossColors.primary,
-              ),
-            )
+          ? const TossLoadingView()
           : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

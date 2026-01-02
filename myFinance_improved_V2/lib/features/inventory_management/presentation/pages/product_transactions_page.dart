@@ -240,7 +240,7 @@ class _ProductTransactionsPageState
             // Transactions list
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const TossLoadingView()
                   : filteredTransactions.isEmpty
                       ? _buildEmptyState()
                       : NotificationListener<ScrollNotification>(
@@ -262,7 +262,7 @@ class _ProductTransactionsPageState
                               if (index == filteredTransactions.length) {
                                 return const Padding(
                                   padding: EdgeInsets.all(TossSpacing.space4),
-                                  child: Center(child: CircularProgressIndicator()),
+                                  child: TossLoadingView(),
                                 );
                               }
                               return TransactionItem(

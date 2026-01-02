@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../providers/homepage_providers.dart';
@@ -72,13 +73,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Code "$text" copied to clipboard!'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    TossToast.success(context, 'Code "$text" copied to clipboard!');
   }
 
   @override
@@ -95,14 +90,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
             SnackBar(
               content: const Row(
                 children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
+                  TossLoadingView.inline(size: 20, color: TossColors.white),
                   SizedBox(width: 12),
                   Text('Creating store...'),
                 ],
@@ -119,16 +107,16 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
+                  const Icon(Icons.error_outline, color: TossColors.white),
                   const SizedBox(width: 12),
                   Expanded(child: Text(message)),
                 ],
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: TossColors.error,
               duration: const Duration(seconds: 4),
               action: SnackBarAction(
                 label: 'Retry',
-                textColor: Colors.white,
+                textColor: TossColors.white,
                 onPressed: _createStore,
               ),
             ),
@@ -164,19 +152,19 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const Icon(Icons.check_circle_outline, color: TossColors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text('Store "${store.name}" created successfully!'),
                   ),
                 ],
               ),
-              backgroundColor: Colors.green,
+              backgroundColor: TossColors.success,
               duration: const Duration(seconds: 3),
               action: store.code.isNotEmpty
                   ? SnackBarAction(
                       label: 'Share Code',
-                      textColor: Colors.white,
+                      textColor: TossColors.white,
                       onPressed: () => _copyToClipboard(store.code),
                     )
                   : null,
@@ -261,83 +249,32 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                     // Store Name Input
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Store Name',
-                          style: TossTextStyles.caption.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: TossSpacing.space1),
-                        TextField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter store name',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                            ),
-                          ),
-                          autofocus: true,
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ],
+                    TossTextField.filled(
+                      label: 'Store Name',
+                      controller: _nameController,
+                      hintText: 'Enter store name',
+                      autofocus: true,
+                      onChanged: (_) => setState(() {}),
                     ),
 
                     const SizedBox(height: TossSpacing.space6),
 
                     // Store Address Input (Optional)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Store Address (Optional)',
-                          style: TossTextStyles.caption.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: TossSpacing.space1),
-                        TextField(
-                          controller: _addressController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter store address',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                            ),
-                          ),
-                          maxLines: 2,
-                        ),
-                      ],
+                    TossTextField.filled(
+                      label: 'Store Address (Optional)',
+                      controller: _addressController,
+                      hintText: 'Enter store address',
+                      maxLines: 2,
                     ),
 
                     const SizedBox(height: TossSpacing.space6),
 
                     // Store Phone Input (Optional)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Store Phone (Optional)',
-                          style: TossTextStyles.caption.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: TossSpacing.space1),
-                        TextField(
-                          controller: _phoneController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter store phone number',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                            ),
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-                      ],
+                    TossTextField.filled(
+                      label: 'Store Phone (Optional)',
+                      controller: _phoneController,
+                      hintText: 'Enter store phone number',
+                      keyboardType: TextInputType.phone,
                     ),
 
                     const SizedBox(height: TossSpacing.space8),

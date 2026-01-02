@@ -151,15 +151,9 @@ class _SessionCountDetailPageState
       ),
       centerTitle: true,
       actions: [
-        TextButton(
+        TossButton.textButton(
+          text: 'Submit',
           onPressed: _onSubmit,
-          child: Text(
-            'Submit',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
         ),
         const SizedBox(width: 4),
       ],
@@ -247,19 +241,17 @@ class _SessionCountDetailPageState
               : 'Are you sure you want to close this receiving session?',
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Close',
+            textColor: TossColors.loss,
             onPressed: () {
               Navigator.pop(context);
               _executeDelete();
             },
-            child: const Text(
-              'Close',
-              style: TextStyle(color: TossColors.loss),
-            ),
           ),
         ],
       ),
@@ -287,13 +279,9 @@ class _SessionCountDetailPageState
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isCounting ? 'Count session closed' : 'Receiving session closed',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
+      TossToast.success(
+        context,
+        _isCounting ? 'Count session closed' : 'Receiving session closed',
       );
 
       Navigator.of(context).pop(true);
@@ -350,12 +338,7 @@ class _SessionCountDetailPageState
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Successfully joined the session'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      TossToast.success(context, 'Successfully joined the session');
     } catch (e) {
       if (!mounted) return;
 

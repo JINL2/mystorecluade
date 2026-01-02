@@ -57,7 +57,7 @@ class _NotificationStoreSettingsPageState
         title: widget.featureName,
       ),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const TossLoadingView()
           : state.errorMessage != null
               ? _buildErrorView(state.errorMessage!)
               : _buildContent(state),
@@ -76,13 +76,13 @@ class _NotificationStoreSettingsPageState
             style: TossTextStyles.body.copyWith(color: TossColors.gray600),
           ),
           const SizedBox(height: TossSpacing.space2),
-          TextButton(
+          TossButton.textButton(
+            text: 'Retry',
             onPressed: () {
               ref
                   .read(storeSettingsNotifierProvider.notifier)
                   .loadSettings(widget.featureId, widget.roleType);
             },
-            child: const Text('Retry'),
           ),
         ],
       ),

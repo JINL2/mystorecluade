@@ -31,7 +31,7 @@ class CurrencySelectorSheet extends StatefulWidget {
     return showModalBottomSheet<CurrencyType>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => CurrencySelectorSheet(
         currencies: currencies,
         selectedCurrencyId: selectedCurrencyId,

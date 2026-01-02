@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Amount Input Keypad
 /// Minimal design - gray tones, no colored borders
@@ -264,24 +265,17 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
     return SizedBox(
       width: double.infinity,
       height: 56,
-      child: ElevatedButton(
+      child: TossButton.primary(
+        text: widget.submitButtonText,
         onPressed: isEnabled ? widget.onSubmit : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: TossColors.gray900,
-          foregroundColor: TossColors.white,
-          disabledBackgroundColor: TossColors.gray200,
-          disabledForegroundColor: TossColors.gray400,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          widget.submitButtonText,
-          style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.bold,
-            color: isEnabled ? TossColors.white : TossColors.gray400,
-          ),
+        isEnabled: isEnabled,
+        fullWidth: true,
+        height: 56,
+        backgroundColor: TossColors.gray900,
+        borderRadius: TossBorderRadius.lg,
+        textStyle: TossTextStyles.h4.copyWith(
+          fontWeight: FontWeight.bold,
+          color: isEnabled ? TossColors.white : TossColors.gray400,
         ),
       ),
     );

@@ -56,7 +56,7 @@ class PIItemFormCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),

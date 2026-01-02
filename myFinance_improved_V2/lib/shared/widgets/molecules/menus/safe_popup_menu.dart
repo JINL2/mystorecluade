@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 /// A safe wrapper for PopupMenuButton that handles widget lifecycle properly
 /// Prevents "disposed widget trying to access inherited widgets" errors
@@ -49,7 +50,7 @@ class _SafePopupMenuButtonState<T> extends State<SafePopupMenuButton<T>> {
         }
         
         // Use a small delay to ensure the popup is fully closed
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(TossAnimations.instant);
         
         // Check if widget is still mounted before calling onSelected
         if (mounted) {

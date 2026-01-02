@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -254,7 +256,7 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
             onChanged: (value) {
               setState(() {}); // Update suffix icon visibility
               // Debounce search
-              Future.delayed(const Duration(milliseconds: 300), () {
+              Future.delayed(TossAnimations.slow, () {
                 if (_searchController.text == value) {
                   _onSearch(value);
                 }
@@ -313,9 +315,7 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
 
   Widget _buildProductList(SalesProductState state, List<SalesProduct> products) {
     if (state.isLoading && products.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: TossColors.primary),
-      );
+      return const TossLoadingView();
     }
 
     if (state.errorMessage != null && products.isEmpty) {
@@ -330,9 +330,9 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
               style: TossTextStyles.bodyMedium.copyWith(color: TossColors.textSecondary),
             ),
             const SizedBox(height: TossSpacing.space4),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: _loadProducts,
-              child: const Text('Retry'),
             ),
           ],
         ),
@@ -366,11 +366,9 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
       itemCount: products.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == products.length) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(TossSpacing.space4),
-              child: CircularProgressIndicator(color: TossColors.primary),
-            ),
+          return const Padding(
+            padding: EdgeInsets.all(TossSpacing.space4),
+            child: TossLoadingView(),
           );
         }
 
@@ -406,16 +404,16 @@ class _TradeItemPickerPageState extends ConsumerState<TradeItemPickerPage> {
         title: const Text('Discard Selection?'),
         content: Text('You have ${_selectedItems.length} item(s) selected. Discard and exit?'),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Discard',
             onPressed: () {
               Navigator.of(dialogContext).pop(); // Close dialog
               Navigator.of(context).pop(); // Close picker
             },
-            child: const Text('Discard'),
           ),
         ],
       ),

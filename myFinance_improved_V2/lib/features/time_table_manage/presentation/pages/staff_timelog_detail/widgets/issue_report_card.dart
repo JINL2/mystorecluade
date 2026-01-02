@@ -448,7 +448,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
           border: Border.all(color: selectedColor, width: 1.5),
         ),
         child: Material(
-          color: Colors.transparent,
+          color: TossColors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             onTap: onPressed,
@@ -486,7 +486,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
         border: Border.all(color: TossColors.gray300, width: 1),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           onTap: onPressed,

@@ -302,8 +302,8 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
+      backgroundColor: TossColors.transparent,
+      barrierColor: TossColors.black.withValues(alpha: 0.5),
       isDismissible: true,
       enableDrag: true,
       builder: (context) => ExchangeRateCalculator(
@@ -417,11 +417,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   @override
   Widget build(BuildContext context) {
     if (_isLoadingRpc) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space5),
-          child: CircularProgressIndicator(),
-        ),
+      return const Padding(
+        padding: EdgeInsets.all(TossSpacing.space5),
+        child: TossLoadingView(),
       );
     }
 

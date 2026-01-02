@@ -4,6 +4,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../providers/states/session_review_state.dart';
 
 /// Edit quantity dialog for manager override in session review
@@ -243,29 +244,16 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: TossButton.outlinedGray(
+                text: 'Cancel',
                 onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                ),
-                child: const Text('Cancel'),
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
-              child: ElevatedButton(
+              child: TossButton.primary(
+                text: 'Save',
                 onPressed: () => widget.onSave(_quantity),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TossColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                ),
-                child: const Text('Save'),
               ),
             ),
           ],

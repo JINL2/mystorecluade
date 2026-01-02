@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Invoice error state widget
 ///
@@ -52,13 +53,9 @@ class InvoiceErrorState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TossSpacing.space4),
-          ElevatedButton(
+          TossButton.primary(
+            text: 'Retry',
             onPressed: onRetry,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-            ),
-            child: const Text('Retry'),
           ),
         ],
       ),

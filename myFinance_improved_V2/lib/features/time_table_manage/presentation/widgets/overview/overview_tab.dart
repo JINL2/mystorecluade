@@ -378,15 +378,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
       // If coverage gap provider is still loading, show loading state
       if (state.isLoading) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+          child: TossLoadingView.inline(size: 24),
         );
       }
       coverageGapState = state;

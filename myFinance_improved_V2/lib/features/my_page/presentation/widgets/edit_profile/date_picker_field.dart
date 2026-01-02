@@ -45,7 +45,7 @@ class DatePickerField extends StatelessWidget {
               vertical: TossSpacing.space4,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: TossColors.gray100,

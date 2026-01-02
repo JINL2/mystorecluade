@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -395,17 +396,10 @@ class TradeDocumentChecklist extends StatelessWidget {
               padding: const EdgeInsets.all(TossSpacing.space3),
               child: SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
+                child: TossButton.outlinedGray(
+                  text: 'Upload Document',
+                  leadingIcon: const Icon(Icons.add, size: 18),
                   onPressed: onUpload,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Upload Document'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: TossColors.primary,
-                    side: BorderSide(color: TossColors.primary),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: TossSpacing.space3,
-                    ),
-                  ),
                 ),
               ),
             ),

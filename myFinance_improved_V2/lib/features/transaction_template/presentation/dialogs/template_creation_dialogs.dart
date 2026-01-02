@@ -14,6 +14,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TemplateCreationDialogs {
   /// Show success dialog
@@ -60,17 +61,12 @@ class TemplateCreationDialogs {
             ],
           ),
           actions: [
-            TextButton(
+            TossButton.textButton(
+              text: 'OK',
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 context.pop();
               },
-              child: Text(
-                'OK',
-                style: TossTextStyles.button.copyWith(
-                  color: TossColors.primary,
-                ),
-              ),
             ),
           ],
         );
@@ -131,14 +127,9 @@ class TemplateCreationDialogs {
             ],
           ),
           actions: [
-            TextButton(
+            TossButton.textButton(
+              text: 'OK',
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(
-                'OK',
-                style: TossTextStyles.button.copyWith(
-                  color: TossColors.primary,
-                ),
-              ),
             ),
           ],
         );

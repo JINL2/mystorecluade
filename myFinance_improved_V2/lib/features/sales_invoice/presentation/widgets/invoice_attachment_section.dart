@@ -10,6 +10,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../journal_input/domain/entities/journal_attachment.dart';
 import '../../domain/entities/invoice_detail.dart';
 import '../providers/invoice_attachment_provider.dart';
@@ -94,13 +95,7 @@ class _InvoiceAttachmentSectionState
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: TossColors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    TossToast.error(context, message);
   }
 
   void _removeAttachment(int index) {
@@ -249,23 +244,13 @@ class _InvoiceAttachmentSectionState
               const Spacer(),
               // Add button
               if (state.canAddMoreAttachments)
-                TextButton.icon(
+                TossButton.textButton(
+                  text: state.isPickingImages ? 'Loading...' : 'Add',
                   onPressed:
                       state.isPickingImages ? null : _showSourceSelectionDialog,
-                  icon: state.isPickingImages
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                  leadingIcon: state.isPickingImages
+                      ? const TossLoadingView.inline(size: 16)
                       : const Icon(Icons.add_photo_alternate_outlined, size: 18),
-                  label: Text(state.isPickingImages ? 'Loading...' : 'Add'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: TossColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space2,
-                    ),
-                  ),
                 ),
             ],
           ),
@@ -357,11 +342,7 @@ class _InvoiceAttachmentSectionState
                 placeholder: (_, __) => Container(
                   color: TossColors.gray100,
                   child: const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+                    child: TossLoadingView.inline(size: 20),
                   ),
                 ),
                 errorWidget: (_, __, ___) => _buildFileIcon(),

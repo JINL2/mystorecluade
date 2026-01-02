@@ -214,9 +214,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         },
                         hint: 'Select currency',
                       ),
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                      loading: () => const TossLoadingView(),
                       error: (_, __) => const Text('Failed to load currencies'),
                     ),
                     
@@ -378,19 +376,16 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
               ),
             ),
             // Link to create template if none exist
-            TextButton.icon(
+            TossButton.textButton(
+              text: 'Manage',
               onPressed: () {
                 Navigator.pop(context);
                 // Navigate to Staff & Store Settings > Schedule tab
                 context.push('/store-shift');
               },
-              icon: const Icon(LucideIcons.settings, size: 14),
-              label: const Text('Manage'),
-              style: TextButton.styleFrom(
-                foregroundColor: TossColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                textStyle: TossTextStyles.bodySmall,
-              ),
+              leadingIcon: const Icon(LucideIcons.settings, size: 14),
+              textColor: TossColors.primary,
+              fontSize: 13,
             ),
           ],
         ),
@@ -424,11 +419,9 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
               hint: 'Select work schedule template',
             );
           },
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(TossSpacing.space4),
-              child: CircularProgressIndicator(),
-            ),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(TossSpacing.space4),
+            child: TossLoadingView(),
           ),
           error: (_, __) => _buildNoTemplatesCard(),
         ),
@@ -479,18 +472,15 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           const SizedBox(height: TossSpacing.space3),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: TossButton.outlined(
+              text: 'Create Template',
               onPressed: () {
                 Navigator.pop(context);
                 // Navigate to Staff & Store Settings > Schedule tab
                 context.push('/store-shift');
               },
-              icon: const Icon(LucideIcons.plus, size: 16),
-              label: const Text('Create Template'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: TossColors.primary,
-                side: const BorderSide(color: TossColors.primary),
-              ),
+              leadingIcon: const Icon(LucideIcons.plus, size: 16),
+              fullWidth: true,
             ),
           ),
         ],

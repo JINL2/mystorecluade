@@ -211,14 +211,7 @@ class ExchangeRateStep extends StatelessWidget {
     if (isFetchingExchangeRate) {
       return Row(
         children: [
-          const SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-            ),
-          ),
+          const TossLoadingView.inline(size: 12),
           const SizedBox(width: TossSpacing.space2),
           Text(
             'Fetching current exchange rates...',

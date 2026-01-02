@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -60,7 +61,7 @@ class AlertPreviewHelper {
       return;
     }
     await HapticFeedback.mediumImpact();
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(TossAnimations.quick);
     await HapticFeedback.mediumImpact();
   }
 
@@ -75,10 +76,10 @@ class AlertPreviewHelper {
         left: TossSpacing.space4,
         right: TossSpacing.space4,
         child: Material(
-          color: Colors.transparent,
+          color: TossColors.transparent,
           child: TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOutBack,
+            duration: TossAnimations.slower,
+            curve: TossAnimations.emphasis,
             tween: Tween(begin: -100.0, end: 0.0),
             builder: (context, value, child) {
               return Transform.translate(
@@ -93,7 +94,7 @@ class AlertPreviewHelper {
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
+                    color: TossColors.black.withValues(alpha: 0.3),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -156,7 +157,7 @@ class AlertPreviewHelper {
 
     overlay.insert(overlayEntry);
 
-    Future<void>.delayed(const Duration(milliseconds: 3000), () {
+    Future<void>.delayed(TossAnimations.toastDuration, () {
       overlayEntry.remove();
     });
   }

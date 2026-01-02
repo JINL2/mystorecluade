@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 // App
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 // Shared themes
 import '../../../../shared/themes/toss_colors.dart';
@@ -38,11 +39,11 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: TossAnimations.slower,
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+      CurvedAnimation(parent: _animationController, curve: TossAnimations.enter),
     );
     _animationController.forward();
 
@@ -307,15 +308,12 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
             ],
           ),
           actions: [
-            TextButton(
+            TossButton.textButton(
+              text: 'OK',
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Close dialog
                 context.pop(); // Navigate back
               },
-              style: TextButton.styleFrom(
-                foregroundColor: TossColors.primary,
-              ),
-              child: const Text('OK'),
             ),
           ],
         );

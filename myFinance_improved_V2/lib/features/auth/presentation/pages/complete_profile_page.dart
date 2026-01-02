@@ -375,12 +375,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to pick image: $e'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, 'Failed to pick image: $e');
       }
     }
   }
@@ -443,37 +438,12 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
   Widget _buildContinueButton() {
     final canContinue = _isFirstNameValid && _isLastNameValid && !_isLoading;
 
-    return SizedBox(
-      width: double.infinity,
+    return TossButton.primary(
+      text: 'Continue',
+      onPressed: canContinue ? _handleContinue : null,
+      isLoading: _isLoading,
+      fullWidth: true,
       height: 56,
-      child: ElevatedButton(
-        onPressed: canContinue ? _handleContinue : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: canContinue ? TossColors.primary : TossColors.gray300,
-          foregroundColor: TossColors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          ),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Text(
-                'Continue',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-      ),
     );
   }
 
@@ -520,23 +490,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
       if (!mounted) return;
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: TossColors.white, size: 20),
-              const SizedBox(width: TossSpacing.space2),
-              Text('Welcome, $firstName!'),
-            ],
-          ),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      TossToast.success(context, 'Welcome, $firstName!');
 
       // Navigate to onboarding (choose role)
       if (mounted) {
@@ -544,23 +498,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(child: Text('Failed to save profile: $e')),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, 'Failed to save profile: $e');
       }
     } finally {
       if (mounted) {

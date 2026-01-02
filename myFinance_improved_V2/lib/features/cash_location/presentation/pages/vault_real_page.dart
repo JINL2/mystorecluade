@@ -190,7 +190,8 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                           ),
                         ),
                         const SizedBox(height: TossSpacing.space4),
-                        ElevatedButton(
+                        TossButton.primary(
+                          text: 'Retry',
                           onPressed: () {
                             // Reset state and refresh the data
                             setState(() {
@@ -208,7 +209,6 @@ class _VaultRealPageState extends ConsumerState<VaultRealPage> {
                               ),
                             ),);
                           },
-                          child: const Text('Retry'),
                         ),
                       ],
                     ),

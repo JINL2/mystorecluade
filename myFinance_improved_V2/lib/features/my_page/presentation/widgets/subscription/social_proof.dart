@@ -78,7 +78,7 @@ class SocialProof extends StatelessWidget {
                         child: Text(
                           'JK',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: TossColors.white,
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
                           ),

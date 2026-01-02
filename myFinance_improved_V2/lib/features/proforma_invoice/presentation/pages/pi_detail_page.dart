@@ -71,12 +71,12 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               if (state.pi?.status == PIStatus.sent)
                 const PopupMenuItem(
                   value: 'accept',
-                  child: Text('Mark as Accepted', style: TextStyle(color: Colors.green)),
+                  child: Text('Mark as Accepted', style: TextStyle(color: TossColors.success)),
                 ),
               if (state.pi?.status == PIStatus.sent)
                 const PopupMenuItem(
                   value: 'reject',
-                  child: Text('Mark as Rejected', style: TextStyle(color: Colors.red)),
+                  child: Text('Mark as Rejected', style: TextStyle(color: TossColors.error)),
                 ),
               const PopupMenuItem(value: 'share_pdf', child: Text('Share PDF')),
               const PopupMenuItem(value: 'print', child: Text('Print')),
@@ -87,7 +87,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               if (state.pi?.isEditable == true)
                 const PopupMenuItem(
                   value: 'delete',
-                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                  child: Text('Delete', style: TextStyle(color: TossColors.error)),
                 ),
             ],
           ),
@@ -99,7 +99,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
 
   Widget _buildBody(PIDetailState state) {
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (state.error != null) {
@@ -110,10 +110,10 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
             const Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(state.error!, style: TossTextStyles.bodyMedium),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: () =>
                   ref.read(piDetailProvider.notifier).load(widget.piId),
-              child: const Text('Retry'),
             ),
           ],
         ),
@@ -400,13 +400,13 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               'Would you like to generate a PDF and share it with the buyer?',
             ),
             actions: [
-              TextButton(
+              TossButton.textButton(
+                text: 'Skip PDF',
                 onPressed: () => Navigator.pop(context, 'skip'),
-                child: const Text('Skip PDF'),
               ),
-              TextButton(
+              TossButton.textButton(
+                text: 'Share PDF',
                 onPressed: () => Navigator.pop(context, 'share'),
-                child: const Text('Share PDF'),
               ),
             ],
           ),
@@ -420,9 +420,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
         await ref.read(piDetailProvider.notifier).send();
         if (mounted) {
           _markAsChanged();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PI sent successfully')),
-          );
+          TossToast.success(context, 'PI sent successfully');
         }
         break;
 
@@ -435,13 +433,14 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               'Mark this PI as accepted by the buyer? You can then convert it to a Purchase Order.',
             ),
             actions: [
-              TextButton(
+              TossButton.textButton(
+                text: 'Cancel',
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
               ),
-              TextButton(
+              TossButton.textButton(
+                text: 'Accept',
+                textColor: TossColors.success,
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Accept', style: TextStyle(color: Colors.green)),
               ),
             ],
           ),
@@ -451,19 +450,15 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
           // Show loading
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Row(
                   children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    ),
-                    SizedBox(width: 12),
-                    Text('Processing...'),
+                    TossLoadingView.inline(size: 20, color: TossColors.white),
+                    const SizedBox(width: 12),
+                    const Text('Processing...'),
                   ],
                 ),
-                duration: Duration(seconds: 10),
+                duration: const Duration(seconds: 10),
               ),
             );
           }
@@ -473,30 +468,12 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
           // Check for errors
           final detailState = ref.read(piDetailProvider);
           if (mounted) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            TossToast.hide(context);
             if (detailState.error != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error: ${detailState.error}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              TossToast.error(context, 'Error: ${detailState.error}');
             } else {
               _markAsChanged();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.white),
-                      SizedBox(width: 12),
-                      Text('PI marked as Accepted!'),
-                    ],
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              TossToast.success(context, 'PI marked as Accepted!');
             }
           }
         }
@@ -514,24 +491,22 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
                 children: [
                   const Text('Please provide a reason for rejection (optional):'),
                   const SizedBox(height: 16),
-                  TextField(
+                  TossTextField.filled(
                     controller: controller,
                     maxLines: 3,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter rejection reason...',
-                      border: OutlineInputBorder(),
-                    ),
+                    hintText: 'Enter rejection reason...',
                   ),
                 ],
               ),
               actions: [
-                TextButton(
+                TossButton.secondary(
+                  text: 'Cancel',
                   onPressed: () => Navigator.pop(context, null),
-                  child: const Text('Cancel'),
                 ),
-                TextButton(
+                TossButton.primary(
+                  text: 'Reject',
                   onPressed: () => Navigator.pop(context, controller.text),
-                  child: const Text('Reject', style: TextStyle(color: Colors.red)),
+                  backgroundColor: TossColors.error,
                 ),
               ],
             );
@@ -542,19 +517,15 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
           // Show loading
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Row(
                   children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    ),
-                    SizedBox(width: 12),
-                    Text('Processing...'),
+                    TossLoadingView.inline(size: 20, color: TossColors.white),
+                    const SizedBox(width: 12),
+                    const Text('Processing...'),
                   ],
                 ),
-                duration: Duration(seconds: 10),
+                duration: const Duration(seconds: 10),
               ),
             );
           }
@@ -564,30 +535,12 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
           // Check for errors
           final detailState = ref.read(piDetailProvider);
           if (mounted) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            TossToast.hide(context);
             if (detailState.error != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error: ${detailState.error}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              TossToast.error(context, 'Error: ${detailState.error}');
             } else {
               _markAsChanged();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(Icons.cancel, color: Colors.white),
-                      SizedBox(width: 12),
-                      Text('PI marked as Rejected'),
-                    ],
-                  ),
-                  backgroundColor: Colors.orange,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              TossToast.warning(context, 'PI marked as Rejected');
             }
           }
         }
@@ -604,9 +557,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
       case 'convert':
         final poId = await ref.read(piDetailProvider.notifier).convertToPO();
         if (mounted && poId != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Converted to PO')),
-          );
+          TossToast.success(context, 'Converted to PO');
           context.go('/purchase-order/$poId');
         }
         break;
@@ -625,13 +576,14 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
             title: const Text('Delete PI?'),
             content: const Text('This action cannot be undone.'),
             actions: [
-              TextButton(
+              TossButton.textButton(
+                text: 'Cancel',
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
               ),
-              TextButton(
+              TossButton.textButton(
+                text: 'Delete',
+                textColor: TossColors.error,
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -651,9 +603,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
     try {
       // Show loading indicator
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Generating PDF...')),
-        );
+        TossToast.info(context, 'Generating PDF...');
       }
 
       // Generate PDF
@@ -663,9 +613,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
       await TradePdfService.sharePdf(pdfBytes, '${pi.piNumber}.pdf');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate PDF: $e')),
-        );
+        TossToast.error(context, 'Failed to generate PDF: $e');
       }
     }
   }
@@ -674,9 +622,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
     try {
       // Show loading indicator
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preparing print...')),
-        );
+        TossToast.info(context, 'Preparing print...');
       }
 
       // Generate PDF
@@ -686,9 +632,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
       await TradePdfService.printPdf(pdfBytes);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to print: $e')),
-        );
+        TossToast.error(context, 'Failed to print: $e');
       }
     }
   }
@@ -792,7 +736,7 @@ class _ItemCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),

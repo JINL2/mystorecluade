@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/invoice.dart';
 
 /// Invoice confirmation dialogs helper class
@@ -94,53 +95,20 @@ class InvoiceConfirmationDialogs {
               children: [
                 // Cancel button
                 Expanded(
-                  child: OutlinedButton(
+                  child: TossButton.outlinedGray(
+                    text: 'Cancel',
                     onPressed: () => Navigator.pop(dialogContext),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: TossColors.gray700,
-                      side: const BorderSide(color: TossColors.gray300),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: TossSpacing.space3,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray700,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
                 // Refund button
                 Expanded(
-                  child: ElevatedButton(
+                  child: TossButton.destructive(
+                    text: 'Refund',
                     onPressed: () {
                       Navigator.pop(dialogContext); // Close dialog
                       onConfirm();
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: TossColors.error,
-                      foregroundColor: TossColors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: TossSpacing.space3,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                    ),
-                    child: Text(
-                      'Refund',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.white,
-                      ),
-                    ),
                   ),
                 ),
               ],
@@ -190,29 +158,17 @@ class InvoiceConfirmationDialogs {
           ),
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
+            textColor: TossColors.gray600,
           ),
-          ElevatedButton(
+          TossButton.destructive(
+            text: 'Delete',
             onPressed: () {
               Navigator.pop(dialogContext); // Close dialog
               onConfirm();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.error,
-              foregroundColor: TossColors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-              ),
-            ),
-            child: const Text('Delete'),
           ),
         ],
       ),

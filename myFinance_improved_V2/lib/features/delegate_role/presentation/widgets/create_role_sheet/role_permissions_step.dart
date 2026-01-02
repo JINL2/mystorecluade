@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/features/delegate_role/presentation/providers/role_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -228,7 +229,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
               ),
               AnimatedRotation(
                 turns: isExpanded ? 0.5 : 0,
-                duration: const Duration(milliseconds: 200),
+                duration: TossAnimations.normal,
                 child: const Icon(
                   Icons.expand_more,
                   color: TossColors.gray600,
@@ -251,7 +252,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space1),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
             width: 20,
             height: 20,
             decoration: BoxDecoration(
@@ -316,7 +317,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
                       children: [
                         const SizedBox(width: TossSpacing.space6),
                         AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
+                          duration: TossAnimations.normal,
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(

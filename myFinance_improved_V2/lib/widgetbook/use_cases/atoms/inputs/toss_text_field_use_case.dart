@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/inputs/toss_text_field.dart';
+import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 
 final tossTextFieldComponent = WidgetbookComponent(
   name: 'TossTextField',
@@ -21,6 +22,37 @@ final tossTextFieldComponent = WidgetbookComponent(
           isRequired: context.knobs.boolean(
             label: 'Required',
             initialValue: false,
+          ),
+        ),
+      ),
+    ),
+    WidgetbookUseCase(
+      name: 'With Prefix Icon',
+      builder: (context) => const Padding(
+        padding: EdgeInsets.all(16),
+        child: TossTextField(
+          label: 'Name',
+          hintText: 'Enter your name',
+          isRequired: true,
+          prefixIcon: Icon(
+            Icons.person_outline,
+            size: 20,
+            color: TossColors.gray500,
+          ),
+        ),
+      ),
+    ),
+    WidgetbookUseCase(
+      name: 'With Suffix Icon',
+      builder: (context) => const Padding(
+        padding: EdgeInsets.all(16),
+        child: TossTextField(
+          label: 'Search',
+          hintText: 'Search...',
+          suffixIcon: Icon(
+            Icons.search,
+            size: 20,
+            color: TossColors.gray500,
           ),
         ),
       ),

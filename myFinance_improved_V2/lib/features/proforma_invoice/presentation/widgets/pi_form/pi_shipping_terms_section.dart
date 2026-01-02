@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../trade_shared/presentation/providers/trade_shared_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -72,9 +69,10 @@ class PIShippingTermsSection extends ConsumerWidget {
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
-              child: _buildTextField(
+              child: TossTextField.filled(
                 controller: incotermsPlaceController,
                 label: 'Place',
+                hintText: 'Enter Place',
               ),
             ),
           ],
@@ -96,9 +94,10 @@ class PIShippingTermsSection extends ConsumerWidget {
             ),
             const SizedBox(width: TossSpacing.space3),
             Expanded(
-              child: _buildTextField(
+              child: TossTextField.filled(
                 controller: paymentTermsDetailController,
                 label: 'Detail',
+                hintText: 'Enter Detail',
               ),
             ),
           ],
@@ -107,51 +106,4 @@ class PIShippingTermsSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        TextFormField(
-          controller: controller,
-          style: TossTextStyles.bodyLarge.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Enter $label',
-            hintStyle: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.textTertiary,
-              fontWeight: FontWeight.w400,
-            ),
-            filled: true,
-            fillColor: TossColors.surface,
-            contentPadding: const EdgeInsets.all(TossSpacing.space3),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: const BorderSide(color: TossColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: const BorderSide(color: TossColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: const BorderSide(color: TossColors.primary, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

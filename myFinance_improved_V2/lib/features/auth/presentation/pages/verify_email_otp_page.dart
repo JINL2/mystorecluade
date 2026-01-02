@@ -92,22 +92,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
       });
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle, color: TossColors.white, size: 20),
-              SizedBox(width: TossSpacing.space2),
-              Text('Email verified successfully!'),
-            ],
-          ),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-        ),
-      );
+      TossToast.success(context, 'Email verified successfully!');
 
       // ✅ Fetch user companies data to populate AppState
       // This triggers the router to handle navigation automatically
@@ -153,43 +138,11 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
       await authService.resendSignupOtp(email: widget.email!);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                SizedBox(width: TossSpacing.space2),
-                Text('Verification code sent'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.success(context, 'Verification code sent');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(e.toString().replaceFirst('Exception: ', '')),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.error(context, e.toString().replaceFirst('Exception: ', ''));
       }
     } finally {
       if (mounted) {
@@ -336,51 +289,23 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
 
                     // Resend code button
                     if (widget.email != null) ...[
-                      TextButton(
+                      TossButton.textButton(
+                        text: _isResending ? 'Sending...' : 'Resend code',
                         onPressed: _isResending ? null : _handleResendOtp,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_isResending)
-                              const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: TossColors.primary,
-                                ),
-                              )
-                            else
-                              const Icon(
-                                Icons.refresh,
-                                size: 18,
-                                color: TossColors.primary,
-                              ),
-                            const SizedBox(width: TossSpacing.space2),
-                            Text(
-                              _isResending ? 'Sending...' : 'Resend code',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
+                        isLoading: _isResending,
+                        leadingIcon: _isResending ? null : const Icon(Icons.refresh, size: 18),
+                        fontWeight: FontWeight.w600,
                       ),
                     ],
 
                     const SizedBox(height: TossSpacing.space4),
 
                     // Back to login
-                    TextButton(
+                    TossButton.textButton(
+                      text: 'Back to sign in',
                       onPressed: () => context.go('/auth/login'),
-                      child: Text(
-                        'Back to sign in',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      textColor: TossColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ],
                 ),
@@ -450,14 +375,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: TossColors.primary,
-                    ),
-                  ),
+                  TossLoadingView.inline(size: 16),
                   const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Setting up your account...',

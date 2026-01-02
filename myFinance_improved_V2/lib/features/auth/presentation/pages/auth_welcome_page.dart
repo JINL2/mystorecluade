@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/auth_constants.dart';
 // Shared - Theme System
 import '../../../../shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 // Auth Providers
 import '../providers/auth_service.dart';
 import '../../../homepage/presentation/providers/homepage_providers.dart';
@@ -166,14 +167,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
         _buildSocialButton(
           onPressed: _isGoogleLoading || _isAppleLoading ? null : _handleGoogleSignIn,
           icon: _isGoogleLoading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray500),
-                  ),
-                )
+              ? TossLoadingView.inline(size: 22, color: TossColors.gray500)
               : _buildGoogleIcon(),
           label: _isGoogleLoading ? 'Signing in...' : 'Continue with Google',
           backgroundColor: TossColors.white,
@@ -187,14 +181,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
         _buildSocialButton(
           onPressed: _isAppleLoading || _isGoogleLoading ? null : _handleAppleSignIn,
           icon: _isAppleLoading
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                  ),
-                )
+              ? TossLoadingView.inline(size: 24, color: TossColors.white)
               : const Icon(
                   Icons.apple,
                   size: 24,
@@ -217,68 +204,27 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
     required Color textColor,
     required Color borderColor,
   }) {
-    return SizedBox(
-      width: double.infinity,
+    return TossButton.outlined(
+      text: label,
+      onPressed: onPressed,
+      leadingIcon: icon,
+      fullWidth: true,
       height: 56,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          side: BorderSide(color: borderColor, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          ),
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            const SizedBox(width: TossSpacing.space3),
-            Text(
-              label,
-              style: TossTextStyles.body.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: backgroundColor,
+      textColor: textColor,
+      borderColor: borderColor,
     );
   }
 
   Widget _buildEmailSignInButton() {
-    return TextButton(
-      onPressed: () {
-        context.push('/auth/login');
-      },
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.mail_outline_rounded,
-            size: 20,
-            color: TossColors.primary,
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          Text(
-            'Sign in with email',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+    return TossButton.textButton(
+      text: 'Sign in with email',
+      onPressed: () => context.push('/auth/login'),
+      leadingIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+      fontWeight: FontWeight.w600,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
       ),
     );
   }
@@ -293,22 +239,11 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
             color: TossColors.textSecondary,
           ),
         ),
-        TextButton(
-          onPressed: () {
-            context.push('/auth/signup');
-          },
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'Create account',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+        TossButton.textButton(
+          text: 'Create account',
+          onPressed: () => context.push('/auth/signup'),
+          padding: EdgeInsets.zero,
+          fontWeight: FontWeight.w700,
         ),
       ],
     );
@@ -340,27 +275,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       // Show success message
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(
-                Icons.check_circle,
-                color: TossColors.white,
-                size: 20,
-              ),
-              SizedBox(width: TossSpacing.space2),
-              Text('Welcome to Storebase!'),
-            ],
-          ),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      TossToast.success(context, 'Welcome to Storebase!');
     } catch (e) {
       // Handle Google Sign-In errors
       if (mounted) {
@@ -368,23 +283,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
             ? 'Google Sign-In was cancelled'
             : 'Unable to sign in with Google. Please try again.';
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(child: Text(errorMessage)),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, errorMessage);
       }
     } finally {
       if (mounted) {
@@ -413,27 +312,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       // Show success message
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(
-                Icons.check_circle,
-                color: TossColors.white,
-                size: 20,
-              ),
-              SizedBox(width: TossSpacing.space2),
-              Text('Welcome to Storebase!'),
-            ],
-          ),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      TossToast.success(context, 'Welcome to Storebase!');
     } catch (e) {
       // Handle Apple Sign-In errors
       if (mounted) {
@@ -441,23 +320,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
             ? 'Apple Sign-In was cancelled'
             : 'Unable to sign in with Apple. Please try again.';
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(child: Text(errorMessage)),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, errorMessage);
       }
     } finally {
       if (mounted) {

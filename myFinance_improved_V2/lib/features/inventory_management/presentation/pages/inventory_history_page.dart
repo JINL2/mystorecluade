@@ -208,7 +208,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
             // History list
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const TossLoadingView()
                   : filteredEntries.isEmpty
                       ? _buildEmptyState()
                       : NotificationListener<ScrollNotification>(
@@ -230,7 +230,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                               if (index == filteredEntries.length) {
                                 return const Padding(
                                   padding: EdgeInsets.all(TossSpacing.space4),
-                                  child: Center(child: CircularProgressIndicator()),
+                                  child: TossLoadingView(),
                                 );
                               }
                               return HistoryItem(entry: filteredEntries[index]);

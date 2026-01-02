@@ -32,7 +32,7 @@ class _POBuyerSectionState extends ConsumerState<POBuyerSection> {
     showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,
@@ -40,7 +40,7 @@ class _POBuyerSectionState extends ConsumerState<POBuyerSection> {
         expand: false,
         builder: (context, scrollController) => Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: const CounterPartyForm(),

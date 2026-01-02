@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 import '../../domain/entities/transfer_scope.dart';
 import '../formatters/cash_transaction_ui_extensions.dart';
@@ -270,22 +271,10 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       if (mounted) {
         // Show success feedback before closing
         HapticFeedback.heavyImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 8),
-                const Text('Transfer completed!'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        TossToast.success(context, 'Transfer completed!');
 
         // Wait a moment for user to see success feedback
-        await Future<void>.delayed(const Duration(milliseconds: 500));
+        await Future<void>.delayed(TossAnimations.slow);
 
         if (mounted) {
           widget.onSuccess();
@@ -294,12 +283,7 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
     } catch (e) {
       debugPrint('$_tag ❌ Transfer FAILED: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: TossColors.gray900,
-          ),
-        );
+        TossToast.error(context, 'Error: $e');
       }
     } finally {
       if (mounted) {
@@ -335,8 +319,8 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return AnimatedPadding(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+      duration: TossAnimations.normal,
+      curve: TossAnimations.decelerate,
       padding: EdgeInsets.only(bottom: keyboardHeight),
       child: Container(
         constraints: BoxConstraints(

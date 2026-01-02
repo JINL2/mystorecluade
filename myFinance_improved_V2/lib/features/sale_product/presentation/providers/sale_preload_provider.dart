@@ -2,7 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../register_denomination/data/services/exchange_rate_service.dart';
 import '../../di/sale_product_providers.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/exchange_rate_data.dart';
@@ -45,91 +44,44 @@ class SalePreloadData with _$SalePreloadData {
 class SalePreloadNotifier extends _$SalePreloadNotifier {
   @override
   Future<SalePreloadData> build() async {
-    // Initial state - empty data
-    return const SalePreloadData();
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+
+    if (companyId.isEmpty) {
+      return const SalePreloadData();
+    }
+
+    // Load exchange rates and cash locations in parallel
+    final results = await Future.wait([
+      _loadExchangeRates(companyId, storeId),
+      _loadCashLocations(companyId, storeId),
+    ]);
+
+    return SalePreloadData(
+      exchangeRateData: results[0] as ExchangeRateData?,
+      cashLocations: (results[1] as List<CashLocation>?) ?? <CashLocation>[],
+    );
   }
 
-  /// Load all preload data (exchange rates + cash locations) in parallel
+  /// Reload all data (for manual refresh)
   Future<void> loadAll() async {
-    // Skip if already loading
-    if (state.isLoading) return;
-
-    state = const AsyncLoading();
-
-    state = await AsyncValue.guard(() async {
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
-      final storeId = appState.storeChoosen;
-
-      if (companyId.isEmpty) {
-        throw Exception('Please select a company first');
-      }
-
-      // Load exchange rates and cash locations in parallel
-      final results = await Future.wait([
-        _loadExchangeRates(companyId, storeId),
-        _loadCashLocations(companyId, storeId),
-      ]);
-
-      final exchangeRateData = results[0] as ExchangeRateData?;
-      final cashLocations =
-          (results[1] as List<CashLocation>?) ?? <CashLocation>[];
-
-      return SalePreloadData(
-        exchangeRateData: exchangeRateData,
-        cashLocations: cashLocations,
-      );
-    });
+    ref.invalidateSelf();
+    await future;
   }
 
-  /// Load exchange rates using real-time API
-  /// First gets currency list from DB (sorted by store balance), then fetches real-time rates
+  /// Load exchange rates from DB only (real-time rates loaded on-demand in PaymentMethodPage)
   Future<ExchangeRateData?> _loadExchangeRates(
     String companyId,
     String storeId,
   ) async {
     try {
-      // 1. Get currency list from DB (sorted by store balance)
       final repository = ref.read(exchangeRateRepositoryProvider);
-      final dbData = await repository.getExchangeRates(
+      return await repository.getExchangeRates(
         companyId: companyId,
         storeId: storeId.isNotEmpty ? storeId : null,
       );
-
-      if (dbData == null) return null;
-
-      // 2. Get real-time exchange rates from API
-      final exchangeRateService = ExchangeRateService();
-      final baseCurrency = dbData.baseCurrency.currencyCode;
-      final targetCurrencies =
-          dbData.rates.map((r) => r.currencyCode).toList();
-
-      if (targetCurrencies.isEmpty) {
-        return dbData;
-      }
-
-      final realTimeRates = await exchangeRateService.getMultipleExchangeRates(
-        baseCurrency,
-        targetCurrencies,
-      );
-
-      // 3. Build new rates with real-time data (keep DB order)
-      final updatedRates = dbData.rates.map((rate) {
-        final realTimeRate = realTimeRates[rate.currencyCode];
-        return ExchangeRate(
-          currencyCode: rate.currencyCode,
-          symbol: rate.symbol,
-          rate: realTimeRate ?? rate.rate, // fallback to DB rate
-          name: rate.name,
-        );
-      }).toList();
-
-      return ExchangeRateData(
-        baseCurrency: dbData.baseCurrency,
-        rates: updatedRates,
-      );
     } catch (e) {
-      // Return null on error - exchange rates are optional
       return null;
     }
   }
@@ -140,9 +92,7 @@ class SalePreloadNotifier extends _$SalePreloadNotifier {
     String storeId,
   ) async {
     try {
-      if (storeId.isEmpty) {
-        return [];
-      }
+      if (storeId.isEmpty) return [];
 
       final repository = ref.read(paymentRepositoryProvider);
       return await repository.getCashLocations(
@@ -150,7 +100,6 @@ class SalePreloadNotifier extends _$SalePreloadNotifier {
         storeId: storeId,
       );
     } catch (e) {
-      // Return empty list on error - will be loaded again in payment page
       return [];
     }
   }

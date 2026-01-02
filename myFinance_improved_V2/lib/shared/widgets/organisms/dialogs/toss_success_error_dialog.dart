@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
 
 enum TossDialogType {
@@ -43,7 +44,7 @@ class TossDialog extends StatefulWidget {
     this.customContent,
     this.infoItems,
     this.actions,
-    this.animationDuration = const Duration(milliseconds: 600),
+    this.animationDuration = TossAnimations.dialogEnter,
     this.dismissible = true,
   });
 
@@ -180,7 +181,7 @@ class _TossDialogState extends State<TossDialog>
     );
     
     _iconController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: TossAnimations.iconEmphasis,
       vsync: this,
     );
 
@@ -213,7 +214,7 @@ class _TossDialogState extends State<TossDialog>
     // Start animations
     _controller.forward();
     if (widget.type == TossDialogType.success) {
-      Future.delayed(const Duration(milliseconds: 200), () {
+      Future.delayed(TossAnimations.normal, () {
         if (mounted) {
           _iconController.forward();
         }

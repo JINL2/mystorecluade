@@ -156,11 +156,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             onFilterTap: _showFilterBottomSheet,
           ),
           const Expanded(
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-              ),
-            ),
+            child: TossLoadingView(),
           ),
         ],
       );
@@ -244,11 +240,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     return const SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.all(TossSpacing.space4),
-        child: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-          ),
-        ),
+        child: TossLoadingView(),
       ),
     );
   }
@@ -327,11 +319,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-        ),
-      ),
+      builder: (context) => const TossLoadingView(),
     );
   }
 

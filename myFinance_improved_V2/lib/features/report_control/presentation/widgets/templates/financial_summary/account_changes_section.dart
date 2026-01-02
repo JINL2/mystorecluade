@@ -48,7 +48,7 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
             borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: TossColors.black.withOpacity(0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -101,7 +101,7 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: TossColors.black.withOpacity(0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),

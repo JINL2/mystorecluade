@@ -12,6 +12,7 @@ import '../utils/store_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
@@ -194,9 +195,7 @@ class _InventoryManagementPageState
         children: [
           _buildFilterSection(pageState),
           const Expanded(
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: TossLoadingView(),
           ),
         ],
       );
@@ -242,9 +241,7 @@ class _InventoryManagementPageState
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.all(TossSpacing.space4),
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: TossLoadingView(),
             ),
           ),
       ],
@@ -568,12 +565,7 @@ class _InventoryManagementPageState
     fromLocation ??= allStores.isNotEmpty ? allStores.first : null;
 
     if (fromLocation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No stores available'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      TossToast.info(context, 'No stores available');
       return;
     }
 

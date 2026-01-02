@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -124,7 +125,7 @@ class _AttributeValueSelectorPageState<T>
     });
 
     _searchDebounceTimer?.cancel();
-    _searchDebounceTimer = Timer(const Duration(milliseconds: 200), () {
+    _searchDebounceTimer = Timer(TossAnimations.normal, () {
       _performSearch(value);
     });
   }

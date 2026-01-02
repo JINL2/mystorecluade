@@ -109,31 +109,11 @@ class _DebtAccountSettingsPageState
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Account mapping deleted'),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            duration: TossAnimations.normal,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-          ),
-        );
+        TossToast.success(context, 'Account mapping deleted');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete: ${e.toString()}'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: TossAnimations.normal,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
-          ),
-        );
+        TossToast.error(context, 'Failed to delete: ${e.toString()}');
       }
     }
   }
@@ -225,9 +205,7 @@ class _DebtAccountSettingsPageState
       loading: () => Container(
         height: 300,
         alignment: Alignment.center,
-        child: const CircularProgressIndicator(
-          color: TossColors.primary,
-        ),
+        child: const TossLoadingView(),
       ),
       error: (error, stack) => Container(
         height: 300,
@@ -258,15 +236,9 @@ class _DebtAccountSettingsPageState
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: TossSpacing.space3),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: _refreshMappings,
-              child: Text(
-                'Retry',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
           ],
         ),

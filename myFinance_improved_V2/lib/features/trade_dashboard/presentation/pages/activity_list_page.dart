@@ -96,7 +96,7 @@ class _ActivityListPageState extends ConsumerState<ActivityListPage> {
           // Activity list
           Expanded(
             child: activitiesState.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const TossLoadingView()
                 : activitiesState.error != null
                     ? Center(
                         child: Column(
@@ -115,9 +115,9 @@ class _ActivityListPageState extends ConsumerState<ActivityListPage> {
                               ),
                             ),
                             const SizedBox(height: TossSpacing.space3),
-                            TextButton(
+                            TossButton.textButton(
+                              text: 'Retry',
                               onPressed: _loadActivities,
-                              child: const Text('Retry'),
                             ),
                           ],
                         ),
@@ -206,9 +206,7 @@ class _ActivityListPageState extends ConsumerState<ActivityListPage> {
         context.push('/trade/commercial-invoice/$entityId');
         break;
       default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unknown entity type: $entityType')),
-        );
+        TossToast.error(context, 'Unknown entity type: $entityType');
     }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -426,7 +427,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                 }
 
                 // Add a small delay for UX
-                await Future<void>.delayed(const Duration(milliseconds: 100));
+                await Future<void>.delayed(TossAnimations.quick);
 
                 // Show success popup
                 if (mounted) {

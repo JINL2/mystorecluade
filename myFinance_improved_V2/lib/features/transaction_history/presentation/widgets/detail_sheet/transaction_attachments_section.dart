@@ -12,6 +12,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/ai/index.dart';
+import '../../../../../shared/widgets/index.dart';
 import '../../../domain/entities/transaction.dart';
 import '../attachment_fullscreen_viewer.dart';
 
@@ -185,7 +186,7 @@ class _ImageGallery extends StatelessWidget {
                           // Show count overlay on last thumbnail if more than 4 images
                           if (index == 2 && remainingImages.length > 3)
                             Container(
-                              color: Colors.black54,
+                              color: TossColors.black54,
                               child: Center(
                                 child: Text(
                                   '+${remainingImages.length - 3}',
@@ -256,14 +257,7 @@ class _NetworkImage extends StatelessWidget {
       placeholder: (context, url) => Container(
         color: TossColors.gray100,
         child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: TossColors.gray400,
-            ),
-          ),
+          child: TossLoadingView.inline(size: 24, color: TossColors.gray400),
         ),
       ),
       errorWidget: (context, url, error) => Container(

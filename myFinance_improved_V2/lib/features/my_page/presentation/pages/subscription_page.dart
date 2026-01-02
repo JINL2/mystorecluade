@@ -7,6 +7,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/core/services/revenuecat_service.dart';
 import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -63,7 +64,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
 
   void _initAnimations() {
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: TossAnimations.iconEmphasis,
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
@@ -216,15 +217,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
 
       if (isAlreadySubscribed) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('You already have an active $planName subscription. Use "Manage" to modify it.'),
-              backgroundColor: Colors.orange,
-              action: SnackBarAction(
-                label: 'Manage',
-                textColor: Colors.white,
-                onPressed: _handleCancelSubscription,
-              ),
+          TossToast.warning(
+            context,
+            'You already have an active $planName subscription. Use "Manage" to modify it.',
+            action: SnackBarAction(
+              label: 'Manage',
+              textColor: TossColors.white,
+              onPressed: _handleCancelSubscription,
             ),
           );
         }
@@ -364,14 +363,11 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
           );
 
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(willRenew
-                    ? '✅ Synced: $planType (Auto-renew ON)'
-                    : '⚠️ Synced: $planType (Canceled, expires ${_formatShortDate(DateTime.parse(expiresAt!))})'),
-                backgroundColor: willRenew ? Colors.green : Colors.orange,
-              ),
-            );
+            if (willRenew) {
+              TossToast.success(context, 'Synced: $planType (Auto-renew ON)');
+            } else {
+              TossToast.warning(context, 'Synced: $planType (Canceled, expires ${_formatShortDate(DateTime.parse(expiresAt!))})');
+            }
           }
         }
       } else {
@@ -385,24 +381,14 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Synced: Free plan'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          TossToast.success(context, 'Synced: Free plan');
         }
       }
 
       await _refreshSubscriptionState();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Sync failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        TossToast.error(context, 'Sync failed: $e');
       }
     } finally {
       if (mounted) {
@@ -438,14 +424,11 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(willRenew
-                  ? '✅ Subscription active (Auto-renew ON)'
-                  : '⚠️ Subscription canceled (expires ${_formatShortDate(DateTime.parse(expiresAt!))})'),
-              backgroundColor: willRenew ? Colors.green : Colors.orange,
-            ),
-          );
+          if (willRenew) {
+            TossToast.success(context, 'Subscription active (Auto-renew ON)');
+          } else {
+            TossToast.warning(context, 'Subscription canceled (expires ${_formatShortDate(DateTime.parse(expiresAt!))})');
+          }
         }
       }
     } else {
@@ -459,12 +442,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Synced: Now on Free plan'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        TossToast.success(context, 'Synced: Now on Free plan');
       }
     }
 
@@ -482,7 +460,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: TossColors.white,
       body: SafeArea(
         child: Column(
           children: [

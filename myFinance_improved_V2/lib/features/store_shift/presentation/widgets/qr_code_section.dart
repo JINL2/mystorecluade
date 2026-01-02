@@ -10,6 +10,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// QR Code Section Widget
 ///
@@ -112,7 +113,7 @@ class QRCodeSection extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: TossColors.white,
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: SizedBox(
@@ -121,7 +122,7 @@ class QRCodeSection extends StatelessWidget {
                   child: QrImageView(
                     data: storeId,
                     version: QrVersions.auto,
-                    backgroundColor: Colors.white,
+                    backgroundColor: TossColors.white,
                     errorCorrectionLevel: QrErrorCorrectLevel.M,
                   ),
                 ),
@@ -138,26 +139,16 @@ class QRCodeSection extends StatelessWidget {
           ],
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Close',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            text: 'Close',
+            textColor: TossColors.gray600,
           ),
-          TextButton(
+          TossButton.textButton(
             onPressed: () =>
                 _saveQRCodeToGallery(dialogContext, qrKey, storeName),
-            child: Text(
-              'Save Photo',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            text: 'Save Photo',
+            textColor: TossColors.primary,
           ),
         ],
       ),
@@ -193,23 +184,15 @@ class QRCodeSection extends StatelessWidget {
       if (context.mounted) {
         final resultMap = Map<String, dynamic>.from(result as Map);
         final success = resultMap['isSuccess'] == true;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success ? 'QR code saved to gallery' : 'Failed to save QR code',
-            ),
-            backgroundColor: success ? TossColors.success : TossColors.error,
-          ),
-        );
+        if (success) {
+          TossToast.success(context, 'QR code saved to gallery');
+        } else {
+          TossToast.error(context, 'Failed to save QR code');
+        }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save: $e'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, 'Failed to save: $e');
       }
     }
   }

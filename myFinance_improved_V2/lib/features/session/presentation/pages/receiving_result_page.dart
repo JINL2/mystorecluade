@@ -7,6 +7,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/session_review_item.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Receiving Result Page - Shows stock changes after session submit
 /// Tab view with "New" (new products) and "All" (all changes)
@@ -297,27 +298,10 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
         ),
       ),
       child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => context.go('/session'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-              elevation: 0,
-            ),
-            child: Text(
-              'Done',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: TossColors.white,
-              ),
-            ),
-          ),
+        child: TossButton.primary(
+          text: 'Done',
+          onPressed: () => context.go('/session'),
+          fullWidth: true,
         ),
       ),
     );

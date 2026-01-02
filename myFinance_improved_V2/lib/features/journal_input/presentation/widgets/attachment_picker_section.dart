@@ -14,6 +14,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/journal_attachment.dart';
 import '../providers/journal_input_providers.dart';
 import '../providers/states/journal_entry_state.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Section widget for picking and displaying journal attachments
 class AttachmentPickerSection extends ConsumerStatefulWidget {
@@ -141,13 +142,7 @@ class _AttachmentPickerSectionState
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: TossColors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    TossToast.error(context, message);
   }
 
   void _removeAttachment(int index) {
@@ -284,22 +279,11 @@ class _AttachmentPickerSectionState
             ),
             // Add button
             if (state.canAddMoreAttachments)
-              TextButton.icon(
+              TossButton.textButton(
+                text: _isPickingImages ? 'Loading...' : 'Add',
                 onPressed: _isPickingImages ? null : _showSourceSelectionDialog,
-                icon: _isPickingImages
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.add_photo_alternate_outlined, size: 18),
-                label: Text(_isPickingImages ? 'Loading...' : 'Add'),
-                style: TextButton.styleFrom(
-                  foregroundColor: TossColors.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space2,
-                  ),
-                ),
+                leadingIcon: _isPickingImages ? null : const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                isLoading: _isPickingImages,
               ),
           ],
         ),

@@ -72,10 +72,10 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
     return todayAsync.when(
       data: (todayAttendance) => listAsync.when(
         data: (attendanceList) => _buildContent(todayAttendance, attendanceList),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const TossLoadingView(),
         error: (e, _) => _buildErrorView(e.toString()),
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const TossLoadingView(),
       error: (e, _) => _buildErrorView(e.toString()),
     );
   }
@@ -311,12 +311,12 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
               style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
             ),
             const SizedBox(height: 8),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: () {
                 ref.invalidate(todayMonthlyAttendanceProvider);
                 ref.invalidate(monthlyAttendanceListProvider(_yearMonth));
               },
-              child: const Text('Retry'),
             ),
           ],
         ),

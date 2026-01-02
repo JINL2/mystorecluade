@@ -207,11 +207,9 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                   },
                 );
               },
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(TossSpacing.space4),
-                  child: CircularProgressIndicator(),
-                ),
+              loading: () => const Padding(
+                padding: EdgeInsets.all(TossSpacing.space4),
+                child: TossLoadingView(),
               ),
               error: (error, stack) => Center(
                 child: Text(
@@ -367,7 +365,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
         horizontal: TossSpacing.space3,
         vertical: TossSpacing.space6,
       ),
-      child: Center(child: CircularProgressIndicator()),
+      child: TossLoadingView(),
     );
   }
 

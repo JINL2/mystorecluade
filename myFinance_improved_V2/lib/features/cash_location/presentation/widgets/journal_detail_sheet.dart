@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/ai/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../transaction_history/domain/entities/transaction.dart'
     show TransactionAttachment;
@@ -551,7 +552,7 @@ class JournalDetailSheet extends StatelessWidget {
                           // Show count overlay on last thumbnail if more than 4 images
                           if (index == 2 && remainingImages.length > 3)
                             Container(
-                              color: Colors.black54,
+                              color: TossColors.black54,
                               child: Center(
                                 child: Text(
                                   '+${remainingImages.length - 3}',
@@ -610,14 +611,7 @@ class JournalDetailSheet extends StatelessWidget {
       placeholder: (context, url) => Container(
         color: TossColors.gray100,
         child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: TossColors.gray400,
-            ),
-          ),
+          child: TossLoadingView.inline(size: 24, color: TossColors.gray400),
         ),
       ),
       errorWidget: (context, url, error) => Container(
@@ -655,7 +649,7 @@ class JournalDetailSheet extends StatelessWidget {
           Icon(
             attachment.isPdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
             size: 20,
-            color: attachment.isPdf ? Colors.red : TossColors.gray500,
+            color: attachment.isPdf ? TossColors.error : TossColors.gray500,
           ),
           const SizedBox(width: TossSpacing.space2),
           Expanded(

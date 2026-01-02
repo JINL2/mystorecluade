@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Data class for individual stat items
 class TossStatItem {
@@ -162,12 +163,7 @@ class TossStatsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         boxShadow: TossShadows.card,
       ),
-      child: const Center(
-        child: CircularProgressIndicator(
-          color: TossColors.primary,
-          strokeWidth: TossSpacing.space0 + 2,
-        ),
-      ),
+      child: const TossLoadingView(),
     );
   }
 
@@ -191,15 +187,9 @@ class TossStatsCard extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: TossSpacing.space3),
-              TextButton(
+              TossButton.textButton(
+                text: 'Retry',
                 onPressed: onRetry,
-                child: Text(
-                  'Retry',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ),
             ],
           ],

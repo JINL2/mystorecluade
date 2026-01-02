@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/config/app_router.dart';
 import '../../../../shared/themes/index.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../providers/auth_service.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -96,7 +97,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
       context.go('/auth/reset-password');
 
       // Unlock after a delay to ensure navigation completes
-      Future.delayed(const Duration(milliseconds: 500), unlockRouterNavigation);
+      Future.delayed(TossAnimations.slower, unlockRouterNavigation);
     } catch (e) {
       unlockRouterNavigation();
       if (mounted) {
@@ -131,43 +132,11 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
       await authService.sendPasswordOtp(email: widget.email!);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                SizedBox(width: TossSpacing.space2),
-                Text('Code sent successfully'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.success(context, 'Code sent successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(e.toString().replaceFirst('Exception: ', '')),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.error(context, e.toString().replaceFirst('Exception: ', ''));
       }
     } finally {
       if (mounted) {
@@ -310,36 +279,12 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
 
                     // Resend code button
                     if (widget.email != null) ...[
-                      TextButton(
+                      TossButton.textButton(
+                        text: _isResending ? 'Sending...' : 'Resend code',
                         onPressed: _isResending ? null : _handleResendOtp,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_isResending)
-                              const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: TossColors.primary,
-                                ),
-                              )
-                            else
-                              const Icon(
-                                Icons.refresh,
-                                size: 18,
-                                color: TossColors.primary,
-                              ),
-                            const SizedBox(width: TossSpacing.space2),
-                            Text(
-                              _isResending ? 'Sending...' : 'Resend code',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
+                        isLoading: _isResending,
+                        leadingIcon: _isResending ? null : const Icon(Icons.refresh, size: 18),
+                        fontWeight: FontWeight.w600,
                       ),
                     ],
                   ],

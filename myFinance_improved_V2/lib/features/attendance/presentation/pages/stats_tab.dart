@@ -108,9 +108,7 @@ class _StatsTabState extends ConsumerState<StatsTab> {
     final statsAsync = ref.watch(userShiftStatsProvider);
 
     return statsAsync.when(
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      loading: () => const TossLoadingView(),
       error: (error, stack) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

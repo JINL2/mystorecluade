@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -110,7 +111,7 @@ class _TypeOptionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: TossAnimations.normal,
         decoration: BoxDecoration(
           color: isSelected ? color.withValues(alpha: 0.08) : TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -132,7 +133,7 @@ class _TypeOptionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: TossAnimations.normal,
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: isSelected ? color.withValues(alpha: 0.1) : TossColors.transparent,

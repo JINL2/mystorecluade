@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 import '../providers/cash_transaction_providers.dart';
 import '../widgets/amount_input_keypad.dart';
@@ -149,12 +150,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: TossColors.gray900,
-          ),
-        );
+        TossToast.error(context, 'Error: $e');
         // Reset submitting state on error
         setState(() {
           _isSubmitting = false;
@@ -171,8 +167,8 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return AnimatedPadding(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+      duration: TossAnimations.normal,
+      curve: TossAnimations.decelerate,
       padding: EdgeInsets.only(bottom: keyboardHeight),
       child: Container(
         constraints: BoxConstraints(
@@ -414,11 +410,9 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
           ],
         );
       },
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space4),
-          child: CircularProgressIndicator(),
-        ),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(TossSpacing.space4),
+        child: TossLoadingView(),
       ),
       error: (error, _) => Center(
         child: Padding(

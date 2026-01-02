@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shows a date picker bottom sheet
 void showDatePickerBottomSheet({
@@ -19,7 +20,7 @@ void showDatePickerBottomSheet({
 
   showModalBottomSheet(
     context: context,
-    backgroundColor: Colors.white,
+    backgroundColor: TossColors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -39,14 +40,10 @@ void showDatePickerBottomSheet({
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton(
+                    TossButton.textButton(
+                      text: 'Cancel',
                       onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Cancel',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
+                      textColor: TossColors.gray600,
                     ),
                     Text(
                       'Select Date',
@@ -54,18 +51,14 @@ void showDatePickerBottomSheet({
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    TextButton(
+                    TossButton.textButton(
+                      text: 'Done',
                       onPressed: () {
                         onDateSelected(DateTime(selectedYear, selectedMonth, selectedDay));
                         Navigator.pop(context);
                       },
-                      child: Text(
-                        'Done',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      textColor: TossColors.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ],
                 ),

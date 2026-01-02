@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 // Shared imports - themes
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -92,8 +93,8 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        duration: TossAnimations.slow,
+        curve: TossAnimations.decelerate,
       );
     }
   }
@@ -653,7 +654,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       barrierDismissible: false,
       builder: (context) => Center(
         child: Material(
-          color: Colors.transparent,
+          color: TossColors.transparent,
           child: Container(
             padding: const EdgeInsets.all(TossSpacing.space5),
             decoration: BoxDecoration(
@@ -663,7 +664,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircularProgressIndicator(color: TossColors.primary),
+                const TossLoadingView.inline(),
                 const SizedBox(height: TossSpacing.space3),
                 Text(
                   'Creating invoice...',

@@ -59,22 +59,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
       });
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle, color: TossColors.white, size: 20),
-              SizedBox(width: TossSpacing.space2),
-              Text('Password updated successfully!'),
-            ],
-          ),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-        ),
-      );
+      TossToast.success(context, 'Password updated successfully!');
 
       // Navigate to login after a short delay
       await Future<void>.delayed(const Duration(seconds: 2));
@@ -220,15 +205,10 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
                 // Back to login link
                 Center(
-                  child: TextButton(
+                  child: TossButton.textButton(
+                    text: 'Back to sign in',
                     onPressed: () => context.go('/auth/login'),
-                    child: Text(
-                      'Back to sign in',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 
@@ -299,14 +279,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: TossColors.primary,
-                    ),
-                  ),
+                  TossLoadingView.inline(size: 16),
                   const SizedBox(width: TossSpacing.space2),
                   Text(
                     'Redirecting to sign in...',

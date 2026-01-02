@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../themes/toss_animations.dart';
 import '../../../../themes/toss_border_radius.dart';
 import '../../../../themes/toss_colors.dart';
 import '../../../../themes/toss_spacing.dart';
@@ -57,7 +58,7 @@ class _DotIndicatorState extends State<_DotIndicator>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: TossAnimations.typingDot,
     );
     _animation = Tween<double>(begin: 0.4, end: 1.0).animate(_controller);
 

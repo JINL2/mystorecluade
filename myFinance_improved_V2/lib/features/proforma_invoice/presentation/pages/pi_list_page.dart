@@ -109,21 +109,9 @@ class _PIListPageState extends ConsumerState<PIListPage> {
           // Search bar
           Padding(
             padding: const EdgeInsets.all(TossSpacing.space4),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search by PI number or buyer...',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                filled: true,
-                fillColor: TossColors.gray100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-              ),
+            child: TossTextField.filled(
+              hintText: 'Search by PI number or buyer...',
+              prefixIcon: const Icon(Icons.search, size: 20),
               onChanged: _onSearch,
             ),
           ),
@@ -159,9 +147,9 @@ class _PIListPageState extends ConsumerState<PIListPage> {
               style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
             ),
             const SizedBox(height: TossSpacing.space2),
-            TextButton(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: () => ref.read(piListProvider.notifier).refresh(),
-              child: const Text('Retry'),
             ),
           ],
         ),
@@ -185,10 +173,10 @@ class _PIListPageState extends ConsumerState<PIListPage> {
               style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
             ),
             const SizedBox(height: TossSpacing.space4),
-            ElevatedButton.icon(
+            TossButton.primary(
+              text: 'Create PI',
+              leadingIcon: const Icon(Icons.add, size: 20, color: TossColors.white),
               onPressed: () => context.push('/proforma-invoice/new'),
-              icon: const Icon(Icons.add),
-              label: const Text('Create PI'),
             ),
           ],
         ),
@@ -207,7 +195,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
           if (index == state.items.length) {
             return const Padding(
               padding: EdgeInsets.all(TossSpacing.space4),
-              child: Center(child: CircularProgressIndicator()),
+              child: TossLoadingView(),
             );
           }
 

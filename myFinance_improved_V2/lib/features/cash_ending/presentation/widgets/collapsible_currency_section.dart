@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -82,8 +83,8 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
                   ),
                   AnimatedRotation(
                     turns: widget.isExpanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 150),
-                    curve: Curves.easeInOut,
+                    duration: TossAnimations.fast,
+                    curve: TossAnimations.standard,
                     child: const Icon(
                       Icons.keyboard_arrow_down,
                       color: TossColors.gray700,
@@ -107,8 +108,8 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
           // Expanded content with smooth bottom-to-top animation
           ClipRect(
             child: AnimatedAlign(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeInOut,
+              duration: TossAnimations.fast,
+              curve: TossAnimations.standard,
               heightFactor: widget.isExpanded ? 1.0 : 0.0,
               alignment: Alignment.topCenter,
               child: Padding(

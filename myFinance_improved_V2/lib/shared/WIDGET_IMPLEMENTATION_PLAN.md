@@ -688,23 +688,23 @@ class TossDataTable<T> extends StatelessWidget {
 ## 📋 확장 마이그레이션 체크리스트
 
 ### Phase 4: 입력 위젯 확장
-- [ ] TossTextField에 prefixIcon/suffixIcon 추가
-- [ ] TossFormField 구현 + Widgetbook
-- [ ] TossPasswordField 구현 + Widgetbook
-- [ ] Auth 페이지 마이그레이션 (5개 파일)
-- [ ] CounterPartyTextField 제거
+- [x] TossTextField에 prefixIcon 추가 ✅ (2026-01-01)
+- [ ] ~~TossFormField 구현~~ ❌ 불필요 (TossTextField에 이미 label, isRequired 있음)
+- [ ] ~~TossPasswordField 구현~~ ❌ 불필요 (suffixIcon + setState로 충분)
+- [ ] Auth 페이지 마이그레이션 - TossTextField의 label, isRequired 활용
+- [x] CounterPartyTextField 제거 ✅ (2026-01-01) - counter_party_form.dart에서 TossTextField로 마이그레이션 완료
 
 ### Phase 5: 레이아웃 유틸리티
-- [ ] TossSection 구현 + Widgetbook
-- [ ] TossFormSection 구현 + Widgetbook
-- [ ] lc_form_page.dart 마이그레이션 (21개 필드)
-- [ ] add_account_page.dart 마이그레이션 (13개 필드)
-- [ ] pi_form_page.dart 마이그레이션 (7개 필드)
+- [ ] ~~TossSection 구현~~ ❌ 불필요 (Column + Text로 충분)
+- [ ] ~~TossFormSection 구현~~ ❌ 불필요 (추상화 과잉)
+- [ ] lc_form_page.dart 마이그레이션 ⚠️ (TextField→TossTextField 스타일 차이 주의)
+- [ ] add_account_page.dart 마이그레이션
+- [ ] pi_form_page.dart 마이그레이션
 
 ### Phase 6: 피드백 & 상태
-- [ ] TossToast 구현
-- [ ] TossProgressIndicator 구현 + Widgetbook
-- [ ] ScaffoldMessenger 호출 마이그레이션
+- [x] TossToast 구현 ✅ (2026-01-01)
+- [ ] ~~TossProgressIndicator 구현~~ ❌ 불필요 (Theme으로 충분)
+- [ ] ScaffoldMessenger 호출 마이그레이션 → TossToast 사용
 
 ### Phase 7: 데이터 디스플레이
 - [ ] TossListItem 구현 + Widgetbook
@@ -747,6 +747,101 @@ class TossDataTable<T> extends StatelessWidget {
 7. TossFormSection
 8. TossProgressIndicator
 9. TossDataTable
+
+---
+
+## 🔄 TossToast 마이그레이션 트래커
+
+> **원칙:** 디자인이 다르면 feature 내에서 유지, 공통 패턴만 TossToast로 마이그레이션
+
+### 마이그레이션 기준
+- ✅ 단순 success/error/info 메시지 → TossToast 사용
+- ❌ 커스텀 아이콘/스피너/복잡한 Row 구조 → feature 내 유지
+- ❌ 특수한 duration/action 필요 → feature 내 유지
+
+### 폴더별 체크리스트 (66개 파일)
+
+| 폴더 | 파일 수 | 상태 | 비고 |
+|------|:------:|:----:|------|
+| **auth** | 11 | ❌ | Row+Icon 커스텀 패턴, feature 유지 |
+| **homepage** | 6 | ❌ | 복잡한 loading/action 패턴, homepage.dart만 완료 |
+| **proforma_invoice** | 3 | ✅ | pi_form 4개, pi_terms_template 3개 완료 |
+| **purchase_order** | 3 | ✅ | po_form 3개, po_detail 8개 완료 (po_list 스킵) |
+| **session** | 5 | ✅ | 5파일 7개 마이그레이션 완료 |
+| **store_shift** | 4 | ✅ | 4파일 8개 마이그레이션 완료 |
+| **cash_transaction** | 4 | ✅ | 3파일 error 마이그레이션 (Row+Icon 스킵) |
+| **my_page** | 3 | ✅ | privacy, language, my_page 완료 |
+| **inventory_management** | 4 | ✅ | 4파일 마이그레이션 완료 (단순 패턴만) |
+| **counter_party** | 2 | ✅ | 2파일 마이그레이션 완료 (account_mapping) |
+| **employee_setting** | 1 | ✅ | role_tab 3개 마이그레이션 완료 |
+| **notifications** | 1 | ❌ | Row+Icon 로딩 패턴, feature 유지 |
+| **cash_ending** | 2 | ✅ | vault_tab, completion_page 마이그레이션 완료 |
+| **balance_sheet** | 2 | ✅ | bs_tab, pnl_tab 마이그레이션 완료 |
+| **journal_input** | 2 | ✅ | add_transaction, attachment_picker 완료 |
+| **letter_of_credit** | 1 | ✅ | lc_form 2개 마이그레이션 완료 |
+| **trade_dashboard** | 1 | ✅ | activity_list_page 마이그레이션 완료 |
+| **report_control** | 1 | ✅ | subscription_dialog 6개 완료 |
+| **time_table_manage** | 1 | ✅ | staff_timelog_detail_page 완료 |
+| **sale_product** | 1 | ✅ | invoice_success_bottom_sheet 완료 |
+| **sales_invoice** | 1 | ✅ | invoice_attachment_section 완료 |
+| **transaction_history** | 1 | ✅ | detail_header_section 완료 |
+| **transaction_template** | 1 | ✅ | template_attachment_picker 완료 |
+| **attendance** | 1 | ✅ | shift_detail_page 3개 완료 |
+| **test** | 1 | ❌ | test_template (건너뛰기) |
+
+### 상태 범례
+- ⬜ 미시작
+- 🔶 진행 중
+- ✅ 완료
+- ❌ 스킵 (복잡한 커스텀 디자인)
+
+### 진행 기록
+
+| 날짜 | 폴더 | 파일 | 변경 내용 |
+|------|------|------|----------|
+| 2026-01-01 | counter_party | counter_party_form.dart | CounterPartyTextField → TossTextField |
+| 2026-01-01 | homepage | homepage.dart | ScaffoldMessenger 2개 → TossToast.error |
+| 2026-01-01 | my_page | privacy_security_page.dart | _showComingSoon → TossToast.info |
+| 2026-01-01 | my_page | language_settings_page.dart | 2개 → TossToast.success/error |
+| 2026-01-01 | my_page | my_page.dart | sign out error → TossToast.error |
+| 2026-01-01 | session | session_count_detail_page.dart | 2개 → TossToast.success |
+| 2026-01-01 | session | session_compare_page.dart | 2개 → TossToast.success/error |
+| 2026-01-01 | session | session_detail_page.dart | 1개 → TossToast.info |
+| 2026-01-01 | session | create_session_page.dart | 1개 → TossToast.error |
+| 2026-01-01 | session | shipment_picker_sheet.dart | 1개 → TossToast.info |
+| 2026-01-01 | proforma_invoice | pi_form_page.dart | 4개 → TossToast.error |
+| 2026-01-01 | proforma_invoice | pi_terms_template_section.dart | 3개 → TossToast.success/error |
+| 2026-01-01 | purchase_order | po_form_page.dart | 3개 → TossToast.error |
+| 2026-01-01 | purchase_order | po_detail_page.dart | 8개 → TossToast.success/error |
+| 2026-01-01 | store_shift | store_shift_page.dart | 2개 → TossToast.error |
+| 2026-01-01 | store_shift | qr_code_section.dart | 2개 → TossToast.success/error |
+| 2026-01-01 | store_shift | template_form_dialog.dart | 2개 → TossToast.success/error |
+| 2026-01-01 | store_shift | schedule_tab.dart | 2개 → TossToast.success/error |
+| 2026-01-01 | cash_transaction | expense_entry_sheet.dart | 1개 → TossToast.error |
+| 2026-01-01 | cash_transaction | transfer_entry_sheet.dart | 1개 → TossToast.error |
+| 2026-01-01 | cash_transaction | debt_entry_sheet.dart | 1개 → TossToast.error |
+| 2026-01-01 | employee_setting | role_tab.dart | 3개 → TossToast.success/error |
+| 2026-01-01 | letter_of_credit | lc_form_page.dart | 2개 → TossToast.error |
+| 2026-01-01 | cash_ending | vault_tab.dart | 1개 → TossToast.error |
+| 2026-01-01 | cash_ending | cash_ending_completion_page.dart | _showMessage → TossToast |
+| 2026-01-01 | balance_sheet | bs_tab_content.dart | 1개 → TossToast.info |
+| 2026-01-01 | balance_sheet | pnl_tab_content.dart | 1개 → TossToast.info |
+| 2026-01-01 | journal_input | add_transaction_dialog.dart | 1개 → TossToast.error |
+| 2026-01-01 | journal_input | attachment_picker_section.dart | _showError → TossToast.error |
+| 2026-01-01 | trade_dashboard | activity_list_page.dart | 1개 → TossToast.error |
+| 2026-01-01 | report_control | subscription_dialog.dart | 6개 → TossToast.success/error |
+| 2026-01-01 | time_table_manage | staff_timelog_detail_page.dart | _showError → TossToast.error |
+| 2026-01-01 | sale_product | invoice_success_bottom_sheet.dart | _showErrorSnackBar → TossToast.error |
+| 2026-01-01 | sales_invoice | invoice_attachment_section.dart | _showError → TossToast.error |
+| 2026-01-01 | transaction_history | detail_header_section.dart | 1개 → TossToast.success |
+| 2026-01-01 | transaction_template | template_attachment_picker_section.dart | _showError → TossToast.error |
+| 2026-01-01 | attendance | shift_detail_page.dart | 3개 → TossToast.success/error |
+| 2026-01-01 | counter_party | account_mapping_form_sheet.dart | _showSuccess → TossToast.success |
+| 2026-01-01 | counter_party | debt_account_settings_page.dart | 2개 → TossToast.success/error |
+| 2026-01-01 | inventory_management | product_header_section.dart | 1개 → TossToast.success |
+| 2026-01-01 | inventory_management | inventory_search_page.dart | 1개 → TossToast.info |
+| 2026-01-01 | inventory_management | inventory_management_page.dart | 1개 → TossToast.info |
+| 2026-01-01 | inventory_management | attributes_edit_page.dart | 1개 → TossToast.warning |
 
 ---
 

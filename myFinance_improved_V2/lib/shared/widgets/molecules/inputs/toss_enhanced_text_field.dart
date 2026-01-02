@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/keyboard/toss_keyboard_toolbar.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/inputs/toss_text_field.dart';
 
@@ -138,8 +139,8 @@ class _TossEnhancedTextFieldState extends State<TossEnhancedTextField> {
 
         // Keyboard toolbar (Molecule) - appears when keyboard is visible and field is focused
         AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
+          duration: TossAnimations.medium,
+          curve: TossAnimations.decelerate,
           height: showToolbar ? 44 : 0,
           child: showToolbar
               ? TossKeyboardToolbar(

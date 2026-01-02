@@ -197,27 +197,12 @@ class _CategoryCreationDialogState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Category Name Field
-            Text(
-              'Category Name *',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            TossTextField(
+              label: 'Category Name',
               controller: _nameController,
-              decoration: InputDecoration(
-                hintText: 'Enter category name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space3,
-                  vertical: TossSpacing.space3,
-                ),
-              ),
+              hintText: 'Enter category name',
               autofocus: true,
+              isRequired: true,
             ),
 
             const SizedBox(height: 16),
@@ -273,45 +258,18 @@ class _CategoryCreationDialogState
         Row(
           children: [
             Expanded(
-              child: TextButton(
+              child: TossButton.textButton(
+                text: 'Cancel',
                 onPressed: _isCreating ? null : () => context.pop(),
-                child: Text(
-                  'Cancel',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: ElevatedButton(
+              child: TossButton.primary(
+                text: 'Create',
                 onPressed:
                     (_isCreating || _isNameEmpty) ? null : _createCategory,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray200
-                      : TossColors.primary,
-                  foregroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray900
-                      : Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                ),
-                child: _isCreating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            TossColors.gray600,
-                          ),
-                        ),
-                      )
-                    : const Text('Create'),
+                isLoading: _isCreating,
               ),
             ),
           ],

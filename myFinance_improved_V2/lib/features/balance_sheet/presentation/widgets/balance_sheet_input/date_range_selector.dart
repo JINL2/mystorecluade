@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart' hide DateRange;
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -293,35 +294,19 @@ class DateRangeSelector extends ConsumerWidget {
                     Padding(
                       padding:
                           const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final newDateRange = DateRange(
-                              startDate: tempStartDate,
-                              endDate: tempEndDate,
-                            );
-                            ref
-                                .read(balanceSheetPageNotifierProvider.notifier)
-                                .changeDateRange(newDateRange);
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TossColors.primary,
-                            foregroundColor: TossColors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: TossSpacing.space4,),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(TossBorderRadius.xl),
-                            ),
-                          ),
-                          child: Text(
-                            'Apply',
-                            style: TossTextStyles.button,
-                          ),
-                        ),
+                      child: TossButton.primary(
+                        text: 'Apply',
+                        onPressed: () {
+                          final newDateRange = DateRange(
+                            startDate: tempStartDate,
+                            endDate: tempEndDate,
+                          );
+                          ref
+                              .read(balanceSheetPageNotifierProvider.notifier)
+                              .changeDateRange(newDateRange);
+                          Navigator.pop(context);
+                        },
+                        fullWidth: true,
                       ),
                     ),
 
@@ -424,26 +409,9 @@ class _QuickSelectButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
+    return TossButton.outlinedGray(
+      text: label,
       onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: TossColors.primary,
-        side: const BorderSide(color: TossColors.gray300),
-        padding: const EdgeInsets.symmetric(
-          vertical: TossSpacing.space2,
-          horizontal: TossSpacing.space2,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-      ),
-      child: Text(
-        label,
-        style: TossTextStyles.caption.copyWith(
-          color: TossColors.gray700,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
     );
   }
 }

@@ -17,6 +17,7 @@ import 'feedback/toss_empty_view_use_case.dart';
 import 'feedback/toss_error_view_use_case.dart';
 import 'feedback/toss_refresh_indicator_use_case.dart';
 import 'feedback/toss_skeleton_use_case.dart';
+import 'feedback/toss_toast_use_case.dart';
 
 // Inputs
 import 'inputs/toss_text_field_use_case.dart';
@@ -27,7 +28,7 @@ import 'layout/toss_section_header_use_case.dart';
 import 'layout/gray_divider_space_use_case.dart';
 
 final atomsDirectory = WidgetbookCategory(
-  name: 'Atoms (16)',
+  name: 'Atoms (17)',
   children: [
     WidgetbookFolder(
       name: 'Buttons (2)',
@@ -48,13 +49,14 @@ final atomsDirectory = WidgetbookCategory(
       ],
     ),
     WidgetbookFolder(
-      name: 'Feedback (5)',
+      name: 'Feedback (6)',
       children: [
         tossLoadingViewComponent,
         tossEmptyViewComponent,
         tossErrorViewComponent,
         tossRefreshIndicatorComponent,
         tossSkeletonComponent,
+        tossToastComponent,
       ],
     ),
     WidgetbookFolder(

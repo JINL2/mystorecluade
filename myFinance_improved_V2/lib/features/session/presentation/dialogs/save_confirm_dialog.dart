@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../providers/states/session_detail_state.dart';
 
 /// Dialog for confirming save action with item preview
@@ -128,33 +128,17 @@ class SaveConfirmDialog extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton(
+          child: TossButton.outlinedGray(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: TossColors.textPrimary,
-              side: const BorderSide(color: TossColors.border),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-            ),
-            child: const Text('Cancel'),
           ),
         ),
         const SizedBox(width: TossSpacing.space3),
         Expanded(
-          child: ElevatedButton(
+          child: TossButton.primary(
+            text: 'Save',
             onPressed: onConfirm,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: typeColor,
-              foregroundColor: TossColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              ),
-              elevation: 0,
-            ),
-            child: const Text('Save'),
+            backgroundColor: typeColor,
           ),
         ),
       ],

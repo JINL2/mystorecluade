@@ -119,19 +119,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
   void _deleteAttribute(int index) {
     final attribute = _attributes[index];
     if (attribute.isBuiltIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Cannot delete built-in attribute',
-            style: TossTextStyles.caption.copyWith(color: TossColors.white),
-          ),
-          backgroundColor: TossColors.gray800,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-        ),
-      );
+      TossToast.warning(context, 'Cannot delete built-in attribute');
       return;
     }
 
@@ -154,30 +142,19 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
           style: TossTextStyles.body.copyWith(color: TossColors.gray700),
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: TossColors.gray600,
-              ),
-            ),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Delete',
+            textColor: TossColors.error,
             onPressed: () {
               setState(() {
                 _attributes.removeAt(index);
               });
               Navigator.pop(context);
             },
-            child: Text(
-              'Delete',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: TossColors.error,
-              ),
-            ),
           ),
         ],
       ),

@@ -113,18 +113,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
           Navigator.of(context).pop(result);
 
           // 5. 성공 메시지 표시
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Successfully joined ${result.entityName}!',
-              ),
-              backgroundColor: TossColors.success,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-            ),
-          );
+          TossToast.success(context, 'Successfully joined ${result.entityName}!');
         },
       );
     });
@@ -210,32 +199,12 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                   // Code input field
-                  TextFormField(
+                  TossTextField.filled(
                     controller: _codeController,
+                    label: 'Code',
+                    hintText: 'Enter invite code',
                     autofocus: true,
                     textCapitalization: TextCapitalization.characters,
-                    decoration: InputDecoration(
-                      labelText: 'Code',
-                      hintText: 'Enter invite code',
-                      filled: true,
-                      fillColor: TossColors.gray100,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        borderSide: const BorderSide(color: TossColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        borderSide: const BorderSide(color: TossColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        borderSide: const BorderSide(color: TossColors.primary, width: 2),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        borderSide: const BorderSide(color: TossColors.error),
-                      ),
-                    ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter a code';
@@ -319,12 +288,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
       );
 
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please log in first'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, 'Please log in first');
         return;
       }
 

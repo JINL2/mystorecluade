@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -90,10 +91,10 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                 style: TossTextStyles.body.copyWith(color: TossColors.error),
               ),
               const SizedBox(height: TossSpacing.space2),
-              ElevatedButton(
+              TossButton.primary(
+                text: 'Retry',
                 onPressed: () =>
                     ref.invalidate(rolePermissionsProvider(widget.roleId)),
-                child: const Text('Retry'),
               ),
             ],
           ),
@@ -133,7 +134,8 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
         ),
         // Quick actions
         if (widget.canEdit)
-          TextButton(
+          TossButton.textButton(
+            text: widget.selectedPermissions.isEmpty ? 'Select all' : 'Clear all',
             onPressed: () {
               if (widget.selectedPermissions.isEmpty) {
                 // Select all available permissions
@@ -151,12 +153,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                 widget.onPermissionsChanged({});
               }
             },
-            child: Text(
-              widget.selectedPermissions.isEmpty ? 'Select all' : 'Clear all',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
+            textColor: TossColors.gray600,
           ),
       ],
     );
@@ -289,7 +286,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                 alignment: Alignment.center,
                 child: AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
+                  duration: TossAnimations.normal,
                   child: const Icon(
                     Icons.expand_more,
                     color: TossColors.gray600,
@@ -323,7 +320,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
           height: 32,
           alignment: Alignment.center,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
             width: 20,
             height: 20,
             decoration: BoxDecoration(
@@ -392,7 +389,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                 height: 32,
                 alignment: Alignment.center,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: TossAnimations.normal,
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(

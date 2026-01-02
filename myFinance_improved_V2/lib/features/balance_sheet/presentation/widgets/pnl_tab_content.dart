@@ -181,9 +181,7 @@ class PnlTabContent extends ConsumerWidget {
 
     // 데이터가 로드되지 않았으면 로딩 표시
     if (!detailAsync.hasValue || !summaryAsync.hasValue) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Loading data...')),
-      );
+      TossToast.info(context, 'Loading data...');
       return;
     }
 

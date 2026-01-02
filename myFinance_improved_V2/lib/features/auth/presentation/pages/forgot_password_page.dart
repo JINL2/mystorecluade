@@ -160,15 +160,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
                       // Back to login link
                       Center(
-                        child: TextButton(
+                        child: TossButton.textButton(
+                          text: 'Back to sign in',
                           onPressed: () => context.pop(),
-                          child: Text(
-                            'Back to sign in',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],

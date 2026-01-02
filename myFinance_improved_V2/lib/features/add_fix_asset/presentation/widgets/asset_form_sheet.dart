@@ -545,76 +545,21 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton(
+          child: TossButton.outlinedGray(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4 + 2),
-              side: const BorderSide(color: TossColors.gray300, width: 1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-            ),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
           ),
         ),
         const SizedBox(width: TossSpacing.space3),
         Expanded(
           flex: 2,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  TossColors.primary.withValues(alpha: 0.9),
-                  TossColors.primary,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              boxShadow: [
-                BoxShadow(
-                  color: TossColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ElevatedButton(
-              onPressed: _handleSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TossColors.transparent,
-                shadowColor: TossColors.transparent,
-                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4 + 2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isEdit ? Icons.check_circle_outline : Icons.add_circle_outline,
-                    color: TossColors.white,
-                    size: 20,
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  Text(
-                    isEdit ? 'Save Changes' : 'Add Asset',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
+          child: TossButton.primary(
+            text: isEdit ? 'Save Changes' : 'Add Asset',
+            onPressed: _handleSave,
+            leadingIcon: Icon(
+              isEdit ? Icons.check_circle_outline : Icons.add_circle_outline,
+              color: TossColors.white,
+              size: 20,
             ),
           ),
         ),

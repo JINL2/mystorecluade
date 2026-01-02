@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -81,7 +82,7 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
                 const Spacer(),
                 AnimatedRotation(
                   turns: _isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
+                  duration: TossAnimations.normal,
                   child: const Icon(
                     Icons.keyboard_arrow_down,
                     color: TossColors.gray600,
@@ -98,7 +99,7 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
             secondChild: _buildItemsList(),
             crossFadeState:
                 _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
           ),
         ],
       ),

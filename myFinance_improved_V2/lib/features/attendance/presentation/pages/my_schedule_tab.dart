@@ -426,11 +426,11 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
               shiftCards: primaryShiftCards,
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const TossLoadingView(),
           error: (_, __) => _buildEmptyStateOnly(),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const TossLoadingView(),
       error: (_, __) => _buildEmptyStateOnly(),
     );
   }
@@ -1007,14 +1007,9 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: TossSpacing.space1),
-                TextButton(
+                TossButton.textButton(
+                  text: 'Go to shift sign up',
                   onPressed: _goToShiftSignUpTab,
-                  child: Text(
-                    'Go to shift sign up',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.primary,
-                    ),
-                  ),
                 ),
               ],
             ),

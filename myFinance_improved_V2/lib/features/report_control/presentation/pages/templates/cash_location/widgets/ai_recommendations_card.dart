@@ -26,7 +26,7 @@ class AiRecommendationsCard extends StatelessWidget {
         border: Border.all(color: TossColors.gray200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: TossColors.black.withOpacity(0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -52,7 +52,7 @@ class AiRecommendationsCard extends StatelessWidget {
                   child: const Icon(
                     LucideIcons.sparkles,
                     size: 16,
-                    color: Colors.white,
+                    color: TossColors.white,
                   ),
                 ),
                 const SizedBox(width: 10),

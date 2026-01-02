@@ -18,11 +18,11 @@ void showDeleteShiftDialog(
       title: const Text('Delete Shift'),
       content: Text('Are you sure you want to delete "${shift.shiftName}"?'),
       actions: [
-        TextButton(
+        TossButton.textButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          text: 'Cancel',
         ),
-        TextButton(
+        TossButton.textButton(
           onPressed: () async {
             try {
               await ref.read(deleteShiftProvider)(shift.shiftId);
@@ -54,8 +54,8 @@ void showDeleteShiftDialog(
               }
             }
           },
-          style: TextButton.styleFrom(foregroundColor: TossColors.error),
-          child: const Text('Delete'),
+          text: 'Delete',
+          textColor: TossColors.error,
         ),
       ],
     ),

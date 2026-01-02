@@ -44,7 +44,7 @@ class TemplateSubscriptionCard extends StatelessWidget {
         ),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),

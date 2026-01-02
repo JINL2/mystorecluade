@@ -30,6 +30,7 @@ export 'feedback/toss_empty_view.dart';
 export 'feedback/toss_error_view.dart';
 export 'feedback/toss_refresh_indicator.dart';
 export 'feedback/toss_skeleton.dart';
+export 'feedback/toss_toast.dart';
 // LAYOUT
 export 'layout/gray_divider_space.dart';
 export 'layout/toss_section_header.dart';

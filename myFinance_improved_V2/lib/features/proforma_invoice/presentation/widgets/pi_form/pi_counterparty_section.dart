@@ -34,7 +34,7 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
     showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           top: MediaQuery.of(context).size.height * 0.1,
@@ -186,7 +186,7 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
         ),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () => _showBottomSheet(counterparties),
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -223,7 +223,7 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
   void _showBottomSheet(List<CounterpartyData> counterparties) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         constraints: BoxConstraints(
@@ -283,7 +283,7 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
                       vertical: 2,
                     ),
                     child: Material(
-                      color: Colors.transparent,
+                      color: TossColors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                         onTap: () {

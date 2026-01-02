@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -70,14 +71,7 @@ class SessionUserSection extends StatelessWidget {
               GestureDetector(
                 onTap: isLoadingUsers ? null : onRefresh,
                 child: isLoadingUsers
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: TossColors.gray400,
-                        ),
-                      )
+                    ? TossLoadingView.inline(size: 20, color: TossColors.gray400)
                     : const Icon(
                         Icons.refresh,
                         color: TossColors.gray500,
@@ -102,14 +96,7 @@ class SessionUserSection extends StatelessWidget {
               GestureDetector(
                 onTap: (isJoining || hasCurrentUserJoined) ? null : onJoin,
                 child: isJoining
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: TossColors.primary,
-                        ),
-                      )
+                    ? TossLoadingView.inline(size: 20)
                     : Text(
                         '+ Join',
                         style: TossTextStyles.body.copyWith(

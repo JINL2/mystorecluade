@@ -98,7 +98,7 @@ class DailyAttendanceDetailPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alertCircle, size: 64, color: Colors.red),
+            Icon(LucideIcons.alertCircle, size: 64, color: TossColors.error),
             SizedBox(height: TossSpacing.space4),
             Text(
               message,
@@ -186,13 +186,13 @@ class _OverviewSection extends StatelessWidget {
                   Icon(
                     LucideIcons.alertCircle,
                     size: 16,
-                    color: heroStats.totalIssues > 0 ? Colors.red : TossColors.gray400,
+                    color: heroStats.totalIssues > 0 ? TossColors.error : TossColors.gray400,
                   ),
                   SizedBox(width: TossSpacing.space1),
                   Text(
                     '${heroStats.totalIssues}',
                     style: TossTextStyles.bodyMedium.copyWith(
-                      color: heroStats.totalIssues > 0 ? Colors.red : TossColors.gray600,
+                      color: heroStats.totalIssues > 0 ? TossColors.error : TossColors.gray600,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -203,13 +203,13 @@ class _OverviewSection extends StatelessWidget {
                   Icon(
                     LucideIcons.checkCircle,
                     size: 16,
-                    color: Colors.green,
+                    color: TossColors.success,
                   ),
                   SizedBox(width: TossSpacing.space1),
                   Text(
                     '$solvedCount',
                     style: TossTextStyles.bodyMedium.copyWith(
-                      color: Colors.green,
+                      color: TossColors.success,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -220,13 +220,13 @@ class _OverviewSection extends StatelessWidget {
                   Icon(
                     LucideIcons.clock,
                     size: 16,
-                    color: unsolvedCount > 0 ? Colors.orange : TossColors.gray400,
+                    color: unsolvedCount > 0 ? TossColors.warning : TossColors.gray400,
                   ),
                   SizedBox(width: TossSpacing.space1),
                   Text(
                     '$unsolvedCount',
                     style: TossTextStyles.bodyMedium.copyWith(
-                      color: unsolvedCount > 0 ? Colors.orange : TossColors.gray600,
+                      color: unsolvedCount > 0 ? TossColors.warning : TossColors.gray600,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -329,13 +329,13 @@ class _StorePerformanceSection extends StatelessWidget {
             IconData statusIcon;
 
             if (status == 'critical') {
-              statusColor = Colors.red;
+              statusColor = TossColors.error;
               statusIcon = LucideIcons.xCircle;
             } else if (status == 'warning') {
-              statusColor = Colors.orange;
+              statusColor = TossColors.warning;
               statusIcon = LucideIcons.alertCircle;
             } else {
-              statusColor = Colors.green;
+              statusColor = TossColors.success;
               statusIcon = LucideIcons.checkCircle;
             }
 
@@ -392,7 +392,7 @@ class _StorePerformanceSection extends StatelessWidget {
                     Text(
                       'No issues',
                       style: TossTextStyles.caption.copyWith(
-                        color: Colors.green,
+                        color: TossColors.success,
                       ),
                     ),
                 ],
@@ -431,7 +431,7 @@ class _IssuesDetailSectionState extends State<_IssuesDetailSection> {
         child: Center(
           child: Column(
             children: [
-              Icon(LucideIcons.checkCircle, size: 48, color: Colors.green),
+              Icon(LucideIcons.checkCircle, size: 48, color: TossColors.success),
               SizedBox(height: TossSpacing.space3),
               Text(
                 'No issues found',
@@ -457,7 +457,7 @@ class _IssuesDetailSectionState extends State<_IssuesDetailSection> {
             title: 'Pending Issues',
             subtitle: '${unsolvedIssues.length} employees need attention',
             icon: LucideIcons.alertCircle,
-            iconColor: Colors.red,
+            iconColor: TossColors.error,
             issues: unsolvedIssues,
             expandedStates: _expandedStates,
             onToggle: (index) {
@@ -475,7 +475,7 @@ class _IssuesDetailSectionState extends State<_IssuesDetailSection> {
             title: 'Resolved Issues',
             subtitle: '${solvedIssues.length} issues resolved by managers',
             icon: LucideIcons.checkCircle,
-            iconColor: Colors.green,
+            iconColor: TossColors.success,
             issues: solvedIssues,
             expandedStates: _expandedStates,
             onToggle: (index) {
@@ -671,7 +671,7 @@ class _IssueGroupContainer extends StatelessWidget {
                                   Icon(
                                     issue.isSolved ? LucideIcons.userCheck : LucideIcons.clock,
                                     size: 12,
-                                    color: issue.isSolved ? Colors.green : TossColors.gray500,
+                                    color: issue.isSolved ? TossColors.success : TossColors.gray500,
                                   ),
                                   SizedBox(width: 2),
                                   Text(
@@ -681,7 +681,7 @@ class _IssueGroupContainer extends StatelessWidget {
                                             : 'Resolved')
                                         : 'Pending',
                                     style: TossTextStyles.small.copyWith(
-                                      color: issue.isSolved ? Colors.green : TossColors.gray600,
+                                      color: issue.isSolved ? TossColors.success : TossColors.gray600,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -699,8 +699,8 @@ class _IssueGroupContainer extends StatelessWidget {
                     Divider(
                       height: 1,
                       color: isCritical
-                          ? Colors.red.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
+                          ? TossColors.error.withOpacity(0.1)
+                          : TossColors.warning.withOpacity(0.1),
                     ),
                     Padding(
                       padding: EdgeInsets.all(TossSpacing.paddingSM),
@@ -793,13 +793,13 @@ class _ManagerQualitySection extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: TossColors.warning.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
                   LucideIcons.flag,
                   size: TossSpacing.iconSM,
-                  color: Colors.amber,
+                  color: TossColors.warning,
                 ),
               ),
               SizedBox(width: TossSpacing.gapMD),
@@ -820,10 +820,10 @@ class _ManagerQualitySection extends StatelessWidget {
               margin: EdgeInsets.only(bottom: TossSpacing.space2),
               padding: EdgeInsets.all(TossSpacing.paddingSM),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.05),
+                color: TossColors.warning.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 border: Border.all(
-                  color: Colors.amber.withOpacity(0.2),
+                  color: TossColors.warning.withOpacity(0.2),
                   width: 1,
                 ),
               ),
@@ -833,7 +833,7 @@ class _ManagerQualitySection extends StatelessWidget {
                   Icon(
                     LucideIcons.alertTriangle,
                     size: TossSpacing.iconXS,
-                    color: Colors.amber,
+                    color: TossColors.warning,
                   ),
                   SizedBox(width: TossSpacing.space2),
                   Expanded(
@@ -1205,7 +1205,7 @@ class _PaymentTimeBar extends StatelessWidget {
                       Text(
                         '${netPayment >= 0 ? "+" : ""}${netPayment} min',
                         style: TossTextStyles.bodyMedium.copyWith(
-                          color: netPayment >= 0 ? Colors.green : Colors.red,
+                          color: netPayment >= 0 ? TossColors.success : TossColors.error,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1319,13 +1319,13 @@ class _ComparisonTimeBar extends StatelessWidget {
                   Icon(
                     LucideIcons.clock,
                     size: 12,
-                    color: startDiff > 0 ? Colors.red : Colors.green,
+                    color: startDiff > 0 ? TossColors.error : TossColors.success,
                   ),
                   SizedBox(width: 2),
                   Text(
                     '${startDiff > 0 ? "+" : ""}${startDiff} min',
                     style: TossTextStyles.labelSmall.copyWith(
-                      color: startDiff > 0 ? Colors.red : Colors.green,
+                      color: startDiff > 0 ? TossColors.error : TossColors.success,
                     ),
                   ),
                 ],
@@ -1337,14 +1337,14 @@ class _ComparisonTimeBar extends StatelessWidget {
                   Text(
                     '${endDiff > 0 ? "+" : ""}${endDiff} min',
                     style: TossTextStyles.labelSmall.copyWith(
-                      color: endDiff > 0 ? Colors.green : Colors.red,
+                      color: endDiff > 0 ? TossColors.success : TossColors.error,
                     ),
                   ),
                   SizedBox(width: 2),
                   Icon(
                     LucideIcons.clock,
                     size: 12,
-                    color: endDiff > 0 ? Colors.green : Colors.red,
+                    color: endDiff > 0 ? TossColors.success : TossColors.error,
                   ),
                 ],
               ),
@@ -1387,12 +1387,12 @@ class _ComparisonTimeBar extends StatelessWidget {
                               if (startDiff > 0)
                                 Container(
                                   width: 40,
-                                  color: Colors.red.withOpacity(0.6),
+                                  color: TossColors.error.withOpacity(0.6),
                                 )
                               else if (startDiff < 0)
                                 Container(
                                   width: 30,
-                                  color: Colors.green.withOpacity(0.6),
+                                  color: TossColors.success.withOpacity(0.6),
                                 ),
                               // Middle - Normal
                               Expanded(child: SizedBox()),
@@ -1400,12 +1400,12 @@ class _ComparisonTimeBar extends StatelessWidget {
                               if (endDiff > 0)
                                 Container(
                                   width: 25,
-                                  color: Colors.green.withOpacity(0.6),
+                                  color: TossColors.success.withOpacity(0.6),
                                 )
                               else if (endDiff < 0)
                                 Container(
                                   width: 20,
-                                  color: Colors.red.withOpacity(0.6),
+                                  color: TossColors.error.withOpacity(0.6),
                                 ),
                             ],
                           ),

@@ -10,16 +10,18 @@ enum TossButtonVariant {
   outlined,
   outlinedGray,
   textButton,
+  destructive,
 }
 
 /// Unified Toss-style button with full customization support
 ///
-/// Supports 5 variants:
+/// Supports 6 variants:
 /// - `primary` - Blue filled button (main CTA)
 /// - `secondary` - Gray filled button
 /// - `outlined` - Blue border, transparent background
 /// - `outlinedGray` - Gray border, transparent background
 /// - `textButton` - No background, no border (just text)
+/// - `destructive` - Red filled button (delete/danger actions)
 ///
 /// Example:
 /// ```dart
@@ -27,6 +29,8 @@ enum TossButtonVariant {
 /// TossButton.secondary(text: 'Cancel', onPressed: () {})
 /// TossButton.outlined(text: 'Edit', onPressed: () {})
 /// TossButton.textButton(text: 'Learn more', onPressed: () {})
+/// TossButton.destructive(text: 'Delete', onPressed: () {})
+/// TossButton.primary(text: 'Next', trailingIcon: Icon(Icons.arrow_forward), onPressed: () {})
 /// ```
 class TossButton extends StatefulWidget {
   final String text;
@@ -34,6 +38,7 @@ class TossButton extends StatefulWidget {
   final bool isLoading;
   final bool isEnabled;
   final Widget? leadingIcon;
+  final Widget? trailingIcon;
   final bool fullWidth;
   final TossButtonVariant variant;
 
@@ -51,6 +56,9 @@ class TossButton extends StatefulWidget {
   final double? borderWidth;
   final double? fontSize;
   final FontWeight? fontWeight;
+  final double? height;
+  final double? minWidth;
+  final double? iconSize;
 
   // Customizable loading indicator
   final double? loadingIndicatorSize;
@@ -70,6 +78,7 @@ class TossButton extends StatefulWidget {
     this.isLoading = false,
     this.isEnabled = true,
     this.leadingIcon,
+    this.trailingIcon,
     this.fullWidth = false,
     this.variant = TossButtonVariant.primary,
     // Color customization
@@ -85,6 +94,9 @@ class TossButton extends StatefulWidget {
     this.borderWidth,
     this.fontSize,
     this.fontWeight,
+    this.height,
+    this.minWidth,
+    this.iconSize,
     // Loading indicator customization
     this.loadingIndicatorSize,
     this.loadingIndicatorStrokeWidth,
@@ -103,6 +115,7 @@ class TossButton extends StatefulWidget {
     bool isLoading = false,
     bool isEnabled = true,
     Widget? leadingIcon,
+    Widget? trailingIcon,
     bool fullWidth = false,
     Color? backgroundColor,
     Color? textColor,
@@ -111,6 +124,9 @@ class TossButton extends StatefulWidget {
     double? borderRadius,
     double? fontSize,
     FontWeight? fontWeight,
+    double? height,
+    double? minWidth,
+    double? iconSize,
     TextStyle? textStyle,
     int? debounceDurationMs,
     bool enablePressAnimation = true,
@@ -122,6 +138,7 @@ class TossButton extends StatefulWidget {
       isLoading: isLoading,
       isEnabled: isEnabled,
       leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
       fullWidth: fullWidth,
       variant: TossButtonVariant.primary,
       backgroundColor: backgroundColor,
@@ -131,6 +148,9 @@ class TossButton extends StatefulWidget {
       borderRadius: borderRadius,
       fontSize: fontSize,
       fontWeight: fontWeight,
+      height: height,
+      minWidth: minWidth,
+      iconSize: iconSize,
       textStyle: textStyle,
       debounceDurationMs: debounceDurationMs,
       enablePressAnimation: enablePressAnimation,
@@ -145,6 +165,7 @@ class TossButton extends StatefulWidget {
     bool isLoading = false,
     bool isEnabled = true,
     Widget? leadingIcon,
+    Widget? trailingIcon,
     bool fullWidth = false,
     Color? backgroundColor,
     Color? textColor,
@@ -153,6 +174,9 @@ class TossButton extends StatefulWidget {
     double? borderRadius,
     double? fontSize,
     FontWeight? fontWeight,
+    double? height,
+    double? minWidth,
+    double? iconSize,
     TextStyle? textStyle,
     int? debounceDurationMs,
     bool enablePressAnimation = true,
@@ -164,6 +188,7 @@ class TossButton extends StatefulWidget {
       isLoading: isLoading,
       isEnabled: isEnabled,
       leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
       fullWidth: fullWidth,
       variant: TossButtonVariant.secondary,
       backgroundColor: backgroundColor,
@@ -173,6 +198,9 @@ class TossButton extends StatefulWidget {
       borderRadius: borderRadius,
       fontSize: fontSize,
       fontWeight: fontWeight,
+      height: height,
+      minWidth: minWidth,
+      iconSize: iconSize,
       textStyle: textStyle,
       debounceDurationMs: debounceDurationMs,
       enablePressAnimation: enablePressAnimation,
@@ -187,13 +215,18 @@ class TossButton extends StatefulWidget {
     bool isLoading = false,
     bool isEnabled = true,
     Widget? leadingIcon,
+    Widget? trailingIcon,
     bool fullWidth = false,
+    Color? backgroundColor,
     Color? borderColor,
     Color? textColor,
     EdgeInsets? padding,
     double? borderRadius,
     double? fontSize,
     FontWeight? fontWeight,
+    double? height,
+    double? minWidth,
+    double? iconSize,
     TextStyle? textStyle,
     int? debounceDurationMs,
     bool enablePressAnimation = true,
@@ -205,14 +238,19 @@ class TossButton extends StatefulWidget {
       isLoading: isLoading,
       isEnabled: isEnabled,
       leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
       fullWidth: fullWidth,
       variant: TossButtonVariant.outlined,
+      backgroundColor: backgroundColor,
       borderColor: borderColor,
       textColor: textColor,
       padding: padding,
       borderRadius: borderRadius,
       fontSize: fontSize,
       fontWeight: fontWeight,
+      height: height,
+      minWidth: minWidth,
+      iconSize: iconSize,
       textStyle: textStyle,
       debounceDurationMs: debounceDurationMs,
       enablePressAnimation: enablePressAnimation,
@@ -227,6 +265,7 @@ class TossButton extends StatefulWidget {
     bool isLoading = false,
     bool isEnabled = true,
     Widget? leadingIcon,
+    Widget? trailingIcon,
     bool fullWidth = false,
     Color? borderColor,
     Color? textColor,
@@ -234,6 +273,9 @@ class TossButton extends StatefulWidget {
     double? borderRadius,
     double? fontSize,
     FontWeight? fontWeight,
+    double? height,
+    double? minWidth,
+    double? iconSize,
     TextStyle? textStyle,
     int? debounceDurationMs,
     bool enablePressAnimation = true,
@@ -245,6 +287,7 @@ class TossButton extends StatefulWidget {
       isLoading: isLoading,
       isEnabled: isEnabled,
       leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
       fullWidth: fullWidth,
       variant: TossButtonVariant.outlinedGray,
       borderColor: borderColor,
@@ -253,6 +296,9 @@ class TossButton extends StatefulWidget {
       borderRadius: borderRadius,
       fontSize: fontSize,
       fontWeight: fontWeight,
+      height: height,
+      minWidth: minWidth,
+      iconSize: iconSize,
       textStyle: textStyle,
       debounceDurationMs: debounceDurationMs,
       enablePressAnimation: enablePressAnimation,
@@ -267,11 +313,15 @@ class TossButton extends StatefulWidget {
     bool isLoading = false,
     bool isEnabled = true,
     Widget? leadingIcon,
+    Widget? trailingIcon,
     bool fullWidth = false,
     Color? textColor,
     EdgeInsets? padding,
     double? fontSize,
     FontWeight? fontWeight,
+    double? height,
+    double? minWidth,
+    double? iconSize,
     TextStyle? textStyle,
     int? debounceDurationMs,
     bool enablePressAnimation = true,
@@ -283,12 +333,64 @@ class TossButton extends StatefulWidget {
       isLoading: isLoading,
       isEnabled: isEnabled,
       leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
       fullWidth: fullWidth,
       variant: TossButtonVariant.textButton,
       textColor: textColor,
       padding: padding,
       fontSize: fontSize,
       fontWeight: fontWeight,
+      height: height,
+      minWidth: minWidth,
+      iconSize: iconSize,
+      textStyle: textStyle,
+      debounceDurationMs: debounceDurationMs,
+      enablePressAnimation: enablePressAnimation,
+    );
+  }
+
+  /// Factory constructor for destructive button (delete/danger actions)
+  factory TossButton.destructive({
+    Key? key,
+    required String text,
+    VoidCallback? onPressed,
+    bool isLoading = false,
+    bool isEnabled = true,
+    Widget? leadingIcon,
+    Widget? trailingIcon,
+    bool fullWidth = false,
+    Color? backgroundColor,
+    Color? textColor,
+    EdgeInsets? padding,
+    double? borderRadius,
+    double? fontSize,
+    FontWeight? fontWeight,
+    double? height,
+    double? minWidth,
+    double? iconSize,
+    TextStyle? textStyle,
+    int? debounceDurationMs,
+    bool enablePressAnimation = true,
+  }) {
+    return TossButton(
+      key: key,
+      text: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      isEnabled: isEnabled,
+      leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
+      fullWidth: fullWidth,
+      variant: TossButtonVariant.destructive,
+      backgroundColor: backgroundColor,
+      textColor: textColor,
+      padding: padding,
+      borderRadius: borderRadius,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      height: height,
+      minWidth: minWidth,
+      iconSize: iconSize,
       textStyle: textStyle,
       debounceDurationMs: debounceDurationMs,
       enablePressAnimation: enablePressAnimation,
@@ -347,6 +449,8 @@ class _TossButtonState extends State<TossButton>
         return TossColors.primary;
       case TossButtonVariant.secondary:
         return TossColors.gray100;
+      case TossButtonVariant.destructive:
+        return TossColors.error;
       case TossButtonVariant.outlined:
       case TossButtonVariant.outlinedGray:
       case TossButtonVariant.textButton:
@@ -365,6 +469,7 @@ class _TossButtonState extends State<TossButton>
 
     switch (widget.variant) {
       case TossButtonVariant.primary:
+      case TossButtonVariant.destructive:
         return TossColors.white;
       case TossButtonVariant.secondary:
         return TossColors.gray900;
@@ -388,6 +493,7 @@ class _TossButtonState extends State<TossButton>
         return TossColors.gray300;
       case TossButtonVariant.primary:
       case TossButtonVariant.secondary:
+      case TossButtonVariant.destructive:
       case TossButtonVariant.textButton:
         return TossColors.transparent;
     }
@@ -471,8 +577,11 @@ class _TossButtonState extends State<TossButton>
 
   @override
   Widget build(BuildContext context) {
+    final iconSize = widget.iconSize ?? TossSpacing.iconXS;
+
     final content = SizedBox(
-      width: widget.fullWidth ? double.infinity : null,
+      width: widget.fullWidth ? double.infinity : widget.minWidth,
+      height: widget.height,
       child: Material(
         color: TossColors.transparent,
         child: InkWell(
@@ -515,7 +624,7 @@ class _TossButtonState extends State<TossButton>
                   IconTheme(
                     data: IconThemeData(
                       color: _getTextColor(),
-                      size: TossSpacing.iconXS,
+                      size: iconSize,
                     ),
                     child: widget.leadingIcon!,
                   ),
@@ -534,6 +643,16 @@ class _TossButtonState extends State<TossButton>
                     maxLines: 1,
                   ),
                 ),
+                if (!widget.isLoading && widget.trailingIcon != null) ...[
+                  const SizedBox(width: TossSpacing.space2),
+                  IconTheme(
+                    data: IconThemeData(
+                      color: _getTextColor(),
+                      size: iconSize,
+                    ),
+                    child: widget.trailingIcon!,
+                  ),
+                ],
               ],
             ),
           ),

@@ -441,21 +441,14 @@ class _EditTemplateBottomSheetState
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.8),
+          color: TossColors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         ),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(
-                width: 40,
-                height: 40,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-                ),
-              ),
+              const TossLoadingView.inline(size: 40),
               const SizedBox(height: TossSpacing.space3),
               Text(
                 'Saving changes...',

@@ -6,6 +6,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/providers/repository_providers.dart';
@@ -342,7 +344,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
         barGroups: _buildBarGroups(chartPoints, maxY),
         alignment: BarChartAlignment.spaceAround,
       ),
-      duration: const Duration(milliseconds: 250),
+      duration: TossAnimations.medium,
     );
   }
 
@@ -476,12 +478,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: TossColors.primary,
-        strokeWidth: 2,
-      ),
-    );
+    return const TossLoadingView();
   }
 
   Widget _buildEmptyState() {

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -56,7 +57,7 @@ class _InvoiceSearchPageState extends ConsumerState<InvoiceSearchPage> {
     });
 
     _searchDebounceTimer?.cancel();
-    _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+    _searchDebounceTimer = Timer(TossAnimations.debounceDelay, () {
       _performSearch(value);
     });
   }
@@ -186,11 +187,7 @@ class _InvoiceSearchPageState extends ConsumerState<InvoiceSearchPage> {
     }
 
     if (_isSearching) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-        ),
-      );
+      return const TossLoadingView();
     }
 
     if (_searchResults.isEmpty) {

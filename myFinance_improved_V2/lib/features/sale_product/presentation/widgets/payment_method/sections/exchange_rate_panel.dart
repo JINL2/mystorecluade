@@ -215,11 +215,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+            const TossLoadingView.inline(size: 16),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Loading real-time rates...',

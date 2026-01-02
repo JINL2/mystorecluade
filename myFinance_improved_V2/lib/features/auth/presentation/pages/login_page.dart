@@ -115,7 +115,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       end: AuthConstants.fadeEnd,
     ).animate(CurvedAnimation(
       parent: _passwordRevealController,
-      curve: Curves.easeOutCubic,
+      curve: TossAnimations.decelerate,
     ),);
 
     _buttonPulseAnimation = Tween<double>(
@@ -123,7 +123,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       end: AuthConstants.pulseScaleEnd,
     ).animate(CurvedAnimation(
       parent: _buttonPulseController,
-      curve: Curves.easeInOut,
+      curve: TossAnimations.standard,
     ),);
 
     // Setup listeners
@@ -371,7 +371,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         // Forgot password
-        TextButton(
+        TossButton.textButton(
+          text: 'Forgot password?',
           onPressed: () {
             // Stop animations before navigation
             _animationController.stop();
@@ -381,18 +382,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
             // Navigate to forgot password page
             context.push('/auth/forgot-password');
           },
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'Forgot password?',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          padding: EdgeInsets.zero,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
       ],
     );
@@ -443,28 +435,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       // Show success message
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(
-                Icons.check_circle,
-                color: TossColors.white,
-                size: AuthConstants.iconSizeLarge,
-              ),
-              SizedBox(width: TossSpacing.space2),
-              Text('Welcome back to Storebase!'),
-            ],
-          ),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      TossToast.success(context, 'Welcome back to Storebase!');
 
       // That's it! GoRouter will automatically redirect based on:
       // - isAuthenticatedProvider (true)
@@ -474,176 +445,32 @@ class _LoginPageState extends ConsumerState<LoginPage>
     } on ValidationException catch (e) {
       // Handle validation errors
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.message,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, e.message);
       }
     } on InvalidCredentialsException catch (e) {
       // Handle invalid credentials
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.message,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, e.message);
       }
     } on EmailNotVerifiedException catch (e) {
       // Handle email not verified
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.email_outlined, color: Colors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.message,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.warning,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        TossToast.warning(context, e.message);
       }
     } on NetworkException {
       // Handle network errors
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.wifi_off, color: Colors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    'Connection issue. Please check your internet and try again.',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, 'Connection issue. Please check your internet and try again.');
       }
     } on AuthException catch (e) {
       // Handle other auth exceptions
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.message,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, e.message);
       }
     } catch (e) {
       // Handle unexpected errors
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    'Unable to sign in. Please try again or contact support.',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AuthConstants.borderRadiusStandard),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, 'Unable to sign in. Please try again or contact support.');
       }
     } finally {
       if (mounted) {

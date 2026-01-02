@@ -5,6 +5,7 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'quick_fill_row.dart';
 
 /// Quick Fill Section Widget
@@ -103,17 +104,10 @@ class QuickFillSection extends StatelessWidget {
           // Apply All Button
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: TossButton.outlined(
               onPressed: onApplyBoth,
-              icon: const Icon(LucideIcons.copyCheck, size: 16),
-              label: const Text('Apply Both'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: TossColors.primary,
-                side: const BorderSide(color: TossColors.primary),
-                padding: const EdgeInsets.symmetric(
-                  vertical: TossSpacing.space3,
-                ),
-              ),
+              leadingIcon: const Icon(LucideIcons.copyCheck, size: 18),
+              text: 'Apply Both',
             ),
           ),
         ],

@@ -90,7 +90,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     );
 
     _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: TossAnimations.dialogEnter,
       vsync: this,
     );
 
@@ -115,7 +115,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _successController,
-      curve: Curves.easeIn,
+      curve: TossAnimations.enter,
     ),);
 
     _successScaleAnimation = Tween<double>(
@@ -123,7 +123,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _successController,
-      curve: Curves.easeOutBack,
+      curve: TossAnimations.emphasis,
     ),);
 
     // Add validation listeners
@@ -260,15 +260,9 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
               ),
             ),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Skip',
             onPressed: _isLoading ? null : _navigateToDashboard,
-            child: Text(
-              'Skip',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
         ],
       ),
@@ -475,50 +469,11 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
     required String hint,
     TextInputType? keyboardType,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 4),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TossTextStyles.body.copyWith(
-              color: TossColors.textTertiary,
-            ),
-            filled: true,
-            fillColor: TossColors.gray50,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space3,
-              vertical: TossSpacing.space2,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: const BorderSide(color: TossColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: const BorderSide(color: TossColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              borderSide: const BorderSide(color: TossColors.primary, width: 2),
-            ),
-          ),
-        ),
-      ],
+    return TossTextField.filled(
+      label: label,
+      controller: controller,
+      hintText: hint,
+      keyboardType: keyboardType,
     );
   }
 
@@ -642,7 +597,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
       );
 
       // Small delay for backend to update
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(TossAnimations.slower);
 
       // ✅ Use GetUserDataUseCase instead of direct RPC call
       final getUserDataUseCase = ref.read(getUserDataUseCaseProvider);
@@ -809,22 +764,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
   // ==========================================
 
   void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: TossColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-      ),
-    );
+    TossToast.error(context, message);
   }
 
 }

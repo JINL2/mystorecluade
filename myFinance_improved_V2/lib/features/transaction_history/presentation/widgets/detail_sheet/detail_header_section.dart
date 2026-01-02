@@ -11,6 +11,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/transaction.dart';
 
 /// Header section for transaction detail sheet
@@ -90,12 +91,7 @@ class DetailHeaderSection extends StatelessWidget {
         text: 'JRN-${transaction.journalNumber.substring(0, 8).toUpperCase()}',
       ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Journal number copied'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    TossToast.success(context, 'Journal number copied');
   }
 }
 

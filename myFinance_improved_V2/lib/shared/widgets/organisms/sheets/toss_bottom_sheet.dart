@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 /// Toss-style bottom sheet with smooth animations
 class TossBottomSheet extends StatelessWidget {
@@ -92,8 +93,8 @@ class TossBottomSheet extends StatelessWidget {
     
     // Use AnimatedPadding to smoothly push content when keyboard appears
     return AnimatedPadding(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+      duration: TossAnimations.normal,
+      curve: TossAnimations.decelerate,
       padding: EdgeInsets.only(bottom: keyboardHeight),
       child: Container(
         constraints: BoxConstraints(

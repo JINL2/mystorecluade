@@ -14,6 +14,7 @@ import '../../domain/usecases/create_error_adjustment_usecase.dart';
 import '../../domain/usecases/create_foreign_currency_translation_usecase.dart';
 import '../../di/injection.dart';
 import '../providers/cash_ending_provider.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Extracted components
 import 'cash_ending_completion/auto_balance_type.dart';
@@ -126,9 +127,7 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const TossLoadingView(),
       );
 
       if (type == AutoBalanceType.error) {
@@ -176,13 +175,11 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
 
   void _showMessage(String message, {required bool isError}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? TossColors.error : TossColors.success,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    if (isError) {
+      TossToast.error(context, message);
+    } else {
+      TossToast.success(context, message);
+    }
   }
 
   void _showAutoBalanceTypeSelection() {

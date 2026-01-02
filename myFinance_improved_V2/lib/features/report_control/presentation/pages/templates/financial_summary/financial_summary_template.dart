@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../domain/entities/report_notification.dart';
 import '../../../../domain/entities/report_detail.dart';
 import '../../../utils/report_parser.dart';
@@ -61,7 +63,7 @@ class FinancialSummaryTemplate {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const Icon(Icons.error_outline, size: 64, color: TossColors.error),
             const SizedBox(height: 16),
             Text(message),
           ],
@@ -176,7 +178,7 @@ class _FinancialSummaryLoaderState
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: Text(widget.notification.title)),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const TossLoadingView(),
       );
     }
 

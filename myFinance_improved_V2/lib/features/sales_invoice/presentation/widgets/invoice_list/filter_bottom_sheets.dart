@@ -187,11 +187,7 @@ class InvoiceFilterBottomSheets {
             if (invoiceState.isLoadingCashLocations)
               const Padding(
                 padding: EdgeInsets.all(TossSpacing.space4),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(TossColors.primary),
-                  ),
-                ),
+                child: TossLoadingView(),
               ),
             // Empty state
             if (!invoiceState.isLoadingCashLocations && cashLocations.isEmpty)

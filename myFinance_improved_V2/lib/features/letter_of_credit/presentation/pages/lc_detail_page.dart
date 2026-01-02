@@ -48,9 +48,9 @@ class LCDetailPage extends ConsumerWidget {
               const SizedBox(height: TossSpacing.space3),
               Text('Failed to load LC', style: TossTextStyles.bodyLarge),
               const SizedBox(height: TossSpacing.space2),
-              TextButton(
+              TossButton.textButton(
+                text: 'Retry',
                 onPressed: () => ref.invalidate(lcDetailProvider(lcId)),
-                child: const Text('Retry'),
               ),
             ],
           ),
@@ -125,8 +125,8 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
                 const PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
-                    leading: Icon(Icons.delete, color: Colors.red),
-                    title: Text('Delete', style: TextStyle(color: Colors.red)),
+                    leading: Icon(Icons.delete, color: TossColors.error),
+                    title: Text('Delete', style: TextStyle(color: TossColors.error)),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -731,18 +731,14 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
             title: Text(title),
             content: Text(message),
             actions: [
-              TextButton(
+              TossButton.secondary(
+                text: 'Cancel',
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
               ),
-              ElevatedButton(
+              TossButton.primary(
+                text: isDestructive ? 'Delete' : 'Confirm',
                 onPressed: () => Navigator.pop(context, true),
-                style: isDestructive
-                    ? ElevatedButton.styleFrom(
-                        backgroundColor: TossColors.error,
-                      )
-                    : null,
-                child: Text(isDestructive ? 'Delete' : 'Confirm'),
+                backgroundColor: isDestructive ? TossColors.error : null,
               ),
             ],
           ),
@@ -757,20 +753,19 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Amendment'),
-        content: TextField(
+        content: TossTextField.filled(
           controller: summaryController,
           maxLines: 4,
-          decoration: const InputDecoration(
-            labelText: 'Changes Summary',
-            hintText: 'Describe the changes...',
-          ),
+          inlineLabel: 'Changes Summary',
+          hintText: 'Describe the changes...',
         ),
         actions: [
-          TextButton(
+          TossButton.secondary(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          TossButton.primary(
+            text: 'Add',
             onPressed: () async {
               if (summaryController.text.isNotEmpty) {
                 final notifier = ref.read(lcFormNotifierProvider.notifier);
@@ -786,7 +781,6 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
                 }
               }
             },
-            child: const Text('Add'),
           ),
         ],
       ),

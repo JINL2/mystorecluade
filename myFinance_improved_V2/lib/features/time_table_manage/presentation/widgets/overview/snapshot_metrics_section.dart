@@ -91,7 +91,7 @@ class SnapshotMetricsSection extends StatelessWidget {
                 showModalBottomSheet<void>(
                   context: context,
                   isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
+                  backgroundColor: TossColors.transparent,
                   builder: (sheetContext) => _MetricBottomSheet(
                     title: label,
                     users: users,
@@ -235,40 +235,42 @@ class _MetricBottomSheet extends StatelessWidget {
                 final card = index < cards.length ? cards[index] : null;
                 final canTap = card != null && onEmployeeTap != null;
 
-                return GestureDetector(
-                  onTap: canTap ? () => onEmployeeTap!(card) : null,
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: Row(
-                      children: [
-                        // Avatar
-                        EmployeeProfileAvatar(
-                          imageUrl: user.avatarUrl,
-                          name: user.name,
-                          size: 40,
-                        ),
-                        const SizedBox(width: 12),
+                return Material(
+                  color: TossColors.transparent,
+                  child: InkWell(
+                    onTap: canTap ? () => onEmployeeTap!(card) : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Row(
+                        children: [
+                          // Avatar
+                          EmployeeProfileAvatar(
+                            imageUrl: user.avatarUrl,
+                            name: user.name,
+                            size: 40,
+                          ),
+                          const SizedBox(width: 12),
 
-                        // Name
-                        Expanded(
-                          child: Text(
-                            user.name,
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray900,
-                              fontWeight: FontWeight.w600,
+                          // Name
+                          Expanded(
+                            child: Text(
+                              user.name,
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.gray900,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
 
-                        // Chevron icon for navigation hint
-                        if (canTap)
-                          const Icon(
-                            Icons.chevron_right,
-                            color: TossColors.gray400,
-                            size: 20,
-                          ),
-                      ],
+                          // Chevron icon for navigation hint
+                          if (canTap)
+                            const Icon(
+                              Icons.chevron_right,
+                              color: TossColors.gray400,
+                              size: 20,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 );

@@ -70,27 +70,16 @@ class DenominationGrid extends ConsumerWidget {
           style: TossTextStyles.body,
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => context.pop(),
-            child: Text(
-              'Cancel',
-              style: TossTextStyles.labelLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Delete',
             onPressed: () async {
               context.pop();
               await _removeDenominationWithRefresh(context, ref, denomination);
             },
-            child: Text(
-              'Delete',
-              style: TossTextStyles.labelLarge.copyWith(
-                color: TossColors.error,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
         ],
       ),

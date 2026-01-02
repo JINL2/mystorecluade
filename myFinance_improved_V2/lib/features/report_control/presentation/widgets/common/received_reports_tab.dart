@@ -287,9 +287,9 @@ class ReceivedReportsTab extends ConsumerWidget {
                       ),
                       if (state.hasActiveFilters) ...[
                         const SizedBox(height: 8),
-                        TextButton(
+                        TossButton.textButton(
+                          text: ReportStrings.filterReset,
                           onPressed: () => notifier.clearFilters(),
-                          child: const Text(ReportStrings.filterReset),
                         ),
                       ],
                     ],
@@ -360,14 +360,14 @@ class ReceivedReportsTab extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (context, scrollController) => Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: TossColors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
@@ -688,7 +688,7 @@ class ReceivedReportsTab extends ConsumerWidget {
   void _showExampleMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: TossColors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),

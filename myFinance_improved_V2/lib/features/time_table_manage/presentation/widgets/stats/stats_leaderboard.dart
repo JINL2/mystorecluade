@@ -172,7 +172,7 @@ class _LeaderboardTab extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isActive ? TossColors.primary : Colors.transparent,
+              color: isActive ? TossColors.primary : TossColors.transparent,
               width: 3,
             ),
           ),
@@ -204,85 +204,88 @@ class _LeaderboardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-      padding: const EdgeInsets.only(bottom: TossSpacing.space6),
-      child: Row(
-        children: [
-          // Rank number
-          SizedBox(
-            width: 24,
-            child: Text(
-              employee.rank.toString(),
-              textAlign: TextAlign.center,
-              style: TossTextStyles.body.copyWith(
-                color: isNeedsAttention ? TossColors.error : TossColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(width: TossSpacing.space3),
-
-          // Avatar
-          EmployeeProfileAvatar(
-            imageUrl: employee.avatarUrl,
-            name: employee.name,
-            size: 44,
-            showBorder: true,
-            borderColor: TossColors.gray200,
-          ),
-          const SizedBox(width: TossSpacing.space3),
-
-          // Name and subtitle
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  employee.name,
-                  style: TossTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  employee.subtitle,
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w400,
-                    color: TossColors.gray600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Score and change (if available)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: TossSpacing.space6),
+          child: Row(
             children: [
-              Text(
-                employee.score.toString(),
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              // Only show change if RPC provides historical data
-              if (employee.change != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  '${employee.isPositive ? '+' : ''}${employee.change}',
-                  style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: employee.isPositive ? TossColors.primary : TossColors.error,
+              // Rank number
+              SizedBox(
+                width: 24,
+                child: Text(
+                  employee.rank.toString(),
+                  textAlign: TextAlign.center,
+                  style: TossTextStyles.body.copyWith(
+                    color: isNeedsAttention ? TossColors.error : TossColors.primary,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(width: TossSpacing.space3),
+
+              // Avatar
+              EmployeeProfileAvatar(
+                imageUrl: employee.avatarUrl,
+                name: employee.name,
+                size: 44,
+                showBorder: true,
+                borderColor: TossColors.gray200,
+              ),
+              const SizedBox(width: TossSpacing.space3),
+
+              // Name and subtitle
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      employee.name,
+                      style: TossTextStyles.titleMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      employee.subtitle,
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: TossColors.gray600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Score and change (if available)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    employee.score.toString(),
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  // Only show change if RPC provides historical data
+                  if (employee.change != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '${employee.isPositive ? '+' : ''}${employee.change}',
+                      style: TossTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: employee.isPositive ? TossColors.primary : TossColors.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
@@ -40,8 +41,8 @@ class _SessionBottomBarState extends State<SessionBottomBar> {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      duration: TossAnimations.slow,
+      curve: TossAnimations.standard,
       decoration: const BoxDecoration(
         color: TossColors.white,
         boxShadow: [

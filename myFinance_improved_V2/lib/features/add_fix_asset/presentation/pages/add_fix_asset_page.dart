@@ -241,14 +241,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         title: const Text('Delete Asset'),
         content: const Text('Are you sure you want to delete this asset?'),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Delete',
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: TossColors.error),
-            child: const Text('Delete'),
+            textColor: TossColors.error,
           ),
         ],
       ),

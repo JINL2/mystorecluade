@@ -224,7 +224,7 @@ class HomepageHeader extends ConsumerWidget {
   void _showCompanyStoreDrawer(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,

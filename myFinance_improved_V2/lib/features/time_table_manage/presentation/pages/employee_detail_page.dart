@@ -82,7 +82,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       backgroundColor: TossColors.white,
       appBar: _buildAppBar(),
       body: state.isLoading && monthlyData == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const TossLoadingView()
           : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

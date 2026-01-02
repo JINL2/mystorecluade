@@ -22,12 +22,12 @@ class PIListItemWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),

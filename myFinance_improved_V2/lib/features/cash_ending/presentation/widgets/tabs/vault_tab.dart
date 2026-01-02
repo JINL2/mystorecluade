@@ -17,10 +17,10 @@ import '../../providers/vault_tab_provider.dart';
 import '../section_label.dart';
 import '../store_selector.dart';
 import '../../pages/cash_ending_completion_page.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Extracted widgets
 import 'vault_tab/vault_tab_widgets.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Vault Tab - Denomination-based counting with Debit/Credit (In/Out)
 ///
@@ -437,12 +437,7 @@ class _VaultTabState extends ConsumerState<VaultTab> {
         },
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to execute recount: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        TossToast.error(context, 'Failed to execute recount: $e');
       }
     }
   }

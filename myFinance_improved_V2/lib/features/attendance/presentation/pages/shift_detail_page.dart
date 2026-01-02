@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:myfinance_improved/core/monitoring/sentry_config.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/features/attendance/domain/entities/shift_card.dart';
 import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
@@ -95,6 +96,16 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
       _isSubmittingReport = true;
     });
 
+    // Log breadcrumb for tracking
+    SentryConfig.addBreadcrumb(
+      message: 'Submitting shift report',
+      category: 'attendance',
+      data: {
+        'shiftRequestId': widget.shift.shiftRequestId,
+        'reason': reason,
+      },
+    );
+
     try {
       final now = DateTime.now();
       final time = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
@@ -111,9 +122,42 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
       if (!mounted) return;
 
       // Either pattern: fold to get success value
+      // Log result type for debugging
+      SentryConfig.addBreadcrumb(
+        message: 'reportShiftIssue result received',
+        category: 'attendance',
+        data: {
+          'resultType': result.runtimeType.toString(),
+          'isRight': result.isRight(),
+        },
+      );
+
       final success = result.fold(
-        (failure) => false,
-        (data) => data,
+        (failure) {
+          SentryConfig.captureMessage(
+            'ShiftDetailPage: Report submission failed',
+            extra: {
+              'shiftRequestId': widget.shift.shiftRequestId,
+              'failure': failure.toString(),
+            },
+          );
+          return false;
+        },
+        (data) {
+          // Ensure data is bool type
+          if (data is! bool) {
+            SentryConfig.captureMessage(
+              'ShiftDetailPage: Unexpected data type in fold',
+              extra: {
+                'shiftRequestId': widget.shift.shiftRequestId,
+                'dataType': data.runtimeType.toString(),
+                'data': data.toString(),
+              },
+            );
+            return false;
+          }
+          return data;
+        },
       );
 
       if (success) {
@@ -122,20 +166,23 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
             '${requestDate.year}-${requestDate.month.toString().padLeft(2, '0')}';
         ref.invalidate(monthlyShiftCardsProvider(yearMonth));
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Report submitted successfully'),
-            backgroundColor: TossColors.success,
-          ),
-        );
+        TossToast.success(context, 'Report submitted successfully');
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to submit report. Please try again.'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, 'Failed to submit report. Please try again.');
+      }
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'ShiftDetailPage._submitReport failed',
+        extra: {
+          'shiftRequestId': widget.shift.shiftRequestId,
+          'reason': reason,
+        },
+      );
+      if (mounted) {
+        TossToast.error(context, 'Error: ${e.toString()}');
       }
     } finally {
       if (mounted) {
@@ -187,32 +234,11 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: TossColors.gray50,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                      border: Border.all(color: TossColors.gray200, width: 1),
-                    ),
-                    child: TextField(
-                      controller: reasonController,
-                      maxLines: 4,
-                      maxLength: 500,
-                      enabled: !isSubmitting,
-                      decoration: InputDecoration(
-                        hintText: 'Enter the reason for reporting this issue...',
-                        hintStyle: TossTextStyles.bodyLarge.copyWith(
-                          color: TossColors.gray400,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(TossSpacing.space4),
-                        counterStyle: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        color: TossColors.gray900,
-                      ),
-                    ),
+                  TossTextField.filled(
+                    controller: reasonController,
+                    hintText: 'Enter the reason for reporting this issue...',
+                    maxLines: 4,
+                    enabled: !isSubmitting,
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -238,12 +264,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                               : () async {
                                   final reason = reasonController.text.trim();
                                   if (reason.isEmpty) {
-                                    ScaffoldMessenger.of(this.context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Please enter a reason'),
-                                        backgroundColor: TossColors.error,
-                                      ),
-                                    );
+                                    TossToast.error(this.context, 'Please enter a reason');
                                     return;
                                   }
                                   setBottomSheetState(() {

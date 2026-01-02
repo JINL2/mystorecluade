@@ -249,9 +249,7 @@ class _SmartDebtControlPageState extends ConsumerState<SmartDebtControlPage>
             ),
             borderRadius: BorderRadius.circular(TossBorderRadius.cardLarge),
           ),
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: const TossLoadingView(),
         ),
       ),
       error: (_, __) => const SliverToBoxAdapter(

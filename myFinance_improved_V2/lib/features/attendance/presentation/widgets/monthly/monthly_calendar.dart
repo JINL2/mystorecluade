@@ -121,22 +121,26 @@ class MonthlyCalendar extends StatelessWidget {
       }
     }
 
-    return GestureDetector(
-      onTap: () => onDateSelected?.call(date),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.2) : bgColor,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: isToday
-              ? Border.all(color: TossColors.primary, width: 2)
-              : null,
-        ),
-        child: Center(
-          child: Text(
-            '${date.day}',
-            style: TossTextStyles.caption.copyWith(
-              color: textColor,
-              fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.normal,
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: () => onDateSelected?.call(date),
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected ? TossColors.primary.withValues(alpha: 0.2) : bgColor,
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            border: isToday
+                ? Border.all(color: TossColors.primary, width: 2)
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              '${date.day}',
+              style: TossTextStyles.caption.copyWith(
+                color: textColor,
+                fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
             ),
           ),
         ),

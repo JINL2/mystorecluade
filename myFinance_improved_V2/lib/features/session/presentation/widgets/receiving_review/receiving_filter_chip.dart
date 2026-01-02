@@ -33,7 +33,7 @@ class ReceivingFilterChip extends StatelessWidget {
         ),
         margin: const EdgeInsets.only(right: TossSpacing.space2),
         decoration: BoxDecoration(
-          color: isActive ? activeColor.withValues(alpha: 0.1) : Colors.transparent,
+          color: isActive ? activeColor.withValues(alpha: 0.1) : TossColors.transparent,
           borderRadius: BorderRadius.circular(TossBorderRadius.full),
           border: Border.all(
             color: isActive ? activeColor : TossColors.gray200,

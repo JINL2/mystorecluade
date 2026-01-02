@@ -300,21 +300,15 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                           ),
                           const SizedBox(height: TossSpacing.space5),
                           // Retry button
-                          ElevatedButton.icon(
+                          TossButton.primary(
+                            text: 'Retry',
                             onPressed: () => _refreshData(),
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Retry'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              foregroundColor: TossColors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: TossSpacing.space5,
-                                vertical: TossSpacing.space3,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                              ),
+                            leadingIcon: const Icon(Icons.refresh),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space5,
+                              vertical: TossSpacing.space3,
                             ),
+                            borderRadius: TossBorderRadius.md,
                           ),
                           // Show technical error details in debug mode
                           if (error.toString().contains('SocketException'))

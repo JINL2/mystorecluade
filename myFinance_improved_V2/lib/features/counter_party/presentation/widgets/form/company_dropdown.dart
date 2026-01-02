@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../providers/counter_party_providers.dart';
 
 /// Company dropdown selector for counter party form
@@ -128,11 +129,7 @@ class CompanyDropdown extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+              TossLoadingView.inline(size: 16),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 'Loading companies...',
@@ -217,7 +214,7 @@ class CompanyDropdown extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.6,

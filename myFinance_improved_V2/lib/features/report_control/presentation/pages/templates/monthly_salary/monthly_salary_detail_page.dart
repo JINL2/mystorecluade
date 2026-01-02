@@ -243,7 +243,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(LucideIcons.alertCircle, size: 64, color: Colors.red),
+            const Icon(LucideIcons.alertCircle, size: 64, color: TossColors.error),
             const SizedBox(height: 16),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: TossSpacing.space8),

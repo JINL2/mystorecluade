@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/product.dart';
 import '../move_stock_dialog.dart';
 import 'store_row_item.dart';
@@ -43,14 +44,10 @@ class ProductLocationsSection extends StatelessWidget {
               _buildSectionHeader(),
               // Loading indicator or store rows
               if (isLoading)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   child: Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+                    child: TossLoadingView.inline(size: 24),
                   ),
                 )
               else

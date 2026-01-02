@@ -49,7 +49,7 @@ class Step3Currency extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () => onCurrencySelected(currency.currencyId),
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),

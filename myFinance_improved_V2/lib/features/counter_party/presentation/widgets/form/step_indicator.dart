@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -27,7 +28,7 @@ class StepIndicator extends StatelessWidget {
             children: [
               // Step dot indicator
               AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
+                duration: TossAnimations.slow,
                 width: index == currentStep ? 32 : 8,
                 height: 8,
                 decoration: BoxDecoration(

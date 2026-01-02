@@ -159,8 +159,8 @@ class TossKeyboardWrapper extends StatelessWidget {
         
         // Keyboard toolbar - appears when keyboard is visible
         AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
+          duration: TossAnimations.medium,
+          curve: TossAnimations.decelerate,
           height: showToolbar ? 44 : 0,
           child: showToolbar
               ? TossKeyboardToolbar(

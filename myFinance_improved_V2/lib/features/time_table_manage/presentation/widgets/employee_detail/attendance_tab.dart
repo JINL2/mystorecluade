@@ -24,7 +24,7 @@ class AttendanceTab extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isActive ? TossColors.primary : Colors.transparent,
+              color: isActive ? TossColors.primary : TossColors.transparent,
               width: 3,
             ),
           ),

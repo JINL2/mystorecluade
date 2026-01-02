@@ -187,9 +187,7 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load PO data: $e')),
-        );
+        TossToast.error(context, 'Failed to load PO data: $e');
       }
       // Set defaults even on error
       setState(() {
@@ -531,10 +529,10 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
                   return _buildDocumentItem(entry.key, entry.value);
                 }),
                 const SizedBox(height: TossSpacing.space2),
-                TextButton.icon(
+                TossButton.textButton(
+                  text: 'Add Document',
+                  leadingIcon: const Icon(Icons.add, size: 18),
                   onPressed: _addDocument,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Document'),
                 ),
               ],
             ),
@@ -545,18 +543,10 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
             _buildSection(
               'Special Conditions',
               [
-                TextField(
+                TossTextField.filled(
                   controller: _specialConditionsController,
+                  hintText: 'Enter special conditions...',
                   maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Enter special conditions...',
-                    filled: true,
-                    fillColor: TossColors.gray50,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: BorderSide(color: TossColors.gray300),
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -567,18 +557,10 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
             _buildSection(
               'Notes',
               [
-                TextField(
+                TossTextField.filled(
                   controller: _notesController,
+                  hintText: 'Internal notes...',
                   maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'Internal notes...',
-                    filled: true,
-                    fillColor: TossColors.gray50,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: BorderSide(color: TossColors.gray300),
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -837,55 +819,34 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
   }
 
   Widget _buildAmountField() {
-    return TextField(
+    return TossTextField.filled(
+      inlineLabel: 'Amount *',
       controller: _amountController,
+      hintText: '',
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        labelText: 'Amount *',
-        prefixText: '$_currencyCode ',
-        errorText: _amountError,
-        filled: true,
-        fillColor: TossColors.gray50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          borderSide: BorderSide(color: TossColors.gray300),
-        ),
-      ),
+      prefixText: '$_currencyCode ',
+      errorText: _amountError,
       onChanged: (_) => setState(() => _amountError = null),
     );
   }
 
   Widget _buildToleranceField(String prefix, TextEditingController controller) {
-    return TextField(
+    return TossTextField.filled(
+      inlineLabel: 'Tolerance $prefix%',
       controller: controller,
+      hintText: '',
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        labelText: 'Tolerance $prefix%',
-        suffixText: '%',
-        filled: true,
-        fillColor: TossColors.gray50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          borderSide: BorderSide(color: TossColors.gray300),
-        ),
-      ),
+      suffixText: '%',
     );
   }
 
   Widget _buildTextField(String label, TextEditingController controller,
       {TextInputType? keyboardType}) {
-    return TextField(
+    return TossTextField.filled(
+      inlineLabel: label,
       controller: controller,
+      hintText: '',
       keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: TossColors.gray50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          borderSide: BorderSide(color: TossColors.gray300),
-        ),
-      ),
     );
   }
 
@@ -1053,7 +1014,7 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
         vertical: TossSpacing.space1,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray300),
       ),
@@ -1267,9 +1228,7 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
-        );
+        TossToast.error(context, 'Failed to save: $e');
       }
     } finally {
       if (mounted) {
@@ -1334,34 +1293,38 @@ class _AddDocumentDialogState extends State<_AddDocumentDialog> {
               },
             ),
             const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Code'),
+            TossTextField(
+              inlineLabel: 'Code',
               controller: TextEditingController(text: _code),
+              hintText: '',
               onChanged: (v) => _code = v,
             ),
             const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Name'),
+            TossTextField(
+              inlineLabel: 'Name',
               controller: TextEditingController(text: _name),
+              hintText: '',
               onChanged: (v) => _name = v,
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(labelText: 'Original Copies'),
+                  child: TossTextField(
+                    inlineLabel: 'Original Copies',
                     keyboardType: TextInputType.number,
                     controller: TextEditingController(text: '$_original'),
+                    hintText: '',
                     onChanged: (v) => _original = int.tryParse(v) ?? 3,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(labelText: 'Copy Copies'),
+                  child: TossTextField(
+                    inlineLabel: 'Copy Copies',
                     keyboardType: TextInputType.number,
                     controller: TextEditingController(text: '$_copy'),
+                    hintText: '',
                     onChanged: (v) => _copy = int.tryParse(v) ?? 3,
                   ),
                 ),
@@ -1371,11 +1334,12 @@ class _AddDocumentDialogState extends State<_AddDocumentDialog> {
         ),
       ),
       actions: [
-        TextButton(
+        TossButton.textButton(
+          text: 'Cancel',
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
         ),
-        ElevatedButton(
+        TossButton.primary(
+          text: 'Add',
           onPressed: () {
             if (_code.isNotEmpty) {
               widget.onAdd(LCRequiredDocumentParams(
@@ -1387,7 +1351,6 @@ class _AddDocumentDialogState extends State<_AddDocumentDialog> {
               Navigator.pop(context);
             }
           },
-          child: const Text('Add'),
         ),
       ],
     );

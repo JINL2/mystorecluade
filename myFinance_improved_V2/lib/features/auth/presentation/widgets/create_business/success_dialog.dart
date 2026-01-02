@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Success Dialog for Create Business
 ///
@@ -61,14 +62,10 @@ class CreateBusinessSuccessDialog extends StatelessWidget {
       actions: [
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton(
+          child: TossButton.primary(
+            text: 'Create Store',
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TossColors.primary,
-              foregroundColor: TossColors.white,
-              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-            ),
-            child: const Text('Create Store'),
+            fullWidth: true,
           ),
         ),
       ],
@@ -114,13 +111,7 @@ class CreateBusinessSuccessDialog extends StatelessWidget {
                 ),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: companyCode));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Company code copied!'),
-                      duration: Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
+                  TossToast.success(context, 'Company code copied!');
                 },
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),

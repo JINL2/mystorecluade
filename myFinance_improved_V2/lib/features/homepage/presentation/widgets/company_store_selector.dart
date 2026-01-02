@@ -12,6 +12,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 import 'bottom_sheets/company_actions_sheet.dart';
 import 'company_store_list.dart';
@@ -187,7 +188,7 @@ class CompanyStoreSelector extends ConsumerWidget {
 
   void _handleJoinCompany(BuildContext context, WidgetRef ref) {
     Navigator.of(context).pop(); // Close company actions sheet
-    Future.delayed(const Duration(milliseconds: 100), () {
+    Future.delayed(TossAnimations.quick, () {
       if (context.mounted) {
         showModalBottomSheet(
           context: context,
@@ -226,16 +227,7 @@ class CompanyStoreSelector extends ConsumerWidget {
     ref.invalidate(userCompaniesProvider);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Company "${company.name}" created successfully!'),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-        ),
-      );
+      TossToast.success(context, 'Company "${company.name}" created successfully!');
     }
   }
 
@@ -275,16 +267,7 @@ class CompanyStoreSelector extends ConsumerWidget {
     ref.invalidate(userCompaniesProvider);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Successfully joined ${result.entityName}!'),
-          backgroundColor: TossColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-        ),
-      );
+      TossToast.success(context, 'Successfully joined ${result.entityName}!');
     }
   }
 }

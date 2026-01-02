@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
+import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 
@@ -40,8 +42,8 @@ class ProductImageWidget extends StatelessWidget {
           memCacheHeight: (size * 2).toInt(),
           placeholder: (context, url) => _buildPlaceholder(),
           errorWidget: (context, url, error) => _buildFallback(),
-          fadeInDuration: const Duration(milliseconds: 150),
-          fadeOutDuration: const Duration(milliseconds: 150),
+          fadeInDuration: TossAnimations.fast,
+          fadeOutDuration: TossAnimations.fast,
         ),
       );
     }
@@ -58,13 +60,9 @@ class ProductImageWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: const Center(
-        child: SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray300),
-          ),
+        child: TossLoadingView.inline(
+          size: 16,
+          color: TossColors.gray300,
         ),
       ),
     );

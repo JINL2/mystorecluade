@@ -61,8 +61,8 @@ class CachedProductImage extends StatelessWidget {
                     placeholder ?? _buildDefaultPlaceholder(),
                 errorWidget: (context, url, error) =>
                     errorWidget ?? _buildDefaultError(),
-                fadeInDuration: const Duration(milliseconds: 150),
-                fadeOutDuration: const Duration(milliseconds: 150),
+                fadeInDuration: TossAnimations.fast,
+                fadeOutDuration: TossAnimations.fast,
               )
             : errorWidget ?? _buildDefaultError(),
       ),

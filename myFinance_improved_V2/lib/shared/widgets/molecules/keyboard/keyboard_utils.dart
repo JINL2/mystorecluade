@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 /// Utility functions for keyboard management across the app
 class KeyboardUtils {
@@ -89,8 +90,8 @@ class KeyboardUtils {
         final scrollOffset = fieldBottom - visibleHeight + 100; // Scroll a bit extra
         controller.animateTo(
           (controller.offset + scrollOffset).clamp(0, controller.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          duration: TossAnimations.slow,
+          curve: TossAnimations.decelerate,
         );
       }
     });
@@ -99,8 +100,8 @@ class KeyboardUtils {
 
 /// Keyboard behavior configuration
 class KeyboardBehaviorConfig {
-  static const Duration animationDuration = Duration(milliseconds: 250);
-  static const Curve animationCurve = Curves.easeOutCubic;
+  static const Duration animationDuration = TossAnimations.medium;
+  static const Curve animationCurve = TossAnimations.enter;
   static const double minKeyboardHeight = 200;
   static const double actionBarHeight = 60;
   static const double defaultBottomPadding = 16;

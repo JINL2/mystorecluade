@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/pi_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -62,9 +59,10 @@ class PITermsTemplateSection extends ConsumerWidget {
         const SizedBox(height: TossSpacing.space3),
 
         // Terms content (editable)
-        _buildTextField(
+        TossTextField.filled(
           controller: termsController,
           label: 'Terms & Conditions Content',
+          hintText: 'Enter Terms & Conditions Content',
           maxLines: 6,
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -72,62 +70,12 @@ class PITermsTemplateSection extends ConsumerWidget {
         // Save as template button
         Align(
           alignment: Alignment.centerRight,
-          child: TextButton.icon(
+          child: TossButton.textButton(
+            text: 'Save as Template',
+            leadingIcon: const Icon(Icons.save_outlined, size: 18),
             onPressed: termsController.text.isNotEmpty
                 ? () => _showSaveTemplateDialog(context, ref)
                 : null,
-            icon: const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save as Template'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TossTextStyles.label.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          style: TossTextStyles.bodyLarge.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Enter $label',
-            hintStyle: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.textTertiary,
-              fontWeight: FontWeight.w400,
-            ),
-            filled: true,
-            fillColor: TossColors.surface,
-            contentPadding: const EdgeInsets.all(TossSpacing.space3),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: const BorderSide(color: TossColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: const BorderSide(color: TossColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              borderSide: const BorderSide(color: TossColors.primary, width: 2),
-            ),
           ),
         ),
       ],
@@ -141,25 +89,22 @@ class PITermsTemplateSection extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Save as Template'),
-        content: TextField(
+        content: TossTextField.filled(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Template Name',
-            hintText: 'e.g., Standard Export Terms',
-          ),
+          inlineLabel: 'Template Name',
+          hintText: 'e.g., Standard Export Terms',
           autofocus: true,
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          TossButton.primary(
+            text: 'Save',
             onPressed: () async {
               if (nameController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a template name')),
-                );
+                TossToast.error(context, 'Please enter a template name');
                 return;
               }
 
@@ -171,18 +116,13 @@ class PITermsTemplateSection extends ConsumerWidget {
               if (context.mounted) {
                 Navigator.pop(context);
                 if (result != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Template "${result.templateName}" saved')),
-                  );
+                  TossToast.success(context, 'Template "${result.templateName}" saved');
                   onTemplateChanged(result.templateId);
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to save template')),
-                  );
+                  TossToast.error(context, 'Failed to save template');
                 }
               }
             },
-            child: const Text('Save'),
           ),
         ],
       ),

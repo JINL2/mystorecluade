@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 // Core - Theme System
 import '../../../../shared/themes/toss_colors.dart';
@@ -251,42 +252,14 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
   Widget _buildJoinButton() {
     final canJoin = _isCodeValid && !_isLoading;
 
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: canJoin ? _handleJoinBusiness : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: canJoin ? TossColors.success : TossColors.gray300,
-          foregroundColor: TossColors.white,
-          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.group_add, size: 18),
-                  const SizedBox(width: TossSpacing.space2),
-                  Text(
-                    'Join Business',
-                    style: TossTextStyles.button.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-      ),
+    return TossButton.primary(
+      text: 'Join Business',
+      onPressed: canJoin ? _handleJoinBusiness : null,
+      isLoading: _isLoading,
+      leadingIcon: const Icon(Icons.group_add, size: 18),
+      fullWidth: true,
+      backgroundColor: TossColors.success,
+      fontWeight: FontWeight.w700,
     );
   }
 
@@ -309,15 +282,10 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
           ],
         ),
         const SizedBox(height: TossSpacing.space3),
-        TextButton(
+        TossButton.textButton(
+          text: 'Create your own business instead',
           onPressed: () => context.go('/onboarding/create-business'),
-          child: Text(
-            'Create your own business instead',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          fontWeight: FontWeight.w600,
         ),
       ],
     );
@@ -428,7 +396,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
 
         if (shouldNavigate == true && mounted) {
           // Small delay for smooth transition (same as create_business_page)
-          await Future.delayed(const Duration(milliseconds: 300));
+          await Future.delayed(TossAnimations.slow);
 
           if (mounted) {
             context.go('/');
@@ -495,17 +463,10 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
           ],
         ),
         actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TossColors.primary,
-                foregroundColor: TossColors.white,
-                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-              ),
-              child: const Text('Go to Dashboard'),
-            ),
+          TossButton.primary(
+            text: 'Go to Dashboard',
+            onPressed: () => Navigator.of(context).pop(true),
+            fullWidth: true,
           ),
         ],
       ),
@@ -513,21 +474,6 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
   }
 
   void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: TossColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        ),
-      ),
-    );
+    TossToast.error(context, message);
   }
 }

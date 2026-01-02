@@ -84,7 +84,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     if (product == null) {
       return const TossScaffold(
         backgroundColor: TossColors.white,
-        body: Center(child: CircularProgressIndicator()),
+        body: TossLoadingView(),
       );
     }
 
@@ -331,14 +331,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           'Are you sure you want to delete "${product.name}"?\n\nThis action cannot be undone.',
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Delete',
+            textColor: TossColors.error,
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: TossColors.error),
-            child: const Text('Delete'),
           ),
         ],
       ),
@@ -367,7 +367,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => const Center(child: CircularProgressIndicator()),
+        builder: (ctx) => const TossLoadingView(),
       );
 
       final repository = ref.read(inventoryRepositoryProvider);

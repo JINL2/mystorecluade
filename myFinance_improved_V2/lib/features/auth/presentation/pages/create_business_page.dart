@@ -306,7 +306,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
       if (mounted) {
         _showSuccessSnackbar('Business created! Company Code: ${company.companyCode}');
 
-        await Future.delayed(const Duration(milliseconds: 300));
+        await Future.delayed(TossAnimations.slow);
 
         if (mounted) {
           final shouldCreateStore = await CreateBusinessSuccessDialog.show(
@@ -344,37 +344,10 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
   }
 
   void _showSuccessSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: TossColors.white, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: TossColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    TossToast.success(context, message);
   }
 
   void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-            const SizedBox(width: TossSpacing.space2),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: TossColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.lg)),
-      ),
-    );
+    TossToast.error(context, message);
   }
 }

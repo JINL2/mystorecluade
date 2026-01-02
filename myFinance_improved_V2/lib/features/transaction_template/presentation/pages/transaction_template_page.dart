@@ -136,11 +136,11 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           AddTemplateBottomSheet.show(context);
         },
         backgroundColor: TossColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
+        icon: const Icon(Icons.add, color: TossColors.white),
         label: Text(
           'New Template',
           style: TossTextStyles.body.copyWith(
-            color: Colors.white,
+            color: TossColors.white,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -151,9 +151,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
   Widget _buildBody(TemplateState state, List<TransactionTemplate> filteredTemplates, bool hasAdminPermission) {
     // Loading state
     if (state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const TossLoadingView();
     }
 
     // Error state
@@ -185,13 +183,9 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: TossSpacing.space4),
-              ElevatedButton(
+              TossButton.primary(
+                text: 'Retry',
                 onPressed: _loadTemplates,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TossColors.primary,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Retry'),
               ),
             ],
           ),
@@ -548,7 +542,7 @@ class _TemplateCard extends ConsumerWidget {
         ],
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () {
             // Open template usage modal with edit permission

@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/product.dart';
 
 /// Product header section with image and basic info
@@ -114,12 +115,7 @@ class ProductHeaderSection extends StatelessWidget {
         GestureDetector(
           onTap: () {
             Clipboard.setData(ClipboardData(text: product.sku));
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('SKU copied to clipboard'),
-                duration: Duration(seconds: 1),
-              ),
-            );
+            TossToast.success(context, 'SKU copied to clipboard');
           },
           child: Icon(
             Icons.copy_outlined,

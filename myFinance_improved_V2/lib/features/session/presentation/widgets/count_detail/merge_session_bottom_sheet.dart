@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -89,7 +90,7 @@ class _MergeSessionBottomSheetState
             if (state.isLoading)
               const Padding(
                 padding: EdgeInsets.all(TossSpacing.space6),
-                child: Center(child: CircularProgressIndicator()),
+                child: TossLoadingView(),
               )
             else if (availableSessions.isEmpty)
               Padding(

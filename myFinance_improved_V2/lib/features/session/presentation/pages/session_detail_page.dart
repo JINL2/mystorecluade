@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -96,7 +97,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
 
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 200), () {
+    _debounceTimer = Timer(TossAnimations.normal, () {
       ref.read(sessionDetailNotifierProvider(_params).notifier).searchProducts(query);
     });
   }
@@ -184,7 +185,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
 
   Widget _buildInventoryList(SessionDetailState state) {
     if (state.isLoadingInventory && state.inventoryProducts.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (state.inventoryProducts.isEmpty) {
@@ -205,7 +206,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             child: Center(
               child: state.isLoadingMoreInventory
-                  ? const CircularProgressIndicator()
+                  ? const TossLoadingView()
                   : const SizedBox.shrink(),
             ),
           );
@@ -226,7 +227,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
 
   Widget _buildSearchResults(SessionDetailState state) {
     if (state.isSearching) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (state.searchResults.isEmpty && state.searchQuery.isNotEmpty) {
@@ -255,7 +256,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             child: Center(
               child: state.isLoadingMoreInventory
-                  ? const CircularProgressIndicator()
+                  ? const TossLoadingView()
                   : const SizedBox.shrink(),
             ),
           );
@@ -323,9 +324,7 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
     final state = ref.read(sessionDetailNotifierProvider(_params));
 
     if (state.selectedProducts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No items to save')),
-      );
+      TossToast.info(context, 'No items to save');
       return;
     }
 

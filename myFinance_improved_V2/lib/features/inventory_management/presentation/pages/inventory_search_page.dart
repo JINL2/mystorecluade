@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state.dart';
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/value_objects/pagination_params.dart';
@@ -62,7 +64,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
     });
 
     _searchDebounceTimer?.cancel();
-    _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+    _searchDebounceTimer = Timer(TossAnimations.debounceDelay, () {
       _performSearch(value);
     });
   }
@@ -188,9 +190,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
     }
 
     if (_isSearching) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const TossLoadingView();
     }
 
     if (_searchResults.isEmpty) {
@@ -236,12 +236,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
     fromLocation ??= allStores.isNotEmpty ? allStores.first : null;
 
     if (fromLocation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No stores available'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      TossToast.info(context, 'No stores available');
       return;
     }
 

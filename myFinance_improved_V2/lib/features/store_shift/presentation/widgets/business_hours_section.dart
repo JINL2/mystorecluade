@@ -77,11 +77,9 @@ class BusinessHoursSection extends ConsumerWidget {
           // Hours List
           hoursAsync.when(
             data: (hours) => _buildHoursList(hours),
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(TossSpacing.space4),
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(TossSpacing.space4),
+              child: TossLoadingView(),
             ),
             error: (e, _) => Center(
               child: Text(

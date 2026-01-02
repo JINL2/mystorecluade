@@ -4,6 +4,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../di/providers.dart';
 import '../../../domain/entities/currency.dart';
@@ -36,60 +37,40 @@ class CurrencyActionButtons extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Add denomination button
-              _buildActionButton(
-                icon: Icons.add,
-                color: TossColors.primary,
-                onPressed: onAddDenomination,
+              Flexible(
+                child: TossButton.outlinedGray(
+                  text: '',
+                  onPressed: onAddDenomination,
+                  leadingIcon: const Icon(Icons.add, size: 20),
+                ),
               ),
 
               // Rate button (only for non-base currencies)
               if (!isBaseCurrency) ...[
                 const SizedBox(width: TossSpacing.space4),
-                _buildActionButton(
-                  icon: Icons.swap_horiz,
-                  color: TossColors.warning,
-                  onPressed: onEditExchangeRate,
+                Flexible(
+                  child: TossButton.outlinedGray(
+                    text: '',
+                    onPressed: onEditExchangeRate,
+                    leadingIcon: const Icon(Icons.swap_horiz, size: 20),
+                  ),
                 ),
               ],
 
               const SizedBox(width: TossSpacing.space4),
 
               // Delete currency button
-              _buildActionButton(
-                icon: Icons.delete_outline,
-                color: TossColors.error,
-                onPressed: onDeleteCurrency,
+              Flexible(
+                child: TossButton.outlinedGray(
+                  text: '',
+                  onPressed: onDeleteCurrency,
+                  leadingIcon: const Icon(Icons.delete_outline, size: 20),
+                ),
               ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Flexible(
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(50, 44),
-          maximumSize: const Size(80, 44),
-          side: BorderSide(color: color),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: color,
-        ),
-      ),
     );
   }
 

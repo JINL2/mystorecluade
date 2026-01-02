@@ -9,6 +9,7 @@ import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../../../journal_input/presentation/providers/journal_input_providers.dart';
 import '../../../../domain/entities/sales_product.dart';
 import '../../common/product_image_widget.dart';
@@ -392,7 +393,7 @@ class _InvoiceSuccessBottomSheetState
               child: const Icon(
                 Icons.close,
                 size: 14,
-                color: Colors.white,
+                color: TossColors.white,
               ),
             ),
           ),
@@ -434,16 +435,7 @@ class _InvoiceSuccessBottomSheetState
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: TossColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-        ),
-      );
+      TossToast.error(context, message);
     }
   }
 
@@ -612,48 +604,10 @@ class _InvoiceSuccessBottomSheetState
 
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton(
+      child: TossButton.primary(
+        text: buttonText,
         onPressed: _isUploading ? null : () => _handleButtonPress(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: TossColors.primary,
-          foregroundColor: TossColors.white,
-          padding: const EdgeInsets.symmetric(
-            vertical: TossSpacing.space3 + 2,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-          elevation: 0,
-        ),
-        child: _isUploading
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                    ),
-                  ),
-                  const SizedBox(width: TossSpacing.space2),
-                  Text(
-                    'Uploading...',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              )
-            : Text(
-                buttonText,
-                style: TossTextStyles.bodyLarge.copyWith(
-                  color: TossColors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+        isLoading: _isUploading,
       ),
     );
   }

@@ -113,23 +113,12 @@ class RoleTab extends ConsumerWidget {
                       padding: const EdgeInsets.only(top: TossSpacing.space3),
                       child: SizedBox(
                         width: double.infinity,
-                        child: OutlinedButton(
+                        child: TossButton.outlined(
+                          text: 'Remove Employee',
                           onPressed: () => _showDeleteConfirmationDialog(context, ref),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: TossColors.error,
-                            side: const BorderSide(color: TossColors.error),
-                            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                            ),
-                          ),
-                          child: Text(
-                            'Remove Employee',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.error,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          borderColor: TossColors.error,
+                          textColor: TossColors.error,
+                          fullWidth: true,
                         ),
                       ),
                     );
@@ -167,9 +156,7 @@ class RoleTab extends ConsumerWidget {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const TossLoadingView(),
     );
 
     try {
@@ -200,34 +187,19 @@ class RoleTab extends ConsumerWidget {
           Navigator.of(context).pop();
 
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${employee.fullName} has been removed from the company.'),
-              backgroundColor: TossColors.success,
-            ),
-          );
+          TossToast.success(context, '${employee.fullName} has been removed from the company.');
         }
       } else {
         // Show error message
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text((result['message'] as String?) ?? 'Failed to remove employee.'),
-              backgroundColor: TossColors.error,
-            ),
-          );
+          TossToast.error(context, (result['message'] as String?) ?? 'Failed to remove employee.');
         }
       }
     } catch (e) {
       // Hide loading indicator
       if (context.mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, 'Error: $e');
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -50,15 +51,9 @@ class TradeTimelineWidget extends StatelessWidget {
               left: 48,
               top: TossSpacing.space2,
             ),
-            child: TextButton(
+            child: TossButton.textButton(
+              text: 'View all ${activities.length} activities',
               onPressed: onViewAll,
-              child: Text(
-                'View all ${activities.length} activities',
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
           ),
       ],

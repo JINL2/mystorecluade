@@ -558,8 +558,8 @@ class _UsersBottomSheet extends StatelessWidget {
     return GestureDetector(
       onTap: onActionTap != null ? () => onActionTap!(user, nextActionId) : null,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
+        duration: TossAnimations.normal,
+        curve: TossAnimations.standard,
         height: 32,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(

@@ -58,11 +58,9 @@ class _VaultCountingSectionState extends ConsumerState<VaultCountingSection> {
   @override
   Widget build(BuildContext context) {
     if (widget.state.isLoadingCurrencies) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(TossSpacing.space8),
-          child: CircularProgressIndicator(),
-        ),
+      return const Padding(
+        padding: EdgeInsets.all(TossSpacing.space8),
+        child: TossLoadingView(),
       );
     }
 

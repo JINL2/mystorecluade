@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// CTA Button section with subscription info banner and action buttons
 class SubscriptionCtaButton extends ConsumerWidget {
@@ -190,7 +192,7 @@ class SubscriptionCtaButton extends ConsumerWidget {
                     onSubscribe();
                   },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: TossAnimations.normal,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 18),
               decoration: BoxDecoration(
@@ -217,18 +219,14 @@ class SubscriptionCtaButton extends ConsumerWidget {
               ),
               child: Center(
                 child: isPurchasing
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray500),
-                        ),
+                    ? TossLoadingView.inline(
+                        size: 24,
+                        color: TossColors.gray500,
                       )
                     : Text(
                         buttonText,
                         style: TossTextStyles.bodyLarge.copyWith(
-                          color: canPurchase ? Colors.white : TossColors.gray500,
+                          color: canPurchase ? TossColors.white : TossColors.gray500,
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                         ),
@@ -289,10 +287,10 @@ class SubscriptionCtaButton extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
+                      color: TossColors.info.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: Border.all(
-                        color: Colors.blue.withValues(alpha: 0.3),
+                        color: TossColors.info.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -301,13 +299,13 @@ class SubscriptionCtaButton extends ConsumerWidget {
                         Icon(
                           LucideIcons.refreshCw,
                           size: 14,
-                          color: Colors.blue,
+                          color: TossColors.info,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           '🔄 Sync DB',
                           style: TossTextStyles.caption.copyWith(
-                            color: Colors.blue,
+                            color: TossColors.info,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

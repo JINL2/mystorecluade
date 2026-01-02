@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -161,7 +160,7 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (_error != null) {
@@ -268,32 +267,18 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: TossButton.outlinedGray(
+                  text: 'Cancel',
                   onPressed: () => Navigator.pop(context, false),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: TossColors.gray700,
-                    side: const BorderSide(color: TossColors.gray300),
-                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                  ),
-                  child: const Text('Cancel'),
+                  fullWidth: true,
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
               Expanded(
-                child: ElevatedButton(
+                child: TossButton.primary(
+                  text: 'Merge',
                   onPressed: () => Navigator.pop(context, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    foregroundColor: TossColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                  ),
-                  child: const Text('Merge'),
+                  fullWidth: true,
                 ),
               ),
             ],
@@ -320,12 +305,9 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
       if (!mounted) return;
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Successfully merged "${widget.targetSessionName}" into "${widget.sourceSessionName}"'),
-          backgroundColor: TossColors.success,
-          duration: const Duration(seconds: 2),
-        ),
+      TossToast.success(
+        context,
+        'Successfully merged "${widget.targetSessionName}" into "${widget.sourceSessionName}"',
       );
 
       // Go back to previous page (Count Details)
@@ -333,12 +315,9 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Merge failed: ${e.toString().replaceFirst('Exception: ', '')}'),
-          backgroundColor: TossColors.error,
-          duration: const Duration(seconds: 3),
-        ),
+      TossToast.error(
+        context,
+        'Merge failed: ${e.toString().replaceFirst('Exception: ', '')}',
       );
     } finally {
       if (mounted) {

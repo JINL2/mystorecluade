@@ -70,69 +70,73 @@ class TossWeekShiftCard extends StatelessWidget {
       border = Border.all(color: TossColors.gray200, width: 1);
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          border: border,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // First row: Date and Time
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  date,
-                  style: TossTextStyles.body.copyWith(
-                    fontSize: 13,
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  timeRange,
-                  style: TossTextStyles.body.copyWith(
-                    fontSize: 13,
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: TossSpacing.space1),
-            // Second row: Shift type and status
-            Row(
-              children: [
-                Text(
-                  shiftType,
-                  style: TossTextStyles.body.copyWith(
-                    fontSize: 13,
-                    color: TossColors.gray600,
-                  ),
-                ),
-                if (statusText != null) ...[
-                  Text(' • ', style: TossTextStyles.body.copyWith(fontSize: 13, color: TossColors.gray400)),
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          decoration: BoxDecoration(
+            color: TossColors.white,
+            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
+            border: border,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // First row: Date and Time
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text(
-                    statusText,
+                    date,
                     style: TossTextStyles.body.copyWith(
                       fontSize: 13,
-                      color: status == ShiftCardStatus.onTime
-                          ? TossColors.success
-                          : status == ShiftCardStatus.late
-                              ? TossColors.error
-                              : TossColors.gray600,
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    timeRange,
+                    style: TossTextStyles.body.copyWith(
+                      fontSize: 13,
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: [FontFeature.tabularFigures()],
                     ),
                   ),
                 ],
-              ],
-            ),
-          ],
+              ),
+              SizedBox(height: TossSpacing.space1),
+              // Second row: Shift type and status
+              Row(
+                children: [
+                  Text(
+                    shiftType,
+                    style: TossTextStyles.body.copyWith(
+                      fontSize: 13,
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                  if (statusText != null) ...[
+                    Text(' • ', style: TossTextStyles.body.copyWith(fontSize: 13, color: TossColors.gray400)),
+                    Text(
+                      statusText,
+                      style: TossTextStyles.body.copyWith(
+                        fontSize: 13,
+                        color: status == ShiftCardStatus.onTime
+                            ? TossColors.success
+                            : status == ShiftCardStatus.late
+                                ? TossColors.error
+                                : TossColors.gray600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

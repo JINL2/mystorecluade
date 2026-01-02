@@ -287,7 +287,7 @@ class _CounterpartyStoreSelector extends ConsumerWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (ctx) => _StoreSelectionSheet(
         stores: stores,
         entryState: entryState,
@@ -529,11 +529,7 @@ class _AccountMappingStatusState extends State<_AccountMappingStatus> {
       ),
       child: Row(
         children: [
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+          const TossLoadingView.inline(size: 16),
           const SizedBox(width: TossSpacing.space2),
           Text(
             'Checking account mapping...',

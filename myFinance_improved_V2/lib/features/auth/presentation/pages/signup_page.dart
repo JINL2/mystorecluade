@@ -591,7 +591,8 @@ class _SignupPageState extends ConsumerState<SignupPage>
             color: TossColors.textSecondary,
           ),
         ),
-        TextButton(
+        TossButton.textButton(
+          text: 'Sign in',
           onPressed: () {
             if (!mounted) return;
 
@@ -600,18 +601,8 @@ class _SignupPageState extends ConsumerState<SignupPage>
             // Navigate back to login using GoRouter
             context.go('/auth/login');
           },
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'Sign in',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          padding: EdgeInsets.zero,
+          fontWeight: FontWeight.w700,
         ),
       ],
     );
@@ -648,26 +639,11 @@ class _SignupPageState extends ConsumerState<SignupPage>
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: TossColors.white, size: 20),
-                SizedBox(width: TossSpacing.space2),
-                Text('Account created! Please verify your email.'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.success(context, 'Account created! Please verify your email.');
 
         if (mounted) {
           // Small delay for smooth transition
-          await Future.delayed(const Duration(milliseconds: 200));
+          await Future.delayed(TossAnimations.normal);
 
           // Navigate to email verification page
           if (mounted) {
@@ -685,132 +661,27 @@ class _SignupPageState extends ConsumerState<SignupPage>
     } on ValidationException catch (e) {
       // Handle validation errors
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.message,
-                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, e.message);
       }
     } on EmailAlreadyExistsException catch (e) {
       // Handle email already exists
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.email_outlined, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.message,
-                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, e.message);
       }
     } on WeakPasswordException catch (e) {
       // Handle weak password
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.lock_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.requirements.join(', '),
-                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        TossToast.error(context, e.requirements.join(', '));
       }
     } on NetworkException {
       // Handle network errors
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.wifi_off, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    'Connection issue. Please check your internet and try again.',
-                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, 'Connection issue. Please check your internet and try again.');
       }
     } on AuthException catch (e) {
       // Handle other auth exceptions
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    e.message,
-                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, e.message);
       }
     } catch (e) {
       // Handle unexpected errors - show actual error message
@@ -821,28 +692,7 @@ class _SignupPageState extends ConsumerState<SignupPage>
           errorMessage = errorMessage.replaceFirst('Exception: ', '');
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.white, size: 20),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    errorMessage,
-                    style: TossTextStyles.body.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        TossToast.error(context, errorMessage);
       }
     } finally {
       if (mounted) {
@@ -864,50 +714,14 @@ class _SignupPageState extends ConsumerState<SignupPage>
     bool isLoading = false,
     Widget? icon,
   }) {
-    return SizedBox(
-      width: double.infinity,
+    return TossButton.primary(
+      text: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      leadingIcon: icon,
+      fullWidth: true,
       height: 48.0,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: onPressed == null ? TossColors.gray300 : TossColors.primary,
-          foregroundColor: TossColors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthConstants.borderRadiusStandard),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space5,
-            vertical: TossSpacing.space3,
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    icon,
-                    const SizedBox(width: TossSpacing.space2),
-                  ],
-                  Text(
-                    text,
-                    style: TossTextStyles.button.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-      ),
+      fontWeight: FontWeight.w700,
     );
   }
 }

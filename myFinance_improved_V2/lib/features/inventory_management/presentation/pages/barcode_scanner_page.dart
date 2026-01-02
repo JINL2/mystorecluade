@@ -7,6 +7,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Barcode Scanner Page - Full screen scanner with camera
 class BarcodeScannerPage extends StatefulWidget {
@@ -129,15 +130,10 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               ),
             ),
             // Enter Manually button
-            TextButton(
+            TossButton.textButton(
+              text: 'Enter Manually',
+              textColor: subtleColor,
               onPressed: _enterManually,
-              child: Text(
-                'Enter Manually',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: subtleColor,
-                ),
-              ),
             ),
           ],
         ),
@@ -149,10 +145,8 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     if (!_isInitialized) {
       return Container(
         color: TossColors.black,
-        child: const Center(
-          child: CircularProgressIndicator(
-            color: TossColors.white,
-          ),
+        child: Center(
+          child: TossLoadingView.inline(color: TossColors.white),
         ),
       );
     }

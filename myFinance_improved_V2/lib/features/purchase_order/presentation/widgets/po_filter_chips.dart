@@ -115,7 +115,7 @@ class _FilterChip extends StatelessWidget {
         child: Text(
           label,
           style: TossTextStyles.caption.copyWith(
-            color: isSelected ? Colors.white : TossColors.gray700,
+            color: isSelected ? TossColors.white : TossColors.gray700,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),

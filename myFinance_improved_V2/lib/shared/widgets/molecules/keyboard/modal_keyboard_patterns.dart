@@ -38,8 +38,8 @@ class FixedBottomModalWrapper extends StatelessWidget {
         
         // Fixed bottom section that stays above keyboard
         AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
+          duration: TossAnimations.normal,
+          curve: TossAnimations.decelerate,
           padding: EdgeInsets.only(
             bottom: addKeyboardPadding ? keyboardHeight : 0,
           ),
@@ -198,11 +198,11 @@ class _WizardModalWrapperState extends State<WizardModalWrapper> {
           // Action buttons with intelligent keyboard handling
           if (widget.actionButtons != null)
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
+              duration: TossAnimations.normal,
+              curve: TossAnimations.decelerate,
               height: _shouldHideActions() ? 0 : null,
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
+                duration: TossAnimations.fast,
                 opacity: _shouldHideActions() ? 0.0 : 1.0,
                 child: Container(
                   decoration: BoxDecoration(

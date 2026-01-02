@@ -7,7 +7,6 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/cache/auth_data_cache.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/notifications/services/production_token_service.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../attendance/presentation/providers/attendance_providers.dart';
@@ -289,16 +288,7 @@ class _HomepageState extends ConsumerState<Homepage> {
           _isLoggingOut = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Logout failed: $e'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.error(context, 'Logout failed: $e');
       }
     }
   }
@@ -464,16 +454,7 @@ class _HomepageState extends ConsumerState<Homepage> {
         setState(() {
           _isRefreshing = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to refresh: $e'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.error(context, 'Failed to refresh: $e');
       }
     }
   }

@@ -109,7 +109,7 @@ class WithinStoreCashLocationSection extends ConsumerWidget {
               }).toList(),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const TossLoadingView(),
           error: (_, __) => Center(
             child: Text(
               'Error loading locations',
@@ -230,7 +230,7 @@ class InterEntityCashLocationSection extends ConsumerWidget {
               }).toList(),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const TossLoadingView(),
           error: (error, stack) => Center(
             child: Text(
               'Error loading cash locations',

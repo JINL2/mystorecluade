@@ -38,7 +38,7 @@ class SalaryHeroCard extends StatelessWidget {
         border: Border.all(color: TossColors.gray200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: TossColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -223,7 +223,7 @@ class SalaryHeroCard extends StatelessWidget {
               }
             : null,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: TossAnimations.normal,
           padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 10),
           decoration: BoxDecoration(
             color: isActive ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.05),

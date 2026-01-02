@@ -8,6 +8,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Status row for account mapping verification
 class AccountMappingStatusRow extends StatelessWidget {
@@ -42,11 +43,7 @@ class AccountMappingStatusRow extends StatelessWidget {
       backgroundColor = TossColors.gray50;
       borderColor = TossColors.gray200;
       textColor = TossColors.gray600;
-      leadingWidget = const SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+      leadingWidget = const TossLoadingView.inline(size: 16);
     } else if (isError) {
       backgroundColor = TossColors.error.withValues(alpha: 0.1);
       borderColor = TossColors.error.withValues(alpha: 0.3);

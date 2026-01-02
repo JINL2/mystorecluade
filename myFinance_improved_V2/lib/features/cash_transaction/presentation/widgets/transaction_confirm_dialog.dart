@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 import '../../domain/entities/transaction_confirm_types.dart';
 import 'transaction_confirm/transaction_confirm_widgets.dart';
@@ -27,7 +28,7 @@ class TransactionConfirmDialog extends StatefulWidget {
     return showModalBottomSheet<TransactionConfirmResult>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => TransactionConfirmDialog(data: data),
     );
   }
@@ -136,8 +137,8 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return AnimatedPadding(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+      duration: TossAnimations.normal,
+      curve: TossAnimations.decelerate,
       padding: EdgeInsets.only(bottom: keyboardHeight),
       child: Container(
         constraints: BoxConstraints(

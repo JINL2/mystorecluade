@@ -287,13 +287,13 @@ class _PermissionChip extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : TossColors.gray700,
+              color: isSelected ? TossColors.white : TossColors.gray700,
             ),
             const SizedBox(width: TossSpacing.space1),
             Text(
               label,
               style: TossTextStyles.label.copyWith(
-                color: isSelected ? Colors.white : TossColors.gray700,
+                color: isSelected ? TossColors.white : TossColors.gray700,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),

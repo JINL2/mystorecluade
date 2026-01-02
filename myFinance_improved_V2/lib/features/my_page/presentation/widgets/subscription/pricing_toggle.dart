@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -34,15 +35,15 @@ class PricingToggle extends StatelessWidget {
                 onToggle(false);
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: TossAnimations.normal,
                 padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
-                  color: !isAnnual ? Colors.white : Colors.transparent,
+                  color: !isAnnual ? TossColors.white : TossColors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: !isAnnual
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
+                            color: TossColors.black.withValues(alpha: 0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -68,15 +69,15 @@ class PricingToggle extends StatelessWidget {
                 onToggle(true);
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: TossAnimations.normal,
                 padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
-                  color: isAnnual ? Colors.white : Colors.transparent,
+                  color: isAnnual ? TossColors.white : TossColors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: isAnnual
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
+                            color: TossColors.black.withValues(alpha: 0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -104,7 +105,7 @@ class PricingToggle extends StatelessWidget {
                       child: Text(
                         '-40%',
                         style: TossTextStyles.small.copyWith(
-                          color: Colors.white,
+                          color: TossColors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 10,
                         ),

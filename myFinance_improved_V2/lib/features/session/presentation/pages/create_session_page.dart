@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -164,12 +163,7 @@ class _CreateSessionPageState extends ConsumerState<CreateSessionPage> {
         _isCreating = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: TossColors.error,
-          ),
-        );
+        TossToast.error(context, e.toString().replaceAll('Exception: ', ''));
       }
     }
   }
@@ -180,7 +174,7 @@ class _CreateSessionPageState extends ConsumerState<CreateSessionPage> {
       backgroundColor: TossColors.white,
       appBar: _buildAppBar(),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const TossLoadingView()
           : Column(
               children: [
                 Expanded(
@@ -327,11 +321,7 @@ class _CreateSessionPageState extends ConsumerState<CreateSessionPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (_isLoadingShipments)
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                  TossLoadingView.inline(size: 16)
                 else
                   Text(
                     _selectedShipment?.shipmentNumber ?? 'Select shipment',
@@ -359,37 +349,12 @@ class _CreateSessionPageState extends ConsumerState<CreateSessionPage> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(TossSpacing.space4),
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _canCreate ? _createSession : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  _canCreate ? TossColors.primary : TossColors.gray300,
-              foregroundColor: TossColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              ),
-              elevation: 0,
-            ),
-            child: _isCreating
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: TossColors.white,
-                    ),
-                  )
-                : Text(
-                    'Create',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.white,
-                    ),
-                  ),
-          ),
+        child: TossButton.primary(
+          text: 'Create',
+          onPressed: _canCreate ? _createSession : null,
+          isEnabled: _canCreate,
+          isLoading: _isCreating,
+          fullWidth: true,
         ),
       ),
     );

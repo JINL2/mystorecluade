@@ -88,82 +88,85 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
     final isSelected = widget.cartItem.quantity > 0;
     final stockQuantity = widget.product.totalStockSummary.totalQuantityOnHand;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        HapticFeedback.lightImpact();
-        if (isSelected) {
-          // Already in cart - increase quantity
-          ref.read(cartNotifierProvider.notifier).updateQuantity(
-                widget.cartItem.id,
-                widget.cartItem.quantity + 1,
-              );
-        } else {
-          // Not in cart - add item
-          ref.read(cartNotifierProvider.notifier).addItem(widget.product);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image
-            ProductImageWidget(
-              imageUrl: widget.product.images.mainImage,
-              size: 44,
-              fallbackIcon: Icons.inventory_2,
-            ),
-            const SizedBox(width: TossSpacing.space4),
-            // Product Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Name
-                  Text(
-                    widget.product.productName,
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  // SKU and Stock Badge Row
-                  Row(
-                    children: [
-                      Text(
-                        widget.product.sku,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      _buildStockBadge(stockQuantity, isSelected),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  // Price Row with Controls
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${widget.currencySymbol}${CurrencyFormatter.currency.format(widget.product.pricing.sellingPrice?.round() ?? 0)}',
-                        style: TossTextStyles.titleMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.primary,
-                        ),
-                      ),
-                      isSelected ? _buildQuantityStepper() : _buildAddButton(),
-                    ],
-                  ),
-                ],
+    return Material(
+      color: TossColors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          if (isSelected) {
+            // Already in cart - increase quantity
+            ref.read(cartNotifierProvider.notifier).updateQuantity(
+                  widget.cartItem.id,
+                  widget.cartItem.quantity + 1,
+                );
+          } else {
+            // Not in cart - add item
+            ref.read(cartNotifierProvider.notifier).addItem(widget.product);
+          }
+        },
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image
+              ProductImageWidget(
+                imageUrl: widget.product.images.mainImage,
+                size: 44,
+                fallbackIcon: Icons.inventory_2,
               ),
-            ),
-          ],
+              const SizedBox(width: TossSpacing.space4),
+              // Product Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    Text(
+                      widget.product.productName,
+                      style: TossTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: TossColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // SKU and Stock Badge Row
+                    Row(
+                      children: [
+                        Text(
+                          widget.product.sku,
+                          style: TossTextStyles.bodySmall.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: TossColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        _buildStockBadge(stockQuantity, isSelected),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    // Price Row with Controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${widget.currencySymbol}${CurrencyFormatter.currency.format(widget.product.pricing.sellingPrice?.round() ?? 0)}',
+                          style: TossTextStyles.titleMedium.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: TossColors.primary,
+                          ),
+                        ),
+                        isSelected ? _buildQuantityStepper() : _buildAddButton(),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

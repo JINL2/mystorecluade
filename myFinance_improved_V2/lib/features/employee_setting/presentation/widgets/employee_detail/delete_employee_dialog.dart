@@ -6,6 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../data/repositories/repository_providers.dart';
 import '../../../domain/entities/employee_salary.dart';
@@ -85,29 +86,21 @@ class _DeleteEmployeeDialogState extends ConsumerState<DeleteEmployeeDialog> {
       content: _isLoading
           ? const SizedBox(
               height: 100,
-              child: Center(child: CircularProgressIndicator()),
+              child: TossLoadingView(),
             )
           : _buildContent(),
       actions: _isLoading
           ? null
           : [
-              TextButton(
+              TossButton.textButton(
+                text: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Cancel',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
+                textColor: TossColors.gray600,
               ),
               if (_validationData?['success'] == true)
-                ElevatedButton(
+                TossButton.destructive(
+                  text: 'Remove',
                   onPressed: () => widget.onConfirm(_deleteSalary),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.error,
-                    foregroundColor: TossColors.white,
-                  ),
-                  child: const Text('Remove'),
                 ),
             ],
     );

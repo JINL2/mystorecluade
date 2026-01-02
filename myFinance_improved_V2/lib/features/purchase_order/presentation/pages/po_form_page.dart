@@ -147,20 +147,15 @@ class _POFormPageState extends ConsumerState<POFormPage> {
       appBar: AppBar(
         title: Text(isEditMode ? 'Edit PO' : 'New PO'),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Save',
+            isLoading: formState.isSaving,
             onPressed: formState.isSaving ? null : _handleSave,
-            child: formState.isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Save'),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const TossLoadingView()
           : Form(
               key: _formKey,
               child: ListView(
@@ -317,26 +312,11 @@ class _POFormPageState extends ConsumerState<POFormPage> {
     required String label,
     int maxLines = 1,
   }) {
-    return TextFormField(
+    return TossTextField.filled(
       controller: controller,
+      inlineLabel: label,
+      hintText: '',
       maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: TossColors.gray50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          borderSide: BorderSide(color: TossColors.primary),
-        ),
-      ),
     );
   }
 
@@ -536,12 +516,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
     debugPrint('🟡 [POFormPage] _validateForm result: $isValid');
     if (!isValid) {
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      TossToast.error(context, 'Please fill in all required fields');
       return;
     }
 
@@ -621,26 +596,14 @@ class _POFormPageState extends ConsumerState<POFormPage> {
         debugPrint('🔴 [POFormPage] PO ${isEditMode ? 'update' : 'create'} returned null');
         debugPrint('🔴 [POFormPage] Error from state: $errorMessage');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to save PO: $errorMessage'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 5),
-            ),
-          );
+          TossToast.error(context, 'Failed to save PO: $errorMessage');
         }
       }
     } catch (e, stackTrace) {
       debugPrint('🔴 [POFormPage] Error saving PO: $e');
       debugPrint('🔴 [POFormPage] StackTrace: $stackTrace');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        TossToast.error(context, 'Error: $e');
       }
     }
   }

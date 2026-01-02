@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../themes/toss_animations.dart';
 import '../../themes/toss_border_radius.dart';
 import '../../themes/toss_colors.dart';
 import '../../themes/toss_spacing.dart';
@@ -104,7 +105,7 @@ class _AiAnalysisDetailsBoxState extends State<AiAnalysisDetailsBox> {
           ),
           // Expandable content
           AnimatedCrossFade(
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
             crossFadeState: _isExpanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,

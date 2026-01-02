@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../themes/toss_animations.dart';
 import '../../../../themes/toss_colors.dart';
 import '../providers/ai_chat_provider.dart';
 import 'ai_chat_bottom_sheet.dart';
@@ -29,7 +30,7 @@ class _AiChatFabState extends ConsumerState<AiChatFab>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1400),
+      duration: TossAnimations.loadingRotation,
       vsync: this,
     );
     _animationController.repeat();

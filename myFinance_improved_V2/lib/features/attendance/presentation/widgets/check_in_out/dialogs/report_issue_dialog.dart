@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../../core/monitoring/sentry_config.dart';
 import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
@@ -92,27 +93,12 @@ class ReportIssueDialog {
                     const SizedBox(height: TossSpacing.space5),
 
                     // Text field
-                    Container(
-                      decoration: BoxDecoration(
-                        color: TossColors.gray50,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        border: Border.all(color: TossColors.gray200, width: 1),
-                      ),
-                      child: TextField(
-                        controller: reasonController,
-                        maxLines: 4,
-                        maxLength: 500,
-                        enabled: !isSubmitting,
-                        onChanged: (value) => setDialogState(() {}),
-                        decoration: InputDecoration(
-                          hintText: 'Enter the reason for reporting this issue...',
-                          hintStyle: TossTextStyles.body.copyWith(color: TossColors.gray400),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.all(TossSpacing.space4),
-                          counterStyle: TossTextStyles.bodySmall.copyWith(color: TossColors.gray500),
-                        ),
-                        style: TossTextStyles.body.copyWith(color: TossColors.gray900),
-                      ),
+                    TossTextField.filled(
+                      controller: reasonController,
+                      hintText: 'Enter the reason for reporting this issue...',
+                      maxLines: 4,
+                      enabled: !isSubmitting,
+                      onChanged: (value) => setDialogState(() {}),
                     ),
 
                     const SizedBox(height: TossSpacing.space5),
@@ -121,26 +107,15 @@ class ReportIssueDialog {
                     Row(
                       children: [
                         Expanded(
-                          child: TextButton(
+                          child: TossButton.textButton(
+                            text: 'Cancel',
                             onPressed: isSubmitting ? null : () => Navigator.of(dialogContext).pop(),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              ),
-                            ),
-                            child: Text(
-                              'Cancel',
-                              style: TossTextStyles.body.copyWith(
-                                color: TossColors.gray600,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
                           ),
                         ),
                         const SizedBox(width: TossSpacing.space3),
                         Expanded(
-                          child: ElevatedButton(
+                          child: TossButton.primary(
+                            text: 'Report',
                             onPressed: isSubmitting || reasonController.text.trim().isEmpty
                                 ? null
                                 : () => _handleSubmit(
@@ -154,31 +129,7 @@ class ReportIssueDialog {
                                       setIsSubmitting: (value) => isSubmitting = value,
                                       onSuccess: onSuccess,
                                     ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isSubmitting || reasonController.text.trim().isEmpty
-                                  ? TossColors.gray200
-                                  : TossColors.error,
-                              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              ),
-                            ),
-                            child: isSubmitting
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray400),
-                                    ),
-                                  )
-                                : Text(
-                                    'Report',
-                                    style: TossTextStyles.body.copyWith(
-                                      color: TossColors.surface,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                            isLoading: isSubmitting,
                           ),
                         ),
                       ],
@@ -219,6 +170,16 @@ class ReportIssueDialog {
 
     setDialogState(() => setIsSubmitting(true));
 
+    // Log breadcrumb for tracking
+    SentryConfig.addBreadcrumb(
+      message: 'ReportIssueDialog: Submitting report',
+      category: 'attendance',
+      data: {
+        'shiftRequestId': shiftRequestId,
+        'reason': reason,
+      },
+    );
+
     try {
       final reportShiftIssue = ref.read(reportShiftIssueProvider);
       final result = await reportShiftIssue(
@@ -228,10 +189,43 @@ class ReportIssueDialog {
         timezone: DateTimeUtils.getLocalTimezone(),
       );
 
+      // Log result type for debugging
+      SentryConfig.addBreadcrumb(
+        message: 'ReportIssueDialog: Result received',
+        category: 'attendance',
+        data: {
+          'resultType': result.runtimeType.toString(),
+          'isRight': result.isRight(),
+        },
+      );
+
       // Either pattern: fold to get success value
       final success = result.fold(
-        (failure) => false,
-        (data) => data,
+        (failure) {
+          SentryConfig.captureMessage(
+            'ReportIssueDialog: Report submission failed',
+            extra: {
+              'shiftRequestId': shiftRequestId,
+              'failure': failure.toString(),
+            },
+          );
+          return false;
+        },
+        (data) {
+          // Ensure data is bool type
+          if (data is! bool) {
+            SentryConfig.captureMessage(
+              'ReportIssueDialog: Unexpected data type in fold',
+              extra: {
+                'shiftRequestId': shiftRequestId,
+                'dataType': data.runtimeType.toString(),
+                'data': data.toString(),
+              },
+            );
+            return false;
+          }
+          return data;
+        },
       );
 
       if (!success) {
@@ -252,7 +246,17 @@ class ReportIssueDialog {
       if (context.mounted) {
         _showSuccessPopup(context);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'ReportIssueDialog._handleSubmit failed',
+        extra: {
+          'shiftRequestId': shiftRequestId,
+          'reason': reason,
+        },
+      );
+
       setDialogState(() => setIsSubmitting(false));
       Navigator.of(dialogContext).pop();
 
@@ -385,25 +389,9 @@ class ReportIssueDialog {
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space4),
-                ElevatedButton(
+                TossButton.primary(
+                  text: 'OK',
                   onPressed: () => Navigator.of(errorContext).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space6,
-                      vertical: TossSpacing.space3,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                  ),
-                  child: Text(
-                    'OK',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.surface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
               ],
             ),

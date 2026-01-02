@@ -164,50 +164,19 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Brand Name Field
-            Text(
-              'Brand name *',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            TossTextField(
+              label: 'Brand name',
               controller: _nameController,
-              decoration: InputDecoration(
-                hintText: 'Enter brand name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-              ),
+              hintText: 'Enter brand name',
               autofocus: true,
+              isRequired: true,
             ),
             const SizedBox(height: 16),
             // Brand Code Field
-            Text(
-              'Brand code (optional)',
-              style: TossTextStyles.label.copyWith(
-                color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
+            TossTextField(
+              label: 'Brand code (optional)',
               controller: _codeController,
-              decoration: InputDecoration(
-                hintText: 'Enter brand code or leave empty for auto...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-              ),
+              hintText: 'Enter brand code or leave empty for auto...',
             ),
           ],
         ),
@@ -216,45 +185,18 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
         Row(
           children: [
             Expanded(
-              child: TextButton(
+              child: TossButton.textButton(
+                text: 'Cancel',
                 onPressed: _isCreating ? null : () => context.pop(),
-                child: Text(
-                  'Cancel',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray600,
-                  ),
-                ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: ElevatedButton(
+              child: TossButton.primary(
+                text: 'Create',
                 onPressed:
                     (_isCreating || _isNameEmpty) ? null : _createBrand,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray200
-                      : TossColors.primary,
-                  foregroundColor: (_isCreating || _isNameEmpty)
-                      ? TossColors.gray900
-                      : Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                ),
-                child: _isCreating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            TossColors.gray600,
-                          ),
-                        ),
-                      )
-                    : const Text('Create'),
+                isLoading: _isCreating,
               ),
             ),
           ],

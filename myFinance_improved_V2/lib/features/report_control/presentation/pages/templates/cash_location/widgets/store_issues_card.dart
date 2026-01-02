@@ -134,7 +134,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                   // Expand/collapse icon - gray
                   AnimatedRotation(
                     turns: _isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
+                    duration: TossAnimations.normal,
                     child: Icon(
                       LucideIcons.chevronDown,
                       size: 20,
@@ -165,7 +165,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
             crossFadeState: _isExpanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
+            duration: TossAnimations.normal,
           ),
         ],
       ),

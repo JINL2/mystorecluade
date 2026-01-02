@@ -445,13 +445,9 @@ class AddShiftBottomSheet extends ConsumerWidget {
                       ),
                       child: Center(
                         child: formState.isSaving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                                ),
+                            ? const TossLoadingView.inline(
+                                size: 20,
+                                color: TossColors.white,
                               )
                             : Text(
                                 'Save',

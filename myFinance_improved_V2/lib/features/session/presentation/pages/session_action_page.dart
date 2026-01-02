@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -148,7 +147,7 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
 
   Widget _buildBody(SessionListState state) {
     if (state.isLoading && state.sessions.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (state.hasError) {
@@ -219,34 +218,11 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
               ),
               const SizedBox(height: TossSpacing.space6),
               // Start button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _onCreateSessionTap,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TossColors.primary,
-                    foregroundColor: TossColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.add, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isCounting ? 'Start Stock Count' : 'Start Receiving',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              TossButton.primary(
+                text: _isCounting ? 'Start Stock Count' : 'Start Receiving',
+                onPressed: _onCreateSessionTap,
+                leadingIcon: const Icon(Icons.add, size: 20),
+                fullWidth: true,
               ),
             ],
           ),
@@ -447,10 +423,10 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: TossSpacing.space4),
-            TextButton.icon(
+            TossButton.textButton(
+              text: 'Retry',
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              leadingIcon: const Icon(Icons.refresh),
             ),
           ],
         ),

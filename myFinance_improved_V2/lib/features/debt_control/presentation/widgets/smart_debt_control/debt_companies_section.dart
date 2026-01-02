@@ -85,19 +85,9 @@ class DebtCompaniesSection extends StatelessWidget {
   Widget _buildDebtListContent() {
     // Show loading indicator while data is being fetched
     if (state.isLoadingDebts) {
-      return SliverFillRemaining(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: TossSpacing.space4),
-              Text(
-                'Loading debt records...',
-                style: TossTextStyles.bodyMedium,
-              ),
-            ],
-          ),
+      return const SliverFillRemaining(
+        child: TossLoadingView(
+          message: 'Loading debt records...',
         ),
       );
     }
@@ -140,19 +130,9 @@ class DebtListLoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverFillRemaining(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'Loading debt records...',
-              style: TossTextStyles.bodyMedium,
-            ),
-          ],
-        ),
+    return const SliverFillRemaining(
+      child: TossLoadingView(
+        message: 'Loading debt records...',
       ),
     );
   }

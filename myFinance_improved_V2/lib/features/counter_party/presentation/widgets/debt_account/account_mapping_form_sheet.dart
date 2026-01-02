@@ -104,16 +104,7 @@ class _AccountMappingFormSheetState
   }
 
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: TossColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        ),
-      ),
-    );
+    TossToast.success(context, message);
   }
 
   @override

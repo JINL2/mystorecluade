@@ -95,13 +95,11 @@ void showAutoBalanceTypeSelection({
               const SizedBox(height: TossSpacing.space3),
 
               // Cancel button
-              TextButton(
+              TossButton.textButton(
+                text: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Cancel',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray500,
-                  ),
+                textStyle: TossTextStyles.body.copyWith(
+                  color: TossColors.gray500,
                 ),
               ),
             ],

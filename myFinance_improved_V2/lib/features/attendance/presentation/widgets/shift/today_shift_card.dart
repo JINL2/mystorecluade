@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/shift_problem_info.dart';
 import '../../../domain/entities/shift_status.dart';
@@ -132,14 +133,9 @@ class TossTodayShiftCard extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: TossSpacing.space1),
-            TextButton(
+            TossButton.textButton(
+              text: 'Go to shift sign up',
               onPressed: onGoToShiftSignUp,
-              child: Text(
-                'Go to shift sign up',
-                style: TossTextStyles.label.copyWith(
-                  color: TossColors.primary,
-                ),
-              ),
             ),
           ],
         ),
@@ -199,82 +195,32 @@ class TossTodayShiftCard extends StatelessWidget {
 
     // Outlined style for Report button
     if (isOutlined) {
-      return SizedBox(
-        height: 48,
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: buttonColor,
-            side: BorderSide(color: buttonColor.withValues(alpha: 0.5)),
-            padding: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-          child: isLoading
-              ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(buttonColor),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(buttonIcon, size: 20),
-                    SizedBox(width: TossSpacing.space2),
-                    Text(
-                      buttonText,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
+      return TossButton.outlinedGray(
+        text: buttonText,
+        onPressed: isLoading ? null : onPressed,
+        leadingIcon: Icon(buttonIcon, size: 20),
+        fullWidth: true,
+        isLoading: isLoading,
       );
     }
 
-    return SizedBox(
-      height: 48,
-      width: double.infinity,
-      child: ElevatedButton(
+    // Primary button for Check-in/Check-out
+    if (buttonColor == TossColors.error) {
+      return TossButton.destructive(
+        text: buttonText,
         onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: buttonColor,
-          foregroundColor: TossColors.white,
-          elevation: 0,
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          ),
-        ),
-        child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(buttonIcon, size: 20),
-                  SizedBox(width: TossSpacing.space2),
-                  Text(
-                    buttonText,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-      ),
+        leadingIcon: Icon(buttonIcon, size: 20, color: TossColors.white),
+        fullWidth: true,
+        isLoading: isLoading,
+      );
+    }
+
+    return TossButton.primary(
+      text: buttonText,
+      onPressed: isLoading ? null : onPressed,
+      leadingIcon: Icon(buttonIcon, size: 20, color: TossColors.white),
+      fullWidth: true,
+      isLoading: isLoading,
     );
   }
 
@@ -436,18 +382,11 @@ class TossTodayShiftCard extends StatelessWidget {
         if (problemInfo!.hasProblem && !problemInfo!.isSolved && !problemInfo!.isReported &&
             status != ShiftStatus.completed && onReportIssue != null) ...[
           SizedBox(height: TossSpacing.space3),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: onReportIssue,
-              icon: Icon(Icons.flag_outlined, size: 18),
-              label: Text('Report Issue'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: TossColors.warning,
-                side: BorderSide(color: TossColors.warning.withValues(alpha: 0.5)),
-                padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-              ),
-            ),
+          TossButton.outlinedGray(
+            text: 'Report Issue',
+            onPressed: onReportIssue,
+            leadingIcon: const Icon(Icons.flag_outlined, size: 18),
+            fullWidth: true,
           ),
         ],
         SizedBox(height: TossSpacing.space3),

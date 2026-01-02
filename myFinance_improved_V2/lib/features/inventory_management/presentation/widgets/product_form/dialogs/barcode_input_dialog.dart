@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
@@ -38,28 +39,11 @@ class BarcodeInputDialog {
               ),
               const SizedBox(height: 24),
               // Text field with underline
-              TextField(
+              TossTextField.underline(
                 controller: controller,
+                hintText: '',
                 autofocus: true,
                 textAlign: TextAlign.center,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray900,
-                ),
-                decoration: const InputDecoration(
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(color: TossColors.gray300),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: TossColors.gray300),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: TossColors.primary,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
-                ),
               ),
               const SizedBox(height: 24),
               // Buttons row
@@ -67,48 +51,21 @@ class BarcodeInputDialog {
                 children: [
                   // Cancel button
                   Expanded(
-                    child: OutlinedButton(
+                    child: TossButton.outlinedGray(
+                      text: 'Cancel',
                       onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: TossColors.gray700,
-                        side: const BorderSide(color: TossColors.gray300),
-                        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.gray700,
-                        ),
-                      ),
+                      fullWidth: true,
                     ),
                   ),
                   const SizedBox(width: 12),
                   // Done button
                   Expanded(
-                    child: ElevatedButton(
+                    child: TossButton.primary(
+                      text: 'Done',
                       onPressed: () {
                         Navigator.pop(dialogContext, controller.text);
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: TossColors.primary,
-                        foregroundColor: TossColors.white,
-                        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Done',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: TossColors.white,
-                        ),
-                      ),
+                      fullWidth: true,
                     ),
                   ),
                 ],

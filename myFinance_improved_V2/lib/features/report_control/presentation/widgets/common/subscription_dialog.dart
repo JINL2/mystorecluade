@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/utils/datetime_utils.dart';
 import '../../../../../shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../constants/report_constants.dart';
 import '../../constants/report_strings.dart';
 import '../../constants/report_icons.dart';
@@ -238,90 +239,30 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                     // Update Settings button
                     Expanded(
                       flex: 3,
-                      child: ElevatedButton(
+                      child: TossButton.primary(
+                        text: 'Update',
                         onPressed: _isLoading ? null : _handleUpdateSettings,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: TossColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                ),
-                              )
-                            : Text(
-                                'Update',
-                                style: TossTextStyles.body.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                        isLoading: _isLoading,
                       ),
                     ),
                     const SizedBox(width: 8),
                     // Unsubscribe button
                     Expanded(
                       flex: 2,
-                      child: OutlinedButton(
+                      child: TossButton.destructive(
+                        text: 'Delete',
                         onPressed: _isLoading ? null : _handleUnsubscribe,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: TossColors.error,
-                          side: const BorderSide(
-                              color: TossColors.error, width: 1),
-                          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                          ),
-                        ),
-                        child: Text(
-                          'Delete',
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
                       ),
                     ),
                   ],
                 ),
               ] else
                 // Subscribe button (for non-subscribed templates)
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleSubscribe,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: TossColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            'Subscribe',
-                            style: TossTextStyles.body.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
+                TossButton.primary(
+                  text: 'Subscribe',
+                  onPressed: _isLoading ? null : _handleSubscribe,
+                  isLoading: _isLoading,
+                  fullWidth: true,
                 ),
             ],
           ),
@@ -417,20 +358,10 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
     setState(() => _isLoading = false);
 
     if (subscriptionId != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(ReportStrings.subscribeSuccess),
-          backgroundColor: TossColors.success,
-        ),
-      );
+      TossToast.success(context, ReportStrings.subscribeSuccess);
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(ReportStrings.subscribeFailed),
-          backgroundColor: TossColors.error,
-        ),
-      );
+      TossToast.error(context, ReportStrings.subscribeFailed);
     }
   }
 
@@ -454,20 +385,10 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
     setState(() => _isLoading = false);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Settings updated successfully'),
-          backgroundColor: TossColors.success,
-        ),
-      );
+      TossToast.success(context, 'Settings updated successfully');
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update settings'),
-          backgroundColor: TossColors.error,
-        ),
-      );
+      TossToast.error(context, 'Failed to update settings');
     }
   }
 
@@ -481,16 +402,13 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
         title: const Text(ReportStrings.unsubscribeConfirmTitle),
         content: const Text(ReportStrings.unsubscribeConfirmMessage),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: ReportStrings.confirmNo,
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(ReportStrings.confirmNo),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: ReportStrings.confirmYes,
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              ReportStrings.confirmYes,
-              style: TextStyle(color: TossColors.error),
-            ),
           ),
         ],
       ),
@@ -513,20 +431,10 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
     setState(() => _isLoading = false);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(ReportStrings.unsubscribeSuccess),
-          backgroundColor: TossColors.success,
-        ),
-      );
+      TossToast.success(context, ReportStrings.unsubscribeSuccess);
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(ReportStrings.unsubscribeFailed),
-          backgroundColor: TossColors.error,
-        ),
-      );
+      TossToast.error(context, ReportStrings.unsubscribeFailed);
     }
   }
 

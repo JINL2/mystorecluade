@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -58,81 +59,34 @@ class AddAttributeDialog extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Name',
-                  style: TossTextStyles.label.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: nameController,
-                  autofocus: true,
-                  textCapitalization: TextCapitalization.none,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    hintText: 'Enter $title name',
-                    hintStyle: TossTextStyles.body.copyWith(
-                      color: TossColors.gray400,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: const BorderSide(color: TossColors.gray300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide: const BorderSide(color: TossColors.gray300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      borderSide:
-                          const BorderSide(color: TossColors.primary, width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space3,
-                      vertical: TossSpacing.space3,
-                    ),
-                  ),
-                ),
-              ],
+            TossTextField(
+              label: 'Name',
+              controller: nameController,
+              hintText: 'Enter $title name',
+              autofocus: true,
+              autocorrect: false,
             ),
             const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
-                  child: TextButton(
+                  child: TossButton.secondary(
+                    text: 'Cancel',
                     onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      'Cancel',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.gray600,
-                      ),
-                    ),
+                    fullWidth: true,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: ElevatedButton(
+                  child: TossButton.primary(
+                    text: 'Add',
                     onPressed: () {
                       final name = nameController.text.trim();
                       if (name.isNotEmpty) {
                         Navigator.pop(context, name);
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: TossColors.primary,
-                      foregroundColor: TossColors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-                    ),
-                    child: const Text('Add'),
+                    fullWidth: true,
                   ),
                 ),
               ],

@@ -188,7 +188,8 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                           ),
                         ),
                         const SizedBox(height: TossSpacing.space4),
-                        ElevatedButton(
+                        TossButton.primary(
+                          text: 'Retry',
                           onPressed: () {
                             // Reset state and refresh the data
                             setState(() {
@@ -206,7 +207,6 @@ class _BankRealPageState extends ConsumerState<BankRealPage> {
                               ),
                             ),);
                           },
-                          child: const Text('Retry'),
                         ),
                       ],
                     ),

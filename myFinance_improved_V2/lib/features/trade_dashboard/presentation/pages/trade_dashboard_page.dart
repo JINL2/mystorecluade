@@ -233,14 +233,10 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: TossSpacing.space4),
-            ElevatedButton.icon(
+            TossButton.primary(
+              text: 'Retry',
               onPressed: _loadDashboardData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TossColors.primary,
-                foregroundColor: TossColors.white,
-              ),
+              leadingIcon: const Icon(Icons.refresh, size: 20, color: TossColors.white),
             ),
           ],
         ),
@@ -276,16 +272,12 @@ class _TradeDashboardPageState extends ConsumerState<TradeDashboardPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: TossSpacing.space4),
-            ElevatedButton.icon(
+            TossButton.primary(
+              text: 'Create Proforma Invoice',
               onPressed: () {
                 // TODO: Navigate to PI creation
               },
-              icon: const Icon(Icons.add),
-              label: const Text('Create Proforma Invoice'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TossColors.primary,
-                foregroundColor: TossColors.white,
-              ),
+              leadingIcon: const Icon(Icons.add, size: 20, color: TossColors.white),
             ),
           ],
         ),
@@ -426,7 +418,8 @@ class _AlertsBottomSheet extends ConsumerWidget {
                 ),
               ),
               if (alertsState.unreadCount > 0)
-                TextButton(
+                TossButton.textButton(
+                  text: 'Mark all as read',
                   onPressed: () {
                     final appState = ref.read(appStateProvider);
                     ref.read(tradeAlertsNotifierProvider.notifier).markAllAsRead(
@@ -434,12 +427,6 @@ class _AlertsBottomSheet extends ConsumerWidget {
                           userId: appState.userId,
                         );
                   },
-                  child: Text(
-                    'Mark all as read',
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.primary,
-                    ),
-                  ),
                 ),
             ],
           ),
@@ -585,15 +572,13 @@ class _DateFilterBottomSheet extends ConsumerWidget {
 
           const SizedBox(height: TossSpacing.space4),
 
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // TODO: Show custom date picker
-              },
-              child: const Text('Custom Range'),
-            ),
+          TossButton.outlined(
+            text: 'Custom Range',
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Show custom date picker
+            },
+            fullWidth: true,
           ),
 
           SizedBox(height: MediaQuery.of(context).padding.bottom),

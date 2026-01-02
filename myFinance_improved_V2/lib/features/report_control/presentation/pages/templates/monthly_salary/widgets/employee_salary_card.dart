@@ -51,7 +51,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: TossColors.black.withValues(alpha: 0.03),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -219,7 +219,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
           // Expandable warnings section
           if (hasWarnings)
             AnimatedCrossFade(
-              duration: const Duration(milliseconds: 200),
+              duration: TossAnimations.normal,
               firstChild: const SizedBox.shrink(),
               secondChild: _buildWarningsSection(),
               crossFadeState: _isExpanded

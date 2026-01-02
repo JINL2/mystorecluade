@@ -169,7 +169,7 @@ class SessionHistoryPage extends ConsumerWidget {
     SessionHistoryState state,
   ) {
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const TossLoadingView();
     }
 
     if (state.hasError) {
@@ -200,9 +200,9 @@ class SessionHistoryPage extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: TossSpacing.space4),
-              ElevatedButton(
+              TossButton.primary(
+                text: 'Retry',
                 onPressed: () => ref.read(sessionHistoryNotifierProvider.notifier).refresh(),
-                child: const Text('Retry'),
               ),
             ],
           ),
@@ -270,11 +270,7 @@ class SessionHistoryPage extends ConsumerWidget {
       padding: const EdgeInsets.all(TossSpacing.space4),
       alignment: Alignment.center,
       child: isLoading
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+          ? TossLoadingView.inline(size: 24)
           : Text(
               'Load more...',
               style: TossTextStyles.bodySmall.copyWith(

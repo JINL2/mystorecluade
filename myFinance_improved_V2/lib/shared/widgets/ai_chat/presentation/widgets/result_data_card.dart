@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../themes/toss_animations.dart';
 import '../../../../themes/toss_border_radius.dart';
 import '../../../../themes/toss_colors.dart';
 import '../../../../themes/toss_spacing.dart';
@@ -31,12 +32,12 @@ class _ResultDataCardState extends State<ResultDataCard>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: TossAnimations.normal,
       vsync: this,
     );
     _expandAnimation = CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeInOut,
+      curve: TossAnimations.standard,
     );
   }
 
@@ -153,7 +154,7 @@ class _ResultDataCardState extends State<ResultDataCard>
                   else if (widget.data.isNotEmpty)
                     AnimatedRotation(
                       turns: _isExpanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
+                      duration: TossAnimations.normal,
                       child: const Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 18,

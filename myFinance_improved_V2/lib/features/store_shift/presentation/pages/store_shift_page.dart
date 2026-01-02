@@ -108,19 +108,12 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                           description: 'Add your first shift to get started',
                         ),
                         const SizedBox(height: TossSpacing.space4),
-                        ElevatedButton.icon(
+                        TossButton.primary(
                           onPressed: () {
                             _showAddShiftBottomSheet(context);
                           },
-                          icon: const Icon(
-                            LucideIcons.plus,
-                            size: TossSpacing.iconSM,
-                          ),
-                          label: const Text('Add Shift'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TossColors.primary,
-                            foregroundColor: TossColors.white,
-                          ),
+                          leadingIcon: const Icon(LucideIcons.plus, size: 20, color: TossColors.white),
+                          text: 'Add Shift',
                         ),
                       ],
                     );
@@ -352,9 +345,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
     showDialog<void>(
       context: currentContext,
       barrierDismissible: false,
-      builder: (dialogContext) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (dialogContext) => const TossLoadingView(),
     );
 
     try {
@@ -364,13 +355,9 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
       if (position == null) {
         if (mounted) {
           Navigator.pop(currentContext); // Close loading
-          ScaffoldMessenger.of(currentContext).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Unable to get current location. Please check location permissions.',
-              ),
-              backgroundColor: TossColors.error,
-            ),
+          TossToast.error(
+            currentContext,
+            'Unable to get current location. Please check location permissions.',
           );
         }
         return;
@@ -380,12 +367,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
       if (storeId == null) {
         if (mounted) {
           Navigator.pop(currentContext); // Close loading
-          ScaffoldMessenger.of(currentContext).showSnackBar(
-            const SnackBar(
-              content: Text('Store ID not found'),
-              backgroundColor: TossColors.error,
-            ),
-          );
+          TossToast.error(currentContext, 'Store ID not found');
         }
         return;
       }

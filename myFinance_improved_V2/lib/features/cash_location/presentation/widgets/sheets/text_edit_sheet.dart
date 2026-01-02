@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Bottom sheet for editing text fields (single line or multi-line)
 /// Used in account_settings_page for Name, Bank Name, Account Number, Note editing
@@ -147,22 +148,16 @@ class TextEditSheet extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton(
+                      child: TossButton.primary(
+                        text: 'Save',
                         onPressed: () => onSave(controller.text),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'Save',
-                          style: TossTextStyles.body.copyWith(
-                            color: TossColors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fullWidth: true,
+                        height: 56,
+                        borderRadius: TossBorderRadius.lg,
+                        textStyle: TossTextStyles.body.copyWith(
+                          color: TossColors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

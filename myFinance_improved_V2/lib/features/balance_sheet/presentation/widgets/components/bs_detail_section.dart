@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
@@ -121,7 +122,7 @@ class _BsDetailSectionState extends State<BsDetailSection> {
                 // Expand icon
                 AnimatedRotation(
                   turns: isExpanded ? 0.25 : 0,
-                  duration: const Duration(milliseconds: 150),
+                  duration: TossAnimations.fast,
                   child: Icon(
                     Icons.chevron_right,
                     size: 20,
@@ -157,7 +158,7 @@ class _BsDetailSectionState extends State<BsDetailSection> {
 
         // Account Details (when expanded)
         AnimatedCrossFade(
-          duration: const Duration(milliseconds: 150),
+          duration: TossAnimations.fast,
           crossFadeState:
               isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
           firstChild: Container(

@@ -179,13 +179,7 @@ class AttendanceTab extends ConsumerWidget {
             },
             loading: () => const Padding(
               padding: EdgeInsets.all(TossSpacing.space4),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
+              child: TossLoadingView.inline(size: 24),
             ),
             error: (error, _) => Container(
               padding: const EdgeInsets.all(TossSpacing.space3),

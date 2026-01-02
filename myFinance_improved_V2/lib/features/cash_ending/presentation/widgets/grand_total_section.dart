@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -90,7 +91,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
       decoration: BoxDecoration(
         color: widget.isBaseCurrency
             ? TossColors.primary.withOpacity(0.05)
-            : Colors.transparent,
+            : TossColors.transparent,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
@@ -153,7 +154,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                 children: [
                   AnimatedRotation(
                     turns: _isExpanded ? 0.25 : 0,
-                    duration: const Duration(milliseconds: 200),
+                    duration: TossAnimations.normal,
                     child: const Icon(
                       Icons.chevron_right,
                       size: 18,
@@ -186,7 +187,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               crossFadeState: _isExpanded
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
+              duration: TossAnimations.normal,
             ),
           ],
 
@@ -236,14 +237,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
     if (widget.isLoadingJournal) {
       return const Padding(
         padding: EdgeInsets.only(left: 12),
-        child: SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: TossColors.gray400,
-          ),
-        ),
+        child: TossLoadingView.inline(size: 16, color: TossColors.gray400),
       );
     }
 

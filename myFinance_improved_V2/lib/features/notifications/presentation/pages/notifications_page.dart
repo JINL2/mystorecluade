@@ -8,6 +8,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../../core/notifications/models/notification_db_model.dart';
 import '../../../../core/notifications/repositories/notification_repository.dart';
 import '../providers/notification_provider.dart';
@@ -74,15 +75,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
         actions: [
           unreadCountAsync.when(
             data: (count) => count > 0
-                ? TextButton(
+                ? TossButton.textButton(
+                    text: 'Mark all read',
                     onPressed: _markAllAsRead,
-                    child: Text(
-                      'Mark all read',
-                      style: TossTextStyles.body.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   )
                 : const SizedBox.shrink(),
             loading: () => const SizedBox.shrink(),
@@ -177,24 +172,11 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
                   vertical: TossSpacing.space3,
                 ),
                 color: TossColors.surface,
-                child: OutlinedButton.icon(
+                child: TossButton.outlined(
+                  text: 'Mark all as read',
                   onPressed: _markAllAsRead,
-                  icon: const Icon(
-                    Icons.done_all_rounded,
-                    size: 18,
-                  ),
-                  label: const Text('Mark all as read'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: TossColors.primary,
-                    side: const BorderSide(color: TossColors.primary),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space4,
-                      vertical: TossSpacing.space3,
-                    ),
-                  ),
+                  leadingIcon: const Icon(Icons.done_all_rounded, size: 18),
+                  fullWidth: true,
                 ),
               ),
 
@@ -221,9 +203,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
           ],
         );
       },
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: TossColors.primary),
-      ),
+      loading: () => const TossLoadingView(),
       error: (error, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space6),
@@ -342,23 +322,15 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
               style: TossTextStyles.body,
             ),
             actions: [
-              TextButton(
+              TossButton.textButton(
+                text: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text(
-                  'Cancel',
-                  style: TossTextStyles.button.copyWith(
-                    color: TossColors.textSecondary,
-                  ),
-                ),
+                textColor: TossColors.textSecondary,
               ),
-              TextButton(
+              TossButton.textButton(
+                text: 'Delete',
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text(
-                  'Delete',
-                  style: TossTextStyles.button.copyWith(
-                    color: TossColors.error,
-                  ),
-                ),
+                textColor: TossColors.error,
               ),
             ],
           ),
@@ -392,7 +364,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
         ),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: TossColors.transparent,
         child: InkWell(
           onTap: () => _handleNotificationTap(notification),
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -655,14 +627,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
         SnackBar(
           content: Row(
             children: [
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(TossColors.white),
-                ),
-              ),
+              TossLoadingView.inline(size: 16, color: TossColors.white),
               const SizedBox(width: 12),
               const Text('Marking all as read...'),
             ],
@@ -676,44 +641,16 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
     final success = await repository.markAllAsRead(userId);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      TossToast.hide(context);
 
       if (success) {
         // Refresh data
         ref.invalidate(notificationsProvider(_filter));
         ref.invalidate(unreadNotificationCountProvider);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: TossColors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 12),
-                const Text('All notifications marked as read'),
-              ],
-            ),
-            backgroundColor: TossColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.success(context, 'All notifications marked as read');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Failed to mark all as read'),
-            backgroundColor: TossColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-          ),
-        );
+        TossToast.error(context, 'Failed to mark all as read');
       }
     }
   }

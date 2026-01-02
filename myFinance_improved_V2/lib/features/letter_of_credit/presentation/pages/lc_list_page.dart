@@ -76,22 +76,10 @@ class _LCListPageState extends ConsumerState<LCListPage> {
           // Search bar
           Padding(
             padding: const EdgeInsets.all(TossSpacing.space4),
-            child: TextField(
+            child: TossTextField.filled(
               controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by LC number...',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                filled: true,
-                fillColor: TossColors.gray100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-              ),
+              hintText: 'Search by LC number...',
+              prefixIcon: const Icon(Icons.search, size: 20),
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value.isEmpty ? null : value;
@@ -201,7 +189,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
     Color? selectedColor,
   }) {
     final bgColor = isSelected ? (selectedColor ?? TossColors.primary) : TossColors.gray200;
-    final textColor = isSelected ? Colors.white : TossColors.gray600;
+    final textColor = isSelected ? TossColors.white : TossColors.gray600;
 
     return GestureDetector(
       onTap: onTap,
@@ -254,9 +242,9 @@ class _LCListPageState extends ConsumerState<LCListPage> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: TossSpacing.space4),
-          TextButton(
+          TossButton.textButton(
+            text: 'Retry',
             onPressed: () => ref.invalidate(lcListProvider),
-            child: const Text('Retry'),
           ),
         ],
       ),
@@ -283,10 +271,10 @@ class _LCListPageState extends ConsumerState<LCListPage> {
                   TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
             ),
             const SizedBox(height: TossSpacing.space4),
-            ElevatedButton.icon(
+            TossButton.primary(
+              text: 'Create LC',
+              leadingIcon: const Icon(Icons.add, size: 20, color: TossColors.white),
               onPressed: () => context.push('/letter-of-credit/new'),
-              icon: const Icon(Icons.add),
-              label: const Text('Create LC'),
             ),
           ],
         ),

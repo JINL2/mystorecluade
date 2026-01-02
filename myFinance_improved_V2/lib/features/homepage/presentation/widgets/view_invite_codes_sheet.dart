@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Codes Bottom Sheet
 ///
@@ -244,13 +245,6 @@ class _CodeCard extends StatelessWidget {
   /// Copy code to clipboard with feedback
   void _copyToClipboard(BuildContext context) {
     Clipboard.setData(ClipboardData(text: code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$subtitle "$code" copied!'),
-        duration: const Duration(seconds: 2),
-        backgroundColor: TossColors.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    TossToast.info(context, '$subtitle "$code" copied!');
   }
 }

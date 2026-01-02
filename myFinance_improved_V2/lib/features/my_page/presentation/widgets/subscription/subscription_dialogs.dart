@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Helper class for subscription-related dialogs
 class SubscriptionDialogs {
@@ -49,12 +50,12 @@ class SubscriptionDialogs {
           'Your $planDisplayName subscription is now active. Enjoy all the features!',
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Got it!',
             onPressed: () {
               Navigator.pop(context);
               onDismiss();
             },
-            child: const Text('Got it!'),
           ),
         ],
       ),
@@ -92,9 +93,9 @@ class SubscriptionDialogs {
         ),
         content: Text(message),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'OK',
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
           ),
         ],
       ),
@@ -143,9 +144,9 @@ class SubscriptionDialogs {
           'Your $currentPlanName subscription has been restored successfully.',
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Got it!',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it!'),
           ),
         ],
       ),
@@ -166,9 +167,9 @@ class SubscriptionDialogs {
           'If you believe this is an error, please contact support.',
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'OK',
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
           ),
         ],
       ),

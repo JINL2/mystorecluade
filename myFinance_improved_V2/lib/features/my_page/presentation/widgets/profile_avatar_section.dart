@@ -6,6 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../domain/entities/user_profile.dart';
@@ -225,16 +226,16 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
         content: const Text(
             'This app needs access to your photos to change your profile picture. Please enable photo access in Settings.',),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Cancel',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
           ),
-          TextButton(
+          TossButton.textButton(
+            text: 'Open Settings',
             onPressed: () {
               Navigator.pop(context);
               openAppSettings();
             },
-            child: const Text('Open Settings'),
           ),
         ],
       ),

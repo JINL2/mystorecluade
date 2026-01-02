@@ -180,12 +180,12 @@ class _TossTextFieldKeyboardModalState
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: TossAnimations.normal,
       vsync: this,
     );
     _animation = CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeOut,
+      curve: TossAnimations.decelerate,
     );
     _animationController.forward();
   }
@@ -372,7 +372,7 @@ class _AmountInputContentState extends State<_AmountInputContent> {
     // Delay auto-focus to let the modal settle first
     // This prevents the keyboard from appearing immediately 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(TossAnimations.slow, () {
         if (mounted && context.mounted) {
           _focusNode.requestFocus();
         }

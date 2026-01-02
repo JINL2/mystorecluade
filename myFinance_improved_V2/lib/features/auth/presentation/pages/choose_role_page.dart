@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 // Core - Themes
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Core - Navigation
 
@@ -157,7 +159,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
     context.go(route);
 
     // Reset navigation state after a short delay
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(TossAnimations.slower, () {
       if (mounted) {
         setState(() {
           _isNavigating = false;
@@ -269,9 +271,9 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
           ],
         ),
         actions: [
-          TextButton(
+          TossButton.textButton(
+            text: 'Got it',
             onPressed: () => context.pop(),
-            child: const Text('Got it'),
           ),
         ],
       ),

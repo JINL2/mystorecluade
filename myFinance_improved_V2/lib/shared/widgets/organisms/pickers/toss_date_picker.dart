@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 
 /// Simple wheel-style date picker matching Toss design system
 /// Clean three-column layout: Month | Day | Year
@@ -154,14 +155,14 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
                     if (_selectedDate.day != newDate.day) {
                       _dayController.animateToItem(
                         _selectedDate.day - 1,
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
+                        duration: TossAnimations.normal,
+                        curve: TossAnimations.standard,
                       );
                     }
                   },
                 ),
               ),
-              
+
               // Day picker
               Expanded(
                 child: _buildTossWheelPicker(
@@ -199,8 +200,8 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
                     if (_selectedDate.day != adjustedDay) {
                       _dayController.animateToItem(
                         adjustedDay - 1,
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
+                        duration: TossAnimations.normal,
+                        curve: TossAnimations.standard,
                       );
                     }
                   },

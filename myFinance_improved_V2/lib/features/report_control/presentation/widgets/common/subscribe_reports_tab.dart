@@ -152,13 +152,13 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                       ),
                       if (_selectedCategoryFilter != null) ...[
                         SizedBox(height: TossSpacing.space2),
-                        TextButton(
+                        TossButton.textButton(
+                          text: 'View all templates',
                           onPressed: () {
                             setState(() {
                               _selectedCategoryFilter = null;
                             });
                           },
-                          child: const Text('View all templates'),
                         ),
                       ],
                     ],
@@ -348,7 +348,7 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
       isScrollControlled: true,
       isDismissible: true, // ✅ Added: Allow dismissing by tapping outside
       enableDrag: true, // ✅ Added: Allow dismissing by dragging down
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => SubscriptionDialog(
         template: template,
         userId: widget.userId,

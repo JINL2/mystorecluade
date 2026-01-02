@@ -25,7 +25,7 @@ class ReceivingItemRow extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       builder: (context) => ReceivingItemDetailSheet(
         item: item,
         params: params,
