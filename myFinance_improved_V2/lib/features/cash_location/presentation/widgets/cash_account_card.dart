@@ -98,10 +98,11 @@ class CashAccountCard extends StatelessWidget {
                   const SizedBox(height: TossSpacing.space1),
                   Text(
                     '$percentage% of total balance',
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
-                      fontSize: 14,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

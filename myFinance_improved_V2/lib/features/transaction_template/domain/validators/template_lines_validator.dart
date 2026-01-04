@@ -267,6 +267,11 @@ class TemplateLinesValidator {
           ));
         }
 
+      case TemplateRpcType.generalJournal:
+        // General journal: just needs valid account_ids and balanced debits/credits
+        // No special requirements - basic validation is enough
+        break;
+
       case TemplateRpcType.unknown:
         errors.add(const ValidationError(
           fieldName: 'rpc_type',

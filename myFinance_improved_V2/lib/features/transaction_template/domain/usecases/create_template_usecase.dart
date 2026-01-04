@@ -29,10 +29,11 @@ class CreateTemplateUseCase {
       print('🔧 USE CASE: CreateTemplateUseCase.execute() START');
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      // 1. Check if template name already exists
-      print('📝 Step 1: Checking template name uniqueness...');
-      await _checkNameUniqueness(command);
-      print('✅ Step 1: Template name is unique');
+      // 1. Skip name uniqueness check
+      // ✅ REMOVED: Name uniqueness check
+      // Reason: Same template name can be used across different stores
+      // Each store may have their own "COGS", "Sales" templates etc.
+      print('📝 Step 1: Skipping name uniqueness check (allowed per store)');
 
       // 2. Create template entity from command
       print('📝 Step 2: Creating template entity from command...');
@@ -541,32 +542,10 @@ class CreateTemplateUseCase {
       }
     }
 
-    // Check for similar templates
-    // ✅ FIX: Enhanced similarity check - consider cash locations and counterparties
-    // Templates with same accounts but different cash locations are NOT duplicates
-    final similarTemplates = await _templateRepository.findSimilar(
-      templateName: command.name,
-      companyId: command.companyId,
-      similarityThreshold: 0.8,
-      limit: 5, // Check more templates for detailed comparison
-    );
-
-    if (similarTemplates.isNotEmpty) {
-      // ✅ ENHANCED: Detailed similarity check
-      bool isDuplicate = false;
-
-      for (final similar in similarTemplates) {
-        // Check if it's truly a duplicate by comparing data structures
-        if (_areTemplatesIdentical(command.data, similar.data, command.tags, similar.tags)) {
-          isDuplicate = true;
-          break;
-        }
-      }
-
-      if (isDuplicate) {
-        errors.add('Identical template already exists with same accounts and cash locations - consider reusing existing template');
-      }
-    }
+    // ✅ REMOVED: Similar template check
+    // Reason: Name-based similarity is not reliable for detecting duplicate templates
+    // Templates with same accounts but different purposes (e.g., COGS, Inventory) should be allowed
+    // Name uniqueness is already checked in _checkNameUniqueness()
 
     if (errors.isNotEmpty) {
       throw ValidationException.multipleFields(

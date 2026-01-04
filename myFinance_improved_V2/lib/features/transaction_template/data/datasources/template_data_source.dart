@@ -89,11 +89,12 @@ class TemplateDataSource {
 
   /// Check if template name exists for company
   Future<bool> nameExists(String name, String companyId) async {
+    final trimmedName = name.trim();
     final response = await _supabaseService.client
         .from('transaction_templates')
         .select('template_id')
         .eq('company_id', companyId)
-        .eq('name', name)
+        .eq('name', trimmedName)
         .eq('is_active', true)
         .maybeSingle();
 

@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -264,38 +263,26 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
     final profileImage = employee['profile_image'] as String?;
 
     return Container(
-      width: size,
-      height: size,
       decoration: BoxDecoration(
-        color: TossColors.gray200,
         shape: BoxShape.circle,
         border: Border.all(color: TossColors.white, width: 2),
       ),
-      child: ClipOval(
-        child: profileImage != null && profileImage.isNotEmpty
-            ? CachedNetworkImage(
-                imageUrl: profileImage,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                memCacheWidth: (size * 3).toInt(),
-                memCacheHeight: (size * 3).toInt(),
-                placeholder: (context, url) => Icon(
-                  Icons.person,
-                  size: size * 0.6,
-                  color: TossColors.gray500,
-                ),
-                errorWidget: (context, url, error) => Icon(
-                  Icons.person,
-                  size: size * 0.6,
-                  color: TossColors.gray500,
-                ),
-              )
-            : Icon(
+      child: CircleAvatar(
+        radius: size / 2,
+        backgroundColor: TossColors.gray200,
+        backgroundImage: profileImage != null && profileImage.isNotEmpty
+            ? NetworkImage(profileImage)
+            : null,
+        onBackgroundImageError: profileImage != null && profileImage.isNotEmpty
+            ? (_, __) {}
+            : null,
+        child: profileImage == null || profileImage.isEmpty
+            ? Icon(
                 Icons.person,
                 size: size * 0.6,
                 color: TossColors.gray500,
-              ),
+              )
+            : null,
       ),
     );
   }

@@ -202,3 +202,57 @@ final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
     );
   },
 );
+
+// ============================================================================
+// Cached Revenue for Smooth UI Transitions (Toss Style)
+// ============================================================================
+
+/// Holds the last successfully loaded revenue data
+/// Used to prevent layout jump when scope/period changes
+final _cachedRevenueProvider = StateProvider<Revenue?>((ref) => null);
+
+/// Provider that returns cached revenue + loading state
+/// This enables "show previous data with shimmer overlay" pattern
+final revenueWithCacheProvider = Provider.family<RevenueWithLoadingState, RevenuePeriod>(
+  (ref, period) {
+    final asyncValue = ref.watch(revenueProvider(period));
+    final cachedRevenue = ref.watch(_cachedRevenueProvider);
+
+    // Update cache when new data arrives successfully
+    // Use ref.listen instead of whenData + Future.microtask to avoid disposed ref issues
+    ref.listen(revenueProvider(period), (previous, next) {
+      next.whenData((revenue) {
+        ref.read(_cachedRevenueProvider.notifier).state = revenue;
+      });
+    });
+
+    return RevenueWithLoadingState(
+      revenue: asyncValue.valueOrNull ?? cachedRevenue,
+      isLoading: asyncValue.isLoading,
+      hasError: asyncValue.hasError,
+      error: asyncValue.error,
+    );
+  },
+);
+
+/// State class that holds revenue data with loading status
+@immutable
+class RevenueWithLoadingState {
+  final Revenue? revenue;
+  final bool isLoading;
+  final bool hasError;
+  final Object? error;
+
+  const RevenueWithLoadingState({
+    required this.revenue,
+    required this.isLoading,
+    required this.hasError,
+    this.error,
+  });
+
+  /// True if we have data to display (either fresh or cached)
+  bool get hasData => revenue != null;
+
+  /// True if showing cached data while loading new data
+  bool get isRefreshing => isLoading && hasData;
+}

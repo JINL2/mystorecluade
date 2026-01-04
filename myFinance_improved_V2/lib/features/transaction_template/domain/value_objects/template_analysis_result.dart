@@ -486,7 +486,19 @@ class TemplateAnalysisResult extends Equatable {
     }
     _debugLog('│   ✗ Check 4: no expense/revenue + cash combo');
 
-    // 5. Unknown: cannot determine
+    // 5. General Journal: any valid account entries (e.g., COGS = Expense + Inventory)
+    // If we have at least 2 entries with valid account_ids, treat as general journal
+    final hasValidAccounts = data.length >= 2 &&
+        data.every((entry) => entry['account_id'] != null && entry['account_id'].toString().isNotEmpty);
+    if (hasValidAccounts) {
+      _debugLog('│   ✓ Check 5: has valid account entries → generalJournal');
+      _debugLog('│ Result: generalJournal');
+      _debugLog('└─────────────────────────────────────────────────────────────');
+      return TemplateRpcType.generalJournal;
+    }
+    _debugLog('│   ✗ Check 5: not valid general journal entries');
+
+    // 6. Unknown: cannot determine
     _debugLog('│ ❌ No matching pattern found');
     _debugLog('│ Result: unknown');
     _debugLog('└─────────────────────────────────────────────────────────────');

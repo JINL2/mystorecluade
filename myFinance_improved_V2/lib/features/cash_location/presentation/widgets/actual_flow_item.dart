@@ -31,8 +31,8 @@ class ActualFlowItem extends StatelessWidget {
         padding: EdgeInsets.only(
           left: TossSpacing.space4,
           right: TossSpacing.space4,
-          top: TossSpacing.space3,
-          bottom: TossSpacing.space3,
+          top: TossSpacing.space2,
+          bottom: TossSpacing.space2,
         ),
         child: Row(
           children: [
@@ -63,7 +63,7 @@ class ActualFlowItem extends StatelessWidget {
                       color: TossColors.gray900,
                     ),
                   ),
-                  SizedBox(height: TossSpacing.space2),
+                  SizedBox(height: TossSpacing.space1),
                   Row(
                     children: [
                       Flexible(
@@ -76,12 +76,7 @@ class ActualFlowItem extends StatelessWidget {
                         ),
                       ),
                       if (CashLocationFormatters.formatActualFlowTime(flow).isNotEmpty) ...[
-                        Text(
-                          ' • ',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
+                        const SizedBox(width: TossSpacing.space2),
                         Text(
                           CashLocationFormatters.formatActualFlowTime(flow),
                           style: TossTextStyles.bodySmall.copyWith(

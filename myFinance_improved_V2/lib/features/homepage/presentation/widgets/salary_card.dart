@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
@@ -78,6 +79,53 @@ Map<String, dynamic> _defaultPeriodStats() {
   };
 }
 
+// ============================================================================
+// Cached Salary for Smooth UI Transitions (Toss Style)
+// ============================================================================
+
+/// Holds the last successfully loaded salary data
+final _cachedSalaryProvider = StateProvider<Map<String, dynamic>?>((ref) => null);
+
+/// Provider that returns cached salary + loading state
+/// Enables "show previous data with shimmer overlay" pattern
+final salaryWithCacheProvider = Provider<SalaryWithLoadingState>((ref) {
+  final asyncValue = ref.watch(homepageUserSalaryProvider);
+  final cachedSalary = ref.watch(_cachedSalaryProvider);
+
+  // Update cache when new data arrives successfully
+  // Use ref.listen instead of whenData + Future.microtask to avoid disposed ref issues
+  ref.listen(homepageUserSalaryProvider, (previous, next) {
+    next.whenData((data) {
+      ref.read(_cachedSalaryProvider.notifier).state = data;
+    });
+  });
+
+  return SalaryWithLoadingState(
+    data: asyncValue.valueOrNull ?? cachedSalary,
+    isLoading: asyncValue.isLoading,
+    hasError: asyncValue.hasError,
+    error: asyncValue.error,
+  );
+});
+
+/// State class that holds salary data with loading status
+class SalaryWithLoadingState {
+  final Map<String, dynamic>? data;
+  final bool isLoading;
+  final bool hasError;
+  final Object? error;
+
+  const SalaryWithLoadingState({
+    required this.data,
+    required this.isLoading,
+    required this.hasError,
+    this.error,
+  });
+
+  bool get hasData => data != null;
+  bool get isRefreshing => isLoading && hasData;
+}
+
 /// Salary Card - Shows user's monthly salary
 ///
 /// Displayed when user doesn't have permission to view company revenue.
@@ -89,7 +137,8 @@ class SalaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final salaryAsync = ref.watch(homepageUserSalaryProvider);
+    // Use cached salary provider (Toss style - prevents layout jump)
+    final salaryState = ref.watch(salaryWithCacheProvider);
     final selectedTab = ref.watch(selectedSalaryTabProvider);
     final appState = ref.watch(appStateProvider);
 
@@ -129,117 +178,41 @@ class SalaryCard extends ConsumerWidget {
           ),
           const SizedBox(height: TossSpacing.space4),
 
-          // Salary Amount
-          salaryAsync.when(
-            data: (salaryData) => _buildSalaryContent(
-              salaryData,
-              selectedTab,
-              appState.storeChoosen,
-            ),
-            loading: () => _buildLoadingState(),
-            error: (error, _) => _buildErrorState(error.toString()),
-          ),
+          // Salary Amount - Toss style: show cached data with shimmer overlay
+          _buildSalaryDisplay(salaryState, selectedTab, appState.storeChoosen),
         ],
       ),
     );
   }
 
-  Widget _buildSalaryContent(
-    Map<String, dynamic> salaryData,
+  /// Builds salary display with Toss-style loading overlay
+  Widget _buildSalaryDisplay(
+    SalaryWithLoadingState state,
     SalaryViewTab selectedTab,
     String selectedStoreId,
   ) {
-    // Get salary info
-    final salaryInfo = salaryData['salary_info'] as Map<String, dynamic>? ?? {};
-    final currencySymbol = salaryInfo['currency_symbol'] as String? ?? '₫';
-
-    // Get period stats based on selected tab
-    Map<String, dynamic> thisMonthStats;
-
-    if (selectedTab == SalaryViewTab.company) {
-      // Company total
-      final companyTotal = salaryData['company_total'] as Map<String, dynamic>? ?? {};
-      thisMonthStats = companyTotal['this_month'] as Map<String, dynamic>? ?? _defaultPeriodStats();
-    } else {
-      // Store specific - find store in by_store array
-      final byStore = salaryData['by_store'] as List<dynamic>? ?? [];
-
-      // Find the selected store
-      Map<String, dynamic>? storeData;
-      for (final item in byStore) {
-        final store = item as Map<String, dynamic>;
-        if (store['store_id'] == selectedStoreId) {
-          storeData = store;
-          break;
-        }
-      }
-
-      if (storeData != null) {
-        thisMonthStats = storeData['this_month'] as Map<String, dynamic>? ?? _defaultPeriodStats();
-      } else {
-        thisMonthStats = _defaultPeriodStats();
-      }
+    // Case 1: Has data (fresh or cached) - show with optional loading overlay
+    if (state.hasData) {
+      return _SalaryContentWithOverlay(
+        salaryData: state.data!,
+        selectedTab: selectedTab,
+        selectedStoreId: selectedStoreId,
+        isLoading: state.isRefreshing,
+      );
     }
 
-    final totalPayment = (thisMonthStats['total_payment'] as num?)?.toDouble() ?? 0.0;
-    final bonusPay = (thisMonthStats['bonus_pay'] as num?)?.toDouble() ?? 0.0;
-    final changePercentage = (thisMonthStats['change_percentage'] as num?)?.toDouble() ?? 0.0;
-    final previousPayment = (thisMonthStats['previous_total_payment'] as num?)?.toDouble() ?? 0.0;
+    // Case 2: Initial loading (no cached data yet)
+    if (state.isLoading) {
+      return _buildLoadingState();
+    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Amount
-        Text(
-          '$currencySymbol${_formatAmountWithComma(totalPayment)}',
-          style: TossTextStyles.display.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 28,
-            height: 1.2,
-            letterSpacing: -1.0,
-          ),
-        ),
+    // Case 3: Error with no cached data
+    if (state.hasError) {
+      return _buildErrorState(state.error.toString());
+    }
 
-        // Change percentage (if previous payment exists)
-        if (previousPayment > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
-              children: [
-                Icon(
-                  changePercentage >= 0 ? Icons.trending_up : Icons.trending_down,
-                  color: changePercentage >= 0 ? TossColors.primary : TossColors.error,
-                  size: 16,
-                ),
-                const SizedBox(width: TossSpacing.space1),
-                Text(
-                  '${changePercentage >= 0 ? '' : ''}${changePercentage.toStringAsFixed(1)}% vs last month',
-                  style: TossTextStyles.caption.copyWith(
-                    color: changePercentage >= 0 ? TossColors.primary : TossColors.error,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        // Overtime bonus (if > 0)
-        if (bonusPay > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: TossSpacing.space2),
-            child: Text(
-              '+$currencySymbol${_formatAmountWithComma(bonusPay)} overtime bonus',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.success,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-      ],
-    );
+    // Fallback
+    return _buildLoadingState();
   }
 
   Widget _buildLoadingState() {
@@ -355,6 +328,268 @@ class _SalaryTabSelector extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Salary content with optional shimmer overlay (Toss style)
+class _SalaryContentWithOverlay extends StatelessWidget {
+  final Map<String, dynamic> salaryData;
+  final SalaryViewTab selectedTab;
+  final String selectedStoreId;
+  final bool isLoading;
+
+  const _SalaryContentWithOverlay({
+    required this.salaryData,
+    required this.selectedTab,
+    required this.selectedStoreId,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Actual content (always visible)
+        _SalaryContent(
+          salaryData: salaryData,
+          selectedTab: selectedTab,
+          selectedStoreId: selectedStoreId,
+        ),
+
+        // Shimmer overlay when loading
+        if (isLoading)
+          Positioned.fill(
+            child: _SalaryShimmerOverlay(),
+          ),
+      ],
+    );
+  }
+}
+
+/// Actual salary display content with smooth number animation
+class _SalaryContent extends StatefulWidget {
+  final Map<String, dynamic> salaryData;
+  final SalaryViewTab selectedTab;
+  final String selectedStoreId;
+
+  const _SalaryContent({
+    required this.salaryData,
+    required this.selectedTab,
+    required this.selectedStoreId,
+  });
+
+  @override
+  State<_SalaryContent> createState() => _SalaryContentState();
+}
+
+class _SalaryContentState extends State<_SalaryContent>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _amountAnimation;
+  double _previousAmount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: TossAnimations.medium,
+      vsync: this,
+    );
+    final stats = _getThisMonthStats();
+    _previousAmount = (stats['total_payment'] as num?)?.toDouble() ?? 0.0;
+    _amountAnimation = AlwaysStoppedAnimation(_previousAmount);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SalaryContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newStats = _getThisMonthStats();
+    final newAmount = (newStats['total_payment'] as num?)?.toDouble() ?? 0.0;
+
+    if (_previousAmount != newAmount) {
+      _amountAnimation = Tween<double>(
+        begin: _previousAmount,
+        end: newAmount,
+      ).animate(CurvedAnimation(
+        parent: _controller,
+        curve: TossAnimations.standard,
+      ));
+      _controller.forward(from: 0);
+      _previousAmount = newAmount;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Map<String, dynamic> _getThisMonthStats() {
+    if (widget.selectedTab == SalaryViewTab.company) {
+      final companyTotal = widget.salaryData['company_total'] as Map<String, dynamic>? ?? {};
+      return companyTotal['this_month'] as Map<String, dynamic>? ?? _defaultPeriodStats();
+    } else {
+      final byStore = widget.salaryData['by_store'] as List<dynamic>? ?? [];
+      for (final item in byStore) {
+        final store = item as Map<String, dynamic>;
+        if (store['store_id'] == widget.selectedStoreId) {
+          return store['this_month'] as Map<String, dynamic>? ?? _defaultPeriodStats();
+        }
+      }
+      return _defaultPeriodStats();
+    }
+  }
+
+  String _formatAmountWithComma(double amount) {
+    final intAmount = amount.toInt();
+    return intAmount.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final salaryInfo = widget.salaryData['salary_info'] as Map<String, dynamic>? ?? {};
+    final currencySymbol = salaryInfo['currency_symbol'] as String? ?? '₫';
+    final thisMonthStats = _getThisMonthStats();
+
+    final bonusPay = (thisMonthStats['bonus_pay'] as num?)?.toDouble() ?? 0.0;
+    final changePercentage = (thisMonthStats['change_percentage'] as num?)?.toDouble() ?? 0.0;
+    final previousPayment = (thisMonthStats['previous_total_payment'] as num?)?.toDouble() ?? 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Animated Amount
+        AnimatedBuilder(
+          animation: _amountAnimation,
+          builder: (context, child) {
+            return Text(
+              '$currencySymbol${_formatAmountWithComma(_amountAnimation.value)}',
+              style: TossTextStyles.display.copyWith(
+                color: TossColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 28,
+                height: 1.2,
+                letterSpacing: -1.0,
+              ),
+            );
+          },
+        ),
+
+        // Change percentage with smooth transition
+        AnimatedSwitcher(
+          duration: TossAnimations.normal,
+          switchInCurve: TossAnimations.enter,
+          switchOutCurve: TossAnimations.exit,
+          child: previousPayment > 0
+              ? Padding(
+                  key: ValueKey('change_$changePercentage'),
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        changePercentage >= 0 ? Icons.trending_up : Icons.trending_down,
+                        color: changePercentage >= 0 ? TossColors.primary : TossColors.error,
+                        size: 16,
+                      ),
+                      const SizedBox(width: TossSpacing.space1),
+                      Text(
+                        '${changePercentage.toStringAsFixed(1)}% vs last month',
+                        style: TossTextStyles.caption.copyWith(
+                          color: changePercentage >= 0 ? TossColors.primary : TossColors.error,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox(key: ValueKey('no_change'), height: 20),
+        ),
+
+        // Overtime bonus with smooth transition
+        AnimatedSwitcher(
+          duration: TossAnimations.normal,
+          switchInCurve: TossAnimations.enter,
+          switchOutCurve: TossAnimations.exit,
+          child: bonusPay > 0
+              ? Padding(
+                  key: ValueKey('bonus_$bonusPay'),
+                  padding: const EdgeInsets.only(top: TossSpacing.space2),
+                  child: Text(
+                    '+$currencySymbol${_formatAmountWithComma(bonusPay)} overtime bonus',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.success,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(key: ValueKey('no_bonus')),
+        ),
+      ],
+    );
+  }
+}
+
+/// Shimmer overlay animation for salary using TossAnimations
+class _SalaryShimmerOverlay extends StatefulWidget {
+  @override
+  State<_SalaryShimmerOverlay> createState() => _SalaryShimmerOverlayState();
+}
+
+class _SalaryShimmerOverlayState extends State<_SalaryShimmerOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: TossAnimations.loadingPulse,
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: TossAnimations.standard),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                TossColors.surface.withValues(alpha: 0.0),
+                TossColors.surface.withValues(alpha: 0.5),
+                TossColors.surface.withValues(alpha: 0.0),
+              ],
+              stops: [
+                (_animation.value - 0.3).clamp(0.0, 1.0),
+                _animation.value.clamp(0.0, 1.0),
+                (_animation.value + 0.3).clamp(0.0, 1.0),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

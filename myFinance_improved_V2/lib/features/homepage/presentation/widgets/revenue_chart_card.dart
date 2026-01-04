@@ -87,6 +87,59 @@ Map<String, dynamic> _defaultChartResponse() {
   };
 }
 
+// ============================================================================
+// Cached Chart Data for Smooth UI Transitions (Toss Style)
+// ============================================================================
+
+/// Holds the last successfully loaded chart data
+final _cachedChartDataProvider = StateProvider<Map<String, dynamic>?>((ref) => null);
+
+/// Provider that returns cached chart data + loading state
+/// Enables "show previous data with shimmer overlay" pattern
+final chartDataWithCacheProvider = Provider<ChartDataWithLoadingState>((ref) {
+  final asyncValue = ref.watch(revenueChartDataProvider);
+  final cachedData = ref.watch(_cachedChartDataProvider);
+
+  // Update cache when new data arrives successfully
+  // Use ref.listen instead of whenData + Future.microtask to avoid disposed ref issues
+  ref.listen(revenueChartDataProvider, (previous, next) {
+    next.whenData((data) {
+      final dataList = data['data'] as List<dynamic>? ?? [];
+      if (dataList.isNotEmpty) {
+        ref.read(_cachedChartDataProvider.notifier).state = data;
+      }
+    });
+  });
+
+  return ChartDataWithLoadingState(
+    data: asyncValue.valueOrNull ?? cachedData,
+    isLoading: asyncValue.isLoading,
+    hasError: asyncValue.hasError,
+    error: asyncValue.error,
+  );
+});
+
+/// State class that holds chart data with loading status
+class ChartDataWithLoadingState {
+  final Map<String, dynamic>? data;
+  final bool isLoading;
+  final bool hasError;
+  final Object? error;
+
+  const ChartDataWithLoadingState({
+    required this.data,
+    required this.isLoading,
+    required this.hasError,
+    this.error,
+  });
+
+  /// True if we have data to display (either fresh or cached)
+  bool get hasData => data != null && (data!['data'] as List<dynamic>?)?.isNotEmpty == true;
+
+  /// True if showing cached data while loading new data
+  bool get isRefreshing => isLoading && hasData;
+}
+
 /// Revenue Chart Card - fl_chart based bar chart
 class RevenueChartCard extends ConsumerStatefulWidget {
   const RevenueChartCard({super.key});
@@ -100,7 +153,8 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
 
   @override
   Widget build(BuildContext context) {
-    final chartDataAsync = ref.watch(revenueChartDataProvider);
+    // Use cached chart data provider (Toss style - prevents layout jump)
+    final chartState = ref.watch(chartDataWithCacheProvider);
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
 
     return Container(
@@ -118,15 +172,43 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
           const SizedBox(height: TossSpacing.space4),
           SizedBox(
             height: 200,
-            child: chartDataAsync.when(
-              data: (chartData) => _buildBarChart(chartData, selectedPeriod),
-              loading: () => _buildLoadingState(),
-              error: (error, _) => _buildErrorState(),
-            ),
+            child: _buildChartContent(chartState, selectedPeriod),
           ),
         ],
       ),
     );
+  }
+
+  /// Builds chart content with Toss-style loading overlay
+  Widget _buildChartContent(ChartDataWithLoadingState state, RevenuePeriod selectedPeriod) {
+    // Case 1: Has data (fresh or cached) - show with optional loading overlay
+    if (state.hasData) {
+      return Stack(
+        children: [
+          // Actual chart (always visible)
+          _buildBarChart(state.data!, selectedPeriod),
+
+          // Shimmer overlay when refreshing
+          if (state.isRefreshing)
+            Positioned.fill(
+              child: _ChartShimmerOverlay(),
+            ),
+        ],
+      );
+    }
+
+    // Case 2: Initial loading (no cached data yet)
+    if (state.isLoading) {
+      return _buildLoadingState();
+    }
+
+    // Case 3: Error with no cached data
+    if (state.hasError) {
+      return _buildErrorState();
+    }
+
+    // Fallback - empty state
+    return _buildEmptyState();
   }
 
   Widget _buildHeader() {
@@ -541,5 +623,63 @@ class _ChartDataPoint {
   double get marginPercent {
     if (revenue <= 0) return 0.0;
     return (grossProfit / revenue) * 100;
+  }
+}
+
+/// Shimmer overlay for chart using TossAnimations
+class _ChartShimmerOverlay extends StatefulWidget {
+  @override
+  State<_ChartShimmerOverlay> createState() => _ChartShimmerOverlayState();
+}
+
+class _ChartShimmerOverlayState extends State<_ChartShimmerOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: TossAnimations.loadingPulse, // 1200ms - Toss shimmer timing
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: TossAnimations.standard),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                TossColors.surface.withValues(alpha: 0.0),
+                TossColors.surface.withValues(alpha: 0.6),
+                TossColors.surface.withValues(alpha: 0.0),
+              ],
+              stops: [
+                (_animation.value - 0.3).clamp(0.0, 1.0),
+                _animation.value.clamp(0.0, 1.0),
+                (_animation.value + 0.3).clamp(0.0, 1.0),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

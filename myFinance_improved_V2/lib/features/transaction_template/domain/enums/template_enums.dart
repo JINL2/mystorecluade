@@ -70,6 +70,11 @@ enum TemplateRpcType {
   /// - p_lines: Revenue/Expense account + Cash account entry
   expenseRevenueCash,
 
+  /// General Journal Entry: Any account combination without special requirements
+  /// - Example: COGS (Expense + Inventory), Depreciation, Adjustments
+  /// - p_lines: Standard debit/credit entries without cash/debt requirements
+  generalJournal,
+
   /// Unknown or unsupported template type
   /// - Should trigger validation error in production
   unknown,
@@ -88,6 +93,8 @@ extension TemplateRpcTypeExtension on TemplateRpcType {
         return 'External Debt';
       case TemplateRpcType.expenseRevenueCash:
         return 'Revenue/Expense';
+      case TemplateRpcType.generalJournal:
+        return 'General Journal';
       case TemplateRpcType.unknown:
         return 'Unknown';
     }
@@ -104,6 +111,8 @@ extension TemplateRpcTypeExtension on TemplateRpcType {
         return 'Debt transaction with external counterparty';
       case TemplateRpcType.expenseRevenueCash:
         return 'Revenue or expense with cash payment';
+      case TemplateRpcType.generalJournal:
+        return 'General journal entry (COGS, depreciation, adjustments)';
       case TemplateRpcType.unknown:
         return 'Unable to determine transaction type';
     }
@@ -139,6 +148,8 @@ extension TemplateRpcTypeExtension on TemplateRpcType {
         return 5; // Medium - internal cash
       case TemplateRpcType.expenseRevenueCash:
         return 3; // Lower - standard transactions
+      case TemplateRpcType.generalJournal:
+        return 2; // Simple - just debit/credit
       case TemplateRpcType.unknown:
         return 0; // Invalid
     }

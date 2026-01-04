@@ -144,6 +144,13 @@ class TemplateLinesBuilder {
           cashLocationId: effectiveCashLocationId,
         );
 
+      case TemplateRpcType.generalJournal:
+        _debugLog('│ Building: GeneralJournal lines...');
+        result = _buildGeneralJournalLines(
+          data: data,
+          amount: amount,
+        );
+
       case TemplateRpcType.unknown:
         _debugLog('│ Building: Generic (fallback) lines...');
         // Fallback: try to build generic lines
@@ -389,6 +396,44 @@ class TemplateLinesBuilder {
       }
 
       lines.add(lineData);
+    }
+
+    return lines;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // General Journal Entry
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Build lines for general journal entry (simple debit/credit)
+  ///
+  /// Structure:
+  /// - Just account_id, debit, credit - no cash/debt objects needed
+  /// - Example: COGS (Expense + Inventory), Depreciation, Adjustments
+  /// Note: Uses String format for debit/credit to match journal_input behavior
+  static List<Map<String, dynamic>> _buildGeneralJournalLines({
+    required List<dynamic> data,
+    required double amount,
+  }) {
+    final lines = <Map<String, dynamic>>[];
+
+    for (var entry in data) {
+      if (entry is! Map<String, dynamic>) continue;
+
+      final accountId = entry['account_id']?.toString();
+      if (accountId == null) continue;
+
+      // Check type field (primary), then fallback to is_debit/debit_credit
+      final isDebit = entry['type'] == 'debit' ||
+          entry['is_debit'] == true ||
+          entry['debit_credit'] == 'debit';
+
+      // Match journal_input format: String values for debit/credit
+      lines.add({
+        'account_id': accountId,
+        'debit': isDebit ? amount.toString() : '0',
+        'credit': isDebit ? '0' : amount.toString(),
+      });
     }
 
     return lines;

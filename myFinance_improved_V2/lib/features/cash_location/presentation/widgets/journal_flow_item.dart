@@ -38,8 +38,8 @@ class JournalFlowItem extends StatelessWidget {
         padding: EdgeInsets.only(
           left: TossSpacing.space4,
           right: TossSpacing.space4,
-          top: TossSpacing.space3,
-          bottom: TossSpacing.space3,
+          top: TossSpacing.space2,
+          bottom: TossSpacing.space2,
         ),
         child: Row(
           children: [
@@ -72,7 +72,7 @@ class JournalFlowItem extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: TossSpacing.space2),
+                  SizedBox(height: TossSpacing.space1),
                   Row(
                     children: [
                       Flexible(
@@ -85,12 +85,7 @@ class JournalFlowItem extends StatelessWidget {
                         ),
                       ),
                       if (CashLocationFormatters.formatJournalFlowTime(flow).isNotEmpty) ...[
-                        Text(
-                          ' • ',
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray500,
-                          ),
-                        ),
+                        const SizedBox(width: TossSpacing.space2),
                         Text(
                           CashLocationFormatters.formatJournalFlowTime(flow),
                           style: TossTextStyles.bodySmall.copyWith(
@@ -118,7 +113,7 @@ class JournalFlowItem extends StatelessWidget {
                         : TossColors.gray900,
                   ),
                 ),
-                SizedBox(height: TossSpacing.space2),
+                SizedBox(height: TossSpacing.space1),
                 Text(
                   formatBalance(flow.balanceAfter, currencySymbol),
                   style: TossTextStyles.bodySmall.copyWith(

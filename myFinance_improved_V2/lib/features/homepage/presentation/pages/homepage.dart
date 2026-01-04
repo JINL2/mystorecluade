@@ -98,38 +98,28 @@ class _HomepageState extends ConsumerState<Homepage> {
   /// Shows full-screen loading until:
   /// - Quick access features loaded
   /// - Categories with features loaded
-  /// - Revenue/Salary data loaded (based on permission)
+  /// - Revenue/Salary: NOT blocking! Uses cache system for smooth transitions
   Widget _buildHomepageWithDataCheck() {
     // Watch all essential providers
     final quickAccessAsync = ref.watch(quickAccessFeaturesProvider);
     final categoriesAsync = ref.watch(categoriesWithFeaturesProvider);
 
-    // Check if user has revenue permission to decide which data to wait for
-    final hasRevenue = _hasRevenuePermission();
-
-    // Determine loading state for revenue/salary
-    final AsyncValue<dynamic> revenueOrSalaryAsync;
-    if (hasRevenue) {
-      final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
-      revenueOrSalaryAsync = ref.watch(revenueProvider(selectedPeriod));
-    } else {
-      revenueOrSalaryAsync = ref.watch(homepageUserSalaryProvider);
-    }
-
-    // Check if ALL data is loaded (hasValue or hasError means loading is complete)
+    // Check if essential layout data is loaded
+    // NOTE: Revenue/Salary is NOT included here anymore!
+    // Each card handles its own loading state with cache + shimmer overlay
+    // This prevents full-page loading when switching scope/period
     final isQuickAccessLoaded = quickAccessAsync.hasValue || quickAccessAsync.hasError;
     final isCategoriesLoaded = categoriesAsync.hasValue || categoriesAsync.hasError;
-    final isRevenueOrSalaryLoaded = revenueOrSalaryAsync.hasValue || revenueOrSalaryAsync.hasError;
 
-    // Show loading until all data is ready
-    if (!isQuickAccessLoaded || !isCategoriesLoaded || !isRevenueOrSalaryLoaded) {
+    // Show loading only for essential layout data (not revenue/salary)
+    if (!isQuickAccessLoaded || !isCategoriesLoaded) {
       return const Scaffold(
         backgroundColor: TossColors.surface,
         body: TossLoadingView(message: 'Loading...'),
       );
     }
 
-    // All data loaded - check and show homepage alert
+    // All layout data loaded - check and show homepage alert
     _checkAndShowAlert();
 
     return _buildHomepage();
