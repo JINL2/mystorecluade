@@ -95,26 +95,26 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         // Shift info
         shift_request_id: row.shift_request_id || '',
         request_date: row.request_date
-          ? DateTimeUtils.formatDateOnly(DateTimeUtils.toLocal(row.request_date))
+          ? DateTimeUtils.formatDateOnly(row.request_date)
           : '',
         shift_name: row.shift_name || '',
         start_time: row.start_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.start_time))
+          ? DateTimeUtils.format(row.start_time)
           : '',
         end_time: row.end_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.end_time))
+          ? DateTimeUtils.format(row.end_time)
           : '',
         actual_start_time: row.actual_start_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.actual_start_time))
+          ? DateTimeUtils.format(row.actual_start_time)
           : '',
         actual_end_time: row.actual_end_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.actual_end_time))
+          ? DateTimeUtils.format(row.actual_end_time)
           : '',
         confirm_start_time: row.confirm_start_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.confirm_start_time))
+          ? DateTimeUtils.format(row.confirm_start_time)
           : '',
         confirm_end_time: row.confirm_end_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.confirm_end_time))
+          ? DateTimeUtils.format(row.confirm_end_time)
           : '',
         // Hours
         scheduled_hours: row.scheduled_hours || 0,
