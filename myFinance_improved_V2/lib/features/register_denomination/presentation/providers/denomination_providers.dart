@@ -8,6 +8,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import '../../di/providers.dart';
 // Feature - Domain
 import '../../domain/entities/denomination.dart';
+import '../../domain/entities/denomination_delete_result.dart';
 import '../../domain/repositories/denomination_repository.dart';
 
 part 'denomination_providers.g.dart';
@@ -123,21 +124,30 @@ class DenominationOperations extends _$DenominationOperations {
     }
   }
 
-  Future<void> removeDenomination(String denominationId, String currencyId) async {
+  Future<DenominationDeleteResult> removeDenomination(String denominationId, String currencyId) async {
     state = const AsyncValue.loading();
 
     try {
-      final repository = ref.read(denominationRepositoryProvider);
-      await repository.removeDenomination(denominationId);
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
 
-      // Refresh the denomination list for this currency
-      ref.invalidate(denominationListProvider(currencyId));
-      ref.invalidate(denominationStatsProvider(currencyId));
+      if (companyId.isEmpty) {
+        throw Exception('No company selected');
+      }
+
+      final repository = ref.read(denominationRepositoryProvider);
+      final result = await repository.removeDenomination(denominationId, companyId);
+
+      if (result.success) {
+        // Refresh the denomination list for this currency
+        ref.invalidate(denominationListProvider(currencyId));
+        ref.invalidate(denominationStatsProvider(currencyId));
+      }
 
       state = const AsyncValue.data(null);
+      return result;
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
-      // Re-throw to propagate the error
       rethrow;
     }
   }

@@ -84,31 +84,11 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
           const SizedBox(height: TossSpacing.space5),
           
           // Tab Bar
-          Container(
-            decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: TossColors.gray200,
-                  width: 1,
-                ),
-              ),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: TossColors.gray900,
-              unselectedLabelColor: TossColors.gray500,
-              indicatorColor: TossColors.gray900,
-              indicatorWeight: 2,
-              labelStyle: TossTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600),
-              unselectedLabelStyle: TossTextStyles.bodySmall,
-              labelPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-              tabs: const [
-                Tab(text: 'Salary'),
-                Tab(text: 'Attendance'),
-                Tab(text: 'Info'),
-                Tab(text: 'Role'),
-              ],
-            ),
+          TossTabBar(
+            tabs: const ['Salary', 'Attendance', 'Info', 'Role'],
+            controller: _tabController,
+            selectedLabelStyle: TossTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w700),
+            unselectedLabelStyle: TossTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500),
           ),
           
           // Tab Views

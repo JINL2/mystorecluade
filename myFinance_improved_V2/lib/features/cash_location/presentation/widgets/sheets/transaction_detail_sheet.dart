@@ -59,7 +59,7 @@ class TransactionDetailSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -94,7 +94,7 @@ class TransactionDetailSheet extends StatelessWidget {
 
           // Transaction Info
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -117,10 +117,9 @@ class TransactionDetailSheet extends StatelessWidget {
                             transaction.isIncome ? 'Money In' : 'Money Out',
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray600,
-                              fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: TossSpacing.space1),
                           Text(
                             _formatCurrency(transaction.amount),
                             style: TossTextStyles.h1.copyWith(
@@ -143,7 +142,7 @@ class TransactionDetailSheet extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: TossSpacing.space6),
 
                 // Transaction Details
                 _buildDetailRow(
@@ -165,7 +164,7 @@ class TransactionDetailSheet extends StatelessWidget {
                     transaction.description,
                   ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: TossSpacing.space6),
 
                 // Journal Lines Section
                 if (journalEntry != null && journalEntry.lines.length > 1)
@@ -174,10 +173,7 @@ class TransactionDetailSheet extends StatelessWidget {
                     children: [
                       Text(
                         'Transaction Details',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
+                        style: TossTextStyles.h4,
                       ),
                       const SizedBox(height: TossSpacing.space3),
 
@@ -189,7 +185,7 @@ class TransactionDetailSheet extends StatelessWidget {
           ),
 
           // Bottom safe area
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space5),
         ],
       ),
     );
@@ -250,7 +246,7 @@ class TransactionDetailSheet extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
@@ -266,29 +262,23 @@ class TransactionDetailSheet extends StatelessWidget {
               Expanded(
                 child: Text(
                   displayName,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: TossTextStyles.bodyMedium,
                 ),
               ),
               Text(
                 '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                style: TossTextStyles.bodyMedium.copyWith(
                   color: isDebit ? TossColors.success : TossColors.error,
-                  fontSize: 14,
                 ),
               ),
             ],
           ),
           if (line.description.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: TossSpacing.space1),
             Text(
               line.description,
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray600,
-                fontSize: 12,
               ),
             ),
           ],

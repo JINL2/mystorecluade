@@ -17,7 +17,6 @@ import '../providers/filtered_products_provider.dart';
 import '../providers/sale_preload_provider.dart';
 import '../providers/inventory_metadata_provider.dart';
 import '../providers/sales_product_provider.dart';
-import '../providers/states/sales_product_state.dart';
 import '../widgets/cart/cart_summary_bar.dart';
 import '../widgets/list/selectable_product_tile.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -44,18 +43,45 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    // 2025 Best Practice: Minimal initialization, parallel loading
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(cartNotifierProvider.notifier).clearCart();
-      // Invalidate providers to force fresh data load from server
-      ref.invalidate(filteredProductsProvider);
-      ref.invalidate(salesProductNotifierProvider);
-      ref.invalidate(inventoryMetadataNotifierProvider);
-      ref.invalidate(salePreloadNotifierProvider);
-      // Load metadata (salePreloadNotifierProvider loads automatically in build())
-      ref.read(inventoryMetadataNotifierProvider.notifier).loadMetadata();
+      _initializePageData();
     });
 
     _scrollController.addListener(_onScroll);
+  }
+
+  /// Initialize page data with parallel loading (2025 performance pattern)
+  /// - Avoids unnecessary invalidations that cause cascade rebuilds
+  /// - Uses Future.wait for parallel API calls
+  /// - Always loads fresh data for sales (inventory may have changed)
+  Future<void> _initializePageData() async {
+    // Clear cart synchronously (fast, local operation)
+    ref.read(cartNotifierProvider.notifier).clearCart();
+
+    // Check current metadata state
+    final currentMetadata = ref.read(inventoryMetadataNotifierProvider);
+    final needsMetadataRefresh = !currentMetadata.hasValue ||
+        currentMetadata.valueOrNull == null;
+
+    // Parallel loading - both API calls execute simultaneously
+    // This reduces total loading time from (A + B) to max(A, B)
+    // Always refresh products for fresh inventory data
+    await Future.wait<void>([
+      ref.read(salesProductNotifierProvider.notifier).loadProducts(),
+      if (needsMetadataRefresh)
+        ref.read(inventoryMetadataNotifierProvider.notifier).loadMetadata(),
+    ]);
+
+    // Preload payment page data in background (don't await)
+    // This makes navigation to payment instant
+    _preloadPaymentData();
+  }
+
+  /// Preload payment page data in background
+  void _preloadPaymentData() {
+    // Trigger preload without awaiting - runs in background
+    ref.read(salePreloadNotifierProvider);
   }
 
   @override
@@ -190,14 +216,38 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
   @override
   Widget build(BuildContext context) {
-    final salesState = ref.watch(salesProductNotifierProvider);
-    final cart = ref.watch(cartNotifierProvider);
-    final currencySymbol = ref.watch(currencyProvider);
-    final allProducts = ref.watch(filteredProductsProvider);
-    final metadataState = ref.watch(inventoryMetadataNotifierProvider);
+    // 2025 Best Practice: Use ref.select for granular rebuilds
+    // Only rebuild when specific values change, not entire state objects
 
-    // Get brands from metadata
-    final brands = metadataState.brandNames;
+    // Products - only rebuild when products list changes
+    final allProducts = ref.watch(filteredProductsProvider);
+
+    // Sales state - select only the fields we need
+    final isLoading = ref.watch(
+      salesProductNotifierProvider.select((s) => s.isLoading),
+    );
+    final isLoadingMore = ref.watch(
+      salesProductNotifierProvider.select((s) => s.isLoadingMore),
+    );
+    final errorMessage = ref.watch(
+      salesProductNotifierProvider.select((s) => s.errorMessage),
+    );
+
+    // Cart - optimized: only watch what we need
+    // For cart bar visibility, we only need to know if cart has items
+    final hasCartItems = ref.watch(
+      cartNotifierProvider.select((cart) => cart.isNotEmpty),
+    );
+    // Full cart data only needed when cart is not empty
+    final cart = hasCartItems ? ref.watch(cartNotifierProvider) : <CartItem>[];
+
+    // Currency - simple value, no optimization needed
+    final currencySymbol = ref.watch(currencyProvider);
+
+    // Metadata - only need brand names
+    final brands = ref.watch(
+      inventoryMetadataNotifierProvider.select((s) => s.brandNames),
+    );
 
     // Filter products by selected brand
     final displayProducts = _filterByBrand(allProducts);
@@ -219,10 +269,20 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
             Column(
               children: [
                 _buildSearchAndBrands(brands),
-                Expanded(child: _buildProductList(displayProducts, cart, currencySymbol, salesState, allProducts)),
+                Expanded(
+                  child: _buildProductList(
+                    displayProducts: displayProducts,
+                    cart: cart,
+                    currencySymbol: currencySymbol,
+                    isLoading: isLoading,
+                    isLoadingMore: isLoadingMore,
+                    errorMessage: errorMessage,
+                    allProducts: allProducts,
+                  ),
+                ),
               ],
             ),
-            if (cart.isNotEmpty)
+            if (hasCartItems)
               Positioned(
                 left: 0,
                 right: 0,
@@ -320,26 +380,28 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     );
   }
 
-  Widget _buildProductList(
-    List<SalesProduct> displayProducts,
-    List<CartItem> cart,
-    String currencySymbol,
-    SalesProductState salesState,
-    List<SalesProduct> allProducts,
-  ) {
+  Widget _buildProductList({
+    required List<SalesProduct> displayProducts,
+    required List<CartItem> cart,
+    required String currencySymbol,
+    required bool isLoading,
+    required bool isLoadingMore,
+    required String? errorMessage,
+    required List<SalesProduct> allProducts,
+  }) {
     // Show loading if still loading and no products at all
-    if (salesState.isLoading && allProducts.isEmpty) {
+    if (isLoading && allProducts.isEmpty) {
       return const TossLoadingView();
     }
 
-    if (salesState.errorMessage != null && displayProducts.isEmpty) {
+    if (errorMessage != null && displayProducts.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
-            Text(salesState.errorMessage ?? 'Error loading products', style: TossTextStyles.body),
+            Text(errorMessage, style: TossTextStyles.body),
             const SizedBox(height: TossSpacing.space3),
             TossButton.textButton(
               text: 'Retry',
@@ -372,7 +434,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         top: TossSpacing.space1,
         bottom: cart.isNotEmpty ? 180 : TossSpacing.space6,
       ),
-      itemCount: displayProducts.length + (salesState.isLoadingMore ? 1 : 0),
+      itemCount: displayProducts.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == displayProducts.length) {
           return const Padding(

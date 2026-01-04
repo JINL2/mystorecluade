@@ -160,14 +160,9 @@ class _ReliabilityRankingsPageState
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return const TossAppBar(
+      title: '',
       backgroundColor: TossColors.white,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: TossColors.gray900),
-        onPressed: () => Navigator.pop(context),
-      ),
     );
   }
 

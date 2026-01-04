@@ -35,7 +35,17 @@ FinancialStatementsRepository financialStatementsRepository(Ref ref) {
 // PAGE STATE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-enum QuickPeriod { today, yesterday, thisWeek, thisMonth, thisYear, custom }
+enum QuickPeriod {
+  today,
+  yesterday,
+  past7Days,
+  thisWeek,
+  thisMonth,
+  lastMonth,
+  thisYear,
+  lastYear,
+  custom,
+}
 
 enum DataLevel { company, store }
 
@@ -122,6 +132,9 @@ class FinancialStatementsPageNotifier extends _$FinancialStatementsPageNotifier 
         startDate = yesterday;
         endDate = yesterday;
         break;
+      case QuickPeriod.past7Days:
+        startDate = today.subtract(const Duration(days: 6));
+        break;
       case QuickPeriod.thisWeek:
         // Monday start
         startDate = today.subtract(Duration(days: today.weekday - 1));
@@ -129,8 +142,18 @@ class FinancialStatementsPageNotifier extends _$FinancialStatementsPageNotifier 
       case QuickPeriod.thisMonth:
         startDate = DateTime(now.year, now.month, 1);
         break;
+      case QuickPeriod.lastMonth:
+        final lastMonth = DateTime(now.year, now.month - 1, 1);
+        startDate = lastMonth;
+        // Last day of last month
+        endDate = DateTime(now.year, now.month, 0);
+        break;
       case QuickPeriod.thisYear:
         startDate = DateTime(now.year, 1, 1);
+        break;
+      case QuickPeriod.lastYear:
+        startDate = DateTime(now.year - 1, 1, 1);
+        endDate = DateTime(now.year - 1, 12, 31);
         break;
       case QuickPeriod.custom:
         // Keep current dates

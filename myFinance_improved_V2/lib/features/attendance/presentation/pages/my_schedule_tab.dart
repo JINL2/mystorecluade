@@ -18,7 +18,7 @@ import '../../domain/entities/problem_details.dart';
 import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
-import '../widgets/shift/week_shift_card.dart' show ShiftCardStatus;
+import 'widgets/my_schedule/index.dart';
 
 /// MyScheduleTab - Main tab with Week view and expandable Month calendar
 ///
@@ -411,7 +411,12 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
 
             // If no shifts at all across all checked periods, show only empty state
             if (uniqueShifts.isEmpty) {
-              return _buildEmptyStateOnly();
+              return ScheduleEmptyState(
+                stores: widget.stores,
+                selectedStoreId: widget.selectedStoreId,
+                onStoreChanged: widget.onStoreChanged,
+                onGoToShiftSignUp: _goToShiftSignUpTab,
+              );
             }
 
             // Build scrollable view with header and content
@@ -427,11 +432,21 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
             );
           },
           loading: () => const TossLoadingView(),
-          error: (_, __) => _buildEmptyStateOnly(),
+          error: (_, __) => ScheduleEmptyState(
+            stores: widget.stores,
+            selectedStoreId: widget.selectedStoreId,
+            onStoreChanged: widget.onStoreChanged,
+            onGoToShiftSignUp: _goToShiftSignUpTab,
+          ),
         );
       },
       loading: () => const TossLoadingView(),
-      error: (_, __) => _buildEmptyStateOnly(),
+      error: (_, __) => ScheduleEmptyState(
+        stores: widget.stores,
+        selectedStoreId: widget.selectedStoreId,
+        onStoreChanged: widget.onStoreChanged,
+        onGoToShiftSignUp: _goToShiftSignUpTab,
+      ),
     );
   }
 
@@ -448,6 +463,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
   }) {
     // Build problem status map for week dates picker
     final problemStatusMap = _buildProblemStatusMap(shiftCards);
+    final unsolvedCount = _countUnsolvedProblems(shiftCards);
 
     return SingleChildScrollView(
       child: Column(
@@ -509,9 +525,25 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Week/Month Navigation with calendar toggle button
-                _isExpanded
-                    ? _buildMonthNavigationWithToggle(shiftCards)
-                    : _buildWeekNavigationWithToggle(shiftCards),
+                if (_isExpanded)
+                  ScheduleMonthNavigation(
+                    currentMonth: _currentMonth,
+                    unsolvedCount: unsolvedCount,
+                    onPrevMonth: () => _navigateMonth(-1),
+                    onCurrentMonth: () => _navigateMonth(0),
+                    onNextMonth: () => _navigateMonth(1),
+                    onToggleExpanded: _toggleExpanded,
+                  )
+                else
+                  ScheduleWeekNavigation(
+                    weekRange: weekRange,
+                    currentWeekOffset: _currentWeekOffset,
+                    unsolvedCount: unsolvedCount,
+                    onPrevWeek: () => _navigateWeek(-1),
+                    onCurrentWeek: () => _navigateWeek(0),
+                    onNextWeek: () => _navigateWeek(1),
+                    onToggleExpanded: _toggleExpanded,
+                  ),
                 const SizedBox(height: 12),
 
                 // Week Dates Picker or Month Calendar
@@ -545,7 +577,10 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
                 const SizedBox(height: 12),
 
                 // Shift list for selected date
-                _buildSelectedDateShiftCards(shiftCards),
+                SelectedDateShiftList(
+                  shiftCards: shiftCards,
+                  selectedDate: _selectedDate,
+                ),
               ],
             ),
           ),
@@ -572,22 +607,22 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       // Determine status for this shift
       // Priority: solved (green) > reported (orange) > unsolved problem (red) > has shift (blue)
       // Logic flow:
-      // 1. is_solved = true → 🟢 Green (all problems resolved)
-      // 2. has_reported = true && is_solved = false → 🟠 Orange (reported, waiting)
-      // 3. problem_count > 0 && is_solved = false → 🔴 Red (unsolved problem)
-      // 4. No problems → 🔵 Blue (just has shift)
+      // 1. is_solved = true -> Green (all problems resolved)
+      // 2. has_reported = true && is_solved = false -> Orange (reported, waiting)
+      // 3. problem_count > 0 && is_solved = false -> Red (unsolved problem)
+      // 4. No problems -> Blue (just has shift)
       ProblemStatus shiftStatus;
       if (pd != null && pd.isSolved && pd.problemCount > 0) {
-        // All problems solved → Green
+        // All problems solved -> Green
         shiftStatus = ProblemStatus.solved;
       } else if (pd != null && pd.hasReported && !pd.isSolved) {
-        // Reported but not solved yet → Orange (waiting for manager review)
+        // Reported but not solved yet -> Orange (waiting for manager review)
         shiftStatus = ProblemStatus.unsolvedReport;
       } else if (pd != null && pd.problemCount > 0 && !pd.isSolved) {
-        // Has unsolved problems (not reported) → Red
+        // Has unsolved problems (not reported) -> Red
         shiftStatus = ProblemStatus.unsolvedProblem;
       } else {
-        // Has shift, no problems → Blue
+        // Has shift, no problems -> Blue
         shiftStatus = ProblemStatus.hasShift;
       }
 
@@ -628,400 +663,5 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       }
     }
     return count;
-  }
-
-  /// Build shift cards for selected date
-  Widget _buildSelectedDateShiftCards(List<ShiftCard> shiftCards) {
-    // Filter shifts for selected date
-    final selectedDateShifts = shiftCards.where((card) {
-      if (!card.isApproved) return false;
-      final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
-      if (startDateTime == null) return false;
-      final shiftDate = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
-      final selectedDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-      return shiftDate.isAtSameMomentAs(selectedDay);
-    }).toList();
-
-    // Sort by start time
-    selectedDateShifts.sort((a, b) {
-      final timeA = ScheduleDateUtils.parseShiftDateTime(a.shiftStartTime);
-      final timeB = ScheduleDateUtils.parseShiftDateTime(b.shiftStartTime);
-      if (timeA == null || timeB == null) return 0;
-      return timeA.compareTo(timeB);
-    });
-
-    if (selectedDateShifts.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space8),
-        child: Center(
-          child: Text(
-            'No shifts on this day',
-            style: TossTextStyles.body.copyWith(color: TossColors.gray500),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: selectedDateShifts.map((card) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-          child: _buildShiftCard(card),
-        );
-      }).toList(),
-    );
-  }
-
-  /// Build individual shift card for selected date
-  Widget _buildShiftCard(ShiftCard card) {
-    final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
-    final endDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftEndTime);
-
-    final timeRange = startDateTime != null && endDateTime != null
-        ? '${DateFormat('HH:mm').format(startDateTime)} - ${DateFormat('HH:mm').format(endDateTime)}'
-        : '--:-- - --:--';
-
-    final status = ScheduleShiftFinder.determineStatus(
-      card,
-      startDateTime != null ? DateTime(startDateTime.year, startDateTime.month, startDateTime.day) : DateTime.now(),
-      hasManagerMemo: card.managerMemos.isNotEmpty,
-    );
-
-    // Problem badges
-    final pd = card.problemDetails;
-
-    return GestureDetector(
-      onTap: () => ShiftDetailDialog.show(context, shiftCard: card),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3, horizontal: TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(color: TossColors.gray200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // First row: Shift name, time, and status
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        card.shiftName ?? 'Unknown Shift',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        timeRange,
-                        style: TossTextStyles.labelSmall.copyWith(
-                          color: TossColors.gray500,
-                          fontFeatures: [const FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Status badge
-                _buildStatusBadge(status),
-                const SizedBox(width: 8),
-                const Icon(Icons.chevron_right, color: TossColors.gray400, size: 20),
-              ],
-            ),
-
-            // Problem badges row (if any)
-            if (pd != null && pd.problemCount > 0) ...[
-              const SizedBox(height: 8),
-              _buildProblemBadges(pd, hasManagerMemo: card.managerMemos.isNotEmpty),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build status badge for shift card
-  Widget _buildStatusBadge(ShiftCardStatus status) {
-    final (String label, Color color) = switch (status) {
-      ShiftCardStatus.upcoming => ('Upcoming', TossColors.primary),
-      ShiftCardStatus.inProgress => ('In Progress', TossColors.success),
-      ShiftCardStatus.completed => ('Completed', TossColors.gray500),
-      ShiftCardStatus.late => ('Late', TossColors.error),
-      ShiftCardStatus.onTime => ('On-time', TossColors.success),
-      ShiftCardStatus.undone => ('Undone', TossColors.gray500),
-      ShiftCardStatus.absent => ('Absent', TossColors.error),
-      ShiftCardStatus.noCheckout => ('No Checkout', TossColors.error),
-      ShiftCardStatus.earlyLeave => ('Early Leave', TossColors.error),
-      ShiftCardStatus.reported => ('Reported', TossColors.warning),
-      ShiftCardStatus.resolved => ('Resolved', TossColors.success),
-    };
-
-    // Chip style with solid fill background and white text
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      child: Text(
-        label,
-        style: TossTextStyles.labelSmall.copyWith(
-          color: TossColors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  /// Build problem badges for shift card
-  /// Note: Status badge already shows main problem (Reported/Resolved/Late/etc)
-  /// These badges show additional details (late minutes, overtime, location)
-  Widget _buildProblemBadges(ProblemDetails pd, {bool hasManagerMemo = false}) {
-    final badges = <Widget>[];
-
-    // Late with minutes detail (status badge just shows "Late") - RED (problem)
-    if (pd.hasLate && pd.lateMinutes > 0) {
-      badges.add(_buildProblemBadge('${pd.lateMinutes}m late', isProblem: true));
-    }
-    // Location issue - RED (problem)
-    if (pd.hasLocationIssue) {
-      badges.add(_buildProblemBadge('Location', isProblem: true));
-    }
-    // Overtime with minutes detail - not a problem, neutral style
-    if (pd.hasOvertime && pd.overtimeMinutes > 0) {
-      badges.add(_buildProblemBadge('OT ${pd.overtimeMinutes}m', isProblem: false));
-    }
-    // Early leave with minutes detail - RED (problem)
-    if (pd.hasEarlyLeave && pd.earlyLeaveMinutes > 0) {
-      badges.add(_buildProblemBadge('${pd.earlyLeaveMinutes}m early', isProblem: true));
-    }
-
-    if (badges.isEmpty) return const SizedBox.shrink();
-
-    // Show max 2, rest as +N
-    final visibleBadges = badges.take(2).toList();
-    final hiddenCount = badges.length - 2;
-
-    // Build badges with dot separator between them
-    final List<Widget> badgesWithSeparators = [];
-    for (int i = 0; i < visibleBadges.length; i++) {
-      badgesWithSeparators.add(visibleBadges[i]);
-      // Add dot separator after each badge except the last one
-      if (i < visibleBadges.length - 1) {
-        badgesWithSeparators.add(
-          Text(
-            ' · ',
-            style: TossTextStyles.labelSmall.copyWith(
-              color: TossColors.gray400,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        );
-      }
-    }
-
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        ...badgesWithSeparators,
-        if (hiddenCount > 0)
-          Text(
-            ' +$hiddenCount',
-            style: TossTextStyles.labelSmall.copyWith(
-              color: TossColors.gray600,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// Build problem badge - text only, no background
-  /// isProblem: true = red text (late, early, location), false = gray text (OT)
-  Widget _buildProblemBadge(String label, {required bool isProblem}) {
-    return Text(
-      label,
-      style: TossTextStyles.labelSmall.copyWith(
-        color: isProblem ? TossColors.error : TossColors.gray600,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-
-  /// Build calendar icon with notification badge for unsolved problems
-  Widget _buildCalendarIconWithBadge({
-    required IconData icon,
-    required Color iconColor,
-    required int badgeCount,
-    required VoidCallback onPressed,
-    required String tooltip,
-  }) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        IconButton(
-          onPressed: onPressed,
-          icon: Icon(
-            icon,
-            color: iconColor,
-            size: 24,
-          ),
-          tooltip: tooltip,
-        ),
-        // Badge with problem count
-        if (badgeCount > 0)
-          Positioned(
-            right: 4,
-            top: 4,
-            child: Container(
-              padding: const EdgeInsets.all(TossSpacing.space1),
-              decoration: const BoxDecoration(
-                color: TossColors.error,
-                shape: BoxShape.circle,
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 18,
-                minHeight: 18,
-              ),
-              child: Text(
-                badgeCount > 99 ? '99+' : '$badgeCount',
-                style: TossTextStyles.labelSmall.copyWith(
-                  color: TossColors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// Build week navigation with calendar toggle button
-  Widget _buildWeekNavigationWithToggle(List<ShiftCard> shiftCards) {
-    final weekRange = _weekRange;
-    final unsolvedCount = _countUnsolvedProblems(shiftCards);
-
-    return Row(
-      children: [
-        Expanded(
-          child: TossWeekNavigation(
-            weekLabel: _currentWeekOffset == 0 ? 'This week' : 'Week ${_getWeekNumber()}',
-            dateRange: '${DateFormat('d').format(weekRange.start)} - ${DateFormat('d MMM').format(weekRange.end)}',
-            onPrevWeek: () => _navigateWeek(-1),
-            onCurrentWeek: () => _navigateWeek(0),
-            onNextWeek: () => _navigateWeek(1),
-          ),
-        ),
-        // Calendar toggle button with problem count badge
-        _buildCalendarIconWithBadge(
-          icon: Icons.calendar_month,
-          iconColor: TossColors.gray600,
-          badgeCount: unsolvedCount,
-          onPressed: _toggleExpanded,
-          tooltip: 'Show month calendar',
-        ),
-      ],
-    );
-  }
-
-  /// Build month navigation with calendar toggle button
-  Widget _buildMonthNavigationWithToggle(List<ShiftCard> shiftCards) {
-    final monthName = DateFormat.MMMM().format(_currentMonth);
-    final unsolvedCount = _countUnsolvedProblems(shiftCards);
-
-    return Row(
-      children: [
-        Expanded(
-          child: TossMonthNavigation(
-            currentMonth: monthName,
-            year: _currentMonth.year,
-            onPrevMonth: () => _navigateMonth(-1),
-            onCurrentMonth: () => _navigateMonth(0),
-            onNextMonth: () => _navigateMonth(1),
-          ),
-        ),
-        // Calendar toggle button (active state) with problem count badge
-        _buildCalendarIconWithBadge(
-          icon: Icons.calendar_view_week,
-          iconColor: TossColors.primary,
-          badgeCount: unsolvedCount,
-          onPressed: _toggleExpanded,
-          tooltip: 'Show week view',
-        ),
-      ],
-    );
-  }
-
-  /// Build empty state only (with store selector if multiple stores)
-  Widget _buildEmptyStateOnly() {
-    return Column(
-      children: [
-        // Store Selector (only if more than 1 store)
-        if (widget.stores.length > 1)
-          Container(
-            color: TossColors.white,
-            padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, 0),
-            child: TossDropdown<String>(
-              label: 'Store',
-              value: widget.selectedStoreId,
-              items: widget.stores.map((store) {
-                return TossDropdownItem<String>(
-                  value: store['store_id']?.toString() ?? '',
-                  label: store['store_name']?.toString() ?? 'Unknown',
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                if (newValue != null) {
-                  widget.onStoreChanged?.call(newValue);
-                }
-              },
-            ),
-          ),
-        // Empty state content
-        Expanded(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  color: TossColors.gray400,
-                  size: 48,
-                ),
-                const SizedBox(height: TossSpacing.space3),
-                Text(
-                  'You have no shift',
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: TossSpacing.space1),
-                TossButton.textButton(
-                  text: 'Go to shift sign up',
-                  onPressed: _goToShiftSignUpTab,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  int _getWeekNumber() {
-    final firstDayOfYear = DateTime(_currentWeek.year, 1, 1);
-    final daysSinceFirstDay = _currentWeek.difference(firstDayOfYear).inDays;
-    return (daysSinceFirstDay / 7).ceil() + 1;
   }
 }

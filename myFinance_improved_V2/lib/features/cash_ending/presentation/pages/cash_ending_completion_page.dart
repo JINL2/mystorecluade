@@ -223,8 +223,19 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
                     _buildLocationInfo(),
                     const SizedBox(height: TossSpacing.space6),
 
-                    // Currency breakdown sections (for cash and vault tabs)
-                    if (widget.tabType == 'cash' || widget.tabType == 'vault')
+                    // Summary section (Journal result) - shown first for quick access
+                    CompletionSummarySection(
+                      currentBalanceSummary: _currentBalanceSummary,
+                      previousBalanceSummary: _previousBalanceSummary,
+                      appliedAdjustmentType: _appliedAdjustmentType,
+                      grandTotal: widget.grandTotal,
+                      currencies: widget.currencies,
+                      onAutoBalancePressed: _showAutoBalanceTypeSelection,
+                    ),
+
+                    // Currency breakdown sections (denominations detail - below summary)
+                    if (widget.tabType == 'cash' || widget.tabType == 'vault') ...[
+                      const SizedBox(height: TossSpacing.space6),
                       ...widget.currencies.map((currency) => Padding(
                         padding: const EdgeInsets.only(bottom: TossSpacing.space4),
                         child: ExpandableCurrencyBreakdown(
@@ -234,19 +245,7 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
                           onToggle: () => _toggleExpansion(currency.currencyId),
                         ),
                       )),
-
-                    if (widget.tabType == 'cash' || widget.tabType == 'vault')
-                      const SizedBox(height: TossSpacing.space6),
-
-                    // Summary section
-                    CompletionSummarySection(
-                      currentBalanceSummary: _currentBalanceSummary,
-                      previousBalanceSummary: _previousBalanceSummary,
-                      appliedAdjustmentType: _appliedAdjustmentType,
-                      grandTotal: widget.grandTotal,
-                      currencies: widget.currencies,
-                      onAutoBalancePressed: _showAutoBalanceTypeSelection,
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -258,12 +257,14 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
               child: TossButton.primary(
                 text: 'Close',
                 fullWidth: true,
-                textStyle: TossTextStyles.titleLarge.copyWith(
+                textStyle: TossTextStyles.body.copyWith(
                   color: TossColors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space4,
+                  vertical: TossSpacing.space3,
                 ),
                 borderRadius: 12,
                 onPressed: _handleClose,

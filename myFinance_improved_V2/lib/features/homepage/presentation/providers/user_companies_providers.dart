@@ -3,15 +3,24 @@
 /// This file contains user companies related providers.
 /// Core provider that loads user data, companies, stores, and handles session.
 ///
+/// Uses SWR (Stale-While-Revalidate) pattern:
+/// 1. Return cached data immediately (if available)
+/// 2. Fetch fresh data in background
+/// 3. Update UI when fresh data arrives
+///
 /// Extracted from homepage_providers.dart for better organization.
 library;
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/providers/app_state.dart';
+import '../../../../app/providers/app_state_notifier.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/cache/hive_cache_service.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/services/revenuecat_service.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
@@ -29,12 +38,17 @@ import '../../domain/usecases/auto_select_company_store.dart';
 /// This provider is used globally across the app and returns Map<String, dynamic>
 /// for backward compatibility with existing code.
 ///
+/// SWR (Stale-While-Revalidate) Pattern:
+/// 1. If cache exists and valid → return immediately + refresh in background
+/// 2. If no cache → fetch from API (with 20s timeout)
+///
 /// TIMEOUT: If user data doesn't load within 20 seconds, auto-logout occurs.
 /// This handles edge cases like orphan auth sessions (auth.users exists but public.users deleted).
 final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final authState = ref.watch(authStateProvider);
   final appStateNotifier = ref.read(appStateProvider.notifier);
   final appState = ref.read(appStateProvider);
+  final cache = HiveCacheService.instance;
 
   // Get user from auth state
   final user = authState.when(
@@ -47,124 +61,224 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     return null;
   }
 
-  try {
-    // Fetch user companies data from repository with 20 second timeout
-    final repository = ref.read(homepageRepositoryProvider);
-    final userEntity = await repository.getUserCompanies(user.id)
-        .timeout(
-          const Duration(seconds: 20),
-          onTimeout: () {
-            throw TimeoutException('User data load timeout after 20 seconds');
-          },
-        );
+  // =========================================================================
+  // SWR Step 1: Try to load from Hive cache first
+  // =========================================================================
+  final cachedData = await cache.getUserCompanies(user.id);
 
-    // Convert entity to Map once (avoid duplication)
-    final userData = convertUserEntityToMap(userEntity);
+  if (cachedData != null) {
+    if (kDebugMode) {
+      debugPrint('📦 [SWR] Using cached user companies data');
+    }
 
-    // Always update AppState.user with fresh data (includes companies with subscription)
-    // This ensures CompanyStoreSelector and other widgets get updated subscription data
-    appStateNotifier.updateUser(
-      user: userData,
-      isAuthenticated: true,
+    // Restore AppState from cache immediately
+    await _initializeAppStateFromData(
+      ref,
+      cachedData,
+      appStateNotifier,
+      appState,
+      isFromCache: true,
     );
 
-    // Login to RevenueCat with Supabase user ID
-    // This links the user's subscription data across devices
+    // Trigger background refresh (non-blocking)
+    _refreshUserCompaniesInBackground(ref, user.id);
+
+    // Return cached data immediately (UI shows instantly!)
+    return cachedData;
+  }
+
+  // =========================================================================
+  // SWR Step 2: No cache - fetch from API
+  // =========================================================================
+  if (kDebugMode) {
+    debugPrint('🌐 [SWR] No cache, fetching from API...');
+  }
+
+  return await _fetchAndCacheUserCompanies(ref, user.id, appStateNotifier, appState);
+});
+
+/// Initialize AppState from user data (cache or fresh)
+Future<void> _initializeAppStateFromData(
+  Ref ref,
+  Map<String, dynamic> userData,
+  AppStateNotifier appStateNotifier,
+  AppState appState, {
+  required bool isFromCache,
+}) async {
+  // Update AppState.user
+  appStateNotifier.updateUser(
+    user: userData,
+    isAuthenticated: true,
+  );
+
+  // Convert to entity for auto-select logic
+  final userEntity = convertMapToUserEntity(userData);
+
+  // Auto-select company and store
+  if (userEntity.companies.isNotEmpty && appState.companyChoosen.isEmpty) {
+    final lastSelection = await appStateNotifier.loadLastSelection();
+
+    final autoSelect = AutoSelectCompanyStore();
+    final selection = autoSelect(
+      AutoSelectParams(
+        userEntity: userEntity,
+        lastCompanyId: lastSelection['companyId'],
+        lastStoreId: lastSelection['storeId'],
+      ),
+    );
+
+    if (selection.hasSelection) {
+      appStateNotifier.updateBusinessContext(
+        companyId: selection.company!.id,
+        storeId: selection.store?.id ?? '',
+        companyName: selection.company!.companyName,
+        storeName: selection.store?.storeName,
+        subscription: selection.company!.subscription?.toMap(),
+      );
+    }
+  } else if (userEntity.companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
+    // Company already selected - update subscription data
+    final selectedCompany = userEntity.companies.firstWhere(
+      (c) => c.id == appState.companyChoosen,
+      orElse: () => userEntity.companies.first,
+    );
+
+    String? actualStoreName = appState.storeName;
+    if (appState.storeChoosen.isNotEmpty && selectedCompany.stores.isNotEmpty) {
+      try {
+        final selectedStore = selectedCompany.stores.firstWhere(
+          (s) => s.id == appState.storeChoosen,
+        );
+        actualStoreName = selectedStore.storeName;
+      } catch (_) {
+        if (selectedCompany.stores.isNotEmpty) {
+          actualStoreName = selectedCompany.stores.first.storeName;
+        }
+      }
+    }
+
+    appStateNotifier.updateBusinessContext(
+      companyId: selectedCompany.id,
+      storeId: appState.storeChoosen,
+      companyName: selectedCompany.companyName,
+      storeName: actualStoreName,
+      subscription: selectedCompany.subscription?.toMap(),
+    );
+  }
+
+  // Login to RevenueCat (only on fresh data, not cache)
+  if (!isFromCache) {
     try {
-      await RevenueCatService().loginUser(user.id);
+      final user = ref.read(authStateProvider).value;
+      if (user != null) {
+        await RevenueCatService().loginUser(user.id);
+      }
     } catch (e, stackTrace) {
-      // RevenueCat login failure shouldn't block user data loading
       SentryConfig.captureException(
         e,
         stackTrace,
         hint: 'RevenueCat login failed',
-        extra: {'userId': user.id},
       );
     }
+  }
+}
 
-    // Auto-select company and store using UseCase
-    if (userEntity.companies.isNotEmpty && appState.companyChoosen.isEmpty) {
-      // Load last selection from cache
-      final lastSelection = await appStateNotifier.loadLastSelection();
+/// Background refresh for SWR pattern
+///
+/// Note: We capture repository BEFORE async gap to avoid ref state issues
+void _refreshUserCompaniesInBackground(
+  Ref ref,
+  String userId,
+) {
+  // Capture repository BEFORE async gap to avoid ref state issues
+  final repository = ref.read(homepageRepositoryProvider);
 
-      // Execute auto-select use case (business logic encapsulated)
-      final autoSelect = AutoSelectCompanyStore();
-      final selection = autoSelect(
-        AutoSelectParams(
-          userEntity: userEntity,
-          lastCompanyId: lastSelection['companyId'],
-          lastStoreId: lastSelection['storeId'],
-        ),
-      );
-
-      // Update app state with selected company/store and subscription
-      if (selection.hasSelection) {
-        appStateNotifier.updateBusinessContext(
-          companyId: selection.company!.id,
-          storeId: selection.store?.id ?? '',
-          companyName: selection.company!.companyName,
-          storeName: selection.store?.storeName,
-          subscription: selection.company!.subscription?.toMap(),
-        );
-      }
-    } else if (userEntity.companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
-      // Company already selected - still update subscription data on refresh
-      // Find the currently selected company and update its subscription
-      final selectedCompany = userEntity.companies.firstWhere(
-        (c) => c.id == appState.companyChoosen,
-        orElse: () => userEntity.companies.first,
-      );
-
-      // Find the actual store name from the selected store ID
-      // This fixes cached storeName being incorrect (e.g., store_code instead of store_name)
-      String? actualStoreName = appState.storeName;
-      if (appState.storeChoosen.isNotEmpty && selectedCompany.stores.isNotEmpty) {
-        try {
-          final selectedStore = selectedCompany.stores.firstWhere(
-            (s) => s.id == appState.storeChoosen,
-          );
-          actualStoreName = selectedStore.storeName;
-        } catch (_) {
-          // Store not found - use first store as fallback
-          if (selectedCompany.stores.isNotEmpty) {
-            actualStoreName = selectedCompany.stores.first.storeName;
-          }
-        }
+  // Fire and forget - don't await
+  Future(() async {
+    try {
+      if (kDebugMode) {
+        debugPrint('🔄 [SWR] Background refresh started...');
       }
 
-      // Update subscription data without changing company/store selection
-      appStateNotifier.updateBusinessContext(
-        companyId: selectedCompany.id,
-        storeId: appState.storeChoosen,
-        companyName: selectedCompany.companyName,
-        storeName: actualStoreName,
-        subscription: selectedCompany.subscription?.toMap(),
+      final userEntity = await repository.getUserCompanies(userId).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw TimeoutException('Background refresh timeout');
+        },
       );
+
+      final userData = convertUserEntityToMap(userEntity);
+
+      // Save to cache
+      await HiveCacheService.instance.saveUserCompanies(userId, userData);
+
+      // Login to RevenueCat with fresh data
+      try {
+        await RevenueCatService().loginUser(userId);
+      } catch (_) {}
+
+      if (kDebugMode) {
+        debugPrint('✅ [SWR] Background refresh completed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ [SWR] Background refresh failed: $e');
+      }
+      // Don't throw - background refresh failure is non-critical
+    }
+  });
+}
+
+/// Fetch user companies from API and cache
+Future<Map<String, dynamic>?> _fetchAndCacheUserCompanies(
+  Ref ref,
+  String userId,
+  AppStateNotifier appStateNotifier,
+  AppState appState,
+) async {
+  final cache = HiveCacheService.instance;
+
+  try {
+    final repository = ref.read(homepageRepositoryProvider);
+    final userEntity = await repository.getUserCompanies(userId).timeout(
+      const Duration(seconds: 20),
+      onTimeout: () {
+        throw TimeoutException('User data load timeout after 20 seconds');
+      },
+    );
+
+    final userData = convertUserEntityToMap(userEntity);
+
+    // Save to Hive cache
+    await cache.saveUserCompanies(userId, userData);
+
+    if (kDebugMode) {
+      debugPrint('💾 [SWR] User companies cached');
     }
 
-    // Return Map (already converted once, reuse userData)
+    // Initialize AppState
+    await _initializeAppStateFromData(
+      ref,
+      userData,
+      appStateNotifier,
+      appState,
+      isFromCache: false,
+    );
+
     return userData;
   } on TimeoutException catch (e, stackTrace) {
-    // Timeout - auto logout and throw error
     SentryConfig.captureException(
       e,
       stackTrace,
       hint: 'UserCompanies timeout - forcing logout',
     );
 
-    // Sign out from RevenueCat
     await RevenueCatService().logoutUser();
-
-    // Sign out the user
     await ref.read(authServiceProvider).signOut();
-
-    // Clear app state
     appStateNotifier.signOut();
 
     throw Exception('Session expired. Please sign in again.');
   } catch (e, stackTrace) {
-    // Other errors (e.g., user profile not found in public.users)
-    // If error contains "No user companies data" - orphan auth session
     if (e.toString().contains('No user companies data')) {
       SentryConfig.captureException(
         e,
@@ -172,13 +286,8 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
         hint: 'UserCompanies orphan auth session - forcing logout',
       );
 
-      // Sign out from RevenueCat
       await RevenueCatService().logoutUser();
-
-      // Sign out the user
       await ref.read(authServiceProvider).signOut();
-
-      // Clear app state
       appStateNotifier.signOut();
 
       throw Exception('Account data not found. Please sign in again.');
@@ -191,7 +300,7 @@ final userCompaniesProvider = FutureProvider<Map<String, dynamic>?>((ref) async 
     );
     rethrow;
   }
-});
+}
 
 /// Entity-based provider for homepage (Clean Architecture)
 ///

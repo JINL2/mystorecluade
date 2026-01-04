@@ -450,9 +450,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
     // Extract values from problem_details_v2 (no legacy fields)
     final pd = card.problemDetails;
-    final hasLate = pd?.problems.any((p) => p.type == 'late' && !p.isSolved) ?? false;
-    final hasOvertime = pd?.problems.any((p) => p.type == 'overtime' && !p.isSolved) ?? false;
-    final hasReported = pd?.problems.any((p) => p.type == 'reported' && !p.isSolved) ?? false;
+    final hasLate = pd?.problems.any((p) => p.type == 'late' && p.isSolved != true) ?? false;
+    final hasOvertime = pd?.problems.any((p) => p.type == 'overtime' && p.isSolved != true) ?? false;
+    final hasReported = pd?.problems.any((p) => p.type == 'reported' && p.isSolved != true) ?? false;
     final reportedProblem = pd?.problems.where((p) => p.type == 'reported').firstOrNull;
     final lateProblem = pd?.problems.where((p) => p.type == 'late').firstOrNull;
     final overtimeProblem = pd?.problems.where((p) => p.type == 'overtime').firstOrNull;

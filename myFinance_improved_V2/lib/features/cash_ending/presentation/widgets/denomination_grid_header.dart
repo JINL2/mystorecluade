@@ -21,31 +21,28 @@ class DenominationGridHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
         vertical: TossSpacing.space2,
       ),
       child: Row(
         children: [
-          // Denomination column
+          // Denomination column - left aligned
           Expanded(
-            flex: 4,
             child: Text(
               'Denomination',
               style: TossTextStyles.caption,
             ),
           ),
-          // Qty column
-          Expanded(
-            flex: 5,
+          // Qty column - center (matches TossQuantityInput width)
+          SizedBox(
+            width: 154, // 90 (inputWidth) + 32*2 (buttons)
             child: Text(
               'Qty',
               textAlign: TextAlign.center,
               style: TossTextStyles.caption,
             ),
           ),
-          // Amount column
+          // Amount column - right aligned
           Expanded(
-            flex: 4,
             child: Text(
               'Amount ($currencyCode)',
               textAlign: TextAlign.right,

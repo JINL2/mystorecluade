@@ -1,4 +1,5 @@
 import 'package:image_picker/image_picker.dart';
+import 'cash_transaction_enums.dart';
 
 /// Transaction type for confirmation dialog
 enum ConfirmTransactionType {
@@ -51,10 +52,12 @@ class TransactionConfirmResult {
   final bool confirmed;
   final String? memo;
   final List<XFile> attachments;
+  final DebtCategory? debtCategory; // For debt transactions
 
   const TransactionConfirmResult({
     required this.confirmed,
     this.memo,
     this.attachments = const [],
+    this.debtCategory,
   });
 }

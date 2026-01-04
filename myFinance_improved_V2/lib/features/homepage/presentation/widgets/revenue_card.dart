@@ -21,6 +21,10 @@ class RevenueCard extends ConsumerWidget {
     // Enable auto-switch to Store tab when store changes
     ref.watch(autoSwitchToStoreTabProvider);
 
+    // Enable company/store change logging (debug only)
+    ref.watch(companyChangeListenerProvider);
+    ref.watch(storeChangeListenerProvider);
+
     // Watch revenue data with selected period
     final revenueAsync = ref.watch(revenueProvider(selectedPeriod));
 

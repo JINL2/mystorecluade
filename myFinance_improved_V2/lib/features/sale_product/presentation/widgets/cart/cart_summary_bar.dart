@@ -92,12 +92,16 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            // Circular item count badge
+                            // Circular item count badge - auto-resize for large numbers
                             Container(
-                              width: 28,
-                              height: 28,
+                              constraints: const BoxConstraints(
+                                minWidth: 28,
+                                minHeight: 28,
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
                               decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+                                shape: widget.itemCount > 99 ? BoxShape.rectangle : BoxShape.circle,
+                                borderRadius: widget.itemCount > 99 ? BorderRadius.circular(14) : null,
                                 border: Border.all(
                                   color: TossColors.primary,
                                   width: 1.5,
@@ -107,7 +111,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                                 child: Text(
                                   '${widget.itemCount}',
                                   style: TossTextStyles.titleMedium.copyWith(
-                                    fontSize: 16,
+                                    fontSize: widget.itemCount > 99 ? 12 : 14,
                                     fontWeight: FontWeight.w500,
                                     color: TossColors.primary,
                                   ),

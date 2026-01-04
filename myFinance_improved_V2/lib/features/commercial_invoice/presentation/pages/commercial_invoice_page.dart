@@ -14,8 +14,8 @@ class CommercialInvoicePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TossScaffold(
-      appBar: AppBar(
-        title: const Text('Commercial Invoice'),
+      appBar: const TossAppBar(
+        title: 'Commercial Invoice',
       ),
       body: Center(
         child: Column(

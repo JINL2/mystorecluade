@@ -122,19 +122,66 @@ class TradeAlertListItem extends StatelessWidget {
   }
 
   Widget _buildPriorityIndicator() {
+    final priorityColor = _getPriorityColor(alert.priority);
+    final alertIcon = _getAlertIcon(alert.alertType);
     return Container(
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: alert.priority.color.withOpacity(0.1),
+        color: priorityColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Icon(
-        alert.alertType.icon,
-        color: alert.priority.color,
+        alertIcon,
+        color: priorityColor,
         size: 18,
       ),
     );
+  }
+
+  static Color _getPriorityColor(AlertPriority priority) {
+    switch (priority) {
+      case AlertPriority.urgent:
+        return TossColors.error;
+      case AlertPriority.high:
+        return TossColors.warning;
+      case AlertPriority.medium:
+        return TossColors.primary;
+      case AlertPriority.low:
+        return TossColors.gray600;
+    }
+  }
+
+  static IconData _getAlertIcon(TradeAlertType alertType) {
+    switch (alertType) {
+      case TradeAlertType.lcExpiryWarning:
+      case TradeAlertType.lcExpired:
+        return Icons.timer_off;
+      case TradeAlertType.shipmentDeadlineWarning:
+      case TradeAlertType.shipmentDeadlinePassed:
+        return Icons.local_shipping;
+      case TradeAlertType.presentationDeadlineWarning:
+      case TradeAlertType.presentationDeadlinePassed:
+        return Icons.description;
+      case TradeAlertType.paymentDueWarning:
+      case TradeAlertType.paymentDue:
+        return Icons.payment;
+      case TradeAlertType.paymentReceived:
+        return Icons.paid;
+      case TradeAlertType.documentMissing:
+      case TradeAlertType.documentExpiring:
+        return Icons.folder_off;
+      case TradeAlertType.discrepancyFound:
+        return Icons.warning_amber;
+      case TradeAlertType.discrepancyResolved:
+        return Icons.check_circle;
+      case TradeAlertType.statusChanged:
+        return Icons.swap_horiz;
+      case TradeAlertType.amendmentReceived:
+        return Icons.edit_note;
+      case TradeAlertType.actionRequired:
+        return Icons.notifications_active;
+    }
   }
 
   Widget _buildAlertTypeChip() {
@@ -188,24 +235,26 @@ class TradeAlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final priorityColor = _getPriorityColor(alert.priority);
+    final alertIcon = _getAlertIcon(alert.alertType);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(TossBorderRadius.md),
       child: Container(
         padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
-          color: alert.priority.color.withOpacity(0.05),
+          color: priorityColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(
-            color: alert.priority.color.withOpacity(0.2),
+            color: priorityColor.withOpacity(0.2),
             width: 1,
           ),
         ),
         child: Row(
           children: [
             Icon(
-              alert.alertType.icon,
-              color: alert.priority.color,
+              alertIcon,
+              color: priorityColor,
               size: 20,
             ),
             const SizedBox(width: TossSpacing.space2),
@@ -227,7 +276,7 @@ class TradeAlertCard extends StatelessWidget {
                     Text(
                       _formatDueDate(alert.dueDate!),
                       style: TossTextStyles.caption.copyWith(
-                        color: alert.priority.color,
+                        color: priorityColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -244,6 +293,51 @@ class TradeAlertCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static Color _getPriorityColor(AlertPriority priority) {
+    switch (priority) {
+      case AlertPriority.urgent:
+        return TossColors.error;
+      case AlertPriority.high:
+        return TossColors.warning;
+      case AlertPriority.medium:
+        return TossColors.primary;
+      case AlertPriority.low:
+        return TossColors.gray600;
+    }
+  }
+
+  static IconData _getAlertIcon(TradeAlertType alertType) {
+    switch (alertType) {
+      case TradeAlertType.lcExpiryWarning:
+      case TradeAlertType.lcExpired:
+        return Icons.timer_off;
+      case TradeAlertType.shipmentDeadlineWarning:
+      case TradeAlertType.shipmentDeadlinePassed:
+        return Icons.local_shipping;
+      case TradeAlertType.presentationDeadlineWarning:
+      case TradeAlertType.presentationDeadlinePassed:
+        return Icons.description;
+      case TradeAlertType.paymentDueWarning:
+      case TradeAlertType.paymentDue:
+        return Icons.payment;
+      case TradeAlertType.paymentReceived:
+        return Icons.paid;
+      case TradeAlertType.documentMissing:
+      case TradeAlertType.documentExpiring:
+        return Icons.folder_off;
+      case TradeAlertType.discrepancyFound:
+        return Icons.warning_amber;
+      case TradeAlertType.discrepancyResolved:
+        return Icons.check_circle;
+      case TradeAlertType.statusChanged:
+        return Icons.swap_horiz;
+      case TradeAlertType.amendmentReceived:
+        return Icons.edit_note;
+      case TradeAlertType.actionRequired:
+        return Icons.notifications_active;
+    }
   }
 
   String _formatDueDate(DateTime dueDate) {

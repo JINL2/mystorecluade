@@ -92,60 +92,14 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
   }
 
   Widget _buildTabBar() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        border: Border(
-          bottom: BorderSide(color: TossColors.gray100),
-        ),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: TossColors.primary,
-        unselectedLabelColor: TossColors.gray500,
-        labelStyle: TossTextStyles.body.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: TossTextStyles.body.copyWith(
-          fontWeight: FontWeight.w400,
-        ),
-        indicatorColor: TossColors.primary,
-        indicatorWeight: 2,
-        tabs: [
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('New'),
-                if (_newItems.isNotEmpty) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: TossColors.warning,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                    ),
-                    child: Text(
-                      '${_newItems.length}',
-                      style: TossTextStyles.small.copyWith(
-                        color: TossColors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Tab(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('All'),
+    return TossTabBar.custom(
+      tabs: [
+        TossTab.custom(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('New'),
+              if (_newItems.isNotEmpty) ...[
                 const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -153,23 +107,51 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(10),
+                    color: TossColors.warning,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Text(
-                    '${_allItems.length}',
+                    '${_newItems.length}',
                     style: TossTextStyles.small.copyWith(
-                      color: TossColors.gray700,
+                      color: TossColors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+        TossTab.custom(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('All'),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: TossColors.gray300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${_allItems.length}',
+                  style: TossTextStyles.small.copyWith(
+                    color: TossColors.gray700,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+      controller: _tabController,
     );
   }
 

@@ -41,6 +41,17 @@ class VaultSubmitButton extends ConsumerWidget {
   }
 
   Widget _buildButton(VaultTabState tabState) {
+    // Consistent button style
+    final buttonTextStyle = TossTextStyles.body.copyWith(
+      color: TossColors.white,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    );
+    const buttonPadding = EdgeInsets.symmetric(
+      horizontal: TossSpacing.space4,
+      vertical: TossSpacing.space3,
+    );
+
     if (transactionType == VaultTransactionType.recount) {
       return TossButton.primary(
         text: 'Show Recount Summary',
@@ -48,13 +59,8 @@ class VaultSubmitButton extends ConsumerWidget {
         isEnabled: true,
         fullWidth: true,
         onPressed: onRecountPressed,
-        textStyle: TossTextStyles.titleLarge.copyWith(
-          color: TossColors.white,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
+        textStyle: buttonTextStyle,
+        padding: buttonPadding,
         borderRadius: 12,
       );
     }
@@ -65,13 +71,8 @@ class VaultSubmitButton extends ConsumerWidget {
       isEnabled: !tabState.isSaving,
       fullWidth: true,
       onPressed: !tabState.isSaving ? onSubmitPressed : null,
-      textStyle: TossTextStyles.titleLarge.copyWith(
-        color: TossColors.white,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space3,
-      ),
+      textStyle: buttonTextStyle,
+      padding: buttonPadding,
       borderRadius: 12,
     );
   }

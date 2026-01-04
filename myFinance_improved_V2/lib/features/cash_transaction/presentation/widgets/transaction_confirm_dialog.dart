@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
+import '../../domain/entities/cash_transaction_enums.dart';
 import '../../domain/entities/transaction_confirm_types.dart';
 import 'transaction_confirm/transaction_confirm_widgets.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 // Re-export for backward compatibility (prevents DCM false positive)
 export '../../domain/entities/transaction_confirm_types.dart';
@@ -14,22 +14,28 @@ export '../../domain/entities/transaction_confirm_types.dart';
 /// Shows transaction story and allows memo/photo attachment
 class TransactionConfirmDialog extends StatefulWidget {
   final TransactionConfirmData data;
+  final String currencySymbol;
 
   const TransactionConfirmDialog({
     super.key,
     required this.data,
+    this.currencySymbol = '₩',
   });
 
   /// Show the dialog and return result
   static Future<TransactionConfirmResult?> show(
     BuildContext context,
-    TransactionConfirmData data,
-  ) {
+    TransactionConfirmData data, {
+    String currencySymbol = '₩',
+  }) {
     return showModalBottomSheet<TransactionConfirmResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
-      builder: (context) => TransactionConfirmDialog(data: data),
+      builder: (context) => TransactionConfirmDialog(
+        data: data,
+        currencySymbol: currencySymbol,
+      ),
     );
   }
 
@@ -44,6 +50,7 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
   List<XFile> _attachments = [];
   final ImagePicker _picker = ImagePicker();
   bool _isPickingImage = false;
+  DebtCategory _selectedDebtCategory = DebtCategory.account;
 
   @override
   void dispose() {
@@ -121,6 +128,9 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
             ? null
             : _memoController.text.trim(),
         attachments: _attachments,
+        debtCategory: widget.data.type == ConfirmTransactionType.debt
+            ? _selectedDebtCategory
+            : null,
       ),
     );
   }
@@ -193,7 +203,16 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Transaction Story Card
-                    TransactionStoryCard(data: widget.data),
+                    TransactionStoryCard(
+                      data: widget.data,
+                      currencySymbol: widget.currencySymbol,
+                    ),
+
+                    // Debt Category Selector (only for debt transactions)
+                    if (widget.data.type == ConfirmTransactionType.debt) ...[
+                      const SizedBox(height: TossSpacing.space3),
+                      _buildDebtCategorySelector(),
+                    ],
 
                     const SizedBox(height: TossSpacing.space4),
 
@@ -271,6 +290,88 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Build debt category selector widget
+  Widget _buildDebtCategorySelector() {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Debt Category',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray500,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          Row(
+            children: DebtCategory.values.map((category) {
+              final isSelected = _selectedDebtCategory == category;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedDebtCategory = category);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: TossSpacing.space2,
+                      horizontal: TossSpacing.space2,
+                    ),
+                    margin: EdgeInsets.only(
+                      right: category == DebtCategory.account
+                          ? TossSpacing.space2
+                          : 0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? TossColors.gray700
+                          : TossColors.white,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                      border: Border.all(
+                        color: isSelected
+                            ? TossColors.gray700
+                            : TossColors.gray300,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          category.label,
+                          style: TossTextStyles.body.copyWith(
+                            color: isSelected
+                                ? TossColors.white
+                                : TossColors.gray700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          category.labelKo,
+                          style: TossTextStyles.small.copyWith(
+                            color: isSelected
+                                ? TossColors.gray300
+                                : TossColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

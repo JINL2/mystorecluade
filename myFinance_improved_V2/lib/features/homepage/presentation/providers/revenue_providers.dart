@@ -6,8 +6,13 @@
 /// Following Clean Architecture:
 /// - NO imports from Data layer
 /// - Only Domain layer imports allowed
+///
+/// Optimization (2026-01-04):
+/// - Uses selective watching to prevent unnecessary rebuilds
+/// - Combines company+store+tab into single cache key for efficient invalidation
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
@@ -15,6 +20,67 @@ import '../../../../app/providers/auth_providers.dart';
 import '../../domain/entities/revenue.dart';
 import '../../domain/providers/repository_providers.dart';
 import '../../domain/revenue_period.dart';
+
+// ============================================================================
+// Revenue Request Key (for deduplication)
+// ============================================================================
+
+/// Immutable key representing a unique revenue request
+/// Used to prevent duplicate API calls for the same parameters
+@immutable
+class RevenueRequestKey {
+  final String companyId;
+  final String? storeId;
+  final RevenuePeriod period;
+  final RevenueViewTab tab;
+
+  const RevenueRequestKey({
+    required this.companyId,
+    required this.storeId,
+    required this.period,
+    required this.tab,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RevenueRequestKey &&
+          runtimeType == other.runtimeType &&
+          companyId == other.companyId &&
+          storeId == other.storeId &&
+          period == other.period &&
+          tab == other.tab;
+
+  @override
+  int get hashCode => Object.hash(companyId, storeId, period, tab);
+
+  @override
+  String toString() => 'RevenueRequestKey($companyId, $storeId, ${period.name}, ${tab.name})';
+}
+
+// ============================================================================
+// Company/Store Change Listener (for debugging)
+// ============================================================================
+
+/// Provider that logs when company changes (debug only)
+final companyChangeListenerProvider = Provider<void>((ref) {
+  ref.listen(appStateProvider.select((state) => state.companyChoosen), (previous, next) {
+    // Debug logging disabled - uncomment for debugging
+    // if (previous != null && previous != next) {
+    //   debugPrint('🏢 [Revenue] Company changed: $previous → $next');
+    // }
+  });
+});
+
+/// Provider that logs when store changes (debug only)
+final storeChangeListenerProvider = Provider<void>((ref) {
+  ref.listen(appStateProvider.select((state) => state.storeChoosen), (previous, next) {
+    // Debug logging disabled - uncomment for debugging
+    // if (previous != null && previous != next) {
+    //   debugPrint('🏪 [Revenue] Store changed: $previous → $next');
+    // }
+  });
+});
 
 // ============================================================================
 // Revenue View Tab
@@ -56,54 +122,83 @@ final userManuallySelectedPeriodProvider = StateProvider<bool>(
 );
 
 // ============================================================================
+// Revenue Request Key Provider (combines all dependencies)
+// ============================================================================
+
+/// Provider that creates a unique request key from current state
+/// This is the ONLY provider that watches appState, preventing multiple rebuilds
+final _revenueRequestKeyProvider = Provider<RevenueRequestKey?>((ref) {
+  // Watch auth state
+  final authState = ref.watch(authStateProvider);
+  final isAuthenticated = authState.maybeWhen(
+    data: (user) => user != null,
+    orElse: () => false,
+  );
+
+  if (!isAuthenticated) return null;
+
+  // SELECTIVE watching - only watch the specific fields we need
+  final companyId = ref.watch(
+    appStateProvider.select((state) => state.companyChoosen),
+  );
+  final storeId = ref.watch(
+    appStateProvider.select((state) => state.storeChoosen),
+  );
+  final selectedTab = ref.watch(selectedRevenueTabProvider);
+  final period = ref.watch(selectedRevenuePeriodProvider);
+
+  if (companyId.isEmpty) return null;
+
+  return RevenueRequestKey(
+    companyId: companyId,
+    storeId: storeId.isEmpty ? null : storeId,
+    period: period,
+    tab: selectedTab,
+  );
+});
+
+// ============================================================================
 // Revenue Data Provider
 // ============================================================================
 
 /// Provider for fetching revenue data
+///
+/// OPTIMIZED (2026-01-04):
+/// - Uses _revenueRequestKeyProvider to combine all dependencies
+/// - Only rebuilds when the effective request key changes
+/// - Selective watching prevents unnecessary rebuilds during initialization
 ///
 /// Depends on app state for company/store selection AND selected tab.
 /// - Company tab: Returns revenue for the entire company
 /// - Store tab: Returns revenue for the selected store only
 final revenueProvider = FutureProvider.family<Revenue, RevenuePeriod>(
   (ref, period) async {
-    // Check authentication first
-    final authState = ref.watch(authStateProvider);
-    final isAuthenticated = authState.when(
-      data: (user) => user != null,
-      loading: () => false,
-      error: (_, __) => false,
-    );
+    // Watch the combined request key - this handles all dependency changes
+    final requestKey = ref.watch(_revenueRequestKeyProvider);
 
-    if (!isAuthenticated) {
-      throw Exception('User not authenticated');
+    if (requestKey == null) {
+      throw Exception('User not authenticated or no company selected');
     }
 
-    final appState = ref.watch(appStateProvider);
+    // Skip if the period param doesn't match the current selected period
+    // This handles stale family instances and prevents duplicate API calls
+    if (period != requestKey.period) {
+      throw Exception('Period mismatch - stale provider instance');
+    }
+
     final repository = ref.watch(homepageRepositoryProvider);
-
-    // Watch selected tab to determine which revenue to fetch
-    final selectedTab = ref.watch(selectedRevenueTabProvider);
-
-    // Get selected company/store from app state
-    final companyId = appState.companyChoosen;
-    final storeId = appState.storeChoosen;
-
-    if (companyId.isEmpty) {
-      throw Exception('No company selected');
-    }
 
     // Determine storeId based on selected tab:
     // - Company tab: pass null to get company-wide revenue
     // - Store tab: pass storeId to get store-specific revenue
-    final effectiveStoreId = (selectedTab == RevenueViewTab.store && storeId.isNotEmpty)
-        ? storeId
+    final effectiveStoreId = (requestKey.tab == RevenueViewTab.store && requestKey.storeId != null)
+        ? requestKey.storeId
         : null;
 
-    final revenue = await repository.getRevenue(
-      companyId: companyId,
+    return await repository.getRevenue(
+      companyId: requestKey.companyId,
       storeId: effectiveStoreId,
       period: period,
     );
-    return revenue;
   },
 );

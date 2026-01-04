@@ -267,10 +267,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
     final scannerState = ref.watch(qrScannerNotifierProvider);
 
     return TossScaffold(
-      appBar: AppBar(
-        title: const Text('QR Scanner'),
+      appBar: const TossAppBar(
+        title: 'QR Scanner',
         backgroundColor: TossColors.white,
-        foregroundColor: TossColors.black,
       ),
       body: Stack(
         children: [

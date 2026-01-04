@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/monitoring/sentry_config.dart';
@@ -10,7 +9,6 @@ import '../models/expense_account_model.dart';
 /// Handles all Supabase API calls
 class CashTransactionDataSource {
   final SupabaseClient _client;
-  static const _tag = '[CashTransactionDataSource]';
 
   CashTransactionDataSource({SupabaseClient? client})
       : _client = client ?? Supabase.instance.client;
@@ -55,7 +53,6 @@ class CashTransactionDataSource {
     String? searchQuery,
     int limit = 50,
   }) async {
-    debugPrint('$_tag 🔍 getAllExpenseAccounts called - companyId: $companyId, query: $searchQuery');
 
     try {
       final response = await _client.rpc<List<dynamic>>(
@@ -67,13 +64,11 @@ class CashTransactionDataSource {
         },
       );
 
-      debugPrint('$_tag 📥 get_expense_accounts response count: ${response.length}');
 
       return response
           .map((json) => ExpenseAccountModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ ERROR in getAllExpenseAccounts: $e');
       SentryConfig.captureException(
         e,
         stackTrace,
@@ -95,7 +90,6 @@ class CashTransactionDataSource {
     String? searchQuery,
     int limit = 50,
   }) async {
-    debugPrint('$_tag 🔍 getAccountsByType called - type: $accountType, code: $codeFrom-$codeTo');
 
     try {
       final response = await _client.rpc<List<dynamic>>(
@@ -110,13 +104,11 @@ class CashTransactionDataSource {
         },
       );
 
-      debugPrint('$_tag 📥 get_accounts_by_type response count: ${response.length}');
 
       return response
           .map((json) => ExpenseAccountModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ ERROR in getAccountsByType: $e');
       SentryConfig.captureException(
         e,
         stackTrace,
@@ -165,7 +157,6 @@ class CashTransactionDataSource {
   Future<CounterpartyModel?> getSelfCounterparty({
     required String companyId,
   }) async {
-    debugPrint('$_tag 🔍 getSelfCounterparty called - companyId: $companyId');
 
     try {
       final response = await _client
@@ -179,14 +170,11 @@ class CashTransactionDataSource {
           .maybeSingle();
 
       if (response == null) {
-        debugPrint('$_tag ⚠️ No self-counterparty found for company: $companyId');
         return null;
       }
 
-      debugPrint('$_tag ✅ Found self-counterparty: ${response['name']}');
       return CounterpartyModel.fromJson(response);
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ Error getting self-counterparty: $e');
       SentryConfig.captureException(
         e,
         stackTrace,
@@ -203,10 +191,8 @@ class CashTransactionDataSource {
     required String companyId,
     String? storeId,
   }) async {
-    debugPrint('$_tag 🔍 getCashLocations called - companyId: $companyId, storeId: $storeId');
 
     try {
-      debugPrint('$_tag 📡 Calling RPC: get_cash_locations with p_company_id: $companyId');
 
       final response = await _client.rpc<List<dynamic>>(
         'get_cash_locations',
@@ -215,32 +201,21 @@ class CashTransactionDataSource {
         },
       );
 
-      debugPrint('$_tag 📥 RPC Response received - count: ${response.length}');
-      debugPrint('$_tag 📥 Raw response: $response');
 
       var locations = response
           .map((json) {
-            debugPrint('$_tag 🔄 Parsing JSON: $json');
             return CashLocationModel.fromJson(json as Map<String, dynamic>);
           })
           .toList();
 
-      debugPrint('$_tag ✅ Parsed ${locations.length} locations');
 
       // Filter by store if provided
       if (storeId != null) {
-        debugPrint('$_tag 🔍 Filtering by storeId: $storeId');
-        final beforeFilter = locations.length;
-        locations = locations.where((l) {
-          debugPrint('$_tag   - Location: ${l.locationName}, storeId: ${l.storeId}');
-          return l.storeId == storeId;
-        }).toList();
-        debugPrint('$_tag 📊 After filter: $beforeFilter -> ${locations.length}');
+        locations = locations.where((l) => l.storeId == storeId).toList();
       }
 
       return locations;
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ ERROR in getCashLocations: $e');
       SentryConfig.captureException(
         e,
         stackTrace,
@@ -276,17 +251,6 @@ class CashTransactionDataSource {
       'p_if_cash_location_id': cashLocationId,
     };
 
-    debugPrint('$_tag 📤 createExpenseEntry - Calling RPC: insert_journal_with_everything_utc');
-    debugPrint('$_tag 📋 Request params:');
-    debugPrint('$_tag   p_base_amount: $amount');
-    debugPrint('$_tag   p_company_id: $companyId');
-    debugPrint('$_tag   p_store_id: $storeId');
-    debugPrint('$_tag   p_created_by: $createdBy');
-    debugPrint('$_tag   p_description: $description');
-    debugPrint('$_tag   p_entry_date_utc: $entryDateUtc');
-    debugPrint('$_tag   p_lines: $lines');
-    debugPrint('$_tag   p_counterparty_id: $counterpartyId');
-    debugPrint('$_tag   p_if_cash_location_id: $cashLocationId');
 
     try {
       final response = await _client.rpc<dynamic>(
@@ -294,15 +258,12 @@ class CashTransactionDataSource {
         params: params,
       );
 
-      debugPrint('$_tag ✅ RPC Response: $response');
-      debugPrint('$_tag 📥 Response type: ${response.runtimeType}');
 
       return {
         'success': true,
         'data': response,
       };
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ RPC ERROR: $e');
       SentryConfig.captureException(
         e,
         stackTrace,
@@ -330,9 +291,6 @@ class CashTransactionDataSource {
     required String myCompanyId,
     required String targetCompanyId,
   }) async {
-    debugPrint('$_tag 🔄 ensureInterCompanySetup called');
-    debugPrint('$_tag   myCompanyId: $myCompanyId');
-    debugPrint('$_tag   targetCompanyId: $targetCompanyId');
 
     try {
       final response = await _client.rpc<Map<String, dynamic>>(
@@ -343,10 +301,8 @@ class CashTransactionDataSource {
         },
       );
 
-      debugPrint('$_tag ✅ ensureInterCompanySetup response: $response');
       return response;
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ ensureInterCompanySetup error: $e');
       SentryConfig.captureException(
         e,
         stackTrace,
@@ -370,8 +326,6 @@ class CashTransactionDataSource {
   Future<Map<String, dynamic>> ensureWithinCompanySetup({
     required String companyId,
   }) async {
-    debugPrint('$_tag 🔄 ensureWithinCompanySetup called');
-    debugPrint('$_tag   companyId: $companyId');
 
     try {
       final response = await _client.rpc<Map<String, dynamic>>(
@@ -381,10 +335,8 @@ class CashTransactionDataSource {
         },
       );
 
-      debugPrint('$_tag ✅ ensureWithinCompanySetup response: $response');
       return response;
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ ensureWithinCompanySetup error: $e');
       SentryConfig.captureException(
         e,
         stackTrace,
@@ -407,9 +359,6 @@ class CashTransactionDataSource {
     required String myCompanyId,
     required String targetCompanyId,
   }) async {
-    debugPrint('$_tag 🔄 getOrCreateCounterpartyForCompany called');
-    debugPrint('$_tag   myCompanyId: $myCompanyId');
-    debugPrint('$_tag   targetCompanyId: $targetCompanyId');
 
     try {
       final response = await _client.rpc<String>(
@@ -420,10 +369,8 @@ class CashTransactionDataSource {
         },
       );
 
-      debugPrint('$_tag ✅ getOrCreateCounterpartyForCompany response: $response');
       return response;
     } catch (e, stackTrace) {
-      debugPrint('$_tag ❌ getOrCreateCounterpartyForCompany error: $e');
       SentryConfig.captureException(
         e,
         stackTrace,

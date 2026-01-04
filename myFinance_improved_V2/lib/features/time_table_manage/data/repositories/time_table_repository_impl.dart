@@ -8,6 +8,7 @@ import '../../domain/entities/monthly_shift_status.dart';
 import '../../domain/entities/operation_result.dart';
 import '../../domain/entities/reliability_score.dart';
 import '../../domain/entities/schedule_data.dart';
+import '../../domain/entities/shift_audit_log.dart';
 import '../../domain/entities/shift_metadata.dart';
 import '../../domain/entities/shift_request.dart';
 import '../../domain/entities/store_employee.dart';
@@ -30,6 +31,8 @@ import '../models/freezed/reliability_score_dto.dart';
 import '../models/freezed/reliability_score_dto_mapper.dart';
 import '../models/freezed/schedule_data_dto.dart';
 import '../models/freezed/schedule_data_dto_mapper.dart';
+import '../models/freezed/shift_audit_log_dto.dart';
+import '../models/freezed/shift_audit_log_dto_mapper.dart';
 import '../models/freezed/shift_metadata_dto.dart';
 import '../models/freezed/shift_metadata_dto_mapper.dart';
 import '../models/freezed/store_employee_dto.dart';
@@ -530,6 +533,29 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to input card: $e',
+        originalError: e,
+      );
+    }
+  }
+
+  @override
+  Future<List<ShiftAuditLog>> getShiftAuditLogs({
+    required String shiftRequestId,
+  }) async {
+    try {
+      final data = await _datasource.getShiftAuditLogs(
+        shiftRequestId: shiftRequestId,
+      );
+
+      // ✅ FREEZED: DTO → Entity conversion via mapper
+      return data
+          .map((item) => ShiftAuditLogDto.fromJson(item as Map<String, dynamic>))
+          .map((dto) => dto.toEntity())
+          .toList();
+    } catch (e) {
+      if (e is TimeTableException) rethrow;
+      throw TimeTableException(
+        'Failed to fetch shift audit logs: $e',
         originalError: e,
       );
     }

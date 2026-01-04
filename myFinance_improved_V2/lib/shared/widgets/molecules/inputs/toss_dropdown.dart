@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/core/constants/ui_constants.dart';
 
@@ -109,7 +110,7 @@ class TossDropdown<T> extends StatelessWidget {
                     
                     // Dropdown icon
                     const Icon(
-                      Icons.arrow_drop_down,
+                      LucideIcons.chevronDown,
                       color: TossColors.gray600,
                       size: _iconSize,
                     ),

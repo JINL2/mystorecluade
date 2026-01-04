@@ -69,22 +69,11 @@ class CompanyStoreSelector extends ConsumerWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      // Avatar
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: TossColors.primarySurface,
-                        child: Text(
-                          userData['user_first_name'] != null &&
-                                  (userData['user_first_name'] as String)
-                                      .isNotEmpty
-                              ? (userData['user_first_name'] as String)[0]
-                                  .toUpperCase()
-                              : 'U',
-                          style: TossTextStyles.h3.copyWith(
-                            color: TossColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                      // Avatar - Circle profile image
+                      EmployeeProfileAvatar(
+                        imageUrl: userData['profile_image'] as String?,
+                        name: '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}'.trim(),
+                        size: 48,
                       ),
                       const SizedBox(width: TossSpacing.space3),
                       // Name
@@ -151,7 +140,7 @@ class CompanyStoreSelector extends ConsumerWidget {
             child: SizedBox(
               width: double.infinity,
               child: TossButton.primary(
-                text: 'Create Company',
+                text: 'Add Company',
                 leadingIcon: const Icon(LucideIcons.plus, size: 20),
                 onPressed: () => _showCompanyActionsBottomSheet(context, ref),
               ),

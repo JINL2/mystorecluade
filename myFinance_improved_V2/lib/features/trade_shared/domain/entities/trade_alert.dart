@@ -1,37 +1,10 @@
-import 'package:flutter/material.dart';
-
-/// Alert priority levels
+/// Alert priority levels - pure domain enum
+/// Note: UI properties (color, icon) are in presentation/utils/trade_alert_ui.dart
 enum AlertPriority {
   low,
   medium,
   high,
   urgent;
-
-  Color get color {
-    switch (this) {
-      case AlertPriority.low:
-        return const Color(0xFF6B7280); // Gray
-      case AlertPriority.medium:
-        return const Color(0xFF3B82F6); // Blue
-      case AlertPriority.high:
-        return const Color(0xFFF59E0B); // Orange
-      case AlertPriority.urgent:
-        return const Color(0xFFEF4444); // Red
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case AlertPriority.low:
-        return Icons.info_outline;
-      case AlertPriority.medium:
-        return Icons.notifications_outlined;
-      case AlertPriority.high:
-        return Icons.warning_amber_outlined;
-      case AlertPriority.urgent:
-        return Icons.error_outline;
-    }
-  }
 
   String get label {
     switch (this) {
@@ -62,7 +35,8 @@ enum AlertPriority {
   }
 }
 
-/// Alert types for trade system
+/// Alert types for trade system - pure domain enum
+/// Note: UI properties (icon) are in presentation/utils/trade_alert_ui.dart
 enum TradeAlertType {
   lcExpiryWarning,
   lcExpired,
@@ -118,38 +92,6 @@ enum TradeAlertType {
     }
   }
 
-  IconData get icon {
-    switch (this) {
-      case TradeAlertType.lcExpiryWarning:
-      case TradeAlertType.lcExpired:
-        return Icons.event_busy;
-      case TradeAlertType.shipmentDeadlineWarning:
-      case TradeAlertType.shipmentDeadlinePassed:
-        return Icons.local_shipping;
-      case TradeAlertType.presentationDeadlineWarning:
-      case TradeAlertType.presentationDeadlinePassed:
-        return Icons.description;
-      case TradeAlertType.paymentDueWarning:
-      case TradeAlertType.paymentDue:
-        return Icons.payment;
-      case TradeAlertType.paymentReceived:
-        return Icons.paid;
-      case TradeAlertType.documentMissing:
-      case TradeAlertType.documentExpiring:
-        return Icons.folder_off;
-      case TradeAlertType.discrepancyFound:
-        return Icons.warning_amber;
-      case TradeAlertType.discrepancyResolved:
-        return Icons.check_circle;
-      case TradeAlertType.statusChanged:
-        return Icons.swap_horiz;
-      case TradeAlertType.amendmentReceived:
-        return Icons.edit_document;
-      case TradeAlertType.actionRequired:
-        return Icons.touch_app;
-    }
-  }
-
   String get label {
     switch (this) {
       case TradeAlertType.lcExpiryWarning:
@@ -197,7 +139,7 @@ enum TradeAlertType {
   }
 }
 
-/// Trade alert entity
+/// Trade alert entity - pure domain entity
 class TradeAlert {
   final String id;
   final String companyId;

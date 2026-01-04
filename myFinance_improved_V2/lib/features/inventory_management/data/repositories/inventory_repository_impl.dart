@@ -49,14 +49,25 @@ class InventoryRepositoryImpl implements InventoryRepository {
       // Note: sortOption is kept in interface for future RPC support
       // Currently sorting is handled client-side in Presentation layer
 
-      // Map stockStatus to availability for v4 RPC
-      // stockStatus values: 'in_stock', 'low_stock', 'out_of_stock'
-      // availability values: 'in_stock', 'out_of_stock' (v4 RPC)
+      // Map stockStatus to availability for v5 RPC
+      // UI sends: 'normal' (In stock), 'low' (Low stock), 'out_of_stock' (Out of stock)
+      // RPC expects: 'in_stock', 'out_of_stock', 'low'
       String? availability;
       if (activeFilter.stockStatus == 'out_of_stock') {
         availability = 'out_of_stock';
-      } else if (activeFilter.stockStatus == 'in_stock' || activeFilter.stockStatus == 'low_stock') {
+      } else if (activeFilter.stockStatus == 'normal') {
         availability = 'in_stock';
+      } else if (activeFilter.stockStatus == 'low') {
+        availability = 'low';
+      }
+
+      // Map sort option to RPC parameters
+      // RPC expects: 'name', 'price', 'stock', 'value', 'created_at'
+      String? sortBy;
+      String? sortDirection;
+      if (sortOption != null) {
+        sortBy = sortOption.field.dbFieldName;
+        sortDirection = sortOption.direction.dbValue;
       }
 
       final response = await _remoteDataSource.getProducts(
@@ -68,6 +79,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
         categoryId: activeFilter.categoryId,
         brandId: activeFilter.brandId,
         availability: availability,
+        sortBy: sortBy,
+        sortDirection: sortDirection,
       );
 
       // Convert models to entities

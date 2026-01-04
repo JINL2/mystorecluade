@@ -1,4 +1,5 @@
 import '../entities/denomination.dart';
+import '../entities/denomination_delete_result.dart';
 
 abstract class DenominationRepository {
   /// Get all denominations for a specific currency within a company
@@ -16,8 +17,11 @@ abstract class DenominationRepository {
     bool? isActive,
   });
 
-  /// Remove a denomination
-  Future<void> removeDenomination(String denominationId);
+  /// Remove a denomination (uses RPC for safe deletion with blocking location info)
+  Future<DenominationDeleteResult> removeDenomination(String denominationId, String companyId);
+
+  /// Check if a denomination is in use (has records in cashier_amount_lines or vault_amount_line)
+  Future<bool> isDenominationInUse(String denominationId);
 
   /// Get a specific denomination by ID
   Future<Denomination?> getDenomination(String denominationId);

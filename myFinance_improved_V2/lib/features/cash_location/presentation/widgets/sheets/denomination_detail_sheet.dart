@@ -67,7 +67,7 @@ class DenominationDetailSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -103,7 +103,7 @@ class DenominationDetailSheet extends StatelessWidget {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -124,10 +124,9 @@ class DenominationDetailSheet extends StatelessWidget {
                               'Total Counted',
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.gray600,
-                                fontSize: 12,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: TossSpacing.space1),
                             Text(
                               _formatCurrency(realEntry.totalAmount, currencySymbol),
                               style: TossTextStyles.h1.copyWith(
@@ -146,23 +145,20 @@ class DenominationDetailSheet extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: TossSpacing.space6),
 
                   // Details
                   _buildDetailRow('Date', _formatDate(realEntry.recordDate)),
                   _buildDetailRow('Time', _formatTime(realEntry.createdAt)),
                   _buildDetailRow('Location', realEntry.locationName),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: TossSpacing.space6),
 
                   // Denomination Breakdown
                   if (realEntry.currencySummary.isNotEmpty) ...[
                     Text(
                       'Denomination Breakdown',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                      style: TossTextStyles.h4,
                     ),
                     const SizedBox(height: TossSpacing.space3),
 
@@ -174,7 +170,7 @@ class DenominationDetailSheet extends StatelessWidget {
                   ],
 
                   // Bottom padding
-                  const SizedBox(height: 20),
+                  const SizedBox(height: TossSpacing.space5),
                 ],
               ),
             ),
@@ -200,7 +196,7 @@ class DenominationDetailSheet extends StatelessWidget {
 
   Widget _buildDenominationItem(bank.Denomination denomination, String symbol) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
@@ -214,17 +210,15 @@ class DenominationDetailSheet extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                 decoration: BoxDecoration(
                   color: TossColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   _formatCurrency(denomination.denominationValue, symbol),
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                  style: TossTextStyles.bodyMedium.copyWith(
                     color: TossColors.primary,
-                    fontSize: 14,
                   ),
                 ),
               ),
@@ -233,7 +227,6 @@ class DenominationDetailSheet extends StatelessWidget {
                 '× ${denomination.quantity}',
                 style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w500,
-                  fontSize: 14,
                 ),
               ),
             ],
@@ -242,10 +235,7 @@ class DenominationDetailSheet extends StatelessWidget {
           // Subtotal
           Text(
             _formatCurrency(denomination.subtotal, symbol),
-            style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+            style: TossTextStyles.bodyMedium,
           ),
         ],
       ),

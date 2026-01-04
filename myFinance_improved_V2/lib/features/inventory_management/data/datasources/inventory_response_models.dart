@@ -41,7 +41,7 @@ class ProductPageResponse {
   }
 }
 
-/// Summary data from get_inventory_page_v4
+/// Summary data from get_inventory_page_v5
 class InventorySummaryData {
   final double totalValue;
   final int filteredCount;

@@ -45,9 +45,8 @@ class AccountBalanceCardWidget extends StatelessWidget {
             children: [
               Text(
                 'Balance',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 17,
+                style: TossTextStyles.bodyMedium.copyWith(
+                  color: TossColors.gray900,
                 ),
               ),
               GestureDetector(
@@ -66,7 +65,6 @@ class AccountBalanceCardWidget extends StatelessWidget {
                     style: TossTextStyles.caption.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -79,7 +77,6 @@ class AccountBalanceCardWidget extends StatelessWidget {
           _buildBalanceRow(
             'Total Journal',
             formatCurrency(totalJournal.toDouble(), currencySymbol),
-            isJournal: true,
           ),
 
           SizedBox(height: TossSpacing.space3),
@@ -88,7 +85,6 @@ class AccountBalanceCardWidget extends StatelessWidget {
           _buildBalanceRow(
             'Total Real',
             formatCurrency(totalReal.toDouble(), currencySymbol),
-            isJournal: false,
           ),
 
           // Divider
@@ -105,14 +101,13 @@ class AccountBalanceCardWidget extends StatelessWidget {
               Text(
                 'Error',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
                 ),
               ),
               Text(
                 formatCurrencyWithSign(error.toDouble(), currencySymbol),
-                style: TossTextStyles.h3.copyWith(
+                style: TossTextStyles.bodyMedium.copyWith(
                   color: TossColors.error,
-                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -122,21 +117,20 @@ class AccountBalanceCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildBalanceRow(String label, String amount, {required bool isJournal}) {
+  Widget _buildBalanceRow(String label, String amount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: TossTextStyles.body.copyWith(
-            fontSize: 15,
+            color: TossColors.gray700,
           ),
         ),
         Text(
           amount,
           style: TossTextStyles.body.copyWith(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
+            color: TossColors.gray900,
           ),
         ),
       ],

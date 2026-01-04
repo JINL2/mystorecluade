@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/datasources/cash_transaction_datasource.dart';
 import '../../data/repositories/cash_transaction_repository_impl.dart';
@@ -17,7 +17,6 @@ export '../../domain/entities/expense_account.dart';
 // Part directive must come after all imports and exports
 part 'cash_transaction_providers.g.dart';
 
-const _tag = '[CashControlProviders]';
 
 // ============================================================================
 // DEPENDENCY INJECTION PROVIDERS
@@ -59,15 +58,20 @@ Future<List<ExpenseAccount>> expenseAccounts(
 /// Expense accounts only provider (account_type = 'expense')
 /// Returns only accounts where account_type = 'expense'
 /// AND (is_default = TRUE OR company_id = params.companyId)
+/// Uses keepAlive to cache across navigation
 @riverpod
 Future<List<ExpenseAccount>> expenseAccountsOnly(
   ExpenseAccountsOnlyRef ref,
   String companyId,
 ) async {
-  debugPrint('$_tag expenseAccountsOnlyProvider called with companyId: $companyId');
+  // Keep provider alive for 5 minutes to avoid re-fetching
+  final keepAliveLink = ref.keepAlive();
+  Future.delayed(const Duration(minutes: 5), () {
+    keepAliveLink.close();
+  });
+
   final repository = ref.watch(cashTransactionRepositoryProvider);
   final accounts = await repository.getExpenseAccountsOnly(companyId: companyId);
-  debugPrint('$_tag Got ${accounts.length} expense-only accounts');
   return accounts;
 }
 
@@ -79,13 +83,11 @@ Future<List<ExpenseAccount>> searchExpenseAccounts(
   required String companyId,
   required String query,
 }) async {
-  debugPrint('$_tag searchExpenseAccountsProvider called - companyId: $companyId, query: $query');
   final repository = ref.watch(cashTransactionRepositoryProvider);
   final accounts = await repository.searchExpenseAccounts(
     companyId: companyId,
     query: query,
   );
-  debugPrint('$_tag Found ${accounts.length} accounts matching "$query"');
   return accounts;
 }
 
@@ -107,7 +109,6 @@ Future<Counterparty?> selfCounterparty(
   SelfCounterpartyRef ref,
   String companyId,
 ) async {
-  debugPrint('$_tag selfCounterpartyProvider called for companyId: $companyId');
   final repository = ref.watch(cashTransactionRepositoryProvider);
   return repository.getSelfCounterparty(companyId: companyId);
 }
@@ -129,30 +130,67 @@ Future<List<CashLocation>> cashLocationsForStore(
   required String companyId,
   required String storeId,
 }) async {
-  debugPrint('$_tag cashLocationsForStoreProvider called');
-  debugPrint('$_tag Params - companyId: "$companyId", storeId: "$storeId"');
-  debugPrint('$_tag companyId.isEmpty: ${companyId.isEmpty}, storeId.isEmpty: ${storeId.isEmpty}');
 
   final repository = ref.watch(cashTransactionRepositoryProvider);
-  debugPrint('$_tag Calling repository.getCashLocationsForCompany...');
 
   final allLocations = await repository.getCashLocationsForCompany(
     companyId: companyId,
   );
 
-  debugPrint('$_tag Got ${allLocations.length} locations from repository');
-
-  for (final loc in allLocations) {
-    debugPrint('$_tag   - Location: ${loc.locationName}, storeId: "${loc.storeId}", companyId: "${loc.companyId}"');
-  }
-
   // Filter by store
-  debugPrint('$_tag Filtering by storeId: "$storeId"');
   final filtered = allLocations
       .where((loc) => loc.storeId == storeId)
       .toList();
 
-  debugPrint('$_tag After filter: ${filtered.length} locations');
-
   return filtered;
+}
+
+// ============================================================================
+// CURRENCY PROVIDER
+// ============================================================================
+
+/// Company base currency symbol provider
+/// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+@riverpod
+Future<String> companyCurrencySymbol(
+  CompanyCurrencySymbolRef ref,
+  String companyId,
+) async {
+  if (companyId.isEmpty) return '₩'; // Default fallback
+
+  try {
+    final client = Supabase.instance.client;
+
+    // Get company's base currency id
+    final companyResponse = await client
+        .from('companies')
+        .select('base_currency_id')
+        .eq('company_id', companyId)
+        .maybeSingle();
+
+    if (companyResponse == null) {
+      return '₩';
+    }
+
+    final baseCurrencyId = companyResponse['base_currency_id'] as String?;
+    if (baseCurrencyId == null) {
+      return '₩';
+    }
+
+    // Get currency symbol
+    final currencyResponse = await client
+        .from('currency_types')
+        .select('symbol')
+        .eq('currency_id', baseCurrencyId)
+        .maybeSingle();
+
+    if (currencyResponse == null) {
+      return '₩';
+    }
+
+    final symbol = currencyResponse['symbol'] as String? ?? '₩';
+    return symbol;
+  } catch (e) {
+    return '₩';
+  }
 }

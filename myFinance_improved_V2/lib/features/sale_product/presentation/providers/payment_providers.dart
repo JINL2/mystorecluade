@@ -107,9 +107,26 @@ class PaymentMethodNotifier extends _$PaymentMethodNotifier {
     state = state.copyWith(focusedCurrencyId: currencyId);
   }
 
-  // Update discount amount
+  // Update discount amount (simple update without percentage sync)
   void updateDiscountAmount(double amount) {
     state = state.copyWith(discountAmount: amount);
+  }
+
+  /// Update discount with amount and percentage sync
+  /// Used when discount is set via Exchange Rate Panel "Apply as Total"
+  /// [amount] - the discount amount in base currency
+  /// [percentage] - the calculated percentage (0-100)
+  /// [isPercentageMode] - whether the user is in percentage input mode
+  void updateDiscountWithSync({
+    required double amount,
+    required double percentage,
+    required bool isPercentageMode,
+  }) {
+    state = state.copyWith(
+      discountAmount: amount,
+      discountPercentage: percentage,
+      isPercentageMode: isPercentageMode,
+    );
   }
 
   // Set preloaded cash locations (from SaleProductPage)
@@ -138,6 +155,8 @@ class PaymentMethodNotifier extends _$PaymentMethodNotifier {
       currencyAmounts: const {},
       focusedCurrencyId: null,
       discountAmount: 0.0,
+      discountPercentage: 0.0,
+      isPercentageMode: false,
       isSubmitting: false,
     );
   }

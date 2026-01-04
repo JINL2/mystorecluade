@@ -31,6 +31,7 @@ import '../../features/debt_control/presentation/pages/smart_debt_control_page.d
 import '../../features/delegate_role/presentation/pages/delegate_role_page.dart';
 import '../../features/employee_setting/presentation/pages/employee_setting_page.dart';
 import '../../features/homepage/presentation/pages/homepage.dart';
+import '../../features/inventory_management/domain/entities/product.dart';
 import '../../features/inventory_management/presentation/pages/add_product_page.dart';
 import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
 import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
@@ -709,7 +710,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'productDetail',
             builder: (context, state) {
               final productId = state.pathParameters['productId']!;
-              return ProductDetailPage(productId: productId);
+              final extra = state.extra;
+              final product = extra is Product ? extra : null;
+              return ProductDetailPage(
+                productId: productId,
+                initialProduct: product,
+              );
             },
           ),
           GoRoute(

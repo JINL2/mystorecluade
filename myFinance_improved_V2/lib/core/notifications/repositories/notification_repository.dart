@@ -452,7 +452,61 @@ class NotificationRepository {
     }
   }
 
+  /// Deactivate FCM token on logout (Firebase Best Practice)
+  ///
+  /// Instead of deleting, we set is_active = false.
+  /// This allows the token to be reactivated if user logs back in on same device.
+  /// Stale tokens (30+ days inactive) are cleaned up by cleanupOldTokens().
+  Future<bool> deactivateToken({
+    required String userId,
+    String? token,
+  }) async {
+    try {
+      final now = DateTime.now().toUtc();
+
+      // First try user_fcm_tokens table
+      final hasTable = await _checkIfTableExists(_fcmTokensTable);
+      if (hasTable) {
+        if (token != null) {
+          // Deactivate specific token
+          await _supabase
+              .from(_fcmTokensTable)
+              .update({
+                'is_active': false,
+                'updated_at': now.toIso8601String(),
+              })
+              .eq('user_id', userId)
+              .eq('token', token);
+        } else {
+          // Deactivate all tokens for user (logout from all devices)
+          await _supabase
+              .from(_fcmTokensTable)
+              .update({
+                'is_active': false,
+                'updated_at': now.toIso8601String(),
+              })
+              .eq('user_id', userId);
+        }
+      }
+
+      // Also clear fcm_token in users table (fallback storage)
+      try {
+        await _supabase
+            .from('users')
+            .update({'fcm_token': null})
+            .eq('user_id', userId);
+      } catch (_) {
+        // Ignore if users table doesn't have fcm_token column
+      }
+
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Delete old inactive tokens (cleanup)
+  /// Removes tokens that have been inactive for more than [daysOld] days
   Future<bool> cleanupOldTokens({int daysOld = 30}) async {
     try {
       final cutoffDate = DateTime.now().subtract(Duration(days: daysOld));

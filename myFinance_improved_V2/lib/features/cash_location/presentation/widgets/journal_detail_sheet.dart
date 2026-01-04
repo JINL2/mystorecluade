@@ -48,7 +48,7 @@ class JournalDetailSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -89,7 +89,7 @@ class JournalDetailSheet extends StatelessWidget {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingXL),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -112,7 +112,7 @@ class JournalDetailSheet extends StatelessWidget {
                     _buildAttachments(context),
                   ],
 
-                  const SizedBox(height: 20),
+                  SizedBox(height: TossSpacing.space5),
                 ],
               ),
             ),
@@ -142,21 +142,19 @@ class JournalDetailSheet extends StatelessWidget {
           Text(
             formatTransactionAmount(flow.flowAmount, currencySymbol),
             style: TossTextStyles.h1.copyWith(
-              fontWeight: FontWeight.w700,
-              fontSize: 28,
               color: isPositive
                   ? Theme.of(context).colorScheme.primary
                   : TossColors.error,
             ),
           ),
-          const SizedBox(height: TossSpacing.space2),
+          SizedBox(height: TossSpacing.space2),
           Text(
             'Transaction Amount',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray600,
             ),
           ),
-          const SizedBox(height: TossSpacing.space3),
+          SizedBox(height: TossSpacing.space3),
           // Balance row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -182,17 +180,15 @@ class JournalDetailSheet extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TossTextStyles.caption.copyWith(
+          style: TossTextStyles.small.copyWith(
             color: TossColors.gray500,
-            fontSize: 11,
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: TossSpacing.space1),
         Text(
           value,
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+          style: TossTextStyles.bodyMedium.copyWith(
+            color: TossColors.gray900,
           ),
         ),
       ],
@@ -228,10 +224,8 @@ class JournalDetailSheet extends StatelessWidget {
                 const SizedBox(width: TossSpacing.space2),
                 Text(
                   'Description',
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
                   ),
                 ),
               ],
@@ -241,9 +235,7 @@ class JournalDetailSheet extends StatelessWidget {
               flow.journalDescription.isNotEmpty
                   ? flow.journalDescription
                   : flow.counterAccount!.description,
-              style: TossTextStyles.body.copyWith(
-                fontSize: 14,
-              ),
+              style: TossTextStyles.body,
             ),
           ],
 
@@ -367,15 +359,13 @@ class JournalDetailSheet extends StatelessWidget {
             'By',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray500,
-              fontSize: 12,
             ),
           ),
         ),
         Expanded(
           child: Text(
             flow.createdBy.fullName,
-            style: TossTextStyles.body.copyWith(
-              fontSize: 13,
+            style: TossTextStyles.bodySmall.copyWith(
               fontWeight: FontWeight.w500,
             ),
             overflow: TextOverflow.ellipsis,
@@ -407,7 +397,6 @@ class JournalDetailSheet extends StatelessWidget {
               label,
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
-                fontSize: 12,
               ),
             ),
           ),
@@ -415,8 +404,7 @@ class JournalDetailSheet extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: TossTextStyles.body.copyWith(
-              fontSize: 13,
+            style: TossTextStyles.bodySmall.copyWith(
               fontWeight: FontWeight.w500,
             ),
             overflow: TextOverflow.ellipsis,
@@ -463,10 +451,8 @@ class JournalDetailSheet extends StatelessWidget {
               ),
               child: Text(
                 '${attachments.length}',
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.labelSmall.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11,
                 ),
               ),
             ),

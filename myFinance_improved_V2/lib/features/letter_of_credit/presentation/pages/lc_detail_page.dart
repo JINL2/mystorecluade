@@ -7,6 +7,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
+import '../../../trade_shared/presentation/widgets/trade_amount_display.dart';
 import '../../domain/entities/letter_of_credit.dart';
 import '../../domain/repositories/lc_repository.dart';
 import '../providers/lc_providers.dart';
@@ -151,16 +153,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
             ],
 
             // Amount Details
-            _buildSection('Amount Details', [
-              _buildInfoRow('LC Amount', '${lc.currencyCode} ${_amountFormat.format(lc.amount)}'),
-              _buildInfoRow('Utilized', '${lc.currencyCode} ${_amountFormat.format(lc.amountUtilized)}'),
-              _buildInfoRow('Available', '${lc.currencyCode} ${_amountFormat.format(lc.availableAmount)}'),
-              if (lc.tolerancePlusPercent > 0 || lc.toleranceMinusPercent > 0)
-                _buildInfoRow(
-                  'Tolerance',
-                  '+${lc.tolerancePlusPercent}% / -${lc.toleranceMinusPercent}%',
-                ),
-            ]),
+            _buildAmountDetailsSection(lc),
 
             const SizedBox(height: TossSpacing.space4),
 
@@ -310,6 +303,23 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
   }
 
   Widget _buildStatusCard(LetterOfCredit lc) {
+    // Get exchange rate data for status card
+    final exchangeRateAsync = ref.watch(tradeExchangeRateProvider(lc.companyId));
+
+    return exchangeRateAsync.when(
+      loading: () => _buildStatusCardContent(lc, null),
+      error: (_, __) => _buildStatusCardContent(lc, null),
+      data: (exchangeRateData) => _buildStatusCardContent(lc, exchangeRateData),
+    );
+  }
+
+  Widget _buildStatusCardContent(LetterOfCredit lc, TradeExchangeRateData? exchangeRateData) {
+    // Calculate converted available amount
+    final baseCurrency = exchangeRateData?.baseCurrencyCode;
+    final showDualCurrency = baseCurrency != null && baseCurrency != lc.currencyCode;
+    final rate = exchangeRateData?.getRate(lc.currencyCode);
+    final convertedAvailable = showDualCurrency && rate != null ? lc.availableAmount * rate : null;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(TossSpacing.space4),
@@ -348,6 +358,13 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (showDualCurrency && convertedAvailable != null)
+                      Text(
+                        '≈ ${exchangeRateData!.baseCurrencySymbol}${_formatAmountForCurrency(convertedAvailable, baseCurrency!)}',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
                   ],
                 ),
               ],
@@ -436,6 +453,91 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
         ],
       ),
     );
+  }
+
+  Widget _buildAmountDetailsSection(LetterOfCredit lc) {
+    // Get exchange rate data
+    final exchangeRateAsync = ref.watch(tradeExchangeRateProvider(lc.companyId));
+
+    return exchangeRateAsync.when(
+      loading: () => _buildAmountDetailsSectionContent(lc, null),
+      error: (_, __) => _buildAmountDetailsSectionContent(lc, null),
+      data: (exchangeRateData) => _buildAmountDetailsSectionContent(lc, exchangeRateData),
+    );
+  }
+
+  Widget _buildAmountDetailsSectionContent(LetterOfCredit lc, TradeExchangeRateData? exchangeRateData) {
+    // Calculate converted amounts
+    final baseCurrency = exchangeRateData?.baseCurrencyCode;
+    final showDualCurrency = baseCurrency != null && baseCurrency != lc.currencyCode;
+    final rate = exchangeRateData?.getRate(lc.currencyCode);
+
+    double? convertedAmount;
+    double? convertedUtilized;
+    double? convertedAvailable;
+
+    if (showDualCurrency && rate != null) {
+      convertedAmount = lc.amount * rate;
+      convertedUtilized = lc.amountUtilized * rate;
+      convertedAvailable = lc.availableAmount * rate;
+    }
+
+    return _buildSection('Amount Details', [
+      TradeDualCurrencyInfoRow(
+        label: 'LC Amount',
+        primaryCurrency: lc.currencyCode,
+        primaryAmount: lc.amount,
+        secondaryCurrency: baseCurrency,
+        secondaryAmount: convertedAmount,
+      ),
+      TradeDualCurrencyInfoRow(
+        label: 'Utilized',
+        primaryCurrency: lc.currencyCode,
+        primaryAmount: lc.amountUtilized,
+        secondaryCurrency: baseCurrency,
+        secondaryAmount: convertedUtilized,
+      ),
+      TradeDualCurrencyInfoRow(
+        label: 'Available',
+        primaryCurrency: lc.currencyCode,
+        primaryAmount: lc.availableAmount,
+        secondaryCurrency: baseCurrency,
+        secondaryAmount: convertedAvailable,
+        highlight: true,
+      ),
+      if (lc.tolerancePlusPercent > 0 || lc.toleranceMinusPercent > 0)
+        _buildInfoRow(
+          'Tolerance',
+          '+${lc.tolerancePlusPercent}% / -${lc.toleranceMinusPercent}%',
+        ),
+      // Show exchange rate info
+      if (showDualCurrency && rate != null)
+        Padding(
+          padding: const EdgeInsets.only(top: TossSpacing.space2),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Icon(Icons.info_outline, size: 12, color: TossColors.gray400),
+              const SizedBox(width: 4),
+              Text(
+                'Rate: 1 ${lc.currencyCode} = ${_formatAmountForCurrency(rate, baseCurrency!)} $baseCurrency',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray400,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+    ]);
+  }
+
+  String _formatAmountForCurrency(double amount, String currency) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currency)) {
+      return NumberFormat('#,##0').format(amount);
+    }
+    return NumberFormat('#,##0.00').format(amount);
   }
 
   Widget _buildSection(String title, List<Widget> children) {

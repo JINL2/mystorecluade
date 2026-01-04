@@ -43,28 +43,18 @@ class _ProductTransactionsPageState
   @override
   void initState() {
     super.initState();
-    // ignore: avoid_print
-    print('🔴 [ProductTransactions] initState called - product: ${widget.product.id}');
     // Initialize with current store
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] postFrameCallback called');
       final appState = ref.read(appStateProvider);
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] storeId: ${appState.storeChoosen}, companyId: ${appState.companyChoosen}');
       setState(() {
         _selectedStoreId = appState.storeChoosen;
         _selectedStoreName = appState.storeName;
       });
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] About to call _loadTransactions');
       _loadTransactions();
     });
   }
 
   Future<void> _loadTransactions({bool refresh = false}) async {
-    // ignore: avoid_print
-    print('🔴 [ProductTransactions] _loadTransactions called, refresh: $refresh');
     if (refresh) {
       setState(() {
         _currentPage = 1;
@@ -76,11 +66,6 @@ class _ProductTransactionsPageState
       final appState = ref.read(appStateProvider);
       final repository = ref.read(inventoryRepositoryProvider);
 
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] Loading history for product: ${widget.product.id}');
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] Store: $_selectedStoreId, Company: ${appState.companyChoosen}');
-
       final result = await repository.getProductHistory(
         companyId: appState.companyChoosen,
         storeId: _selectedStoreId.isNotEmpty ? _selectedStoreId : appState.storeChoosen,
@@ -88,9 +73,6 @@ class _ProductTransactionsPageState
         page: _currentPage,
         pageSize: _pageSize,
       );
-
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] Result: ${result?.entries.length ?? 0} entries, totalCount: ${result?.totalCount ?? 0}');
 
       if (mounted && result != null) {
         setState(() {
@@ -104,11 +86,7 @@ class _ProductTransactionsPageState
           _isLoadingMore = false;
         });
       }
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] ERROR: $e');
-      // ignore: avoid_print
-      print('🔴 [ProductTransactions] StackTrace: $stackTrace');
+    } catch (_) {
       if (mounted) {
         setState(() {
           _isLoading = false;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
@@ -179,6 +180,9 @@ class CounterPartyListItem extends StatelessWidget {
   }
 
   void _showOptionsSheet(BuildContext context) {
+    // Internal counterparty는 시스템이 자동 관리하므로 수정/삭제 불가
+    final isInternal = counterParty.isInternal;
+
     TossBottomSheet.show<void>(
       context: context,
       title: 'Options',
@@ -194,14 +198,26 @@ class CounterPartyListItem extends StatelessWidget {
           icon: Icons.settings_outlined,
           onTap: () => onAccountSettings?.call(),
         ),
-        TossActionItem(
-          title: 'Delete',
-          icon: Icons.delete_outline,
-          isDestructive: true,
-          onTap: () => _showDeleteConfirmation(context),
-        ),
+        if (isInternal)
+          TossActionItem(
+            title: 'Debt Control',
+            icon: Icons.account_balance_wallet_outlined,
+            onTap: () => _navigateToDebtControl(context),
+          ),
+        if (!isInternal)
+          TossActionItem(
+            title: 'Delete',
+            icon: Icons.delete_outline,
+            isDestructive: true,
+            onTap: () => _showDeleteConfirmation(context),
+          ),
       ],
     );
+  }
+
+  void _navigateToDebtControl(BuildContext context) {
+    Navigator.pop(context);
+    context.push('/debtControl');
   }
 
   void _showDeleteConfirmation(BuildContext context) {

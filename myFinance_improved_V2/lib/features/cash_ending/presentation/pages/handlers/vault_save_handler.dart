@@ -220,6 +220,20 @@ class VaultSaveHandler {
       return false;
     }
 
+    // For Vault Out (credit): validate sufficient stock for each denomination
+    if (transactionType == 'credit') {
+      final validationError = _validateOutTransaction(
+        currenciesWithQuantities: currenciesWithQuantities,
+      );
+      if (validationError != null) {
+        ref.read(vaultTabProvider.notifier).setSaving(false);
+        if (isMounted()) {
+          TossToast.error(context, validationError);
+        }
+        return false;
+      }
+    }
+
     // Create single VaultTransaction with ALL currencies
     final vaultTransaction = VaultTransaction(
       companyId: companyId,
@@ -233,6 +247,44 @@ class VaultSaveHandler {
     );
 
     return await ref.read(vaultTabProvider.notifier).saveVaultTransaction(vaultTransaction);
+  }
+
+  /// Validate Vault Out transaction - check if we have enough stock
+  /// Returns error message if validation fails, null if OK
+  String? _validateOutTransaction({
+    required List<Currency> currenciesWithQuantities,
+  }) {
+    final vaultTabState = ref.read(vaultTabProvider);
+    final stockFlows = vaultTabState.stockFlows;
+
+    // Build a map of current stock by denomination
+    // From the most recent flow, get currentDenominations
+    if (stockFlows.isEmpty) {
+      // No stock data available - allow transaction (backend will validate)
+      return null;
+    }
+
+    // Get current stock from the latest flow's currentDenominations
+    final latestFlow = stockFlows.first;
+    final currentStock = <String, int>{};
+    for (final denom in latestFlow.currentDenominations) {
+      currentStock[denom.denominationId] = denom.currentQuantity ?? 0;
+    }
+
+    // Check each currency's denominations
+    for (final currency in currenciesWithQuantities) {
+      for (final denom in currency.denominations) {
+        if (denom.quantity <= 0) continue;
+
+        final availableQty = currentStock[denom.denominationId] ?? 0;
+        if (denom.quantity > availableQty) {
+          final denomValue = denom.value.toInt();
+          return 'Insufficient stock: ${currency.symbol}$denomValue (available: $availableQty, requested: ${denom.quantity})';
+        }
+      }
+    }
+
+    return null; // All validations passed
   }
 
   Future<void> _handleSuccess({

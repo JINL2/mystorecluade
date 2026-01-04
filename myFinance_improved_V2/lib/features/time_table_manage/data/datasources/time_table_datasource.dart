@@ -607,4 +607,29 @@ class TimeTableDatasource {
       );
     }
   }
+
+  /// Get shift audit logs for a specific shift request
+  ///
+  /// Queries shift_request_audit_log table directly
+  /// - Returns all audit log entries ordered by changed_at (oldest first)
+  /// - Shows who changed what, when, and how
+  /// - Uses RPC to join user profile info (name, profile image)
+  Future<List<dynamic>> getShiftAuditLogs({
+    required String shiftRequestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_shift_audit_logs',
+        params: {'p_shift_request_id': shiftRequestId},
+      );
+
+      return response as List<dynamic>;
+    } catch (e, stackTrace) {
+      throw TimeTableException(
+        'Failed to fetch shift audit logs: $e',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 }

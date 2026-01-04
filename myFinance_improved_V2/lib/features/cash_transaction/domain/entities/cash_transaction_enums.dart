@@ -1,8 +1,8 @@
-/// Cash Control Feature - Enums
-/// 직원용 간편 현금 입출금 시스템
-///
-/// Note: Icon extensions are in presentation/widgets/cash_transaction_icons.dart
-/// to keep domain layer pure (no Flutter dependencies)
+// Cash Control Feature - Enums
+// 직원용 간편 현금 입출금 시스템
+//
+// Note: Icon extensions are in presentation/widgets/cash_transaction_icons.dart
+// to keep domain layer pure (no Flutter dependencies)
 
 /// 현금 방향 (In/Out)
 enum CashDirection {
@@ -219,5 +219,61 @@ extension DebtSubTypeX on DebtSubType {
     return DebtSubType.values
         .where((type) => type.applicableDirection == direction)
         .toList();
+  }
+}
+
+/// 부채 카테고리 (Account vs Note)
+/// - Account: 미수금/미지급금 (Accounts Receivable/Payable) - 일반 거래 관계
+/// - Note: 어음 (Notes Receivable/Payable) - 정식 약속어음/차용증
+enum DebtCategory {
+  account, // 미수금/미지급금 (일반)
+  note,    // 어음 (정식)
+}
+
+extension DebtCategoryX on DebtCategory {
+  String get label {
+    switch (this) {
+      case DebtCategory.account:
+        return 'Account';
+      case DebtCategory.note:
+        return 'Note';
+    }
+  }
+
+  String get labelKo {
+    switch (this) {
+      case DebtCategory.account:
+        return '미수/미지급금';
+      case DebtCategory.note:
+        return '어음';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case DebtCategory.account:
+        return 'Informal debt from business transactions';
+      case DebtCategory.note:
+        return 'Formal promissory note with terms';
+    }
+  }
+
+  String get descriptionKo {
+    switch (this) {
+      case DebtCategory.account:
+        return '일반 거래 관계의 채권/채무';
+      case DebtCategory.note:
+        return '정식 약속어음/차용증';
+    }
+  }
+
+  /// 사용할 계정 ID 접미사
+  String get accountIdSuffix {
+    switch (this) {
+      case DebtCategory.account:
+        return 'accounts'; // accountsReceivable, accountsPayable
+      case DebtCategory.note:
+        return 'note'; // noteReceivable, notePayable
+    }
   }
 }

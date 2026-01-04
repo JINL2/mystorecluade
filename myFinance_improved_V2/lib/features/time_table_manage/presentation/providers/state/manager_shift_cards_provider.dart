@@ -250,7 +250,7 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
           }).toList();
 
           // Check if all problems are now solved
-          final allSolved = updatedProblems.every((p) => p.isSolved);
+          final allSolved = updatedProblems.every((p) => p.isSolved == true);
 
           updatedProblemDetails = ProblemDetails(
             hasLate: updatedProblemDetails.hasLate,

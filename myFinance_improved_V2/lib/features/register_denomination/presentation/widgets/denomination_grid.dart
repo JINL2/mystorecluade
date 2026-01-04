@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 import '../../domain/entities/denomination.dart';
+import '../../domain/entities/denomination_delete_result.dart';
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -148,29 +149,37 @@ class DenominationGrid extends ConsumerWidget {
     HapticFeedback.lightImpact();
 
     try {
-      await ref.read(denominationOperationsProvider.notifier)
+      final result = await ref.read(denominationOperationsProvider.notifier)
           .removeDenomination(denomination.id, denomination.currencyId);
 
-      // Refresh providers to get updated data
-      ref.invalidate(denominationListProvider(denomination.currencyId));
-      ref.invalidate(companyCurrenciesProvider);
-      ref.invalidate(companyCurrenciesStreamProvider);
-      ref.invalidate(searchFilteredCurrenciesProvider);
-      ref.read(localDenominationListProvider.notifier).reset(denomination.currencyId);
+      if (result.success) {
+        // Refresh providers to get updated data
+        ref.invalidate(denominationListProvider(denomination.currencyId));
+        ref.invalidate(companyCurrenciesProvider);
+        ref.invalidate(companyCurrenciesStreamProvider);
+        ref.invalidate(searchFilteredCurrenciesProvider);
+        ref.read(localDenominationListProvider.notifier).reset(denomination.currencyId);
 
-      if (context.mounted) {
-        await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.success(
-            title: 'Success',
-            message: '${denomination.formattedValue} denomination removed successfully!',
-            primaryButtonText: 'OK',
-          ),
-        );
+        if (context.mounted) {
+          await showDialog<bool>(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => TossDialog.success(
+              title: 'Success',
+              message: '${denomination.formattedValue} denomination removed successfully!',
+              primaryButtonText: 'OK',
+            ),
+          );
+        }
+
+        HapticFeedback.selectionClick();
+      } else {
+        // Show blocking locations error
+        HapticFeedback.heavyImpact();
+        if (context.mounted) {
+          await _showBlockingLocationsDialog(context, denomination, result);
+        }
       }
-
-      HapticFeedback.selectionClick();
     } catch (e) {
       if (context.mounted) {
         await showDialog<bool>(
@@ -185,6 +194,138 @@ class DenominationGrid extends ConsumerWidget {
       }
 
       HapticFeedback.heavyImpact();
+    }
+  }
+
+  Future<void> _showBlockingLocationsDialog(
+    BuildContext context,
+    Denomination denomination,
+    DenominationDeleteResult result,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.error_outline, color: TossColors.error, size: 24),
+            const SizedBox(width: TossSpacing.space2),
+            Text(
+              'Cannot Delete',
+              style: TossTextStyles.h3.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.gray900,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Cannot delete ${denomination.formattedValue} because money exists in the following locations:',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.gray700,
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            // Blocking locations list
+            Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: result.blockingLocations.map((location) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+                      padding: const EdgeInsets.all(TossSpacing.space3),
+                      decoration: BoxDecoration(
+                        color: TossColors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        border: Border.all(color: TossColors.error.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getLocationIcon(location.locationType),
+                            color: TossColors.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: TossSpacing.space2),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  location.locationName,
+                                  style: TossTextStyles.bodySmall.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: TossColors.gray900,
+                                  ),
+                                ),
+                                Text(
+                                  location.reason,
+                                  style: TossTextStyles.caption.copyWith(
+                                    color: TossColors.gray600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                border: Border.all(color: TossColors.primary.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: TossColors.primary, size: 20),
+                  const SizedBox(width: TossSpacing.space2),
+                  Expanded(
+                    child: Text(
+                      'Please clear all money from these locations before deleting this denomination.',
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TossButton.textButton(
+            text: 'Understood',
+            onPressed: () => context.pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getLocationIcon(String locationType) {
+    switch (locationType) {
+      case 'bank':
+        return Icons.account_balance;
+      case 'vault':
+        return Icons.lock;
+      case 'cashier':
+        return Icons.point_of_sale;
+      default:
+        return Icons.location_on;
     }
   }
 

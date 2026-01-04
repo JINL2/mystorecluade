@@ -119,13 +119,13 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        // Overlay
+        // Invisible touch area to close menu (no overlay color)
         if (_isExpanded)
           Positioned.fill(
             child: GestureDetector(
               onTap: _toggle,
               child: Container(
-                color: TossColors.black.withValues(alpha: widget.overlayOpacity),
+                color: Colors.transparent,
               ),
             ),
           ),

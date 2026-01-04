@@ -1,17 +1,14 @@
-import 'package:flutter/widgets.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-
 /// Attribute types available for selection
+/// Note: UI properties (icon) are in presentation/utils/attribute_type_ui.dart
 enum AttributeType {
-  text('Text', LucideIcons.type),
-  number('Number', LucideIcons.hash),
-  date('Date', LucideIcons.calendar),
-  barcode('Barcode', LucideIcons.scanLine);
+  text('Text'),
+  number('Number'),
+  date('Date'),
+  barcode('Barcode');
 
   final String label;
-  final IconData icon;
 
-  const AttributeType(this.label, this.icon);
+  const AttributeType(this.label);
 }
 
 /// Result from add attribute dialog

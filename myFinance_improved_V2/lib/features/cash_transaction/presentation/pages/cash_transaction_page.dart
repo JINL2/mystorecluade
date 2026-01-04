@@ -3,17 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../providers/cash_transaction_providers.dart';
 import '../widgets/cash_transaction/cash_transaction_widgets.dart';
 import '../widgets/debt_subtype_card.dart';
 import 'debt_entry_sheet.dart';
 import 'expense_entry_sheet.dart';
-
 import 'transfer_entry_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
-const _tag = '[CashTransactionPage]';
 
 /// Main Entry Type - first level selection
 enum MainEntryType {
@@ -127,7 +125,6 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
       final storeId = appState.storeChoosen;
-      debugPrint('[CashTransactionPage] initState - invalidating provider cache');
       ref.invalidate(cashLocationsForStoreProvider(companyId: companyId, storeId: storeId));
     });
   }
@@ -250,10 +247,6 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
   }
 
   void _onCounterpartySelected(Counterparty counterparty) {
-    debugPrint('$_tag 👤 Counterparty selected:');
-    debugPrint('$_tag   - id: ${counterparty.counterpartyId}');
-    debugPrint('$_tag   - name: ${counterparty.name}');
-    debugPrint('$_tag   - isInternal: ${counterparty.isInternal}');
     HapticFeedback.lightImpact();
     setState(() {
       _selectedCounterpartyId = counterparty.counterpartyId;
@@ -315,13 +308,9 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
   }
 
   void _toggleCounterpartyExpanded() {
-    debugPrint('$_tag 🔄 _toggleCounterpartyExpanded called');
-    debugPrint('$_tag   - _selectedDebtSubType: $_selectedDebtSubType');
     if (_selectedDebtSubType == null) {
-      debugPrint('$_tag   ❌ Returning early - no debt subtype selected');
       return;
     }
-    debugPrint('$_tag   ✅ Toggling counterparty expanded: $_isCounterpartyExpanded -> ${!_isCounterpartyExpanded}');
     setState(() {
       _isCounterpartyExpanded = !_isCounterpartyExpanded;
       if (_isCounterpartyExpanded) {
@@ -550,18 +539,13 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
 
-    debugPrint('$_tag 🏠 _buildCashLocationSelection called');
-    debugPrint('$_tag 📋 AppState - companyId: "$companyId", storeId: "$storeId"');
-    debugPrint('$_tag 📋 companyId.isEmpty: ${companyId.isEmpty}');
 
     if (companyId.isEmpty) {
-      debugPrint('$_tag ⚠️ companyId is empty, showing "Please select a company first"');
       return const Center(
         child: Text('Please select a company first'),
       );
     }
 
-    debugPrint('$_tag 📡 Watching cashLocationsForStoreProvider with companyId: "$companyId", storeId: "$storeId"');
 
     final cashLocationsAsync = ref.watch(
       cashLocationsForStoreProvider(companyId: companyId, storeId: storeId),
@@ -569,9 +553,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
 
     return cashLocationsAsync.when(
       data: (locations) {
-        debugPrint('$_tag ✅ Got ${locations.length} locations from provider');
         if (locations.isEmpty) {
-          debugPrint('$_tag ⚠️ locations.isEmpty == true, showing "No cash locations found"');
           return Center(
             child: Column(
               children: [
@@ -749,14 +731,11 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
   }
 
   Widget _buildCounterpartySelector() {
-    debugPrint('$_tag 🏗️ _buildCounterpartySelector called');
     final appState = ref.watch(appStateProvider);
     final companyId = appState.companyChoosen;
 
-    debugPrint('$_tag   - companyId: $companyId');
 
     if (companyId.isEmpty) {
-      debugPrint('$_tag   ❌ No company selected');
       return const Center(
         child: Text('Please select a company first'),
       );
@@ -766,11 +745,6 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
 
     return counterpartiesAsync.when(
       data: (counterparties) {
-        debugPrint('$_tag 📋 Counterparties loaded: ${counterparties.length} total');
-        for (final c in counterparties) {
-          debugPrint('$_tag   - ${c.name} (isInternal: ${c.isInternal})');
-        }
-
         if (counterparties.isEmpty) {
           return Center(
             child: Column(
@@ -795,7 +769,6 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
             .where((c) => !c.isInternal)
             .toList();
 
-        debugPrint('$_tag 📋 External counterparties (after filter): ${externalCounterparties.length}');
 
         if (externalCounterparties.isEmpty) {
           return Center(

@@ -614,8 +614,23 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
           }
         }
 
-        // Refresh employee data for immediate UI update
-        ref.read(mutableEmployeeListProvider.notifier).clear();
+        // ✅ Optimistic Update: Update the specific employee in the list immediately
+        // This provides instant UI feedback without waiting for server refresh
+        final updatedEmployee = widget.employee.copyWith(
+          salaryAmount: amount,
+          salaryType: _selectedPaymentType,
+          currencyId: _selectedCurrencyId,
+          currencyName: selectedCurrency.currencyName,
+          symbol: selectedCurrency.symbol,
+          updatedAt: DateTime.now(),
+          editedByName: 'Me',  // Will be replaced with actual name on next server fetch
+          workScheduleTemplateId: _selectedPaymentType == 'monthly' ? _selectedTemplateId : null,
+        );
+
+        // Update the employee in the mutable list (instant UI update)
+        ref.read(mutableEmployeeListProvider.notifier).updateEmployee(updatedEmployee);
+
+        // Invalidate to sync with server in background (non-blocking)
         ref.invalidate(employeeSalaryListProvider);
 
         // Call the original callback to update local state with new values
@@ -632,7 +647,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
 
         // Show success dialog
         if (mounted) {
-          await TossDialogs.showCashEndingSaved(
+          await TossDialogs.showSalarySaved(
             context: context,
             message: 'Salary updated successfully',
           );

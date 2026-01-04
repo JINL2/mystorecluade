@@ -44,6 +44,20 @@ class GrandTotalSection extends StatefulWidget {
   /// Only used when isBaseCurrency is false to show converted amount
   final String? baseCurrencySymbol;
 
+  /// Whether this is a flow transaction (In/Out) vs stock (Recount)
+  /// When true, shows expected balance after transaction instead of direct comparison
+  final bool isFlowTransaction;
+
+  /// The flow amount being added/removed (only for flow transactions)
+  final double? flowAmount;
+
+  /// Whether this is a debit (In) transaction - only for flow transactions
+  final bool isDebit;
+
+  /// Current real stock amount from database (for flow transactions)
+  /// Used to calculate: Expected = Real + Flow, then compare with Journal
+  final double? realAmount;
+
   const GrandTotalSection({
     super.key,
     required this.totalAmount,
@@ -55,6 +69,10 @@ class GrandTotalSection extends StatefulWidget {
     this.onHistoryTap,
     this.exchangeRateToBase,
     this.baseCurrencySymbol,
+    this.isFlowTransaction = false,
+    this.flowAmount,
+    this.isDebit = true,
+    this.realAmount,
   });
 
   @override
@@ -86,19 +104,13 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
     final hasJournalData = (widget.journalAmount != null || widget.isLoadingJournal) &&
         (widget.isBaseCurrency || isForeignCurrency);
 
-    return Container(
+    return Padding(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: widget.isBaseCurrency
-            ? TossColors.primary.withOpacity(0.05)
-            : TossColors.transparent,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HERO: Main Total Row - The counted amount (most important)
+          // HERO: Main Total Row - minimal style like salary breakdown
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -106,9 +118,9 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               Text(
                 'Total',
                 style: TossTextStyles.body.copyWith(
-                  color: TossColors.primary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  color: TossColors.gray900,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Column(
@@ -116,10 +128,10 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                 children: [
                   Text(
                     formattedAmount,
-                    style: TossTextStyles.h2.copyWith(
-                      color: TossColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
                   ),
                   // Show converted base currency amount for foreign currencies
@@ -129,7 +141,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                       '${widget.baseCurrencySymbol}${formatter.format(convertedAmountToBase.toInt())}',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray500,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -229,6 +241,11 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
   /// For foreign currencies:
   /// - Uses convertedAmountToBase for difference calculation
   /// - Shows both local currency amount and base currency conversion
+  ///
+  /// For flow transactions (In/Out):
+  /// - Shows current Journal balance
+  /// - Shows expected balance after transaction (Journal ± flowAmount)
+  /// - Shows the flow amount being added/removed
   Widget _buildExpandedDetails(
     NumberFormat formatter, {
     required bool isForeignCurrency,
@@ -246,12 +263,20 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
     final comparisonSymbol = isForeignCurrency
         ? widget.baseCurrencySymbol!
         : widget.currencySymbol;
-    final comparisonAmount = isForeignCurrency
+
+    final journalAmount = widget.journalAmount!;
+    final formattedJournal = '$comparisonSymbol${formatter.format(journalAmount.toInt())}';
+
+    // Both Flow and Stock modes show Journal vs Real comparison
+    // For Flow (In/Out): also show the transaction details as reference
+
+    // Calculate Real amount (what user counted) for stock comparison
+    final countedAmount = isForeignCurrency
         ? convertedAmountToBase
         : widget.totalAmount;
 
-    final formattedJournal = '$comparisonSymbol${formatter.format(widget.journalAmount!.toInt())}';
-    final difference = comparisonAmount - widget.journalAmount!;
+    // Calculate difference: Counted - Journal (for stock mode)
+    final difference = countedAmount - journalAmount;
     final isBalanced = difference.abs() < 1;
 
     // Format difference with sign
@@ -274,6 +299,121 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
       differenceColor = TossColors.success; // Surplus (green)
     }
 
+    // Flow transaction: show Real + Flow = Expected, compare with Journal
+    // Real = current actual stock from cash_amount_entries
+    // Expected = Real ± Flow
+    // Difference = Expected - Journal
+    if (widget.isFlowTransaction && widget.flowAmount != null && widget.realAmount != null) {
+      final flowAmount = widget.flowAmount!;
+      final currentReal = widget.realAmount!;
+
+      // Calculate expected stock after transaction
+      final expectedAfterFlow = widget.isDebit
+          ? currentReal + flowAmount  // In: Real + Flow
+          : currentReal - flowAmount; // Out: Real - Flow
+
+      // Calculate flow difference: Expected - Journal
+      final flowDifference = expectedAfterFlow - journalAmount;
+      final isFlowBalanced = flowDifference.abs() < 1;
+
+      // Format values
+      final formattedFlow = widget.isDebit
+          ? '+$comparisonSymbol${formatter.format(flowAmount.toInt())}'
+          : '-$comparisonSymbol${formatter.format(flowAmount.toInt())}';
+      final formattedReal = '$comparisonSymbol${formatter.format(currentReal.toInt())}';
+      final formattedExpected = '$comparisonSymbol${formatter.format(expectedAfterFlow.toInt())}';
+
+      // Format flow difference with sign
+      String formattedFlowDifference;
+      if (flowDifference > 0) {
+        formattedFlowDifference = '+$comparisonSymbol${formatter.format(flowDifference.toInt())}';
+      } else if (flowDifference < 0) {
+        formattedFlowDifference = '-$comparisonSymbol${formatter.format(flowDifference.abs().toInt())}';
+      } else {
+        formattedFlowDifference = '$comparisonSymbol${formatter.format(0)}';
+      }
+
+      // Determine color for flow difference
+      Color flowDifferenceColor;
+      if (isFlowBalanced) {
+        flowDifferenceColor = TossColors.gray500;
+      } else if (flowDifference < 0) {
+        flowDifferenceColor = TossColors.error; // Shortage (red)
+      } else {
+        flowDifferenceColor = TossColors.success; // Surplus (green)
+      }
+
+      return Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: TossColors.gray300,
+              width: 2,
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.only(left: 12),
+        child: Column(
+          children: [
+            // Current Real (actual stock before transaction)
+            InfoRow.between(
+              label: 'Current Real',
+              value: formattedReal,
+              valueColor: TossColors.gray600,
+            ),
+            const SizedBox(height: TossSpacing.space2),
+            // Flow amount (In/Out)
+            InfoRow.between(
+              label: widget.isDebit ? 'Vault In' : 'Vault Out',
+              value: formattedFlow,
+              valueColor: widget.isDebit ? TossColors.success : TossColors.error,
+              valueStyle: TossTextStyles.body.copyWith(
+                color: widget.isDebit ? TossColors.success : TossColors.error,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space2),
+            // Expected (Real ± Flow)
+            InfoRow.between(
+              label: 'Expected',
+              value: formattedExpected,
+              valueColor: TossColors.gray900,
+              valueStyle: TossTextStyles.body.copyWith(
+                color: TossColors.gray900,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            // Divider
+            Container(height: 1, color: TossColors.gray200),
+            const SizedBox(height: TossSpacing.space3),
+            // Journal (book balance)
+            InfoRow.between(
+              label: 'Journal',
+              value: formattedJournal,
+              valueColor: TossColors.gray600,
+            ),
+            const SizedBox(height: TossSpacing.space2),
+            // Difference: Expected - Journal
+            InfoRow.between(
+              label: 'Difference',
+              value: formattedFlowDifference,
+              valueColor: flowDifferenceColor,
+              valueStyle: TossTextStyles.body.copyWith(
+                color: flowDifferenceColor,
+                fontSize: 14,
+                fontWeight: !isFlowBalanced ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Stock comparison (Recount mode or Cash/Bank tabs)
+    // Uses the same difference calculation from above
     return Container(
       decoration: const BoxDecoration(
         border: Border(

@@ -43,11 +43,8 @@ class ActualFlowItem extends StatelessWidget {
               child: showDate
                   ? Text(
                       CashLocationFormatters.formatActualFlowDate(flow),
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.bodyMedium.copyWith(
                         color: TossColors.gray600,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        height: 1.2,
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -62,11 +59,8 @@ class ActualFlowItem extends StatelessWidget {
                 children: [
                   Text(
                     'Cash Count',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: TossColors.black87,
-                      height: 1.2,
+                    style: TossTextStyles.subtitle.copyWith(
+                      color: TossColors.gray900,
                     ),
                   ),
                   SizedBox(height: TossSpacing.space2),
@@ -75,10 +69,8 @@ class ActualFlowItem extends StatelessWidget {
                       Flexible(
                         child: Text(
                           flow.createdBy.fullName,
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray500,
-                            fontSize: 13,
-                            height: 1.2,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -86,18 +78,14 @@ class ActualFlowItem extends StatelessWidget {
                       if (CashLocationFormatters.formatActualFlowTime(flow).isNotEmpty) ...[
                         Text(
                           ' • ',
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray500,
-                            fontSize: 13,
-                            height: 1.2,
                           ),
                         ),
                         Text(
                           CashLocationFormatters.formatActualFlowTime(flow),
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray500,
-                            fontSize: 13,
-                            height: 1.2,
                           ),
                         ),
                       ],
@@ -116,23 +104,18 @@ class ActualFlowItem extends StatelessWidget {
                 // Flow amount (what was counted)
                 Text(
                   formatBalance(flow.flowAmount, currencySymbol),
-                  style: TossTextStyles.body.copyWith(
+                  style: TossTextStyles.subtitle.copyWith(
                     color: flow.flowAmount >= 0
                         ? Theme.of(context).colorScheme.primary
-                        : TossColors.black87,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    height: 1.2,
+                        : TossColors.gray900,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: TossSpacing.space1),
                 // Running balance
                 Text(
                   formatBalance(flow.balanceAfter, currencySymbol),
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray600,
-                    fontSize: 13,
-                    height: 1.2,
                   ),
                 ),
               ],

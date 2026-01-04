@@ -21,6 +21,43 @@ class InventorySortOption {
   static const stockDesc = InventorySortOption(InventorySortField.stock, InventorySortDirection.desc);
   static const valueDesc = InventorySortOption(InventorySortField.value, InventorySortDirection.desc);
 
+  /// Create from string values (for server-side sort)
+  static InventorySortOption? fromStrings(String sortBy, String sortDirection) {
+    final dir = sortDirection == 'asc' ? InventorySortDirection.asc : InventorySortDirection.desc;
+
+    switch (sortBy) {
+      case 'name':
+        return InventorySortOption(InventorySortField.name, dir);
+      case 'price':
+        return InventorySortOption(InventorySortField.price, dir);
+      case 'stock':
+        return InventorySortOption(InventorySortField.stock, dir);
+      case 'value':
+        return InventorySortOption(InventorySortField.value, dir);
+      default:
+        return null;
+    }
+  }
+
+  /// Get sort field as string for RPC
+  String get sortBy {
+    switch (field) {
+      case InventorySortField.name:
+        return 'name';
+      case InventorySortField.price:
+        return 'price';
+      case InventorySortField.stock:
+        return 'stock';
+      case InventorySortField.value:
+        return 'value';
+    }
+  }
+
+  /// Get sort direction as string for RPC
+  String get sortDirection {
+    return direction == InventorySortDirection.asc ? 'asc' : 'desc';
+  }
+
   /// Get human-readable label for this sort option
   String get label {
     final isAsc = direction == InventorySortDirection.asc;

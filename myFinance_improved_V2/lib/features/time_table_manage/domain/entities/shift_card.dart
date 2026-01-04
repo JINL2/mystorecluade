@@ -161,7 +161,7 @@ class ShiftCard {
   bool get isProblemSolved => problemDetails?.isSolved ?? true;
 
   /// Check if employee was late (from problemDetails)
-  bool get isLate => problemDetails?.problems.any((p) => p.type == 'late' && !p.isSolved) ?? false;
+  bool get isLate => problemDetails?.problems.any((p) => p.type == 'late' && p.isSolved != true) ?? false;
 
   /// Late duration in minutes (from problemDetails)
   int get lateMinute {
@@ -173,7 +173,7 @@ class ShiftCard {
   }
 
   /// Check if employee worked overtime (from problemDetails)
-  bool get isOverTime => problemDetails?.problems.any((p) => p.type == 'overtime' && !p.isSolved) ?? false;
+  bool get isOverTime => problemDetails?.problems.any((p) => p.type == 'overtime' && p.isSolved != true) ?? false;
 
   /// Overtime duration in minutes (from problemDetails)
   int get overTimeMinute {
@@ -203,7 +203,7 @@ class ShiftCard {
 
   /// Problem types as list (from problemDetails)
   List<String> get problemTypes => problemDetails?.problems
-      .where((p) => !p.isSolved)
+      .where((p) => p.isSolved != true)
       .map((p) => p.type)
       .toList() ?? [];
 

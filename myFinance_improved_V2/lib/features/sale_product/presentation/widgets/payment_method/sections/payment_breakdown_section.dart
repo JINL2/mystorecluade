@@ -33,6 +33,8 @@ class _PaymentBreakdownSectionState
   final FocusNode _discountFocusNode = FocusNode();
   bool _isPercentageDiscount = false;
   bool _isDiscountFocused = false;
+  /// Track if we need to sync from provider (e.g., Apply as Total)
+  double _lastSyncedDiscountAmount = 0.0;
 
   @override
   void initState() {
@@ -44,6 +46,28 @@ class _PaymentBreakdownSectionState
     setState(() {
       _isDiscountFocused = _discountFocusNode.hasFocus;
     });
+  }
+
+  /// Sync UI with provider state when discount changes externally (e.g., Apply as Total)
+  void _syncWithProviderState(double discountAmount, double discountPercentage, bool isPercentageMode) {
+    // Only sync if discount amount changed externally and not currently editing
+    if (!_isDiscountFocused && discountAmount != _lastSyncedDiscountAmount) {
+      _lastSyncedDiscountAmount = discountAmount;
+
+      // Update toggle mode
+      if (_isPercentageDiscount != isPercentageMode) {
+        _isPercentageDiscount = isPercentageMode;
+      }
+
+      // Update text field with synced value
+      if (isPercentageMode && discountPercentage > 0) {
+        _discountController.text = discountPercentage.toStringAsFixed(1);
+      } else if (!isPercentageMode && discountAmount > 0) {
+        _discountController.text = PaymentHelpers.formatNumber(discountAmount.round());
+      } else {
+        _discountController.clear();
+      }
+    }
   }
 
   @override
@@ -68,7 +92,14 @@ class _PaymentBreakdownSectionState
   Widget build(BuildContext context) {
     final paymentState = ref.watch(paymentMethodNotifierProvider);
     final discountAmount = paymentState.discountAmount;
+    final discountPercentage = paymentState.discountPercentage;
+    final isPercentageMode = paymentState.isPercentageMode;
     final finalTotal = _cartTotal - discountAmount;
+
+    // Sync UI with provider state when discount changes externally
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncWithProviderState(discountAmount, discountPercentage, isPercentageMode);
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +225,13 @@ class _PaymentBreakdownSectionState
           _isPercentageDiscount = id == 'percent';
           _discountController.clear();
         });
-        ref.read(paymentMethodNotifierProvider.notifier).updateDiscountAmount(0);
+        // Reset last synced amount
+        _lastSyncedDiscountAmount = 0;
+        ref.read(paymentMethodNotifierProvider.notifier).updateDiscountWithSync(
+          amount: 0,
+          percentage: 0,
+          isPercentageMode: id == 'percent',
+        );
       },
     );
   }
@@ -244,12 +281,15 @@ class _PaymentBreakdownSectionState
           final rawValue = value.replaceAll(',', '');
           final inputValue = double.tryParse(rawValue) ?? 0;
           double discountAmt = 0;
+          double percentage = 0;
 
           if (_isPercentageDiscount) {
-            final percentage = inputValue.clamp(0, 100);
+            percentage = inputValue.clamp(0, 100).toDouble();
             discountAmt = (_cartTotal * percentage) / 100;
           } else {
             discountAmt = inputValue;
+            // Calculate percentage from amount
+            percentage = _cartTotal > 0 ? (discountAmt / _cartTotal) * 100 : 0;
 
             // Format with commas for amount mode
             if (rawValue.isNotEmpty && !_isPercentageDiscount) {
@@ -263,9 +303,16 @@ class _PaymentBreakdownSectionState
             }
           }
 
+          // Update last synced amount to prevent re-sync
+          _lastSyncedDiscountAmount = discountAmt;
+
           ref
               .read(paymentMethodNotifierProvider.notifier)
-              .updateDiscountAmount(discountAmt);
+              .updateDiscountWithSync(
+                amount: discountAmt,
+                percentage: percentage,
+                isPercentageMode: _isPercentageDiscount,
+              );
         },
       ),
     );

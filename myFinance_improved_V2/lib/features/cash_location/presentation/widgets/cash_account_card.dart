@@ -75,7 +75,7 @@ class CashAccountCard extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                color: Theme.of(context).colorScheme.primary,
+                color: TossColors.primary,
                 size: 22,
               ),
             ),
@@ -89,10 +89,8 @@ class CashAccountCard extends StatelessWidget {
                 children: [
                   Text(
                     location.locationName,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: TossColors.black87,
+                    style: TossTextStyles.bodyMedium.copyWith(
+                      color: TossColors.gray900,
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space1),
@@ -100,7 +98,6 @@ class CashAccountCard extends StatelessWidget {
                     '$percentage% of total balance',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray600,
-                      fontSize: 13,
                     ),
                   ),
                 ],
@@ -115,10 +112,8 @@ class CashAccountCard extends StatelessWidget {
                   children: [
                     Text(
                       formatCurrency(location.totalJournalCashAmount, location.currencySymbol),
-                      style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
+                      style: TossTextStyles.bodyMedium.copyWith(
+                        color: TossColors.primary,
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space1),
@@ -126,8 +121,6 @@ class CashAccountCard extends StatelessWidget {
                       formatCurrency(location.cashDifference.abs(), ''),
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.error,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

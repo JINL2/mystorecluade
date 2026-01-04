@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/cache/auth_data_cache.dart';
+import '../../../../core/cache/hive_cache_service.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/notifications/services/production_token_service.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -390,6 +391,9 @@ class _HomepageState extends ConsumerState<Homepage> {
 
   Future<void> _handleRefresh() async {
     final appStateNotifier = ref.read(appStateProvider.notifier);
+    final appState = ref.read(appStateProvider);
+    final userId = appState.userId;
+    final companyId = appState.companyChoosen;
 
     // Show loading view
     if (mounted) {
@@ -405,13 +409,29 @@ class _HomepageState extends ConsumerState<Homepage> {
       // Reset alert shown flag to allow showing again after refresh
       _alertShown = false;
 
-      // Invalidate homepage alert cache (6-hour cache)
-      final userId = ref.read(appStateProvider).userId;
+      // =========================================================================
+      // Invalidate all Hive caches (SWR pattern - force fresh fetch)
+      // =========================================================================
+      final hiveCache = HiveCacheService.instance;
       if (userId.isNotEmpty) {
+        // Invalidate user companies cache
+        await hiveCache.invalidateUserCompanies(userId);
+
+        // Invalidate quick access cache for current company
+        if (companyId.isNotEmpty) {
+          await hiveCache.invalidateQuickAccess(userId, companyId);
+        }
+
+        // Invalidate homepage alert cache (6-hour cache)
         AuthDataCache.instance.invalidate('homepage_get_alert_$userId');
       }
 
+      // Invalidate categories cache (static data but refresh on manual pull)
+      await hiveCache.invalidateCategories();
+
+      // =========================================================================
       // Invalidate all homepage providers to refresh data
+      // =========================================================================
       ref.invalidate(userCompaniesProvider);
       ref.invalidate(categoriesWithFeaturesProvider);
       ref.invalidate(quickAccessFeaturesProvider);

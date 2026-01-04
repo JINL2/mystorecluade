@@ -155,8 +155,9 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: titleWidget ?? Text(
         title,
-        style: titleStyle ?? TossTextStyles.h3.copyWith(
+        style: titleStyle ?? TossTextStyles.h4.copyWith(
           color: TossColors.textPrimary,
+          fontWeight: FontWeight.w600,
         ),
       ),
       centerTitle: centerTitle,

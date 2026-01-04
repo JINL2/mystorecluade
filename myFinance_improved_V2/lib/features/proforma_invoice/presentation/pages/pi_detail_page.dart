@@ -7,7 +7,9 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
 import '../../../trade_shared/presentation/services/trade_pdf_service.dart';
+import '../../../trade_shared/presentation/widgets/trade_amount_display.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 import '../../domain/entities/proforma_invoice.dart';
 import '../providers/pi_providers.dart';
@@ -308,37 +310,137 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
   }
 
   Widget _buildItemsSection(ProformaInvoice pi) {
+    // Get exchange rate data
+    final exchangeRateAsync = ref.watch(tradeExchangeRateProvider(pi.companyId));
+
+    return exchangeRateAsync.when(
+      loading: () => _buildItemsSectionContent(pi, null),
+      error: (_, __) => _buildItemsSectionContent(pi, null),
+      data: (exchangeRateData) => _buildItemsSectionContent(pi, exchangeRateData),
+    );
+  }
+
+  Widget _buildItemsSectionContent(ProformaInvoice pi, TradeExchangeRateData? exchangeRateData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TradeSectionHeader(title: 'Items', badge: '${pi.items.length}'),
         const SizedBox(height: TossSpacing.space2),
-        ...pi.items
-            .map((item) => _ItemCard(item: item, currencyCode: pi.currencyCode)),
+        ...pi.items.map((item) => _ItemCard(
+              item: item,
+              currencyCode: pi.currencyCode,
+              exchangeRateData: exchangeRateData,
+            )),
       ],
     );
   }
 
   Widget _buildTotalsSection(ProformaInvoice pi) {
+    // Get exchange rate data
+    final exchangeRateAsync = ref.watch(tradeExchangeRateProvider(pi.companyId));
+
+    return exchangeRateAsync.when(
+      loading: () => _buildTotalsSectionContent(pi, null),
+      error: (_, __) => _buildTotalsSectionContent(pi, null),
+      data: (exchangeRateData) => _buildTotalsSectionContent(pi, exchangeRateData),
+    );
+  }
+
+  Widget _buildTotalsSectionContent(ProformaInvoice pi, TradeExchangeRateData? exchangeRateData) {
+    // Calculate converted amounts if exchange rate is available
+    final baseCurrency = exchangeRateData?.baseCurrencyCode;
+    final showDualCurrency = baseCurrency != null && baseCurrency != pi.currencyCode;
+    final rate = exchangeRateData?.getRate(pi.currencyCode);
+
+    double? convertedSubtotal;
+    double? convertedDiscount;
+    double? convertedTotal;
+
+    if (showDualCurrency && rate != null) {
+      convertedSubtotal = pi.subtotal * rate;
+      convertedDiscount = pi.discountAmount * rate;
+      convertedTotal = pi.totalAmount * rate;
+    }
+
     return TradeSimpleCard(
       child: Column(
         children: [
-          _InfoRow(
+          TradeDualCurrencyInfoRow(
             label: 'Subtotal',
-            value: '${pi.currencyCode} ${_formatAmount(pi.subtotal)}',
+            primaryCurrency: pi.currencyCode,
+            primaryAmount: pi.subtotal,
+            secondaryCurrency: baseCurrency,
+            secondaryAmount: convertedSubtotal,
           ),
           if (pi.discountAmount > 0)
-            _InfoRow(
-              label: 'Discount',
-              value: '-${pi.currencyCode} ${_formatAmount(pi.discountAmount)}',
-              valueColor: TossColors.success,
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space3,
+                vertical: TossSpacing.space2,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Discount',
+                    style: TossTextStyles.bodySmall.copyWith(
+                      color: TossColors.gray600,
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '-${pi.currencyCode} ${_formatAmount(pi.discountAmount)}',
+                        style: TossTextStyles.bodySmall.copyWith(
+                          color: TossColors.success,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (showDualCurrency && convertedDiscount != null)
+                        Text(
+                          '≈ -${exchangeRateData!.baseCurrencySymbol}${_formatAmountForCurrency(convertedDiscount, baseCurrency!)}',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           const Divider(height: TossSpacing.space4),
-          _InfoRow(
+          TradeDualCurrencyInfoRow(
             label: 'Total',
-            value: '${pi.currencyCode} ${_formatAmount(pi.totalAmount)}',
-            isBold: true,
+            primaryCurrency: pi.currencyCode,
+            primaryAmount: pi.totalAmount,
+            secondaryCurrency: baseCurrency,
+            secondaryAmount: convertedTotal,
+            highlight: true,
           ),
+          // Show exchange rate info
+          if (showDualCurrency && rate != null)
+            Padding(
+              padding: const EdgeInsets.only(
+                top: TossSpacing.space2,
+                right: TossSpacing.space3,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.info_outline, size: 12, color: TossColors.gray400),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Rate: 1 ${pi.currencyCode} = ${_formatAmountForCurrency(rate, baseCurrency!)} $baseCurrency',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray400,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -383,6 +485,14 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
   }
 
   String _formatAmount(double amount) {
+    return NumberFormat('#,##0.00').format(amount);
+  }
+
+  String _formatAmountForCurrency(double amount, String currency) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currency)) {
+      return NumberFormat('#,##0').format(amount);
+    }
     return NumberFormat('#,##0.00').format(amount);
   }
 
@@ -727,11 +837,30 @@ class _StatusBadge extends StatelessWidget {
 class _ItemCard extends StatelessWidget {
   final PIItem item;
   final String currencyCode;
+  final TradeExchangeRateData? exchangeRateData;
 
-  const _ItemCard({required this.item, required this.currencyCode});
+  const _ItemCard({
+    required this.item,
+    required this.currencyCode,
+    this.exchangeRateData,
+  });
+
+  String _formatAmountForCurrency(double amount, String currency) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currency)) {
+      return NumberFormat('#,##0').format(amount);
+    }
+    return NumberFormat('#,##0.00').format(amount);
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Calculate converted amount
+    final baseCurrency = exchangeRateData?.baseCurrencyCode;
+    final showDualCurrency = baseCurrency != null && baseCurrency != currencyCode;
+    final rate = exchangeRateData?.getRate(currencyCode);
+    final convertedTotal = showDualCurrency && rate != null ? item.lineTotal * rate : null;
+
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       padding: const EdgeInsets.all(TossSpacing.space3),
@@ -771,13 +900,23 @@ class _ItemCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: TossSpacing.space2),
-          // Line total
+          // Line total with dual currency
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(
-                '$currencyCode ${NumberFormat('#,##0.00').format(item.lineTotal)}',
-                style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$currencyCode ${NumberFormat('#,##0.00').format(item.lineTotal)}',
+                    style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  if (showDualCurrency && convertedTotal != null)
+                    Text(
+                      '≈ ${exchangeRateData!.baseCurrencySymbol}${_formatAmountForCurrency(convertedTotal, baseCurrency!)}',
+                      style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+                    ),
+                ],
               ),
             ],
           ),

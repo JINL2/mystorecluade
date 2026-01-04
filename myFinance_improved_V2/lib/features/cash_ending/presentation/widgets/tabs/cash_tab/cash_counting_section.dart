@@ -196,13 +196,11 @@ class _CashCountingSectionState extends ConsumerState<CashCountingSection> {
   }
 
   void _ensureCurrencyInitialized(Currency currency) {
-    if (widget.initializedCurrencies.contains(currency.currencyId)) {
-      return;
-    }
-
+    // Always ensure maps exist for this currency
     widget.controllers.putIfAbsent(currency.currencyId, () => {});
     widget.focusNodes.putIfAbsent(currency.currencyId, () => {});
 
+    // Always check all denominations (handles case where denominations are reloaded)
     for (final denom in currency.denominations) {
       widget.controllers[currency.currencyId]!.putIfAbsent(
         denom.denominationId,

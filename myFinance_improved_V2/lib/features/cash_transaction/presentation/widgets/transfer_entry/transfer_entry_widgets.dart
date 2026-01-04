@@ -1,4 +1,4 @@
-/// Transfer Entry Widgets - Barrel Export
+// Transfer Entry Widgets - Barrel Export
 export 'amount_input_section.dart';
 export 'cash_location_selection_section.dart';
 export 'scope_selection_section.dart';

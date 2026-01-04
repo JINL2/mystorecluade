@@ -8,15 +8,17 @@ import '../transaction_confirm_dialog.dart';
 /// Shows the transaction summary with cash flow diagram
 class TransactionStoryCard extends StatelessWidget {
   final TransactionConfirmData data;
+  final String currencySymbol;
 
   const TransactionStoryCard({
     super.key,
     required this.data,
+    this.currencySymbol = '₩',
   });
 
   String get _formattedAmount {
     final formatter = NumberFormat('#,###');
-    return '₩${formatter.format(data.amount.toInt())}';
+    return '$currencySymbol${formatter.format(data.amount.toInt())}';
   }
 
   /// Check if this is a complex transfer (needs vertical layout)
@@ -131,37 +133,89 @@ class TransactionStoryCard extends StatelessWidget {
     final cashFlow = _cashFlowInfo;
 
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            TossColors.gray100,
+            TossColors.gray50,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(color: TossColors.gray200),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.gray900.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Amount and type - compact
-          Column(
-            children: [
-              Text(
-                _formattedAmount,
-                style: TossTextStyles.h2.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: TossColors.gray900,
+          // Amount with animated appearance
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: Transform.translate(
+                  offset: Offset(0, 10 * (1 - value)),
+                  child: child,
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                cashFlow.reason,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
+              );
+            },
+            child: Column(
+              children: [
+                Text(
+                  _formattedAmount,
+                  style: TossTextStyles.h1.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: TossColors.gray900,
+                    letterSpacing: -0.5,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: TossSpacing.space1),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: TossSpacing.space1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.gray200,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                  ),
+                  child: Text(
+                    cashFlow.reason,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
 
-          const SizedBox(height: TossSpacing.space3),
+          const SizedBox(height: TossSpacing.space4),
 
-          // Cash Flow Visual Diagram
-          _buildCashFlowDiagram(cashFlow),
+          // Cash Flow Visual Diagram with animation
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: child,
+              );
+            },
+            child: _buildCashFlowDiagram(cashFlow),
+          ),
         ],
       ),
     );

@@ -86,6 +86,15 @@ class TossTextStyles {
     height: 1.333,  // 20px line height
   );
 
+  /// Subtitle - List item titles, transaction names (16px, semibold)
+  /// Usage: For 16px text that needs emphasis
+  static TextStyle get subtitle => GoogleFonts.inter(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+    height: 1.375,  // 22px line height
+  );
+
   // ==================== BODY TEXT ====================
   // Primary content text styles
 

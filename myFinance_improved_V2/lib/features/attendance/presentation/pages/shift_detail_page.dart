@@ -9,8 +9,8 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 
 import '../widgets/shift_detail/shift_info_card.dart';
 import '../widgets/shift_detail/payment_summary_card.dart';
-import '../widgets/shift_detail/activity_log_section.dart';
 import '../widgets/shift_detail/report_response_card.dart';
+import '../../../time_table_manage/presentation/pages/staff_timelog_detail/widgets/shift_logs_section.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shift Detail Page - Shows detailed information about a specific shift
@@ -302,17 +302,9 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: TossColors.white,
-      appBar: AppBar(
+      appBar: TossAppBar(
+        title: 'Shift details',
         backgroundColor: TossColors.white,
-        elevation: 0,
-        surfaceTintColor: TossColors.white,
-        title: Text(
-          'Shift details',
-          style: TossTextStyles.titleMedium.copyWith(
-            color: TossColors.gray900,
-          ),
-        ),
-        centerTitle: true,
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -400,6 +392,8 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                             },
                           ),
                         ],
+                        const SizedBox(height: 16),
+                        ShiftLogsSection(shiftRequestId: widget.shift.shiftRequestId),
                       ],
                     ),
                   ),
@@ -410,8 +404,6 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         PaymentSummaryCard(shift: widget.shift),
-                        const SizedBox(height: 20),
-                        ActivityLogSection(shift: widget.shift),
                         const SizedBox(height: 20),
                         Text(
                           'Recorded attendance is based on your check-in/out records.\nConfirmed attendance is the manager-approved time used for salary.',

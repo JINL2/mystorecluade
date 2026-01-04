@@ -6,6 +6,9 @@ library;
 // Row widgets
 export 'rows/rows.dart';
 
+// Section widgets (shared between Add/Edit pages)
+export 'sections/sections.dart';
+
 // Common widgets
 export 'form_section_header.dart';
 export 'help_badge.dart';

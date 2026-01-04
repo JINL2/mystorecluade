@@ -42,6 +42,9 @@ class EmployeeSalaryModel extends EmployeeSalary {
     super.lastActivityAt,
     super.bankName,
     super.bankAccountNumber,
+    // Edit tracking fields
+    super.editedBy,
+    super.editedByName,
     // Work Schedule Template fields
     super.workScheduleTemplateId,
     super.workScheduleTemplateName,
@@ -94,6 +97,9 @@ class EmployeeSalaryModel extends EmployeeSalary {
       lastActivityAt: entity.lastActivityAt,
       bankName: entity.bankName,
       bankAccountNumber: entity.bankAccountNumber,
+      // Edit tracking fields
+      editedBy: entity.editedBy,
+      editedByName: entity.editedByName,
       // Work Schedule Template fields
       workScheduleTemplateId: entity.workScheduleTemplateId,
       workScheduleTemplateName: entity.workScheduleTemplateName,
@@ -155,6 +161,10 @@ class EmployeeSalaryModel extends EmployeeSalary {
       // Bank information
       bankName: json['bank_name'] as String?,
       bankAccountNumber: json['bank_account_number'] as String?,
+
+      // Edit tracking fields (from v_user_salary view)
+      editedBy: json['edited_by'] as String?,
+      editedByName: json['edited_by_name'] as String?,
 
       // Work Schedule Template fields (from v_user_salary view)
       workScheduleTemplateId: json['work_schedule_template_id'] as String?,
@@ -247,6 +257,10 @@ class EmployeeSalaryModel extends EmployeeSalary {
       'bank_name': bankName,
       'bank_account_number': bankAccountNumber,
 
+      // Edit tracking fields
+      'edited_by': editedBy,
+      'edited_by_name': editedByName,
+
       // Work Schedule Template fields
       'work_schedule_template_id': workScheduleTemplateId,
       'work_schedule_template_name': workScheduleTemplateName,
@@ -300,6 +314,9 @@ class EmployeeSalaryModel extends EmployeeSalary {
       lastActivityAt: lastActivityAt,
       bankName: bankName,
       bankAccountNumber: bankAccountNumber,
+      // Edit tracking fields
+      editedBy: editedBy,
+      editedByName: editedByName,
       // Work Schedule Template fields
       workScheduleTemplateId: workScheduleTemplateId,
       workScheduleTemplateName: workScheduleTemplateName,

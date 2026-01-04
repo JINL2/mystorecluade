@@ -7,6 +7,7 @@ import '../entities/monthly_shift_status.dart';
 import '../entities/operation_result.dart';
 import '../entities/reliability_score.dart';
 import '../entities/schedule_data.dart';
+import '../entities/shift_audit_log.dart';
 import '../entities/shift_metadata.dart';
 import '../entities/store_employee.dart';
 
@@ -289,5 +290,18 @@ abstract class TimeTableRepository {
     required bool isLate,
     required bool isProblemSolved,
     required String timezone,
+  });
+
+  /// Get shift audit logs for a specific shift request
+  ///
+  /// Queries shift_request_audit_log table
+  /// - Returns all audit log entries ordered by changed_at (oldest first)
+  /// - Includes joined profile info for changed_by display name
+  ///
+  /// [shiftRequestId] - Shift request ID to get logs for
+  ///
+  /// Returns list of [ShiftAuditLog] with change history
+  Future<List<ShiftAuditLog>> getShiftAuditLogs({
+    required String shiftRequestId,
   });
 }

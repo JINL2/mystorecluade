@@ -164,8 +164,8 @@ class _CategorySection extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.surface,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -182,7 +182,7 @@ class _CategorySection extends StatelessWidget {
               letterSpacing: -0.4,
             ),
           ),
-          const SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space3),
 
           // Features List (only visible features)
           ...visibleFeatures.map((feature) {
@@ -287,7 +287,7 @@ class _FeatureListItem extends ConsumerWidget {
                       Text(
                         feature.featureDescription!,
                         style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textTertiary,
+                          color: TossColors.textSecondary,
                           fontSize: 13,
                           letterSpacing: -0.2,
                           height: 1.2,

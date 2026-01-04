@@ -52,7 +52,7 @@ class DenominationInput extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Left section: Denomination display
+          // Left section: Denomination display - left aligned
           Expanded(
             child: Text(
               '$currencySymbol$formattedAmount',
@@ -63,6 +63,7 @@ class DenominationInput extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
+              textAlign: TextAlign.left,
             ),
           ),
 
@@ -80,7 +81,7 @@ class DenominationInput extends StatelessWidget {
             borderRadius: 6,
           ),
 
-          // Right section: Amount display
+          // Right section: Amount display - right aligned
           Expanded(
             child: ValueListenableBuilder<TextEditingValue>(
               valueListenable: controller,
@@ -97,8 +98,8 @@ class DenominationInput extends StatelessWidget {
                 return Text(
                   subtotalText,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: isZero ? TossColors.gray600 : TossColors.gray900,
+                    fontWeight: FontWeight.w600,
+                    color: isZero ? TossColors.gray400 : TossColors.gray900,
                     fontSize: 14,
                   ),
                   overflow: TextOverflow.ellipsis,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,9 @@ class MyFinanceApp extends ConsumerStatefulWidget {
 }
 
 class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBindingObserver {
+  /// 토큰 자동 갱신 타이머 (45분마다 - Access Token 1시간 만료 전)
+  Timer? _tokenRefreshTimer;
+
   @override
   void initState() {
     super.initState();
@@ -31,13 +36,39 @@ class _MyFinanceAppState extends ConsumerState<MyFinanceApp> with WidgetsBinding
     // Initialize app components after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeApp();
+      _startTokenRefreshTimer();
     });
   }
 
   @override
   void dispose() {
+    _tokenRefreshTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// 45분마다 토큰 갱신 타이머 시작
+  /// Access Token이 1시간 만료이므로 15분 여유를 두고 갱신
+  void _startTokenRefreshTimer() {
+    _tokenRefreshTimer?.cancel();
+    _tokenRefreshTimer = Timer.periodic(
+      const Duration(minutes: 45),
+      (_) => _refreshTokenIfNeeded(),
+    );
+  }
+
+  /// 세션이 있으면 토큰 갱신
+  Future<void> _refreshTokenIfNeeded() async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        await Supabase.instance.client.auth.refreshSession();
+        debugPrint('✅ Token refreshed automatically');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Auto token refresh failed: $e');
+      // 갱신 실패해도 Refresh Token이 유효하면 다음 요청 시 자동 갱신됨
+    }
   }
 
   @override

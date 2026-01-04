@@ -1188,5 +1188,156 @@ class _CashLocationsForStoreProviderElement
   @override
   String get storeId => (origin as CashLocationsForStoreProvider).storeId;
 }
+
+String _$companyCurrencySymbolHash() =>
+    r'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0';
+
+/// Company base currency symbol provider
+/// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+///
+/// Copied from [companyCurrencySymbol].
+@ProviderFor(companyCurrencySymbol)
+const companyCurrencySymbolProvider = CompanyCurrencySymbolFamily();
+
+/// Company base currency symbol provider
+/// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+///
+/// Copied from [companyCurrencySymbol].
+class CompanyCurrencySymbolFamily extends Family<AsyncValue<String>> {
+  /// Company base currency symbol provider
+  /// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+  ///
+  /// Copied from [companyCurrencySymbol].
+  const CompanyCurrencySymbolFamily();
+
+  /// Company base currency symbol provider
+  /// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+  ///
+  /// Copied from [companyCurrencySymbol].
+  CompanyCurrencySymbolProvider call(
+    String companyId,
+  ) {
+    return CompanyCurrencySymbolProvider(
+      companyId,
+    );
+  }
+
+  @override
+  CompanyCurrencySymbolProvider getProviderOverride(
+    covariant CompanyCurrencySymbolProvider provider,
+  ) {
+    return call(
+      provider.companyId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'companyCurrencySymbolProvider';
+}
+
+/// Company base currency symbol provider
+/// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+///
+/// Copied from [companyCurrencySymbol].
+class CompanyCurrencySymbolProvider
+    extends AutoDisposeFutureProvider<String> {
+  /// Company base currency symbol provider
+  /// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+  ///
+  /// Copied from [companyCurrencySymbol].
+  CompanyCurrencySymbolProvider(
+    String companyId,
+  ) : this._internal(
+          (ref) => companyCurrencySymbol(
+            ref as CompanyCurrencySymbolRef,
+            companyId,
+          ),
+          from: companyCurrencySymbolProvider,
+          name: r'companyCurrencySymbolProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$companyCurrencySymbolHash,
+          dependencies: CompanyCurrencySymbolFamily._dependencies,
+          allTransitiveDependencies:
+              CompanyCurrencySymbolFamily._allTransitiveDependencies,
+          companyId: companyId,
+        );
+
+  CompanyCurrencySymbolProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.companyId,
+  }) : super.internal();
+
+  final String companyId;
+
+  @override
+  Override overrideWith(
+    FutureOr<String> Function(CompanyCurrencySymbolRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CompanyCurrencySymbolProvider._internal(
+        (ref) => create(ref as CompanyCurrencySymbolRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        companyId: companyId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<String> createElement() {
+    return _CompanyCurrencySymbolProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CompanyCurrencySymbolProvider && other.companyId == companyId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, companyId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CompanyCurrencySymbolRef on AutoDisposeFutureProviderRef<String> {
+  /// The parameter `companyId` of this provider.
+  String get companyId;
+}
+
+class _CompanyCurrencySymbolProviderElement
+    extends AutoDisposeFutureProviderElement<String>
+    with CompanyCurrencySymbolRef {
+  _CompanyCurrencySymbolProviderElement(super.provider);
+
+  @override
+  String get companyId => (origin as CompanyCurrencySymbolProvider).companyId;
+}
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

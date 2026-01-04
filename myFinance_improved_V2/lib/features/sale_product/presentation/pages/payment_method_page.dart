@@ -129,8 +129,15 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   /// This auto-calculates the discount based on subtotal - converted amount
   void _handleApplyExchangeRateAsTotal(
       double convertedAmount, double discount) {
-    // Update the discount amount in provider
-    ref.read(paymentMethodNotifierProvider.notifier).updateDiscountAmount(discount);
+    // Calculate percentage from discount and subtotal
+    final percentage = _cartTotal > 0 ? (discount / _cartTotal) * 100 : 0.0;
+
+    // Update discount with amount and percentage sync
+    ref.read(paymentMethodNotifierProvider.notifier).updateDiscountWithSync(
+      amount: discount,
+      percentage: percentage,
+      isPercentageMode: false, // Apply as Total sets amount mode
+    );
 
     // Collapse exchange rate panel after applying
     setState(() {
@@ -169,22 +176,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
     return TossScaffold(
       backgroundColor: TossColors.white,
-      appBar: AppBar(
+      appBar: TossAppBar(
+        title: 'Sales Invoice',
         backgroundColor: TossColors.gray50,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 24),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        titleSpacing: 0,
-        title: Text(
-          'Sales Invoice',
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w700,
-            color: TossColors.gray900,
-          ),
-        ),
         actions: [
           // Only show exchange rate button if there are other currencies besides base
           if (_hasExchangeRates) _buildExchangeRateButton(),

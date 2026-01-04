@@ -324,7 +324,6 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
           'Scroll to load more',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontSize: 12,
           ),
         ),
       ),
@@ -345,10 +344,8 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
           children: [
             Text(
               _selectedFilter,
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.bodyMedium.copyWith(
                 color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
               ),
             ),
             const Icon(
@@ -389,10 +386,8 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
               child: showDate
                   ? Text(
                       _formatDate(item.date),
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.bodyMedium.copyWith(
                         color: TossColors.gray600,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -407,13 +402,11 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                 children: [
                   Text(
                     item.title,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                    style: TossTextStyles.h4.copyWith(
                       color: TossColors.gray800,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: TossSpacing.space1),
                   Row(
                     children: [
                       Flexible(
@@ -423,10 +416,8 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                             Flexible(
                               child: Text(
                                 item.locationName,
-                                style: TossTextStyles.caption.copyWith(
+                                style: TossTextStyles.label.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -436,14 +427,12 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                                 ' • ',
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray400,
-                                  fontSize: 12,
                                 ),
                               ),
                               Text(
                                 item.time,
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray500,
-                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -461,10 +450,8 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
             // Amount
             Text(
               _formatCurrency(item.amount, item.realEntry.getCurrencySymbol()),
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.h4.copyWith(
                 color: TossColors.gray800,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
               ),
             ),
           ],
@@ -558,7 +545,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
             children: [
               // Handle bar
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: const EdgeInsets.only(top: TossSpacing.space3),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -595,7 +582,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
               ),
               
               // Bottom safe area
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space5),
             ],
           ),
         );
@@ -616,14 +603,13 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
         Navigator.pop(context);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space6, vertical: TossSpacing.space4),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               title,
-              style: TossTextStyles.body.copyWith(
-                fontSize: 16,
+              style: TossTextStyles.h4.copyWith(
                 fontWeight: FontWeight.w400,
               ),
             ),

@@ -163,7 +163,7 @@ _$ProblemItemDtoImpl _$$ProblemItemDtoImplFromJson(Map<String, dynamic> json) =>
       isPayrollAdjusted: json['is_payroll_adjusted'] as bool? ?? false,
       reason: json['reason'] as String?,
       reportedAt: json['reported_at'] as String?,
-      isReportSolved: json['is_report_solved'] as bool? ?? false,
+      isReportSolved: json['is_report_solved'] as bool?,
     );
 
 Map<String, dynamic> _$$ProblemItemDtoImplToJson(

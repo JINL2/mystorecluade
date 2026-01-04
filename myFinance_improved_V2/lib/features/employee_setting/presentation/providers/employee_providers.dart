@@ -150,6 +150,15 @@ class MutableEmployeeList extends _$MutableEmployeeList {
     state = employees;
   }
 
+  /// Update a single employee in the list (Optimistic Update)
+  /// This allows instant UI update without waiting for server response
+  void updateEmployee(EmployeeSalary updatedEmployee) {
+    if (state == null) return;
+    state = state!.map((emp) =>
+      emp.userId == updatedEmployee.userId ? updatedEmployee : emp
+    ).toList();
+  }
+
   void clear() {
     state = null;
   }

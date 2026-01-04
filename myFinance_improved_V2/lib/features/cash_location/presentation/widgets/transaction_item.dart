@@ -44,10 +44,8 @@ class TransactionItem extends StatelessWidget {
               child: showDate
                   ? Text(
                       formatDate(transaction.date),
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray600,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -62,10 +60,8 @@ class TransactionItem extends StatelessWidget {
                 children: [
                   Text(
                     transaction.title,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: TossColors.gray800,
+                    style: TossTextStyles.bodyMedium.copyWith(
+                      color: TossColors.gray900,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -79,9 +75,7 @@ class TransactionItem extends StatelessWidget {
                               child: Text(
                                 transaction.locationName,
                                 style: TossTextStyles.caption.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                                  color: TossColors.primary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -91,7 +85,6 @@ class TransactionItem extends StatelessWidget {
                                 ' • ',
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray400,
-                                  fontSize: 12,
                                 ),
                               ),
                               Flexible(
@@ -99,7 +92,6 @@ class TransactionItem extends StatelessWidget {
                                   transaction.personName,
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray500,
-                                    fontSize: 12,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -110,14 +102,12 @@ class TransactionItem extends StatelessWidget {
                                 ' • ',
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray400,
-                                  fontSize: 12,
                                 ),
                               ),
                               Text(
                                 transaction.time,
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray500,
-                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -136,21 +126,17 @@ class TransactionItem extends StatelessWidget {
             if (isRealType)
               Text(
                 formatCurrency(transaction.amount.toInt()),
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray800,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+                style: TossTextStyles.bodyMedium.copyWith(
+                  color: TossColors.gray900,
                 ),
               )
             else
               Text(
                 formatTransactionAmount(transaction.amount.toInt(), transaction.isIncome),
-                style: TossTextStyles.body.copyWith(
+                style: TossTextStyles.bodyMedium.copyWith(
                   color: transaction.isIncome
-                      ? Theme.of(context).colorScheme.primary
-                      : TossColors.gray800,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+                      ? TossColors.primary
+                      : TossColors.gray900,
                 ),
               ),
           ],

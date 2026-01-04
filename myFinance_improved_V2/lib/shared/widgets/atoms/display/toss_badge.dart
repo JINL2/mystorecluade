@@ -148,7 +148,7 @@ class SubscriptionBadge extends StatelessWidget {
         horizontal: compact ? TossSpacing.space1 + 2 : TossSpacing.space2,
         vertical: compact ? 2 : TossSpacing.space1 - 2,
       ),
-      border: _isFree ? Border.all(color: TossColors.gray300, width: 1) : null,
+      // No border for cleaner look
     );
   }
 

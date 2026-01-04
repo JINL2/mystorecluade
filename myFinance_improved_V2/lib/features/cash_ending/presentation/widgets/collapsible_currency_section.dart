@@ -70,15 +70,33 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
                 vertical: TossSpacing.space3,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Currency name (no exchange rate in header)
-                  Text(
-                    '${widget.currency.currencyCode} • ${widget.currency.currencyName}',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                  // Currency name with exchange rate on same line for non-base currencies
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '${widget.currency.currencyCode} • ${widget.currency.currencyName}',
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.gray900,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        // Show exchange rate on same line for non-base currencies
+                        if (!widget.currency.isBaseCurrency && widget.currency.exchangeRateToBase != 1.0) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            '1 ${widget.currency.currencyCode} = ${widget.baseCurrencySymbol ?? ''}${NumberFormat('#,##0.00').format(widget.currency.exchangeRateToBase)}',
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   AnimatedRotation(
@@ -96,13 +114,10 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
             ),
           ),
 
-          // Divider
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Container(
-              height: 1,
-              color: TossColors.gray200,
-            ),
+          // Divider (full width - no padding)
+          Container(
+            height: 1,
+            color: TossColors.gray200,
           ),
 
           // Expanded content with smooth bottom-to-top animation
@@ -153,9 +168,9 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
           Padding(
             padding: const EdgeInsets.fromLTRB(
               TossSpacing.space4,  // left = 16px
-              TossSpacing.space7,  // top = 28px
+              TossSpacing.space4,  // top = 16px (reduced from 28px)
               TossSpacing.space4,  // right = 16px
-              TossSpacing.space7,  // bottom = 28px
+              TossSpacing.space4,  // bottom = 16px (reduced from 28px)
             ),
             child: ListenableBuilder(
               listenable: Listenable.merge(widget.controllers.values.toList()),
@@ -170,22 +185,11 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
                   }
                 }
 
-                // Build label with exchange rate for non-base currencies
-                // Format: "Subtotal USD (₫26,227.24)" for non-base
-                String label;
-                if (widget.currency.isBaseCurrency || widget.currency.exchangeRateToBase == 1.0) {
-                  label = 'Subtotal ${widget.currency.currencyCode}';
-                } else {
-                  final baseCurrencySymbol = widget.baseCurrencySymbol ?? '';
-                  final formatter = NumberFormat('#,##0.00');
-                  final formattedRate = formatter.format(widget.currency.exchangeRateToBase);
-                  label = 'Subtotal ${widget.currency.currencyCode} ($baseCurrencySymbol$formattedRate)';
-                }
-
+                // Subtotal label (exchange rate is now shown in header)
                 return TotalDisplay(
                   totalAmount: subtotal,
                   currencySymbol: widget.currency.symbol,
-                  label: label,
+                  label: 'Subtotal ${widget.currency.currencyCode}',
                 );
               },
             ),

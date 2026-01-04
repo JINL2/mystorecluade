@@ -414,17 +414,23 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
   void setSelectedVaultLocation(String? locationId) {
     state = state.copyWith(
       selectedVaultLocationId: locationId,
-      // Reset journal amount when location changes
+      // Reset journal and real amounts when location changes
       vaultLocationJournalAmount: null,
+      vaultLocationRealAmount: null,
     );
 
-    // Fetch journal amount for the selected location
+    // Fetch journal and real amounts for the selected location
     if (locationId != null && locationId.isNotEmpty) {
       _fetchVaultLocationJournalAmount(locationId);
     }
   }
 
-  /// Fetch journal amount for a vault location
+  /// Fetch journal and real amounts for a vault location
+  ///
+  /// For Flow transactions (In/Out):
+  /// - Real = current actual stock from cash_amount_entries
+  /// - Expected = Real ± Flow
+  /// - Compare Expected with Journal
   Future<void> _fetchVaultLocationJournalAmount(String locationId) async {
     if (_getVaultBalanceSummaryUseCase == null) return;
 
@@ -435,6 +441,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
       state = state.copyWith(
         vaultLocationJournalAmount: balanceSummary.totalJournal,
+        vaultLocationRealAmount: balanceSummary.totalReal,
         isLoadingVaultJournalAmount: false,
       );
     } catch (e) {
@@ -442,6 +449,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
       state = state.copyWith(
         isLoadingVaultJournalAmount: false,
         vaultLocationJournalAmount: null,
+        vaultLocationRealAmount: null,
       );
     }
   }

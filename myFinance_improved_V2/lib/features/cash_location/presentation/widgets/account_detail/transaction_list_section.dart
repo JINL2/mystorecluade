@@ -93,48 +93,9 @@ class TransactionListSection extends StatelessWidget {
   }
 
   Widget _buildTabBar() {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: TossColors.gray300,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Theme(
-        data: ThemeData(
-          splashColor: TossColors.transparent,
-          highlightColor: TossColors.transparent,
-        ),
-        child: TabBar(
-          controller: tabController,
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicator: UnderlineTabIndicator(
-            borderSide: BorderSide(
-              width: 2.0,
-              color: TossColors.black87,
-            ),
-            insets: EdgeInsets.zero,
-          ),
-          indicatorColor: TossColors.black87,
-          labelColor: TossColors.black87,
-          unselectedLabelColor: TossColors.gray400,
-          labelStyle: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 17,
-          ),
-          unselectedLabelStyle: TossTextStyles.body.copyWith(
-            fontSize: 17,
-          ),
-          overlayColor: WidgetStateProperty.all(TossColors.transparent),
-          tabs: const [
-            Tab(text: 'Journal'),
-            Tab(text: 'Real'),
-          ],
-        ),
-      ),
+    return TossTabBar(
+      tabs: const ['Journal', 'Real'],
+      controller: tabController,
     );
   }
 
@@ -152,10 +113,8 @@ class TransactionListSection extends StatelessWidget {
           children: [
             Text(
               selectedFilter,
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.bodySmall.copyWith(
                 color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
               ),
             ),
             Icon(
@@ -386,17 +345,15 @@ class TransactionListSection extends StatelessWidget {
             children: [
               Text(
                 'Load More',
-                style: TossTextStyles.body.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                style: TossTextStyles.bodySmall.copyWith(
+                  color: TossColors.primary,
                 ),
               ),
               SizedBox(width: TossSpacing.space2),
               Icon(
                 Icons.arrow_downward,
                 size: 16,
-                color: Theme.of(context).colorScheme.primary,
+                color: TossColors.primary,
               ),
             ],
           ),

@@ -1,15 +1,12 @@
-import 'package:flutter/foundation.dart';
-
 import '../../../../core/utils/datetime_utils.dart';
 import '../../../cash_location/domain/constants/account_ids.dart';
-import '../../domain/entities/cash_transaction_enums.dart';
 import '../../domain/entities/cash_location.dart';
+import '../../domain/entities/cash_transaction_enums.dart';
 import '../../domain/entities/counterparty.dart';
 import '../../domain/entities/expense_account.dart';
 import '../../domain/repositories/cash_transaction_repository.dart';
 import '../datasources/cash_transaction_datasource.dart';
 
-const _tag = '[CashControlRepoImpl]';
 
 /// Implementation of CashTransactionRepository
 /// Coordinates between domain and data layers
@@ -83,7 +80,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
     int limit = 50,
   }) async {
     // Use the new RPC that only returns expense accounts
-    debugPrint('$_tag searchExpenseAccounts called with companyId: $companyId, query: $query');
 
     final models = await dataSource.getAllExpenseAccounts(
       companyId: companyId,
@@ -91,7 +87,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       limit: limit,
     );
 
-    debugPrint('$_tag Got ${models.length} expense accounts from RPC');
     return models.map((m) => m.toEntity()).toList();
   }
 
@@ -101,14 +96,12 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
     int limit = 50,
   }) async {
     // Get only expense accounts (account_type = 'expense')
-    debugPrint('$_tag getExpenseAccountsOnly called with companyId: $companyId');
 
     final models = await dataSource.getAllExpenseAccounts(
       companyId: companyId,
       limit: limit,
     );
 
-    debugPrint('$_tag Got ${models.length} expense accounts');
     return models.map((m) => m.toEntity()).toList();
   }
 
@@ -139,13 +132,10 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
   Future<Counterparty?> getSelfCounterparty({
     required String companyId,
   }) async {
-    debugPrint('$_tag getSelfCounterparty called with companyId: $companyId');
     final model = await dataSource.getSelfCounterparty(companyId: companyId);
     if (model == null) {
-      debugPrint('$_tag No self-counterparty found');
       return null;
     }
-    debugPrint('$_tag Found self-counterparty: ${model.name}');
     return model.toEntity();
   }
 
@@ -166,13 +156,10 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
   Future<List<CashLocation>> getCashLocationsForCompany({
     required String companyId,
   }) async {
-    debugPrint('$_tag getCashLocationsForCompany called with companyId: $companyId');
     final models = await dataSource.getCashLocations(
       companyId: companyId,
     );
-    debugPrint('$_tag Got ${models.length} models from datasource');
     final entities = models.map((m) => m.toEntity()).toList();
-    debugPrint('$_tag Returning ${entities.length} entities');
     return entities;
   }
 
@@ -189,11 +176,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
     String? memo,
     List<String>? attachmentUrls,
   }) async {
-    debugPrint('$_tag 🔄 createExpenseEntry called');
-    debugPrint('$_tag   expenseAccountId: $expenseAccountId');
-    debugPrint('$_tag   cashLocationId: $cashLocationId');
-    debugPrint('$_tag   amount: $amount');
-    debugPrint('$_tag   isRefund: $isRefund');
 
     // Build journal lines based on direction
     // Pay (isRefund=false): DR Expense, CR Cash (money goes out)
@@ -236,15 +218,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       ];
     }
 
-    debugPrint('$_tag 📋 Journal lines to create:');
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-      debugPrint('$_tag   Line $i: account_id=${line['account_id']}, DR=${line['debit']}, CR=${line['credit']}');
-      if (line['cash'] != null) {
-        debugPrint('$_tag     -> cash_location_id=${line['cash']['cash_location_id']}');
-      }
-    }
-
     final result = await dataSource.createExpenseEntry(
       amount: amount,
       companyId: companyId,
@@ -267,10 +240,8 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       } else {
         journalId = '';
       }
-      debugPrint('$_tag ✅ Expense entry SUCCESS! journal_id: $journalId');
       return journalId;
     } else {
-      debugPrint('$_tag ❌ Expense entry FAILED: ${result['error']}');
       throw Exception(result['error'] ?? 'Failed to create expense entry');
     }
   }
@@ -285,33 +256,25 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
     required DebtSubType debtSubType,
     required double amount,
     required DateTime entryDate,
+    DebtCategory debtCategory = DebtCategory.account,
     String? memo,
     List<String>? attachmentUrls,
   }) async {
-    debugPrint('$_tag 🔄 createDebtEntry called');
-    debugPrint('$_tag   debtSubType: ${debtSubType.label}');
-    debugPrint('$_tag   debtDirection: ${debtSubType.debtDirection}');
-    debugPrint('$_tag   isIncreasing: ${debtSubType.isIncreasing}');
-    debugPrint('$_tag   counterpartyId: $counterpartyId');
-    debugPrint('$_tag   cashLocationId: $cashLocationId');
-    debugPrint('$_tag   amount: $amount');
 
-    // Build journal lines based on debt type
+    // Build journal lines based on debt type and category
     // Lend: DR Receivable, CR Cash (cash out)
     // Collect: DR Cash, CR Receivable (cash in)
     // Borrow: DR Cash, CR Payable (cash in)
     // Repay: DR Payable, CR Cash (cash out)
+    // Now includes counterparty info in debt object
+    // Uses different accounts based on category (account vs note)
     final lines = _buildDebtJournalLines(
       debtSubType: debtSubType,
       amount: amount,
       cashLocationId: cashLocationId,
+      counterpartyId: counterpartyId,
+      category: debtCategory,
     );
-
-    debugPrint('$_tag 📋 Debt journal lines to create:');
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-      debugPrint('$_tag   Line $i: $line');
-    }
 
     final result = await dataSource.createExpenseEntry(
       amount: amount,
@@ -336,7 +299,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       } else {
         journalId = '';
       }
-      debugPrint('$_tag ✅ Debt entry journal created! journal_id: $journalId');
 
       // Create debt record
       await dataSource.createDebtRecord(
@@ -370,10 +332,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
     String? memo,
     List<String>? attachmentUrls,
   }) async {
-    debugPrint('$_tag 🔄 createTransferWithinStore called');
-    debugPrint('$_tag   companyId: $companyId, storeId: $storeId');
-    debugPrint('$_tag   from: $fromCashLocationId -> to: $toCashLocationId');
-    debugPrint('$_tag   amount: $amount');
 
     // Build journal lines for transfer
     // DR: To Location (Cash account, amount goes IN)
@@ -398,7 +356,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       },
     ];
 
-    debugPrint('$_tag 📤 Calling dataSource.createExpenseEntry...');
     final result = await dataSource.createExpenseEntry(
       amount: amount,
       companyId: companyId,
@@ -410,7 +367,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       cashLocationId: fromCashLocationId,
     );
 
-    debugPrint('$_tag 📥 Result: $result');
 
     if (result['success'] == true) {
       // RPC returns UUID directly as String, not as Map
@@ -423,10 +379,8 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       } else {
         journalId = '';
       }
-      debugPrint('$_tag ✅ Transfer SUCCESS! journal_id: $journalId');
       return journalId;
     } else {
-      debugPrint('$_tag ❌ Transfer FAILED: ${result['error']}');
       throw Exception(result['error'] ?? 'Failed to create transfer entry');
     }
   }
@@ -446,16 +400,10 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
     String? memo,
     List<String>? attachmentUrls,
   }) async {
-    debugPrint('$_tag 🔄 createTransferBetweenEntities called');
-    debugPrint('$_tag   from: $fromCashLocationId -> to: $toCashLocationId');
-    debugPrint('$_tag   toStoreId: $toStoreId, toCompanyId: $toCompanyId');
-    debugPrint('$_tag   counterpartyId (input): $counterpartyId');
 
     // Determine target company for setup
     final String targetCompanyId = toCompanyId ?? companyId;
     final bool isWithinCompany = targetCompanyId == companyId;
-    debugPrint('$_tag   isWithinCompany: $isWithinCompany');
-    debugPrint('$_tag   targetCompanyId: $targetCompanyId');
 
     // ============================================================
     // STEP 1: Get counterparty (with caching to avoid repeated RPC calls)
@@ -468,9 +416,7 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       effectiveCounterpartyId = _getCachedCounterparty(companyId, targetCompanyId);
 
       if (effectiveCounterpartyId != null) {
-        debugPrint('$_tag ✅ Using cached counterpartyId: $effectiveCounterpartyId');
       } else {
-        debugPrint('$_tag 🔧 No cache, calling getOrCreateCounterpartyForCompany...');
 
         // Get or create counterparty (this also sets up account mappings)
         effectiveCounterpartyId = await dataSource.getOrCreateCounterpartyForCompany(
@@ -479,27 +425,21 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
         );
 
         if (effectiveCounterpartyId == null) {
-          debugPrint('$_tag ❌ Failed to get or create counterparty');
           throw Exception('Failed to get or create counterparty for inter-company transfer');
         }
 
         // Cache the result for future transfers
         _cacheCounterparty(companyId, targetCompanyId, effectiveCounterpartyId);
         _markSetupCompleted(companyId, targetCompanyId);
-        debugPrint('$_tag ✅ Got and cached counterpartyId: $effectiveCounterpartyId');
       }
     } else {
       // counterpartyId was provided, ensure account mappings exist (only if not already done)
       if (!_isSetupCompleted(companyId, targetCompanyId)) {
-        debugPrint('$_tag 🔧 counterpartyId provided, ensuring inter-company setup...');
-        final setupResult = await dataSource.ensureInterCompanySetup(
+        await dataSource.ensureInterCompanySetup(
           myCompanyId: companyId,
           targetCompanyId: targetCompanyId,
         );
-        debugPrint('$_tag 📋 ensureInterCompanySetup result: $setupResult');
         _markSetupCompleted(companyId, targetCompanyId);
-      } else {
-        debugPrint('$_tag ✅ Setup already completed for this company pair (cached)');
       }
     }
 
@@ -510,8 +450,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
         ? AccountIds.interBranchReceivable
         : AccountIds.noteReceivable;
 
-    debugPrint('$_tag   receivableAccountId: $receivableAccountId');
-    debugPrint('$_tag   effectiveCounterpartyId: $effectiveCounterpartyId');
 
     // Build journal lines for inter-entity transfer with debt
     // From Store perspective:
@@ -545,7 +483,6 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       },
     ];
 
-    debugPrint('$_tag   lines: $lines');
 
     final result = await dataSource.createExpenseEntry(
       amount: amount,
@@ -570,30 +507,46 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
       } else {
         journalId = '';
       }
-      debugPrint('$_tag ✅ Transfer between entities SUCCESS! journal_id: $journalId');
       return journalId;
     } else {
-      debugPrint('$_tag ❌ Transfer between entities FAILED: ${result['error']}');
       throw Exception(result['error'] ?? 'Failed to create transfer entry');
     }
   }
 
   /// Build journal lines for debt entry
-  /// Uses same format as expense: account_id, debit, credit, cash
+  /// Uses same format as expense: account_id, debit, credit, cash, debt
+  /// Includes counterparty info in debt object for proper tracking
+  /// Now supports DebtCategory (account vs note) for different account types
   List<Map<String, dynamic>> _buildDebtJournalLines({
     required DebtSubType debtSubType,
     required double amount,
     required String cashLocationId,
+    required String counterpartyId,
+    DebtCategory category = DebtCategory.account,
   }) {
+    // Get the appropriate receivable/payable account based on category
+    final receivableAccountId = category == DebtCategory.note
+        ? AccountIds.noteReceivable
+        : AccountIds.accountsReceivable;
+    final payableAccountId = category == DebtCategory.note
+        ? AccountIds.notePayable
+        : AccountIds.accountsPayable;
+    final categoryStr = category == DebtCategory.note ? 'note' : 'account';
+
     switch (debtSubType) {
       case DebtSubType.lendMoney:
         // Cash Out: DR Receivable (미수금 증가), CR Cash (현금 감소)
         // 돈을 빌려줌 -> 받을 돈 생김
         return [
           {
-            'account_id': AccountIds.accountsReceivable,
+            'account_id': receivableAccountId,
             'debit': amount,
             'credit': 0.0,
+            'debt': {
+              'counterparty_id': counterpartyId,
+              'direction': 'receivable',
+              'category': categoryStr,
+            },
           },
           {
             'account_id': AccountIds.cash,
@@ -613,9 +566,14 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
             'cash': {'cash_location_id': cashLocationId},
           },
           {
-            'account_id': AccountIds.accountsReceivable,
+            'account_id': receivableAccountId,
             'debit': 0.0,
             'credit': amount,
+            'debt': {
+              'counterparty_id': counterpartyId,
+              'direction': 'receivable',
+              'category': categoryStr,
+            },
           },
         ];
       case DebtSubType.borrowMoney:
@@ -629,9 +587,14 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
             'cash': {'cash_location_id': cashLocationId},
           },
           {
-            'account_id': AccountIds.accountsPayable,
+            'account_id': payableAccountId,
             'debit': 0.0,
             'credit': amount,
+            'debt': {
+              'counterparty_id': counterpartyId,
+              'direction': 'payable',
+              'category': categoryStr,
+            },
           },
         ];
       case DebtSubType.repayDebt:
@@ -639,9 +602,14 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
         // 빌린 돈 갚음 -> 갚을 돈 줄어듦
         return [
           {
-            'account_id': AccountIds.accountsPayable,
+            'account_id': payableAccountId,
             'debit': amount,
             'credit': 0.0,
+            'debt': {
+              'counterparty_id': counterpartyId,
+              'direction': 'payable',
+              'category': categoryStr,
+            },
           },
           {
             'account_id': AccountIds.cash,
@@ -653,15 +621,19 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
     }
   }
 
-  /// Get debt account ID based on sub type
-  String _getDebtAccountId(DebtSubType subType) {
+  /// Get debt account ID based on sub type and category
+  String _getDebtAccountId(DebtSubType subType, {DebtCategory category = DebtCategory.account}) {
     switch (subType) {
       case DebtSubType.lendMoney:
       case DebtSubType.collectDebt:
-        return AccountIds.accountsReceivable;
+        return category == DebtCategory.note
+            ? AccountIds.noteReceivable
+            : AccountIds.accountsReceivable;
       case DebtSubType.borrowMoney:
       case DebtSubType.repayDebt:
-        return AccountIds.accountsPayable;
+        return category == DebtCategory.note
+            ? AccountIds.notePayable
+            : AccountIds.accountsPayable;
     }
   }
 }

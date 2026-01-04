@@ -1,5 +1,5 @@
-import '../entities/cash_transaction_enums.dart';
 import '../entities/cash_location.dart';
+import '../entities/cash_transaction_enums.dart';
 import '../entities/counterparty.dart';
 import '../entities/expense_account.dart';
 
@@ -93,6 +93,10 @@ abstract class CashTransactionRepository {
   /// Collect (receivable-): DR Cash, CR Receivable
   /// Borrow (payable+): DR Cash, CR Payable
   /// Repay (payable-): DR Payable, CR Cash
+  ///
+  /// [debtCategory] determines which account to use:
+  /// - account: Accounts Receivable/Payable (1100/2000)
+  /// - note: Notes Receivable/Payable (1110/2010)
   Future<String> createDebtEntry({
     required String companyId,
     required String? storeId,
@@ -102,6 +106,7 @@ abstract class CashTransactionRepository {
     required DebtSubType debtSubType,
     required double amount,
     required DateTime entryDate,
+    DebtCategory debtCategory = DebtCategory.account,
     String? memo,
     List<String>? attachmentUrls,
   });

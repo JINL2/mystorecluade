@@ -38,7 +38,7 @@ mixin OverviewHelpersMixin<T extends ConsumerStatefulWidget>
         .where((c) => c.isApproved && c.problemDetails != null)
         .fold<int>(0, (sum, c) {
       final pd = c.problemDetails!;
-      final unsolvedCount = pd.problems.where((p) => !p.isSolved).length;
+      final unsolvedCount = pd.problems.where((p) => p.isSolved != true).length;
       return sum + pd.problemCount * 10 + unsolvedCount;
     });
 

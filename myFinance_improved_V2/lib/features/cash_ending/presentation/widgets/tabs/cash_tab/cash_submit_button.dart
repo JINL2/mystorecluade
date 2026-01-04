@@ -40,12 +40,14 @@ class CashSubmitButton extends StatelessWidget {
         isEnabled: false,
         fullWidth: true,
         onPressed: null,
-        textStyle: TossTextStyles.titleLarge.copyWith(
+        textStyle: TossTextStyles.body.copyWith(
           color: TossColors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space4,
+          vertical: TossSpacing.space3,
         ),
         borderRadius: 12,
       );
@@ -64,12 +66,14 @@ class CashSubmitButton extends StatelessWidget {
               await onSave(context, state, currencyId);
             }
           : null,
-      textStyle: TossTextStyles.titleLarge.copyWith(
+      textStyle: TossTextStyles.body.copyWith(
         color: TossColors.white,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space4,
+        vertical: TossSpacing.space3,
       ),
       borderRadius: 12,
     );

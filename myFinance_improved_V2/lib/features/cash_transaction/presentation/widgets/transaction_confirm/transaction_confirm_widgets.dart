@@ -1,4 +1,4 @@
-/// Transaction Confirm Dialog Widgets - Barrel Export
+// Transaction Confirm Dialog Widgets - Barrel Export
 export 'attachments_section.dart';
 export 'memo_section.dart';
 export 'photo_buttons.dart';

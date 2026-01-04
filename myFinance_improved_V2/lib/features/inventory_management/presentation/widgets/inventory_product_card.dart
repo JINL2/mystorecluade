@@ -31,8 +31,6 @@ class InventoryProductCard extends StatelessWidget {
       color: TossColors.transparent,
       child: InkWell(
         onTap: onTap ?? () {
-          // ignore: avoid_print
-          print('🔴 [InventoryProductCard] onTap - navigating to product: ${product.id}');
           context.push('/inventoryManagement/product/${product.id}');
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),

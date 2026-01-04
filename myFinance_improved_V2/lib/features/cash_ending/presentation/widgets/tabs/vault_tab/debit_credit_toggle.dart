@@ -68,21 +68,30 @@ class DebitCreditToggle extends StatelessWidget {
     required VaultTransactionType type,
     required bool isSelected,
   }) {
+    // Compact size to match dropdown height
+    const buttonPadding = EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+    const iconSize = 18.0;
+    const fontSize = 14.0;
+
     if (isSelected) {
       return TossButton.outlined(
         text: label,
-        leadingIcon: Icon(icon, size: 20),
+        leadingIcon: Icon(icon, size: iconSize),
         onPressed: () => onTypeChanged(type),
         fullWidth: true,
         borderRadius: TossBorderRadius.lg,
+        padding: buttonPadding,
+        fontSize: fontSize,
       );
     } else {
       return TossButton.outlinedGray(
         text: label,
-        leadingIcon: Icon(icon, size: 20),
+        leadingIcon: Icon(icon, size: iconSize),
         onPressed: () => onTypeChanged(type),
         fullWidth: true,
         borderRadius: TossBorderRadius.lg,
+        padding: buttonPadding,
+        fontSize: fontSize,
       );
     }
   }

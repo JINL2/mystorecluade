@@ -92,8 +92,7 @@ class InventoryPageNotifier extends _$InventoryPageNotifier {
 
   @override
   InventoryPageState build() {
-    // Get dependencies
-    final appState = ref.watch(appStateProvider);
+    final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen as String?;
     final storeId = appState.storeChoosen as String?;
 
@@ -112,7 +111,10 @@ class InventoryPageNotifier extends _$InventoryPageNotifier {
       );
     }
 
-    return const InventoryPageState(isLoading: true);
+    // Start with clean state (no filters)
+    return const InventoryPageState(
+      isLoading: true,
+    );
   }
 
   Future<void> _initialize(String companyId, String storeId) async {
@@ -191,10 +193,8 @@ class InventoryPageNotifier extends _$InventoryPageNotifier {
       if (result != null) {
         state = state.copyWith(baseCurrency: result.baseCurrency);
       }
-    } catch (e) {
-      // Log error but don't fail the whole operation
-      // ignore: avoid_print
-      print('[InventoryPageNotifier] Failed to load base currency: $e');
+    } catch (_) {
+      // Silently ignore - base currency is optional
     }
   }
 
@@ -309,7 +309,7 @@ class InventoryPageNotifier extends _$InventoryPageNotifier {
     }
   }
 
-  /// Set sorting
+  /// Set sorting (server-side)
   void setSorting(String sortBy, String sortDirection) {
     if (state.sortBy != sortBy || state.sortDirection != sortDirection) {
       state = state.copyWith(
@@ -340,7 +340,7 @@ class InventoryPageNotifier extends _$InventoryPageNotifier {
     }
   }
 
-  /// Clear all filters
+  /// Clear all filters and sort
   void clearFilters() {
     state = state.copyWith(
       searchQuery: null,

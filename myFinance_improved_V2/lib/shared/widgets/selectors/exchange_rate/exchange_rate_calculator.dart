@@ -308,17 +308,20 @@ class _ExchangeRateCalculatorState
         ?.map((item) => Map<String, dynamic>.from(item as Map))
         .toList();
 
-    // Initialize controllers
+    // Initialize base currency controller first
+    final baseCurrencyId = _baseCurrency?['currency_id'] as String?;
+    if (baseCurrencyId != null && !_currencyControllers.containsKey(baseCurrencyId)) {
+      _currencyControllers[baseCurrencyId] = TextEditingController();
+      if (widget.initialAmount != null && widget.initialAmount!.isNotEmpty) {
+        _currencyControllers[baseCurrencyId]!.text = widget.initialAmount!;
+      }
+    }
+
+    // Initialize controllers for exchange rate currencies
     _exchangeRates?.forEach((rate) {
       final currencyId = rate['currency_id'] as String?;
       if (currencyId != null && !_currencyControllers.containsKey(currencyId)) {
         _currencyControllers[currencyId] = TextEditingController();
-
-        if (widget.initialAmount != null &&
-            widget.initialAmount!.isNotEmpty &&
-            currencyId == _baseCurrency!['currency_id']) {
-          _currencyControllers[currencyId]!.text = widget.initialAmount!;
-        }
       }
     });
 

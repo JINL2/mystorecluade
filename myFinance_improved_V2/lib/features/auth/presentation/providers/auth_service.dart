@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/cache/hive_cache_service.dart';
+import 'package:myfinance_improved/core/notifications/services/production_token_service.dart';
 
 // Domain Layer
 import '../../domain/entities/user_entity.dart';
@@ -134,25 +136,34 @@ class AuthService {
   /// Sign out current user
   ///
   /// Enterprise-grade logout with complete cleanup:
-  /// 1. Clears session state
-  /// 2. Clears AppState and SharedPreferences cache
-  /// 3. Executes logout UseCase (Supabase signOut)
-  /// 4. Invalidates all providers automatically
-  /// 5. Clears local cache and storage
+  /// 1. Deactivates FCM token (Firebase 2025 Best Practice)
+  /// 2. Clears session state
+  /// 3. Clears AppState and SharedPreferences cache
+  /// 4. Clears Hive cache (SWR data)
+  /// 5. Executes logout UseCase (Supabase signOut)
+  /// 6. Invalidates all providers automatically
   ///
   /// This method ensures complete cleanup without manual invalidation.
   Future<void> signOut() async {
-    // 1. Clear session first
+    // 1. Deactivate FCM token (Firebase 2025 Best Practice)
+    // Instead of deleting, we set is_active = false for better token management
+    await ProductionTokenService().deactivateTokenOnLogout();
+
+    // 2. Clear session first
     await _ref.read(sessionManagerProvider.notifier).clearSession();
 
-    // 2. Clear AppState and SharedPreferences (company/store selection cache)
+    // 3. Clear AppState and SharedPreferences (company/store selection cache)
     // This prevents previous user's data from showing on next login
     _ref.read(appStateProvider.notifier).signOut();
 
-    // 3. Execute logout UseCase (Supabase signOut)
+    // 4. Clear Hive cache (SWR pattern data)
+    // This ensures fresh data is loaded on next login
+    await HiveCacheService.instance.clearAll();
+
+    // 5. Execute logout UseCase (Supabase signOut)
     await _logoutUseCase.execute();
 
-    // 4. Invalidate all providers automatically
+    // 6. Invalidate all providers automatically
     // This is safer than manual invalidation as it catches all providers
     final container = _ref.container;
     final allProviders = container.getAllProviderElements();

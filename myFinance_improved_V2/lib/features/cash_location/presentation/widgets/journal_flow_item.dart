@@ -50,11 +50,8 @@ class JournalFlowItem extends StatelessWidget {
               child: showDate
                   ? Text(
                       CashLocationFormatters.formatJournalFlowDate(flow),
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.bodyMedium.copyWith(
                         color: TossColors.gray600,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        height: 1.2,
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -69,11 +66,8 @@ class JournalFlowItem extends StatelessWidget {
                 children: [
                   Text(
                     getJournalDisplayText(flow),
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: TossColors.black87,
-                      height: 1.2,
+                    style: TossTextStyles.subtitle.copyWith(
+                      color: TossColors.gray900,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -84,10 +78,8 @@ class JournalFlowItem extends StatelessWidget {
                       Flexible(
                         child: Text(
                           flow.createdBy.fullName,
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray500,
-                            fontSize: 13,
-                            height: 1.2,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -95,18 +87,14 @@ class JournalFlowItem extends StatelessWidget {
                       if (CashLocationFormatters.formatJournalFlowTime(flow).isNotEmpty) ...[
                         Text(
                           ' • ',
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray500,
-                            fontSize: 13,
-                            height: 1.2,
                           ),
                         ),
                         Text(
                           CashLocationFormatters.formatJournalFlowTime(flow),
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray500,
-                            fontSize: 13,
-                            height: 1.2,
                           ),
                         ),
                       ],
@@ -124,22 +112,17 @@ class JournalFlowItem extends StatelessWidget {
               children: [
                 Text(
                   formatTransactionAmount(flow.flowAmount, currencySymbol),
-                  style: TossTextStyles.body.copyWith(
+                  style: TossTextStyles.bodyMedium.copyWith(
                     color: isIncome
                         ? Theme.of(context).colorScheme.primary
-                        : TossColors.black87,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    height: 1.2,
+                        : TossColors.gray900,
                   ),
                 ),
                 SizedBox(height: TossSpacing.space2),
                 Text(
                   formatBalance(flow.balanceAfter, currencySymbol),
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray500,
-                    fontSize: 13,
-                    height: 1.2,
                   ),
                 ),
               ],

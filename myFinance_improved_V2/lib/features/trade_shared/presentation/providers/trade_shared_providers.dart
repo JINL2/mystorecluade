@@ -100,3 +100,84 @@ final masterDataProvider =
   final datasource = ref.watch(tradeRemoteDatasourceProvider);
   return MasterDataNotifier(datasource);
 });
+
+// ============================================================
+// Exchange Rate Providers for Trade Documents
+// ============================================================
+
+/// Exchange rate data for a company
+class TradeExchangeRateData {
+  final String baseCurrencyId;
+  final String baseCurrencyCode;
+  final String baseCurrencySymbol;
+  final Map<String, double> rates; // currency_code -> rate
+
+  const TradeExchangeRateData({
+    required this.baseCurrencyId,
+    required this.baseCurrencyCode,
+    required this.baseCurrencySymbol,
+    required this.rates,
+  });
+
+  /// Convert amount from source currency to base currency
+  double? toBaseCurrency(double amount, String fromCurrencyCode) {
+    if (fromCurrencyCode == baseCurrencyCode) return amount;
+    final rate = rates[fromCurrencyCode];
+    if (rate == null) return null;
+    return amount * rate;
+  }
+
+  /// Convert amount from base currency to target currency
+  double? fromBaseCurrency(double amount, String toCurrencyCode) {
+    if (toCurrencyCode == baseCurrencyCode) return amount;
+    final rate = rates[toCurrencyCode];
+    if (rate == null || rate == 0) return null;
+    return amount / rate;
+  }
+
+  /// Get exchange rate for a currency
+  double? getRate(String currencyCode) {
+    if (currencyCode == baseCurrencyCode) return 1.0;
+    return rates[currencyCode];
+  }
+}
+
+/// Fetch exchange rates for trade documents
+final tradeExchangeRateProvider =
+    FutureProvider.family<TradeExchangeRateData?, String>((ref, companyId) async {
+  if (companyId.isEmpty) return null;
+
+  final supabase = ref.watch(supabaseClientProvider);
+
+  try {
+    final response = await supabase.rpc<Map<String, dynamic>?>(
+      'get_exchange_rate_v3',
+      params: {'p_company_id': companyId},
+    );
+
+    if (response == null) return null;
+
+    final baseCurrency = response['base_currency'] as Map<String, dynamic>?;
+    if (baseCurrency == null) return null;
+
+    final exchangeRates = response['exchange_rates'] as List<dynamic>? ?? [];
+
+    final rates = <String, double>{};
+    for (final rate in exchangeRates) {
+      final currencyCode = rate['currency_code'] as String?;
+      final rateValue = rate['rate'];
+      if (currencyCode != null && rateValue != null) {
+        rates[currencyCode] = (rateValue is int) ? rateValue.toDouble() : rateValue as double;
+      }
+    }
+
+    return TradeExchangeRateData(
+      baseCurrencyId: baseCurrency['currency_id'] as String? ?? '',
+      baseCurrencyCode: baseCurrency['currency_code'] as String? ?? 'VND',
+      baseCurrencySymbol: baseCurrency['symbol'] as String? ?? '₫',
+      rates: rates,
+    );
+  } catch (e) {
+    return null;
+  }
+});

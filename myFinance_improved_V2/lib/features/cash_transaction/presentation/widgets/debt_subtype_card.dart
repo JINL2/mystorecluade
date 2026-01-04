@@ -56,7 +56,7 @@ class DebtSubtypeCard extends StatelessWidget {
             Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: TossColors.gray50,
                 shape: BoxShape.circle,
               ),

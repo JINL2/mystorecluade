@@ -63,7 +63,7 @@ class InventoryRemoteDataSource {
   }
 
   /// Get paginated list of products
-  /// Uses get_inventory_page_v4 with server-side filtering support
+  /// Uses get_inventory_page_v5 with server-side filtering and sorting support
   Future<ProductPageResponse> getProducts({
     required String companyId,
     required String storeId,
@@ -73,9 +73,11 @@ class InventoryRemoteDataSource {
     String? categoryId,
     String? brandId,
     String? availability,
+    String? sortBy,
+    String? sortDirection,
   }) async {
     try {
-      // Build params - use get_inventory_page_v4 with server-side filtering
+      // Build params - use get_inventory_page_v5 with server-side filtering & sorting
       final Map<String, dynamic> params = {
         'p_company_id': companyId,
         'p_store_id': storeId,
@@ -86,10 +88,12 @@ class InventoryRemoteDataSource {
         'p_availability': availability,
         'p_brand_id': brandId,
         'p_category_id': categoryId,
+        'p_sort_by': sortBy,
+        'p_sort_direction': sortDirection,
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('get_inventory_page_v4', params: params)
+          .rpc<Map<String, dynamic>>('get_inventory_page_v5', params: params)
           .single();
 
       // Handle success wrapper if present
@@ -626,15 +630,9 @@ class InventoryRemoteDataSource {
         'p_page_size': pageSize,
       };
 
-      // ignore: avoid_print
-      print('[InventoryDatasource] getProductHistory params: $params');
-
       final response = await _client
           .rpc<Map<String, dynamic>>('inventory_product_history', params: params)
           .single();
-
-      // ignore: avoid_print
-      print('[InventoryDatasource] getProductHistory response: $response');
 
       if (response['success'] == true) {
         return ProductHistoryResult.fromJson(response);
@@ -647,15 +645,11 @@ class InventoryRemoteDataSource {
         );
       }
     } on PostgrestException catch (e) {
-      // ignore: avoid_print
-      print('[InventoryDatasource] PostgrestException: ${e.message}');
       throw InventoryConnectionException(
         message: 'Database error: ${e.message}',
         details: {'code': e.code, 'details': e.details},
       );
     } catch (e) {
-      // ignore: avoid_print
-      print('[InventoryDatasource] Exception: $e');
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(
         message: 'Failed to get product history: $e',
@@ -680,15 +674,9 @@ class InventoryRemoteDataSource {
         'p_page_size': pageSize,
       };
 
-      // ignore: avoid_print
-      print('[InventoryDatasource] getInventoryHistory params: $params');
-
       final response = await _client
           .rpc<Map<String, dynamic>>('inventory_history', params: params)
           .single();
-
-      // ignore: avoid_print
-      print('[InventoryDatasource] getInventoryHistory response: $response');
 
       if (response['success'] == true) {
         return InventoryHistoryResult.fromJson(response);
@@ -701,15 +689,11 @@ class InventoryRemoteDataSource {
         );
       }
     } on PostgrestException catch (e) {
-      // ignore: avoid_print
-      print('[InventoryDatasource] PostgrestException: ${e.message}');
       throw InventoryConnectionException(
         message: 'Database error: ${e.message}',
         details: {'code': e.code, 'details': e.details},
       );
     } catch (e) {
-      // ignore: avoid_print
-      print('[InventoryDatasource] Exception: $e');
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(
         message: 'Failed to get inventory history: $e',
@@ -774,29 +758,17 @@ class InventoryRemoteDataSource {
         'p_store_id': storeId,
       };
 
-      // ignore: avoid_print
-      print('[checkCreateProduct] Calling inventory_check_create RPC');
-      // ignore: avoid_print
-      print('[checkCreateProduct] params: $params');
-
       final response = await _client
           .rpc<Map<String, dynamic>>('inventory_check_create', params: params)
           .single();
 
-      // ignore: avoid_print
-      print('[checkCreateProduct] response: $response');
-
       return CreateValidationResult.fromJson(response);
     } on PostgrestException catch (e) {
-      // ignore: avoid_print
-      print('[checkCreateProduct] PostgrestException: ${e.message}, code: ${e.code}, details: ${e.details}');
       throw InventoryConnectionException(
         message: 'Database error: ${e.message}',
         details: {'code': e.code, 'details': e.details},
       );
     } catch (e) {
-      // ignore: avoid_print
-      print('[checkCreateProduct] Error: $e');
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(
         message: 'Failed to validate product creation: $e',

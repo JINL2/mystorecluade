@@ -1887,8 +1887,9 @@ mixin _$ProblemItemDto {
   String? get reason => throw _privateConstructorUsedError;
   @JsonKey(name: 'reported_at')
   String? get reportedAt => throw _privateConstructorUsedError;
+  // null = pending, true = approved, false = rejected
   @JsonKey(name: 'is_report_solved')
-  bool get isReportSolved => throw _privateConstructorUsedError;
+  bool? get isReportSolved => throw _privateConstructorUsedError;
 
   /// Serializes this ProblemItemDto to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1913,7 +1914,7 @@ abstract class $ProblemItemDtoCopyWith<$Res> {
       @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted,
       @JsonKey(name: 'reason') String? reason,
       @JsonKey(name: 'reported_at') String? reportedAt,
-      @JsonKey(name: 'is_report_solved') bool isReportSolved});
+      @JsonKey(name: 'is_report_solved') bool? isReportSolved});
 }
 
 /// @nodoc
@@ -1937,7 +1938,7 @@ class _$ProblemItemDtoCopyWithImpl<$Res, $Val extends ProblemItemDto>
     Object? isPayrollAdjusted = null,
     Object? reason = freezed,
     Object? reportedAt = freezed,
-    Object? isReportSolved = null,
+    Object? isReportSolved = freezed,
   }) {
     return _then(_value.copyWith(
       type: freezed == type
@@ -1964,10 +1965,10 @@ class _$ProblemItemDtoCopyWithImpl<$Res, $Val extends ProblemItemDto>
           ? _value.reportedAt
           : reportedAt // ignore: cast_nullable_to_non_nullable
               as String?,
-      isReportSolved: null == isReportSolved
+      isReportSolved: freezed == isReportSolved
           ? _value.isReportSolved
           : isReportSolved // ignore: cast_nullable_to_non_nullable
-              as bool,
+              as bool?,
     ) as $Val);
   }
 }
@@ -1987,7 +1988,7 @@ abstract class _$$ProblemItemDtoImplCopyWith<$Res>
       @JsonKey(name: 'is_payroll_adjusted') bool isPayrollAdjusted,
       @JsonKey(name: 'reason') String? reason,
       @JsonKey(name: 'reported_at') String? reportedAt,
-      @JsonKey(name: 'is_report_solved') bool isReportSolved});
+      @JsonKey(name: 'is_report_solved') bool? isReportSolved});
 }
 
 /// @nodoc
@@ -2009,7 +2010,7 @@ class __$$ProblemItemDtoImplCopyWithImpl<$Res>
     Object? isPayrollAdjusted = null,
     Object? reason = freezed,
     Object? reportedAt = freezed,
-    Object? isReportSolved = null,
+    Object? isReportSolved = freezed,
   }) {
     return _then(_$ProblemItemDtoImpl(
       type: freezed == type
@@ -2036,10 +2037,10 @@ class __$$ProblemItemDtoImplCopyWithImpl<$Res>
           ? _value.reportedAt
           : reportedAt // ignore: cast_nullable_to_non_nullable
               as String?,
-      isReportSolved: null == isReportSolved
+      isReportSolved: freezed == isReportSolved
           ? _value.isReportSolved
           : isReportSolved // ignore: cast_nullable_to_non_nullable
-              as bool,
+              as bool?,
     ));
   }
 }
@@ -2054,7 +2055,7 @@ class _$ProblemItemDtoImpl implements _ProblemItemDto {
       @JsonKey(name: 'is_payroll_adjusted') this.isPayrollAdjusted = false,
       @JsonKey(name: 'reason') this.reason,
       @JsonKey(name: 'reported_at') this.reportedAt,
-      @JsonKey(name: 'is_report_solved') this.isReportSolved = false});
+      @JsonKey(name: 'is_report_solved') this.isReportSolved});
 
   factory _$ProblemItemDtoImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProblemItemDtoImplFromJson(json);
@@ -2080,7 +2081,7 @@ class _$ProblemItemDtoImpl implements _ProblemItemDto {
   final String? reportedAt;
   @override
   @JsonKey(name: 'is_report_solved')
-  final bool isReportSolved;
+  final bool? isReportSolved;
 
   @override
   String toString() {
@@ -2136,7 +2137,7 @@ abstract class _ProblemItemDto implements ProblemItemDto {
           @JsonKey(name: 'is_payroll_adjusted') final bool isPayrollAdjusted,
           @JsonKey(name: 'reason') final String? reason,
           @JsonKey(name: 'reported_at') final String? reportedAt,
-          @JsonKey(name: 'is_report_solved') final bool isReportSolved}) =
+          @JsonKey(name: 'is_report_solved') final bool? isReportSolved}) =
       _$ProblemItemDtoImpl;
 
   factory _ProblemItemDto.fromJson(Map<String, dynamic> json) =
@@ -2162,7 +2163,7 @@ abstract class _ProblemItemDto implements ProblemItemDto {
   String? get reportedAt;
   @override
   @JsonKey(name: 'is_report_solved')
-  bool get isReportSolved;
+  bool? get isReportSolved;
 
   /// Create a copy of ProblemItemDto
   /// with the given fields replaced by the non-null parameter values.

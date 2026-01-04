@@ -186,7 +186,7 @@ class _ShiftInfoCardState extends State<ShiftInfoCard> {
 
   /// Get badge background color for problem item
   Color _getBadgeColor(ProblemItem problem) {
-    if (problem.isSolved) {
+    if (problem.isSolved == true) {
       return TossColors.gray400; // Gray for solved
     }
     switch (problem.type) {

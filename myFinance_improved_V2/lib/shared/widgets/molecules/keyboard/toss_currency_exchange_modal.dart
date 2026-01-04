@@ -480,9 +480,3 @@ class TossCurrencyExchangeField extends StatelessWidget {
   }
 }
 
-// Backward compatibility aliases
-@Deprecated('Use TossCurrencyExchangeModal instead')
-typedef TossNumberpadModal = TossCurrencyExchangeModal;
-
-@Deprecated('Use TossCurrencyExchangeField instead')
-typedef TossNumberpadField = TossCurrencyExchangeField;

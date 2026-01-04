@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/utils/datetime_utils.dart';
@@ -11,9 +12,10 @@ import '../../domain/usecases/input_card_v5.dart';
 import '../providers/usecase/time_table_usecase_providers.dart';
 import '../widgets/timesheets/staff_timelog_card.dart';
 import '../widgets/timesheets/time_picker_bottom_sheet.dart';
+import 'staff_timelog_detail/utils/problem_helpers.dart';
+import 'staff_timelog_detail/utils/salary_calculator.dart';
 import 'staff_timelog_detail/utils/timelog_helpers.dart';
 import 'staff_timelog_detail/widgets/widgets.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Staff Timelog Detail Page - Manager view to confirm/edit staff attendance
 ///
@@ -81,287 +83,65 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   String? issueReportStatus;
 
   // ============================================================================
-  // Computed Properties
+  // Computed Properties (using extracted helpers)
   // ============================================================================
 
+  /// Salary calculator instance - created lazily
+  SalaryCalculator get _salary => SalaryCalculator(
+        staffRecord: widget.staffRecord,
+        confirmedCheckIn: confirmedCheckIn,
+        confirmedCheckOut: confirmedCheckOut,
+        bonusAmount: bonusAmount,
+        penaltyAmount: penaltyAmount,
+        initialConfirmedCheckIn: _initialConfirmedCheckIn,
+        initialConfirmedCheckOut: _initialConfirmedCheckOut,
+        initialBonusAmount: _initialBonusAmount,
+        initialPenaltyAmount: _initialPenaltyAmount,
+      );
+
   // ============================================================================
-  // Section-level Change Detection
+  // Change Detection
   // ============================================================================
 
-  /// Check if confirmed check-in time has changed
   bool get isCheckInChanged => confirmedCheckIn != _initialConfirmedCheckIn;
-
-  /// Check if confirmed check-out time has changed
   bool get isCheckOutChanged => confirmedCheckOut != _initialConfirmedCheckOut;
 
-  /// Check if confirmed attendance section has any changes
-  /// Includes time changes OR manual confirmation (even if same time value)
   bool get isConfirmedTimeChanged =>
-      isCheckInChanged || isCheckOutChanged ||
-      isCheckInManuallyConfirmed || isCheckOutManuallyConfirmed;
+      isCheckInChanged ||
+      isCheckOutChanged ||
+      isCheckInManuallyConfirmed ||
+      isCheckOutManuallyConfirmed;
 
-  /// Check if bonus amount has changed
   bool get isBonusChanged => bonusAmount != _initialBonusAmount;
-
-  /// Check if memo has changed
   bool get isMemoChanged => _memoController.text != _initialMemo;
 
-  /// Check if issue report status has changed from initial RPC value
-  /// - If user selected a status (issueReportStatus != null), compare with initial
-  /// - initial null + user approved → changed to true
-  /// - initial null + user rejected → changed to false
-  /// - initial true + user rejected → changed to false
-  /// - initial false + user approved → changed to true
   bool get isReportStatusChanged {
     if (!widget.staffRecord.isReported) return false;
     if (issueReportStatus == null) return false;
-
-    // Convert user selection to bool for comparison
     final userSelectedValue = issueReportStatus == 'approved';
-
-    // If initial was null, any selection is a change
     if (_initialIsReportedSolved == null) return true;
-
-    // Otherwise compare with initial value
     return userSelectedValue != _initialIsReportedSolved;
   }
 
-  /// Overall change detection - true if any section has changes
-  bool get hasChanges {
-    return isConfirmedTimeChanged || isBonusChanged || isMemoChanged || isReportStatusChanged;
-  }
-
-  /// Check if the shift is still in progress (not yet ended)
-  /// If shiftEndTime exists and current time is before it, shift hasn't ended yet
-  bool get _isShiftStillInProgress {
-    final shiftEndTime = widget.staffRecord.shiftEndTime;
-    if (shiftEndTime == null) return false;
-    return DateTime.now().isBefore(shiftEndTime);
-  }
-
-  bool get _isFullyConfirmed {
-    // IMPORTANT: Check shift progress FIRST
-    // If shift is still in progress (hasn't ended yet), don't require confirmation yet
-    if (_isShiftStillInProgress) {
-      return true;
-    }
-
-    // Use problemDetails for comprehensive problem checking
-    final pd = widget.staffRecord.problemDetails;
-
-    // If no problemDetails or no problems, check basic attendance
-    if (pd == null || pd.problemCount == 0) {
-      // No problems = fully confirmed
-      return true;
-    }
-
-    // Check if ALL problems are solved using problemDetails.isFullySolved
-    // This covers: late, overtime, early_leave, no_checkout, reported, etc.
-    if (pd.isFullySolved) {
-      return true;
-    }
-
-    // Has unsolved problems = needs confirmation
-    return false;
-  }
+  bool get hasChanges =>
+      isConfirmedTimeChanged || isBonusChanged || isMemoChanged || isReportStatusChanged;
 
   // ============================================================================
-  // Check-in/Check-out Specific Problem Helpers (for ConfirmedAttendanceCard)
+  // Salary Computed Properties (delegated to SalaryCalculator)
   // ============================================================================
 
-  /// Problem types related to check-in
-  static const _checkInTypes = {'late', 'invalid_checkin'};
-
-  /// Problem types related to check-out
-  static const _checkOutTypes = {'overtime', 'early_leave', 'no_checkout', 'absence', 'location_issue'};
-
-  /// Check-in related problems: late, invalid_checkin
-  bool get _hasCheckInProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isLate;
-    return pd.hasLate || pd.problems.any((p) => p.type == 'invalid_checkin');
-  }
-
-  /// Check-out related problems: overtime, early_leave, no_checkout, absence, location_issue
-  bool get _hasCheckOutProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isOvertime;
-    return pd.hasOvertime || pd.hasEarlyLeave || pd.hasNoCheckout || pd.hasAbsence || pd.hasLocationIssue;
-  }
-
-  /// Check if check-in problem is unsolved (for "Need confirm" red status)
-  bool get _hasUnsolvedCheckInProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) {
-      return widget.staffRecord.isLate && !widget.staffRecord.isProblemSolved;
-    }
-    return pd.problems.any((p) => _checkInTypes.contains(p.type) && !p.isSolved);
-  }
-
-  /// Check if check-out problem is unsolved (for "Need confirm" red status)
-  bool get _hasUnsolvedCheckOutProblem {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) {
-      return widget.staffRecord.isOvertime && !widget.staffRecord.isProblemSolved;
-    }
-    return pd.problems.any((p) => _checkOutTypes.contains(p.type) && !p.isSolved);
-  }
-
-  /// Check if ALL check-in problems were solved by DB (for blue "Confirmed" status)
-  bool get _isCheckInProblemSolved {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isProblemSolved;
-    final checkInProblems = pd.problems.where((p) => _checkInTypes.contains(p.type));
-    if (checkInProblems.isEmpty) return false;
-    return checkInProblems.every((p) => p.isSolved);
-  }
-
-  /// Check if ALL check-out problems were solved by DB (for blue "Confirmed" status)
-  bool get _isCheckOutProblemSolved {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) return widget.staffRecord.isProblemSolved;
-    final checkOutProblems = pd.problems.where((p) => _checkOutTypes.contains(p.type));
-    if (checkOutProblems.isEmpty) return false;
-    return checkOutProblems.every((p) => p.isSolved);
-  }
-
-  /// Check if there's an unsolved report (for "Report pending" status)
-  /// Used when time problems are solved but report is still pending approval
-  bool get _hasUnsolvedReport {
-    final pd = widget.staffRecord.problemDetails;
-    if (pd == null) {
-      final isReportedSolved = widget.staffRecord.isReportedSolved;
-      return widget.staffRecord.isReported && (isReportedSolved == null || !isReportedSolved);
-    }
-    return pd.problems.any((p) => p.type == 'reported' && !p.isSolved);
-  }
-
-  // ============================================================================
-  // Salary Computed Properties
-  // ============================================================================
-
-  /// Get hourly rate as number for calculations
-  double get _hourlyRate {
-    final salaryAmountStr = widget.staffRecord.salaryAmount;
-    if (salaryAmountStr == null || salaryAmountStr.isEmpty) return 0;
-    final cleaned = salaryAmountStr.replaceAll(',', '');
-    return double.tryParse(cleaned) ?? 0;
-  }
-
-  /// Calculate paid hours from current confirmed times (for preview)
-  /// Returns null if times are invalid, uses RPC paidHour as fallback
-  double get _calculatedPaidHour {
-    final calculated = TimelogHelpers.calculateHoursFromTimes(confirmedCheckIn, confirmedCheckOut);
-    return calculated ?? widget.staffRecord.paidHour;
-  }
-
-  /// Check if confirmed time has changed from initial (for showing before/after)
-  bool get _isTimeChangeForPreview => isCheckInChanged || isCheckOutChanged;
-
-  /// Display total confirmed time - shows calculated if time changed, else original
-  String get totalConfirmedTime {
-    if (_isTimeChangeForPreview) {
-      return TimelogHelpers.formatHoursMinutes(_calculatedPaidHour);
-    }
-    return TimelogHelpers.formatHoursMinutes(widget.staffRecord.paidHour);
-  }
-
-  /// Original total confirmed time (from RPC paidHour, for comparison)
-  String get originalConfirmedTime => TimelogHelpers.formatHoursMinutes(widget.staffRecord.paidHour);
-
-  String get hourlySalary {
-    final salaryAmount = widget.staffRecord.salaryAmount;
-    if (salaryAmount == null || salaryAmount.isEmpty) return '--';
-    final amount = double.tryParse(salaryAmount);
-    if (amount != null) {
-      return '${NumberFormat('#,###').format(amount.toInt())}₫';
-    }
-    return '$salaryAmount₫';
-  }
-
-  /// Display base pay - uses calculated hours if time changed
-  String get basePay {
-    if (_isTimeChangeForPreview) {
-      final calc = (_calculatedPaidHour * _hourlyRate).toInt();
-      return '${NumberFormat('#,###').format(calc)}₫';
-    }
-    // Original logic for unchanged times
-    final basePayStr = widget.staffRecord.basePay;
-    if (basePayStr == null || basePayStr.isEmpty) {
-      final salaryAmountStr = widget.staffRecord.salaryAmount;
-      if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
-        final salaryAmount = double.tryParse(salaryAmountStr);
-        if (salaryAmount != null) {
-          final basePayCalc = (widget.staffRecord.paidHour * salaryAmount).toInt();
-          return '${NumberFormat('#,###').format(basePayCalc)}₫';
-        }
-      }
-      return '--';
-    }
-    final amount = double.tryParse(basePayStr);
-    if (amount != null) {
-      return '${NumberFormat('#,###').format(amount.toInt())}₫';
-    }
-    return '$basePayStr₫';
-  }
-
-  /// Base pay amount for calculations - uses calculated hours if time changed
-  int get basePayAmount {
-    if (_isTimeChangeForPreview) {
-      return (_calculatedPaidHour * _hourlyRate).toInt();
-    }
-    // Original logic
-    final basePayStr = widget.staffRecord.basePay;
-    if (basePayStr != null && basePayStr.isNotEmpty) {
-      final cleanedStr = basePayStr.replaceAll(',', '');
-      final amount = double.tryParse(cleanedStr);
-      if (amount != null) return amount.toInt();
-    }
-    final salaryAmountStr = widget.staffRecord.salaryAmount;
-    if (salaryAmountStr != null && salaryAmountStr.isNotEmpty) {
-      final cleanedSalary = salaryAmountStr.replaceAll(',', '');
-      final salaryAmount = double.tryParse(cleanedSalary);
-      if (salaryAmount != null) {
-        return (widget.staffRecord.paidHour * salaryAmount).toInt();
-      }
-    }
-    return 0;
-  }
-
-  /// Original base pay amount (from RPC, for comparison)
-  int get _originalBasePayAmount {
-    final basePayStr = widget.staffRecord.basePay;
-    if (basePayStr != null && basePayStr.isNotEmpty) {
-      final cleanedStr = basePayStr.replaceAll(',', '');
-      final amount = double.tryParse(cleanedStr);
-      if (amount != null) return amount.toInt();
-    }
-    return (widget.staffRecord.paidHour * _hourlyRate).toInt();
-  }
-
-  String get asOfDate => TimelogHelpers.formatAsOfDate(widget.shiftDate);
-  String get bonusPay => '${NumberFormat('#,###').format(bonusAmount - penaltyAmount)}₫';
-  String get penaltyDeduction => '${NumberFormat('#,###').format(penaltyAmount)}₫';
-  String get totalPayment => '${NumberFormat('#,###').format(basePayAmount + bonusAmount - penaltyAmount)}₫';
-
-  // ============================================================================
-  // Original Values for Salary Breakdown Comparison
-  // ============================================================================
-
-  /// Original base pay (from RPC, for comparison)
-  String get originalBasePay => '${NumberFormat('#,###').format(_originalBasePayAmount)}₫';
-
-  /// Original bonus pay (from RPC, for comparison)
-  String get originalBonusPay => '${NumberFormat('#,###').format(_initialBonusAmount - _initialPenaltyAmount)}₫';
-
-  /// Original total payment (from RPC, for comparison)
-  String get originalTotalPayment => '${NumberFormat('#,###').format(_originalBasePayAmount + _initialBonusAmount - _initialPenaltyAmount)}₫';
-
-  /// Check if any salary-affecting value has changed
-  bool get _hasSalaryChanges => _isTimeChangeForPreview || isBonusOrDeductChanged;
-
-  /// Check if bonus/deduct has changed (for salary breakdown display)
-  bool get isBonusOrDeductChanged => bonusAmount != _initialBonusAmount || penaltyAmount != _initialPenaltyAmount;
+  String get totalConfirmedTime => _salary.totalConfirmedTime;
+  String get originalConfirmedTime => _salary.originalConfirmedTime;
+  String get hourlySalary => _salary.hourlySalary;
+  String get basePay => _salary.basePay;
+  int get basePayAmount => _salary.basePayAmount;
+  String get asOfDate => _salary.asOfDate(widget.shiftDate);
+  String get bonusPay => _salary.bonusPay;
+  String get totalPayment => _salary.totalPayment;
+  String get originalBasePay => _salary.originalBasePay;
+  String get originalBonusPay => _salary.originalBonusPay;
+  String get originalTotalPayment => _salary.originalTotalPayment;
+  bool get isBonusOrDeductChanged => _salary.isBonusOrDeductChanged;
 
   // ============================================================================
   // Lifecycle
@@ -562,8 +342,8 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
 
       if (mounted) {
         // v7: Capture calculated values BEFORE updating initial values
-        // Otherwise _isTimeChangeForPreview will be false after setState
-        final paidHourForCache = _isTimeChangeForPreview ? _calculatedPaidHour : null;
+        // Otherwise isTimeChanged will be false after setState
+        final paidHourForCache = _salary.isTimeChanged ? _salary.calculatedPaidHour : null;
 
         setState(() {
           // Update initial values after successful save
@@ -674,29 +454,33 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                         ConfirmedAttendanceCard(
                           isExpanded: _confirmedAttendanceExpanded,
                           onToggle: () => setState(() => _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded),
-                          isFullyConfirmed: _isFullyConfirmed,
+                          isFullyConfirmed: widget.staffRecord.isFullyConfirmed,
                           confirmedCheckIn: confirmedCheckIn,
                           confirmedCheckOut: confirmedCheckOut,
-                          // Use problemDetails for comprehensive problem checking
                           // checkInNeedsConfirm: late problem unsolved
-                          checkInNeedsConfirm: !_isShiftStillInProgress &&
-                              _hasUnsolvedCheckInProblem &&
+                          checkInNeedsConfirm: !widget.staffRecord.isShiftStillInProgress &&
+                              widget.staffRecord.hasUnsolvedCheckInProblem &&
                               !isCheckInManuallyConfirmed,
                           // checkOutNeedsConfirm: overtime/early_leave/no_checkout problem unsolved
-                          checkOutNeedsConfirm: !_isShiftStillInProgress &&
-                              _hasUnsolvedCheckOutProblem &&
+                          checkOutNeedsConfirm: !widget.staffRecord.isShiftStillInProgress &&
+                              widget.staffRecord.hasUnsolvedCheckOutProblem &&
                               !isCheckOutManuallyConfirmed,
                           // Blue text: problem exists AND confirmed (solved OR manually confirmed)
-                          isCheckInConfirmed: _hasCheckInProblem &&
-                              (_isCheckInProblemSolved || isCheckInManuallyConfirmed),
-                          isCheckOutConfirmed: _hasCheckOutProblem &&
-                              (_isCheckOutProblemSolved || isCheckOutManuallyConfirmed),
+                          isCheckInConfirmed: widget.staffRecord.hasCheckInProblem &&
+                              (widget.staffRecord.isCheckInProblemSolved || isCheckInManuallyConfirmed),
+                          isCheckOutConfirmed: widget.staffRecord.hasCheckOutProblem &&
+                              (widget.staffRecord.isCheckOutProblemSolved || isCheckOutManuallyConfirmed),
                           onEditCheckIn: _showTimePickerForCheckIn,
                           onEditCheckOut: _showTimePickerForCheckOut,
                           // Hide status badge when shift is still in progress
-                          isShiftInProgress: _isShiftStillInProgress,
+                          isShiftInProgress: widget.staffRecord.isShiftStillInProgress,
                           // Show "Report pending" when time confirmed but report unsolved
-                          hasUnsolvedReport: _hasUnsolvedReport,
+                          hasUnsolvedReport: widget.staffRecord.hasUnsolvedReport,
+                        ),
+                        // Shift Logs Section - shows audit history
+                        const SizedBox(height: 16),
+                        ShiftLogsSection(
+                          shiftRequestId: widget.staffRecord.shiftRequestId,
                         ),
                       ],
                     ),
@@ -730,10 +514,10 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                       bonusPay: bonusPay,
                       totalPayment: totalPayment,
                       // Pass original values when time or bonus changed (null = no change shown)
-                      originalConfirmedTime: _isTimeChangeForPreview ? originalConfirmedTime : null,
-                      originalBasePay: _isTimeChangeForPreview ? originalBasePay : null,
+                      originalConfirmedTime: _salary.isTimeChanged ? originalConfirmedTime : null,
+                      originalBasePay: _salary.isTimeChanged ? originalBasePay : null,
                       originalBonusPay: isBonusOrDeductChanged ? originalBonusPay : null,
-                      originalTotalPayment: _hasSalaryChanges ? originalTotalPayment : null,
+                      originalTotalPayment: _salary.hasSalaryChanges ? originalTotalPayment : null,
                     ),
                   ),
                 ],
@@ -747,15 +531,9 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return TossAppBar(
+      title: 'Shift Details Management',
       backgroundColor: TossColors.white,
-      elevation: 0,
-      surfaceTintColor: TossColors.white,
-      title: Text(
-        'Shift Details Management',
-        style: TossTextStyles.titleMedium.copyWith(color: TossColors.gray900),
-      ),
-      centerTitle: true,
       automaticallyImplyLeading: false,
       actions: [
         IconButton(
@@ -774,8 +552,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
   }
 
   /// 시간 확인이 필요한지 체크 (Need confirm 상태)
-  /// _isFullyConfirmed가 false일 때
-  bool get _needsTimeConfirm => !_isFullyConfirmed;
+  bool get _needsTimeConfirm => !widget.staffRecord.isFullyConfirmed;
 
   /// 버튼 문구 결정
   /// 1. 리포트 확인 필요 + 시간 확인 필요 → "Check Two Problems"

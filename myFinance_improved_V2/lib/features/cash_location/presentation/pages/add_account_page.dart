@@ -164,57 +164,51 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Account Name Field
-                    _buildSectionTitle('Account Name', fieldName: 'name'),
-                    const SizedBox(height: TossSpacing.space2),
                     _buildTextField(
+                      label: 'Account Name',
                       controller: _nameController,
                       hintText: 'Enter account name',
                       fieldName: 'name',
                     ),
-                    
+
                     // Bank-specific fields
                     if (widget.locationType == 'bank') ...[
-                      const SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Bank Name', fieldName: 'bankName'),
-                      const SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space4),
                       _buildTextField(
+                        label: 'Bank Name',
                         controller: _bankNameController,
                         hintText: 'Enter bank name',
                         fieldName: 'bankName',
                       ),
 
-                      const SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Account Number', fieldName: 'accountNumber'),
-                      const SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space4),
                       _buildTextField(
+                        label: 'Account Number',
                         controller: _accountNumberController,
                         hintText: 'Enter account number',
                         fieldName: 'accountNumber',
                         keyboardType: TextInputType.number,
                       ),
 
-                      const SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Currency', fieldName: 'currency'),
-                      const SizedBox(height: TossSpacing.space2),
-                      _buildCurrencyDropdown(),
+                      const SizedBox(height: TossSpacing.space4),
+                      _buildCurrencySection(),
 
                       // Trade/International Banking Info (Expandable)
-                      const SizedBox(height: TossSpacing.space6),
+                      const SizedBox(height: TossSpacing.space4),
                       _buildTradeInfoSection(),
                     ],
-                    
+
                     // Description field (for cash/vault locations)
                     if (widget.locationType != 'bank') ...[
-                      const SizedBox(height: TossSpacing.space6),
-                      _buildSectionTitle('Description'),
-                      const SizedBox(height: TossSpacing.space2),
+                      const SizedBox(height: TossSpacing.space4),
                       _buildTextField(
+                        label: 'Description',
                         controller: _descriptionController,
                         hintText: 'Enter description (optional)',
                         maxLines: 3,
                       ),
                     ],
-                    
+
                     const SizedBox(height: TossSpacing.space8),
                   ],
                 ),
@@ -231,117 +225,73 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
   
   // Removed _buildHeader method - now using TossAppBar
   
-  Widget _buildSectionTitle(String title, {String? fieldName}) {
-    bool showError = fieldName != null && _shouldShowError(fieldName);
-    return Text(
-      title,
-      style: TossTextStyles.titleMedium.copyWith(
-        fontWeight: FontWeight.w600,
-        color: showError ? TossColors.error : TossColors.black87,
-      ),
-    );
-  }
-  
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
+    required String label,
     String? fieldName,
     TextInputType? keyboardType,
     int? maxLines,
   }) {
     bool showError = fieldName != null && _shouldShowError(fieldName);
-    
-    return Container(
-      decoration: BoxDecoration(
-        color: showError ? TossColors.errorLight : TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: showError ? TossColors.error : TossColors.gray300,
-          width: 1.0,
-        ),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines ?? 1,
-        onSubmitted: (_) {
-          // Hide keyboard when user presses done
-          FocusScope.of(context).unfocus();
-        },
-        onTap: () {
-          // Clear error state when user starts typing in a field
-          if (showError) {
-            setState(() {
-              _filledFields.add(fieldName);
-            });
-          }
-        },
-        style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TossTextStyles.titleMedium.copyWith(
-            color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide.none,
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide.none,
-          ),
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.all(TossSpacing.space4),
-        ),
-      ),
+
+    return TossTextField.filled(
+      label: label,
+      hintText: hintText,
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines ?? 1,
+      isRequired: fieldName != null && _isFieldRequired(fieldName),
+      errorText: showError ? 'This field is required' : null,
+      onFieldSubmitted: (_) {
+        FocusScope.of(context).unfocus();
+      },
+      onChanged: (value) {
+        if (fieldName != null) {
+          _updateFieldStatus(fieldName);
+        }
+      },
     );
   }
   
-  Widget _buildDropdownField({
-    required TextEditingController controller,
-    required String hintText,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray300),
-      ),
-      child: TextField(
-        controller: controller,
-        style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w500,
+  Widget _buildCurrencySection() {
+    bool showError = _shouldShowError('currency');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Currency',
+              style: TossTextStyles.label.copyWith(
+                color: showError ? TossColors.error : TossColors.gray700,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              '*',
+              style: TossTextStyles.label.copyWith(
+                color: TossColors.error,
+              ),
+            ),
+          ],
         ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TossTextStyles.titleMedium.copyWith(
-            color: TossColors.gray400,
+        const SizedBox(height: TossSpacing.space2),
+        _buildCurrencyDropdown(),
+        if (showError) ...[
+          const SizedBox(height: TossSpacing.space1),
+          Text(
+            'Please select a currency',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.error,
+            ),
           ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(TossSpacing.space4),
-          suffixIcon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: TossColors.gray400,
-            size: 24,
-          ),
-        ),
-      ),
+        ],
+      ],
     );
   }
-  
+
   Widget _buildCurrencyDropdown() {
     final currencyTypesAsync = ref.watch(currencyTypesProvider);
     bool showError = _shouldShowError('currency');
@@ -385,9 +335,8 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                             Expanded(
                               child: Text(
                                 selectedCurrency.currencyName,
-                                style: TossTextStyles.titleMedium.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: TossColors.black87,
+                                style: TossTextStyles.body.copyWith(
+                                  color: TossColors.gray900,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -404,7 +353,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                         )
                       : Text(
                           'Select currency',
-                          style: TossTextStyles.titleMedium.copyWith(
+                          style: TossTextStyles.body.copyWith(
                             color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
                           ),
                         ),
@@ -440,7 +389,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
         padding: const EdgeInsets.all(TossSpacing.space4),
         child: Text(
           'Failed to load currencies',
-          style: TossTextStyles.titleMedium.copyWith(
+          style: TossTextStyles.body.copyWith(
             color: TossColors.error,
           ),
         ),
@@ -498,17 +447,14 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                       children: [
                         Text(
                           'International Banking Info',
-                          style: TossTextStyles.body.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: TossColors.black87,
+                          style: TossTextStyles.bodyMedium.copyWith(
+                            color: TossColors.gray900,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'For international trade & wire transfers',
                           style: TossTextStyles.caption.copyWith(
-                            fontSize: 12,
                             color: TossColors.gray500,
                           ),
                         ),
@@ -558,49 +504,44 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
           const SizedBox(height: TossSpacing.space4),
 
           // Beneficiary Name
-          _buildTradeFieldLabel('Beneficiary Name'),
-          const SizedBox(height: TossSpacing.space2),
-          _buildTradeTextField(
-            controller: _beneficiaryNameController,
+          TossTextField.filled(
+            label: 'Beneficiary Name',
             hintText: 'Enter beneficiary name',
+            controller: _beneficiaryNameController,
           ),
 
-          const SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space3),
 
           // SWIFT Code
-          _buildTradeFieldLabel('SWIFT / BIC Code'),
-          const SizedBox(height: TossSpacing.space2),
-          _buildTradeTextField(
-            controller: _swiftCodeController,
+          TossTextField.filled(
+            label: 'SWIFT / BIC Code',
             hintText: 'e.g., BKCHKHHH',
-            textCapitalization: TextCapitalization.characters,
+            controller: _swiftCodeController,
           ),
 
-          const SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space3),
 
           // Bank Branch
-          _buildTradeFieldLabel('Bank Branch'),
-          const SizedBox(height: TossSpacing.space2),
-          _buildTradeTextField(
-            controller: _bankBranchController,
+          TossTextField.filled(
+            label: 'Bank Branch',
             hintText: 'Enter bank branch',
+            controller: _bankBranchController,
           ),
 
-          const SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space3),
 
           // Bank Address
-          _buildTradeFieldLabel('Bank Address'),
-          const SizedBox(height: TossSpacing.space2),
-          _buildTradeTextField(
-            controller: _bankAddressController,
+          TossTextField.filled(
+            label: 'Bank Address',
             hintText: 'Enter bank address',
+            controller: _bankAddressController,
             maxLines: 2,
           ),
 
-          const SizedBox(height: TossSpacing.space4),
+          const SizedBox(height: TossSpacing.space3),
 
           // Account Type
-          _buildTradeFieldLabel('Account Type'),
+          _buildAccountTypeLabel(),
           const SizedBox(height: TossSpacing.space2),
           _buildAccountTypeSelector(),
         ],
@@ -608,49 +549,11 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     );
   }
 
-  Widget _buildTradeFieldLabel(String label) {
+  Widget _buildAccountTypeLabel() {
     return Text(
-      label,
-      style: TossTextStyles.body.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: TossColors.gray600,
-      ),
-    );
-  }
-
-  Widget _buildTradeTextField({
-    required TextEditingController controller,
-    required String hintText,
-    int maxLines = 1,
-    TextCapitalization textCapitalization = TextCapitalization.none,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        textCapitalization: textCapitalization,
-        style: TossTextStyles.body.copyWith(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TossTextStyles.body.copyWith(
-            fontSize: 14,
-            color: TossColors.gray400,
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space3,
-            vertical: TossSpacing.space3,
-          ),
-        ),
+      'Account Type',
+      style: TossTextStyles.label.copyWith(
+        color: TossColors.gray700,
       ),
     );
   }
@@ -678,24 +581,20 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             ),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                  ? TossColors.primary.withValues(alpha: 0.1)
                   : TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.full),
               border: Border.all(
                 color: isSelected
-                    ? Theme.of(context).colorScheme.primary
+                    ? TossColors.primary
                     : TossColors.gray200,
               ),
             ),
             child: Text(
               type,
-              style: TossTextStyles.body.copyWith(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : TossColors.gray600,
-              ),
+              style: isSelected
+                  ? TossTextStyles.bodyMedium.copyWith(color: TossColors.primary)
+                  : TossTextStyles.bodySmall.copyWith(color: TossColors.gray600),
             ),
           ),
         );
@@ -731,9 +630,8 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             fullWidth: true,
             height: 56,
             borderRadius: TossBorderRadius.md,
-            textStyle: TossTextStyles.titleMedium.copyWith(
+            textStyle: TossTextStyles.button.copyWith(
               color: isButtonEnabled ? TossColors.white : TossColors.gray500,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ),

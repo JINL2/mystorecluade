@@ -61,7 +61,7 @@ class BankDetailSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -96,7 +96,7 @@ class BankDetailSheet extends StatelessWidget {
 
           // Content
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -117,10 +117,9 @@ class BankDetailSheet extends StatelessWidget {
                             'Bank Balance',
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray600,
-                              fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: TossSpacing.space1),
                           Text(
                             _formatCurrency(realEntry.totalAmount, currencySymbol),
                             style: TossTextStyles.h1.copyWith(
@@ -139,7 +138,7 @@ class BankDetailSheet extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: TossSpacing.space6),
 
                 // Details
                 _buildDetailRow('Date', _formatDate(realEntry.recordDate)),
@@ -147,7 +146,7 @@ class BankDetailSheet extends StatelessWidget {
                 _buildDetailRow('Bank', realEntry.locationName),
                 _buildDetailRow('Currency', realEntry.currencyCode),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: TossSpacing.space5),
               ],
             ),
           ),

@@ -457,3 +457,386 @@ class TradeAmountChange extends StatelessWidget {
     );
   }
 }
+
+/// Dual Currency Amount Display
+///
+/// Displays amount in two currencies (e.g., USD + VND)
+/// Primary currency is shown prominently, secondary in smaller text below
+///
+/// Usage:
+/// ```dart
+/// TradeDualCurrencyAmount(
+///   primaryCurrency: 'USD',
+///   primaryAmount: 10000,
+///   secondaryCurrency: 'VND',
+///   secondaryAmount: 250000000,
+///   exchangeRate: 25000,
+/// )
+/// ```
+class TradeDualCurrencyAmount extends StatelessWidget {
+  /// Primary currency code (e.g., 'USD')
+  final String primaryCurrency;
+
+  /// Primary amount value
+  final double primaryAmount;
+
+  /// Secondary (converted) currency code (e.g., 'VND')
+  final String? secondaryCurrency;
+
+  /// Secondary (converted) amount value
+  final double? secondaryAmount;
+
+  /// Exchange rate used for conversion (optional, for display)
+  final double? exchangeRate;
+
+  /// Label shown above the amount
+  final String? label;
+
+  /// Whether to show the exchange rate info
+  final bool showExchangeRate;
+
+  /// Primary amount text style
+  final TextStyle? primaryStyle;
+
+  /// Secondary amount text style
+  final TextStyle? secondaryStyle;
+
+  /// Text alignment
+  final CrossAxisAlignment alignment;
+
+  const TradeDualCurrencyAmount({
+    super.key,
+    required this.primaryCurrency,
+    required this.primaryAmount,
+    this.secondaryCurrency,
+    this.secondaryAmount,
+    this.exchangeRate,
+    this.label,
+    this.showExchangeRate = false,
+    this.primaryStyle,
+    this.secondaryStyle,
+    this.alignment = CrossAxisAlignment.start,
+  });
+
+  String _formatAmount(double amount, String currency) {
+    // VND, KRW, JPY 등은 소수점 없이 표시
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currency)) {
+      if (amount >= 1000000000) {
+        return '${(amount / 1000000000).toStringAsFixed(2)}B';
+      } else if (amount >= 1000000) {
+        return '${(amount / 1000000).toStringAsFixed(2)}M';
+      }
+      return amount.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          );
+    }
+    return amount.toStringAsFixed(2).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+  }
+
+  String _getCurrencySymbol(String code) {
+    switch (code) {
+      case 'USD':
+        return '\$';
+      case 'VND':
+        return '₫';
+      case 'KRW':
+        return '₩';
+      case 'JPY':
+        return '¥';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'CNY':
+        return '¥';
+      default:
+        return code;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSecondary =
+        secondaryCurrency != null && secondaryAmount != null && secondaryCurrency != primaryCurrency;
+
+    return Column(
+      crossAxisAlignment: alignment,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Label
+        if (label != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: TossSpacing.space1),
+            child: Text(
+              label!,
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray500,
+              ),
+            ),
+          ),
+
+        // Primary Amount
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              primaryCurrency,
+              style: primaryStyle?.copyWith(
+                    color: primaryStyle?.color?.withOpacity(0.7),
+                  ) ??
+                  TossTextStyles.bodyMedium.copyWith(
+                    color: TossColors.gray600,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _formatAmount(primaryAmount, primaryCurrency),
+              style: primaryStyle ??
+                  TossTextStyles.h3.copyWith(
+                    color: TossColors.gray900,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
+
+        // Secondary Amount (converted)
+        if (hasSecondary) ...[
+          const SizedBox(height: 2),
+          Text(
+            '≈ ${_getCurrencySymbol(secondaryCurrency!)}${_formatAmount(secondaryAmount!, secondaryCurrency!)}',
+            style: secondaryStyle ??
+                TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                ),
+          ),
+        ],
+
+        // Exchange Rate Info
+        if (showExchangeRate && exchangeRate != null && hasSecondary) ...[
+          const SizedBox(height: 2),
+          Text(
+            '(1 $primaryCurrency = ${_getCurrencySymbol(secondaryCurrency!)}${_formatAmount(exchangeRate!, secondaryCurrency!)})',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray400,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Compact dual currency display for list items
+///
+/// Shows primary and secondary amounts in a single line
+///
+/// Usage:
+/// ```dart
+/// TradeDualCurrencyCompact(
+///   primaryCurrency: 'USD',
+///   primaryAmount: 1500,
+///   secondaryCurrency: 'VND',
+///   secondaryAmount: 37500000,
+/// )
+/// ```
+class TradeDualCurrencyCompact extends StatelessWidget {
+  final String primaryCurrency;
+  final double primaryAmount;
+  final String? secondaryCurrency;
+  final double? secondaryAmount;
+  final TextStyle? primaryStyle;
+  final TextStyle? secondaryStyle;
+
+  const TradeDualCurrencyCompact({
+    super.key,
+    required this.primaryCurrency,
+    required this.primaryAmount,
+    this.secondaryCurrency,
+    this.secondaryAmount,
+    this.primaryStyle,
+    this.secondaryStyle,
+  });
+
+  String _formatCompact(double amount, String currency) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    final isNoDecimal = noDecimalCurrencies.contains(currency);
+
+    if (amount >= 1000000000) {
+      return '${(amount / 1000000000).toStringAsFixed(1)}B';
+    } else if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(1)}K';
+    }
+    return isNoDecimal ? amount.toStringAsFixed(0) : amount.toStringAsFixed(2);
+  }
+
+  String _getCurrencySymbol(String code) {
+    switch (code) {
+      case 'USD':
+        return '\$';
+      case 'VND':
+        return '₫';
+      case 'KRW':
+        return '₩';
+      case 'JPY':
+        return '¥';
+      case 'EUR':
+        return '€';
+      default:
+        return code;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSecondary =
+        secondaryCurrency != null && secondaryAmount != null && secondaryCurrency != primaryCurrency;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$primaryCurrency ${_formatCompact(primaryAmount, primaryCurrency)}',
+          style: primaryStyle ??
+              TossTextStyles.bodyMedium.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        if (hasSecondary)
+          Text(
+            '${_getCurrencySymbol(secondaryCurrency!)}${_formatCompact(secondaryAmount!, secondaryCurrency!)}',
+            style: secondaryStyle ??
+                TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Info row with dual currency display
+///
+/// Usage:
+/// ```dart
+/// TradeDualCurrencyInfoRow(
+///   label: 'Total Amount',
+///   primaryCurrency: 'USD',
+///   primaryAmount: 10000,
+///   secondaryCurrency: 'VND',
+///   secondaryAmount: 250000000,
+/// )
+/// ```
+class TradeDualCurrencyInfoRow extends StatelessWidget {
+  final String label;
+  final String primaryCurrency;
+  final double primaryAmount;
+  final String? secondaryCurrency;
+  final double? secondaryAmount;
+  final bool highlight;
+
+  const TradeDualCurrencyInfoRow({
+    super.key,
+    required this.label,
+    required this.primaryCurrency,
+    required this.primaryAmount,
+    this.secondaryCurrency,
+    this.secondaryAmount,
+    this.highlight = false,
+  });
+
+  String _formatAmount(double amount, String currency) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currency)) {
+      return amount.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          );
+    }
+    return amount.toStringAsFixed(2).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+  }
+
+  String _getCurrencySymbol(String code) {
+    switch (code) {
+      case 'USD':
+        return '\$';
+      case 'VND':
+        return '₫';
+      case 'KRW':
+        return '₩';
+      case 'JPY':
+        return '¥';
+      case 'EUR':
+        return '€';
+      default:
+        return code;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSecondary =
+        secondaryCurrency != null && secondaryAmount != null && secondaryCurrency != primaryCurrency;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: highlight
+          ? BoxDecoration(
+              color: TossColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            )
+          : null,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TossTextStyles.bodySmall.copyWith(
+              color: highlight ? TossColors.gray900 : TossColors.gray600,
+              fontWeight: highlight ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$primaryCurrency ${_formatAmount(primaryAmount, primaryCurrency)}',
+                style: TossTextStyles.bodySmall.copyWith(
+                  color: highlight ? TossColors.primary : TossColors.gray900,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (hasSecondary)
+                Text(
+                  '≈ ${_getCurrencySymbol(secondaryCurrency!)}${_formatAmount(secondaryAmount!, secondaryCurrency!)}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -267,7 +267,7 @@ DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
   bool hasUnsolvedReport = false;
 
   for (final problem in pd.problems) {
-    if (!problem.isSolved) {
+    if (problem.isSolved != true) {
       if (problem.type == 'reported') {
         hasUnsolvedReport = true;
       } else {

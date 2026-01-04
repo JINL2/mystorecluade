@@ -335,7 +335,6 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
           'Scroll to load more',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontSize: 12,
           ),
         ),
       ),
@@ -356,10 +355,8 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
           children: [
             Text(
               _selectedFilter,
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.bodyMedium.copyWith(
                 color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
               ),
             ),
             const Icon(
@@ -513,24 +510,18 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   }
 
   void _showFilterBottomSheet() {
-    showModalBottomSheet(
+    FilterBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return FilterBottomSheet(
-          selectedFilter: _selectedFilter,
-          filterOptions: _getFilterOptions(),
-          onFilterSelected: (String filter) {
-            setState(() {
-              _selectedFilter = filter;
-              // Reset scroll position when filter changes
-              if (_scrollController.hasClients) {
-                _scrollController.jumpTo(0);
-              }
-            });
-          },
-        );
+      selectedFilter: _selectedFilter,
+      filterOptions: _getFilterOptions(),
+      onFilterSelected: (String filter) {
+        setState(() {
+          _selectedFilter = filter;
+          // Reset scroll position when filter changes
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(0);
+          }
+        });
       },
     );
   }

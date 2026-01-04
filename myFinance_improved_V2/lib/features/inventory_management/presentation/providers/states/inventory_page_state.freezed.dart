@@ -35,7 +35,7 @@ mixin _$InventoryPageState {
   Currency? get currency =>
       throw _privateConstructorUsedError; // Base currency info from get_base_currency RPC
   BaseCurrencyInfo? get baseCurrency =>
-      throw _privateConstructorUsedError; // Summary data from get_inventory_page_v4
+      throw _privateConstructorUsedError; // Summary data from get_inventory_page_v5
   double get serverTotalValue => throw _privateConstructorUsedError;
   int get filteredCount => throw _privateConstructorUsedError;
 
@@ -359,7 +359,7 @@ class _$InventoryPageStateImpl extends _InventoryPageState {
 // Base currency info from get_base_currency RPC
   @override
   final BaseCurrencyInfo? baseCurrency;
-// Summary data from get_inventory_page_v4
+// Summary data from get_inventory_page_v5
   @override
   @JsonKey()
   final double serverTotalValue;
@@ -480,7 +480,7 @@ abstract class _InventoryPageState extends InventoryPageState {
   @override
   Currency? get currency; // Base currency info from get_base_currency RPC
   @override
-  BaseCurrencyInfo? get baseCurrency; // Summary data from get_inventory_page_v4
+  BaseCurrencyInfo? get baseCurrency; // Summary data from get_inventory_page_v5
   @override
   double get serverTotalValue;
   @override

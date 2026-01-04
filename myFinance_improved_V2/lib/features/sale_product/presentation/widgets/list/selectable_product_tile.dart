@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../inventory_management/domain/entities/product.dart';
 import '../../../domain/entities/cart_item.dart';
 import '../../../domain/entities/sales_product.dart';
 import '../../providers/cart_provider.dart';
@@ -32,55 +35,73 @@ class SelectableProductTile extends ConsumerStatefulWidget {
 }
 
 class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
-  final TextEditingController _quantityController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  bool _isEditing = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _quantityController.text = '${widget.cartItem.quantity}';
-    _focusNode.addListener(_onFocusChange);
+  /// Navigate to product detail page
+  void _navigateToProductDetail(BuildContext context) {
+    HapticFeedback.lightImpact();
+
+    // Convert SalesProduct to Product for inventory provider
+    final product = _convertToInventoryProduct(widget.product);
+
+    // Navigate to product detail with Product object via extra
+    context.push(
+      '/inventoryManagement/product/${widget.product.productId}',
+      extra: product,
+    );
   }
 
-  @override
-  void didUpdateWidget(SelectableProductTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Update controller when quantity changes externally (from +/- buttons)
-    if (!_isEditing && widget.cartItem.quantity != oldWidget.cartItem.quantity) {
-      _quantityController.text = '${widget.cartItem.quantity}';
-    }
+  /// Convert SalesProduct to inventory Product entity
+  Product _convertToInventoryProduct(SalesProduct salesProduct) {
+    return Product(
+      id: salesProduct.productId,
+      sku: salesProduct.sku,
+      barcode: salesProduct.barcode.isNotEmpty ? salesProduct.barcode : null,
+      name: salesProduct.productName,
+      images: [
+        if (salesProduct.images.mainImage != null) salesProduct.images.mainImage!,
+        ...salesProduct.images.additionalImages,
+      ],
+      categoryName: salesProduct.category,
+      brandName: salesProduct.brand,
+      productType: salesProduct.productType,
+      unit: salesProduct.unit ?? 'piece',
+      costPrice: salesProduct.pricing.costPrice ?? 0,
+      salePrice: salesProduct.pricing.sellingPrice ?? 0,
+      minPrice: salesProduct.pricing.minPrice,
+      onHand: salesProduct.totalStockSummary.totalQuantityOnHand,
+      available: salesProduct.totalStockSummary.totalQuantityAvailable,
+      reserved: salesProduct.totalStockSummary.totalQuantityReserved,
+      minStock: salesProduct.stockSettings.minStock,
+      maxStock: salesProduct.stockSettings.maxStock,
+      reorderPoint: salesProduct.stockSettings.reorderPoint,
+      reorderQuantity: salesProduct.stockSettings.reorderQuantity,
+      weight: salesProduct.attributes.weightG,
+      createdAt: salesProduct.status.createdAt,
+      updatedAt: salesProduct.status.updatedAt,
+      isActive: salesProduct.status.isActive,
+    );
   }
 
-  @override
-  void dispose() {
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
-    _quantityController.dispose();
-    super.dispose();
-  }
-
-  void _onFocusChange() {
-    if (_focusNode.hasFocus) {
-      setState(() => _isEditing = true);
-      // Select all text when focused
-      _quantityController.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: _quantityController.text.length,
-      );
-    } else {
-      setState(() => _isEditing = false);
-      _applyQuantity();
-    }
-  }
-
-  void _applyQuantity() {
-    final qty = int.tryParse(_quantityController.text) ?? 0;
-    if (qty > 0) {
-      ref.read(cartNotifierProvider.notifier).updateQuantity(widget.cartItem.id, qty);
-    } else {
-      ref.read(cartNotifierProvider.notifier).removeItem(widget.cartItem.id);
-    }
+  /// Show quantity number pad modal (integer only, no decimal)
+  void _showQuantityNumberPad(BuildContext context) {
+    HapticFeedback.lightImpact();
+    TossCurrencyExchangeModal.show(
+      context: context,
+      title: 'Enter Quantity',
+      initialValue: '${widget.cartItem.quantity}',
+      allowDecimal: false, // Integer only - removes the "." button
+      onConfirm: (value) {
+        final qty = int.tryParse(value) ?? 0;
+        if (qty > 0) {
+          ref.read(cartNotifierProvider.notifier).updateQuantity(
+            widget.cartItem.id,
+            qty,
+          );
+        } else {
+          ref.read(cartNotifierProvider.notifier).removeItem(widget.cartItem.id);
+        }
+      },
+    );
   }
 
   @override
@@ -91,19 +112,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          if (isSelected) {
-            // Already in cart - increase quantity
-            ref.read(cartNotifierProvider.notifier).updateQuantity(
-                  widget.cartItem.id,
-                  widget.cartItem.quantity + 1,
-                );
-          } else {
-            // Not in cart - add item
-            ref.read(cartNotifierProvider.notifier).addItem(widget.product);
-          }
-        },
+        onTap: () => _navigateToProductDetail(context),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
@@ -173,19 +182,32 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
   }
 
   Widget _buildStockBadge(int stockQuantity, bool isSelected) {
-    // Blue if stock > 0, gray if stock == 0, red if stock < 0
+    // Blue if stock > 0, gray if stock == 0, red "No Quantity" only when trying to sell with 0 stock
     final Color backgroundColor;
     final Color textColor;
+    final String displayText;
 
     if (stockQuantity > 0) {
       backgroundColor = TossColors.primarySurface;
       textColor = TossColors.primary;
+      displayText = '$stockQuantity';
     } else if (stockQuantity < 0) {
       backgroundColor = TossColors.errorLight;
       textColor = TossColors.error;
+      displayText = '$stockQuantity';
     } else {
-      backgroundColor = TossColors.gray50;
-      textColor = TossColors.textSecondary;
+      // stockQuantity == 0
+      if (isSelected) {
+        // Trying to sell with 0 stock - show warning
+        backgroundColor = TossColors.errorLight;
+        textColor = TossColors.error;
+        displayText = 'No Quantity';
+      } else {
+        // Just displaying stock - show "0" in blue (same style as positive stock)
+        backgroundColor = TossColors.primarySurface;
+        textColor = TossColors.primary;
+        displayText = '0';
+      }
     }
 
     return Container(
@@ -195,7 +217,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
-        '$stockQuantity',
+        displayText,
         style: TossTextStyles.bodySmall.copyWith(
           fontWeight: FontWeight.w500,
           color: textColor,
@@ -240,12 +262,10 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
               ),
             ),
           ),
-          // Quantity input - inline editable TextField
+          // Quantity input - tap to open number pad modal
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
-              _focusNode.requestFocus();
-            },
+            onTap: () => _showQuantityNumberPad(context),
             child: Container(
               width: 52,
               height: 44,
@@ -262,25 +282,13 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                 ],
               ),
               child: Center(
-                child: EditableText(
-                  controller: _quantityController,
-                  focusNode: _focusNode,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(4),
-                  ],
+                child: Text(
+                  '${widget.cartItem.quantity}',
                   style: TossTextStyles.bodyMedium.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: TossColors.textPrimary,
                   ),
-                  cursorColor: TossColors.primary,
-                  backgroundCursorColor: TossColors.gray200,
-                  onSubmitted: (_) {
-                    _focusNode.unfocus();
-                  },
                 ),
               ),
             ),

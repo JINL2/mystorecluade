@@ -3,16 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../domain/entities/transfer_scope.dart';
 import '../formatters/cash_transaction_ui_extensions.dart';
 import '../providers/cash_transaction_providers.dart';
 import '../widgets/transaction_confirm_dialog.dart';
 import '../widgets/transfer_entry/transfer_entry_widgets.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
-const _tag = '[TransferEntrySheet]';
 
 /// Cash Transfer Bottom Sheet
 /// 3 Transfer Scopes:
@@ -132,8 +130,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   // ==================== STEP LOGIC ====================
 
   void _onScopeSelected(TransferScope scope) {
-    debugPrint('[TransferSheet] 🎯 _onScopeSelected called with scope: $scope');
-    debugPrint('[TransferSheet] 📋 Before reset - _toStoreId: "$_toStoreId", _currentStep: $_currentStep');
     setState(() {
       _selectedScope = scope;
       // Reset TO selections
@@ -145,7 +141,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       _toCashLocationName = null;
       _currentStep = 1;
     });
-    debugPrint('[TransferSheet] ✅ After reset - _toStoreId: "$_toStoreId", _currentStep: $_currentStep');
     HapticFeedback.lightImpact();
   }
 
@@ -174,6 +169,12 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         break;
     }
 
+    // Get currency symbol for dialog
+    final currencyAsync = ref.read(
+      companyCurrencySymbolProvider(ref.read(appStateProvider).companyChoosen),
+    );
+    final currencySymbol = currencyAsync.valueOrNull ?? '₩';
+
     // Show confirmation dialog
     final result = await TransactionConfirmDialog.show(
       context,
@@ -186,18 +187,13 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         toCompanyName: _toCompanyName,
         toCashLocationName: _toCashLocationName,
       ),
+      currencySymbol: currencySymbol,
     );
 
     if (result == null || !result.confirmed) {
-      debugPrint('$_tag User cancelled confirmation dialog');
       return;
     }
 
-    debugPrint('$_tag 🚀 Starting transfer submission...');
-    debugPrint('$_tag   scope: $_selectedScope');
-    debugPrint('$_tag   from: ${widget.fromCashLocationId} (${widget.fromCashLocationName})');
-    debugPrint('$_tag   to: $_toCashLocationId ($_toCashLocationName)');
-    debugPrint('$_tag   amount: $_amount');
 
     setState(() {
       _isSubmitting = true;
@@ -210,11 +206,9 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       // TODO: Upload attachments to storage and get URLs
       final attachmentUrls = <String>[];
 
-      String journalId;
       if (_selectedScope == TransferScope.withinStore) {
         // Simple within-store transfer
-        debugPrint('$_tag 📤 Calling createTransferWithinStore...');
-        journalId = await repository.createTransferWithinStore(
+        await repository.createTransferWithinStore(
           companyId: appState.companyChoosen,
           storeId: appState.storeChoosen,
           createdBy: appState.userId,
@@ -232,25 +226,18 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
         if (_selectedScope == TransferScope.withinCompany) {
           // Within Company: use self-counterparty (company_id = linked_company_id)
-          debugPrint('$_tag 🏢 Within Company transfer - getting self-counterparty...');
           final selfCounterparty = await repository.getSelfCounterparty(
             companyId: appState.companyChoosen,
           );
           if (selfCounterparty != null) {
             counterpartyId = selfCounterparty.counterpartyId;
-            debugPrint('$_tag ✅ Found self-counterparty: ${selfCounterparty.name} ($counterpartyId)');
-          } else {
-            debugPrint('$_tag ⚠️ No self-counterparty found, proceeding without counterparty');
           }
         } else if (_selectedScope == TransferScope.betweenCompanies) {
           // Between Companies: need to find counterparty linked to target company
           // TODO: Implement counterparty lookup for between-companies transfers
-          debugPrint('$_tag 🏢 Between Companies transfer - counterparty lookup not yet implemented');
         }
 
-        debugPrint('$_tag 📤 Calling createTransferBetweenEntities...');
-        debugPrint('$_tag 📤 counterpartyId: $counterpartyId');
-        journalId = await repository.createTransferBetweenEntities(
+        await repository.createTransferBetweenEntities(
           companyId: appState.companyChoosen,
           storeId: appState.storeChoosen.isEmpty ? null : appState.storeChoosen,
           createdBy: appState.userId,
@@ -266,7 +253,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         );
       }
 
-      debugPrint('$_tag ✅ Transfer completed successfully! journal_id: $journalId');
 
       if (mounted) {
         // Show success feedback before closing
@@ -281,7 +267,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         }
       }
     } catch (e) {
-      debugPrint('$_tag ❌ Transfer FAILED: $e');
       if (mounted) {
         TossToast.error(context, 'Error: $e');
       }
@@ -318,97 +303,115 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   Widget build(BuildContext context) {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
-    return AnimatedPadding(
-      duration: TossAnimations.normal,
-      curve: TossAnimations.decelerate,
-      padding: EdgeInsets.only(bottom: keyboardHeight),
-      child: Container(
-        constraints: BoxConstraints(
-          minHeight: MediaQuery.of(context).size.height * 0.5,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
-        ),
-        decoration: const BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xxl),
-            topRight: Radius.circular(TossBorderRadius.xxl),
+    return Stack(
+      children: [
+        AnimatedPadding(
+          duration: TossAnimations.normal,
+          curve: TossAnimations.decelerate,
+          padding: EdgeInsets.only(bottom: keyboardHeight),
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.5,
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
+            ),
+            decoration: const BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(TossBorderRadius.xxl),
+                topRight: Radius.circular(TossBorderRadius.xxl),
+              ),
+              boxShadow: TossShadows.bottomSheet,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle
+                const SizedBox(height: TossSpacing.space3),
+                Container(
+                  width: TossSpacing.space9,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: TossColors.gray300,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                  ),
+                ),
+
+                // Header
+                TransferEntryHeader(
+                  selectedScope: _selectedScope,
+                  currentStep: _currentStep,
+                  onBack: () => setState(() => _currentStep--),
+                  onClose: () => Navigator.pop(context),
+                ),
+
+                // Content
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(TossSpacing.space4),
+                    child: _buildCurrentStepContent(),
+                  ),
+                ),
+
+                // Fixed bottom button for amount input step
+                if (_isAmountInputStep) ...[
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(
+                      TossSpacing.space4,
+                      TossSpacing.space2,
+                      TossSpacing.space4,
+                      TossSpacing.space2,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: TossColors.white,
+                      border: Border(
+                        top: BorderSide(color: TossColors.gray100),
+                      ),
+                    ),
+                    child: TossButton.primary(
+                      text: _isSubmitting
+                          ? 'Processing...'
+                          : _selectedScope?.isDebtTransaction == true
+                              ? 'Create Transfer'
+                              : 'Transfer',
+                      onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
+                      isEnabled: _canSubmit && !_isSubmitting,
+                      isLoading: _isSubmitting,
+                      fullWidth: true,
+                      leadingIcon: Icon(
+                        _selectedScope?.icon ?? Icons.swap_horiz,
+                      ),
+                    ),
+                  ),
+                ],
+
+                SizedBox(
+                  height:
+                      MediaQuery.of(context).padding.bottom + TossSpacing.space2,
+                ),
+              ],
+            ),
           ),
-          boxShadow: TossShadows.bottomSheet,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              width: TossSpacing.space9,
-              height: 4,
+
+        // Loading overlay
+        if (_isSubmitting)
+          Positioned.fill(
+            child: Container(
               decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-              ),
-            ),
-
-            // Header
-            TransferEntryHeader(
-              selectedScope: _selectedScope,
-              currentStep: _currentStep,
-              onBack: () => setState(() => _currentStep--),
-              onClose: () => Navigator.pop(context),
-            ),
-
-            // Content
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(TossSpacing.space4),
-                child: _buildCurrentStepContent(),
-              ),
-            ),
-
-            // Fixed bottom button for amount input step
-            if (_isAmountInputStep) ...[
-              Container(
-                padding: const EdgeInsets.fromLTRB(
-                  TossSpacing.space4,
-                  TossSpacing.space2,
-                  TossSpacing.space4,
-                  TossSpacing.space2,
-                ),
-                decoration: const BoxDecoration(
-                  color: TossColors.white,
-                  border: Border(
-                    top: BorderSide(color: TossColors.gray100),
-                  ),
-                ),
-                child: TossButton.primary(
-                  text: _isSubmitting
-                      ? 'Processing...'
-                      : _selectedScope?.isDebtTransaction == true
-                          ? 'Create Transfer'
-                          : 'Transfer',
-                  onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
-                  isEnabled: _canSubmit && !_isSubmitting,
-                  isLoading: _isSubmitting,
-                  fullWidth: true,
-                  leadingIcon: Icon(
-                    _selectedScope?.icon ?? Icons.swap_horiz,
-                  ),
+                color: TossColors.black.withValues(alpha: 0.3),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(TossBorderRadius.xxl),
+                  topRight: Radius.circular(TossBorderRadius.xxl),
                 ),
               ),
-            ],
-
-            SizedBox(
-              height:
-                  MediaQuery.of(context).padding.bottom + TossSpacing.space2,
+              child: const TossLoadingView(message: 'Transferring...'),
             ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 
   Widget _buildCurrentStepContent() {
-    debugPrint('[TransferSheet] 📍 _buildCurrentStepContent - _currentStep: $_currentStep, _selectedScope: $_selectedScope');
     if (_currentStep == 0) {
       return _buildScopeSelection();
     }
@@ -417,7 +420,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       case TransferScope.withinStore:
         return _buildWithinStoreContent();
       case TransferScope.withinCompany:
-        debugPrint('[TransferSheet] 📍 Calling _buildWithinCompanyContent');
         return _buildWithinCompanyContent();
       case TransferScope.betweenCompanies:
         return _buildBetweenCompaniesContent();
@@ -442,19 +444,14 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   Widget _buildWithinCompanyContent() {
     // From cash location already selected from main page
     // Step 1: To store, Step 2: To cash location, Step 3: Amount
-    debugPrint('[TransferSheet] 📍 _buildWithinCompanyContent - _currentStep: $_currentStep');
     switch (_currentStep) {
       case 1:
-        debugPrint('[TransferSheet] 📍 Step 1 -> _buildToStoreSelectionWithinCompany');
         return _buildToStoreSelectionWithinCompany();
       case 2:
-        debugPrint('[TransferSheet] 📍 Step 2 -> _buildToCashLocationSelection');
         return _buildToCashLocationSelection();
       case 3:
-        debugPrint('[TransferSheet] 📍 Step 3 -> _buildAmountInput');
         return _buildAmountInput();
       default:
-        debugPrint('[TransferSheet] ⚠️ Unknown step: $_currentStep -> SizedBox()');
         return const SizedBox();
     }
   }
@@ -519,9 +516,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
   void _onToCashLocationSelectedReal(CashLocation location) {
     HapticFeedback.lightImpact();
-    debugPrint('[TransferSheet] 💰 _onToCashLocationSelectedReal called');
-    debugPrint('[TransferSheet] 📋 location: ${location.locationName} (${location.cashLocationId})');
-    debugPrint('[TransferSheet] 📋 _selectedScope: $_selectedScope');
     setState(() {
       _toCashLocationId = location.cashLocationId;
       _toCashLocationName = location.locationName;
@@ -543,7 +537,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
           break;
       }
     });
-    debugPrint('[TransferSheet] ✅ After setState - _currentStep: $_currentStep');
   }
 
   // ==================== WITHIN COMPANY: TO STORE ====================
@@ -561,10 +554,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
 
   void _onToStoreSelectedReal(String storeId, String storeName) {
     final appState = ref.read(appStateProvider);
-    debugPrint('[TransferSheet] 🏪 _onToStoreSelectedReal called');
-    debugPrint('[TransferSheet] 📋 storeId: "$storeId"');
-    debugPrint('[TransferSheet] 📋 storeName: "$storeName"');
-    debugPrint('[TransferSheet] 📋 appState.companyChoosen: "${appState.companyChoosen}"');
     HapticFeedback.lightImpact();
     setState(() {
       _toStoreId = storeId;
@@ -575,7 +564,6 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       _toCashLocationName = null;
       _currentStep++;
     });
-    debugPrint('[TransferSheet] ✅ After setState - _toStoreId: "$_toStoreId", _currentStep: $_currentStep');
   }
 
   // ==================== BETWEEN COMPANIES: TO COMPANY ====================

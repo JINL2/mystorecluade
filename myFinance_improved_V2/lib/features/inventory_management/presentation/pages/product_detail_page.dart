@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/app_state.dart';
 import '../../di/inventory_providers.dart';
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/inventory_repository.dart';
+import '../../domain/value_objects/pagination_params.dart';
+import '../../domain/value_objects/product_filter.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/move_stock_dialog.dart';
 import '../widgets/product_detail/product_detail_widgets.dart';
@@ -19,25 +22,108 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 /// Product Detail Page - New design with compact header and location list
 class ProductDetailPage extends ConsumerStatefulWidget {
   final String productId;
+  final Product? initialProduct;
 
   const ProductDetailPage({
     super.key,
     required this.productId,
+    this.initialProduct,
   });
 
   @override
   ConsumerState<ProductDetailPage> createState() => _ProductDetailPageState();
 }
 
-class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
+class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
+    with SingleTickerProviderStateMixin {
   bool _hasStockFilter = true;
   List<StoreStock>? _storeStocks;
   bool _isLoadingStocks = true;
+  Product? _localProduct;
+  bool _isLoadingProduct = false;
+
+  // Page entrance animation
+  late AnimationController _pageController;
+  late Animation<double> _pageFadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    // Use initial product if provided (from navigation extra)
+    _localProduct = widget.initialProduct;
+
+    // Setup page entrance animation
+    _pageController = AnimationController(
+      duration: TossAnimations.medium,
+      vsync: this,
+    );
+
+    _pageFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _pageController, curve: TossAnimations.enter),
+    );
+
+    // Start page animation
+    _pageController.forward();
+
     _loadStoreStocks();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  /// Load product from API if not found in provider
+  Future<void> _loadProductFromApi() async {
+    if (_isLoadingProduct) return;
+
+    setState(() => _isLoadingProduct = true);
+
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+
+    if (companyId.isEmpty || storeId.isEmpty) {
+      setState(() => _isLoadingProduct = false);
+      return;
+    }
+
+    try {
+      final repository = ref.read(inventoryRepositoryProvider);
+      // Search by productId - the API will match on ID through search
+      final result = await repository.getProducts(
+        companyId: companyId,
+        storeId: storeId,
+        pagination: const PaginationParams(limit: 50),
+        filter: ProductFilter(searchQuery: widget.productId),
+      );
+
+      if (mounted && result != null && result.products.isNotEmpty) {
+        // Find exact match by ID
+        final matchedProduct = result.products.cast<Product?>().firstWhere(
+          (p) => p?.id == widget.productId,
+          orElse: () => null,
+        );
+
+        if (matchedProduct != null) {
+          setState(() {
+            _localProduct = matchedProduct;
+            _isLoadingProduct = false;
+          });
+          // Add to provider for future use
+          ref.read(inventoryPageNotifierProvider.notifier).addProductIfNotExists(_localProduct!);
+        } else {
+          setState(() => _isLoadingProduct = false);
+        }
+      } else {
+        setState(() => _isLoadingProduct = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingProduct = false);
+      }
+    }
   }
 
   Future<void> _loadStoreStocks() async {
@@ -76,65 +162,104 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final productsState = ref.watch(inventoryPageNotifierProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
-    final product = productsState.products.cast<Product?>().firstWhere(
+    // Try to find product in provider first
+    var product = productsState.products.cast<Product?>().firstWhere(
       (p) => p?.id == widget.productId,
       orElse: () => null,
     );
 
+    // Use local product if not found in provider
+    product ??= _localProduct;
+
     if (product == null) {
-      return const TossScaffold(
+      // Trigger API load if not already loading
+      if (!_isLoadingProduct) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _loadProductFromApi();
+        });
+      }
+      return TossScaffold(
         backgroundColor: TossColors.white,
-        body: TossLoadingView(),
-      );
-    }
-
-    final appState = ref.watch(appStateProvider);
-    final stores = _buildStoreLocations(appState, product, appState.storeChoosen);
-
-    return TossScaffold(
-      backgroundColor: TossColors.white,
-      body: SafeArea(
-        child: Column(
+        body: Column(
           children: [
-            ProductDetailTopBar(
-              product: product,
-              onMoreOptions: () => _showMoreOptions(context, ref, product),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
+            // Back button so user can go back
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(TossSpacing.space4),
+                child: Row(
                   children: [
-                    ProductHeaderSection(product: product),
-                    ProductHeroStats(
-                      product: product,
-                      currencySymbol: currencySymbol,
-                    ),
-                    _buildSectionDivider(),
-                    ProductLocationsSection(
-                      product: product,
-                      stores: stores,
-                      hasStockFilter: _hasStockFilter,
-                      isLoading: _isLoadingStocks,
-                      onFilterChanged: (value) {
-                        setState(() => _hasStockFilter = value);
-                      },
-                      onStoreTap: (store) => _showMoveStockDialog(
-                        context, product, store, stores,
-                      ),
+                    GestureDetector(
+                      onTap: () => context.pop(),
+                      child: const Icon(Icons.arrow_back_ios, size: 20),
                     ),
                   ],
                 ),
               ),
             ),
+            const Expanded(child: TossLoadingView()),
           ],
+        ),
+      );
+    }
+
+    // Use final local variable for type promotion
+    final currentProduct = product;
+    final appState = ref.watch(appStateProvider);
+    final stores = _buildStoreLocations(appState, currentProduct, appState.storeChoosen);
+
+    return TossScaffold(
+      backgroundColor: TossColors.white,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _pageFadeAnimation,
+          child: Column(
+            children: [
+              ProductDetailTopBar(
+                product: currentProduct,
+                onMoreOptions: () => _showMoreOptions(context, ref, currentProduct),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Header section - starts at 0ms
+                      ProductHeaderSection(
+                        product: currentProduct,
+                        animationDelay: 0,
+                      ),
+                      // Hero stats - starts at 100ms
+                      ProductHeroStats(
+                        product: currentProduct,
+                        currencySymbol: currencySymbol,
+                        animationDelay: 100,
+                      ),
+                      // Animated section divider
+                      _AnimatedSectionDivider(animationDelay: 200),
+                      // Locations section - starts at 250ms
+                      ProductLocationsSection(
+                        product: currentProduct,
+                        stores: stores,
+                        hasStockFilter: _hasStockFilter,
+                        isLoading: _isLoadingStocks,
+                        animationDelay: 250,
+                        onFilterChanged: (value) {
+                          setState(() => _hasStockFilter = value);
+                        },
+                        onStoreTap: (store) => _showMoveStockDialog(
+                          context, currentProduct, store, stores,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSectionDivider() {
-    return Container(height: 15, color: TossColors.gray100);
-  }
 
   List<StoreLocation> _buildStoreLocations(
     AppState appState,
@@ -421,5 +546,67 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         ),
       );
     }
+  }
+}
+
+/// Animated section divider with fade-in effect
+class _AnimatedSectionDivider extends StatefulWidget {
+  final int animationDelay;
+
+  const _AnimatedSectionDivider({this.animationDelay = 0});
+
+  @override
+  State<_AnimatedSectionDivider> createState() => _AnimatedSectionDividerState();
+}
+
+class _AnimatedSectionDividerState extends State<_AnimatedSectionDivider>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: TossAnimations.normal,
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: TossAnimations.enter),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: TossAnimations.enter),
+    );
+
+    Future.delayed(
+      Duration(milliseconds: widget.animationDelay),
+      () {
+        if (mounted) _controller.forward();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) => FadeTransition(
+        opacity: _fadeAnimation,
+        child: Transform.scale(
+          scaleY: _scaleAnimation.value,
+          child: child,
+        ),
+      ),
+      child: Container(height: 15, color: TossColors.gray100),
+    );
   }
 }

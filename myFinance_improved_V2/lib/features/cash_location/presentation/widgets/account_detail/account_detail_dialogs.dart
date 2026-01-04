@@ -159,17 +159,11 @@ class AccountDetailDialogs {
       filterOptions = ['All', 'Today', 'Yesterday', 'Last Week', 'Last Month'];
     }
 
-    showModalBottomSheet(
+    FilterBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return FilterBottomSheet(
-          selectedFilter: selectedFilter,
-          filterOptions: filterOptions,
-          onFilterSelected: onFilterSelected,
-        );
-      },
+      selectedFilter: selectedFilter,
+      filterOptions: filterOptions,
+      onFilterSelected: onFilterSelected,
     );
   }
 
@@ -177,15 +171,9 @@ class AccountDetailDialogs {
   void showAutoMappingBottomSheet({
     required void Function(String) onMappingSelected,
   }) {
-    showModalBottomSheet(
+    AutoMappingSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return AutoMappingSheet(
-          onMappingSelected: onMappingSelected,
-        );
-      },
+      onMappingSelected: onMappingSelected,
     );
   }
 }

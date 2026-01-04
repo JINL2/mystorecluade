@@ -65,9 +65,9 @@ class ProblemDetails {
   /// Check if there are any active problems
   bool get hasAnyProblem => problemCount > 0 && !isSolved;
 
-  /// Get unsolved problem items
+  /// Get unsolved problem items (isSolved is null or false)
   List<ProblemItem> get unsolvedProblems =>
-      problems.where((p) => !p.isSolved).toList();
+      problems.where((p) => p.isSolved != true).toList();
 
   /// Check if ALL problems are fully solved (including reported)
   /// A shift is "solved" only when ALL problem items are solved
@@ -76,8 +76,8 @@ class ProblemDetails {
     // No problems = nothing to solve
     if (problems.isEmpty) return true;
 
-    // Check if ALL problems are solved
-    return problems.every((p) => p.isSolved);
+    // Check if ALL problems are solved (isSolved == true)
+    return problems.every((p) => p.isSolved == true);
   }
 
   /// Check if there's any problem (not solved)
@@ -135,7 +135,9 @@ class ProblemItem {
   final DateTime? reportedAt;
 
   /// Whether this problem is solved
-  final bool isSolved;
+  /// For 'reported' type: null = pending, true = approved, false = rejected
+  /// For other types: true = solved, false = unsolved
+  final bool? isSolved;
 
   const ProblemItem({
     required this.type,
@@ -144,7 +146,7 @@ class ProblemItem {
     this.isPayrollAdjusted = false,
     this.reason,
     this.reportedAt,
-    this.isSolved = false,
+    this.isSolved,
   });
 
   /// Check if this is a late problem

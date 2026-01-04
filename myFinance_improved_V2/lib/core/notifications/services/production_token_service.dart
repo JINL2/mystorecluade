@@ -33,9 +33,15 @@ class ProductionTokenService {
     'successful_registrations': 0,
     'failed_registrations': 0,
     'race_conditions_handled': 0,
-    'duplicate_calls_prevented': 0, // 🔧 NEW
+    'duplicate_calls_prevented': 0,
     'fallback_recoveries': 0,
+    'monthly_refreshes': 0,
+    'logout_deactivations': 0,
   };
+
+  // Monthly refresh tracking (Firebase recommends monthly token refresh)
+  DateTime? _lastMonthlyRefresh;
+  Timer? _monthlyRefreshTimer;
 
   /// Initialize the service - called once at app start
   /// 🔧 OPTIMIZED: Faster initialization, no blocking waits
@@ -328,11 +334,66 @@ class ProductionTokenService {
   }
   
   /// Auto-recovery system - validates and recovers tokens periodically
+  /// Also includes monthly token refresh (Firebase 2025 Best Practice)
   void startAutoRecoverySystem() {
     // Run token validation every 30 minutes in production
     Timer.periodic(const Duration(minutes: 30), (timer) async {
       await _performAutoRecovery();
     });
+
+    // 🔧 NEW: Monthly token refresh (Firebase recommends)
+    // Check every 24 hours if monthly refresh is needed
+    _monthlyRefreshTimer?.cancel();
+    _monthlyRefreshTimer = Timer.periodic(const Duration(hours: 24), (timer) async {
+      await _performMonthlyTokenRefreshIfNeeded();
+    });
+
+    // Also check immediately on startup
+    _performMonthlyTokenRefreshIfNeeded();
+  }
+
+  /// Firebase 2025 Best Practice: Monthly token refresh
+  /// Refreshes FCM token once a month to prevent stale tokens
+  Future<void> _performMonthlyTokenRefreshIfNeeded() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Check if 30 days have passed since last refresh
+      final now = DateTime.now();
+      if (_lastMonthlyRefresh != null) {
+        final daysSinceRefresh = now.difference(_lastMonthlyRefresh!).inDays;
+        if (daysSinceRefresh < 30) {
+          if (kDebugMode) {
+            debugPrint('📅 Monthly refresh not needed yet (${30 - daysSinceRefresh} days remaining)');
+          }
+          return;
+        }
+      }
+
+      if (kDebugMode) {
+        debugPrint('🔄 [FCM] Performing monthly token refresh...');
+      }
+
+      // Delete old token and get new one
+      await _performTokenRefresh();
+
+      // Register the new token
+      final success = await registerTokenAfterAuth();
+
+      if (success) {
+        _lastMonthlyRefresh = now;
+        _stats['monthly_refreshes'] = (_stats['monthly_refreshes'] as int) + 1;
+
+        if (kDebugMode) {
+          debugPrint('✅ [FCM] Monthly token refresh completed');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ [FCM] Monthly token refresh failed: $e');
+      }
+    }
   }
   
   /// Perform automatic recovery check
@@ -412,6 +473,54 @@ class ProductionTokenService {
     return healthData;
   }
   
+  /// Firebase 2025 Best Practice: Deactivate token on logout
+  /// Instead of deleting, we set is_active = false
+  /// This allows reactivation if user logs back in on same device
+  Future<bool> deactivateTokenOnLogout() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        if (kDebugMode) {
+          debugPrint('⚠️ [FCM] No user to deactivate token for');
+        }
+        return false;
+      }
+
+      if (kDebugMode) {
+        debugPrint('🔒 [FCM] Deactivating FCM token on logout...');
+      }
+
+      // Deactivate the current token in database
+      final success = await _repository.deactivateToken(
+        userId: userId,
+        token: _currentToken,
+      );
+
+      if (success) {
+        // Clear local state
+        _lastRegisteredToken = null;
+        _lastRegisteredUserId = null;
+        _stats['logout_deactivations'] = (_stats['logout_deactivations'] as int) + 1;
+
+        if (kDebugMode) {
+          debugPrint('✅ [FCM] Token deactivated on logout');
+        }
+      }
+
+      // Cancel monthly refresh timer
+      _monthlyRefreshTimer?.cancel();
+      _monthlyRefreshTimer = null;
+      _lastMonthlyRefresh = null;
+
+      return success;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ [FCM] Token deactivation failed: $e');
+      }
+      return false;
+    }
+  }
+
   /// Production-safe token registration with comprehensive error handling
   Future<bool> productionSafeRegister() async {
     try {

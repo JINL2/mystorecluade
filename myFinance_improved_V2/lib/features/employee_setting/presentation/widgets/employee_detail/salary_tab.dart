@@ -94,8 +94,13 @@ class SalaryTab extends StatelessWidget {
                   ),
                 _buildDetailRow(
                   'Last Updated',
-                  employee.updatedAt?.toString().split(' ')[0] ?? 'Never',
+                  _formatLastUpdated(employee),
                 ),
+                if (employee.editedByName != null && employee.editedByName!.trim().isNotEmpty)
+                  _buildDetailRow(
+                    'Last Edited By',
+                    employee.editedByName!,
+                  ),
               ],
             ),
           ),
@@ -133,6 +138,21 @@ class SalaryTab extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
       child: InfoRow.between(label: label, value: value),
     );
+  }
+
+  /// Format last updated text
+  /// e.g., "2025-01-04 14:30" or "Never"
+  String _formatLastUpdated(EmployeeSalary employee) {
+    if (employee.updatedAt == null) {
+      return 'Never';
+    }
+
+    // Format: YYYY-MM-DD HH:mm
+    final date = employee.updatedAt!;
+    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final timeStr = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+
+    return '$dateStr $timeStr';
   }
 }
 

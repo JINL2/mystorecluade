@@ -710,6 +710,23 @@ class TossDialogs {
     );
   }
 
+  // Salary Success dialog
+  static Future<bool?> showSalarySaved({
+    required BuildContext context,
+    String? message,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TossDialog.success(
+        title: 'Salary Updated',
+        message: message ?? 'Salary updated successfully',
+        primaryButtonText: 'Done',
+        onPrimaryPressed: () => Navigator.of(context).pop(true),
+      ),
+    );
+  }
+
   static Future<bool?> showCashEndingError({
     required BuildContext context,
     required String error,

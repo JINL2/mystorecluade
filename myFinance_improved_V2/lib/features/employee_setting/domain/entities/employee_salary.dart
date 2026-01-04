@@ -47,6 +47,10 @@ class EmployeeSalary {
   final String? bankName;
   final String? bankAccountNumber;
 
+  // Edit tracking - 누가 언제 수정했는지 추적
+  final String? editedBy;       // 편집자 user_id
+  final String? editedByName;   // 편집자 이름 (뷰에서 JOIN)
+
   // Work Schedule Template (for monthly employees)
   final String? workScheduleTemplateId;
   final String? workScheduleTemplateName;
@@ -105,6 +109,10 @@ class EmployeeSalary {
     this.bankName,
     this.bankAccountNumber,
 
+    // Edit tracking
+    this.editedBy,
+    this.editedByName,
+
     // Work Schedule Template
     this.workScheduleTemplateId,
     this.workScheduleTemplateName,
@@ -155,6 +163,8 @@ class EmployeeSalary {
     DateTime? lastActivityAt,
     String? bankName,
     String? bankAccountNumber,
+    String? editedBy,
+    String? editedByName,
     String? workScheduleTemplateId,
     String? workScheduleTemplateName,
     String? workStartTime,
@@ -203,6 +213,8 @@ class EmployeeSalary {
       lastActivityAt: lastActivityAt ?? this.lastActivityAt,
       bankName: bankName ?? this.bankName,
       bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
+      editedBy: editedBy ?? this.editedBy,
+      editedByName: editedByName ?? this.editedByName,
       workScheduleTemplateId: workScheduleTemplateId ?? this.workScheduleTemplateId,
       workScheduleTemplateName: workScheduleTemplateName ?? this.workScheduleTemplateName,
       workStartTime: workStartTime ?? this.workStartTime,

@@ -285,9 +285,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                           const SizedBox(height: TossSpacing.space4),
                           Text(
                             'Connection Error',
-                            style: TossTextStyles.h2.copyWith(
+                            style: TossTextStyles.h4.copyWith(
                               color: TossColors.gray700,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: TossSpacing.space3),
@@ -325,7 +324,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                                   'Network connection failed',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.error,
-                                    fontSize: 12,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -410,9 +408,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         children: [
           Text(
             'Balance',
-            style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w700,
-              fontSize: 17,
+            style: TossTextStyles.bodyMedium.copyWith(
+              color: TossColors.gray900,
             ),
           ),
           const SizedBox(height: TossSpacing.space4),
@@ -448,14 +445,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               Text(
                 'Error',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  color: TossColors.gray900,
                 ),
               ),
               Text(
                 _formatCurrency(totalError, currencySymbol),
-                style: TossTextStyles.h3.copyWith(
+                style: TossTextStyles.bodyMedium.copyWith(
                   color: TossColors.error,
-                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -474,7 +470,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               Text(
                 label,
                 style: TossTextStyles.body.copyWith(
-                  fontSize: 15,
+                  color: TossColors.gray700,
                 ),
               ),
             ],
@@ -484,8 +480,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
               Text(
                 amount,
                 style: TossTextStyles.body.copyWith(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  color: TossColors.gray900,
                 ),
               ),
               const SizedBox(width: TossSpacing.space1),
@@ -576,9 +571,8 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         children: [
           Text(
             'Accounts',
-            style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w700,
-              fontSize: 17,
+            style: TossTextStyles.bodyMedium.copyWith(
+              color: TossColors.gray900,
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -630,8 +624,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                     _getAddAccountText(),
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray600,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],

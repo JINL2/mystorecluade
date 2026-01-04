@@ -135,12 +135,7 @@ class ProductDto {
         return DateTime.fromMillisecondsSinceEpoch(value);
       }
       return null;
-    } catch (e) {
-      // Log parsing error in debug mode
-      assert(() {
-        print('⚠️ Failed to parse DateTime: $value, error: $e');
-        return true;
-      }());
+    } catch (_) {
       return null;
     }
   }

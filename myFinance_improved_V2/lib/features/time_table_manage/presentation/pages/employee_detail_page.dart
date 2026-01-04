@@ -108,15 +108,10 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return TossAppBar(
+      title: '',
       backgroundColor: TossColors.white,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: TossColors.gray900),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Row(
+      titleWidget: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
@@ -154,7 +149,6 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
           ),
         ],
       ),
-      centerTitle: true,
     );
   }
 

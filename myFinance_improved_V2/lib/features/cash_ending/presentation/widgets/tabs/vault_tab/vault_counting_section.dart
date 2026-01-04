@@ -182,16 +182,27 @@ class _VaultCountingSectionState extends ConsumerState<VaultCountingSection> {
       ),
       builder: (context, _) {
         final grandTotal = _calculateGrandTotal();
+        final journalAmount = widget.state.vaultLocationJournalAmount;
+        final realAmount = widget.state.vaultLocationRealAmount;
+        final isFlowTransaction = widget.transactionType != VaultTransactionType.recount;
+
         return GrandTotalSection(
           totalAmount: grandTotal,
           currencySymbol: widget.state.baseCurrencySymbol,
           label: 'Grand total ${widget.state.baseCurrency?.currencyCode ?? ""}',
           isBaseCurrency: true,
-          journalAmount: widget.state.vaultLocationJournalAmount,
+          journalAmount: journalAmount,
           isLoadingJournal: widget.state.isLoadingVaultJournalAmount,
           onHistoryTap: widget.state.selectedVaultLocationId != null
               ? () => _navigateToAccountDetail(grandTotal)
               : null,
+          // Flow transaction parameters
+          isFlowTransaction: isFlowTransaction,
+          flowAmount: isFlowTransaction ? grandTotal : null,
+          isDebit: widget.transactionType == VaultTransactionType.debit,
+          // Real amount from database for flow comparison
+          // Flow: Expected = Real ± Flow, then compare with Journal
+          realAmount: isFlowTransaction ? realAmount : null,
         );
       },
     );
@@ -205,13 +216,11 @@ class _VaultCountingSectionState extends ConsumerState<VaultCountingSection> {
   }
 
   void _ensureCurrencyInitialized(Currency currency) {
-    if (widget.initializedCurrencies.contains(currency.currencyId)) {
-      return;
-    }
-
+    // Always ensure maps exist for this currency
     widget.controllers.putIfAbsent(currency.currencyId, () => {});
     widget.focusNodes.putIfAbsent(currency.currencyId, () => {});
 
+    // Always check all denominations (handles case where denominations are reloaded)
     for (final denom in currency.denominations) {
       widget.controllers[currency.currencyId]!.putIfAbsent(
         denom.denominationId,

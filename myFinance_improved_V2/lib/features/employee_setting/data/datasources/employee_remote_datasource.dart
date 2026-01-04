@@ -152,6 +152,9 @@ class EmployeeRemoteDataSource {
         }
       }
 
+      // Get current user ID for tracking who made the change
+      final currentUserId = _supabase.auth.currentUser?.id;
+
       // Update the user_salaries table
       final response = await _supabase
           .from('user_salaries')
@@ -160,6 +163,7 @@ class EmployeeRemoteDataSource {
             'salary_type': request.salaryType,
             'currency_id': currencyIdToUse,
             'updated_at': DateTimeUtils.nowUtc(),
+            'edited_by': currentUserId,
           })
           .eq('salary_id', request.salaryId)
           .select();

@@ -33,17 +33,17 @@ class TotalDisplay extends StatelessWidget {
           Text(
             label,
             style: TossTextStyles.body.copyWith(
-              color: TossColors.gray700,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
+              color: TossColors.gray600,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
             ),
           ),
           Text(
             formattedAmount,
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
           ),
         ],

@@ -64,7 +64,7 @@ class AttentionItemsBuilder {
             .fold<int>(0, (sum, c) {
           final pd = c.problemDetails!;
           // Include both problemCount and unsolved count in hash
-          final unsolvedCount = pd.problems.where((p) => !p.isSolved).length;
+          final unsolvedCount = pd.problems.where((p) => p.isSolved != true).length;
           return sum + pd.problemCount * 10 + unsolvedCount;
         }) ??
         0;
@@ -137,11 +137,11 @@ class AttentionItemsBuilder {
       if (pd.isFullySolved) continue;
 
       // Extract values from problem_details_v2 (no legacy fields)
-      final hasLate = pd.problems.any((p) => p.type == 'late' && !p.isSolved);
+      final hasLate = pd.problems.any((p) => p.type == 'late' && p.isSolved != true);
       final hasOvertime =
-          pd.problems.any((p) => p.type == 'overtime' && !p.isSolved);
+          pd.problems.any((p) => p.type == 'overtime' && p.isSolved != true);
       final hasReported =
-          pd.problems.any((p) => p.type == 'reported' && !p.isSolved);
+          pd.problems.any((p) => p.type == 'reported' && p.isSolved != true);
       final reportedProblem =
           pd.problems.where((p) => p.type == 'reported').firstOrNull;
       final lateProblem =
@@ -152,7 +152,7 @@ class AttentionItemsBuilder {
       // Process each problem from problem_details_v2
       for (final problemItem in pd.problems) {
         // Skip solved problems
-        if (problemItem.isSolved) continue;
+        if (problemItem.isSolved == true) continue;
 
         final problemType = _mapProblemTypeFromString(problemItem.type);
         if (problemType == null) continue;

@@ -1,18 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
+/// Data class for tab items in TossTabBar
+///
+/// Supports text, icon, or custom widget tabs
+class TossTab {
+  final String? text;
+  final IconData? icon;
+  final Widget? child;
+  final bool enabled;
+
+  const TossTab({
+    this.text,
+    this.icon,
+    this.child,
+    this.enabled = true,
+  }) : assert(
+          text != null || icon != null || child != null,
+          'At least one of text, icon, or child must be provided',
+        );
+
+  /// Create a text tab
+  const TossTab.text(String text, {bool enabled = true})
+      : this(text: text, enabled: enabled);
+
+  /// Create an icon tab
+  const TossTab.icon(IconData icon, {bool enabled = true})
+      : this(icon: icon, enabled: enabled);
+
+  /// Create a custom widget tab (e.g., text with badge)
+  const TossTab.custom(Widget child, {bool enabled = true})
+      : this(child: child, enabled: enabled);
+}
+
 /// A reusable tab bar component following the Toss design system.
 ///
-/// Example usage:
+/// Supports both simple string tabs and custom TossTab items:
+///
 /// ```dart
+/// // Simple string tabs
 /// TossTabBar(
 ///   tabs: ['Cash', 'Bank', 'Vault'],
 ///   onTabChanged: (index) => print('Selected tab: $index'),
 /// )
+///
+/// // Custom tabs with badges
+/// TossTabBar.custom(
+///   tabs: [
+///     TossTab.text('All'),
+///     TossTab.custom(
+///       Row(children: [Text('Unread'), Badge(count: 5)]),
+///     ),
+///   ],
+/// )
 /// ```
 class TossTabBar extends StatefulWidget {
-  /// List of tab labels to display
-  final List<String> tabs;
+  /// List of tab labels (for simple string tabs)
+  final List<String>? _stringTabs;
+
+  /// List of custom tab items
+  final List<TossTab>? _customTabs;
 
   /// Callback when tab selection changes
   final ValueChanged<int>? onTabChanged;
@@ -26,7 +73,7 @@ class TossTabBar extends StatefulWidget {
   /// Custom text style for unselected tabs
   final TextStyle? unselectedLabelStyle;
 
-  /// Color for the selected tab label and indicator
+  /// Color for the selected tab indicator
   final Color? selectedColor;
 
   /// Color for unselected tab labels
@@ -44,9 +91,13 @@ class TossTabBar extends StatefulWidget {
   /// External tab controller (optional)
   final TabController? controller;
 
+  /// Whether to show bottom border
+  final bool showDivider;
+
+  /// Simple string tabs constructor
   const TossTabBar({
     super.key,
-    required this.tabs,
+    required List<String> tabs,
     this.onTabChanged,
     this.initialIndex = 0,
     this.selectedLabelStyle,
@@ -57,7 +108,30 @@ class TossTabBar extends StatefulWidget {
     this.padding,
     this.isScrollable = false,
     this.controller,
-  });
+    this.showDivider = true,
+  }) : _stringTabs = tabs,
+       _customTabs = null;
+
+  /// Custom TossTab items constructor
+  const TossTabBar.custom({
+    super.key,
+    required List<TossTab> tabs,
+    this.onTabChanged,
+    this.initialIndex = 0,
+    this.selectedLabelStyle,
+    this.unselectedLabelStyle,
+    this.selectedColor,
+    this.unselectedColor,
+    this.indicatorHeight = 2.0,
+    this.padding,
+    this.isScrollable = false,
+    this.controller,
+    this.showDivider = true,
+  }) : _customTabs = tabs,
+       _stringTabs = null;
+
+  /// Get the number of tabs
+  int get tabCount => _stringTabs?.length ?? _customTabs?.length ?? 0;
 
   @override
   State<TossTabBar> createState() => _TossTabBarState();
@@ -70,9 +144,13 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    _initController();
+  }
+
+  void _initController() {
     if (widget.controller == null) {
       _internalController = TabController(
-        length: widget.tabs.length,
+        length: widget.tabCount,
         vsync: this,
         initialIndex: widget.initialIndex,
       );
@@ -80,23 +158,23 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
     } else {
       _tabController = widget.controller!;
     }
-    
+
     _tabController.addListener(_handleTabChange);
   }
-  
+
   @override
   void didUpdateWidget(TossTabBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Update controller if external controller changed
     if (widget.controller != oldWidget.controller) {
       if (oldWidget.controller == null && _internalController != null) {
         _internalController!.removeListener(_handleTabChange);
       }
-      
+
       if (widget.controller == null) {
         _internalController = TabController(
-          length: widget.tabs.length,
+          length: widget.tabCount,
           vsync: this,
           initialIndex: widget.initialIndex,
         );
@@ -104,64 +182,106 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
       } else {
         _tabController = widget.controller!;
       }
-      
+
       _tabController.addListener(_handleTabChange);
     }
-    
+
     // Update tabs length if changed
-    if (widget.tabs.length != oldWidget.tabs.length) {
+    if (widget.tabCount != oldWidget.tabCount) {
       if (_internalController != null) {
         final previousIndex = _internalController!.index;
         _internalController!.removeListener(_handleTabChange);
         _internalController!.dispose();
         _internalController = TabController(
-          length: widget.tabs.length,
+          length: widget.tabCount,
           vsync: this,
-          initialIndex: previousIndex.clamp(0, widget.tabs.length - 1),
+          initialIndex: previousIndex.clamp(0, widget.tabCount - 1),
         );
         _tabController = _internalController!;
         _tabController.addListener(_handleTabChange);
       }
     }
   }
-  
+
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChange);
     _internalController?.dispose();
     super.dispose();
   }
-  
+
   void _handleTabChange() {
     if (_tabController.indexIsChanging) {
       widget.onTabChanged?.call(_tabController.index);
     }
   }
-  
+
+  List<Widget> _buildTabs() {
+    if (widget._stringTabs != null) {
+      return widget._stringTabs!.map((tab) => Tab(text: tab)).toList();
+    }
+
+    if (widget._customTabs != null) {
+      return widget._customTabs!.map((tab) => _buildTab(tab)).toList();
+    }
+
+    return [];
+  }
+
+  Widget _buildTab(TossTab tab) {
+    Widget tabContent;
+
+    if (tab.child != null) {
+      tabContent = tab.child!;
+    } else if (tab.text != null) {
+      tabContent = Text(tab.text!);
+    } else if (tab.icon != null) {
+      tabContent = Icon(tab.icon, size: TossSpacing.iconSM);
+    } else {
+      tabContent = const SizedBox.shrink();
+    }
+
+    if (!tab.enabled) {
+      tabContent = Opacity(opacity: 0.4, child: tabContent);
+    }
+
+    return Tab(child: tabContent);
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedColor = widget.selectedColor ?? TossColors.primary;
-    final selectedLabelColor = TossColors.gray900;
+    const selectedLabelColor = TossColors.gray900;
     final unselectedLabelColor = widget.unselectedColor ?? TossColors.gray500;
 
     final selectedTextStyle = widget.selectedLabelStyle ??
       TossTextStyles.bodyLarge.copyWith(
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
       );
 
     final unselectedTextStyle = widget.unselectedLabelStyle ??
-      TossTextStyles.bodyLarge;
+      TossTextStyles.bodyLarge.copyWith(
+        fontWeight: FontWeight.w500,
+      );
 
     return Container(
       padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Theme(
-          data: ThemeData(
-            splashColor: TossColors.transparent,
-            highlightColor: TossColors.transparent,
-          ),
-          child: TabBar(
+      decoration: widget.showDivider
+        ? const BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: TossColors.gray200,
+                width: 1,
+              ),
+            ),
+          )
+        : null,
+      child: Theme(
+        data: ThemeData(
+          splashColor: TossColors.transparent,
+          highlightColor: TossColors.transparent,
+        ),
+        child: TabBar(
           controller: _tabController,
           isScrollable: widget.isScrollable,
           indicatorSize: TabBarIndicatorSize.tab,
@@ -180,8 +300,7 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
           dividerColor: TossColors.transparent,
           overlayColor: WidgetStateProperty.all(TossColors.transparent),
           labelPadding: EdgeInsets.zero,
-          tabs: widget.tabs.map((tab) => Tab(text: tab)).toList(),
-          ),
+          tabs: _buildTabs(),
         ),
       ),
     );
@@ -189,7 +308,7 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
 }
 
 /// A widget that combines TossTabBar with TabBarView for complete tab functionality.
-/// 
+///
 /// Example usage:
 /// ```dart
 /// TossTabBarView(
@@ -203,45 +322,49 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
 /// )
 /// ```
 class TossTabBarView extends StatefulWidget {
-  /// List of tab labels
-  final List<String> tabs;
-  
+  /// List of tab labels (for simple string tabs)
+  final List<String>? _stringTabs;
+
+  /// List of custom tab items
+  final List<TossTab>? _customTabs;
+
   /// List of widgets to display for each tab
   final List<Widget> children;
-  
+
   /// Callback when tab selection changes
   final ValueChanged<int>? onTabChanged;
-  
+
   /// Initial selected tab index
   final int initialIndex;
-  
+
   /// Custom text style for selected tab
   final TextStyle? selectedLabelStyle;
-  
+
   /// Custom text style for unselected tabs
   final TextStyle? unselectedLabelStyle;
-  
+
   /// Color for the selected tab label and indicator
   final Color? selectedColor;
-  
+
   /// Color for unselected tab labels
   final Color? unselectedColor;
-  
+
   /// Height of the indicator line
   final double indicatorHeight;
-  
+
   /// Horizontal padding for the tab bar
   final EdgeInsetsGeometry? tabBarPadding;
-  
+
   /// Whether to expand tabs to fill available width
   final bool isScrollable;
-  
+
   /// Whether the TabBarView should be scrollable
   final ScrollPhysics? physics;
 
+  /// Simple string tabs constructor
   const TossTabBarView({
     super.key,
-    required this.tabs,
+    required List<String> tabs,
     required this.children,
     this.onTabChanged,
     this.initialIndex = 0,
@@ -253,7 +376,31 @@ class TossTabBarView extends StatefulWidget {
     this.tabBarPadding,
     this.isScrollable = false,
     this.physics,
-  }) : assert(tabs.length == children.length, 'tabs and children must have the same length');
+  }) : _stringTabs = tabs,
+       _customTabs = null,
+       assert(tabs.length == children.length, 'tabs and children must have the same length');
+
+  /// Custom TossTab items constructor
+  const TossTabBarView.custom({
+    super.key,
+    required List<TossTab> tabs,
+    required this.children,
+    this.onTabChanged,
+    this.initialIndex = 0,
+    this.selectedLabelStyle,
+    this.unselectedLabelStyle,
+    this.selectedColor,
+    this.unselectedColor,
+    this.indicatorHeight = 2.0,
+    this.tabBarPadding,
+    this.isScrollable = false,
+    this.physics,
+  }) : _customTabs = tabs,
+       _stringTabs = null,
+       assert(tabs.length == children.length, 'tabs and children must have the same length');
+
+  /// Get the number of tabs
+  int get tabCount => _stringTabs?.length ?? _customTabs?.length ?? 0;
 
   @override
   State<TossTabBarView> createState() => _TossTabBarViewState();
@@ -261,36 +408,36 @@ class TossTabBarView extends StatefulWidget {
 
 class _TossTabBarViewState extends State<TossTabBarView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: widget.tabs.length,
+      length: widget.tabCount,
       vsync: this,
       initialIndex: widget.initialIndex,
     );
-    
+
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         widget.onTabChanged?.call(_tabController.index);
       }
     });
   }
-  
+
   @override
   void didUpdateWidget(TossTabBarView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
-    if (widget.tabs.length != oldWidget.tabs.length) {
+
+    if (widget.tabCount != oldWidget.tabCount) {
       final previousIndex = _tabController.index;
       _tabController.dispose();
       _tabController = TabController(
-        length: widget.tabs.length,
+        length: widget.tabCount,
         vsync: this,
-        initialIndex: previousIndex.clamp(0, widget.tabs.length - 1),
+        initialIndex: previousIndex.clamp(0, widget.tabCount - 1),
       );
-      
+
       _tabController.addListener(() {
         if (_tabController.indexIsChanging) {
           widget.onTabChanged?.call(_tabController.index);
@@ -298,28 +445,41 @@ class _TossTabBarViewState extends State<TossTabBarView> with SingleTickerProvid
       });
     }
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TossTabBar(
-          tabs: widget.tabs,
-          controller: _tabController,
-          selectedLabelStyle: widget.selectedLabelStyle,
-          unselectedLabelStyle: widget.unselectedLabelStyle,
-          selectedColor: widget.selectedColor,
-          unselectedColor: widget.unselectedColor,
-          indicatorHeight: widget.indicatorHeight,
-          padding: widget.tabBarPadding,
-          isScrollable: widget.isScrollable,
-        ),
+        if (widget._stringTabs != null)
+          TossTabBar(
+            tabs: widget._stringTabs!,
+            controller: _tabController,
+            selectedLabelStyle: widget.selectedLabelStyle,
+            unselectedLabelStyle: widget.unselectedLabelStyle,
+            selectedColor: widget.selectedColor,
+            unselectedColor: widget.unselectedColor,
+            indicatorHeight: widget.indicatorHeight,
+            padding: widget.tabBarPadding,
+            isScrollable: widget.isScrollable,
+          )
+        else if (widget._customTabs != null)
+          TossTabBar.custom(
+            tabs: widget._customTabs!,
+            controller: _tabController,
+            selectedLabelStyle: widget.selectedLabelStyle,
+            unselectedLabelStyle: widget.unselectedLabelStyle,
+            selectedColor: widget.selectedColor,
+            unselectedColor: widget.unselectedColor,
+            indicatorHeight: widget.indicatorHeight,
+            padding: widget.tabBarPadding,
+            isScrollable: widget.isScrollable,
+          ),
         Expanded(
           child: TabBarView(
             controller: _tabController,
@@ -332,256 +492,3 @@ class _TossTabBarViewState extends State<TossTabBarView> with SingleTickerProvid
   }
 }
 
-/// A minimal, clean tab bar component following modern design principles.
-/// 
-/// This creates a simple tab bar with an underline indicator
-/// and clear visual hierarchy through color and weight changes.
-class TossPillTabBar extends StatelessWidget {
-  /// List of tab items to display
-  final List<TossTabItem> tabs;
-  
-  /// External tab controller (required)
-  final TabController controller;
-  
-  /// Callback when tab selection changes
-  final ValueChanged<int>? onTap;
-  
-  /// Margin around the tab bar
-  final EdgeInsets? margin;
-  
-  /// Height of the tab bar
-  final double height;
-  
-  /// Color for the selected tab label and indicator
-  final Color? labelColor;
-  
-  /// Color for unselected tab labels
-  final Color? unselectedLabelColor;
-  
-  /// Color for the indicator
-  final Color? indicatorColor;
-  
-  /// Text style for selected tab
-  final TextStyle? labelStyle;
-  
-  /// Text style for unselected tabs
-  final TextStyle? unselectedLabelStyle;
-  
-  /// Thickness of the indicator
-  final double indicatorWeight;
-  
-  /// Whether tabs should be scrollable
-  final bool isScrollable;
-
-  const TossPillTabBar({
-    super.key,
-    required this.tabs,
-    required this.controller,
-    this.onTap,
-    this.margin,
-    this.height = 48,
-    this.labelColor,
-    this.unselectedLabelColor,
-    this.indicatorColor,
-    this.labelStyle,
-    this.unselectedLabelStyle,
-    this.indicatorWeight = 3.0,
-    this.isScrollable = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: margin ??
-          const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space5,
-            vertical: TossSpacing.space3,
-          ),
-      height: height,
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: TossColors.gray200,
-            width: 1,
-          ),
-        ),
-      ),
-      child: TabBar(
-        controller: controller,
-        onTap: onTap,
-        isScrollable: isScrollable,
-        indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(
-            width: indicatorWeight,
-            color: indicatorColor ?? TossColors.primary,
-          ),
-          insets: EdgeInsets.zero,
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: TossColors.transparent,
-        labelColor: labelColor ?? TossColors.gray900,
-        unselectedLabelColor: unselectedLabelColor ?? TossColors.gray400,
-        labelStyle: labelStyle ??
-            TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-        unselectedLabelStyle: unselectedLabelStyle ??
-            TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w400,
-            ),
-        labelPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-        tabs: tabs.map((tab) => _buildTab(tab)).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTab(TossTabItem tab) {
-    if (tab.text != null) {
-      final textWidget = Text(tab.text!);
-      
-      if (!tab.enabled) {
-        return Tab(
-          child: Opacity(
-            opacity: 0.4,
-            child: textWidget,
-          ),
-        );
-      }
-      
-      return Tab(text: tab.text);
-    }
-    
-    if (tab.child != null) {
-      if (!tab.enabled) {
-        return Tab(
-          child: Opacity(
-            opacity: 0.4,
-            child: tab.child,
-          ),
-        );
-      }
-      
-      return Tab(child: tab.child);
-    }
-    
-    if (tab.icon != null) {
-      final iconWidget = Icon(tab.icon, size: TossSpacing.iconSM);
-
-      if (!tab.enabled) {
-        return Tab(
-          child: Opacity(
-            opacity: 0.4,
-            child: iconWidget,
-          ),
-        );
-      }
-
-      return Tab(icon: Icon(tab.icon, size: TossSpacing.iconSM));
-    }
-    
-    return const Tab(text: '');
-  }
-}
-
-/// A minimal tab bar with clean design and smooth animations
-class TossMinimalTabBar extends StatelessWidget {
-  final List<String> tabs;
-  final TabController controller;
-  final ValueChanged<int>? onTap;
-  final EdgeInsets? padding;
-  final Color? selectedColor;
-  final Color? unselectedColor;
-  final bool showDivider;
-  
-  const TossMinimalTabBar({
-    super.key,
-    required this.tabs,
-    required this.controller,
-    this.onTap,
-    this.padding,
-    this.selectedColor,
-    this.unselectedColor,
-    this.showDivider = true,
-  });
-  
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      decoration: showDivider
-          ? const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: TossColors.gray100,
-                  width: 1,
-                ),
-              ),
-            )
-          : null,
-      child: TabBar(
-        controller: controller,
-        onTap: onTap,
-        isScrollable: false,
-        indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(
-            width: 2.5,
-            color: selectedColor ?? TossColors.primary,
-          ),
-          insets: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: TossColors.transparent,
-        overlayColor: WidgetStateProperty.all(TossColors.transparent),
-        labelColor: selectedColor ?? TossColors.gray900,
-        unselectedLabelColor: unselectedColor ?? TossColors.gray400,
-        labelStyle: TossTextStyles.body.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: TossTextStyles.body.copyWith(
-          fontWeight: FontWeight.w500,
-        ),
-        labelPadding: EdgeInsets.zero,
-        tabs: tabs.map((text) => Tab(
-          height: 46,
-          child: Text(text),
-        ),).toList(),
-      ),
-    );
-  }
-}
-
-/// Data class for tab items in TossPillTabBar
-class TossTabItem {
-  final String? text;
-  final IconData? icon;
-  final Widget? child;
-  final bool enabled;
-
-  const TossTabItem({
-    this.text,
-    this.icon,
-    this.child,
-    this.enabled = true,
-  }) : assert(
-          text != null || icon != null || child != null,
-          'At least one of text, icon, or child must be provided',
-        );
-
-  /// Create a text tab
-  const TossTabItem.text(
-    String text, {
-    bool enabled = true,
-  }) : this(text: text, enabled: enabled);
-
-  /// Create an icon tab
-  const TossTabItem.icon(
-    IconData icon, {
-    bool enabled = true,
-  }) : this(icon: icon, enabled: enabled);
-
-  /// Create a custom widget tab
-  const TossTabItem.custom(
-    Widget child, {
-    bool enabled = true,
-  }) : this(child: child, enabled: enabled);
-}

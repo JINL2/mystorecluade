@@ -66,6 +66,10 @@ class CashEndingState with _$CashEndingState {
     /// Used to compare with user's counted amount (Real) before submit
     double? vaultLocationJournalAmount,
 
+    /// Real amount for selected vault location (from RPC)
+    /// Used in Flow transactions: Expected = Real + Flow, then compare with Journal
+    double? vaultLocationRealAmount,
+
     /// Loading state for fetching vault journal amount
     @Default(false) bool isLoadingVaultJournalAmount,
 

@@ -11,7 +11,9 @@ part 'sales_product_state.freezed.dart';
 class SalesProductState with _$SalesProductState {
   const factory SalesProductState({
     @Default([]) List<SalesProduct> products,
-    @Default(false) bool isLoading,
+    // 2025 Best Practice: Start with isLoading=true to show loading on first frame
+    // This prevents flash of empty content before data loads
+    @Default(true) bool isLoading,
     @Default(false) bool isLoadingMore,
     @Default(false) bool isRefreshing,
     String? errorMessage,

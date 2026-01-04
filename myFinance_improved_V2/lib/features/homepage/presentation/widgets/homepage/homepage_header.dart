@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../notifications/presentation/providers/notification_provider.dart';
@@ -60,9 +59,10 @@ class HomepageHeader extends ConsumerWidget {
                 onTap: () => _showCompanyStoreDrawer(context),
                 child: Row(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                      child: _buildSquareAvatar(ref),
+                    EmployeeProfileAvatar(
+                      imageUrl: appState.user['profile_image'] as String?,
+                      name: '${appState.user['user_first_name'] ?? ''} ${appState.user['user_last_name'] ?? ''}'.trim(),
+                      size: 33,
                     ),
                     const SizedBox(width: 13),
                     Expanded(
@@ -74,28 +74,16 @@ class HomepageHeader extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        companyName,
-                                        style: TossTextStyles.bodyLarge.copyWith(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: TossColors.textPrimary,
-                                          height: 1.2,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    SubscriptionBadge.fromPlanType(
-                                      appState.planType,
-                                      compact: true,
-                                    ),
-                                  ],
+                                Text(
+                                  companyName,
+                                  style: TossTextStyles.bodyLarge.copyWith(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: TossColors.textPrimary,
+                                    height: 1.2,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                                 Text(
                                   storeName,
@@ -161,66 +149,6 @@ class HomepageHeader extends ConsumerWidget {
     );
   }
 
-  Widget _buildSquareAvatar(WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final profileImage = appState.user['profile_image'] as String? ?? '';
-
-    if (profileImage.isNotEmpty) {
-      return Image.network(
-        profileImage,
-        width: 33,
-        height: 33,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildAvatarFallback(ref);
-        },
-      );
-    }
-
-    return _buildAvatarFallback(ref);
-  }
-
-  Widget _buildAvatarFallback(WidgetRef ref) {
-    return Container(
-      width: 33,
-      height: 33,
-      decoration: BoxDecoration(
-        color: TossColors.primarySurface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Center(
-        child: Text(
-          _getUserInitials(ref),
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.primary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _getUserInitials(WidgetRef ref) {
-    final appState = ref.watch(appStateProvider);
-    final firstName = appState.user['user_first_name'] as String? ?? '';
-    final lastName = appState.user['user_last_name'] as String? ?? '';
-
-    if (firstName.isEmpty && lastName.isEmpty) return 'U';
-
-    final firstInitial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '';
-    final lastInitial = lastName.isNotEmpty ? lastName[0].toUpperCase() : '';
-
-    if (firstInitial.isNotEmpty && lastInitial.isNotEmpty) {
-      return '$firstInitial$lastInitial';
-    } else if (firstInitial.isNotEmpty) {
-      return firstInitial;
-    } else if (lastInitial.isNotEmpty) {
-      return lastInitial;
-    }
-
-    return 'U';
-  }
-
   void _showCompanyStoreDrawer(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -277,7 +205,7 @@ class _IconGhost extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    badgeCount.toString(),
+                    badgeCount > 99 ? '99+' : badgeCount.toString(),
                     style: TossTextStyles.caption.copyWith(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,

@@ -12,7 +12,7 @@ import '../../domain/entities/counter_party.dart';
 import '../../domain/value_objects/counter_party_type.dart';
 import '../providers/counter_party_params.dart';
 import '../providers/counter_party_providers.dart';
-import 'form/company_dropdown.dart';
+// CompanyDropdown은 더 이상 사용하지 않음 - Internal counterparty는 시스템이 자동 관리
 import 'form/step_indicator.dart';
 import 'form/step_navigation.dart';
 import 'form/type_selector.dart';
@@ -38,8 +38,6 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
   final _notesController = TextEditingController();
   
   CounterPartyType _selectedType = CounterPartyType.other;
-  bool _isInternal = false;
-  String? _linkedCompanyId;
   bool _isLoading = false;
   
   // Step management
@@ -90,8 +88,6 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
     _addressController.text = counterParty.address ?? '';
     _notesController.text = counterParty.notes ?? '';
     _selectedType = counterParty.type;
-    _isInternal = counterParty.isInternal;
-    _linkedCompanyId = counterParty.linkedCompanyId;
   }
 
   @override
@@ -122,7 +118,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
     try {
       if (widget.counterParty == null) {
-        // Create new counter party
+        // Create new counter party (항상 external - internal은 시스템이 자동 생성)
         final params = CreateCounterPartyParams(
           companyId: companyId,
           name: _nameController.text.trim(),
@@ -131,8 +127,8 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
           address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
           notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-          isInternal: _isInternal,
-          linkedCompanyId: _linkedCompanyId,
+          isInternal: false,
+          linkedCompanyId: null,
         );
 
         await ref.read(createCounterPartyProvider(params).future);
@@ -145,7 +141,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           _showSuccess('Counter party created successfully');
         }
       } else {
-        // Update existing counter party
+        // Update existing counter party (internal 상태는 변경 불가 - 기존 값 유지)
         final params = UpdateCounterPartyParams(
           counterpartyId: widget.counterParty!.counterpartyId,
           companyId: companyId,
@@ -155,8 +151,8 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
           address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
           notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-          isInternal: _isInternal,
-          linkedCompanyId: _linkedCompanyId,
+          isInternal: widget.counterParty!.isInternal,
+          linkedCompanyId: widget.counterParty!.linkedCompanyId,
         );
 
         await ref.read(updateCounterPartyProvider(params).future);
@@ -391,6 +387,9 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
   }
 
   Widget _buildStep3AdditionalSettings() {
+    // 수정 모드에서 Internal counterparty인 경우 읽기 전용으로 표시
+    final isEditingInternal = widget.counterParty != null && widget.counterParty!.isInternal;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -408,83 +407,77 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
         const SizedBox(height: 24),
 
-        // Internal toggle
-        GestureDetector(
-          onTap: () => setState(() {
-            _isInternal = !_isInternal;
-            if (!_isInternal) _linkedCompanyId = null;
-          }),
-          child: Container(
+        // Internal 정보 표시 (수정 모드에서 Internal인 경우만)
+        if (isEditingInternal)
+          Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              color: _isInternal ? TossColors.primary.withValues(alpha: 0.05) : TossColors.gray50,
+              color: TossColors.info.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
-                color: _isInternal ? TossColors.primary.withValues(alpha: 0.3) : TossColors.gray200,
+                color: TossColors.info.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
-            child: Column(
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(TossSpacing.space2),
-                      decoration: BoxDecoration(
-                        color: _isInternal ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray100,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.link,
-                        size: 20,
-                        color: _isInternal ? TossColors.primary : TossColors.gray600,
-                      ),
-                    ),
-                    const SizedBox(width: TossSpacing.space3),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Internal Company',
-                            style: TossTextStyles.body.copyWith(
-                              color: TossColors.gray900,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Link to another company in your group',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch.adaptive(
-                      value: _isInternal,
-                      onChanged: (value) {
-                        setState(() {
-                          _isInternal = value;
-                          if (!value) _linkedCompanyId = null;
-                        });
-                      },
-                      activeTrackColor: TossColors.primary,
-                    ),
-                  ],
-                ),
-                if (_isInternal) ...[
-                  const SizedBox(height: TossSpacing.space4),
-                  CompanyDropdown(
-                    linkedCompanyId: _linkedCompanyId,
-                    onChanged: (value) => setState(() => _linkedCompanyId = value),
+                Container(
+                  padding: const EdgeInsets.all(TossSpacing.space2),
+                  decoration: BoxDecoration(
+                    color: TossColors.info.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
                   ),
-                ],
+                  child: const Icon(
+                    Icons.link,
+                    size: 20,
+                    color: TossColors.info,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Internal Company',
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray900,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'System managed - cannot be modified',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.info.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                  ),
+                  child: Text(
+                    'Auto',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.info,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
+
+        // 새로 만들기 모드에서는 Internal 토글 숨김 (시스템이 자동 생성)
+        // Internal counterparty는 ensure_inter_company_setup 함수로 자동 생성됨
 
         const SizedBox(height: TossSpacing.space4),
       ],
@@ -506,8 +499,6 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(unlinkedCompaniesProvider);
-
     return GestureDetector(
       onTap: () {
         // Dismiss keyboard when tapping outside of input fields
@@ -566,8 +557,8 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Delete button (only for edit mode)
-                        if (widget.counterParty != null) ...[
+                        // Delete button (only for edit mode, not for internal counterparties)
+                        if (widget.counterParty != null && !widget.counterParty!.isInternal) ...[
                           IconButton(
                             onPressed: _showDeleteConfirmation,
                             icon: const Icon(Icons.delete_outline, color: TossColors.error),

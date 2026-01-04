@@ -1,140 +1,113 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
-
-/// Currency input formatter that adds comma separators
-class CurrencyInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    if (newValue.text.isEmpty) {
-      return newValue;
-    }
-
-    // Remove all non-digit characters
-    final digitsOnly = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
-
-    if (digitsOnly.isEmpty) {
-      return const TextEditingValue(
-        text: '',
-        selection: TextSelection.collapsed(offset: 0),
-      );
-    }
-
-    // Format with commas
-    final formatted = _formatWithCommas(digitsOnly);
-
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
-
-  String _formatWithCommas(String value) {
-    return value.replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-  }
-}
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// A reusable price input row widget for product forms
 ///
 /// Used for price inputs in AddProductPage and EditProductPage.
-/// Automatically formats numbers with comma separators.
+/// Opens a custom numberpad modal for iOS-friendly decimal input.
 class FormPriceRow extends StatelessWidget {
   final String label;
   final TextEditingController controller;
-  final FocusNode focusNode;
-  final bool isFocused;
   final String placeholder;
   final String currencySymbol;
+
+  // Legacy parameters - kept for backward compatibility but no longer used
+  // ignore: unused_field
+  final FocusNode? focusNode;
+  // ignore: unused_field
+  final bool? isFocused;
 
   const FormPriceRow({
     super.key,
     required this.label,
     required this.controller,
-    required this.focusNode,
-    required this.isFocused,
     required this.placeholder,
     required this.currencySymbol,
+    this.focusNode, // Optional - no longer used with numberpad modal
+    this.isFocused, // Optional - no longer used with numberpad modal
   });
+
+  void _showNumberpadModal(BuildContext context) {
+    TossCurrencyExchangeModal.show(
+      context: context,
+      title: label,
+      initialValue: controller.text.isEmpty
+          ? null
+          : controller.text.replaceAll(',', ''),
+      allowDecimal: true,
+      maxDecimalPlaces: 2,
+      onConfirm: (result) {
+        final formatter = NumberFormat('#,##0.##', 'en_US');
+        final numericValue = double.tryParse(result) ?? 0;
+        if (numericValue > 0) {
+          controller.text = formatter.format(numericValue);
+        } else {
+          controller.text = '';
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool hasValue = controller.text.isNotEmpty;
+    // Use ValueListenableBuilder to listen for controller changes
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, child) {
+        final bool hasValue = value.text.isNotEmpty;
 
-    return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Label
-          Text(
-            label,
-            style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
-              color: TossColors.gray600,
-            ),
-          ),
-          // TextField, currency suffix and chevron
-          Expanded(
+        return GestureDetector(
+          onTap: () => _showNumberpadModal(context),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    textAlign: TextAlign.right,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      CurrencyInputFormatter(),
-                    ],
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: TossColors.gray900,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: isFocused || hasValue ? null : placeholder,
-                      hintStyle: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w400,
-                        color: TossColors.gray500,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      isDense: true,
-                    ),
+                // Label
+                Text(
+                  label,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: TossColors.gray600,
                   ),
                 ),
-                // Currency suffix
-                if (hasValue) ...[
-                  Text(
-                    currencySymbol,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: TossColors.gray900,
-                    ),
+                // Value display and chevron
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Display value or placeholder
+                      Flexible(
+                        child: Text(
+                          hasValue ? value.text : placeholder,
+                          textAlign: TextAlign.right,
+                          style: TossTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w400,
+                            color: hasValue ? TossColors.gray900 : TossColors.gray500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: TossColors.gray500,
+                      ),
+                    ],
                   ),
-                ],
-                const SizedBox(width: 6),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: TossColors.gray500,
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

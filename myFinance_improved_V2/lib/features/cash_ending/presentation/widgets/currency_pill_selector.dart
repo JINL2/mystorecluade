@@ -27,6 +27,10 @@ class CurrencyPillSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if there are additional currencies that can be added
+    // (more currencies available than currently selected)
+    final hasMoreCurrenciesToAdd = availableCurrencies.length > selectedCurrencyIds.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,19 +40,21 @@ class CurrencyPillSelector extends StatelessWidget {
             Text(
               'Currencies',
               style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray500,
+                color: TossColors.textSecondary, // Consistent with other labels
                 letterSpacing: 0.5,
               ),
             ),
-            TossButton.textButton(
-              text: 'Add currency',
-              onPressed: onAddCurrency,
-              leadingIcon: const Icon(Icons.add, size: 16),
-              textColor: TossColors.primary,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              padding: const EdgeInsets.only(right: 4),
-            ),
+            // Only show Add currency button if there are more currencies to add
+            if (hasMoreCurrenciesToAdd)
+              TossButton.textButton(
+                text: 'Add currency',
+                onPressed: onAddCurrency,
+                leadingIcon: const Icon(Icons.add, size: 16),
+                textColor: TossColors.primary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                padding: const EdgeInsets.only(right: 4),
+              ),
           ],
         ),
         const SizedBox(height: TossSpacing.space3),
@@ -62,7 +68,8 @@ class CurrencyPillSelector extends StatelessWidget {
             );
 
             return CategoryChip(
-              label: '${currency.currencyCode} ${currency.currencyName}',
+              // Add dot (•) between currency code and name for consistency
+              label: '${currency.currencyCode} • ${currency.currencyName}',
               onRemove: selectedCurrencyIds.length > 1 && onRemoveCurrency != null
                   ? () => onRemoveCurrency!(currencyId)
                   : null,

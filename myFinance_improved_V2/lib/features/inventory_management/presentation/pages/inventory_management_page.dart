@@ -38,9 +38,6 @@ class _InventoryManagementPageState
     extends ConsumerState<InventoryManagementPage> {
   final ScrollController _scrollController = ScrollController();
 
-  // Sorting (client-side only, RPC does not support sorting)
-  InventorySortOption? _currentSort; // null = database default order
-
   // Filter selections
   String _selectedAvailability = 'All products';
   String _selectedLocation = 'All locations'; // Will be updated from AppState in initState
@@ -76,9 +73,7 @@ class _InventoryManagementPageState
         _scrollController.position.maxScrollExtent - 200) {
       // Load next page when near bottom (200px threshold)
       final pageState = ref.read(inventoryPageNotifierProvider);
-      debugPrint('[InventoryPage] _onScroll: pixels=${_scrollController.position.pixels.toInt()}, max=${_scrollController.position.maxScrollExtent.toInt()}, canLoadMore=${pageState.canLoadMore}, isLoadingMore=${pageState.isLoadingMore}');
       if (pageState.canLoadMore) {
-        debugPrint('[InventoryPage] _onScroll: Calling loadNextPage()');
         ref.read(inventoryPageNotifierProvider.notifier).loadNextPage();
       }
     }
@@ -99,26 +94,9 @@ class _InventoryManagementPageState
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return TossAppBar(
+      title: 'Inventory',
       backgroundColor: TossColors.white,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      leading: IconButton(
-        onPressed: () => context.pop(),
-        icon: const Icon(
-          Icons.arrow_back,
-          color: TossColors.gray900,
-          size: 22,
-        ),
-      ),
-      title: Text(
-        'Inventory',
-        style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w700,
-          color: TossColors.gray900,
-        ),
-      ),
-      titleSpacing: 0,
       actions: [
         _buildAppBarIconButton(Icons.search, () {
           Navigator.of(context).push(
@@ -157,9 +135,8 @@ class _InventoryManagementPageState
   }
 
   Widget _buildBody(InventoryPageState pageState) {
-    // Apply local filtering and sorting (RPC doesn't support brand/category/stock filters)
-    List<Product> displayProducts = _applyLocalFilters(pageState.products);
-    displayProducts = _applyLocalSort(displayProducts);
+    // Server-side filtering and sorting is handled by RPC (get_inventory_page_v5)
+    final displayProducts = pageState.products;
 
     if (displayProducts.isEmpty && !pageState.isLoading) {
       return Column(
@@ -418,20 +395,27 @@ class _InventoryManagementPageState
     }
   }
 
-  /// Handle location (store) change - update AppState and refresh inventory
+  /// Handle location (store) change - update AppState and reset filters
   void _onLocationChanged(String storeName) {
     final appState = ref.read(appStateProvider);
     final storeInfo = _getStoreIdByName(storeName);
 
     if (storeInfo != null && storeInfo['store_id'] != appState.storeChoosen) {
+      // Reset UI filter selections
+      setState(() {
+        _selectedAvailability = 'All products';
+        _selectedBrand = 'All brands';
+        _selectedCategory = 'All categories';
+      });
+
       // Update AppState with new store selection
       ref.read(appStateProvider.notifier).selectStore(
         storeInfo['store_id']!,
         storeName: storeInfo['store_name'],
       );
 
-      // Refresh inventory data for the new store
-      ref.read(inventoryPageNotifierProvider.notifier).refresh();
+      // Clear all filters and refresh for new store
+      ref.read(inventoryPageNotifierProvider.notifier).clearFilters();
     }
   }
 
@@ -623,63 +607,32 @@ class _InventoryManagementPageState
     );
   }
 
-  /// Apply client-side filtering for brand, category, and stock status
-  /// RPC does not support these filters, so we filter locally
-  List<Product> _applyLocalFilters(List<Product> products) {
-    if (products.isEmpty) return products;
-
-    return products.where((product) {
-      // Brand filter
-      if (_selectedBrand != 'All brands') {
-        if (product.brandName != _selectedBrand) {
-          return false;
-        }
-      }
-
-      // Category filter
-      if (_selectedCategory != 'All categories') {
-        if (product.categoryName != _selectedCategory) {
-          return false;
-        }
-      }
-
-      // Availability (stock status) filter
-      if (_selectedAvailability != 'All products') {
-        final stockStatus = product.getStockStatus();
-        switch (_selectedAvailability) {
-          case 'In stock':
-            // Include normal, excess, and low stock (anything with stock > 0)
-            if (stockStatus == StockStatus.outOfStock) {
-              return false;
-            }
-          case 'Out of stock':
-            if (stockStatus != StockStatus.outOfStock) {
-              return false;
-            }
-          case 'Low stock':
-            // Include low and critical stock
-            if (stockStatus != StockStatus.low && stockStatus != StockStatus.critical) {
-              return false;
-            }
-        }
-      }
-
-      return true;
-    }).toList();
-  }
-
-  List<Product> _applyLocalSort(List<Product> products) {
-    return InventorySorter.applySort(products, _currentSort);
-  }
-
   void _showSortOptionsSheet() {
+    final pageState = ref.read(inventoryPageNotifierProvider);
+
+    // Convert current state to InventorySortOption for display
+    InventorySortOption? currentSort;
+    if (pageState.sortBy != null && pageState.sortDirection != null) {
+      currentSort = InventorySortOption.fromStrings(
+        pageState.sortBy!,
+        pageState.sortDirection!,
+      );
+    }
+
     InventorySortSheet.show(
       context: context,
-      currentSort: _currentSort,
+      currentSort: currentSort,
       onSortChanged: (newSort) {
-        setState(() {
-          _currentSort = newSort;
-        });
+        if (newSort == null) {
+          // Clear sort - use default (created_at desc)
+          ref.read(inventoryPageNotifierProvider.notifier).setSorting('created_at', 'desc');
+        } else {
+          // Apply server-side sorting
+          ref.read(inventoryPageNotifierProvider.notifier).setSorting(
+            newSort.sortBy,
+            newSort.sortDirection,
+          );
+        }
       },
     );
   }

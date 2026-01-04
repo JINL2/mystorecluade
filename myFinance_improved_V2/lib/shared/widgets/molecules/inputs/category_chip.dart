@@ -25,7 +25,7 @@ class CategoryChip extends StatelessWidget {
   });
 
   // Chip-specific constants (aligned with TossSpacing)
-  static const double _chipBorderRadius = TossBorderRadius.xxl; // 20.0
+  static const double _chipBorderRadius = TossBorderRadius.lg; // 12.0 - matches dropdown/button style
   static const double _chipIconSize = 14.0; // Small icon for chips
 
   @override
@@ -41,11 +41,12 @@ class CategoryChip extends StatelessWidget {
             vertical: TossSpacing.space2,
           ),
           decoration: BoxDecoration(
-            color: backgroundColor ?? TossColors.gray100,
+            color: backgroundColor ?? TossColors.white,
             borderRadius: BorderRadius.circular(_chipBorderRadius),
-            border: borderColor != null
-                ? Border.all(color: borderColor!, width: 1)
-                : null,
+            border: Border.all(
+              color: borderColor ?? TossColors.gray200,
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

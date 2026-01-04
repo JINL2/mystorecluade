@@ -19,8 +19,9 @@ class SalesProductNotifier extends _$SalesProductNotifier {
 
   @override
   SalesProductState build() {
-    // Auto-load products on build
-    Future.microtask(() => loadProducts());
+    // 2025 Best Practice: Don't auto-load in build()
+    // Let the page control when to load for better optimization
+    // This prevents duplicate API calls when page explicitly calls loadProducts()
     return const SalesProductState();
   }
 

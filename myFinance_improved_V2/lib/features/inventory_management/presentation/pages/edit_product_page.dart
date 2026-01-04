@@ -612,19 +612,14 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return TossAppBar(
+      title: 'Edit product',
+      backgroundColor: TossColors.white,
+      automaticallyImplyLeading: false,
       leading: IconButton(
-        icon: const Icon(Icons.close),
+        icon: const Icon(Icons.close, color: TossColors.gray900),
         onPressed: () => context.pop(),
       ),
-      title: Text(
-        'Edit product',
-        style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w700),
-      ),
-      centerTitle: true,
-      elevation: 0,
-      backgroundColor: TossColors.white,
-      foregroundColor: TossColors.gray900,
     );
   }
 

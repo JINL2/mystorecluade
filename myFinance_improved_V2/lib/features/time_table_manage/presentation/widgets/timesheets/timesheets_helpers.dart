@@ -171,7 +171,7 @@ mixin TimesheetsHelpersMixin<T extends ConsumerStatefulWidget> on ConsumerState<
       int? overtimeMinutes;
 
       for (final problemItem in pd.problems) {
-        if (problemItem.isSolved) continue;
+        if (problemItem.isSolved == true) continue;
 
         final problemType = mapProblemItemToType(problemItem.type);
         if (problemType != null) {
@@ -337,8 +337,8 @@ mixin TimesheetsHelpersMixin<T extends ConsumerStatefulWidget> on ConsumerState<
         final clockOutStr = formatTimeFromString(clockOutRaw);
 
         final pd = detailedCard?.problemDetails;
-        final hasLate = pd?.problems.any((p) => p.type == 'late' && !p.isSolved) ?? false;
-        final hasOvertime = pd?.problems.any((p) => p.type == 'overtime' && !p.isSolved) ?? false;
+        final hasLate = pd?.problems.any((p) => p.type == 'late' && p.isSolved != true) ?? false;
+        final hasOvertime = pd?.problems.any((p) => p.type == 'overtime' && p.isSolved != true) ?? false;
         final reportedProblem = pd?.problems.where((p) => p.type == 'reported').firstOrNull;
         final isReported = reportedProblem != null;
         final lateProblem = pd?.problems.where((p) => p.type == 'late').firstOrNull;
@@ -395,7 +395,7 @@ mixin TimesheetsHelpersMixin<T extends ConsumerStatefulWidget> on ConsumerState<
         if (pd != null && pd.problemCount > 0) {
           if (isInProgress) {
             final realProblems = pd.problems.where((p) =>
-              !p.isSolved &&
+              p.isSolved != true &&
               p.type != 'no_checkout' &&
               p.type != 'absence'
             ).toList();

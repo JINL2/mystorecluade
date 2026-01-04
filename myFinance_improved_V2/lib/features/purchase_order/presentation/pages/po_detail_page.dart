@@ -7,7 +7,9 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
 import '../../../trade_shared/presentation/services/trade_pdf_service.dart';
+import '../../../trade_shared/presentation/widgets/trade_amount_display.dart';
 import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 import '../../domain/entities/purchase_order.dart';
 import '../providers/po_providers.dart';
@@ -356,26 +358,82 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
   }
 
   Widget _buildItemsSection(PurchaseOrder po) {
+    // Get exchange rate data
+    final exchangeRateAsync = ref.watch(tradeExchangeRateProvider(po.companyId));
+
+    return exchangeRateAsync.when(
+      loading: () => _buildItemsSectionContent(po, null),
+      error: (_, __) => _buildItemsSectionContent(po, null),
+      data: (exchangeRateData) => _buildItemsSectionContent(po, exchangeRateData),
+    );
+  }
+
+  Widget _buildItemsSectionContent(PurchaseOrder po, TradeExchangeRateData? exchangeRateData) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TradeSectionHeader(title: 'Items', badge: '${po.items.length}'),
         const SizedBox(height: TossSpacing.space2),
-        ...po.items
-            .map((item) => _POItemCard(item: item, currencyCode: po.currencyCode)),
+        ...po.items.map((item) => _POItemCard(
+              item: item,
+              currencyCode: po.currencyCode,
+              exchangeRateData: exchangeRateData,
+            )),
       ],
     );
   }
 
   Widget _buildTotalsSection(PurchaseOrder po) {
+    // Get exchange rate data
+    final exchangeRateAsync = ref.watch(tradeExchangeRateProvider(po.companyId));
+
+    return exchangeRateAsync.when(
+      loading: () => _buildTotalsSectionContent(po, null),
+      error: (_, __) => _buildTotalsSectionContent(po, null),
+      data: (exchangeRateData) => _buildTotalsSectionContent(po, exchangeRateData),
+    );
+  }
+
+  Widget _buildTotalsSectionContent(PurchaseOrder po, TradeExchangeRateData? exchangeRateData) {
+    // Calculate converted amount
+    final baseCurrency = exchangeRateData?.baseCurrencyCode;
+    final showDualCurrency = baseCurrency != null && baseCurrency != po.currencyCode;
+    final rate = exchangeRateData?.getRate(po.currencyCode);
+    final convertedTotal = showDualCurrency && rate != null ? po.totalAmount * rate : null;
+
     return TradeSimpleCard(
       child: Column(
         children: [
-          _InfoRow(
+          TradeDualCurrencyInfoRow(
             label: 'Total',
-            value: '${po.currencyCode} ${_formatAmount(po.totalAmount)}',
-            isBold: true,
+            primaryCurrency: po.currencyCode,
+            primaryAmount: po.totalAmount,
+            secondaryCurrency: baseCurrency,
+            secondaryAmount: convertedTotal,
+            highlight: true,
           ),
+          // Show exchange rate info
+          if (showDualCurrency && rate != null)
+            Padding(
+              padding: const EdgeInsets.only(
+                top: TossSpacing.space2,
+                right: TossSpacing.space3,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.info_outline, size: 12, color: TossColors.gray400),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Rate: 1 ${po.currencyCode} = ${_formatAmountForCurrency(rate, baseCurrency!)} $baseCurrency',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray400,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -395,6 +453,14 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
   }
 
   String _formatAmount(double amount) {
+    return NumberFormat('#,##0.00').format(amount);
+  }
+
+  String _formatAmountForCurrency(double amount, String currency) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currency)) {
+      return NumberFormat('#,##0').format(amount);
+    }
     return NumberFormat('#,##0.00').format(amount);
   }
 
@@ -625,13 +691,32 @@ class _InfoRow extends StatelessWidget {
 class _POItemCard extends StatelessWidget {
   final POItem item;
   final String currencyCode;
+  final TradeExchangeRateData? exchangeRateData;
 
-  const _POItemCard({required this.item, required this.currencyCode});
+  const _POItemCard({
+    required this.item,
+    required this.currencyCode,
+    this.exchangeRateData,
+  });
+
+  String _formatAmountForCurrency(double amount, String currency) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currency)) {
+      return NumberFormat('#,##0').format(amount);
+    }
+    return NumberFormat('#,##0.00').format(amount);
+  }
 
   @override
   Widget build(BuildContext context) {
     final hasShipped = item.shippedQuantity > 0;
     final remainingQty = item.quantity - item.shippedQuantity;
+
+    // Calculate converted amount
+    final baseCurrency = exchangeRateData?.baseCurrencyCode;
+    final showDualCurrency = baseCurrency != null && baseCurrency != currencyCode;
+    final rate = exchangeRateData?.getRate(currencyCode);
+    final convertedTotal = showDualCurrency && rate != null ? item.totalAmount * rate : null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
@@ -703,14 +788,24 @@ class _POItemCard extends StatelessWidget {
 
           const SizedBox(height: TossSpacing.space2),
 
-          // Line total
+          // Line total with dual currency
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(
-                '$currencyCode ${NumberFormat('#,##0.00').format(item.totalAmount)}',
-                style: TossTextStyles.bodyMedium
-                    .copyWith(fontWeight: FontWeight.w600),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$currencyCode ${NumberFormat('#,##0.00').format(item.totalAmount)}',
+                    style: TossTextStyles.bodyMedium
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  if (showDualCurrency && convertedTotal != null)
+                    Text(
+                      '≈ ${exchangeRateData!.baseCurrencySymbol}${_formatAmountForCurrency(convertedTotal, baseCurrency!)}',
+                      style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+                    ),
+                ],
               ),
             ],
           ),

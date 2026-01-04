@@ -1,34 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/monitoring/sentry_config.dart';
-// Use feature-level providers (Clean Architecture compliant)
 import '../providers/journal_input_providers.dart';
-// 🧮 Exchange rate calculator (Autonomous Selector)
 import 'package:myfinance_improved/shared/widgets/selectors/exchange_rate/index.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
-// Autonomous Selectors
-import '../../domain/entities/debt_category.dart';
 import '../../domain/entities/transaction_line.dart';
+import '../../../../core/domain/entities/selector_entities.dart';
 
 // Extracted widgets
 import 'add_transaction/add_transaction_widgets.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class AddTransactionDialog extends ConsumerStatefulWidget {
   final TransactionLine? existingLine;
   final bool? initialIsDebit;
   final double? suggestedAmount;
   final Set<String>? blockedCashLocationIds;
-  
+
   const AddTransactionDialog({
     super.key,
     this.existingLine,
@@ -36,7 +30,7 @@ class AddTransactionDialog extends ConsumerStatefulWidget {
     this.suggestedAmount,
     this.blockedCashLocationIds,
   });
-  
+
   @override
   ConsumerState<AddTransactionDialog> createState() => _AddTransactionDialogState();
 }
@@ -47,51 +41,51 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   String? _selectedAccountName;
   String? _selectedCategoryTag;
   String? _selectedCounterpartyId;
-  bool _hasMultipleCurrencies = false;  // Track if multiple currencies exist
+  bool _hasMultipleCurrencies = false;
   String? _selectedCounterpartyName;
   String? _selectedCounterpartyStoreId;
   String? _selectedCounterpartyStoreName;
   String? _selectedCashLocationId;
-  String? _selectedCashLocationName;  // ✅ NEW: Cash location name
-  String? _selectedCashLocationType;  // ✅ NEW: Cash location type
+  String? _selectedCashLocationName;
+  String? _selectedCashLocationType;
   String? _selectedCounterpartyCashLocationId;
   String? _linkedCompanyId;
   bool _isInternal = false;
-  
+
   // Debt fields
   String? _debtCategory;
   final _interestRateController = TextEditingController();
   DateTime? _issueDate;
   DateTime? _dueDate;
   final _debtDescriptionController = TextEditingController();
-  
+
   // Fixed asset fields
   final _fixedAssetNameController = TextEditingController();
   final _salvageValueController = TextEditingController();
   DateTime? _acquisitionDate;
   final _usefulLifeController = TextEditingController();
-  
+
   // Common fields
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
+
   // Focus nodes for keyboard navigation
   final _amountFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
   final _interestRateFocusNode = FocusNode();
-  
+
   // Account mapping
   Map<String, dynamic>? _accountMapping;
   String? _mappingError;
-  
+
   @override
   void initState() {
     super.initState();
-    
-    // Check for multiple currencies
     _checkForMultipleCurrencies();
-    
-    // Initialize with existing line data if editing
+    _initializeFromExistingLine();
+  }
+
+  void _initializeFromExistingLine() {
     if (widget.existingLine != null) {
       final line = widget.existingLine!;
       _isDebit = line.isDebit;
@@ -103,80 +97,69 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       _selectedCounterpartyStoreId = line.counterpartyStoreId;
       _selectedCounterpartyStoreName = line.counterpartyStoreName;
       _selectedCashLocationId = line.cashLocationId;
-      _selectedCashLocationName = line.cashLocationName; // ✅ Load cash location name
-      _selectedCashLocationType = line.cashLocationType; // ✅ Load cash location type
-      _selectedCounterpartyCashLocationId = line.counterpartyCashLocationId; // Load existing counterparty cash location
-      // Format amount with thousand separators
+      _selectedCashLocationName = line.cashLocationName;
+      _selectedCashLocationType = line.cashLocationType;
+      _selectedCounterpartyCashLocationId = line.counterpartyCashLocationId;
+
       final formatter = NumberFormat('#,##0.##', 'en_US');
       _amountController.text = formatter.format(line.amount);
       _descriptionController.text = line.description ?? '';
-      
-      // Check if counterparty exists and get its details to set _isInternal and _linkedCompanyId
+
       if (_selectedCounterpartyId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           await _loadCounterpartyDetails();
         });
       }
-      
+
       // Debt fields
       _debtCategory = line.debtCategory;
       _interestRateController.text = (line.interestRate ?? 0).toString();
       _issueDate = line.issueDate;
       _dueDate = line.dueDate;
       _debtDescriptionController.text = line.debtDescription ?? '';
-      
+
       // Fixed asset fields
       _fixedAssetNameController.text = line.fixedAssetName ?? '';
       _salvageValueController.text = (line.salvageValue ?? 0).toString();
       _acquisitionDate = line.acquisitionDate;
       _usefulLifeController.text = (line.usefulLife ?? 5).toString();
-      
+
       _accountMapping = line.accountMapping;
     } else {
       _isDebit = widget.initialIsDebit ?? true;
       _issueDate = DateTime.now();
-      _dueDate = null; // Default to null for due date
+      _dueDate = null;
       _acquisitionDate = DateTime.now();
-      _interestRateController.text = '0'; // Default interest rate to 0
-      
-      // Pre-fill amount if suggested
+      _interestRateController.text = '0';
+
       if (widget.suggestedAmount != null) {
         final formatter = NumberFormat('#,##0.##', 'en_US');
         _amountController.text = formatter.format(widget.suggestedAmount);
       }
     }
   }
-  
+
   Future<void> _checkForMultipleCurrencies() async {
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
-    
+
     if (companyId.isEmpty) {
-      setState(() {
-        _hasMultipleCurrencies = false;
-      });
+      setState(() => _hasMultipleCurrencies = false);
       return;
     }
-    
+
     try {
-      // Use the shared exchange rate selector provider
       final exchangeRatesData = await ref.read(
         calculatorExchangeRateDataProvider(CalculatorExchangeRateParams(companyId: companyId)).future,
       );
-      
+
       final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
-      // Show calculator only if there are multiple currencies (more than just base currency)
-      setState(() {
-        _hasMultipleCurrencies = exchangeRates.length > 1;
-      });
-        } catch (e) {
-      // If there's an error, hide the calculator button
-      setState(() {
-        _hasMultipleCurrencies = false;
-      });
+      setState(() => _hasMultipleCurrencies = exchangeRates.length > 1);
+    } catch (e) {
+      setState(() => _hasMultipleCurrencies = false);
     }
   }
-  
+
   @override
   void dispose() {
     _amountController.dispose();
@@ -191,7 +174,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
     _interestRateFocusNode.dispose();
     super.dispose();
   }
-  
+
   Future<void> _loadCounterpartyDetails() async {
     if (_selectedCounterpartyId == null) return;
 
@@ -222,7 +205,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       }
     }
   }
-  
+
   Future<void> _checkAccountMapping() async {
     if (_selectedAccountId == null ||
         _selectedCounterpartyId == null ||
@@ -235,9 +218,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       return;
     }
 
-    setState(() {
-      _mappingError = null;
-    });
+    setState(() => _mappingError = null);
 
     try {
       final appState = ref.read(appStateProvider);
@@ -264,108 +245,40 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
           'counterpartyId': _selectedCounterpartyId,
         },
       );
-      setState(() {
-        _mappingError = 'Error checking account mapping';
-      });
+      setState(() => _mappingError = 'Error checking account mapping');
     }
   }
-  
+
   void _showMappingRequiredDialog() {
-    showDialog(
+    MappingRequiredDialog.show(
       context: context,
-      barrierDismissible: true, // Allow tap-outside-to-dismiss for error dialogs
-      builder: (BuildContext dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(TossSpacing.space6),
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: TossColors.warning.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.warning_amber_rounded,
-                    color: TossColors.warning,
-                    size: 36,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Account Mapping Required',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: TossColors.gray900,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: TossSpacing.space3),
-                Text(
-                  'This internal counterparty requires an account mapping to be set up first.',
-                  style: TossTextStyles.body.copyWith(
-                    fontSize: 15,
-                    color: TossColors.gray600,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                // "Set Up" button - navigate to Account Settings
-                TossButton.primary(
-                  text: 'Set Up Account Mapping',
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop(); // Close dialog
-                    Navigator.of(context).pop(); // Close AddTransactionDialog
-                    // Navigate to debt account settings page
-                    if (_selectedCounterpartyId != null && _selectedCounterpartyName != null) {
-                      context.pushNamed(
-                        'debtAccountSettings',
-                        pathParameters: {
-                          'counterpartyId': _selectedCounterpartyId!,
-                          'name': _selectedCounterpartyName!,
-                        },
-                      );
-                    }
-                  },
-                  fullWidth: true,
-                ),
-                const SizedBox(height: TossSpacing.space2),
-                // "Cancel" button - reset selection
-                TossButton.textButton(
-                  text: 'Cancel',
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                    // Reset counterparty selection
-                    setState(() {
-                      _selectedCounterpartyId = null;
-                      _selectedCounterpartyName = null;
-                      _selectedCounterpartyStoreId = null;
-                      _selectedCounterpartyStoreName = null;
-                      _linkedCompanyId = null;
-                      _isInternal = false;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
+      counterpartyId: _selectedCounterpartyId,
+      counterpartyName: _selectedCounterpartyName,
+      onSetupPressed: () {
+        Navigator.of(context).pop();
+        if (_selectedCounterpartyId != null && _selectedCounterpartyName != null) {
+          context.pushNamed(
+            'debtAccountSettings',
+            pathParameters: {
+              'counterpartyId': _selectedCounterpartyId!,
+              'name': _selectedCounterpartyName!,
+            },
+          );
+        }
+      },
+      onCancelPressed: () {
+        setState(() {
+          _selectedCounterpartyId = null;
+          _selectedCounterpartyName = null;
+          _selectedCounterpartyStoreId = null;
+          _selectedCounterpartyStoreName = null;
+          _linkedCompanyId = null;
+          _isInternal = false;
+        });
       },
     );
   }
-  
-  
+
   void _showNumberpadModal() {
     if (!mounted) return;
 
@@ -377,17 +290,14 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
         : _amountController.text.replaceAll(',', ''),
       allowDecimal: true,
       onConfirm: (result) {
-        // Check mounted before updating state
         if (!mounted) return;
-
-        // Format the result with thousand separators
         final formatter = NumberFormat('#,##0.##', 'en_US');
         final numericValue = double.tryParse(result) ?? 0;
         _amountController.text = formatter.format(numericValue);
       },
     );
   }
-  
+
   void _showExchangeRateCalculator() {
     showModalBottomSheet<void>(
       context: context,
@@ -413,7 +323,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   }
 
   void _saveTransaction() {
-    // Remove commas before parsing
     final amountText = _amountController.text.replaceAll(',', '');
     final amount = double.tryParse(amountText) ?? 0;
 
@@ -431,7 +340,6 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       return;
     }
 
-    // Check if mapping is required but not found
     if (_isInternal &&
         (_selectedCategoryTag == 'payable' || _selectedCategoryTag == 'receivable') &&
         _accountMapping == null) {
@@ -447,7 +355,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       );
       return;
     }
-    
+
     final transactionLine = TransactionLine(
       accountId: _selectedAccountId,
       accountName: _selectedAccountName,
@@ -460,10 +368,10 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       counterpartyStoreId: _selectedCounterpartyStoreId,
       counterpartyStoreName: _selectedCounterpartyStoreName,
       cashLocationId: _selectedCashLocationId,
-      cashLocationName: _selectedCashLocationName, // ✅ Use data from callback
-      cashLocationType: _selectedCashLocationType, // ✅ Use data from callback
+      cashLocationName: _selectedCashLocationName,
+      cashLocationType: _selectedCashLocationType,
       linkedCompanyId: _linkedCompanyId,
-      counterpartyCashLocationId: _selectedCounterpartyCashLocationId, // Add counterparty cash location
+      counterpartyCashLocationId: _selectedCounterpartyCashLocationId,
       debtCategory: _debtCategory,
       interestRate: double.tryParse(_interestRateController.text),
       issueDate: _issueDate,
@@ -475,20 +383,16 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       usefulLife: int.tryParse(_usefulLifeController.text),
       accountMapping: _accountMapping,
     );
-    
+
     Navigator.of(context).pop(transactionLine);
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Dismiss keyboard when tapping outside of text fields
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        // No padding needed since footer is conditionally hidden
         decoration: const BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.only(
@@ -501,371 +405,203 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
             maxHeight: (MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom) * 0.8,
           ),
           child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header
-          DialogHeader(isEditing: widget.existingLine != null),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              DialogHeader(isEditing: widget.existingLine != null),
 
-          // Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(TossSpacing.space5).copyWith(
-                bottom: TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
-              ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Transaction Type Toggle
-                    const SectionTitle(title: 'Transaction Type'),
-                    const SizedBox(height: TossSpacing.space2),
-                    DebitCreditToggle(
-                      isDebit: _isDebit,
-                      onChanged: (isDebit) {
-                        setState(() {
-                          _isDebit = isDebit;
-                        });
-                      },
-                    ),
-                    
-                    const SizedBox(height: 20),
-
-                    // Account Selection - EnhancedAccountSelector
-                    EnhancedAccountSelector(
-                      selectedAccountId: _selectedAccountId,
-                      contextType: 'journal_entry',
-                      onAccountSelected: (account) {
-                        setState(() {
-                          _selectedAccountId = account.id;
-                          _selectedAccountName = account.name;
-                          _selectedCategoryTag = account.categoryTag;
-                          // Reset all dependent fields when account changes
-                          _selectedCashLocationId = null;
-                          _selectedCounterpartyId = null;
-                          _selectedCounterpartyName = null;
-                          _selectedCounterpartyStoreId = null;
-                          _selectedCounterpartyStoreName = null;
-                          _linkedCompanyId = null;
-                          _isInternal = false;
-                          _accountMapping = null;
-                          _mappingError = null;
-                        });
-                      },
-                      label: 'Account',
-                      hint: 'Select account',
-                      showSearch: true,
-                      showTransactionCount: false,
-                      showQuickAccess: true,
-                      maxQuickItems: 5,
-                    ),
-                    
-                    // Cash Location Selection - AutonomousCashLocationSelector
-                    if (_selectedCategoryTag == 'cash') ...[
-                      const SizedBox(height: 20),
-                      AutonomousCashLocationSelector(
-                        selectedLocationId: _selectedCashLocationId,
-                        blockedLocationIds: widget.blockedCashLocationIds,
-                        onCashLocationSelected: (cashLocation) {
-                          setState(() {
-                            _selectedCashLocationId = cashLocation.id;
-                            _selectedCashLocationName = cashLocation.name;
-                            _selectedCashLocationType = cashLocation.type;
-                          });
-                        },
-                        onChanged: (locationId) {
-                          if (locationId == null) {
-                            setState(() {
-                              _selectedCashLocationId = null;
-                              _selectedCashLocationName = null;
-                              _selectedCashLocationType = null;
-                            });
-                          }
-                        },
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(TossSpacing.space5).copyWith(
+                    bottom: TossSpacing.space5 + MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Transaction Type Toggle
+                      const SectionTitle(title: 'Transaction Type'),
+                      const SizedBox(height: TossSpacing.space2),
+                      DebitCreditToggle(
+                        isDebit: _isDebit,
+                        onChanged: (isDebit) => setState(() => _isDebit = isDebit),
                       ),
-                    ],
-                    
-                    // Payable/Receivable specific fields
-                    if (_selectedCategoryTag != null && (_selectedCategoryTag!.toLowerCase() == 'payable' || _selectedCategoryTag!.toLowerCase() == 'receivable')) ...[
-                      const SizedBox(height: 20),
-                      // Counterparty Selection - AutonomousCounterpartySelector
-                      AutonomousCounterpartySelector(
-                        selectedCounterpartyId: _selectedCounterpartyId,
-                        label: _selectedCategoryTag == 'payable'
-                            ? 'Counterparty (Supplier/Vendor)'
-                            : _selectedCategoryTag == 'receivable'
-                                ? 'Counterparty (Customer)'
-                                : 'Counterparty',
-                        hint: _selectedCategoryTag == 'payable'
-                            ? 'Select Supplier/Vendor'
-                            : _selectedCategoryTag == 'receivable'
-                                ? 'Select Customer'
-                                : 'Select Counterparty',
-                        onCounterpartySelected: (counterparty) {
-                          setState(() {
-                            _selectedCounterpartyId = counterparty.id;
-                            _selectedCounterpartyName = counterparty.name;
-                            _isInternal = counterparty.isInternal;
-                            _linkedCompanyId = counterparty.linkedCompanyId;
 
-                            // Reset dependent fields
-                            _selectedCounterpartyStoreId = null;
-                            _selectedCounterpartyStoreName = null;
-                            _selectedCounterpartyCashLocationId = null;
-                          });
+                      const SizedBox(height: TossSpacing.space5),
 
-                          _checkAccountMapping();
-                        },
-                        onChanged: (counterpartyId) {
-                          if (counterpartyId == null) {
-                            setState(() {
-                              _selectedCounterpartyId = null;
-                              _selectedCounterpartyName = null;
-                              _isInternal = false;
-                              _linkedCompanyId = null;
-                              _selectedCounterpartyStoreId = null;
-                              _selectedCounterpartyStoreName = null;
-                              _selectedCounterpartyCashLocationId = null;
-                            });
-                          }
-                        },
-                      ),
-                      
-                      // Enhanced Counterparty Store Selection
-                      if (_linkedCompanyId != null) ...[
-                        const SizedBox(height: 20),
-                        CounterpartyStorePicker(
-                          linkedCompanyId: _linkedCompanyId,
-                          selectedStoreId: _selectedCounterpartyStoreId,
-                          selectedStoreName: _selectedCounterpartyStoreName,
-                          onStoreSelected: (storeId, storeName) {
-                            setState(() {
-                              _selectedCounterpartyStoreId = storeId;
-                              _selectedCounterpartyStoreName = storeName;
-                              _selectedCounterpartyCashLocationId = null;
-                            });
-                          },
-                        ),
-                      ],
-                      
-                      // Counterparty Cash Location Selection - AutonomousCashLocationSelector
-                      if (_linkedCompanyId != null) ...[
-                        const SizedBox(height: 20),
-                        AutonomousCashLocationSelector(
-                          companyId: _linkedCompanyId,
-                          storeId: _selectedCounterpartyStoreId,
-                          selectedLocationId: _selectedCounterpartyCashLocationId,
-                          label: 'Counterparty Cash Location',
-                          hint: 'Select counterparty cash location',
-                          showScopeTabs: false,
-                          storeOnly: true,
+                      // Account Selection
+                      _buildAccountSelector(),
+
+                      // Cash Location Section (for cash accounts)
+                      if (_selectedCategoryTag == 'cash') ...[
+                        const SizedBox(height: TossSpacing.space5),
+                        CashLocationSection(
+                          selectedLocationId: _selectedCashLocationId,
                           blockedLocationIds: widget.blockedCashLocationIds,
                           onCashLocationSelected: (cashLocation) {
                             setState(() {
-                              _selectedCounterpartyCashLocationId = cashLocation.id;
+                              _selectedCashLocationId = cashLocation.id;
+                              _selectedCashLocationName = cashLocation.name;
+                              _selectedCashLocationType = cashLocation.type;
                             });
                           },
-                          onChanged: (locationId) {
+                          onLocationIdChanged: (locationId) {
                             if (locationId == null) {
                               setState(() {
-                                _selectedCounterpartyCashLocationId = null;
+                                _selectedCashLocationId = null;
+                                _selectedCashLocationName = null;
+                                _selectedCashLocationType = null;
                               });
                             }
                           },
                         ),
                       ],
-                      
-                      // Account Mapping Status
-                      AccountMappingStatus(
-                        isInternal: _isInternal,
-                        accountMapping: _accountMapping,
-                        mappingError: _mappingError,
+
+                      // Payable/Receivable specific fields
+                      if (_isPayableOrReceivable) ...[
+                        const SizedBox(height: TossSpacing.space5),
+                        _buildCounterpartySection(),
+
+                        // Debt Information
+                        const SizedBox(height: TossSpacing.space5),
+                        DebtInformationSection(
+                          selectedDebtCategory: _debtCategory,
+                          interestRateController: _interestRateController,
+                          interestRateFocusNode: _interestRateFocusNode,
+                          issueDate: _issueDate,
+                          dueDate: _dueDate,
+                          onDebtCategoryChanged: (value) => setState(() => _debtCategory = value),
+                          onIssueDateChanged: (date) => setState(() => _issueDate = date),
+                          onDueDateChanged: (date) => setState(() => _dueDate = date),
+                          onInterestRateSubmitted: () => _amountFocusNode.requestFocus(),
+                        ),
+                      ],
+
+                      // Amount Section
+                      const SizedBox(height: TossSpacing.space5),
+                      AmountInputSection(
+                        controller: _amountController,
+                        focusNode: _amountFocusNode,
+                        hasMultipleCurrencies: _hasMultipleCurrencies,
+                        onAmountTap: _showNumberpadModal,
+                        onCalculatorTap: _showExchangeRateCalculator,
                       ),
-                      
-                      // Debt Information
-                      const SizedBox(height: 20),
-                      TossDropdown<String>(
-                        label: 'Debt Category',
-                        value: _debtCategory,
-                        hint: 'Select debt category',
-                        items: DebtCategory.values.map((category) => TossDropdownItem<String>(
-                          value: category.value,
-                          label: category.displayName,
-                        ),).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _debtCategory = value;
-                          });
-                        },
-                      ),
-                      
-                      const SizedBox(height: TossSpacing.space4),
-                      const SectionTitle(title: 'Interest Rate'),
-                      const SizedBox(height: TossSpacing.space2),
-                      _buildTextField(
-                        controller: _interestRateController,
-                        hint: 'Enter interest rate',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        focusNode: _interestRateFocusNode,
-                        textInputAction: TextInputAction.next,
-                        onSubmitted: (_) {
-                          _amountFocusNode.requestFocus();
-                        },
-                      ),
-                      
-                      const SizedBox(height: TossSpacing.space4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SectionTitle(title: 'Issue Date'),
-                                const SizedBox(height: TossSpacing.space2),
-                                FormDatePicker(
-                                  date: _issueDate,
-                                  onChanged: (date) {
-                                    setState(() {
-                                      _issueDate = date;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: TossSpacing.space4),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SectionTitle(title: 'Due Date'),
-                                const SizedBox(height: TossSpacing.space2),
-                                FormDatePicker(
-                                  date: _dueDate,
-                                  onChanged: (date) {
-                                    setState(() {
-                                      _dueDate = date;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+
+                      // Description Section
+                      const SizedBox(height: TossSpacing.space5),
+                      DescriptionInputSection(
+                        controller: _descriptionController,
+                        focusNode: _descriptionFocusNode,
                       ),
                     ],
-                    
-                    // Amount
-                    const SizedBox(height: 20),
-                    const SectionTitle(title: 'Amount *'),
-                    const SizedBox(height: TossSpacing.space2),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _showNumberpadModal(),
-                            child: AbsorbPointer(
-                              child: _buildTextField(
-                                controller: _amountController,
-                                hint: 'Enter amount',
-                                keyboardType: TextInputType.none,
-                                focusNode: _amountFocusNode,
-                                textInputAction: TextInputAction.next,
-                                onSubmitted: (_) {
-                                  _descriptionFocusNode.requestFocus();
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (_hasMultipleCurrencies) ...[
-                          const SizedBox(width: TossSpacing.space2),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: TossColors.primary,
-                              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: TossColors.primary.withValues(alpha: 0.25),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Material(
-                              color: TossColors.transparent,
-                              child: InkWell(
-                                onTap: _showExchangeRateCalculator,
-                                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                                child: Container(
-                                  padding: const EdgeInsets.all(TossSpacing.space3),
-                                  child: const Icon(
-                                    Icons.calculate_outlined,
-                                    color: TossColors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    
-                    // Description
-                    const SizedBox(height: 20),
-                    const SectionTitle(title: 'Description (Optional)'),
-                    const SizedBox(height: TossSpacing.space2),
-                    _buildTextField(
-                      controller: _descriptionController,
-                      hint: 'Enter description',
-                      maxLines: 2,
-                      focusNode: _descriptionFocusNode,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) {
-                        FocusScope.of(context).unfocus();
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-            
-            // Footer with SafeArea - Hide when keyboard is visible
-            DialogFooter(
-              isEditing: widget.existingLine != null,
-              onSave: _saveTransaction,
-            ),
-          ],
+
+              // Footer
+              DialogFooter(
+                isEditing: widget.existingLine != null,
+                onSave: _saveTransaction,
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
-  
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    int maxLines = 1,
-    FocusNode? focusNode,
-    TextInputAction? textInputAction,
-    ValueChanged<String>? onSubmitted,
-  }) {
-    return TossEnhancedTextField(
-      controller: controller,
-      hintText: hint,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      maxLines: maxLines,
-      focusNode: focusNode,
-      textInputAction: textInputAction,
-      onFieldSubmitted: onSubmitted,
-      showKeyboardToolbar: true,
-      keyboardDoneText: textInputAction == TextInputAction.next ? 'Next' : 'Done',
-      onKeyboardDone: textInputAction == TextInputAction.done 
-          ? () => FocusScope.of(context).unfocus()
-          : null,
-      enableTapDismiss: false,
+
+  bool get _isPayableOrReceivable {
+    final tag = _selectedCategoryTag?.toLowerCase();
+    return tag == 'payable' || tag == 'receivable';
+  }
+
+  Widget _buildAccountSelector() {
+    return EnhancedAccountSelector(
+      selectedAccountId: _selectedAccountId,
+      contextType: 'journal_entry',
+      onAccountSelected: (account) {
+        setState(() {
+          _selectedAccountId = account.id;
+          _selectedAccountName = account.name;
+          _selectedCategoryTag = account.categoryTag;
+          // Reset all dependent fields when account changes
+          _selectedCashLocationId = null;
+          _selectedCounterpartyId = null;
+          _selectedCounterpartyName = null;
+          _selectedCounterpartyStoreId = null;
+          _selectedCounterpartyStoreName = null;
+          _linkedCompanyId = null;
+          _isInternal = false;
+          _accountMapping = null;
+          _mappingError = null;
+        });
+      },
+      label: 'Account',
+      hint: 'Select account',
+      showSearch: true,
+      showTransactionCount: false,
+      showQuickAccess: true,
+      maxQuickItems: 5,
+    );
+  }
+
+  Widget _buildCounterpartySection() {
+    return CounterpartySection(
+      categoryTag: _selectedCategoryTag,
+      selectedCounterpartyId: _selectedCounterpartyId,
+      selectedCounterpartyName: _selectedCounterpartyName,
+      selectedCounterpartyStoreId: _selectedCounterpartyStoreId,
+      selectedCounterpartyStoreName: _selectedCounterpartyStoreName,
+      linkedCompanyId: _linkedCompanyId,
+      selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
+      isInternal: _isInternal,
+      accountMapping: _accountMapping,
+      mappingError: _mappingError,
+      blockedCashLocationIds: widget.blockedCashLocationIds,
+      onCounterpartySelected: (counterparty) {
+        setState(() {
+          _selectedCounterpartyId = counterparty.id;
+          _selectedCounterpartyName = counterparty.name;
+          _isInternal = counterparty.isInternal;
+          _linkedCompanyId = counterparty.linkedCompanyId;
+          _selectedCounterpartyStoreId = null;
+          _selectedCounterpartyStoreName = null;
+          _selectedCounterpartyCashLocationId = null;
+        });
+        _checkAccountMapping();
+      },
+      onCounterpartyIdChanged: (counterpartyId) {
+        if (counterpartyId == null) {
+          setState(() {
+            _selectedCounterpartyId = null;
+            _selectedCounterpartyName = null;
+            _isInternal = false;
+            _linkedCompanyId = null;
+            _selectedCounterpartyStoreId = null;
+            _selectedCounterpartyStoreName = null;
+            _selectedCounterpartyCashLocationId = null;
+          });
+        }
+      },
+      onStoreSelected: (storeId, storeName) {
+        setState(() {
+          _selectedCounterpartyStoreId = storeId;
+          _selectedCounterpartyStoreName = storeName;
+          _selectedCounterpartyCashLocationId = null;
+        });
+      },
+      onCounterpartyCashLocationSelected: (cashLocation) {
+        setState(() {
+          _selectedCounterpartyCashLocationId = cashLocation.id;
+        });
+      },
+      onCounterpartyCashLocationChanged: (locationId) {
+        if (locationId == null) {
+          setState(() {
+            _selectedCounterpartyCashLocationId = null;
+          });
+        }
+      },
     );
   }
 }

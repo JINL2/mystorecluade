@@ -146,7 +146,8 @@ class ProblemItemDto with _$ProblemItemDto {
     // For reported type
     @JsonKey(name: 'reason') String? reason,
     @JsonKey(name: 'reported_at') String? reportedAt,
-    @JsonKey(name: 'is_report_solved') @Default(false) bool isReportSolved,
+    // null = pending, true = approved, false = rejected
+    @JsonKey(name: 'is_report_solved') bool? isReportSolved,
   }) = _ProblemItemDto;
 
   factory ProblemItemDto.fromJson(Map<String, dynamic> json) =>

@@ -338,7 +338,8 @@ class StaffTimelogCard extends StatelessWidget {
 
   /// Build tag widget for a single problem item
   Widget? _buildTagForProblem(ProblemItem problem) {
-    final isSolved = problem.isSolved;
+    // For 'reported' type: null means pending, treat as not solved for display
+    final isSolved = problem.isSolved ?? false;
 
     switch (problem.type) {
       case 'no_checkout':

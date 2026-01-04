@@ -45,6 +45,7 @@ final authStateProvider = StreamProvider<User?>((ref) {
 ///
 /// Derived from authStateProvider
 /// IMPORTANT: During loading, check existing session to prevent premature redirect
+/// IMPORTANT: On error, maintain existing session if valid (network errors shouldn't log out)
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateProvider);
 
@@ -60,7 +61,19 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
         return false;
       }
     },
-    error: (_, __) => false,
+    // ✅ 에러 발생 시에도 유효한 세션이 있으면 유지 (네트워크 에러로 로그아웃 방지)
+    error: (error, __) {
+      try {
+        final session = Supabase.instance.client.auth.currentSession;
+        // 세션이 있고 만료되지 않았으면 인증 상태 유지
+        if (session != null && !session.isExpired) {
+          return true;
+        }
+        return false;
+      } catch (_) {
+        return false;
+      }
+    },
   );
 });
 

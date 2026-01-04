@@ -96,6 +96,14 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
     String? linkedCompanyId,
   }) async {
     try {
+      // Internal counterparty는 isInternal/linkedCompanyId 변경 불가 (다른 필드는 수정 가능)
+      final existing = await getCounterPartyById(counterpartyId);
+      if (existing != null && existing.isInternal) {
+        // 기존 internal 상태 유지
+        isInternal = existing.isInternal;
+        linkedCompanyId = existing.linkedCompanyId;
+      }
+
       final data = await _dataSource.updateCounterParty(
         counterpartyId: counterpartyId,
         companyId: companyId,
@@ -130,6 +138,14 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
   @override
   Future<bool> deleteCounterParty(String counterpartyId) async {
     try {
+      // Internal counterparty는 시스템이 자동 관리하므로 삭제 불가
+      final existing = await getCounterPartyById(counterpartyId);
+      if (existing != null && existing.isInternal) {
+        throw Exception(
+          'Internal counterparties are system-managed and cannot be deleted',
+        );
+      }
+
       // Validate before deletion - only check for unpaid debts
       final validation = await validateDeletion(counterpartyId);
 

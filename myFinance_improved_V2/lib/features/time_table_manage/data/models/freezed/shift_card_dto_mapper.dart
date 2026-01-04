@@ -202,12 +202,12 @@ extension ProblemDetailsDtoMapper on ProblemDetailsDto {
 /// Extension to map ProblemItemDto → ProblemItem Entity
 ///
 /// v5: Maps individual problem items from jsonb array
-/// - For 'reported' type: uses isReportSolved (individual solve status)
+/// - For 'reported' type: uses isReportSolved (null = pending, true = approved, false = rejected)
 /// - For other types (late, overtime, no_checkout, etc.): uses root-level isSolved
 extension ProblemItemDtoMapper on ProblemItemDto {
   ProblemItem toEntity(bool rootIsSolved) {
-    // reported type has its own solve status, others use root-level
-    final itemIsSolved = type == 'reported' ? isReportSolved : rootIsSolved;
+    // reported type has its own nullable solve status, others use root-level
+    final bool? itemIsSolved = type == 'reported' ? isReportSolved : rootIsSolved;
     return ProblemItem(
       type: type ?? 'unknown',
       actualMinutes: actualMinutes,

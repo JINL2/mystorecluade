@@ -23,5 +23,9 @@ class PaymentMethodState with _$PaymentMethodState {
     @Default({}) Map<String, double> currencyAmounts,
     String? focusedCurrencyId,
     @Default(0.0) double discountAmount,
+    /// Discount percentage (0-100), synced with discountAmount
+    @Default(0.0) double discountPercentage,
+    /// Whether discount was set as percentage mode (true) or amount mode (false)
+    @Default(false) bool isPercentageMode,
   }) = _PaymentMethodState;
 }

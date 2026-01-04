@@ -194,11 +194,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       final userSku = _sku?.trim().isEmpty ?? true ? null : _sku!.trim();
       final productName = _productNameController.text.trim();
 
-      // ignore: avoid_print
-      print('[_saveProduct] Step 1: Calling checkCreateProduct');
-      // ignore: avoid_print
-      print('[_saveProduct] companyId: $companyId, productName: $productName, storeId: $storeId, sku: $userSku');
-
       final validationResult = await repository.checkCreateProduct(
         companyId: companyId,
         productName: productName,
@@ -208,9 +203,6 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         categoryId: _selectedCategory?.id,
         brandId: _selectedBrand?.id,
       );
-
-      // ignore: avoid_print
-      print('[_saveProduct] Validation result: success=${validationResult.success}, errorCode=${validationResult.errorCode}');
 
       if (!validationResult.success) {
         // Show error dialog based on errorCode
@@ -503,19 +495,14 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
+    return TossAppBar(
+      title: 'Add product',
+      backgroundColor: TossColors.white,
+      automaticallyImplyLeading: false,
       leading: IconButton(
-        icon: const Icon(Icons.close),
+        icon: const Icon(Icons.close, color: TossColors.gray900),
         onPressed: () => context.pop(),
       ),
-      title: Text(
-        'Add product',
-        style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w700),
-      ),
-      centerTitle: true,
-      elevation: 0,
-      backgroundColor: TossColors.white,
-      foregroundColor: TossColors.gray900,
     );
   }
 

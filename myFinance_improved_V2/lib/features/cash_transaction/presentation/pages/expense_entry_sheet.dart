@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../providers/cash_transaction_providers.dart';
 import '../widgets/amount_input_keypad.dart';
 import '../widgets/transaction_confirm_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Expense Entry Bottom Sheet
 /// Flow: Account -> Amount (Cash Location already selected on main page)
@@ -85,7 +84,6 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
   Future<void> _onSubmit() async {
     // Double-click prevention: check if already submitting
     if (_isSubmitting) {
-      debugPrint('[ExpenseEntrySheet] ⚠️ Already submitting, ignoring duplicate tap');
       return;
     }
 
@@ -99,6 +97,12 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     });
 
     try {
+      // Get currency symbol for dialog
+      final currencyAsync = ref.read(
+        companyCurrencySymbolProvider(ref.read(appStateProvider).companyChoosen),
+      );
+      final currencySymbol = currencyAsync.valueOrNull ?? '₩';
+
       // Show confirmation dialog
       final result = await TransactionConfirmDialog.show(
         context,
@@ -109,6 +113,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
           expenseAccountName: _selectedAccountName,
           expenseAccountCode: _selectedAccountCode,
         ),
+        currencySymbol: currencySymbol,
       );
 
       if (result == null || !result.confirmed) {
@@ -126,7 +131,6 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
 
       // Determine if this is a refund based on direction
       final isRefund = widget.direction == CashDirection.cashIn;
-      debugPrint('[ExpenseEntrySheet] 📝 Creating expense entry, isRefund: $isRefund');
 
       // TODO: Upload attachments to storage and get URLs
       // For now, attachment upload is not implemented
@@ -166,80 +170,99 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
   Widget build(BuildContext context) {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
-    return AnimatedPadding(
-      duration: TossAnimations.normal,
-      curve: TossAnimations.decelerate,
-      padding: EdgeInsets.only(bottom: keyboardHeight),
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
-        ),
-        decoration: const BoxDecoration(
-          color: TossColors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xxl),
-            topRight: Radius.circular(TossBorderRadius.xxl),
-          ),
-          boxShadow: TossShadows.bottomSheet,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            const SizedBox(height: TossSpacing.space3),
-            Container(
-              width: TossSpacing.space9,
-              height: 4,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-              ),
+    return Stack(
+      children: [
+        AnimatedPadding(
+          duration: TossAnimations.normal,
+          curve: TossAnimations.decelerate,
+          padding: EdgeInsets.only(bottom: keyboardHeight),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
             ),
-
-            // Header
-            _buildHeader(),
-
-            // Content
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(TossSpacing.space4),
-                child: _buildCurrentStepContent(),
+            decoration: const BoxDecoration(
+              color: TossColors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(TossBorderRadius.xxl),
+                topRight: Radius.circular(TossBorderRadius.xxl),
               ),
+              boxShadow: TossShadows.bottomSheet,
             ),
-
-            // Fixed bottom button for amount input step
-            if (_currentStep == 1) ...[
-              Container(
-                padding: const EdgeInsets.fromLTRB(
-                  TossSpacing.space4,
-                  TossSpacing.space2,
-                  TossSpacing.space4,
-                  TossSpacing.space2,
-                ),
-                decoration: const BoxDecoration(
-                  color: TossColors.white,
-                  border: Border(
-                    top: BorderSide(color: TossColors.gray100),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle
+                const SizedBox(height: TossSpacing.space3),
+                Container(
+                  width: TossSpacing.space9,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: TossColors.gray300,
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                 ),
-                child: TossButton.primary(
-                  text: _isSubmitting ? 'Processing...' : 'Record',
-                  onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
-                  isEnabled: _canSubmit && !_isSubmitting,
-                  isLoading: _isSubmitting,
-                  fullWidth: true,
-                  leadingIcon: const Icon(Icons.check),
+
+                // Header
+                _buildHeader(),
+
+                // Content
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(TossSpacing.space4),
+                    child: _buildCurrentStepContent(),
+                  ),
+                ),
+
+                // Fixed bottom button for amount input step
+                if (_currentStep == 1) ...[
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(
+                      TossSpacing.space4,
+                      TossSpacing.space2,
+                      TossSpacing.space4,
+                      TossSpacing.space2,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: TossColors.white,
+                      border: Border(
+                        top: BorderSide(color: TossColors.gray100),
+                      ),
+                    ),
+                    child: TossButton.primary(
+                      text: _isSubmitting ? 'Processing...' : 'Record',
+                      onPressed: _canSubmit && !_isSubmitting ? _onSubmit : null,
+                      isEnabled: _canSubmit && !_isSubmitting,
+                      isLoading: _isSubmitting,
+                      fullWidth: true,
+                      leadingIcon: const Icon(Icons.check),
+                    ),
+                  ),
+                ],
+
+                SizedBox(
+                  height:
+                      MediaQuery.of(context).padding.bottom + TossSpacing.space2,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Loading overlay
+        if (_isSubmitting)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: TossColors.black.withValues(alpha: 0.3),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(TossBorderRadius.xxl),
+                  topRight: Radius.circular(TossBorderRadius.xxl),
                 ),
               ),
-            ],
-
-            SizedBox(
-              height:
-                  MediaQuery.of(context).padding.bottom + TossSpacing.space2,
+              child: const TossLoadingView(message: 'Recording...'),
             ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 
@@ -507,27 +530,92 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Summary cards (no top padding - header has enough)
-        TossSummaryCard(
-          icon: Icons.account_balance_wallet,
-          label: 'Cash Location',
-          value: widget.cashLocationName,
+        // Summary cards with fade-in animation
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: TossAnimations.medium,
+          curve: TossAnimations.decelerate,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 10 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: TossSummaryCard(
+            icon: Icons.account_balance_wallet,
+            label: 'Cash Location',
+            value: widget.cashLocationName,
+          ),
         ),
         const SizedBox(height: TossSpacing.space2),
-        TossSummaryCard(
-          icon: Icons.receipt_long,
-          label: 'Expense',
-          value: _selectedAccountName ?? '',
-          onEdit: () => setState(() => _currentStep = 0),
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: TossAnimations.medium,
+          curve: TossAnimations.decelerate,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 10 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: TossSummaryCard(
+            icon: Icons.receipt_long,
+            label: 'Expense',
+            value: _selectedAccountName ?? '',
+            onEdit: () => setState(() => _currentStep = 0),
+          ),
         ),
 
         const SizedBox(height: TossSpacing.space3),
 
-        // Amount keypad
-        AmountInputKeypad(
-          initialAmount: _amount,
-          onAmountChanged: _onAmountChanged,
-          showSubmitButton: false,
+        // Amount keypad with fade-in animation
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: TossAnimations.slow,
+          curve: TossAnimations.decelerate,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 15 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: Consumer(
+            builder: (context, ref, _) {
+              final appState = ref.watch(appStateProvider);
+              final currencyAsync = ref.watch(
+                companyCurrencySymbolProvider(appState.companyChoosen),
+              );
+              return currencyAsync.when(
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(TossSpacing.space8),
+                    child: TossLoadingView(),
+                  ),
+                ),
+                error: (_, __) => AmountInputKeypad(
+                  initialAmount: _amount,
+                  currencySymbol: '₩',
+                  onAmountChanged: _onAmountChanged,
+                  showSubmitButton: false,
+                ),
+                data: (currencySymbol) => AmountInputKeypad(
+                  initialAmount: _amount,
+                  currencySymbol: currencySymbol,
+                  onAmountChanged: _onAmountChanged,
+                  showSubmitButton: false,
+                ),
+              );
+            },
+          ),
         ),
 
         // Bottom padding for fixed button

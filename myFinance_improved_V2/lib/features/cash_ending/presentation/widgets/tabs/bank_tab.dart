@@ -288,7 +288,6 @@ class _BankTabState extends ConsumerState<BankTab> {
   /// Builds the bank balance amount input field
   Widget _buildBankAmountInput() {
     return Container(
-          height: 56,
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -318,21 +317,18 @@ class _BankTabState extends ConsumerState<BankTab> {
             ],
             textAlign: TextAlign.center,
             style: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
+              color: TossColors.gray900,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
             ),
             decoration: InputDecoration(
               hintText: 'Enter amount',
               hintStyle: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray400,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 fontSize: 16,
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space4,
-              ),
+              contentPadding: const EdgeInsets.all(TossSpacing.space3), // Match dropdown padding
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 borderSide: BorderSide.none,
@@ -347,6 +343,7 @@ class _BankTabState extends ConsumerState<BankTab> {
               ),
               fillColor: TossColors.white,
               filled: true,
+              isDense: true,
             ),
             onChanged: (value) {
               setState(() {}); // Rebuild to update total and button
@@ -374,11 +371,14 @@ class _BankTabState extends ConsumerState<BankTab> {
                     await widget.onSave(context, state, currencyId);
                   }
                 : null,
-            textStyle: TossTextStyles.titleLarge.copyWith(
+            textStyle: TossTextStyles.body.copyWith(
               color: TossColors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(
-              vertical: TossSpacing.space4,
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space3,
             ),
             borderRadius: 12,
         );

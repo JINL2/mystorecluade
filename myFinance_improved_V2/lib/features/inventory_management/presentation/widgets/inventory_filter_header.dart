@@ -66,7 +66,7 @@ class InventoryFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
           const SizedBox(height: 12),
-          // Summary text - uses server-provided total value from v4 RPC
+          // Summary text - uses server-provided total value from v5 RPC
           Text(
             'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
             style: TossTextStyles.caption.copyWith(

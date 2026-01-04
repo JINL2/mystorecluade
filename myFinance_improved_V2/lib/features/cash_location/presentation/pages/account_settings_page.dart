@@ -132,18 +132,14 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             width: double.infinity,
             child: Text(
               accountName,
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-              ),
+              style: TossTextStyles.titleLarge,
             ),
           ),
           const SizedBox(height: TossSpacing.space2),
           Text(
             '${_getAccountTypeText()} Account',
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.bodySmall.copyWith(
               color: TossColors.gray600,
-              fontSize: 13,
             ),
           ),
         ],
@@ -214,8 +210,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
               children: [
                 Text(
                   'Main Account',
-                  style: TossTextStyles.body.copyWith(
-                    fontSize: 16,
+                  style: TossTextStyles.h4.copyWith(
                     fontWeight: FontWeight.w400,
                     color: TossColors.gray700,
                   ),
@@ -252,8 +247,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           children: [
             Text(
               label,
-              style: TossTextStyles.body.copyWith(
-                fontSize: 16,
+              style: TossTextStyles.h4.copyWith(
                 fontWeight: FontWeight.w400,
                 color: TossColors.gray700,
               ),
@@ -261,8 +255,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             const Spacer(),
             Text(
               value.isEmpty ? (hintText ?? '') : value,
-              style: TossTextStyles.body.copyWith(
-                fontSize: 16,
+              style: TossTextStyles.h4.copyWith(
                 fontWeight: value.isEmpty ? FontWeight.w400 : FontWeight.w600,
                 color: value.isEmpty ? TossColors.gray400 : TossColors.gray800,
               ),
@@ -294,9 +287,8 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           child: Center(
             child: Text(
               'Delete Account',
-              style: TossTextStyles.body.copyWith(
+              style: TossTextStyles.h4.copyWith(
                 color: TossColors.error,
-                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -350,9 +342,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                       children: [
                         Text(
                           'International Banking Info',
-                          style: TossTextStyles.body.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          style: TossTextStyles.h4.copyWith(
                             color: TossColors.black87,
                           ),
                         ),
@@ -362,7 +352,6 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                               ? 'Tap to view/edit'
                               : 'For international trade & wire transfers',
                           style: TossTextStyles.caption.copyWith(
-                            fontSize: 12,
                             color: TossColors.gray500,
                           ),
                         ),
@@ -603,8 +592,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             children: [
               Text(
                 'Select Account Type',
-                style: TossTextStyles.body.copyWith(
-                  fontSize: 18,
+                style: TossTextStyles.h4.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -614,8 +602,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                 return ListTile(
                   title: Text(
                     type,
-                    style: TossTextStyles.body.copyWith(
-                      fontSize: 16,
+                    style: TossTextStyles.h4.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
@@ -711,7 +698,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                     const SizedBox(height: TossSpacing.space4),
                     Text(
                       'Deleting...',
-                      style: TossTextStyles.body.copyWith(fontSize: 14),
+                      style: TossTextStyles.body,
                     ),
                   ],
                 ),

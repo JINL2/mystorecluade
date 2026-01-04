@@ -86,60 +86,46 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: TossColors.surface,
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: TossColors.primary,
-              indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: TossColors.primary,
-              unselectedLabelColor: TossColors.textSecondary,
-              labelStyle: TossTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelStyle: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-              tabs: [
-                const Tab(text: 'All'),
-                Tab(
-                  child: unreadCountAsync.when(
-                    data: (count) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('Unread'),
-                        if (count > 0) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            constraints: const BoxConstraints(minWidth: 18),
-                            height: 18,
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                            decoration: BoxDecoration(
-                              color: TossColors.primary,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Center(
-                              child: Text(
-                                count > 99 ? '99+' : count.toString(),
-                                style: TossTextStyles.caption.copyWith(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: TossColors.white,
-                                  height: 1,
-                                ),
+          child: TossTabBar.custom(
+            tabs: [
+              const TossTab.text('All'),
+              TossTab.custom(
+                unreadCountAsync.when(
+                  data: (count) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Unread'),
+                      if (count > 0) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 18),
+                          height: 18,
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            color: TossColors.primary,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Center(
+                            child: Text(
+                              count > 99 ? '99+' : count.toString(),
+                              style: TossTextStyles.caption.copyWith(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: TossColors.white,
+                                height: 1,
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ],
-                    ),
-                    loading: () => const Text('Unread'),
-                    error: (_, __) => const Text('Unread'),
+                    ],
                   ),
+                  loading: () => const Text('Unread'),
+                  error: (_, __) => const Text('Unread'),
                 ),
-              ],
-            ),
+              ),
+            ],
+            controller: _tabController,
           ),
         ),
       ),

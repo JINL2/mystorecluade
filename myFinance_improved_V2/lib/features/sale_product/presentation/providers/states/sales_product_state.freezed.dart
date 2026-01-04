@@ -232,7 +232,7 @@ class __$$SalesProductStateImplCopyWithImpl<$Res>
 class _$SalesProductStateImpl extends _SalesProductState {
   const _$SalesProductStateImpl(
       {final List<SalesProduct> products = const [],
-      this.isLoading = false,
+      this.isLoading = true,
       this.isLoadingMore = false,
       this.isRefreshing = false,
       this.errorMessage,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/trade_status.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -19,8 +18,8 @@ class TradeStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = TradeStatus.getStatusColor(status);
-    final icon = TradeStatus.getStatusIcon(status);
+    final color = _getStatusColor(status);
+    final icon = _getStatusIcon(status);
     final displayName = _formatStatusName(status);
 
     return Container(
@@ -60,6 +59,77 @@ class TradeStatusChip extends StatelessWidget {
     );
   }
 
+  /// Get color using TossColors
+  static Color _getStatusColor(String status) {
+    final s = status.toLowerCase();
+
+    // Success states
+    if (s.contains('paid') ||
+        s.contains('completed') ||
+        s.contains('delivered') ||
+        s.contains('accepted') ||
+        s.contains('converted')) {
+      return TossColors.success;
+    }
+
+    // Error states
+    if (s.contains('rejected') ||
+        s.contains('cancelled') ||
+        s.contains('expired') ||
+        s.contains('discrepancy') ||
+        s.contains('failed')) {
+      return TossColors.error;
+    }
+
+    // Warning states
+    if (s.contains('pending') ||
+        s.contains('waiting') ||
+        s.contains('negotiating') ||
+        s.contains('amendment') ||
+        s.contains('examination') ||
+        s.contains('review')) {
+      return TossColors.warning;
+    }
+
+    // In Progress states
+    if (s.contains('sent') ||
+        s.contains('confirmed') ||
+        s.contains('issued') ||
+        s.contains('advised') ||
+        s.contains('production') ||
+        s.contains('transit') ||
+        s.contains('shipped') ||
+        s.contains('submitted') ||
+        s.contains('booked') ||
+        s.contains('loaded') ||
+        s.contains('departed')) {
+      return TossColors.primary;
+    }
+
+    // Default (draft, etc.)
+    return TossColors.gray600;
+  }
+
+  static IconData _getStatusIcon(String status) {
+    final s = status.toLowerCase();
+
+    if (s.contains('draft')) return Icons.edit_note;
+    if (s.contains('sent')) return Icons.send;
+    if (s.contains('accepted') || s.contains('confirmed')) return Icons.check_circle;
+    if (s.contains('rejected') || s.contains('cancelled')) return Icons.cancel;
+    if (s.contains('expired')) return Icons.timer_off;
+    if (s.contains('pending') || s.contains('waiting')) return Icons.hourglass_empty;
+    if (s.contains('shipped') || s.contains('transit')) return Icons.local_shipping;
+    if (s.contains('delivered')) return Icons.inventory;
+    if (s.contains('paid')) return Icons.paid;
+    if (s.contains('discrepancy')) return Icons.warning_amber;
+    if (s.contains('production')) return Icons.precision_manufacturing;
+    if (s.contains('examination') || s.contains('review')) return Icons.search;
+    if (s.contains('document')) return Icons.description;
+
+    return Icons.circle;
+  }
+
   String _formatStatusName(String status) {
     return status
         .split('_')
@@ -85,8 +155,8 @@ class TradeStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = TradeStatus.getStatusColor(status);
-    final icon = TradeStatus.getStatusIcon(status);
+    final color = TradeStatusChip._getStatusColor(status);
+    final icon = TradeStatusChip._getStatusIcon(status);
     final displayName = _formatStatusName(status);
 
     return InkWell(
@@ -182,7 +252,7 @@ class TradeStatusFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = TradeStatus.getStatusColor(status);
+    final color = TradeStatusChip._getStatusColor(status);
     final displayName = _formatStatusName(status);
 
     return FilterChip(
@@ -199,7 +269,10 @@ class TradeStatusFilterChip extends StatelessWidget {
       side: BorderSide(
         color: isSelected ? color.withOpacity(0.5) : TossColors.gray300,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space2,
+        vertical: TossSpacing.space1,
+      ),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'app/app.dart';
+import 'core/cache/hive_cache_service.dart';
 import 'core/monitoring/sentry_config.dart';
 import 'core/services/revenuecat_service.dart';
 import 'core/notifications/config/firebase_options.dart';
@@ -29,6 +30,19 @@ Future<void> main() async {
     debugPrint('   Build Number: ${packageInfo.buildNumber}');
     debugPrint('   Package: ${packageInfo.packageName}');
     debugPrint('═══════════════════════════════════════════');
+  }
+
+  // 📦 Initialize Hive for local caching (before other services)
+  try {
+    await HiveCacheService.instance.initialize();
+    if (kDebugMode) {
+      debugPrint('📦 Hive cache initialized successfully');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('⚠️ Hive initialization failed: $e');
+    }
+    // Continue running the app even if Hive fails
   }
 
   // ✅ Initialize Sentry with error tracking
@@ -65,6 +79,10 @@ Future<void> main() async {
       await Supabase.initialize(
         url: supabaseUrl,
         anonKey: supabaseAnonKey,
+        authOptions: const FlutterAuthClientOptions(
+          // ✅ 세션 자동 갱신 활성화 (Refresh Token 사용)
+          autoRefreshToken: true,
+        ),
       );
     } catch (e, stackTrace) {
       // ✅ Log Supabase initialization failure to Sentry

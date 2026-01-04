@@ -96,7 +96,7 @@ class _QuickAccessItem extends StatelessWidget {
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w600,
-                fontSize: 12,
+                fontSize: 11,
                 height: 1.2,
                 letterSpacing: -0.2,
               ),

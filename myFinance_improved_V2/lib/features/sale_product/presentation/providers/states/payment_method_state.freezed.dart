@@ -30,6 +30,12 @@ mixin _$PaymentMethodState {
   String? get focusedCurrencyId => throw _privateConstructorUsedError;
   double get discountAmount => throw _privateConstructorUsedError;
 
+  /// Discount percentage (0-100), synced with discountAmount
+  double get discountPercentage => throw _privateConstructorUsedError;
+
+  /// Whether discount was set as percentage mode (true) or amount mode (false)
+  bool get isPercentageMode => throw _privateConstructorUsedError;
+
   /// Create a copy of PaymentMethodState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -53,7 +59,9 @@ abstract class $PaymentMethodStateCopyWith<$Res> {
       PaymentCurrency? selectedCurrency,
       Map<String, double> currencyAmounts,
       String? focusedCurrencyId,
-      double discountAmount});
+      double discountAmount,
+      double discountPercentage,
+      bool isPercentageMode});
 }
 
 /// @nodoc
@@ -81,6 +89,8 @@ class _$PaymentMethodStateCopyWithImpl<$Res, $Val extends PaymentMethodState>
     Object? currencyAmounts = null,
     Object? focusedCurrencyId = freezed,
     Object? discountAmount = null,
+    Object? discountPercentage = null,
+    Object? isPercentageMode = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -123,6 +133,14 @@ class _$PaymentMethodStateCopyWithImpl<$Res, $Val extends PaymentMethodState>
           ? _value.discountAmount
           : discountAmount // ignore: cast_nullable_to_non_nullable
               as double,
+      discountPercentage: null == discountPercentage
+          ? _value.discountPercentage
+          : discountPercentage // ignore: cast_nullable_to_non_nullable
+              as double,
+      isPercentageMode: null == isPercentageMode
+          ? _value.isPercentageMode
+          : isPercentageMode // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -145,7 +163,9 @@ abstract class _$$PaymentMethodStateImplCopyWith<$Res>
       PaymentCurrency? selectedCurrency,
       Map<String, double> currencyAmounts,
       String? focusedCurrencyId,
-      double discountAmount});
+      double discountAmount,
+      double discountPercentage,
+      bool isPercentageMode});
 }
 
 /// @nodoc
@@ -171,6 +191,8 @@ class __$$PaymentMethodStateImplCopyWithImpl<$Res>
     Object? currencyAmounts = null,
     Object? focusedCurrencyId = freezed,
     Object? discountAmount = null,
+    Object? discountPercentage = null,
+    Object? isPercentageMode = null,
   }) {
     return _then(_$PaymentMethodStateImpl(
       isLoading: null == isLoading
@@ -213,6 +235,14 @@ class __$$PaymentMethodStateImplCopyWithImpl<$Res>
           ? _value.discountAmount
           : discountAmount // ignore: cast_nullable_to_non_nullable
               as double,
+      discountPercentage: null == discountPercentage
+          ? _value.discountPercentage
+          : discountPercentage // ignore: cast_nullable_to_non_nullable
+              as double,
+      isPercentageMode: null == isPercentageMode
+          ? _value.isPercentageMode
+          : isPercentageMode // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -230,7 +260,9 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
       this.selectedCurrency,
       final Map<String, double> currencyAmounts = const {},
       this.focusedCurrencyId,
-      this.discountAmount = 0.0})
+      this.discountAmount = 0.0,
+      this.discountPercentage = 0.0,
+      this.isPercentageMode = false})
       : _cashLocations = cashLocations,
         _currencyAmounts = currencyAmounts;
 
@@ -274,9 +306,19 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
   @JsonKey()
   final double discountAmount;
 
+  /// Discount percentage (0-100), synced with discountAmount
+  @override
+  @JsonKey()
+  final double discountPercentage;
+
+  /// Whether discount was set as percentage mode (true) or amount mode (false)
+  @override
+  @JsonKey()
+  final bool isPercentageMode;
+
   @override
   String toString() {
-    return 'PaymentMethodState(isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currencyResponse: $currencyResponse, cashLocations: $cashLocations, selectedCashLocation: $selectedCashLocation, selectedCurrency: $selectedCurrency, currencyAmounts: $currencyAmounts, focusedCurrencyId: $focusedCurrencyId, discountAmount: $discountAmount)';
+    return 'PaymentMethodState(isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currencyResponse: $currencyResponse, cashLocations: $cashLocations, selectedCashLocation: $selectedCashLocation, selectedCurrency: $selectedCurrency, currencyAmounts: $currencyAmounts, focusedCurrencyId: $focusedCurrencyId, discountAmount: $discountAmount, discountPercentage: $discountPercentage, isPercentageMode: $isPercentageMode)';
   }
 
   @override
@@ -302,7 +344,11 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
             (identical(other.focusedCurrencyId, focusedCurrencyId) ||
                 other.focusedCurrencyId == focusedCurrencyId) &&
             (identical(other.discountAmount, discountAmount) ||
-                other.discountAmount == discountAmount));
+                other.discountAmount == discountAmount) &&
+            (identical(other.discountPercentage, discountPercentage) ||
+                other.discountPercentage == discountPercentage) &&
+            (identical(other.isPercentageMode, isPercentageMode) ||
+                other.isPercentageMode == isPercentageMode));
   }
 
   @override
@@ -317,7 +363,9 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
       selectedCurrency,
       const DeepCollectionEquality().hash(_currencyAmounts),
       focusedCurrencyId,
-      discountAmount);
+      discountAmount,
+      discountPercentage,
+      isPercentageMode);
 
   /// Create a copy of PaymentMethodState
   /// with the given fields replaced by the non-null parameter values.
@@ -340,7 +388,9 @@ abstract class _PaymentMethodState implements PaymentMethodState {
       final PaymentCurrency? selectedCurrency,
       final Map<String, double> currencyAmounts,
       final String? focusedCurrencyId,
-      final double discountAmount}) = _$PaymentMethodStateImpl;
+      final double discountAmount,
+      final double discountPercentage,
+      final bool isPercentageMode}) = _$PaymentMethodStateImpl;
 
   @override
   bool get isLoading;
@@ -364,6 +414,14 @@ abstract class _PaymentMethodState implements PaymentMethodState {
   String? get focusedCurrencyId;
   @override
   double get discountAmount;
+
+  /// Discount percentage (0-100), synced with discountAmount
+  @override
+  double get discountPercentage;
+
+  /// Whether discount was set as percentage mode (true) or amount mode (false)
+  @override
+  bool get isPercentageMode;
 
   /// Create a copy of PaymentMethodState
   /// with the given fields replaced by the non-null parameter values.

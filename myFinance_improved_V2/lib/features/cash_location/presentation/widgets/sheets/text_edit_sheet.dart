@@ -73,9 +73,7 @@ class TextEditSheet extends StatelessWidget {
 
                     Text(
                       title,
-                      style: TossTextStyles.h3.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TossTextStyles.h4,
                     ),
 
                     const SizedBox(height: TossSpacing.space6),
@@ -93,27 +91,25 @@ class TextEditSheet extends StatelessWidget {
                       minLines: minLines ?? (multiline ? 4 : 1),
                       onSubmitted: multiline ? null : (_) => onSave(controller.text),
                       style: TossTextStyles.body.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: TossColors.gray800,
+                        color: TossColors.gray900,
                         height: multiline ? 1.4 : null,
                       ),
                       decoration: InputDecoration(
                         border: UnderlineInputBorder(
                           borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: TossColors.primary,
                             width: 2,
                           ),
                         ),
                         focusedBorder: UnderlineInputBorder(
                           borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: TossColors.primary,
                             width: 2,
                           ),
                         ),
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: TossColors.primary,
                             width: 2,
                           ),
                         ),
@@ -125,8 +121,6 @@ class TextEditSheet extends StatelessWidget {
                         filled: false,
                         hintText: hintText,
                         hintStyle: hintText != null ? TossTextStyles.body.copyWith(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
                           color: TossColors.gray400,
                         ) : null,
                         suffixIcon: !multiline ? IconButton(
@@ -154,10 +148,8 @@ class TextEditSheet extends StatelessWidget {
                         fullWidth: true,
                         height: 56,
                         borderRadius: TossBorderRadius.lg,
-                        textStyle: TossTextStyles.body.copyWith(
+                        textStyle: TossTextStyles.button.copyWith(
                           color: TossColors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

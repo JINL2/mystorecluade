@@ -45,7 +45,7 @@ class RealDetailSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
+            margin: const EdgeInsets.only(top: TossSpacing.space3),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -86,7 +86,7 @@ class RealDetailSheet extends StatelessWidget {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.paddingXL),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -109,10 +109,9 @@ class RealDetailSheet extends StatelessWidget {
                                   'Total Balance',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray600,
-                                    fontSize: 12,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: TossSpacing.space1),
                                 Text(
                                   formatBalance(flow.balanceAfter, baseCurrencySymbol),
                                   style: TossTextStyles.h1.copyWith(
@@ -138,17 +137,13 @@ class RealDetailSheet extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Previous Balance',
-                                    style: TossTextStyles.caption.copyWith(
+                                    style: TossTextStyles.small.copyWith(
                                       color: TossColors.gray600,
-                                      fontSize: 11,
                                     ),
                                   ),
                                   Text(
                                     formatBalance(flow.balanceBefore, baseCurrencySymbol),
-                                    style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
-                                    ),
+                                    style: TossTextStyles.bodyMedium,
                                   ),
                                 ],
                               ),
@@ -159,16 +154,13 @@ class RealDetailSheet extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Change',
-                                    style: TossTextStyles.caption.copyWith(
+                                    style: TossTextStyles.small.copyWith(
                                       color: TossColors.gray600,
-                                      fontSize: 11,
                                     ),
                                   ),
                                   Text(
                                     formatTransactionAmount(flow.flowAmount, baseCurrencySymbol),
-                                    style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
+                                    style: TossTextStyles.bodyMedium.copyWith(
                                       color: flow.flowAmount >= 0 ? TossColors.success : TossColors.error,
                                     ),
                                   ),
@@ -181,24 +173,21 @@ class RealDetailSheet extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: TossSpacing.space5),
 
                   // Multi-currency breakdown for Bank
                   if (flow.currentDenominations.isNotEmpty &&
                       flow.currentDenominations.any((d) => d.exchangeRate != null)) ...[
                     Text(
                       'Currency Breakdown',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                      style: TossTextStyles.subtitle,
                     ),
                     const SizedBox(height: TossSpacing.space3),
                     ...flow.currentDenominations
                         .where((d) => d.exchangeRate != null && d.currencyCode != baseCurrencySymbol.replaceAll(RegExp(r'[^\w]'), ''))
                         .map(
                       (denomination) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
+                        margin: const EdgeInsets.only(bottom: TossSpacing.space3),
                         padding: const EdgeInsets.all(TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.gray50,
@@ -212,26 +201,23 @@ class RealDetailSheet extends StatelessWidget {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                                   decoration: BoxDecoration(
                                     color: TossColors.primary.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                   ),
                                   child: Text(
                                     '${denomination.currencySymbol ?? ''}${denomination.currencyCode ?? ''}',
-                                    style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w700,
+                                    style: TossTextStyles.bodyMedium.copyWith(
                                       color: TossColors.primary,
-                                      fontSize: 14,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: TossSpacing.space2),
                                 Text(
                                   denomination.currencyName ?? '',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray600,
-                                    fontSize: 12,
                                   ),
                                 ),
                               ],
@@ -246,15 +232,11 @@ class RealDetailSheet extends StatelessWidget {
                                   'Amount',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray600,
-                                    fontSize: 12,
                                   ),
                                 ),
                                 Text(
                                   '${denomination.currencySymbol ?? ''}${NumberFormat('#,###.##').format(denomination.amount ?? 0)}',
-                                  style: TossTextStyles.body.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
+                                  style: TossTextStyles.subtitle,
                                 ),
                               ],
                             ),
@@ -268,14 +250,11 @@ class RealDetailSheet extends StatelessWidget {
                                   'Exchange Rate',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray600,
-                                    fontSize: 12,
                                   ),
                                 ),
                                 Text(
                                   '× ${NumberFormat('#,###.##').format(denomination.exchangeRate ?? 0)}',
-                                  style: TossTextStyles.body.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                                  style: TossTextStyles.bodyMedium.copyWith(
                                     color: TossColors.gray700,
                                   ),
                                 ),
@@ -292,14 +271,11 @@ class RealDetailSheet extends StatelessWidget {
                                   'Converted Amount',
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray600,
-                                    fontSize: 12,
                                   ),
                                 ),
                                 Text(
                                   formatBalance(denomination.amountInBaseCurrency ?? 0, baseCurrencySymbol),
-                                  style: TossTextStyles.body.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
+                                  style: TossTextStyles.subtitle.copyWith(
                                     color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
@@ -315,10 +291,7 @@ class RealDetailSheet extends StatelessWidget {
                   else if (flow.currentDenominations.isNotEmpty) ...[
                     Text(
                       'Denomination Breakdown',
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                      style: TossTextStyles.subtitle,
                     ),
                     const SizedBox(height: TossSpacing.space3),
                     // Build currency groups
@@ -346,7 +319,7 @@ class RealDetailSheet extends StatelessWidget {
                       );
 
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
+                        margin: const EdgeInsets.only(bottom: TossSpacing.space4),
                         decoration: BoxDecoration(
                           color: TossColors.white,
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -371,30 +344,23 @@ class RealDetailSheet extends StatelessWidget {
                                   // Currency code
                                   Text(
                                     currencyCode.isNotEmpty ? currencyCode : 'Currency',
-                                    style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
-                                    ),
+                                    style: TossTextStyles.titleMedium,
                                   ),
                                   const Spacer(),
                                   // Total stock
                                   Text(
                                     formatBalance(currencyTotal, currencySymbol),
-                                    style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
-                                    ),
+                                    style: TossTextStyles.titleMedium,
                                   ),
                                   // Flow indicator (if any change)
                                   if (currencyFlow != 0) ...[
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: TossSpacing.space2),
                                     Text(
                                       currencyFlow > 0
                                           ? '+${formatBalance(currencyFlow, currencySymbol)}'
                                           : formatBalance(currencyFlow, currencySymbol),
-                                      style: TossTextStyles.body.copyWith(
+                                      style: TossTextStyles.bodySmall.copyWith(
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 13,
                                         color: currencyFlow > 0
                                             ? TossColors.primary
                                             : TossColors.error,
@@ -417,9 +383,8 @@ class RealDetailSheet extends StatelessWidget {
                                     flex: 2,
                                     child: Text(
                                       'Denomination',
-                                      style: TossTextStyles.caption.copyWith(
+                                      style: TossTextStyles.small.copyWith(
                                         color: TossColors.gray500,
-                                        fontSize: 11,
                                       ),
                                     ),
                                   ),
@@ -427,9 +392,8 @@ class RealDetailSheet extends StatelessWidget {
                                     child: Text(
                                       'Qty',
                                       textAlign: TextAlign.center,
-                                      style: TossTextStyles.caption.copyWith(
+                                      style: TossTextStyles.small.copyWith(
                                         color: TossColors.gray500,
-                                        fontSize: 11,
                                       ),
                                     ),
                                   ),
@@ -438,9 +402,8 @@ class RealDetailSheet extends StatelessWidget {
                                     child: Text(
                                       'Subtotal',
                                       textAlign: TextAlign.end,
-                                      style: TossTextStyles.caption.copyWith(
+                                      style: TossTextStyles.small.copyWith(
                                         color: TossColors.gray500,
-                                        fontSize: 11,
                                       ),
                                     ),
                                   ),
@@ -472,10 +435,7 @@ class RealDetailSheet extends StatelessWidget {
                                       flex: 2,
                                       child: Text(
                                         formatCurrency(denomination.denominationValue, currencySymbol),
-                                        style: TossTextStyles.body.copyWith(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        style: TossTextStyles.bodyMedium,
                                       ),
                                     ),
                                     // Quantity with change indicator
@@ -485,20 +445,15 @@ class RealDetailSheet extends StatelessWidget {
                                         children: [
                                           Text(
                                             '${denomination.currentQuantity}',
-                                            style: TossTextStyles.body.copyWith(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                            style: TossTextStyles.bodyMedium,
                                           ),
                                           if (denomination.quantityChange != 0) ...[
-                                            const SizedBox(width: 4),
+                                            const SizedBox(width: TossSpacing.space1),
                                             Text(
                                               denomination.quantityChange > 0
                                                   ? '+${denomination.quantityChange}'
                                                   : '${denomination.quantityChange}',
-                                              style: TossTextStyles.caption.copyWith(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
+                                              style: TossTextStyles.labelSmall.copyWith(
                                                 color: denomination.quantityChange > 0
                                                     ? TossColors.primary
                                                     : TossColors.error,
@@ -514,10 +469,7 @@ class RealDetailSheet extends StatelessWidget {
                                       child: Text(
                                         formatBalance(denomination.subtotal, currencySymbol),
                                         textAlign: TextAlign.end,
-                                        style: TossTextStyles.body.copyWith(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        style: TossTextStyles.bodyMedium,
                                       ),
                                     ),
                                   ],
@@ -551,7 +503,7 @@ class RealDetailSheet extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: TossSpacing.space5),
                 ],
               ),
             ),
@@ -572,15 +524,11 @@ class RealDetailSheet extends StatelessWidget {
           label,
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray600,
-            fontSize: 14,
           ),
         ),
         Text(
           value,
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
+          style: TossTextStyles.bodyMedium,
         ),
       ],
     );

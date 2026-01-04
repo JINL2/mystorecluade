@@ -2,7 +2,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/denomination.dart';
+import '../../domain/entities/denomination_delete_result.dart';
 import '../../domain/repositories/denomination_repository.dart';
+import '../mappers/denomination_delete_result_mapper.dart';
 import '../services/denomination_template_service.dart';
 
 class SupabaseDenominationRepository implements DenominationRepository {
@@ -159,45 +161,55 @@ class SupabaseDenominationRepository implements DenominationRepository {
   }
 
   @override
-  Future<void> removeDenomination(String denominationId) async {
+  Future<bool> isDenominationInUse(String denominationId) async {
     try {
-      // Check if the denomination exists and is not already deleted
-      await _client
-          .from('currency_denominations')
-          .select('*')
+      // Check if denomination is used in cashier_amount_lines
+      final cashierResult = await _client
+          .from('cashier_amount_lines')
+          .select('id')
           .eq('denomination_id', denominationId)
-          .eq('is_deleted', false)
-          .single();
+          .limit(1);
 
-      // Perform soft delete
-      final updateResult = await _client
-          .from('currency_denominations')
-          .update({'is_deleted': true})
+      if ((cashierResult as List).isNotEmpty) {
+        return true;
+      }
+
+      // Check if denomination is used in vault_amount_line
+      final vaultResult = await _client
+          .from('vault_amount_line')
+          .select('id')
           .eq('denomination_id', denominationId)
-          .eq('is_deleted', false)
-          .select('denomination_id, value, is_deleted');
+          .limit(1);
 
-      if (updateResult.isEmpty) {
-        throw Exception('Denomination not found or already deleted');
+      if ((vaultResult as List).isNotEmpty) {
+        return true;
       }
 
-      if (updateResult.length > 1) {
-        throw Exception('Multiple denominations were updated - data integrity issue');
-      }
-
-      final updatedRecord = updateResult.first;
-      if (updatedRecord['denomination_id'] != denominationId) {
-        throw Exception('Wrong denomination was updated');
-      }
-
-      if (updatedRecord['is_deleted'] != true) {
-        throw Exception('Soft delete failed - is_deleted not updated');
-      }
+      return false;
     } catch (e) {
-      if (e.toString().contains('No rows returned')) {
-        throw Exception('Denomination not found or already deleted');
-      }
-      rethrow;
+      throw Exception('Failed to check denomination usage: $e');
+    }
+  }
+
+  @override
+  Future<DenominationDeleteResult> removeDenomination(String denominationId, String companyId) async {
+    try {
+      // Call RPC function for safe deletion with detailed blocking info
+      final response = await _client.rpc(
+        'safe_delete_denomination',
+        params: {
+          'p_denomination_id': denominationId,
+          'p_company_id': companyId,
+        },
+      );
+
+      // Use mapper to convert RPC response to domain entity
+      return DenominationDeleteResultMapper.fromRpcResponse(response as Map<String, dynamic>);
+    } catch (e) {
+      return DenominationDeleteResult(
+        success: false,
+        error: 'Failed to delete denomination: $e',
+      );
     }
   }
 

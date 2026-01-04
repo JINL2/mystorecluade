@@ -171,25 +171,15 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.pop(),
-      ),
-      title: Text(
-        'Attributes',
-        style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w700),
-      ),
-      centerTitle: true,
+    return TossAppBar(
+      title: 'Attributes',
+      backgroundColor: TossColors.white,
       actions: [
         IconButton(
-          icon: const Icon(LucideIcons.plus),
+          icon: const Icon(LucideIcons.plus, color: TossColors.gray900),
           onPressed: _addAttribute,
         ),
       ],
-      elevation: 0,
-      backgroundColor: TossColors.white,
-      foregroundColor: TossColors.gray900,
     );
   }
 
