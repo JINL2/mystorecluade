@@ -124,12 +124,18 @@ Future<List<CashLocation>> cashLocationsForCompany(
 }
 
 /// Cash locations provider for a store
+/// Uses keepAlive to cache for 3 minutes
 @riverpod
 Future<List<CashLocation>> cashLocationsForStore(
   CashLocationsForStoreRef ref, {
   required String companyId,
   required String storeId,
 }) async {
+  // Keep provider alive for 3 minutes to avoid re-fetching on navigation
+  final keepAliveLink = ref.keepAlive();
+  Future.delayed(const Duration(minutes: 3), () {
+    keepAliveLink.close();
+  });
 
   final repository = ref.watch(cashTransactionRepositoryProvider);
 

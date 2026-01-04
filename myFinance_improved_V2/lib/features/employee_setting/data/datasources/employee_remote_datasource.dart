@@ -185,36 +185,14 @@ class EmployeeRemoteDataSource {
   }
 
   /// Watch real-time updates for employee salaries
+  /// DEPRECATED: v_user_salary is a VIEW and cannot use Supabase Realtime.
+  /// This causes excessive Disk IO (42M+ queries) due to empty Publication.
+  /// Use getEmployeeSalaries() + Riverpod invalidation instead.
+  @Deprecated('Use getEmployeeSalaries() instead - views cannot use Realtime')
   Stream<List<EmployeeSalaryModel>> watchEmployeeSalaries(String companyId) {
-    if (companyId.isEmpty) {
-      return Stream.value([]);
-    }
-
-    return _supabase
-        .from('v_user_salary')
-        .stream(primaryKey: ['salary_id'])
-        .eq('company_id', companyId)
-        .order('full_name', ascending: true)
-        .map(
-          (data) => data
-              .map((json) {
-                try {
-                  return EmployeeSalaryModel.fromJson(json);
-                } catch (e) {
-                  // Log parsing error but continue with other items
-                  debugPrint('Warning: Failed to parse employee salary: $e');
-                  return null;
-                }
-              })
-              .whereType<EmployeeSalaryModel>()
-              .toList(),
-        )
-        .handleError((Object error) {
-          // Log stream error
-          debugPrint('Error in employee salary stream: $error');
-          // Return empty list on error but keep stream alive
-          return <EmployeeSalaryModel>[];
-        });
+    // Return a stream that fetches once and completes
+    // This prevents the infinite polling issue
+    return Stream.fromFuture(getEmployeeSalaries(companyId));
   }
 
   /// Check if the current user is the owner of the specified company

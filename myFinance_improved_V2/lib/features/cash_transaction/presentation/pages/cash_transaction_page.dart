@@ -120,13 +120,8 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
   @override
   void initState() {
     super.initState();
-    // Invalidate cache on page open to get fresh data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
-      final storeId = appState.storeChoosen;
-      ref.invalidate(cashLocationsForStoreProvider(companyId: companyId, storeId: storeId));
-    });
+    // Use cached data - no need to invalidate on every page open
+    // Data is kept alive for 3 minutes in the provider
   }
 
   // Step 0: Cash Location (always first)
@@ -587,7 +582,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
           }).toList(),
         );
       },
-      loading: () => const TossLoadingView(),
+      loading: () => _buildCashLocationSkeleton(),
       error: (error, _) => Center(
         child: Text(
           'Error loading cash locations',
@@ -809,7 +804,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
           }).toList(),
         );
       },
-      loading: () => const TossLoadingView(),
+      loading: () => _buildCounterpartySkeleton(),
       error: (error, _) => Center(
         child: Text(
           'Error loading counterparties',
@@ -826,6 +821,116 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
       isEnabled: _canProceed,
       fullWidth: true,
       leadingIcon: const Icon(Icons.arrow_forward),
+    );
+  }
+
+  /// Skeleton loading UI for cash locations
+  Widget _buildCashLocationSkeleton() {
+    return Column(
+      children: List.generate(3, (index) =>
+        Padding(
+          padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+          child: _SkeletonCard(),
+        ),
+      ),
+    );
+  }
+
+  /// Skeleton loading UI for counterparties
+  Widget _buildCounterpartySkeleton() {
+    return Column(
+      children: List.generate(4, (index) =>
+        Padding(
+          padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+          child: _SkeletonCard(),
+        ),
+      ),
+    );
+  }
+}
+
+/// Skeleton card for loading state
+class _SkeletonCard extends StatefulWidget {
+  @override
+  State<_SkeletonCard> createState() => _SkeletonCardState();
+}
+
+class _SkeletonCardState extends State<_SkeletonCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: 0.3, end: 0.6).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          decoration: BoxDecoration(
+            color: TossColors.gray50,
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            border: Border.all(color: TossColors.gray100),
+          ),
+          child: Row(
+            children: [
+              // Icon placeholder
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: TossColors.gray200.withValues(alpha: _animation.value),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              // Text placeholder
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: TossColors.gray200.withValues(alpha: _animation.value),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 80,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: TossColors.gray100.withValues(alpha: _animation.value),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

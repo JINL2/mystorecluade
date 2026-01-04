@@ -606,6 +606,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'my-page',
         builder: (context, state) => const MyPage(),
       ),
+      // My Page alias (for database route compatibility)
+      GoRoute(
+        path: '/myPage',
+        name: 'myPage',
+        redirect: (context, state) => '/my-page',
+      ),
       GoRoute(
         path: '/edit-profile',
         name: 'edit-profile',

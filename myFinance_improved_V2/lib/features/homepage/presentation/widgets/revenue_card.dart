@@ -272,7 +272,7 @@ class _RevenueContentState extends State<_RevenueContent>
                       ),
                       const SizedBox(width: TossSpacing.space1),
                       Text(
-                        '${widget.revenue.isIncreased ? '' : '-'}${widget.revenue.growthPercentage.abs().toStringAsFixed(1)}% vs ${widget.revenue.period.comparisonText}',
+                        '${widget.revenue.isIncreased ? '' : '-'}${widget.revenue.growthPercentage.abs().toStringAsFixed(1)}% ${widget.revenue.period.comparisonText}',
                         style: TossTextStyles.caption.copyWith(
                           color: widget.revenue.isIncreased ? TossColors.primary : TossColors.error,
                           fontSize: 12,

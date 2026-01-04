@@ -199,46 +199,13 @@ class NotificationService {
   
   
   /// Subscribe to database notification events
+  /// NOTE: Removed .stream() realtime subscription to fix Disk IO issue.
+  /// FCM push notifications handle real-time alerts, so Supabase Realtime is unnecessary.
+  /// This was causing 42M+ Disk IO queries due to empty Publication.
   Future<void> _subscribeToSupabaseNotifications() async {
-    try {
-      final userId = _supabase.auth.currentUser?.id;
-      
-      if (userId == null) {
-        // Cannot subscribe to notifications: user not authenticated
-        return;
-      }
-      
-      _notificationSubscription = _supabase
-          .from('notifications')
-          .stream(primaryKey: ['id'])
-          .listen(
-            (List<Map<String, dynamic>> data) {
-              // New database notification: ${data.length} items
-              
-              // Filter for user's unread notifications
-              final userNotifications = data.where((item) => 
-                item['user_id'] == userId && item['is_read'] == false,
-              ).toList();
-              
-              for (final item in userNotifications) {
-                _handleDatabaseNotification(item);
-              }
-            },
-            onError: (Object error) {
-              // Handle realtime subscription error
-              print('Realtime subscription error: $error');
-              // Attempt to reconnect after delay
-              _scheduleReconnection();
-            },
-            cancelOnError: false,
-          );
-      
-      // Subscribed to database notifications
-      
-    } catch (e) {
-      // Failed to subscribe to database notifications
-      _scheduleReconnection();
-    }
+    // Realtime subscription removed - FCM handles push notifications
+    // If you need to poll for notifications, use a periodic timer instead:
+    // Timer.periodic(Duration(minutes: 5), (_) => _checkNewNotifications());
   }
 
   /// Schedule reconnection with exponential backoff

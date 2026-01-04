@@ -26,42 +26,46 @@ class CollapsibleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: TossAnimations.normal,
-      curve: Curves.easeInOut,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          GestureDetector(
-            onTap: onToggle,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header - AnimatedSwitcher for smooth transition
+        GestureDetector(
+          onTap: onToggle,
+          child: AnimatedSwitcher(
+            duration: TossAnimations.fast,
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
             child: hasSelection && !isExpanded
                 ? _CollapsedHeader(
+                    key: const ValueKey('collapsed'),
                     title: title,
                     selectedLabel: selectedLabel ?? '',
                     selectedIcon: selectedIcon,
                   )
                 : _ExpandedHeader(
+                    key: const ValueKey('expanded'),
                     title: title,
                     subtitle: subtitle,
                     hasSelection: hasSelection,
                     isExpanded: isExpanded,
                   ),
           ),
+        ),
 
-          // Content
-          AnimatedCrossFade(
-            duration: TossAnimations.normal,
-            crossFadeState:
-                isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.only(top: TossSpacing.space3),
-              child: content,
-            ),
-          ),
-        ],
-      ),
+        // Content - AnimatedSize for smoother expand/collapse
+        AnimatedSize(
+          duration: TossAnimations.fast,
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: isExpanded
+              ? Padding(
+                  padding: const EdgeInsets.only(top: TossSpacing.space3),
+                  child: content,
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 }
@@ -73,6 +77,7 @@ class _ExpandedHeader extends StatelessWidget {
   final bool isExpanded;
 
   const _ExpandedHeader({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.hasSelection,
@@ -127,6 +132,7 @@ class _CollapsedHeader extends StatelessWidget {
   final IconData? selectedIcon;
 
   const _CollapsedHeader({
+    super.key,
     required this.title,
     required this.selectedLabel,
     this.selectedIcon,

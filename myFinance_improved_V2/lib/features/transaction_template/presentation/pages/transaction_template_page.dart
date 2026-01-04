@@ -644,17 +644,26 @@ class _TemplateCard extends ConsumerWidget {
                           size: 20,
                         ),
                         onPressed: () async {
-                          // Get current user ID
-                          final userId = ref.read(appStateProvider).user['user_id'] as String? ?? '';
-
-                          // Create delete command
-                          final command = DeleteTemplateCommand(
-                            templateId: template.templateId,
-                            deletedBy: userId,
+                          // Show confirmation dialog
+                          final confirmed = await TossConfirmCancelDialog.showDelete(
+                            context: context,
+                            title: 'Delete Template',
+                            message: 'Are you sure you want to delete "${template.name}"?\nThis action cannot be undone.',
                           );
 
-                          // Call delete template
-                          await ref.read(templateNotifierProvider.notifier).deleteTemplate(command);
+                          if (confirmed == true) {
+                            // Get current user ID
+                            final userId = ref.read(appStateProvider).user['user_id'] as String? ?? '';
+
+                            // Create delete command
+                            final command = DeleteTemplateCommand(
+                              templateId: template.templateId,
+                              deletedBy: userId,
+                            );
+
+                            // Call delete template
+                            await ref.read(templateNotifierProvider.notifier).deleteTemplate(command);
+                          }
                         },
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),

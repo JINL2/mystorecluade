@@ -99,6 +99,7 @@ class IconMapper {
       // Finance & Money
       'wallet': LucideIcons.wallet,
       'walletRegular': LucideIcons.wallet,
+      'banknote': LucideIcons.banknote,
       'moneyCheckDollar': LucideIcons.banknote,
       'cashRegister': LucideIcons.calculator,
       'cashRegisterRegular': LucideIcons.calculator,

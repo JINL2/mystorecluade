@@ -10,38 +10,22 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
 });
 
 /// Provider for unread notification count
-final unreadNotificationCountProvider = StreamProvider<int>((ref) async* {
+/// NOTE: Removed .stream() realtime subscription to fix Disk IO issue (42M+ queries).
+/// FCM push notifications handle real-time alerts. Use invalidation to refresh.
+final unreadNotificationCountProvider = FutureProvider<int>((ref) async {
   final supabase = Supabase.instance.client;
   final userId = supabase.auth.currentUser?.id;
   final badgeService = BadgeService();
 
   if (userId == null) {
     await badgeService.removeBadge();
-    yield 0;
-    return;
+    return 0;
   }
 
   final repository = ref.watch(notificationRepositoryProvider);
-
-  // Initial count
-  final initialCount = await repository.getUnreadCount(userId);
-  await badgeService.updateBadgeCount(initialCount);
-  yield initialCount;
-
-  // Subscribe to changes in notifications table
-  final stream = supabase
-      .from('notifications')
-      .stream(primaryKey: ['id'])
-      .eq('user_id', userId)
-      .map((notifications) {
-        return notifications.where((n) => n['is_read'] == false).length;
-      });
-
-  await for (final count in stream) {
-    // Update app icon badge when count changes
-    await badgeService.updateBadgeCount(count);
-    yield count;
-  }
+  final count = await repository.getUnreadCount(userId);
+  await badgeService.updateBadgeCount(count);
+  return count;
 });
 
 /// Provider for notifications list
