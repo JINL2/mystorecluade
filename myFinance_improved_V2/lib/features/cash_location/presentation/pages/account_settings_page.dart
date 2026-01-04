@@ -252,12 +252,17 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                 color: TossColors.gray700,
               ),
             ),
-            const Spacer(),
-            Text(
-              value.isEmpty ? (hintText ?? '') : value,
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: value.isEmpty ? FontWeight.w400 : FontWeight.w600,
-                color: value.isEmpty ? TossColors.gray400 : TossColors.gray800,
+            const SizedBox(width: TossSpacing.space4),
+            Expanded(
+              child: Text(
+                value.isEmpty ? (hintText ?? '') : value,
+                style: TossTextStyles.h4.copyWith(
+                  fontWeight: value.isEmpty ? FontWeight.w400 : FontWeight.w600,
+                  color: value.isEmpty ? TossColors.gray400 : TossColors.gray800,
+                ),
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
@@ -491,10 +496,10 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       title: 'Change bank name',
       initialText: currentBankName,
       onSave: (newBankName) async {
-        ref
+        final success = await ref
             .read(accountSettingsNotifierProvider(_params).notifier)
             .updateBankName(newBankName);
-        return true;
+        return success;
       },
     );
   }
@@ -505,10 +510,10 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       initialText: currentAccountNumber,
       keyboardType: TextInputType.number,
       onSave: (newAccountNumber) async {
-        ref
+        final success = await ref
             .read(accountSettingsNotifierProvider(_params).notifier)
             .updateAccountNumber(newAccountNumber);
-        return true;
+        return success;
       },
     );
   }

@@ -154,7 +154,8 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       );
 
       final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
-      setState(() => _hasMultipleCurrencies = exchangeRates.length > 1);
+      // base_currency는 별도로 반환되므로, exchange_rates에 1개 이상 있으면 다중 통화
+      setState(() => _hasMultipleCurrencies = exchangeRates.isNotEmpty);
     } catch (e) {
       setState(() => _hasMultipleCurrencies = false);
     }

@@ -7,12 +7,28 @@ import '../../../../../../shared/themes/toss_spacing.dart';
 class PaymentHelpers {
   PaymentHelpers._();
 
-  /// Format number with comma separators
+  /// Format number with comma separators (integer only)
   static String formatNumber(int value) {
     return value.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
+  }
+
+  /// Smart price formatting - shows decimals only when needed
+  /// - If value has decimal part: shows up to 2 decimal places (e.g., 1,000.50)
+  /// - If value is whole number: shows no decimals (e.g., 1,000)
+  static String formatPrice(double value) {
+    if (value == value.roundToDouble()) {
+      // Whole number - no decimals
+      return formatNumber(value.toInt());
+    } else {
+      // Has decimal part - show up to 2 decimal places
+      final intPart = value.truncate();
+      final decimalPart = ((value - intPart) * 100).round();
+      final formattedInt = formatNumber(intPart);
+      return '$formattedInt.${decimalPart.toString().padLeft(2, '0')}';
+    }
   }
 
   /// Get icon widget for cash location type

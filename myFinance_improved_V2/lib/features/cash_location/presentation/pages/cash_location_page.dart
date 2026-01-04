@@ -408,8 +408,10 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         children: [
           Text(
             'Balance',
-            style: TossTextStyles.bodyMedium.copyWith(
+            style: TossTextStyles.body.copyWith(
               color: TossColors.gray900,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: TossSpacing.space4),
@@ -446,12 +448,15 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 'Error',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
+                  fontSize: 16,
                 ),
               ),
               Text(
                 _formatCurrency(totalError, currencySymbol),
-                style: TossTextStyles.bodyMedium.copyWith(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.error,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -471,6 +476,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 label,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray700,
+                  fontSize: 16,
                 ),
               ),
             ],
@@ -481,6 +487,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 amount,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
+                  fontSize: 16,
                 ),
               ),
               const SizedBox(width: TossSpacing.space1),
@@ -571,8 +578,10 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
         children: [
           Text(
             'Accounts',
-            style: TossTextStyles.bodyMedium.copyWith(
+            style: TossTextStyles.body.copyWith(
               color: TossColors.gray900,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: TossSpacing.space3),

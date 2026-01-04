@@ -38,7 +38,7 @@ class ActualFlowItem extends StatelessWidget {
           children: [
             // Date section (centered vertically, aligned left)
             Container(
-              width: 42,
+              width: 50,
               padding: EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
@@ -59,7 +59,7 @@ class ActualFlowItem extends StatelessWidget {
                 children: [
                   Text(
                     'Cash Count',
-                    style: TossTextStyles.subtitle.copyWith(
+                    style: TossTextStyles.bodyMedium.copyWith(
                       color: TossColors.gray900,
                     ),
                   ),
@@ -104,7 +104,7 @@ class ActualFlowItem extends StatelessWidget {
                 // Flow amount (what was counted)
                 Text(
                   formatBalance(flow.flowAmount, currencySymbol),
-                  style: TossTextStyles.subtitle.copyWith(
+                  style: TossTextStyles.bodyMedium.copyWith(
                     color: flow.flowAmount >= 0
                         ? Theme.of(context).colorScheme.primary
                         : TossColors.gray900,

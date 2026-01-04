@@ -94,4 +94,37 @@ class StoreDataSource {
       );
     }
   }
+
+  /// Update store information (name, email, phone, address)
+  ///
+  /// Direct update to stores table
+  Future<void> updateStoreInfo({
+    required String storeId,
+    String? storeName,
+    String? storeEmail,
+    String? storePhone,
+    String? storeAddress,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{
+        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at_utc': DateTime.now().toUtc().toIso8601String(),
+      };
+
+      if (storeName != null) updateData['store_name'] = storeName;
+      if (storeEmail != null) updateData['store_email'] = storeEmail;
+      if (storePhone != null) updateData['store_phone'] = storePhone;
+      if (storeAddress != null) updateData['store_address'] = storeAddress;
+
+      await _client
+          .from('stores')
+          .update(updateData)
+          .eq('store_id', storeId);
+    } catch (e, stackTrace) {
+      throw StoreLocationUpdateException(
+        'Failed to update store info: $e',
+        stackTrace,
+      );
+    }
+  }
 }

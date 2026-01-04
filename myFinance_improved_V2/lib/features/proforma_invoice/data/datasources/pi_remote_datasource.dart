@@ -191,23 +191,44 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
     }
     piMap['counterparty_name'] = counterpartyName;
 
-    // Ensure seller_info has company name (fallback for existing records)
-    var sellerInfo = piMap['seller_info'] as Map<String, dynamic>?;
+    // Build seller_info from company name + store contact details
     final companyId = piMap['company_id'] as String?;
-    if (sellerInfo == null || sellerInfo['name'] == null) {
-      if (companyId != null) {
-        final companyResponse = await _supabase
-            .from('companies')
-            .select('company_name')
-            .eq('company_id', companyId)
-            .maybeSingle();
-        if (companyResponse != null) {
-          sellerInfo = sellerInfo ?? {};
-          sellerInfo['name'] = companyResponse['company_name'] as String?;
-          piMap['seller_info'] = sellerInfo;
+    final storeId = piMap['store_id'] as String?;
+    Map<String, dynamic> sellerInfo = {};
+
+    // Get company name
+    if (companyId != null) {
+      final companyResponse = await _supabase
+          .from('companies')
+          .select('company_name')
+          .eq('company_id', companyId)
+          .maybeSingle();
+      if (companyResponse != null) {
+        sellerInfo['name'] = companyResponse['company_name'] as String?;
+      }
+    }
+
+    // Get store contact details (address, phone, email)
+    if (storeId != null) {
+      final storeResponse = await _supabase
+          .from('stores')
+          .select('store_address, store_phone, store_email')
+          .eq('store_id', storeId)
+          .maybeSingle();
+      if (storeResponse != null) {
+        if (storeResponse['store_address'] != null) {
+          sellerInfo['address'] = storeResponse['store_address'] as String?;
+        }
+        if (storeResponse['store_phone'] != null) {
+          sellerInfo['phone'] = storeResponse['store_phone'] as String?;
+        }
+        if (storeResponse['store_email'] != null) {
+          sellerInfo['email'] = storeResponse['store_email'] as String?;
         }
       }
     }
+
+    piMap['seller_info'] = sellerInfo;
 
     // Get banking info from cash_locations (bank type accounts for trade)
     // If bank_account_ids is specified, filter by those IDs; otherwise get all bank accounts
@@ -350,17 +371,37 @@ class PIRemoteDatasourceImpl implements PIRemoteDatasource {
     // Generate PI number
     final piNumber = await generateNumber(params.companyId);
 
-    // Fetch company info for seller_info
-    Map<String, dynamic>? sellerInfo;
+    // Build seller_info from company name + store contact details
+    Map<String, dynamic> sellerInfo = {};
+
+    // Get company name
     final companyResponse = await _supabase
         .from('companies')
         .select('company_name')
         .eq('company_id', params.companyId)
         .maybeSingle();
     if (companyResponse != null) {
-      sellerInfo = {
-        'name': companyResponse['company_name'] as String?,
-      };
+      sellerInfo['name'] = companyResponse['company_name'] as String?;
+    }
+
+    // Get store contact details (address, phone, email)
+    if (params.storeId != null) {
+      final storeResponse = await _supabase
+          .from('stores')
+          .select('store_address, store_phone, store_email')
+          .eq('store_id', params.storeId!)
+          .maybeSingle();
+      if (storeResponse != null) {
+        if (storeResponse['store_address'] != null) {
+          sellerInfo['address'] = storeResponse['store_address'] as String?;
+        }
+        if (storeResponse['store_phone'] != null) {
+          sellerInfo['phone'] = storeResponse['store_phone'] as String?;
+        }
+        if (storeResponse['store_email'] != null) {
+          sellerInfo['email'] = storeResponse['store_email'] as String?;
+        }
+      }
     }
 
     // Calculate totals

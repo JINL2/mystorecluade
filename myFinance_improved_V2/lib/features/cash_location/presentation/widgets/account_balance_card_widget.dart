@@ -45,8 +45,10 @@ class AccountBalanceCardWidget extends StatelessWidget {
             children: [
               Text(
                 'Balance',
-                style: TossTextStyles.bodyMedium.copyWith(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               GestureDetector(
@@ -62,8 +64,9 @@ class AccountBalanceCardWidget extends StatelessWidget {
                   ),
                   child: Text(
                     'Auto Mapping',
-                    style: TossTextStyles.caption.copyWith(
+                    style: TossTextStyles.body.copyWith(
                       color: Theme.of(context).colorScheme.primary,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -102,12 +105,15 @@ class AccountBalanceCardWidget extends StatelessWidget {
                 'Error',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
+                  fontSize: 16,
                 ),
               ),
               Text(
                 formatCurrencyWithSign(error.toDouble(), currencySymbol),
-                style: TossTextStyles.bodyMedium.copyWith(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.error,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -125,12 +131,14 @@ class AccountBalanceCardWidget extends StatelessWidget {
           label,
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray700,
+            fontSize: 16,
           ),
         ),
         Text(
           amount,
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray900,
+            fontSize: 16,
           ),
         ),
       ],

@@ -11,6 +11,8 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/inventory_metadata.dart';
 import '../../domain/entities/product.dart';
+import '../../domain/value_objects/pagination_params.dart';
+import '../../domain/value_objects/product_filter.dart';
 import '../adapters/xfile_image_adapter.dart';
 import '../providers/inventory_providers.dart';
 import '../utils/store_utils.dart';
@@ -59,6 +61,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   bool _isActive = true;
 
   Product? _product;
+  bool _isLoadingProduct = false;
 
   // Original values for change detection
   String _originalName = '';
@@ -130,11 +133,15 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         (p) => p.id == widget.productId,
       );
     } catch (e) {
-      // Product not found
+      // Product not found in cache, load from API
+      _loadProductFromApi();
       return;
     }
 
-    if (_product == null) return;
+    if (_product == null) {
+      _loadProductFromApi();
+      return;
+    }
 
     // Pre-populate form fields
     _productNameController.text = _product!.name;
@@ -180,6 +187,113 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             }
           }
           // Find brand
+          for (final b in metadataState.metadata!.brands) {
+            if (b.id == _product!.brandId) {
+              _selectedBrand = b;
+              break;
+            }
+          }
+        });
+      }
+    });
+  }
+
+  /// Load product from API if not found in provider cache
+  Future<void> _loadProductFromApi() async {
+    if (_isLoadingProduct) return;
+
+    setState(() => _isLoadingProduct = true);
+
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+
+    if (companyId.isEmpty || storeId.isEmpty) {
+      setState(() => _isLoadingProduct = false);
+      return;
+    }
+
+    try {
+      final repository = ref.read(inventoryRepositoryProvider);
+      final result = await repository.getProducts(
+        companyId: companyId,
+        storeId: storeId,
+        pagination: const PaginationParams(limit: 50),
+        filter: ProductFilter(searchQuery: widget.productId),
+      );
+
+      if (mounted && result != null && result.products.isNotEmpty) {
+        final matchedProduct = result.products.cast<Product?>().firstWhere(
+          (p) => p?.id == widget.productId,
+          orElse: () => null,
+        );
+
+        if (matchedProduct != null) {
+          _product = matchedProduct;
+          // Add to provider for future use
+          ref.read(inventoryPageNotifierProvider.notifier).addProductIfNotExists(_product!);
+          // Initialize form fields with the loaded product
+          _initializeFormFields();
+          setState(() => _isLoadingProduct = false);
+        } else {
+          setState(() => _isLoadingProduct = false);
+        }
+      } else {
+        setState(() => _isLoadingProduct = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingProduct = false);
+      }
+    }
+  }
+
+  /// Initialize form fields with product data
+  void _initializeFormFields() {
+    if (_product == null) return;
+
+    // Pre-populate form fields
+    _productNameController.text = _product!.name;
+    _sku = _product!.sku;
+    _barcode = _product!.barcode;
+    _salePriceController.text = _formatNumberWithCommas(_product!.salePrice.toStringAsFixed(0));
+    _costPriceController.text = _formatNumberWithCommas(_product!.costPrice.toStringAsFixed(0));
+    _descriptionController.text = _product!.description ?? '';
+    _quantityController.text = _product!.onHand.toString();
+    _unit = _product!.unit;
+    _isActive = _product!.isActive;
+    _existingImageUrls = List.from(_product!.images);
+
+    // Set location from app state
+    final appState = ref.read(appStateProvider);
+    _selectedLocation = appState.storeChoosen;
+    _selectedLocationName = appState.storeName;
+
+    // Store original values for change detection
+    _originalName = _product!.name;
+    _originalSku = _product!.sku;
+    _originalBarcode = _product!.barcode ?? '';
+    _originalSalePrice = _product!.salePrice.toStringAsFixed(0);
+    _originalCostPrice = _product!.costPrice.toStringAsFixed(0);
+    _originalDescription = _product!.description ?? '';
+    _originalOnHand = _product!.onHand.toString();
+    _originalUnit = _product!.unit;
+    _originalIsActive = _product!.isActive;
+    _originalCategoryId = _product!.categoryId;
+    _originalBrandId = _product!.brandId;
+    _originalImageUrls = List.from(_product!.images);
+
+    // Load metadata to find category and brand
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final metadataState = ref.read(inventoryMetadataNotifierProvider);
+      if (metadataState.metadata != null) {
+        setState(() {
+          for (final c in metadataState.metadata!.categories) {
+            if (c.id == _product!.categoryId) {
+              _selectedCategory = c;
+              break;
+            }
+          }
           for (final b in metadataState.metadata!.brands) {
             if (b.id == _product!.brandId) {
               _selectedBrand = b;

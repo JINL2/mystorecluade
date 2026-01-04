@@ -142,6 +142,23 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
     );
   }
 
+  @override
+  Future<void> updateStoreInfo({
+    required String storeId,
+    String? storeName,
+    String? storeEmail,
+    String? storePhone,
+    String? storeAddress,
+  }) async {
+    await _dataSource.updateStoreInfo(
+      storeId: storeId,
+      storeName: storeName,
+      storeEmail: storeEmail,
+      storePhone: storePhone,
+      storeAddress: storeAddress,
+    );
+  }
+
   /// ========================================
   /// Business Hours Operations
   /// ========================================

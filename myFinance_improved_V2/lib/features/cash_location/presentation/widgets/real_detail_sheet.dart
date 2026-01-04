@@ -435,7 +435,7 @@ class RealDetailSheet extends StatelessWidget {
                                       flex: 2,
                                       child: Text(
                                         formatCurrency(denomination.denominationValue, currencySymbol),
-                                        style: TossTextStyles.bodyMedium,
+                                        style: TossTextStyles.body,
                                       ),
                                     ),
                                     // Quantity with change indicator
@@ -445,7 +445,7 @@ class RealDetailSheet extends StatelessWidget {
                                         children: [
                                           Text(
                                             '${denomination.currentQuantity}',
-                                            style: TossTextStyles.bodyMedium,
+                                            style: TossTextStyles.body,
                                           ),
                                           if (denomination.quantityChange != 0) ...[
                                             const SizedBox(width: TossSpacing.space1),
@@ -469,7 +469,7 @@ class RealDetailSheet extends StatelessWidget {
                                       child: Text(
                                         formatBalance(denomination.subtotal, currencySymbol),
                                         textAlign: TextAlign.end,
-                                        style: TossTextStyles.bodyMedium,
+                                        style: TossTextStyles.body,
                                       ),
                                     ),
                                   ],

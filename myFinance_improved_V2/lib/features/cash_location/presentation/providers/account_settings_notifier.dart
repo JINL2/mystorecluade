@@ -258,14 +258,78 @@ class AccountSettingsNotifier extends _$AccountSettingsNotifier {
     }
   }
 
-  /// Update bank name (local state only, no DB update currently)
-  void updateBankName(String newBankName) {
-    state = state.copyWith(bankName: newBankName);
+  /// Update bank name
+  Future<bool> updateBankName(String newBankName) async {
+    state = state.copyWith(isSaving: true, errorMessage: null, successMessage: null);
+
+    try {
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
+
+      await useCase(
+        UpdateCashLocationParams(
+          locationId: params.locationId,
+          locationName: state.accountName,
+          bankName: newBankName,
+        ),
+      );
+
+      state = state.copyWith(
+        isSaving: false,
+        bankName: newBankName,
+        successMessage: 'Bank name updated successfully',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsNotifier: Failed to update bank name',
+        extra: {'locationId': params.locationId},
+      );
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: 'Failed to update bank name: ${e.toString()}',
+      );
+      return false;
+    }
   }
 
-  /// Update account number (local state only, no DB update currently)
-  void updateAccountNumber(String newAccountNumber) {
-    state = state.copyWith(accountNumber: newAccountNumber);
+  /// Update account number
+  Future<bool> updateAccountNumber(String newAccountNumber) async {
+    state = state.copyWith(isSaving: true, errorMessage: null, successMessage: null);
+
+    try {
+      final useCase = ref.read(updateCashLocationUseCaseProvider);
+
+      await useCase(
+        UpdateCashLocationParams(
+          locationId: params.locationId,
+          locationName: state.accountName,
+          accountNumber: newAccountNumber,
+        ),
+      );
+
+      state = state.copyWith(
+        isSaving: false,
+        accountNumber: newAccountNumber,
+        successMessage: 'Account number updated successfully',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'AccountSettingsNotifier: Failed to update account number',
+        extra: {'locationId': params.locationId},
+      );
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: 'Failed to update account number: ${e.toString()}',
+      );
+      return false;
+    }
   }
 
   /// Update beneficiary name

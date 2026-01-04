@@ -749,9 +749,11 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
       }
     }
 
+    final storeId = appStateRead.storeChoosen.isNotEmpty ? appStateRead.storeChoosen : null;
+
     final params = PICreateParams(
       companyId: companyId,
-      storeId: null,
+      storeId: storeId,
       counterpartyId: _counterpartyId,
       counterpartyInfo: counterpartyInfo,
       currencyId: _currencyId ?? _currencyCode, // Use actual currency ID if available

@@ -4,6 +4,7 @@ import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../sale_product/presentation/utils/currency_formatter.dart';
 import '../../../domain/entities/product.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -193,7 +194,7 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
         ),
         const SizedBox(height: 2),
         Text(
-          '${widget.currencySymbol}${_formatCurrency(widget.product.costPrice)}',
+          '${widget.currencySymbol}${CurrencyFormatter.formatPrice(widget.product.costPrice)}',
           style: TossTextStyles.body.copyWith(
             fontWeight: FontWeight.w500,
             color: TossColors.gray900,
@@ -217,7 +218,7 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
         ),
         const SizedBox(height: 2),
         Text(
-          '${widget.currencySymbol}${_formatCurrency(widget.product.salePrice)}',
+          '${widget.currencySymbol}${CurrencyFormatter.formatPrice(widget.product.salePrice)}',
           style: TossTextStyles.body.copyWith(
             fontWeight: FontWeight.w500,
             color: TossColors.primary,
@@ -226,12 +227,5 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
         ),
       ],
     );
-  }
-
-  String _formatCurrency(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-        );
   }
 }

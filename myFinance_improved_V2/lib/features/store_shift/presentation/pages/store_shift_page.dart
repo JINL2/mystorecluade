@@ -18,6 +18,7 @@ import '../widgets/store_selector_widget.dart';
 import '../widgets/schedule/schedule_tab.dart';
 import 'store_shift_page_dialogs.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import '../widgets/dialogs/store_info_edit_dialog.dart';
 
 /// Store Shift Page
 ///
@@ -231,7 +232,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                   return Column(
                     children: [
                       // Store Info Card
-                      StoreInfoCard(store: store),
+                      StoreInfoCard(
+                        store: store,
+                        onEdit: () => showStoreInfoEditDialog(context, store),
+                      ),
                       const SizedBox(height: TossSpacing.space4),
 
                       // Business Hours Section

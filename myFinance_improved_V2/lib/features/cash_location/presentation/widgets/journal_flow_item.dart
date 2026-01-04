@@ -45,7 +45,7 @@ class JournalFlowItem extends StatelessWidget {
           children: [
             // Date section (centered vertically, aligned left)
             Container(
-              width: 42,
+              width: 50,
               padding: EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
@@ -66,7 +66,7 @@ class JournalFlowItem extends StatelessWidget {
                 children: [
                   Text(
                     getJournalDisplayText(flow),
-                    style: TossTextStyles.subtitle.copyWith(
+                    style: TossTextStyles.bodyMedium.copyWith(
                       color: TossColors.gray900,
                     ),
                     maxLines: 1,

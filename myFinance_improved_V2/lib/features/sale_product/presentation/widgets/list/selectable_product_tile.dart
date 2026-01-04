@@ -162,7 +162,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${widget.currencySymbol}${CurrencyFormatter.currency.format(widget.product.pricing.sellingPrice?.round() ?? 0)}',
+                          '${widget.currencySymbol}${CurrencyFormatter.formatPrice(widget.product.pricing.sellingPrice ?? 0)}',
                           style: TossTextStyles.titleMedium.copyWith(
                             fontWeight: FontWeight.w600,
                             color: TossColors.primary,

@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/cart_item.dart';
+import '../../utils/currency_formatter.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Sticky cart dock at bottom of sale page
@@ -37,8 +37,6 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
-
     return Container(
       decoration: BoxDecoration(
         color: TossColors.white,
@@ -121,7 +119,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                           ],
                         ),
                         Text(
-                          formatter.format(widget.subtotal.round()),
+                          CurrencyFormatter.formatPrice(widget.subtotal),
                           style: TossTextStyles.bodyMedium.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -195,8 +193,6 @@ class _CartItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat('#,###');
-
     return Material(
       color: TossColors.transparent,
       child: InkWell(
@@ -258,7 +254,7 @@ class _CartItemRow extends StatelessWidget {
               const SizedBox(width: 12),
               // Quantity × Price
               Text(
-                '${item.quantity} × ${formatter.format(item.price.round())}',
+                '${item.quantity} × ${CurrencyFormatter.formatPrice(item.price)}',
                 style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w500,
                   color: TossColors.textPrimary,

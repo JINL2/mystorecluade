@@ -112,6 +112,24 @@ abstract class StoreShiftRepository {
     int? allowedDistance,
   });
 
+  /// Update store information
+  ///
+  /// Parameters:
+  /// - [storeId]: The ID of the store
+  /// - [storeName]: Store name (optional)
+  /// - [storeEmail]: Store email (optional)
+  /// - [storePhone]: Store phone number (optional)
+  /// - [storeAddress]: Store address (optional)
+  ///
+  /// Throws an exception if the operation fails
+  Future<void> updateStoreInfo({
+    required String storeId,
+    String? storeName,
+    String? storeEmail,
+    String? storePhone,
+    String? storeAddress,
+  });
+
   /// ========================================
   /// Business Hours Operations
   /// ========================================

@@ -89,10 +89,10 @@ class StoreInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: TossSpacing.space2),
 
-          if (store['store_address'] != null && store['store_address'].toString().isNotEmpty) ...[
+          if (store['store_email'] != null && store['store_email'].toString().isNotEmpty) ...[
             InfoRow.fixed(
-              label: 'Address',
-              value: store['store_address'].toString(),
+              label: 'Email',
+              value: store['store_email'].toString(),
               labelWidth: 100,
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -102,6 +102,15 @@ class StoreInfoCard extends StatelessWidget {
             InfoRow.fixed(
               label: 'Phone',
               value: store['store_phone'].toString(),
+              labelWidth: 100,
+            ),
+            const SizedBox(height: TossSpacing.space2),
+          ],
+
+          if (store['store_address'] != null && store['store_address'].toString().isNotEmpty) ...[
+            InfoRow.fixed(
+              label: 'Address',
+              value: store['store_address'].toString(),
               labelWidth: 100,
             ),
             const SizedBox(height: TossSpacing.space2),

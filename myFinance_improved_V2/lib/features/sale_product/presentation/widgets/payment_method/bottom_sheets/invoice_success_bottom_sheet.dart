@@ -140,7 +140,7 @@ class _InvoiceSuccessBottomSheetState
 
                     // Total amount with currency symbol before number
                     Text(
-                      '${widget.currencySymbol}${PaymentHelpers.formatNumber(widget.totalAmount.toInt())}',
+                      '${widget.currencySymbol}${PaymentHelpers.formatPrice(widget.totalAmount)}',
                       style: TossTextStyles.display.copyWith(
                         color: TossColors.primary,
                       ),
@@ -587,7 +587,7 @@ class _InvoiceSuccessBottomSheetState
           ),
           // Quantity x Price
           Text(
-            '$quantity × ${PaymentHelpers.formatNumber(price.toInt())}',
+            '$quantity × ${PaymentHelpers.formatPrice(price)}',
             style: TossTextStyles.body.copyWith(
               fontWeight: FontWeight.w500,
               color: TossColors.gray700,

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../sale_product/presentation/utils/currency_formatter.dart';
 import '../../domain/entities/product.dart';
 
 class InventoryProductCard extends StatelessWidget {
@@ -112,7 +113,7 @@ class InventoryProductCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '$currencySymbol${_formatCurrency(product.salePrice)}',
+                            '$currencySymbol${CurrencyFormatter.formatPrice(product.salePrice)}',
                             style: TossTextStyles.titleMedium.copyWith(
                               fontWeight: FontWeight.w600,
                               color: TossColors.primary,
@@ -167,13 +168,6 @@ class InventoryProductCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  String _formatCurrency(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
     );
   }
 }

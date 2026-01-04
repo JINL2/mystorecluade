@@ -109,6 +109,21 @@ class StoreShiftDataSource {
         allowedDistance: allowedDistance,
       );
 
+  Future<void> updateStoreInfo({
+    required String storeId,
+    String? storeName,
+    String? storeEmail,
+    String? storePhone,
+    String? storeAddress,
+  }) =>
+      _storeDataSource.updateStoreInfo(
+        storeId: storeId,
+        storeName: storeName,
+        storeEmail: storeEmail,
+        storePhone: storePhone,
+        storeAddress: storeAddress,
+      );
+
   // ========================================
   // Business Hours Operations (delegated to BusinessHoursDataSource)
   // ========================================

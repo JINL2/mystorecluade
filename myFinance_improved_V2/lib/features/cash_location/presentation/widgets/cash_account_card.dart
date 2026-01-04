@@ -89,15 +89,18 @@ class CashAccountCard extends StatelessWidget {
                 children: [
                   Text(
                     location.locationName,
-                    style: TossTextStyles.bodyMedium.copyWith(
+                    style: TossTextStyles.body.copyWith(
                       color: TossColors.gray900,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space1),
                   Text(
                     '$percentage% of total balance',
-                    style: TossTextStyles.caption.copyWith(
+                    style: TossTextStyles.body.copyWith(
                       color: TossColors.gray600,
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -112,15 +115,18 @@ class CashAccountCard extends StatelessWidget {
                   children: [
                     Text(
                       formatCurrency(location.totalJournalCashAmount, location.currencySymbol),
-                      style: TossTextStyles.bodyMedium.copyWith(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.primary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space1),
                     Text(
                       formatCurrency(location.cashDifference.abs(), ''),
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.error,
+                        fontSize: 14,
                       ),
                     ),
                   ],

@@ -113,7 +113,7 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       if (rateResult != null) {
         setState(() {
           currentExchangeRate = (rateResult['rate'] as num).toDouble();
-          exchangeRateController.text = currentExchangeRate!.toStringAsFixed(4);
+          exchangeRateController.text = currentExchangeRate!.toStringAsFixed(8);
         });
       }
     } catch (e) {
@@ -132,8 +132,9 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
           .getExchangeRate(widget.currency.code, baseCurrencyCode!);
 
       if (mounted && rate != null) {
+        final displayRate = rate.toStringAsFixed(8);
         setState(() {
-          exchangeRateController.text = rate.toStringAsFixed(4);
+          exchangeRateController.text = displayRate;
           isFetchingRate = false;
         });
 
@@ -143,7 +144,7 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
           barrierDismissible: true,
           builder: (context) => TossDialog.success(
             title: 'Success',
-            message: 'Latest exchange rate fetched: ${rate.toStringAsFixed(4)}',
+            message: 'Latest exchange rate fetched: $displayRate',
             primaryButtonText: 'OK',
           ),
         );

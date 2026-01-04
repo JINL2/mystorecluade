@@ -251,8 +251,12 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
     }
     poMap['buyer_name'] = buyerName;
 
-    // Get seller (our company) info for PDF generation
+    // Build seller_info from company name + store contact details
     final companyId = poMap['company_id'] as String?;
+    final storeId = poMap['store_id'] as String?;
+    Map<String, dynamic> sellerInfo = {};
+
+    // Get company name
     if (companyId != null) {
       final companyResponse = await _supabase
           .from('companies')
@@ -260,12 +264,34 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
           .eq('company_id', companyId)
           .maybeSingle();
       if (companyResponse != null) {
-        poMap['seller_info'] = {
-          'name': companyResponse['company_name'] as String?,
-        };
+        sellerInfo['name'] = companyResponse['company_name'] as String?;
       }
+    }
 
-      // Get banking info from cash_locations (bank type accounts for trade)
+    // Get store contact details (address, phone, email)
+    if (storeId != null) {
+      final storeResponse = await _supabase
+          .from('stores')
+          .select('store_address, store_phone, store_email')
+          .eq('store_id', storeId)
+          .maybeSingle();
+      if (storeResponse != null) {
+        if (storeResponse['store_address'] != null) {
+          sellerInfo['address'] = storeResponse['store_address'] as String?;
+        }
+        if (storeResponse['store_phone'] != null) {
+          sellerInfo['phone'] = storeResponse['store_phone'] as String?;
+        }
+        if (storeResponse['store_email'] != null) {
+          sellerInfo['email'] = storeResponse['store_email'] as String?;
+        }
+      }
+    }
+
+    poMap['seller_info'] = sellerInfo;
+
+    // Get banking info from cash_locations (bank type accounts for trade)
+    if (companyId != null) {
       // If bank_account_ids is specified, filter by those IDs; otherwise get all bank accounts
       final bankAccountIds = (poMap['bank_account_ids'] as List<dynamic>?)
           ?.map((e) => e as String)
