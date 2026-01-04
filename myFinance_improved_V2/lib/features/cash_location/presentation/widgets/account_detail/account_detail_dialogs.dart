@@ -123,14 +123,22 @@ class AccountDetailDialogs {
     );
 
     // Show confirm/cancel dialog using TossConfirmCancelDialog
-    final confirmed = await TossConfirmCancelDialog.show(
+    // Use rootNavigator to ensure dialog is shown on top of everything
+    // and Navigator.pop only closes the dialog, not the page
+    final confirmed = await showDialog<bool>(
       context: context,
-      title: 'Auto Mapping',
-      message: 'Do you want to make\n$mappingType?',
-      confirmButtonText: 'OK',
-      cancelButtonText: 'Cancel',
-      customContent: customContent,
       barrierDismissible: true,
+      useRootNavigator: true,
+      builder: (dialogContext) => TossConfirmCancelDialog(
+        title: 'Auto Mapping',
+        message: 'Do you want to make\n$mappingType?',
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        customContent: customContent,
+        barrierDismissible: true,
+        onConfirm: () => Navigator.of(dialogContext).pop(true),
+        onCancel: () => Navigator.of(dialogContext).pop(false),
+      ),
     );
 
     return confirmed == true;

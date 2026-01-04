@@ -10,7 +10,9 @@ class AutoMappingSheet {
   static Future<void> show({
     required BuildContext context,
     required Function(String) onMappingSelected,
-  }) {
+  }) async {
+    String? selectedId;
+
     final items = [
       TossSelectionItem(
         id: 'Error',
@@ -24,14 +26,23 @@ class AutoMappingSheet {
       ),
     ];
 
-    return TossSelectionBottomSheet.show(
+    await TossSelectionBottomSheet.show(
       context: context,
       title: 'Select Mapping Reason',
       items: items,
       showSubtitle: false,
       onItemSelected: (item) {
-        onMappingSelected(item.id);
+        selectedId = item.id;
       },
     );
+
+    // Call the callback after the bottom sheet is fully closed
+    // to avoid Navigator lock issues
+    if (selectedId != null) {
+      // Use addPostFrameCallback to ensure Navigator is unlocked
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        onMappingSelected(selectedId!);
+      });
+    }
   }
 }
