@@ -40,8 +40,8 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
   void _initializeData() {
     final companyId = ref.read(selectedCompanyIdProvider);
     if (companyId != null) {
-      final cacheManager = ref.read(counterPartyCacheProvider);
-      cacheManager.refreshIfStale(companyId);
+      // Always fetch fresh data on page entry
+      ref.invalidate(optimizedCounterPartyDataProvider(companyId));
     }
   }
 

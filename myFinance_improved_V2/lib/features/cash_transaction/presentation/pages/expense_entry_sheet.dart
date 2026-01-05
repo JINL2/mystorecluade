@@ -63,7 +63,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
     final companyId = appState.companyChoosen;
 
     if (companyId.isEmpty) {
-      setState(() => _hasMultipleCurrencies = false);
+      if (mounted) setState(() => _hasMultipleCurrencies = false);
       return;
     }
 
@@ -73,10 +73,11 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
           CalculatorExchangeRateParams(companyId: companyId),
         ).future,
       );
+      if (!mounted) return;
       final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
       setState(() => _hasMultipleCurrencies = exchangeRates.isNotEmpty);
     } catch (e) {
-      setState(() => _hasMultipleCurrencies = false);
+      if (mounted) setState(() => _hasMultipleCurrencies = false);
     }
   }
 
@@ -552,16 +553,24 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
           ),
           const SizedBox(height: TossSpacing.space2),
           Text(
-            'No accounts found',
+            'No expense accounts found',
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray500,
             ),
           ),
           const SizedBox(height: TossSpacing.space1),
           Text(
-            'Try a different search term',
+            'Only expense-type accounts are shown here',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray400,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space1),
+          Text(
+            'The account may exist as Asset, Liability, or Equity type',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray400,
+              fontStyle: FontStyle.italic,
             ),
           ),
         ],

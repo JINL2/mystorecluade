@@ -4,17 +4,14 @@
 /// Handles complex templates with cash locations, counterparties, and debt tracking.
 /// Supports attachment uploads for receipts and documents.
 ///
-/// Keyboard Handling: Uses TossKeyboardAwareBottomSheet for proper keyboard management
-///
 /// Architecture:
+/// - Uses Riverpod Provider (TemplateUsageNotifier) for state management
+/// - Provider-based state prevents "Looking up deactivated widget's ancestor" errors
 /// - get_template_for_usage RPC: Analyzes template and returns UI configuration
 /// - TemplateRpcService: Creates transactions via insert_journal_with_everything_utc RPC
-/// Reference: docs/TEMPLATE_USAGE_REFACTORING_PLAN.md
 ///
 /// Usage: TemplateUsageBottomSheet.show(context, template)
 library;
-
-import 'dart:async';
 
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -22,37 +19,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
-import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-// Autonomous Selectors
 
-// ✅ Clean Architecture: Domain layer entities
+// Provider
+import '../providers/template_usage_provider.dart';
+import '../providers/states/template_usage_state.dart';
+
+// Domain
 import '../../domain/entities/template_attachment.dart';
-import '../../domain/validators/template_form_validator.dart';
-// 🔧 RPC-based: DTO from Data layer
-import '../../data/dtos/template_usage_response_dto.dart';
-import '../../data/providers/repository_providers.dart';
-// ✅ Clean Architecture: Provider from Presentation layer
-import '../providers/use_case_providers.dart';
+
+// Widgets
 import '../widgets/template_attachment_picker_section.dart';
-import 'edit_template_bottom_sheet.dart';
-// 🧮 Exchange rate calculator (Autonomous Selector)
-import 'package:myfinance_improved/shared/widgets/selectors/exchange_rate/index.dart';
-
-// ✅ Extracted widgets
 import '../widgets/template_usage/template_usage_widgets.dart';
+import 'edit_template_bottom_sheet.dart';
 
-// Main Template Usage Bottom Sheet
+/// Main Template Usage Bottom Sheet
 class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
   final Map<String, dynamic> template;
-  /// Callback to notify parent when form validity changes
-  final ValueChanged<bool>? onValidityChanged;
 
   const TemplateUsageBottomSheet({
     super.key,
     required this.template,
-    this.onValidityChanged,
   });
 
   static String _formatTagName(String tag) {
@@ -93,64 +80,7 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
       }
     }
 
-    final GlobalKey<_TemplateUsageBottomSheetState> formKey = GlobalKey();
-    final buttonStateNotifier = ValueNotifier<bool>(false);
-    final formValidityNotifier = ValueNotifier<bool>(false);
-
-    final actionButtons = <Widget>[
-      if (canEdit)
-        Expanded(
-          child: ValueListenableBuilder<bool>(
-            valueListenable: buttonStateNotifier,
-            builder: (context, isSubmitting, _) {
-              return TossButton.secondary(
-                text: 'Edit',
-                fullWidth: true,
-                isEnabled: !isSubmitting,
-                onPressed: isSubmitting ? null : () async {
-                  context.pop();
-                  final updated = await EditTemplateBottomSheet.show(context, template);
-                  if (updated == true) {
-                    // Template was updated
-                  }
-                },
-              );
-            },
-          ),
-        ),
-      Expanded(
-        flex: canEdit ? 2 : 1,
-        child: ValueListenableBuilder<bool>(
-          valueListenable: buttonStateNotifier,
-          builder: (context, isSubmitting, _) {
-            return ValueListenableBuilder<bool>(
-              valueListenable: formValidityNotifier,
-              builder: (context, isFormValid, _) {
-                final isButtonEnabled = isFormValid && !isSubmitting;
-
-                return TossButton.primary(
-                  text: isSubmitting ? 'Creating...' : 'Create Transaction',
-                  fullWidth: true,
-                  isEnabled: isButtonEnabled,
-                  onPressed: !isButtonEnabled ? null : () async {
-                    final state = formKey.currentState;
-                    if (state != null) {
-                      if (state.isSubmitting) return;
-                      final isValid = state._isFormValid;
-                      if (isValid) {
-                        buttonStateNotifier.value = true;
-                        await state._handleSubmit();
-                        buttonStateNotifier.value = false;
-                      }
-                    }
-                  },
-                );
-              },
-            );
-          },
-        ),
-      ),
-    ];
+    final templateId = template['template_id']?.toString() ?? '';
 
     return TossTextFieldKeyboardModal.show(
       context: context,
@@ -160,13 +90,80 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
         vertical: TossSpacing.space3,
       ),
       content: TemplateUsageBottomSheet(
-        key: formKey,
         template: template,
-        onValidityChanged: (isValid) {
-          formValidityNotifier.value = isValid;
-        },
       ),
-      actionButtons: actionButtons,
+      actionButtons: [
+        if (canEdit)
+          Expanded(
+            child: Consumer(
+              builder: (context, ref, _) {
+                final isSubmitting = ref.watch(templateUsageSubmittingProvider(templateId));
+                return TossButton.secondary(
+                  text: 'Edit',
+                  fullWidth: true,
+                  isEnabled: !isSubmitting,
+                  onPressed: isSubmitting ? null : () async {
+                    context.pop();
+                    final updated = await EditTemplateBottomSheet.show(context, template);
+                    if (updated == true) {
+                      // Template was updated
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        Expanded(
+          flex: canEdit ? 2 : 1,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final isSubmitting = ref.watch(templateUsageSubmittingProvider(templateId));
+              final isFormValid = ref.watch(templateUsageFormValidProvider(templateId));
+              final isButtonEnabled = isFormValid && !isSubmitting;
+
+              return TossButton.primary(
+                text: isSubmitting ? 'Creating...' : 'Create Transaction',
+                fullWidth: true,
+                isEnabled: isButtonEnabled,
+                onPressed: !isButtonEnabled ? null : () async {
+                  final notifier = ref.read(templateUsageNotifierProvider(templateId).notifier);
+                  final success = await notifier.submitTransaction(template);
+
+                  if (success && context.mounted) {
+                    await showDialog<void>(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (ctx) => TossDialog.success(
+                        title: 'Transaction Created!',
+                        message: 'Transaction created successfully',
+                        primaryButtonText: 'Done',
+                        onPrimaryPressed: () => ctx.pop(),
+                      ),
+                    );
+                    if (context.mounted) {
+                      Navigator.of(context).pop(true);
+                    }
+                  } else if (context.mounted) {
+                    final state = ref.read(templateUsageNotifierProvider(templateId));
+                    if (state.submitError != null) {
+                      showDialog<void>(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (ctx) => TossDialog.error(
+                          title: 'Transaction Failed',
+                          message: state.submitError!,
+                          primaryButtonText: 'OK',
+                          onPrimaryPressed: () => ctx.pop(),
+                        ),
+                      );
+                    }
+                  }
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -175,237 +172,25 @@ class TemplateUsageBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSheet> {
-  // 🔧 RPC-based: Template usage response from server
-  TemplateUsageResponseDto? _rpcResponse;
-  bool _isLoadingRpc = true;
-  String? _rpcError;
+  // Controllers still needed for TextField binding
+  late final TextEditingController _amountController;
+  late final TextEditingController _descriptionController;
 
-  // Controllers and state variables
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-
-  // Dynamic selection state
-  String? _selectedMyCashLocationId;
-  String? _selectedCounterpartyId;
-  String? _selectedCounterpartyStoreId;
-  String? _selectedCounterpartyCashLocationId;
-  bool _showTemplateDetails = false;
-
-  // 🔧 ENHANCED: Real-time validation state
-  String? _amountError;
-  String? _cashLocationError;
-  String? _counterpartyError;
-
-  // 📎 Attachment state
-  List<TemplateAttachment> _pendingAttachments = [];
-
-  // 🔄 Loading state for transaction creation
-  bool _isSubmitting = false;
-
-  // 🧮 Multiple currencies check for calculator button
-  bool _hasMultipleCurrencies = false;
+  String get _templateId => widget.template['template_id']?.toString() ?? '';
 
   @override
   void initState() {
     super.initState();
-    _amountController.addListener(_validateAmountField);
-    _amountController.addListener(_notifyValidityChange);
-    _loadTemplateForUsage();
-    _checkForMultipleCurrencies();
-  }
+    _amountController = TextEditingController();
+    _descriptionController = TextEditingController();
 
-  /// 🔧 RPC-based: Load template analysis from server
-  Future<void> _loadTemplateForUsage() async {
-    try {
-      final appState = ref.read(Legacy.appStateProvider);
-      final companyId = appState.companyChoosen;
-      final storeId = appState.storeChoosen;
-      final templateId = widget.template['template_id']?.toString() ?? '';
-
-      if (templateId.isEmpty || companyId.isEmpty) {
-        setState(() {
-          _isLoadingRpc = false;
-          _rpcError = 'Invalid template or company ID';
-        });
-        return;
-      }
-
-      final dataSource = ref.read(templateDataSourceProvider);
-      final response = await dataSource.getTemplateForUsage(
-        templateId: templateId,
-        companyId: companyId,
-        storeId: storeId.isNotEmpty ? storeId : null,
-      );
-
-      if (!mounted) return;
-
-      if (!response.success) {
-        setState(() {
-          _isLoadingRpc = false;
-          _rpcError = response.message ?? 'Failed to load template';
-        });
-        return;
-      }
-
-      final defaults = response.defaults;
-      if (defaults != null) {
-        _selectedMyCashLocationId = defaults.cashLocationId;
-        _selectedCounterpartyId = defaults.counterpartyId;
-        _selectedCounterpartyStoreId = defaults.counterpartyStoreId;
-        _selectedCounterpartyCashLocationId = defaults.counterpartyCashLocationId;
-      }
-
-      setState(() {
-        _rpcResponse = response;
-        _isLoadingRpc = false;
-      });
-
-      _notifyValidityChange();
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingRpc = false;
-          _rpcError = 'Error loading template: ${e.toString()}';
-        });
-      }
-    }
-  }
-
-  /// Check if company has multiple currencies for exchange rate calculator
-  Future<void> _checkForMultipleCurrencies() async {
-    final appState = ref.read(Legacy.appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      setState(() => _hasMultipleCurrencies = false);
-      return;
-    }
-
-    try {
-      final exchangeRatesData = await ref.read(
-        calculatorExchangeRateDataProvider(CalculatorExchangeRateParams(companyId: companyId)).future,
-      );
-      final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
-
-      if (mounted) {
-        setState(() => _hasMultipleCurrencies = exchangeRates.length > 1);
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _hasMultipleCurrencies = false);
-      }
-    }
-  }
-
-  /// Show exchange rate calculator bottom sheet
-  void _showExchangeRateCalculator() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black.withValues(alpha: 0.5),
-      isDismissible: true,
-      enableDrag: true,
-      builder: (context) => ExchangeRateCalculator(
-        initialAmount: _amountController.text.replaceAll(',', ''),
-        onAmountSelected: (amount) {
-          final formatter = NumberFormat('#,##0.##', 'en_US');
-          final numericValue = double.tryParse(amount) ?? 0;
-          setState(() {
-            _amountController.text = formatter.format(numericValue);
-          });
-        },
-      ),
-    );
-  }
-
-  /// Notify parent of form validity changes
-  void _notifyValidityChange() {
-    widget.onValidityChanged?.call(_isFormValid);
-  }
-
-  /// Real-time amount field validation
-  void _validateAmountField() {
-    setState(() {
-      _amountError = TemplateFormValidator.validateAmountField(_amountController.text);
+    // Initialize provider and load data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = ref.read(templateUsageNotifierProvider(_templateId).notifier);
+      notifier.loadTemplateForUsage(widget.template);
+      notifier.checkForMultipleCurrencies();
     });
   }
-
-  /// Real-time cash location validation
-  void _validateCashLocationField() {
-    final uiConfig = _rpcResponse?.uiConfig;
-    setState(() {
-      if (uiConfig?.showCashLocationSelector == true && _selectedMyCashLocationId == null) {
-        _cashLocationError = 'Cash location is required';
-      } else {
-        _cashLocationError = null;
-      }
-    });
-    _notifyValidityChange();
-  }
-
-  /// Real-time counterparty validation
-  void _validateCounterpartyField() {
-    final uiConfig = _rpcResponse?.uiConfig;
-    setState(() {
-      if (uiConfig?.showCounterpartySelector == true && _selectedCounterpartyId == null) {
-        _counterpartyError = 'Counterparty is required';
-      } else {
-        _counterpartyError = null;
-      }
-    });
-    _notifyValidityChange();
-  }
-
-  /// Check if template requires attachment
-  bool get _requiresAttachment {
-    return _rpcResponse?.template?.requiredAttachment ??
-           widget.template['required_attachment'] == true;
-  }
-
-  /// Check if attachment requirement is satisfied
-  bool get _attachmentRequirementSatisfied {
-    if (!_requiresAttachment) return true;
-    return _pendingAttachments.isNotEmpty;
-  }
-
-  /// 🔧 RPC-based: Comprehensive form validation using RPC uiConfig
-  bool get _isFormValid {
-    if (_isLoadingRpc || _rpcResponse == null) return false;
-
-    final amountError = TemplateFormValidator.validateAmountField(_amountController.text);
-    if (amountError != null) return false;
-
-    final uiConfig = _rpcResponse!.uiConfig;
-    if (uiConfig == null) return false;
-
-    if (uiConfig.showCashLocationSelector && _selectedMyCashLocationId == null) {
-      return false;
-    }
-
-    if (uiConfig.showCounterpartySelector && _selectedCounterpartyId == null) {
-      return false;
-    }
-
-    if (uiConfig.showCounterpartyStoreSelector && _selectedCounterpartyStoreId == null) {
-      return false;
-    }
-
-    if (uiConfig.showCounterpartyCashLocationSelector && _selectedCounterpartyCashLocationId == null) {
-      return false;
-    }
-
-    return _attachmentRequirementSatisfied;
-  }
-
-  /// Check if transaction is being created
-  bool get isSubmitting => _isSubmitting;
-
-  /// Get UI config helpers
-  bool get _showCashLocationSelector => _rpcResponse?.uiConfig?.showCashLocationSelector ?? false;
-  bool get _showCounterpartySelector => _rpcResponse?.uiConfig?.showCounterpartySelector ?? false;
-  bool get _showCounterpartyStoreSelector => _rpcResponse?.uiConfig?.showCounterpartyStoreSelector ?? false;
-  bool get _showCounterpartyCashLocationSelector => _rpcResponse?.uiConfig?.showCounterpartyCashLocationSelector ?? false;
 
   @override
   void dispose() {
@@ -414,16 +199,42 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     super.dispose();
   }
 
+  /// Show exchange rate calculator bottom sheet
+  void _showExchangeRateCalculator() {
+    final state = ref.read(templateUsageNotifierProvider(_templateId));
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TossColors.transparent,
+      barrierColor: TossColors.black.withValues(alpha: 0.5),
+      isDismissible: true,
+      enableDrag: true,
+      builder: (ctx) => ExchangeRateCalculator(
+        initialAmount: state.amount.replaceAll(',', ''),
+        onAmountSelected: (amount) {
+          final formatter = NumberFormat('#,##0.##', 'en_US');
+          final numericValue = double.tryParse(amount) ?? 0;
+          final formattedAmount = formatter.format(numericValue);
+          _amountController.text = formattedAmount;
+          ref.read(templateUsageNotifierProvider(_templateId).notifier)
+              .updateAmount(formattedAmount);
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingRpc) {
+    final state = ref.watch(templateUsageNotifierProvider(_templateId));
+
+    if (state.isLoadingRpc) {
       return const Padding(
         padding: EdgeInsets.all(TossSpacing.space5),
         child: TossLoadingView(),
       );
     }
 
-    if (_rpcError != null) {
+    if (state.rpcError != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space5),
@@ -433,7 +244,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
               const Icon(Icons.error_outline, color: TossColors.error, size: 48),
               const SizedBox(height: TossSpacing.space3),
               Text(
-                _rpcError!,
+                state.rpcError!,
                 style: TossTextStyles.body.copyWith(color: TossColors.gray700),
                 textAlign: TextAlign.center,
               ),
@@ -455,28 +266,30 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
             const SizedBox(height: TossSpacing.space3),
 
             // Input section with blue border
-            _buildInputSection(),
+            _buildInputSection(state),
 
             const SizedBox(height: TossSpacing.space3),
 
             // Template details collapsible section
             TemplateDetailsSection(
               template: widget.template,
-              isExpanded: _showTemplateDetails,
-              onToggle: () => setState(() => _showTemplateDetails = !_showTemplateDetails),
+              isExpanded: state.showTemplateDetails,
+              onToggle: () => ref
+                  .read(templateUsageNotifierProvider(_templateId).notifier)
+                  .toggleTemplateDetails(),
             ),
           ],
         ),
 
         // Loading overlay when submitting
-        if (_isSubmitting) const LoadingOverlay(),
+        if (state.isSubmitting) const LoadingOverlay(),
       ],
     );
   }
 
   /// Builds input section with blue border
-  Widget _buildInputSection() {
-    final analysis = _rpcResponse?.analysis;
+  Widget _buildInputSection(TemplateUsageState state) {
+    final analysis = state.rpcResponse?.analysis;
     final missingItems = analysis?.missingItems ?? [];
     final showGuidance = missingItems.isNotEmpty && missingItems.length <= 3;
 
@@ -493,24 +306,26 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InputSectionHeader(showGuidance: showGuidance),
-          _buildDynamicFields(),
+          _buildDynamicFields(state),
         ],
       ),
     );
   }
 
-  /// 🔧 RPC-based: Builds dynamic form fields based on RPC ui_config
-  Widget _buildDynamicFields() {
+  /// Builds dynamic form fields based on RPC ui_config
+  Widget _buildDynamicFields(TemplateUsageState state) {
+    final notifier = ref.read(templateUsageNotifierProvider(_templateId).notifier);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Amount field
         AmountField(
           controller: _amountController,
-          errorText: _amountError,
-          showCalculatorButton: _hasMultipleCurrencies,
+          errorText: state.amountError,
+          showCalculatorButton: state.hasMultipleCurrencies,
           onCalculatorPressed: _showExchangeRateCalculator,
-          onChanged: (_) => setState(() {}),
+          onChanged: (value) => notifier.updateAmount(value),
         ),
 
         const SizedBox(height: TossSpacing.space3),
@@ -521,39 +336,37 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           label: 'Note',
           hintText: 'Add a note (optional)',
           maxLines: 2,
+          onChanged: (value) => notifier.updateDescription(value),
         ),
 
         // Cash location selector
-        if (_showCashLocationSelector) ...[
+        if (state.showCashLocationSelector) ...[
           const SizedBox(height: TossSpacing.space3),
-          _buildCashLocationSelector(),
+          _buildCashLocationSelector(state),
         ],
 
         // Counterparty selector (external)
-        if (_showCounterpartySelector) ...[
+        if (state.showCounterpartySelector) ...[
           const SizedBox(height: TossSpacing.space3),
-          _buildCounterpartySelector(),
+          _buildCounterpartySelector(state),
         ],
 
         // Internal counterparty: Store selector
-        if (_showCounterpartyStoreSelector && _selectedCounterpartyStoreId == null) ...[
+        if (state.showCounterpartyStoreSelector && state.selectedCounterpartyStoreId == null) ...[
           const SizedBox(height: TossSpacing.space3),
           CounterpartyStoreSelector(
-            selectedStoreId: _selectedCounterpartyStoreId,
-            linkedCompanyId: _rpcResponse?.uiConfig?.linkedCompanyId,
+            selectedStoreId: state.selectedCounterpartyStoreId,
+            linkedCompanyId: state.rpcResponse?.uiConfig?.linkedCompanyId,
           ),
         ],
 
         // Internal counterparty: Cash location selector
-        if (_showCounterpartyCashLocationSelector && _selectedCounterpartyCashLocationId == null) ...[
+        if (state.showCounterpartyCashLocationSelector && state.selectedCounterpartyCashLocationId == null) ...[
           const SizedBox(height: TossSpacing.space3),
           CounterpartyCashLocationSelector(
-            selectedStoreId: _selectedCounterpartyStoreId,
-            selectedCashLocationId: _selectedCounterpartyCashLocationId,
-            onChanged: (cashLocationId) {
-              setState(() => _selectedCounterpartyCashLocationId = cashLocationId);
-              _notifyValidityChange();
-            },
+            selectedStoreId: state.selectedCounterpartyStoreId,
+            selectedCashLocationId: state.selectedCounterpartyCashLocationId,
+            onChanged: (cashLocationId) => notifier.selectCounterpartyCashLocation(cashLocationId),
           ),
         ],
 
@@ -561,26 +374,25 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         const SizedBox(height: TossSpacing.space3),
 
         // Required attachment warning banner
-        if (_requiresAttachment && !_attachmentRequirementSatisfied) ...[
+        if (state.requiresAttachment && !state.attachmentRequirementSatisfied) ...[
           const AttachmentWarningBanner(),
           const SizedBox(height: TossSpacing.space2),
         ],
 
         TemplateAttachmentPickerSection(
-          attachments: _pendingAttachments,
-          onAttachmentsChanged: (attachments) {
-            setState(() => _pendingAttachments = attachments);
-            _notifyValidityChange();
-          },
-          canAddMore: _pendingAttachments.length < TemplateAttachment.maxAttachments,
-          isRequired: _requiresAttachment,
+          attachments: state.pendingAttachments,
+          onAttachmentsChanged: (attachments) => notifier.updateAttachments(attachments),
+          canAddMore: state.pendingAttachments.length < TemplateAttachment.maxAttachments,
+          isRequired: state.requiresAttachment,
         ),
       ],
     );
   }
 
-  /// Builds cash location selector with validation - AutonomousCashLocationSelector
-  Widget _buildCashLocationSelector() {
+  /// Builds cash location selector with validation
+  Widget _buildCashLocationSelector(TemplateUsageState state) {
+    final notifier = ref.read(templateUsageNotifierProvider(_templateId).notifier);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -605,26 +417,20 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         ),
         const SizedBox(height: TossSpacing.space2),
         AutonomousCashLocationSelector(
-          selectedLocationId: _selectedMyCashLocationId,
+          selectedLocationId: state.selectedMyCashLocationId,
           hint: 'Select cash location',
           hideLabel: true,
           onCashLocationSelected: (cashLocation) {
-            setState(() {
-              _selectedMyCashLocationId = cashLocation.id;
-              _validateCashLocationField();
-            });
+            notifier.selectCashLocation(cashLocation.id);
           },
           onChanged: (cashLocationId) {
-            setState(() {
-              _selectedMyCashLocationId = cashLocationId;
-              _validateCashLocationField();
-            });
+            notifier.selectCashLocation(cashLocationId);
           },
         ),
-        if (_cashLocationError != null) ...[
+        if (state.cashLocationError != null) ...[
           const SizedBox(height: TossSpacing.space1),
           Text(
-            _cashLocationError!,
+            state.cashLocationError!,
             style: TossTextStyles.caption.copyWith(color: TossColors.error),
           ),
         ],
@@ -632,8 +438,10 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 
-  /// Builds counterparty selector with validation - AutonomousCounterpartySelector
-  Widget _buildCounterpartySelector() {
+  /// Builds counterparty selector with validation
+  Widget _buildCounterpartySelector(TemplateUsageState state) {
+    final notifier = ref.read(templateUsageNotifierProvider(_templateId).notifier);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -658,166 +466,25 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
         ),
         const SizedBox(height: TossSpacing.space2),
         AutonomousCounterpartySelector(
-          selectedCounterpartyId: _selectedCounterpartyId,
+          selectedCounterpartyId: state.selectedCounterpartyId,
           hint: 'Select counterparty',
-          isInternal: false, // External counterparties only
+          isInternal: false,
           hideLabel: true,
           onCounterpartySelected: (counterparty) {
-            setState(() {
-              _selectedCounterpartyId = counterparty.id;
-              _validateCounterpartyField();
-            });
+            notifier.selectCounterparty(counterparty.id);
           },
           onChanged: (counterpartyId) {
-            setState(() {
-              _selectedCounterpartyId = counterpartyId;
-              _validateCounterpartyField();
-            });
+            notifier.selectCounterparty(counterpartyId);
           },
         ),
-        if (_counterpartyError != null) ...[
+        if (state.counterpartyError != null) ...[
           const SizedBox(height: TossSpacing.space1),
           Text(
-            _counterpartyError!,
+            state.counterpartyError!,
             style: TossTextStyles.caption.copyWith(color: TossColors.error),
           ),
         ],
       ],
     );
-  }
-
-  /// 🔧 REFACTORED: Creates transaction using TemplateRpcService
-  Future<String> _createTransactionFromTemplate(double amount) async {
-    final legacyAppState = ref.read(Legacy.appStateProvider);
-    final user = ref.read(currentUserProvider);
-
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-
-    final companyId = legacyAppState.companyChoosen;
-    final storeId = legacyAppState.storeChoosen;
-    final userId = user.id;
-
-    final rpcService = ref.read(templateRpcServiceProvider);
-
-    final result = await rpcService.createTransaction(
-      template: widget.template,
-      amount: amount,
-      companyId: companyId,
-      storeId: storeId,
-      userId: userId,
-      description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-      selectedCashLocationId: _selectedMyCashLocationId,
-      selectedCounterpartyId: _selectedCounterpartyId,
-      selectedCounterpartyStoreId: _selectedCounterpartyStoreId,
-      selectedCounterpartyCashLocationId: _selectedCounterpartyCashLocationId,
-      entryDate: DateTime.now(),
-    );
-
-    return result.when(
-      success: (journalId, message, createdAt) async {
-        if (_pendingAttachments.isNotEmpty) {
-          final pendingFiles = _pendingAttachments
-              .where((a) => a.localFile != null)
-              .map((a) => a.localFile!)
-              .toList();
-
-          if (pendingFiles.isNotEmpty) {
-            final uploadAttachments = ref.read(uploadTemplateAttachmentsProvider);
-            await uploadAttachments(companyId, journalId, userId, pendingFiles);
-          }
-        }
-        return journalId;
-      },
-      failure: (errorCode, errorMessage, fieldErrors, isRecoverable, technicalDetails) {
-        String message = errorMessage;
-        if (fieldErrors.isNotEmpty) {
-          final fieldErrorMessages = fieldErrors
-              .map((e) => '• ${e.fieldName}: ${e.message}')
-              .join('\n');
-          message = '$errorMessage\n\n$fieldErrorMessages';
-        }
-        throw Exception(message);
-      },
-    );
-  }
-
-  Future<void> _handleSubmit() async {
-    if (_isSubmitting) return;
-
-    if (!_isFormValid) {
-      String errorMessage = 'Please fill in all required fields';
-
-      final amountError = TemplateFormValidator.validateAmountField(_amountController.text);
-      if (amountError != null) {
-        errorMessage = amountError;
-      } else if (_showCashLocationSelector && _selectedMyCashLocationId == null) {
-        errorMessage = 'Please select a cash location';
-      } else if (_showCounterpartySelector && _selectedCounterpartyId == null) {
-        errorMessage = 'Please select a counterparty';
-      } else if (_showCounterpartyStoreSelector && _selectedCounterpartyStoreId == null) {
-        errorMessage = 'Please select a counterparty store';
-      } else if (_showCounterpartyCashLocationSelector && _selectedCounterpartyCashLocationId == null) {
-        errorMessage = 'Please select a counterparty cash location';
-      } else if (!_attachmentRequirementSatisfied) {
-        errorMessage = 'Attachment is required for this template';
-      }
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Validation Error',
-            message: errorMessage,
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => context.pop(),
-          ),
-        );
-      }
-      return;
-    }
-
-    try {
-      setState(() => _isSubmitting = true);
-
-      final cleanAmount = _amountController.text.replaceAll(',', '').replaceAll(' ', '');
-      final amount = double.parse(cleanAmount);
-
-      await _createTransactionFromTemplate(amount);
-
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => TossDialog.success(
-            title: 'Transaction Created!',
-            message: 'Transaction created successfully',
-            primaryButtonText: 'Done',
-            onPrimaryPressed: () => context.pop(),
-          ),
-        );
-
-        Navigator.of(context).pop(true);
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-
-        showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => TossDialog.error(
-            title: 'Transaction Failed',
-            message: e.toString().replaceFirst('Exception: ', ''),
-            primaryButtonText: 'OK',
-            onPrimaryPressed: () => context.pop(),
-          ),
-        );
-      }
-    }
   }
 }

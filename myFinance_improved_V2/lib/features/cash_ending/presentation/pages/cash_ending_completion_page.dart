@@ -21,11 +21,11 @@ import 'cash_ending_completion/auto_balance_type.dart';
 import 'cash_ending_completion/auto_balance_dialogs.dart';
 import 'cash_ending_completion/expandable_currency_breakdown.dart';
 import 'cash_ending_completion/completion_summary_section.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Cash Ending Completion Page
 ///
 /// Shows detailed summary after successful cash ending submission
+/// Uses Riverpod for state management and auto-refresh after auto-balance
 class CashEndingCompletionPage extends ConsumerStatefulWidget {
   final String tabType; // 'cash', 'bank', 'vault'
   final double grandTotal;
@@ -59,25 +59,34 @@ class CashEndingCompletionPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<CashEndingCompletionPage> createState() => _CashEndingCompletionPageState();
+  ConsumerState<CashEndingCompletionPage> createState() =>
+      _CashEndingCompletionPageState();
 }
 
-class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionPage> {
+class _CashEndingCompletionPageState
+    extends ConsumerState<CashEndingCompletionPage> {
   String? _expandedCurrencyId;
-  BalanceSummary? _currentBalanceSummary;
+
+  /// Previous balance summary (before auto-balance was applied)
+  /// Used to show the adjustment details after applying auto-balance
   BalanceSummary? _previousBalanceSummary;
+
+  /// Applied adjustment type name
   String? _appliedAdjustmentType;
+
+  /// Flag to indicate if auto-balance is being applied
+  bool _isApplyingAutoBalance = false;
 
   @override
   void initState() {
     super.initState();
-    _currentBalanceSummary = widget.balanceSummary;
     _previousBalanceSummary = widget.balanceSummary;
   }
 
   void _toggleExpansion(String currencyId) {
     setState(() {
-      _expandedCurrencyId = _expandedCurrencyId == currencyId ? null : currencyId;
+      _expandedCurrencyId =
+          _expandedCurrencyId == currencyId ? null : currencyId;
     });
   }
 
@@ -87,49 +96,36 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
     Navigator.of(context).pop();
   }
 
-  Future<void> _refreshBalanceSummary() async {
-    if (!mounted) return;
-
-    try {
-      final repository = ref.read(cashEndingRepositoryProvider);
-      final updatedSummary = await repository.getBalanceSummary(
-        locationId: widget.cashLocationId,
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _currentBalanceSummary = updatedSummary;
-      });
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashEndingCompletionPage refresh balance failed',
-        extra: {'locationId': widget.cashLocationId},
-      );
-      if (!mounted) return;
-
-      _showMessage('Failed to refresh balance: $e', isError: true);
-    }
-  }
-
   Future<void> _applyAutoBalance(AutoBalanceType type) async {
-    final difference = _currentBalanceSummary?.difference ?? 0.0;
+    // Get current balance from provider
+    final asyncBalance =
+        ref.read(balanceSummaryProvider(widget.cashLocationId));
+    final currentBalance = asyncBalance.valueOrNull ?? widget.balanceSummary;
+    final difference = currentBalance?.difference ?? 0.0;
 
     if (difference.abs() < 0.01) {
       _showMessage('Already balanced', isError: false);
       return;
     }
 
+    setState(() {
+      _isApplyingAutoBalance = true;
+    });
+
     try {
       if (!mounted) return;
+
+      // Show loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const TossLoadingView(),
       );
 
+      // Save current balance as previous before applying adjustment
+      _previousBalanceSummary = currentBalance;
+
+      // Apply auto-balance based on type
       if (type == AutoBalanceType.error) {
         final useCase = ref.read(errorAdjustmentUseCaseProvider);
         await useCase(CreateErrorAdjustmentParams(
@@ -153,21 +149,38 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
       }
 
       if (!mounted) return;
+
+      // Close loading dialog
       Navigator.of(context).pop();
 
-      _showMessage('Auto-balance applied successfully!', isError: false);
-      Navigator.of(context).pop();
+      // Invalidate provider to trigger refresh - Riverpod will handle the rest
+      ref.invalidate(balanceSummaryProvider(widget.cashLocationId));
 
+      // Update adjustment type
       setState(() {
         _appliedAdjustmentType = type == AutoBalanceType.error
             ? 'Error Adjustment'
             : 'Foreign Currency Translation';
+        _isApplyingAutoBalance = false;
       });
 
-      await _refreshBalanceSummary();
-    } catch (e) {
+      _showMessage('Auto-balance applied successfully!', isError: false);
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashEndingCompletionPage auto-balance failed',
+        extra: {
+          'locationId': widget.cashLocationId,
+          'type': type.toString(),
+        },
+      );
+
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // Close loading dialog
+        setState(() {
+          _isApplyingAutoBalance = false;
+        });
       }
       _showMessage('Failed to apply auto-balance: $e', isError: true);
     }
@@ -183,13 +196,18 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
   }
 
   void _showAutoBalanceTypeSelection() {
+    // Get current balance from provider
+    final asyncBalance =
+        ref.read(balanceSummaryProvider(widget.cashLocationId));
+    final currentBalance = asyncBalance.valueOrNull ?? widget.balanceSummary;
+
     showAutoBalanceTypeSelection(
       context: context,
       onTypeSelected: (type) {
         showAutoBalanceConfirmation(
           context: context,
           type: type,
-          balanceSummary: _currentBalanceSummary,
+          balanceSummary: currentBalance,
           grandTotal: widget.grandTotal,
           storeName: widget.storeName,
           locationName: widget.locationName,
@@ -203,6 +221,9 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
 
   @override
   Widget build(BuildContext context) {
+    // Watch balance summary provider for reactive updates
+    final asyncBalance = ref.watch(balanceSummaryProvider(widget.cashLocationId));
+
     return Scaffold(
       backgroundColor: TossColors.white,
       body: SafeArea(
@@ -223,28 +244,68 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
                     _buildLocationInfo(),
                     const SizedBox(height: TossSpacing.space6),
 
-                    // Summary section (Journal result) - shown first for quick access
-                    CompletionSummarySection(
-                      currentBalanceSummary: _currentBalanceSummary,
-                      previousBalanceSummary: _previousBalanceSummary,
-                      appliedAdjustmentType: _appliedAdjustmentType,
-                      grandTotal: widget.grandTotal,
-                      currencies: widget.currencies,
-                      onAutoBalancePressed: _showAutoBalanceTypeSelection,
+                    // Summary section with reactive balance summary
+                    asyncBalance.when(
+                      data: (balanceSummary) => CompletionSummarySection(
+                        currentBalanceSummary:
+                            balanceSummary ?? widget.balanceSummary,
+                        previousBalanceSummary: _previousBalanceSummary,
+                        appliedAdjustmentType: _appliedAdjustmentType,
+                        grandTotal: widget.grandTotal,
+                        currencies: widget.currencies,
+                        onAutoBalancePressed: _showAutoBalanceTypeSelection,
+                      ),
+                      loading: () => _isApplyingAutoBalance
+                          ? CompletionSummarySection(
+                              currentBalanceSummary: widget.balanceSummary,
+                              previousBalanceSummary: _previousBalanceSummary,
+                              appliedAdjustmentType: _appliedAdjustmentType,
+                              grandTotal: widget.grandTotal,
+                              currencies: widget.currencies,
+                              onAutoBalancePressed: _showAutoBalanceTypeSelection,
+                            )
+                          : const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(TossSpacing.space4),
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                      error: (error, stackTrace) {
+                        SentryConfig.captureException(
+                          error,
+                          stackTrace,
+                          hint: 'balanceSummaryProvider error',
+                          extra: {'locationId': widget.cashLocationId},
+                        );
+                        // Fallback to widget's initial balance summary
+                        return CompletionSummarySection(
+                          currentBalanceSummary: widget.balanceSummary,
+                          previousBalanceSummary: _previousBalanceSummary,
+                          appliedAdjustmentType: _appliedAdjustmentType,
+                          grandTotal: widget.grandTotal,
+                          currencies: widget.currencies,
+                          onAutoBalancePressed: _showAutoBalanceTypeSelection,
+                        );
+                      },
                     ),
 
                     // Currency breakdown sections (denominations detail - below summary)
-                    if (widget.tabType == 'cash' || widget.tabType == 'vault') ...[
+                    if (widget.tabType == 'cash' ||
+                        widget.tabType == 'vault') ...[
                       const SizedBox(height: TossSpacing.space6),
                       ...widget.currencies.map((currency) => Padding(
-                        padding: const EdgeInsets.only(bottom: TossSpacing.space4),
-                        child: ExpandableCurrencyBreakdown(
-                          currency: currency,
-                          denominationQuantities: widget.denominationQuantities,
-                          isExpanded: _expandedCurrencyId == currency.currencyId,
-                          onToggle: () => _toggleExpansion(currency.currencyId),
-                        ),
-                      )),
+                            padding:
+                                const EdgeInsets.only(bottom: TossSpacing.space4),
+                            child: ExpandableCurrencyBreakdown(
+                              currency: currency,
+                              denominationQuantities:
+                                  widget.denominationQuantities,
+                              isExpanded:
+                                  _expandedCurrencyId == currency.currencyId,
+                              onToggle: () =>
+                                  _toggleExpansion(currency.currencyId),
+                            ),
+                          )),
                     ],
                   ],
                 ),

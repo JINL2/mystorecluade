@@ -149,6 +149,7 @@ class TemplateLinesBuilder {
         result = _buildGeneralJournalLines(
           data: data,
           amount: amount,
+          cashLocationId: effectiveCashLocationId,
         );
 
       case TemplateRpcType.unknown:
@@ -408,12 +409,14 @@ class TemplateLinesBuilder {
   /// Build lines for general journal entry (simple debit/credit)
   ///
   /// Structure:
-  /// - Just account_id, debit, credit - no cash/debt objects needed
-  /// - Example: COGS (Expense + Inventory), Depreciation, Adjustments
+  /// - account_id, debit, credit
+  /// - cash object added for cash accounts (category_tag == 'cash')
+  /// - Example: COGS (Expense + Inventory), Depreciation, Adjustments, Dividend
   /// Note: Uses String format for debit/credit to match journal_input behavior
   static List<Map<String, dynamic>> _buildGeneralJournalLines({
     required List<dynamic> data,
     required double amount,
+    String? cashLocationId,
   }) {
     final lines = <Map<String, dynamic>>[];
 
@@ -423,17 +426,35 @@ class TemplateLinesBuilder {
       final accountId = entry['account_id']?.toString();
       if (accountId == null) continue;
 
+      final categoryTag = entry['category_tag']?.toString();
+
       // Check type field (primary), then fallback to is_debit/debit_credit
       final isDebit = entry['type'] == 'debit' ||
           entry['is_debit'] == true ||
           entry['debit_credit'] == 'debit';
 
       // Match journal_input format: String values for debit/credit
-      lines.add({
+      final lineData = <String, dynamic>{
         'account_id': accountId,
         'debit': isDebit ? amount.toString() : '0',
         'credit': isDebit ? '0' : amount.toString(),
-      });
+      };
+
+      // Add cash object if cash_location_id exists (regardless of categoryTag)
+      // Cash can be on debit or credit side
+      final entryCashLocationId = _extractCashLocationId(entry);
+      if (entryCashLocationId != null) {
+        lineData['cash'] = {
+          'cash_location_id': entryCashLocationId,
+        };
+      } else if (categoryTag == 'cash' && cashLocationId != null) {
+        // Fallback: use provided cashLocationId for cash category accounts
+        lineData['cash'] = {
+          'cash_location_id': cashLocationId,
+        };
+      }
+
+      lines.add(lineData);
     }
 
     return lines;

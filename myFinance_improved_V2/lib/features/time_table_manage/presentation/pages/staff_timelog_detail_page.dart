@@ -457,11 +457,13 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           isFullyConfirmed: widget.staffRecord.isFullyConfirmed,
                           confirmedCheckIn: confirmedCheckIn,
                           confirmedCheckOut: confirmedCheckOut,
-                          // checkInNeedsConfirm: late problem unsolved
+                          // checkInNeedsConfirm: late problem OR absence unsolved
+                          // (absence affects both check-in and check-out)
                           checkInNeedsConfirm: !widget.staffRecord.isShiftStillInProgress &&
-                              widget.staffRecord.hasUnsolvedCheckInProblem &&
+                              (widget.staffRecord.hasUnsolvedCheckInProblem ||
+                                  widget.staffRecord.hasUnsolvedAbsenceProblem) &&
                               !isCheckInManuallyConfirmed,
-                          // checkOutNeedsConfirm: overtime/early_leave/no_checkout problem unsolved
+                          // checkOutNeedsConfirm: overtime/early_leave/no_checkout/absence problem unsolved
                           checkOutNeedsConfirm: !widget.staffRecord.isShiftStillInProgress &&
                               widget.staffRecord.hasUnsolvedCheckOutProblem &&
                               !isCheckOutManuallyConfirmed,

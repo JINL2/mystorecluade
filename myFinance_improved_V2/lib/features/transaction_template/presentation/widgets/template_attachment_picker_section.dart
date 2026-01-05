@@ -47,7 +47,9 @@ class _TemplateAttachmentPickerSectionState
       return;
     }
 
-    setState(() => _isPickingImages = true);
+    if (mounted) {
+      setState(() => _isPickingImages = true);
+    }
 
     try {
       final availableSlots =
@@ -232,7 +234,9 @@ class _TemplateAttachmentPickerSectionState
                 subtitle: const Text('Select multiple images'),
                 onTap: () {
                   Navigator.pop(bottomSheetContext);
-                  _pickImagesFromGallery();
+                  if (mounted) {
+                    _pickImagesFromGallery();
+                  }
                 },
               ),
               ListTile(
@@ -252,7 +256,9 @@ class _TemplateAttachmentPickerSectionState
                 onTap: () async {
                   Navigator.pop(bottomSheetContext);
                   await Future.delayed(const Duration(milliseconds: 100));
-                  _pickImageFromCamera();
+                  if (mounted) {
+                    _pickImageFromCamera();
+                  }
                 },
               ),
               const SizedBox(height: TossSpacing.space2),

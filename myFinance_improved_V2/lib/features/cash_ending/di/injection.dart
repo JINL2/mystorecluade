@@ -48,6 +48,7 @@ import '../domain/usecases/save_vault_transaction_usecase.dart';
 import '../domain/usecases/select_store_usecase.dart';
 import '../domain/services/time_provider.dart';
 import '../data/services/system_time_provider.dart';
+import '../domain/entities/balance_summary.dart';
 
 // ============================================================================
 // SERVICES
@@ -266,4 +267,32 @@ final executeMultiCurrencyRecountUseCaseProvider =
     Provider<ExecuteMultiCurrencyRecountUseCase>((ref) {
   final vaultRepository = ref.watch(vaultRepositoryProvider);
   return ExecuteMultiCurrencyRecountUseCase(vaultRepository);
+});
+
+// ============================================================================
+// ASYNC PROVIDERS (For UI State Management with Auto-Refresh)
+// ============================================================================
+
+/// Family provider for Balance Summary with auto-refresh capability
+///
+/// Usage in completion page:
+/// ```dart
+/// final asyncBalance = ref.watch(balanceSummaryProvider(locationId));
+/// asyncBalance.when(
+///   data: (summary) => ...,
+///   loading: () => ...,
+///   error: (e, st) => ...,
+/// );
+/// ```
+///
+/// To refresh after auto-balance:
+/// ```dart
+/// ref.invalidate(balanceSummaryProvider(locationId));
+/// ```
+final balanceSummaryProvider =
+    FutureProvider.autoDispose.family<BalanceSummary?, String>((ref, locationId) async {
+  if (locationId.isEmpty) return null;
+
+  final repository = ref.watch(cashEndingRepositoryProvider);
+  return repository.getBalanceSummary(locationId: locationId);
 });
