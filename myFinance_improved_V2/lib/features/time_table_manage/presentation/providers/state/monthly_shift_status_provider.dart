@@ -4,11 +4,13 @@
 /// Loads data from RPC and caches results to avoid redundant API calls.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../../../core/utils/retry_helper.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/usecases/get_monthly_shift_status.dart';
@@ -70,6 +72,7 @@ class MonthlyShiftStatusNotifier
       return;
     }
 
+    debugPrint('📥 [monthlyShiftStatusProvider] loadMonth - monthKey: $monthKey');
     _safeSetState(state.copyWith(isLoading: true, error: null));
 
     try {
@@ -82,13 +85,20 @@ class MonthlyShiftStatusNotifier
       // Get user's local timezone
       final timezone = DateTimeUtils.getLocalTimezone();
 
-      final data = await _getMonthlyShiftStatusUseCase(
-        GetMonthlyShiftStatusParams(
-          requestTime: requestTime,
-          companyId: _companyId,
-          storeId: _storeId,
-          timezone: timezone,
+      // ✅ Retry with exponential backoff (max 3 retries: 1s, 2s, 4s)
+      final data = await RetryHelper.withRetry(
+        () => _getMonthlyShiftStatusUseCase(
+          GetMonthlyShiftStatusParams(
+            requestTime: requestTime,
+            companyId: _companyId,
+            storeId: _storeId,
+            timezone: timezone,
+          ),
         ),
+        config: RetryConfig.rpc,
+        onRetry: (attempt, error) {
+          debugPrint('   ⚠️ [monthlyShiftStatusProvider] Retry $attempt for $monthKey: $error');
+        },
       );
 
       // Update state with new data
@@ -110,6 +120,7 @@ class MonthlyShiftStatusNotifier
         isLoading: false,
       ));
     } catch (e) {
+      debugPrint('   ❌ [monthlyShiftStatusProvider] Failed after retries: $e');
       _safeSetState(state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -232,8 +243,9 @@ final monthlyShiftStatusProvider = StateNotifierProvider.family<
     MonthlyShiftStatusState,
     String>((ref, storeId) {
   final useCase = ref.watch(getMonthlyShiftStatusUseCaseProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
+  // ✅ FIX: Use select to only rebuild when companyChoosen actually changes
+  // Previously used ref.watch(appStateProvider) which caused rebuilds on ANY appState change
+  final companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
 
   return MonthlyShiftStatusNotifier(useCase, companyId, storeId);
 });

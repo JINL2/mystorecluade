@@ -39,8 +39,9 @@ final reliabilityScoreProvider =
   }
 
   final useCase = ref.watch(getReliabilityScoreUseCaseProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
+  // ✅ FIX: Use select to only rebuild when companyChoosen actually changes
+  // Previously used ref.watch(appStateProvider) which caused rebuilds on ANY appState change
+  final companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
 
   // Use device local timezone (no conversion - send as-is)
   final timezone = DateTimeUtils.getLocalTimezone();

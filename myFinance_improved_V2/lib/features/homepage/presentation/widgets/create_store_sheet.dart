@@ -141,10 +141,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
             storeName: store.name,
           );
 
-          // 3. Provider invalidate (백그라운드에서 서버 최신 데이터 재조회)
-          ref.invalidate(userCompaniesProvider);
-
-          // 4. Close bottom sheet and return store
+          // 3. Close bottom sheet and return store
           Navigator.of(context).pop(store);
 
           // 5. Show success message

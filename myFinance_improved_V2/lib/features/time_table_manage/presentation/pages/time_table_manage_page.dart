@@ -98,6 +98,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   @override
   void initState() {
     super.initState();
+    debugPrint('🟢 [TimeTableManagePage] initState');
     _tabController = TabController(length: 4, vsync: this, initialIndex: 0); // Changed to 4 tabs, default to Overview
     _tabController.addListener(_onTabChanged);
 
@@ -105,13 +106,44 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     final appState = ref.read(appStateProvider);
     selectedStoreId = appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
 
-    // ✅ Fetch initial data AFTER build is complete to avoid Provider lifecycle violation
-    // ✅ Always force refresh on page entry to ensure fresh data from RPC
-    // This ensures data from other devices is visible when navigating to this page
+    // ✅ Only fetch data if cache is empty (first load or after logout)
+    // ✅ Don't force refresh on every page entry - this was causing data loss
+    // when navigating back from detail pages
     if (selectedStoreId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _forceRefreshAllData();
+        _loadDataIfNeeded();
       });
+    }
+  }
+
+  /// Load data only if not already cached
+  ///
+  /// This prevents data loss when navigating back from detail pages.
+  /// Force refresh should only happen on explicit user action (pull-to-refresh)
+  /// or when switching stores.
+  void _loadDataIfNeeded() {
+    if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
+
+    // Check if data already exists in cache
+    final cardsState = ref.read(managerCardsProvider(selectedStoreId!));
+    final currentMonthKey = '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
+    final hasData = cardsState.dataByMonth.containsKey(currentMonthKey);
+
+    debugPrint('🔍 [TimeTableManagePage] _loadDataIfNeeded - hasData: $hasData, currentMonthKey: $currentMonthKey');
+
+    if (hasData) {
+      debugPrint('   ✅ Using cached data, skipping force refresh');
+      // Still trigger reads to ensure providers are active, but don't force refresh
+      ref.read(shiftMetadataProvider(selectedStoreId!));
+      ref.read(reliabilityScoreProvider(selectedStoreId!));
+      ref.read(businessHoursProvider);
+      // Load month data without force refresh (will use cache)
+      fetchMonthlyShiftStatus();
+      fetchManagerOverview();
+      fetchManagerCards();
+    } else {
+      debugPrint('   🔄 No cached data, performing force refresh');
+      _forceRefreshAllData();
     }
   }
 
@@ -125,10 +157,12 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
   /// OPTIMIZATION: All RPC calls run in parallel using Future.wait
   /// This reduces total loading time from sum(T1+T2+T3) to max(T1,T2,T3)
   void _forceRefreshAllData() {
+    debugPrint('🔄 [TimeTableManagePage] _forceRefreshAllData called - storeId: $selectedStoreId');
     if (selectedStoreId == null || selectedStoreId!.isEmpty) return;
 
     // 1. Invalidate ALL providers to clear cached state
     // This ensures fresh provider instances with current companyId
+    debugPrint('   🗑️ Invalidating providers for store: $selectedStoreId');
     ref.invalidate(shiftMetadataProvider(selectedStoreId!));
     ref.invalidate(reliabilityScoreProvider(selectedStoreId!));
     ref.invalidate(monthlyShiftStatusProvider(selectedStoreId!));
@@ -157,6 +191,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
   @override
   void dispose() {
+    debugPrint('🔴 [TimeTableManagePage] dispose');
     _tabController.dispose();
     _scheduleScrollController.dispose();
     super.dispose();

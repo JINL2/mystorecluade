@@ -7,7 +7,6 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/transfer_scope.dart';
 import '../../providers/cash_transaction_providers.dart';
-import '../amount_input_keypad.dart';
 import 'transfer_summary_widgets.dart';
 
 /// Amount Input Section - Final step for all transfer types
@@ -21,6 +20,13 @@ class AmountInputSection extends ConsumerWidget {
   final double amount;
   final void Function(double) onAmountChanged;
 
+  /// Optional callback for exchange rate calculator button
+  /// When provided (not null), shows a calculator button next to the amount display
+  final VoidCallback? onExchangeRateTap;
+
+  /// Key for accessing TossAmountKeypad state from parent
+  final GlobalKey<TossAmountKeypadState>? keypadKey;
+
   const AmountInputSection({
     super.key,
     required this.selectedScope,
@@ -31,6 +37,8 @@ class AmountInputSection extends ConsumerWidget {
     this.toCashLocationName,
     required this.amount,
     required this.onAmountChanged,
+    this.onExchangeRateTap,
+    this.keypadKey,
   });
 
   @override
@@ -119,11 +127,13 @@ class AmountInputSection extends ConsumerWidget {
               ),
             );
           },
-          child: AmountInputKeypad(
+          child: TossAmountKeypad(
+            key: keypadKey,
             initialAmount: amount,
             currencySymbol: currencySymbol,
             onAmountChanged: onAmountChanged,
             showSubmitButton: false,
+            onExchangeRateTap: onExchangeRateTap,
           ),
         ),
 

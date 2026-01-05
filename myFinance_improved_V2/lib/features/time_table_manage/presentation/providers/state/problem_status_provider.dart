@@ -150,13 +150,13 @@ final problemStatusProvider =
     // Check if shift is still in progress
     final mapKey = '${card.employee.userId}_${card.shiftDate}';
     final shiftEndTime = consecutiveEndTimeMap[mapKey];
-    if (shiftEndTime != null && now.isBefore(shiftEndTime)) {
-      continue; // Shift still in progress
-    }
+    final isInProgress = shiftEndTime != null && now.isBefore(shiftEndTime);
 
     // Determine problem status
+    // For in-progress shifts: exclude no_checkout/absence (they're expected during shift)
+    // For completed shifts: count all unsolved problems
     final (hasUnsolvedProblem, hasUnsolvedReport, hasSolved) =
-        _checkCardProblemStatus(card);
+        _checkCardProblemStatus(card, isInProgress: isInProgress);
 
     // Update date flags for calendar
     final dateKey = card.shiftDate;
@@ -251,14 +251,28 @@ DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
 /// Logic: 1 shift = 1 unit
 /// - If isFullySolved → hasSolved = true
 /// - If !isFullySolved → check what's unsolved (report vs general problem)
-(bool, bool, bool) _checkCardProblemStatus(ShiftCard card) {
+///
+/// [isInProgress]: If true, exclude no_checkout/absence from problem check
+/// (these are expected during an active shift)
+(bool, bool, bool) _checkCardProblemStatus(ShiftCard card, {bool isInProgress = false}) {
   final pd = card.problemDetails;
   if (pd == null || pd.problemCount == 0) {
     return (false, false, false);
   }
 
-  // 1 shift = 1 unit: check if fully solved
-  if (pd.isFullySolved) {
+  // For in-progress shifts, filter out no_checkout/absence
+  final problemsToCheck = isInProgress
+      ? pd.problems.where((p) => p.type != 'no_checkout' && p.type != 'absence').toList()
+      : pd.problems;
+
+  // If no problems to check after filtering, return no problems
+  if (problemsToCheck.isEmpty) {
+    return (false, false, false);
+  }
+
+  // Check if all relevant problems are solved
+  final allSolved = problemsToCheck.every((p) => p.isSolved == true);
+  if (allSolved) {
     return (false, false, true); // hasSolved = true
   }
 
@@ -266,7 +280,7 @@ DateTime? _parseShiftEndTime(String? shiftEndTimeStr) {
   bool hasUnsolvedProblem = false;
   bool hasUnsolvedReport = false;
 
-  for (final problem in pd.problems) {
+  for (final problem in problemsToCheck) {
     if (problem.isSolved != true) {
       if (problem.type == 'reported') {
         hasUnsolvedReport = true;

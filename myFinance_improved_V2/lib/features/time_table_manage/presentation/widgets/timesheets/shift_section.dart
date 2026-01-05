@@ -198,6 +198,7 @@ class _ShiftSectionState extends State<ShiftSection> {
                 return StaffTimelogCard(
                   record: record,
                   onTap: () async {
+                    debugPrint('👆 [ShiftSection] Staff tapped - navigating to detail: ${record.staffName}');
                     final result = await Navigator.of(context).push<Map<String, dynamic>>(
                       MaterialPageRoute<Map<String, dynamic>>(
                         builder: (context) => StaffTimelogDetailPage(
@@ -208,6 +209,7 @@ class _ShiftSectionState extends State<ShiftSection> {
                         ),
                       ),
                     );
+                    debugPrint('⬅️ [ShiftSection] Returned from StaffTimelogDetailPage - result: $result');
                     // Use Partial Update callback if available
                     if (result != null && result['success'] == true) {
                       if (widget.onSaveResult != null) {

@@ -194,10 +194,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
             companyName: company.name,
           );
 
-          // 3. Provider invalidate (백그라운드에서 서버 최신 데이터 재조회)
-          ref.invalidate(userCompaniesProvider);
-
-          // 4. Close bottom sheet and return company
+          // 3. Close bottom sheet and return company
           Navigator.of(context).pop(company);
 
           // 5. Show success message

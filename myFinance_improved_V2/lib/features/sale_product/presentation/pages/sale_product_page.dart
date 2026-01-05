@@ -499,7 +499,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
     if (!mounted) return;
 
-    Navigator.push(
+    // Navigate to payment page and wait for result
+    await Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder: (context) => PaymentMethodPage(
@@ -510,6 +511,16 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         ),
       ),
     );
+
+    // Refresh inventory data when returning from payment page
+    // This ensures fresh data after a sale is completed
+    if (mounted) {
+      // Clear cart first (fast, local operation)
+      ref.read(cartNotifierProvider.notifier).clearCart();
+      // Refresh products in background - don't show loading spinner
+      // This keeps existing data visible while refreshing
+      ref.read(salesProductNotifierProvider.notifier).refresh();
+    }
   }
 
   void _showNavigationLoading() {

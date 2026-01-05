@@ -38,10 +38,17 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
   @override
   void initState() {
     super.initState();
+    debugPrint('🟢 [EmployeeDetailPage] initState - employee: ${widget.employee.name}');
     _selectedMonth = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMonthlyData();
     });
+  }
+
+  @override
+  void dispose() {
+    debugPrint('🔴 [EmployeeDetailPage] dispose - employee: ${widget.employee.name}');
+    super.dispose();
   }
 
   String get _yearMonth {
@@ -50,7 +57,11 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
 
   void _loadMonthlyData() {
     final userId = widget.employee.visitorId;
-    if (userId == null) return;
+    debugPrint('📤 [EmployeeDetailPage] _loadMonthlyData called - userId: $userId, yearMonth: $_yearMonth');
+    if (userId == null) {
+      debugPrint('   ⚠️ userId is null, skipping load');
+      return;
+    }
     ref.read(employeeMonthlyDetailProvider.notifier).loadData(
           userId: userId,
           yearMonth: _yearMonth,
@@ -77,6 +88,9 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
     final state = ref.watch(employeeMonthlyDetailProvider);
     final userId = widget.employee.visitorId;
     final monthlyData = userId != null ? state.getData(userId, _yearMonth) : null;
+
+    // 🔍 DEBUG: Log build state
+    debugPrint('🔨 [EmployeeDetailPage] build - isLoading: ${state.isLoading}, hasData: ${monthlyData != null}, cacheKeys: ${state.dataByMonth.keys.toList()}');
 
     return Scaffold(
       backgroundColor: TossColors.white,

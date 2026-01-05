@@ -82,7 +82,9 @@ class _TemplateAttachmentPickerSectionState
       return;
     }
 
-    setState(() => _isPickingImages = true);
+    if (mounted) {
+      setState(() => _isPickingImages = true);
+    }
 
     try {
       final image = await _picker.pickImage(
@@ -92,12 +94,16 @@ class _TemplateAttachmentPickerSectionState
         imageQuality: 70,
       );
 
+      if (!mounted) return;
+
       if (image != null) {
         await _processPickedFiles([image]);
       }
     } catch (e) {
       debugPrint('Error taking photo: $e');
-      _showError('Failed to take photo');
+      if (mounted) {
+        _showError('Failed to take photo');
+      }
     } finally {
       if (mounted) {
         setState(() => _isPickingImages = false);
@@ -122,6 +128,8 @@ class _TemplateAttachmentPickerSectionState
       );
     }
 
+    if (!mounted) return;
+
     // Filter out oversized files and respect limit
     final availableSlots =
         TemplateAttachment.maxAttachments - widget.attachments.length;
@@ -136,7 +144,7 @@ class _TemplateAttachmentPickerSectionState
 
     // Notify if some attachments were skipped
     final skippedCount = newAttachments.length - validAttachments.length;
-    if (skippedCount > 0) {
+    if (skippedCount > 0 && mounted) {
       _showError('$skippedCount file(s) skipped (too large or limit reached)');
     }
   }
@@ -185,7 +193,7 @@ class _TemplateAttachmentPickerSectionState
           top: Radius.circular(TossBorderRadius.xl),
         ),
       ),
-      builder: (context) => SafeArea(
+      builder: (bottomSheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space4),
           child: Column(
@@ -223,7 +231,7 @@ class _TemplateAttachmentPickerSectionState
                 title: const Text('Choose from Gallery'),
                 subtitle: const Text('Select multiple images'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(bottomSheetContext);
                   _pickImagesFromGallery();
                 },
               ),
@@ -241,8 +249,9 @@ class _TemplateAttachmentPickerSectionState
                 ),
                 title: const Text('Take Photo'),
                 subtitle: const Text('Use camera to capture'),
-                onTap: () {
-                  Navigator.pop(context);
+                onTap: () async {
+                  Navigator.pop(bottomSheetContext);
+                  await Future.delayed(const Duration(milliseconds: 100));
                   _pickImageFromCamera();
                 },
               ),

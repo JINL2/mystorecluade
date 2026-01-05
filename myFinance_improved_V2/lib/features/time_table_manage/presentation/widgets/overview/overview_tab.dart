@@ -9,6 +9,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/daily_shift_data.dart';
 import '../../../domain/entities/manager_shift_cards.dart';
 import '../../../domain/entities/shift.dart';
+import '../../../domain/entities/manager_memo.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../pages/staff_timelog_detail_page.dart';
@@ -130,13 +131,23 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
     // Watch shift metadata for all available shifts (including those with 0 requests)
     final shiftMetadataAsync = ref.watch(shiftMetadataProvider(widget.selectedStoreId!));
 
-    // Check loading states - show loading until ALL data is ready
+    // Check loading states
     final isMonthlyStatusLoading = monthlyStatusState.isLoading;
     final isManagerCardsLoading = managerCardsState.isLoading;
     final isMetadataLoading = shiftMetadataAsync.isLoading;
 
-    // Show loading view until all data is ready
-    if (isMonthlyStatusLoading || isManagerCardsLoading || isMetadataLoading) {
+    // ✅ FIX: Check if we have cached data
+    // Only show full loading view for INITIAL load (no cached data)
+    // During refresh, keep showing cached data to prevent "data disappearing" UX issue
+    final hasMonthlyData = monthlyStatusState.dataByMonth.isNotEmpty;
+    final hasCardsData = managerCardsState.dataByMonth.isNotEmpty;
+    final hasMetadata = shiftMetadataAsync.valueOrNull != null;
+    final hasCachedData = hasMonthlyData || hasCardsData || hasMetadata;
+
+    final isInitialLoading = (isMonthlyStatusLoading || isManagerCardsLoading || isMetadataLoading) && !hasCachedData;
+
+    // Show loading view ONLY for initial load (no cached data yet)
+    if (isInitialLoading) {
       return Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space3,
@@ -495,8 +506,8 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
     // Format shift date for display
     final shiftDateStr = DateFormat('EEE, d MMM yyyy').format(shift.planStartTime);
 
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute<Map<String, dynamic>>(
         builder: (context) => StaffTimelogDetailPage(
           staffRecord: staffRecord,
           shiftName: shift.shiftName ?? 'Shift',
@@ -506,13 +517,36 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
       ),
     );
 
-    // If save was successful, force refresh the data
-    if (result == true && widget.selectedStoreId != null) {
-      ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).loadMonth(
-        month: DateTime.now(),
-        forceRefresh: true,
+    // ✅ Partial Update: Update only the affected card in cache
+    // Instead of forceRefresh which reloads ALL data, we update the single modified card
+    if (result != null && result['success'] == true && widget.selectedStoreId != null) {
+      // Build ManagerMemo from result if memo was added
+      final memoText = result['managerMemo'] as String?;
+      ManagerMemo? newMemo;
+      if (memoText != null && memoText.isNotEmpty) {
+        newMemo = ManagerMemo(
+          type: 'note',
+          content: memoText,
+          createdAt: DateTime.now().toIso8601String(),
+          createdBy: null,
+        );
+      }
+
+      // Parse shiftDate from display format (e.g., "Mon, 6 Jan 2025") to yyyy-MM-dd
+      final parsedDate = DateFormat('EEE, d MMM yyyy').parse(result['shiftDate'] as String);
+      final shiftDateFormatted = DateFormat('yyyy-MM-dd').format(parsedDate);
+
+      ref.read(managerCardsProvider(widget.selectedStoreId!).notifier).updateCardProblemData(
+        shiftRequestId: result['shiftRequestId'] as String,
+        shiftDate: shiftDateFormatted,
+        isProblemSolved: result['isProblemSolved'] as bool?,
+        isReportedSolved: result['isReportedSolved'] as bool?,
+        confirmedStartTime: result['confirmedStartTime'] as String?,
+        confirmedEndTime: result['confirmedEndTime'] as String?,
+        bonusAmount: result['bonusAmount'] as double?,
+        newManagerMemo: newMemo,
+        calculatedPaidHour: result['calculatedPaidHour'] as double?,
       );
-      ref.invalidate(monthlyShiftStatusProvider(widget.selectedStoreId!));
     }
   }
 

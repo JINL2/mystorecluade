@@ -126,11 +126,45 @@ class SalesProductNotifier extends _$SalesProductNotifier {
     state = state.copyWith(sortOption: sortOption);
   }
 
-  /// Refresh products (reset to page 1)
+  /// Refresh products (reset to page 1) without showing loading spinner
+  /// Keeps existing data visible while fetching fresh data
   Future<void> refresh() async {
     state = state.copyWith(isRefreshing: true);
-    await loadProducts();
-    state = state.copyWith(isRefreshing: false);
+
+    try {
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+      final storeId = appState.storeChoosen;
+
+      if (companyId.isEmpty || storeId.isEmpty) {
+        state = state.copyWith(isRefreshing: false);
+        return;
+      }
+
+      final repository = ref.read(salesProductRepositoryProvider);
+      final result = await repository.loadProducts(
+        companyId: companyId,
+        storeId: storeId,
+        page: 1,
+        limit: _defaultPageSize,
+        search: state.searchQuery,
+      );
+
+      state = state.copyWith(
+        products: result.products,
+        totalCount: result.totalCount,
+        isRefreshing: false,
+        currentPage: 1,
+        pageSize: _defaultPageSize,
+        hasNextPage: result.hasNextPage,
+        errorMessage: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isRefreshing: false,
+        errorMessage: 'Error refreshing products: $e',
+      );
+    }
   }
 
   /// Clear error message

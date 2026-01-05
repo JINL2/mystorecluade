@@ -19,12 +19,17 @@ class ChainDetectionResult {
   /// Whether we should be in checkout mode (chain ends today or later)
   final bool shouldCheckout;
 
+  /// Error message if chain has validation issues
+  /// e.g., 'chain_has_separate_checkin' if middle shift has individual check-in
+  final String? errorCode;
+
   const ChainDetectionResult({
     this.inProgressShift,
     this.chainStartTime,
     this.chainLastEndTime,
     this.chainShifts = const [],
     this.shouldCheckout = false,
+    this.errorCode,
   });
 
   /// No chain found
@@ -32,6 +37,9 @@ class ChainDetectionResult {
 
   /// Check if a valid chain was found
   bool get hasChain => inProgressShift != null && chainShifts.isNotEmpty;
+
+  /// Check if chain has validation error
+  bool get hasError => errorCode != null;
 }
 
 /// Shared DateTime utilities for schedule views
@@ -159,16 +167,23 @@ class ScheduleDateUtils {
   ///
   /// [shiftCards] 전체 시프트 목록
   /// [afterTime] 이 시간 이후의 시프트만 검색
+  /// [excludeShiftIds] 제외할 shift ID 목록 (체인에 포함된 shift 등)
   ///
   /// Returns: 다음 시프트 시작 시간, 없으면 null
   static DateTime? findNextShiftStartTime(
     List<ShiftCard> shiftCards,
-    DateTime afterTime,
-  ) {
+    DateTime afterTime, {
+    Set<String>? excludeShiftIds,
+  }) {
     DateTime? nextStart;
 
     for (final card in shiftCards) {
       if (!card.isApproved || card.isCheckedIn) continue;
+
+      // Exclude specific shifts (e.g., shifts in the current chain)
+      if (excludeShiftIds != null && excludeShiftIds.contains(card.shiftRequestId)) {
+        continue;
+      }
 
       final startTime = parseShiftDateTime(card.shiftStartTime);
       if (startTime == null || !startTime.isAfter(afterTime)) continue;
@@ -187,10 +202,24 @@ class ScheduleDateUtils {
 
   /// Detect continuous shift chain from in-progress shift
   ///
-  /// For continuous shifts (08:00~13:00, 13:00~19:00, 19:00~02:00):
+  /// For continuous shifts (10:00~15:00, 15:00~20:00, 20:00~02:00):
   /// - Only FIRST shift has isCheckedIn=true
   /// - Chain detection traces forward to find all connected shifts
   /// - Uses 1-minute tolerance for time matching
+  /// - Grace period is checked against CHAIN'S LAST end_time, not first shift's end_time
+  ///
+  /// **Algorithm (v2 - Chain-first approach):**
+  /// 1. Find checked-in shift (without grace period check)
+  /// 2. Build chain forward (find all continuous shifts)
+  /// 3. Check grace period using chain's last end_time
+  /// 4. If within grace period → CHECKOUT mode
+  /// 5. If past grace period → return empty (CHECKIN mode)
+  ///
+  /// **Example:**
+  /// - Morning 10:00~15:00 (checked in)
+  /// - Afternoon 15:00~20:00 (continuous)
+  /// - Night 20:00~02:00 (continuous)
+  /// - At 02:30 next day: grace period check uses 02:00 (chain end), not 15:00 (first shift end)
   ///
   /// Returns [ChainDetectionResult] with chain info and checkout determination
   static ChainDetectionResult detectContinuousChain(
@@ -201,25 +230,13 @@ class ScheduleDateUtils {
 
     final now = currentTime ?? DateTime.now();
 
-    // Step 1: Find in-progress shift (checked in but not out) WITH grace period check
+    // Step 1: Find checked-in shift (WITHOUT grace period check)
+    // Grace period will be checked after building the chain
     ShiftCard? inProgressShift;
     for (final card in shiftCards) {
       if (card.isApproved && card.isCheckedIn && !card.isCheckedOut) {
-        final endTime = parseShiftDateTime(card.shiftEndTime);
-
-        // If shift hasn't ended yet, it's in-progress
-        if (endTime == null || !now.isAfter(endTime)) {
-          inProgressShift = card;
-          break;
-        }
-
-        // Shift ended - check grace period
-        final nextShiftStart = findNextShiftStartTime(shiftCards, endTime);
-        if (isWithinCheckoutWindow(endTime, nextShiftStart, now)) {
-          inProgressShift = card;
-          break;
-        }
-        // Grace period passed - skip this shift
+        inProgressShift = card;
+        break;
       }
     }
 
@@ -239,7 +256,7 @@ class ScheduleDateUtils {
         return aStart.compareTo(bStart);
       });
 
-    // Step 3: Trace the chain forward from in-progress shift
+    // Step 3: Build chain forward from in-progress shift
     final chainShifts = <ShiftCard>[inProgressShift];
     DateTime? currentEndTime = parseShiftDateTime(inProgressShift.shiftEndTime);
     DateTime? chainLastEndTime = currentEndTime;
@@ -263,33 +280,64 @@ class ScheduleDateUtils {
       }
     }
 
-    // Step 4: Determine if we should be in CHECKOUT mode
-    // Condition: inProgressShift exists (checked in but not out)
-    // Time doesn't matter - user should be able to checkout even after shift ended
-    // Note: At this point, inProgressShift is guaranteed to be non-null
-    const shouldCheckout = true;
+    // Step 3.5: Validate chain - check for separate check-ins in middle shifts
+    // Server will reject this case with 'chain_shift_has_separate_checkin'
+    // We detect it early here to provide better UX
+    for (int i = 1; i < chainShifts.length; i++) {
+      final middleShift = chainShifts[i];
+      if (middleShift.isCheckedIn) {
+        // Middle shift has separate check-in - this is invalid
+        return ChainDetectionResult(
+          inProgressShift: inProgressShift,
+          chainStartTime: chainStartTime,
+          chainLastEndTime: chainLastEndTime,
+          chainShifts: chainShifts,
+          shouldCheckout: false,
+          errorCode: 'chain_has_separate_checkin',
+        );
+      }
+    }
 
+    // Step 4: Check grace period using CHAIN'S LAST end_time
+    // This is the key fix - we use the chain's end, not the first shift's end
+    if (chainLastEndTime != null && now.isAfter(chainLastEndTime)) {
+      // Chain has ended - check if within grace period
+      // Exclude chain shifts when finding next shift (they're part of current work session)
+      final chainShiftIds = chainShifts.map((s) => s.shiftRequestId).toSet();
+      final nextShiftStart = findNextShiftStartTime(
+        shiftCards,
+        chainLastEndTime,
+        excludeShiftIds: chainShiftIds,
+      );
+      if (!isWithinCheckoutWindow(chainLastEndTime, nextShiftStart, now)) {
+        // Grace period passed - chain is invalid, switch to CHECKIN mode
+        return ChainDetectionResult.empty;
+      }
+    }
+
+    // Step 5: Within grace period or chain hasn't ended yet → CHECKOUT mode
     return ChainDetectionResult(
       inProgressShift: inProgressShift,
       chainStartTime: chainStartTime,
       chainLastEndTime: chainLastEndTime,
       chainShifts: chainShifts,
-      shouldCheckout: shouldCheckout,
+      shouldCheckout: true,
     );
   }
 
   /// Find the correct shift for checkout from chain
   /// Used for both UI display and QR scan checkout
   ///
-  /// Logic: Find the earliest shift that hasn't ended yet (end_time > now)
-  /// If all shifts ended, return the last shift (allows late checkout)
+  /// **Logic (v2):**
+  /// 1. If any shift hasn't ended yet → return that shift
+  /// 2. If all shifts ended → return shift with end_time closest to now
   ///
-  /// Example: 08:00~13:00, 13:00~19:00, 19:00~02:00 chain
-  /// - At 10:00 → Morning (end 13:00 > 10:00)
-  /// - At 15:00 → Afternoon (Morning ended, Afternoon end 19:00 > 15:00)
+  /// Example: 10:00~15:00, 15:00~20:00, 20:00~02:00 chain
+  /// - At 10:00 → Morning (end 15:00 > 10:00, not ended yet)
+  /// - At 16:00 → Afternoon (Morning ended, Afternoon end 20:00 > 16:00)
   /// - At 21:00 → Night (Morning/Afternoon ended, Night end 02:00 > 21:00)
-  /// - At 01:00 → Night (end 02:00 > 01:00)
-  /// - At 02:30 → Night (all ended, fallback to last) ✅ Late checkout works!
+  /// - At 01:00 → Night (end 02:00 > 01:00, not ended yet)
+  /// - At 02:30 → Night (all ended, Night's 02:00 is closest to 02:30)
   static ShiftCard? findClosestCheckoutShift(
     ChainDetectionResult chain, {
     DateTime? currentTime,
@@ -317,8 +365,23 @@ class ScheduleDateUtils {
       }
     }
 
-    // Fallback: return the last shift in chain (all ended - for display purposes)
-    return sorted.last;
+    // All shifts ended - find the one with end_time closest to now
+    // This handles late checkout (e.g., at 02:30, Night's 02:00 is closest)
+    ShiftCard? closestShift;
+    Duration? smallestDiff;
+
+    for (final shift in sorted) {
+      final endTime = parseShiftDateTime(shift.shiftEndTime);
+      if (endTime == null) continue;
+
+      final diff = now.difference(endTime).abs();
+      if (smallestDiff == null || diff < smallestDiff) {
+        smallestDiff = diff;
+        closestShift = shift;
+      }
+    }
+
+    return closestShift ?? sorted.last;
   }
 
   /// Find the shift with start_time closest to current time for check-in
@@ -382,32 +445,24 @@ class ScheduleDateUtils {
 
   /// Find in-progress shift OR recently ended shift that should still show checkout
   ///
+  /// Uses the same chain-first logic as [detectContinuousChain].
+  /// Grace period is checked against the CHAIN'S LAST end_time.
+  ///
   /// Returns the shift if:
   /// 1. Shift is in-progress (checked in, not out)
-  /// 2. Shift ended but we're within the grace period checkout window
+  /// 2. Chain ended but we're within the grace period checkout window
   ///
   /// Returns null if user can proceed to check into a new shift
   static ShiftCard? _findInProgressOrRecentShift(
     List<ShiftCard> shiftCards,
     DateTime now,
   ) {
-    // Find in-progress shift (checked in but not out) WITH grace period check
-    for (final card in shiftCards) {
-      if (card.isApproved && card.isCheckedIn && !card.isCheckedOut) {
-        final endTime = parseShiftDateTime(card.shiftEndTime);
+    // Use detectContinuousChain which handles chain-based grace period correctly
+    final chain = detectContinuousChain(shiftCards, currentTime: now);
 
-        // If shift hasn't ended yet, it's definitely in-progress
-        if (endTime == null || !now.isAfter(endTime)) {
-          return card;
-        }
-
-        // Shift has ended - check if within grace period
-        final nextShiftStart = findNextShiftStartTime(shiftCards, endTime);
-        if (isWithinCheckoutWindow(endTime, nextShiftStart, now)) {
-          return card;
-        }
-        // Grace period passed - skip this shift, allow check-in to next
-      }
+    // If chain exists and shouldCheckout is true, return the in-progress shift
+    if (chain.hasChain && chain.shouldCheckout) {
+      return chain.inProgressShift;
     }
 
     return null;

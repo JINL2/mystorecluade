@@ -6,7 +6,6 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../providers/cash_transaction_providers.dart';
-import '../widgets/amount_input_keypad.dart';
 import '../widgets/transaction_confirm_dialog.dart';
 
 /// Debt Entry Bottom Sheet
@@ -42,6 +41,55 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
 
   // UI state
   bool _isSubmitting = false;
+
+  // Exchange rate state
+  bool _hasMultipleCurrencies = false;
+
+  // Key for accessing TossAmountKeypad state
+  final _amountKeypadKey = GlobalKey<TossAmountKeypadState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkForMultipleCurrencies();
+  }
+
+  Future<void> _checkForMultipleCurrencies() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      setState(() => _hasMultipleCurrencies = false);
+      return;
+    }
+
+    try {
+      final exchangeRatesData = await ref.read(
+        calculatorExchangeRateDataProvider(
+          CalculatorExchangeRateParams(companyId: companyId),
+        ).future,
+      );
+      final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+      setState(() => _hasMultipleCurrencies = exchangeRates.isNotEmpty);
+    } catch (e) {
+      setState(() => _hasMultipleCurrencies = false);
+    }
+  }
+
+  void _showExchangeRateCalculator() {
+    ExchangeRateCalculator.show(
+      context: context,
+      initialAmount: _amount > 0 ? _amount.toInt().toString() : null,
+      onAmountSelected: (amount) {
+        final numericValue = double.tryParse(amount) ?? 0;
+        setState(() {
+          _amount = numericValue;
+        });
+        // Update the keypad display
+        _amountKeypadKey.currentState?.setAmount(numericValue);
+      },
+    );
+  }
 
   void _onAmountChanged(double amount) {
     setState(() {
@@ -443,17 +491,23 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
                     child: TossLoadingView(),
                   ),
                 ),
-                error: (_, __) => AmountInputKeypad(
+                error: (_, __) => TossAmountKeypad(
+                  key: _amountKeypadKey,
                   initialAmount: _amount,
                   currencySymbol: '₩',
                   onAmountChanged: _onAmountChanged,
                   showSubmitButton: false,
+                  onExchangeRateTap:
+                      _hasMultipleCurrencies ? _showExchangeRateCalculator : null,
                 ),
-                data: (currencySymbol) => AmountInputKeypad(
+                data: (currencySymbol) => TossAmountKeypad(
+                  key: _amountKeypadKey,
                   initialAmount: _amount,
                   currencySymbol: currencySymbol,
                   onAmountChanged: _onAmountChanged,
                   showSubmitButton: false,
+                  onExchangeRateTap:
+                      _hasMultipleCurrencies ? _showExchangeRateCalculator : null,
                 ),
               );
             },

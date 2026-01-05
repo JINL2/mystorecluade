@@ -178,6 +178,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                   allEmployeesList: companyEmployeesList,
                   // Navigate to employee detail page when tapped
                   onEmployeeTap: (employee) {
+                    debugPrint('👆 [ShiftStatsTab] Employee tapped - navigating to detail: ${employee.name}');
                     HapticFeedback.selectionClick();
                     Navigator.push(
                       context,
@@ -187,7 +188,9 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                           storeId: storeId,
                         ),
                       ),
-                    );
+                    ).then((_) {
+                      debugPrint('⬅️ [ShiftStatsTab] Returned from EmployeeDetailPage');
+                    });
                   },
                   // Navigate to new page with current tab info
                   onSeeAllTapWithTab: (selectedTab) {

@@ -1,12 +1,45 @@
+/// Toss Amount Keypad
+///
+/// A reusable amount input keypad widget with optional exchange rate calculator button.
+/// Provides a minimal gray-toned design with number pad for easy mobile input.
+///
+/// ## Basic Usage
+/// ```dart
+/// TossAmountKeypad(
+///   initialAmount: 0,
+///   currencySymbol: '₩',
+///   onAmountChanged: (amount) => setState(() => _amount = amount),
+/// )
+/// ```
+///
+/// ## With Exchange Rate Calculator
+/// ```dart
+/// TossAmountKeypad(
+///   initialAmount: _amount,
+///   currencySymbol: currencySymbol,
+///   onAmountChanged: _onAmountChanged,
+///   onExchangeRateTap: _hasMultipleCurrencies
+///     ? () => ExchangeRateCalculator.show(
+///         context: context,
+///         onAmountSelected: (amount) {
+///           final value = double.tryParse(amount) ?? 0;
+///           _onAmountChanged(value);
+///         },
+///       )
+///     : null,
+/// )
+/// ```
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
-/// Amount Input Keypad
+/// Amount Input Keypad with optional exchange rate calculator
 /// Minimal design - gray tones, no colored borders
-class AmountInputKeypad extends StatefulWidget {
+class TossAmountKeypad extends StatefulWidget {
   final double initialAmount;
   final String currencySymbol;
   final ValueChanged<double> onAmountChanged;
@@ -14,7 +47,12 @@ class AmountInputKeypad extends StatefulWidget {
   final bool showSubmitButton;
   final String submitButtonText;
 
-  const AmountInputKeypad({
+  /// Optional callback for exchange rate calculator button
+  /// When provided (not null), shows a calculator button next to the amount display
+  /// When null, the calculator button is hidden
+  final VoidCallback? onExchangeRateTap;
+
+  const TossAmountKeypad({
     super.key,
     this.initialAmount = 0,
     this.currencySymbol = '₩',
@@ -22,13 +60,14 @@ class AmountInputKeypad extends StatefulWidget {
     this.onSubmit,
     this.showSubmitButton = true,
     this.submitButtonText = 'Confirm',
+    this.onExchangeRateTap,
   });
 
   @override
-  State<AmountInputKeypad> createState() => _AmountInputKeypadState();
+  State<TossAmountKeypad> createState() => TossAmountKeypadState();
 }
 
-class _AmountInputKeypadState extends State<AmountInputKeypad> {
+class TossAmountKeypadState extends State<TossAmountKeypad> {
   late String _amountString;
   final _formatter = NumberFormat('#,###');
 
@@ -49,6 +88,14 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
     if (_amountString.isEmpty) return '0';
     final amount = int.tryParse(_amountString) ?? 0;
     return _formatter.format(amount);
+  }
+
+  /// Set amount externally (e.g., from exchange rate calculator result)
+  void setAmount(double amount) {
+    setState(() {
+      _amountString = amount > 0 ? amount.toInt().toString() : '';
+    });
+    widget.onAmountChanged(_currentAmount);
   }
 
   void _onKeyPressed(String key) {
@@ -90,7 +137,7 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Amount display
+        // Amount display with optional calculator button
         _buildAmountDisplay(),
 
         const SizedBox(height: TossSpacing.space4),
@@ -109,6 +156,7 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
 
   Widget _buildAmountDisplay() {
     final hasAmount = _currentAmount > 0;
+    final showCalculatorButton = widget.onExchangeRateTap != null;
 
     return GestureDetector(
       onLongPress: _onClear,
@@ -130,42 +178,60 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  widget.currencySymbol,
-                  style: TossTextStyles.h2.copyWith(
-                    color: TossColors.gray500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space2),
-                AnimatedSwitcher(
-                  duration: TossAnimations.quick,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.2),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
+                // Spacer for symmetry when calculator button is shown
+                if (showCalculatorButton) const SizedBox(width: 48),
+
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        widget.currencySymbol,
+                        style: TossTextStyles.h2.copyWith(
+                          color: TossColors.gray500,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    );
-                  },
-                  child: Text(
-                    _formattedAmount,
-                    key: ValueKey(_formattedAmount),
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: hasAmount ? TossColors.gray900 : TossColors.gray300,
-                      letterSpacing: -1,
-                    ),
+                      const SizedBox(width: TossSpacing.space2),
+                      AnimatedSwitcher(
+                        duration: TossAnimations.quick,
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.2),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Text(
+                          _formattedAmount,
+                          key: ValueKey(_formattedAmount),
+                          style: TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                hasAmount ? TossColors.gray900 : TossColors.gray300,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+
+                // Exchange rate calculator button
+                if (showCalculatorButton)
+                  _buildCalculatorButton()
+                else
+                  const SizedBox.shrink(),
               ],
             ),
             if (!hasAmount) ...[
@@ -178,6 +244,37 @@ class _AmountInputKeypadState extends State<AmountInputKeypad> {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalculatorButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.primary,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.primary.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: TossColors.transparent,
+        child: InkWell(
+          onTap: widget.onExchangeRateTap,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          child: Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            child: const Icon(
+              Icons.calculate_outlined,
+              color: TossColors.white,
+              size: 24,
+            ),
+          ),
         ),
       ),
     );

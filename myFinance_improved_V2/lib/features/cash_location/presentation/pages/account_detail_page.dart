@@ -449,6 +449,12 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
     final errorAmount = totalReal - totalJournal;
     final currencySymbol = widget.currencySymbol ?? '';
 
+    // Prevent mapping when difference is 0
+    if (errorAmount.toDouble().abs() < 0.01) {
+      _dialogs.showErrorDialog('No difference to adjust. Balance is already matched.');
+      return;
+    }
+
     final confirmed = await _dialogs.showMappingConfirmationDialog(
       mappingType: mappingType,
       errorAmount: errorAmount.toDouble(),

@@ -58,9 +58,16 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
   int _currentStep = 0;
   bool _isSubmitting = false;
 
+  // Exchange rate state
+  bool _hasMultipleCurrencies = false;
+
+  // Key for accessing TossAmountKeypad state
+  final _amountKeypadKey = GlobalKey<TossAmountKeypadState>();
+
   @override
   void initState() {
     super.initState();
+    _checkForMultipleCurrencies();
     // Set current context from app state
     // Note: In real app, this would come from app state
     // For now we use mock data for the multi-company/store selection
@@ -71,6 +78,43 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
         _fromStoreName = 'Current Store'; // Would come from store provider
       });
     });
+  }
+
+  Future<void> _checkForMultipleCurrencies() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      setState(() => _hasMultipleCurrencies = false);
+      return;
+    }
+
+    try {
+      final exchangeRatesData = await ref.read(
+        calculatorExchangeRateDataProvider(
+          CalculatorExchangeRateParams(companyId: companyId),
+        ).future,
+      );
+      final exchangeRates = exchangeRatesData['exchange_rates'] as List? ?? [];
+      setState(() => _hasMultipleCurrencies = exchangeRates.isNotEmpty);
+    } catch (e) {
+      setState(() => _hasMultipleCurrencies = false);
+    }
+  }
+
+  void _showExchangeRateCalculator() {
+    ExchangeRateCalculator.show(
+      context: context,
+      initialAmount: _amount > 0 ? _amount.toInt().toString() : null,
+      onAmountSelected: (amount) {
+        final numericValue = double.tryParse(amount) ?? 0;
+        setState(() {
+          _amount = numericValue;
+        });
+        // Update the keypad display
+        _amountKeypadKey.currentState?.setAmount(numericValue);
+      },
+    );
   }
 
   // ==================== HELPER METHODS FOR DATA ACCESS ====================
@@ -653,6 +697,9 @@ class _TransferEntrySheetState extends ConsumerState<TransferEntrySheet> {
       toCashLocationName: _toCashLocationName,
       amount: _amount,
       onAmountChanged: _onAmountChanged,
+      keypadKey: _amountKeypadKey,
+      onExchangeRateTap:
+          _hasMultipleCurrencies ? _showExchangeRateCalculator : null,
     );
   }
 

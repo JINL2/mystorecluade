@@ -44,8 +44,10 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
 
   @override
   Widget build(BuildContext context) {
-    final companies = widget.userData['companies'] as List<dynamic>? ?? [];
+    // ✅ AppState에서 직접 companies 가져오기 (즉시 반영)
+    // widget.userData 대신 appState.user 사용 → 새 company/store 추가 시 즉시 UI 업데이트
     final appState = ref.watch(appStateProvider);
+    final companies = appState.user['companies'] as List<dynamic>? ?? [];
 
     if (companies.isEmpty) {
       return _buildEmptyState();
@@ -285,7 +287,14 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     return InkWell(
       onTap: () {
         final appStateNotifier = ref.read(appStateProvider.notifier);
-        appStateNotifier.selectCompany(companyId, companyName: companyName);
+        final currentCompanyId = ref.read(appStateProvider).companyChoosen;
+
+        // ✅ FIX: Only call selectCompany if company actually changed
+        // Previously always called selectCompany which triggered provider rebuilds
+        // even when selecting a different store within the same company
+        if (currentCompanyId != companyId) {
+          appStateNotifier.selectCompany(companyId, companyName: companyName);
+        }
         appStateNotifier.selectStore(storeId, storeName: storeName);
         context.pop();
       },
@@ -485,39 +494,34 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
   }
 
   Future<void> _refreshDataAfterStoreCreation(BuildContext context, WidgetRef ref, Store store, String companyId) async {
+    // ✅ CreateStoreSheet에서 이미 AppState 업데이트 + provider invalidate 완료됨
+    // 여기서는 drawer만 닫고 토스트 표시
     if (context.mounted) {
-      Navigator.of(context).pop();
-    }
-
-    ref.read(appStateProvider.notifier).addNewStoreToCompany(
-      companyId: companyId,
-      storeId: store.id,
-      storeName: store.name,
-      storeCode: store.code,
-    );
-
-    ref.read(appStateProvider.notifier).selectStore(
-      store.id,
-      storeName: store.name,
-    );
-
-    ref.invalidate(userCompaniesProvider);
-
-    if (context.mounted) {
+      Navigator.of(context).pop(); // drawer 닫기
       TossToast.success(context, 'Store "${store.name}" created successfully!');
     }
   }
 
   Future<void> _refreshDataAfterStoreJoin(BuildContext context, WidgetRef ref, JoinResult result) async {
-    if (context.mounted) {
-      Navigator.of(context).pop();
+    // ✅ AppState 업데이트 (Hive 캐시도 자동 동기화됨)
+    if (result.storeId != null && result.companyId != null) {
+      ref.read(appStateProvider.notifier).addNewStoreToCompany(
+        companyId: result.companyId!,
+        storeId: result.storeId!,
+        storeName: result.storeName ?? 'Store',
+      );
     }
 
     if (result.companyId != null) {
-      ref.read(appStateProvider.notifier).selectCompany(
-        result.companyId!,
-        companyName: result.companyName,
-      );
+      final currentCompanyId = ref.read(appStateProvider).companyChoosen;
+
+      // Only call selectCompany if company actually changed
+      if (currentCompanyId != result.companyId) {
+        ref.read(appStateProvider.notifier).selectCompany(
+          result.companyId!,
+          companyName: result.companyName,
+        );
+      }
 
       if (result.storeId != null) {
         ref.read(appStateProvider.notifier).selectStore(
@@ -527,9 +531,9 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
       }
     }
 
-    ref.invalidate(userCompaniesProvider);
-
+    // Drawer 닫기 + 토스트
     if (context.mounted) {
+      Navigator.of(context).pop();
       TossToast.success(context, 'Successfully joined ${result.entityName}!');
     }
   }

@@ -22,7 +22,6 @@ import '../../domain/repositories/payment_repository.dart';
 import '../helpers/exchange_rate_helper.dart';
 import '../../di/sale_product_providers.dart';
 import '../providers/payment_providers.dart';
-import '../providers/sales_product_provider.dart';
 import '../providers/states/payment_method_state.dart';
 import '../providers/cart_provider.dart';
 // Sale product entities
@@ -594,9 +593,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         companyId: companyId,
         userId: userId,
         onDismiss: () {
-          // Force refresh of sales product data
-          ref.invalidate(salesProductNotifierProvider);
           // Navigate back to Sales Product page
+          // Note: Data refresh is handled in SaleProductPage._navigateToPayment()
+          // after Navigator.push returns
           context.pop();
         },
       );

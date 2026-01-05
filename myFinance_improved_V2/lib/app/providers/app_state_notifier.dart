@@ -11,6 +11,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/cache/hive_cache_service.dart';
 import 'app_state.dart';
 
 /// Global App State Notifier
@@ -195,6 +196,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
   ///
   /// This updates the user.companies array in AppState immediately,
   /// providing instant UI feedback without waiting for API refresh.
+  /// Also syncs to Hive cache for persistence across app restarts.
   void addNewCompanyToUser({
     required String companyId,
     required String companyName,
@@ -216,12 +218,16 @@ class AppStateNotifier extends StateNotifier<AppState> {
     userCopy['companies'] = companiesList;
 
     state = state.copyWith(user: userCopy);
+
+    // Sync to Hive cache (fire-and-forget)
+    _syncUserToHiveCache(userCopy);
   }
 
   /// Add newly created store to company's stores list
   ///
   /// This updates the specific company's stores array in AppState immediately,
   /// providing instant UI feedback without waiting for API refresh.
+  /// Also syncs to Hive cache for persistence across app restarts.
   void addNewStoreToCompany({
     required String companyId,
     required String storeId,
@@ -252,6 +258,24 @@ class AppStateNotifier extends StateNotifier<AppState> {
       userCopy['companies'] = companiesList;
 
       state = state.copyWith(user: userCopy);
+
+      // Sync to Hive cache (fire-and-forget)
+      _syncUserToHiveCache(userCopy);
+    }
+  }
+
+  /// Sync user data to Hive cache
+  ///
+  /// Called after adding new company/store to ensure persistence.
+  /// Fire-and-forget - doesn't block UI.
+  Future<void> _syncUserToHiveCache(Map<String, dynamic> userData) async {
+    try {
+      final userId = userData['user_id'] as String?;
+      if (userId != null && userId.isNotEmpty) {
+        await HiveCacheService.instance.saveUserCompanies(userId, userData);
+      }
+    } catch (_) {
+      // Cache sync failure is not critical - data is already in AppState
     }
   }
 

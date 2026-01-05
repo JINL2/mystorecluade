@@ -198,33 +198,16 @@ class CompanyStoreSelector extends ConsumerWidget {
   }
 
   Future<void> _refreshDataAfterCompanyCreation(BuildContext context, WidgetRef ref, Company company) async {
+    // ✅ CreateCompanySheet에서 이미 AppState 업데이트 완료됨
+    // 여기서는 drawer만 닫고 토스트 표시
     if (context.mounted) {
-      Navigator.of(context).pop();
-    }
-
-    ref.read(appStateProvider.notifier).addNewCompanyToUser(
-      companyId: company.id,
-      companyName: company.name,
-      companyCode: company.code,
-    );
-
-    ref.read(appStateProvider.notifier).selectCompany(
-      company.id,
-      companyName: company.name,
-    );
-
-    ref.invalidate(userCompaniesProvider);
-
-    if (context.mounted) {
+      Navigator.of(context).pop(); // drawer 닫기
       TossToast.success(context, 'Company "${company.name}" created successfully!');
     }
   }
 
   Future<void> _refreshDataAfterJoin(BuildContext context, WidgetRef ref, JoinResult result) async {
-    if (context.mounted) {
-      Navigator.of(context).pop();
-    }
-
+    // ✅ AppState 업데이트 (Hive 캐시도 자동 동기화됨)
     if (result.isCompanyJoin && result.companyId != null) {
       ref.read(appStateProvider.notifier).addNewCompanyToUser(
         companyId: result.companyId!,
@@ -253,9 +236,9 @@ class CompanyStoreSelector extends ConsumerWidget {
       }
     }
 
-    ref.invalidate(userCompaniesProvider);
-
+    // Drawer 닫기 + 토스트
     if (context.mounted) {
+      Navigator.of(context).pop();
       TossToast.success(context, 'Successfully joined ${result.entityName}!');
     }
   }

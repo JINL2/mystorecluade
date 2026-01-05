@@ -4,11 +4,13 @@
 /// Provides cached access to overview data by month.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../../../core/utils/retry_helper.dart';
 import '../../../domain/entities/manager_overview.dart';
 import '../../../domain/usecases/get_manager_overview.dart';
 import '../states/time_table_state.dart';
@@ -70,6 +72,7 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
       return;
     }
 
+    debugPrint('📥 [managerOverviewProvider] loadMonth - monthKey: $monthKey');
     _safeSetState(state.copyWith(isLoading: true, error: null));
 
     try {
@@ -79,14 +82,21 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
       final startDate = '${firstDay.year}-${firstDay.month.toString().padLeft(2, '0')}-${firstDay.day.toString().padLeft(2, '0')}';
       final endDate = '${lastDay.year}-${lastDay.month.toString().padLeft(2, '0')}-${lastDay.day.toString().padLeft(2, '0')}';
 
-      final data = await _getManagerOverviewUseCase(
-        GetManagerOverviewParams(
-          startDate: startDate,
-          endDate: endDate,
-          companyId: _companyId,
-          storeId: _storeId,
-          timezone: _timezone,
+      // ✅ Retry with exponential backoff (max 3 retries: 1s, 2s, 4s)
+      final data = await RetryHelper.withRetry(
+        () => _getManagerOverviewUseCase(
+          GetManagerOverviewParams(
+            startDate: startDate,
+            endDate: endDate,
+            companyId: _companyId,
+            storeId: _storeId,
+            timezone: _timezone,
+          ),
         ),
+        config: RetryConfig.rpc,
+        onRetry: (attempt, error) {
+          debugPrint('   ⚠️ [managerOverviewProvider] Retry $attempt for $monthKey: $error');
+        },
       );
 
       final newDataByMonth = Map<String, ManagerOverview>.from(state.dataByMonth);
@@ -97,6 +107,7 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
         isLoading: false,
       ));
     } catch (e) {
+      debugPrint('   ❌ [managerOverviewProvider] Failed after retries: $e');
       _safeSetState(state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -129,8 +140,9 @@ final managerOverviewProvider = StateNotifierProvider.family<
     ManagerOverviewState,
     String>((ref, storeId) {
   final useCase = ref.watch(getManagerOverviewUseCaseProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
+  // ✅ FIX: Use select to only rebuild when companyChoosen actually changes
+  // Previously used ref.watch(appStateProvider) which caused rebuilds on ANY appState change
+  final companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
   // Use device local timezone instead of user DB timezone
   final timezone = DateTimeUtils.getLocalTimezone();
 

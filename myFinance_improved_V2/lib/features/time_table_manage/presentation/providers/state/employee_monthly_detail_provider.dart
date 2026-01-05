@@ -4,10 +4,12 @@
 /// Includes shifts, audit logs, summary, and salary information.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../../../core/utils/retry_helper.dart';
 import '../../../domain/entities/employee_monthly_detail.dart';
 import '../repository_providers.dart';
 
@@ -80,20 +82,34 @@ class EmployeeMonthlyDetailNotifier
   }) async {
     final cacheKey = '${userId}_$yearMonth';
 
+    // 🔍 DEBUG: loadData called
+    debugPrint('📥 [employeeMonthlyDetailProvider] loadData called - userId: $userId, yearMonth: $yearMonth');
+    debugPrint('   📦 Current cache keys: ${state.dataByMonth.keys.toList()}');
+
     // Skip if already loaded (unless force refresh)
     if (!forceRefresh && state.dataByMonth.containsKey(cacheKey)) {
+      debugPrint('   ✅ Using cached data for key: $cacheKey');
       return state.dataByMonth[cacheKey];
     }
 
+    debugPrint('   🌐 Fetching from server...');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       final repository = _ref.read(timeTableRepositoryProvider);
-      final data = await repository.getEmployeeMonthlyDetailLog(
-        userId: userId,
-        companyId: _companyId,
-        yearMonth: yearMonth,
-        timezone: _timezone,
+
+      // ✅ Retry with exponential backoff (max 3 retries: 1s, 2s, 4s)
+      final data = await RetryHelper.withRetry(
+        () => repository.getEmployeeMonthlyDetailLog(
+          userId: userId,
+          companyId: _companyId,
+          yearMonth: yearMonth,
+          timezone: _timezone,
+        ),
+        config: RetryConfig.rpc,
+        onRetry: (attempt, error) {
+          debugPrint('   ⚠️ [employeeMonthlyDetailProvider] Retry $attempt for $cacheKey: $error');
+        },
       );
 
       final newDataByMonth =
@@ -105,8 +121,10 @@ class EmployeeMonthlyDetailNotifier
         isLoading: false,
       );
 
+      debugPrint('   ✅ Data loaded successfully - shifts count: ${data.shifts.length}');
       return data;
     } catch (e) {
+      debugPrint('   ❌ [employeeMonthlyDetailProvider] Failed after retries: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -126,6 +144,7 @@ class EmployeeMonthlyDetailNotifier
 
   /// Clear all loaded data
   void clearAll() {
+    debugPrint('🗑️ [employeeMonthlyDetailProvider] clearAll called - clearing ${state.dataByMonth.keys.length} entries');
     state = const EmployeeMonthlyDetailState();
   }
 
@@ -157,9 +176,14 @@ class EmployeeMonthlyDetailNotifier
 /// ```
 final employeeMonthlyDetailProvider = StateNotifierProvider<
     EmployeeMonthlyDetailNotifier, EmployeeMonthlyDetailState>((ref) {
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
+  // ✅ FIX: Use select to only rebuild when companyChoosen actually changes
+  // Previously used ref.watch(appStateProvider) which caused rebuilds on ANY appState change
+  // (e.g., storeChoosen, user data updates) leading to cache data loss
+  final companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
   final timezone = DateTimeUtils.getLocalTimezone();
+
+  // 🔍 DEBUG: Provider being created/recreated
+  debugPrint('🔄 [employeeMonthlyDetailProvider] CREATED - companyId: $companyId');
 
   return EmployeeMonthlyDetailNotifier(ref, companyId, timezone);
 });
