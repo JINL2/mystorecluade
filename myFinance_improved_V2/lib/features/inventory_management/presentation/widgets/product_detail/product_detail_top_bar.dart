@@ -56,7 +56,10 @@ class ProductDetailTopBar extends StatelessWidget {
                 icon: Icons.edit_outlined,
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  context.push('/inventoryManagement/editProduct/${product.id}');
+                  context.push(
+                    '/inventoryManagement/editProduct/${product.id}',
+                    extra: product,
+                  );
                 },
               ),
               _AnimatedIconButton(

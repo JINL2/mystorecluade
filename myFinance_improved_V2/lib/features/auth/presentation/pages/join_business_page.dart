@@ -387,8 +387,9 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
         }
       }
 
-      // ✅ Invalidate userCompaniesProvider to refresh data from server (background)
-      ref.invalidate(userCompaniesProvider);
+      // Note: AppState is already updated above with the new company data.
+      // We do NOT invalidate userCompaniesProvider here to avoid race conditions
+      // where the router might read stale cache data before the new data is saved.
 
       if (mounted) {
         // Show success dialog

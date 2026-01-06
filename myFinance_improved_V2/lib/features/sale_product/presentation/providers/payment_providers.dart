@@ -129,6 +129,19 @@ class PaymentMethodNotifier extends _$PaymentMethodNotifier {
     );
   }
 
+  /// Update tax/fees amount with percentage sync
+  /// [amount] - the tax/fees amount in base currency
+  /// [percentage] - the calculated percentage (0-100)
+  void updateTaxFeesAmount({
+    required double amount,
+    required double percentage,
+  }) {
+    state = state.copyWith(
+      taxFeesAmount: amount,
+      taxFeesPercentage: percentage,
+    );
+  }
+
   // Set preloaded cash locations (from SaleProductPage)
   void setCashLocations(List<CashLocation> locations) {
     state = state.copyWith(
@@ -157,6 +170,8 @@ class PaymentMethodNotifier extends _$PaymentMethodNotifier {
       discountAmount: 0.0,
       discountPercentage: 0.0,
       isPercentageMode: false,
+      taxFeesAmount: 0.0,
+      taxFeesPercentage: 0.0,
       isSubmitting: false,
     );
   }

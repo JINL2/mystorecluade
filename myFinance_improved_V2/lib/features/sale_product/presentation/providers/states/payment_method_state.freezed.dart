@@ -36,6 +36,12 @@ mixin _$PaymentMethodState {
   /// Whether discount was set as percentage mode (true) or amount mode (false)
   bool get isPercentageMode => throw _privateConstructorUsedError;
 
+  /// Tax/Fees amount in base currency (added to total)
+  double get taxFeesAmount => throw _privateConstructorUsedError;
+
+  /// Tax/Fees percentage (0-100), synced with taxFeesAmount
+  double get taxFeesPercentage => throw _privateConstructorUsedError;
+
   /// Create a copy of PaymentMethodState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -61,7 +67,9 @@ abstract class $PaymentMethodStateCopyWith<$Res> {
       String? focusedCurrencyId,
       double discountAmount,
       double discountPercentage,
-      bool isPercentageMode});
+      bool isPercentageMode,
+      double taxFeesAmount,
+      double taxFeesPercentage});
 }
 
 /// @nodoc
@@ -91,6 +99,8 @@ class _$PaymentMethodStateCopyWithImpl<$Res, $Val extends PaymentMethodState>
     Object? discountAmount = null,
     Object? discountPercentage = null,
     Object? isPercentageMode = null,
+    Object? taxFeesAmount = null,
+    Object? taxFeesPercentage = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -141,6 +151,14 @@ class _$PaymentMethodStateCopyWithImpl<$Res, $Val extends PaymentMethodState>
           ? _value.isPercentageMode
           : isPercentageMode // ignore: cast_nullable_to_non_nullable
               as bool,
+      taxFeesAmount: null == taxFeesAmount
+          ? _value.taxFeesAmount
+          : taxFeesAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      taxFeesPercentage: null == taxFeesPercentage
+          ? _value.taxFeesPercentage
+          : taxFeesPercentage // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 }
@@ -165,7 +183,9 @@ abstract class _$$PaymentMethodStateImplCopyWith<$Res>
       String? focusedCurrencyId,
       double discountAmount,
       double discountPercentage,
-      bool isPercentageMode});
+      bool isPercentageMode,
+      double taxFeesAmount,
+      double taxFeesPercentage});
 }
 
 /// @nodoc
@@ -193,6 +213,8 @@ class __$$PaymentMethodStateImplCopyWithImpl<$Res>
     Object? discountAmount = null,
     Object? discountPercentage = null,
     Object? isPercentageMode = null,
+    Object? taxFeesAmount = null,
+    Object? taxFeesPercentage = null,
   }) {
     return _then(_$PaymentMethodStateImpl(
       isLoading: null == isLoading
@@ -243,6 +265,14 @@ class __$$PaymentMethodStateImplCopyWithImpl<$Res>
           ? _value.isPercentageMode
           : isPercentageMode // ignore: cast_nullable_to_non_nullable
               as bool,
+      taxFeesAmount: null == taxFeesAmount
+          ? _value.taxFeesAmount
+          : taxFeesAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      taxFeesPercentage: null == taxFeesPercentage
+          ? _value.taxFeesPercentage
+          : taxFeesPercentage // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -262,7 +292,9 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
       this.focusedCurrencyId,
       this.discountAmount = 0.0,
       this.discountPercentage = 0.0,
-      this.isPercentageMode = false})
+      this.isPercentageMode = false,
+      this.taxFeesAmount = 0.0,
+      this.taxFeesPercentage = 0.0})
       : _cashLocations = cashLocations,
         _currencyAmounts = currencyAmounts;
 
@@ -316,9 +348,19 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
   @JsonKey()
   final bool isPercentageMode;
 
+  /// Tax/Fees amount in base currency (added to total)
+  @override
+  @JsonKey()
+  final double taxFeesAmount;
+
+  /// Tax/Fees percentage (0-100), synced with taxFeesAmount
+  @override
+  @JsonKey()
+  final double taxFeesPercentage;
+
   @override
   String toString() {
-    return 'PaymentMethodState(isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currencyResponse: $currencyResponse, cashLocations: $cashLocations, selectedCashLocation: $selectedCashLocation, selectedCurrency: $selectedCurrency, currencyAmounts: $currencyAmounts, focusedCurrencyId: $focusedCurrencyId, discountAmount: $discountAmount, discountPercentage: $discountPercentage, isPercentageMode: $isPercentageMode)';
+    return 'PaymentMethodState(isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currencyResponse: $currencyResponse, cashLocations: $cashLocations, selectedCashLocation: $selectedCashLocation, selectedCurrency: $selectedCurrency, currencyAmounts: $currencyAmounts, focusedCurrencyId: $focusedCurrencyId, discountAmount: $discountAmount, discountPercentage: $discountPercentage, isPercentageMode: $isPercentageMode, taxFeesAmount: $taxFeesAmount, taxFeesPercentage: $taxFeesPercentage)';
   }
 
   @override
@@ -348,7 +390,11 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
             (identical(other.discountPercentage, discountPercentage) ||
                 other.discountPercentage == discountPercentage) &&
             (identical(other.isPercentageMode, isPercentageMode) ||
-                other.isPercentageMode == isPercentageMode));
+                other.isPercentageMode == isPercentageMode) &&
+            (identical(other.taxFeesAmount, taxFeesAmount) ||
+                other.taxFeesAmount == taxFeesAmount) &&
+            (identical(other.taxFeesPercentage, taxFeesPercentage) ||
+                other.taxFeesPercentage == taxFeesPercentage));
   }
 
   @override
@@ -365,7 +411,9 @@ class _$PaymentMethodStateImpl implements _PaymentMethodState {
       focusedCurrencyId,
       discountAmount,
       discountPercentage,
-      isPercentageMode);
+      isPercentageMode,
+      taxFeesAmount,
+      taxFeesPercentage);
 
   /// Create a copy of PaymentMethodState
   /// with the given fields replaced by the non-null parameter values.
@@ -390,7 +438,9 @@ abstract class _PaymentMethodState implements PaymentMethodState {
       final String? focusedCurrencyId,
       final double discountAmount,
       final double discountPercentage,
-      final bool isPercentageMode}) = _$PaymentMethodStateImpl;
+      final bool isPercentageMode,
+      final double taxFeesAmount,
+      final double taxFeesPercentage}) = _$PaymentMethodStateImpl;
 
   @override
   bool get isLoading;
@@ -422,6 +472,14 @@ abstract class _PaymentMethodState implements PaymentMethodState {
   /// Whether discount was set as percentage mode (true) or amount mode (false)
   @override
   bool get isPercentageMode;
+
+  /// Tax/Fees amount in base currency (added to total)
+  @override
+  double get taxFeesAmount;
+
+  /// Tax/Fees percentage (0-100), synced with taxFeesAmount
+  @override
+  double get taxFeesPercentage;
 
   /// Create a copy of PaymentMethodState
   /// with the given fields replaced by the non-null parameter values.

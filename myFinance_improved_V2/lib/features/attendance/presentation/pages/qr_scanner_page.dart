@@ -29,20 +29,97 @@ class QRScannerPage extends ConsumerStatefulWidget {
   ConsumerState<QRScannerPage> createState() => _QRScannerPageState();
 }
 
-class _QRScannerPageState extends ConsumerState<QRScannerPage> {
-  MobileScannerController cameraController = MobileScannerController(
-    formats: [BarcodeFormat.qrCode],
-    returnImage: false,
-  );
+class _QRScannerPageState extends ConsumerState<QRScannerPage>
+    with WidgetsBindingObserver {
+  MobileScannerController? _cameraController;
+
+  MobileScannerController get cameraController {
+    _cameraController ??= MobileScannerController(
+      formats: [BarcodeFormat.qrCode],
+      returnImage: false,
+    );
+    return _cameraController!;
+  }
 
   /// Auto-close timer reference (취소 가능하게 관리)
   Timer? _autoCloseTimer;
 
+  /// 카메라가 중지된 상태인지 추적
+  bool _isCameraStopped = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoCloseTimer?.cancel();
-    cameraController.dispose();
+    _cameraController?.dispose();
     super.dispose();
+  }
+
+  /// 앱 라이프사이클 변화 감지 - 백그라운드/포그라운드 전환 시 카메라 복구
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 컨트롤러가 없으면 무시
+    if (_cameraController == null) return;
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // 포그라운드로 돌아올 때 카메라 재시작
+        _restartCameraIfNeeded();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        // 백그라운드로 갈 때는 별도 처리 불필요 (mobile_scanner가 자동 처리)
+        break;
+    }
+  }
+
+  /// 카메라 재시작 (중지된 상태일 때만)
+  Future<void> _restartCameraIfNeeded() async {
+    final state = ref.read(qrScannerNotifierProvider);
+    // 이미 처리 완료되었거나 다이얼로그 표시 중이면 재시작 불필요
+    if (state.isShowingDialog || state.scanResult == QrScanResult.completed) {
+      return;
+    }
+
+    if (_isCameraStopped && _cameraController != null) {
+      try {
+        await _cameraController!.start();
+        _isCameraStopped = false;
+      } catch (e) {
+        // 카메라 재시작 실패 시 무시 (사용자가 다시 시도하면 됨)
+        debugPrint('Camera restart failed: $e');
+      }
+    }
+  }
+
+  /// 카메라 중지 (상태 추적 포함)
+  Future<void> _stopCamera() async {
+    if (_cameraController != null && !_isCameraStopped) {
+      await _cameraController!.stop();
+      _isCameraStopped = true;
+    }
+  }
+
+  /// 카메라 에러 메시지 변환
+  String _getCameraErrorMessage(MobileScannerException error) {
+    switch (error.errorCode) {
+      case MobileScannerErrorCode.controllerUninitialized:
+        return 'Camera is not ready.\nPlease try again.';
+      case MobileScannerErrorCode.permissionDenied:
+        return 'Camera permission denied.\nPlease allow camera access in Settings.';
+      case MobileScannerErrorCode.unsupported:
+        return 'Camera is not supported on this device.';
+      default:
+        return 'Failed to initialize camera.\nPlease restart the app.';
+    }
   }
 
   Future<Position?> _getCurrentLocation() async {
@@ -178,11 +255,17 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           });
         } else {
           await _showErrorDialog(result.message ?? 'Check-out failed');
+          // 카메라 재시작하여 다시 스캔 가능하도록
+          ref.read(qrScannerNotifierProvider.notifier).reset();
+          await _restartCameraIfNeeded();
         }
       }
     } else if (todayAttendance?.status == 'completed') {
       // 이미 완료됨
       await _showErrorDialog('You have already completed attendance for today.');
+      // 카메라 재시작하여 다시 스캔 가능하도록
+      ref.read(qrScannerNotifierProvider.notifier).reset();
+      await _restartCameraIfNeeded();
     } else {
       // 체크인
       final result = await notifier.checkIn(storeId: storeId);
@@ -216,6 +299,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           }
 
           await _showErrorDialog(errorMessage);
+          // 카메라 재시작하여 다시 스캔 가능하도록
+          ref.read(qrScannerNotifierProvider.notifier).reset();
+          await _restartCameraIfNeeded();
         }
       }
     }
@@ -275,6 +361,50 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
         children: [
           MobileScanner(
             controller: cameraController,
+            errorBuilder: (context, error) {
+              // 카메라 에러 시 사용자에게 피드백 제공
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.camera_alt_outlined,
+                        size: 64,
+                        color: TossColors.gray400,
+                      ),
+                      const SizedBox(height: TossSpacing.space4),
+                      Text(
+                        'Camera Error',
+                        style: TossTextStyles.h3.copyWith(
+                          color: TossColors.white,
+                        ),
+                      ),
+                      const SizedBox(height: TossSpacing.space2),
+                      Text(
+                        _getCameraErrorMessage(error),
+                        style: TossTextStyles.body.copyWith(
+                          color: TossColors.gray300,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: TossSpacing.space4),
+                      TossButton.primary(
+                        text: 'Retry',
+                        onPressed: () async {
+                          // 컨트롤러 재생성 시도
+                          _cameraController?.dispose();
+                          _cameraController = null;
+                          _isCameraStopped = false;
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
             onDetect: (capture) async {
               // Riverpod 상태로 중복 스캔 방지
               final state = ref.read(qrScannerNotifierProvider);
@@ -290,7 +420,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               ref.read(qrScannerNotifierProvider.notifier).startScanning();
 
               // Stop the camera to prevent further scans
-              await cameraController.stop();
+              await _stopCamera();
 
               // Haptic feedback
               HapticFeedback.mediumImpact();
@@ -299,7 +429,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               final Position? position = await _getCurrentLocation();
               if (position == null) {
                 // Error dialog already shown in _getCurrentLocation
-                // User will be returned to attendance page
+                // 카메라 재시작하여 다시 스캔 가능하도록
+                ref.read(qrScannerNotifierProvider.notifier).reset();
+                await _restartCameraIfNeeded();
                 return;
               }
 
@@ -308,7 +440,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               final user = authStateAsync.value;
               if (user == null) {
                 await _showErrorDialog('User not authenticated');
-                // User will be returned to attendance page
+                // 카메라 재시작하여 다시 스캔 가능하도록
+                ref.read(qrScannerNotifierProvider.notifier).reset();
+                await _restartCameraIfNeeded();
                 return;
               }
               final userId = user.id;
@@ -449,9 +583,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                   _showSuccessDialog(message, checkInOutData);
                 }
               } catch (e) {
-                // Show error and return to attendance page
+                // Show error and allow retry
                 await _showErrorDialog('Failed to process QR code: ${e.toString()}');
-                // No need to reset state or restart camera - user will be back at attendance page
+                // 카메라 재시작하여 다시 스캔 가능하도록
+                ref.read(qrScannerNotifierProvider.notifier).reset();
+                await _restartCameraIfNeeded();
               }
             },
           ),

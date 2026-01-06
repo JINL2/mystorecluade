@@ -24,10 +24,12 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 /// Edit Product Page - Redesigned to match Add Product Page layout
 class EditProductPage extends ConsumerStatefulWidget {
   final String productId;
+  final Product? initialProduct;
 
   const EditProductPage({
     super.key,
     required this.productId,
+    this.initialProduct,
   });
 
   @override
@@ -62,6 +64,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Product? _product;
   bool _isLoadingProduct = false;
+  bool _productNotFound = false;
 
   // Original values for change detection
   String _originalName = '';
@@ -127,15 +130,21 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   void _loadProduct() {
-    final productsState = ref.read(inventoryPageNotifierProvider);
-    try {
-      _product = productsState.products.firstWhere(
-        (p) => p.id == widget.productId,
-      );
-    } catch (e) {
-      // Product not found in cache, load from API
-      _loadProductFromApi();
-      return;
+    // First, try to use initialProduct if provided (from navigation extra)
+    if (widget.initialProduct != null) {
+      _product = widget.initialProduct;
+    } else {
+      // Try to find product in provider cache
+      final productsState = ref.read(inventoryPageNotifierProvider);
+      try {
+        _product = productsState.products.firstWhere(
+          (p) => p.id == widget.productId,
+        );
+      } catch (e) {
+        // Product not found in cache, load from API
+        _loadProductFromApi();
+        return;
+      }
     }
 
     if (_product == null) {
@@ -202,14 +211,20 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   Future<void> _loadProductFromApi() async {
     if (_isLoadingProduct) return;
 
-    setState(() => _isLoadingProduct = true);
+    setState(() {
+      _isLoadingProduct = true;
+      _productNotFound = false;
+    });
 
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
     final storeId = appState.storeChoosen;
 
     if (companyId.isEmpty || storeId.isEmpty) {
-      setState(() => _isLoadingProduct = false);
+      setState(() {
+        _isLoadingProduct = false;
+        _productNotFound = true;
+      });
       return;
     }
 
@@ -236,14 +251,23 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           _initializeFormFields();
           setState(() => _isLoadingProduct = false);
         } else {
-          setState(() => _isLoadingProduct = false);
+          setState(() {
+            _isLoadingProduct = false;
+            _productNotFound = true;
+          });
         }
       } else {
-        setState(() => _isLoadingProduct = false);
+        setState(() {
+          _isLoadingProduct = false;
+          _productNotFound = true;
+        });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoadingProduct = false);
+        setState(() {
+          _isLoadingProduct = false;
+          _productNotFound = true;
+        });
       }
     }
   }
@@ -682,10 +706,58 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   Widget build(BuildContext context) {
     final metadataState = ref.watch(inventoryMetadataNotifierProvider);
 
-    if (_product == null) {
-      return const TossScaffold(
+    // Show error state if product not found after loading
+    if (_productNotFound) {
+      return TossScaffold(
         backgroundColor: TossColors.white,
-        body: TossLoadingView(),
+        appBar: TossAppBar(
+          title: 'Edit product',
+          backgroundColor: TossColors.white,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: TossColors.gray900),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: TossColors.gray400,
+              ),
+              const SizedBox(height: TossSpacing.space3),
+              Text(
+                'Product not found',
+                style: TossTextStyles.body.copyWith(color: TossColors.gray600),
+              ),
+              const SizedBox(height: TossSpacing.space4),
+              TossButton.textButton(
+                text: 'Go back',
+                onPressed: () => context.pop(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show loading state while fetching product
+    if (_product == null) {
+      return TossScaffold(
+        backgroundColor: TossColors.white,
+        appBar: TossAppBar(
+          title: 'Edit product',
+          backgroundColor: TossColors.white,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: TossColors.gray900),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: const TossLoadingView(),
       );
     }
 

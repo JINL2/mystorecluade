@@ -729,7 +729,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'editProduct',
             builder: (context, state) {
               final productId = state.pathParameters['productId']!;
-              return EditProductPage(productId: productId);
+              final extra = state.extra;
+              final product = extra is Product ? extra : null;
+              return EditProductPage(
+                productId: productId,
+                initialProduct: product,
+              );
             },
           ),
         ],

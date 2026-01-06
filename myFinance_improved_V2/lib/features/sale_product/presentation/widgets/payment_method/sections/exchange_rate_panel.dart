@@ -199,10 +199,15 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                     isForBase: false,
                   ),
                 ),
-              // Apply as Total button - only show when custom amount is entered
+              // Apply as Total button - only show when:
+              // 1. Custom amount is entered
+              // 2. Base currency (top row) is the original base currency (e.g., VND)
+              // This prevents applying EUR/USD amounts directly as VND totals
               if (_customBaseAmount != null &&
                   widget.onApplyAsTotal != null &&
-                  widget.subtotal > 0) ...[
+                  widget.subtotal > 0 &&
+                  _selectedBaseCurrency ==
+                      widget.exchangeRateData.baseCurrency.currencyCode) ...[
                 const SizedBox(height: TossSpacing.space3),
                 _buildApplyButton(baseAmount),
               ],
@@ -336,11 +341,14 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
 
   Widget _buildApplyButton(double baseAmount) {
     // Calculate discount = subtotal - new total (baseAmount)
+    // Positive = discount, Negative = surcharge (e.g., card fee)
     final discount = widget.subtotal - baseAmount;
-    final isValidDiscount = discount >= 0 && baseAmount > 0;
+    final isValid = baseAmount > 0;
+    final isSurcharge = discount < 0;
+    final displayAmount = discount.abs();
 
     return GestureDetector(
-      onTap: isValidDiscount
+      onTap: isValid
           ? () {
               widget.onApplyAsTotal?.call(baseAmount, discount);
               // Clear custom amounts after applying
@@ -358,7 +366,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
           vertical: TossSpacing.space2,
         ),
         decoration: BoxDecoration(
-          color: isValidDiscount ? TossColors.primary : TossColors.gray200,
+          color: isValid ? TossColors.primary : TossColors.gray200,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Row(
@@ -367,17 +375,17 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
             Icon(
               Icons.check_circle_outline,
               size: 18,
-              color: isValidDiscount ? TossColors.white : TossColors.gray400,
+              color: isValid ? TossColors.white : TossColors.gray400,
             ),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Apply as Total',
               style: TossTextStyles.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isValidDiscount ? TossColors.white : TossColors.gray400,
+                color: isValid ? TossColors.white : TossColors.gray400,
               ),
             ),
-            if (discount > 0) ...[
+            if (discount != 0) ...[
               const SizedBox(width: TossSpacing.space2),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -389,7 +397,9 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
-                  '-${PaymentHelpers.formatNumber(discount.round())}',
+                  isSurcharge
+                      ? '+${PaymentHelpers.formatNumber(displayAmount.round())}'
+                      : '-${PaymentHelpers.formatNumber(displayAmount.round())}',
                   style: TossTextStyles.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: TossColors.white,

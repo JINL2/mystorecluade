@@ -18,6 +18,7 @@ import '../providers/sale_preload_provider.dart';
 import '../providers/inventory_metadata_provider.dart';
 import '../providers/sales_product_provider.dart';
 import '../widgets/cart/cart_summary_bar.dart';
+import '../widgets/list/product_skeleton_loading.dart';
 import '../widgets/list/selectable_product_tile.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -35,8 +36,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   Timer? _searchDebounceTimer;
   String _selectedBrand = 'All';
 
-  // Map to store GlobalKeys for each product tile by productId
-  final Map<String, GlobalKey> _productKeys = {};
+  // Flag to skip debounce search when programmatically setting search text
+  bool _skipNextSearchDebounce = false;
 
   @override
   void initState() {
@@ -59,22 +60,23 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     // Clear cart synchronously (fast, local operation)
     ref.read(cartNotifierProvider.notifier).clearCart();
 
+    // Clear search query to reset state (skip debounce to prevent duplicate search)
+    _skipNextSearchDebounce = true;
+    _searchController.clear();
+
     // Check current metadata state
     final currentMetadata = ref.read(inventoryMetadataNotifierProvider);
     final needsMetadataRefresh = !currentMetadata.hasValue ||
         currentMetadata.valueOrNull == null;
 
     // Parallel loading - both API calls execute simultaneously
-    // This reduces total loading time from (A + B) to max(A, B)
-    // Always refresh products for fresh inventory data
     await Future.wait<void>([
-      ref.read(salesProductNotifierProvider.notifier).loadProducts(),
+      ref.read(salesProductNotifierProvider.notifier).loadProducts(search: ''),
       if (needsMetadataRefresh)
         ref.read(inventoryMetadataNotifierProvider.notifier).loadMetadata(),
     ]);
 
     // Preload payment page data in background (don't await)
-    // This makes navigation to payment instant
     _preloadPaymentData();
   }
 
@@ -111,6 +113,12 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   }
 
   void _onSearchChanged(String value) {
+    // Skip if flag is set (programmatic text change from cart item tap)
+    if (_skipNextSearchDebounce) {
+      _skipNextSearchDebounce = false;
+      return;
+    }
+
     _searchDebounceTimer?.cancel();
     _searchDebounceTimer = Timer(TossAnimations.debounceDelay, () {
       ref.read(salesProductNotifierProvider.notifier).search(value);
@@ -127,55 +135,23 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         .toList();
   }
 
-  /// Scroll to a product in the list by productId
-  void _scrollToProduct(String productId) {
-    // Reset brand filter to "All" so the product is visible
+  /// Search for a product by SKU
+  /// Called when user taps a cart item in the bottom sheet
+  void _searchAndScrollToProduct(String productId, String sku) {
+    _searchDebounceTimer?.cancel();
+
     if (_selectedBrand != 'All') {
       setState(() => _selectedBrand = 'All');
     }
 
-    // Wait for rebuild then scroll
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Get the same list that's being displayed (after brand filter reset to "All")
-      final allProducts = ref.read(filteredProductsProvider);
-      final index = allProducts.indexWhere((p) => p.productId == productId);
+    _skipNextSearchDebounce = true;
+    _searchController.text = sku;
 
-      if (index != -1 && _scrollController.hasClients) {
-        // First, do a rough scroll to approximate position
-        // Each product tile is roughly 88px (44px image + padding + spacing)
-        const itemHeight = 88.0;
-        final targetOffset = index * itemHeight;
-
-        // Clamp to max scroll extent
-        final maxScroll = _scrollController.position.maxScrollExtent;
-        final clampedOffset = targetOffset.clamp(0.0, maxScroll);
-
-        _scrollController.animateTo(
-          clampedOffset,
-          duration: TossAnimations.slow,
-          curve: TossAnimations.standard,
-        ).then((_) {
-          // After rough scroll, use GlobalKey to fine-tune position
-          Future.delayed(TossAnimations.quick, () {
-            final key = _productKeys[productId];
-            if (key?.currentContext != null) {
-              Scrollable.ensureVisible(
-                key!.currentContext!,
-                duration: TossAnimations.normal,
-                curve: TossAnimations.standard,
-                alignment: 0.0,
-              );
-            }
-          });
-        });
-      }
-    });
+    // Smooth transition keeps existing data visible during API call
+    ref.read(salesProductNotifierProvider.notifier).search(sku, smoothTransition: true);
   }
 
-  /// Get or create a GlobalKey for a product
-  GlobalKey _getProductKey(String productId) {
-    return _productKeys.putIfAbsent(productId, () => GlobalKey());
-  }
+
 
   Future<bool> _onWillPop() async {
     final cart = ref.read(cartNotifierProvider);
@@ -282,18 +258,33 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                 ),
               ],
             ),
+            // Animate cart summary bar when keyboard opens/closes
             if (hasCartItems)
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: CartSummaryBar(
-                  itemCount: ref.read(cartNotifierProvider.notifier).totalItems,
-                  subtotal: ref.read(cartNotifierProvider.notifier).subtotal,
-                  currencySymbol: currencySymbol,
-                  cartItems: cart,
-                  onCreateInvoice: () => _navigateToPayment(cart),
-                  onItemTap: _scrollToProduct,
+                child: AnimatedSlide(
+                  duration: TossAnimations.normal,
+                  curve: TossAnimations.standard,
+                  offset: MediaQuery.of(context).viewInsets.bottom > 0
+                      ? const Offset(0, 1) // Slide down (hide)
+                      : Offset.zero, // Slide up (show)
+                  child: AnimatedOpacity(
+                    duration: TossAnimations.normal,
+                    curve: TossAnimations.standard,
+                    opacity: MediaQuery.of(context).viewInsets.bottom > 0
+                        ? 0.0
+                        : 1.0,
+                    child: CartSummaryBar(
+                      itemCount: ref.read(cartNotifierProvider.notifier).totalItems,
+                      subtotal: ref.read(cartNotifierProvider.notifier).subtotal,
+                      currencySymbol: currencySymbol,
+                      cartItems: cart,
+                      onCreateInvoice: () => _navigateToPayment(cart),
+                      onItemTap: _searchAndScrollToProduct,
+                    ),
+                  ),
                 ),
               ),
           ],
@@ -389,9 +380,9 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     required String? errorMessage,
     required List<SalesProduct> allProducts,
   }) {
-    // Show loading if still loading and no products at all
+    // Show skeleton loading if still loading and no products at all
     if (isLoading && allProducts.isEmpty) {
-      return const TossLoadingView();
+      return const ProductSkeletonLoading();
     }
 
     if (errorMessage != null && displayProducts.isEmpty) {
@@ -458,7 +449,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         );
 
         return SelectableProductTile(
-          key: _getProductKey(product.productId),
+          key: ValueKey(product.productId),
           product: product,
           cartItem: cartItem,
           currencySymbol: currencySymbol,
@@ -500,9 +491,9 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     if (!mounted) return;
 
     // Navigate to payment page and wait for result
-    await Navigator.push(
+    final saleCompleted = await Navigator.push<bool>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<bool>(
         builder: (context) => PaymentMethodPage(
           selectedProducts: selectedProductsList,
           productQuantities: productQuantities,
@@ -512,14 +503,12 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
       ),
     );
 
-    // Refresh inventory data when returning from payment page
-    // This ensures fresh data after a sale is completed
-    if (mounted) {
-      // Clear cart first (fast, local operation)
+    // Only clear cart and refresh if sale was completed successfully
+    if (mounted && saleCompleted == true) {
       ref.read(cartNotifierProvider.notifier).clearCart();
-      // Refresh products in background - don't show loading spinner
-      // This keeps existing data visible while refreshing
-      ref.read(salesProductNotifierProvider.notifier).refresh();
+      _skipNextSearchDebounce = true;
+      _searchController.clear();
+      ref.read(salesProductNotifierProvider.notifier).loadProducts(search: '');
     }
   }
 

@@ -81,6 +81,26 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
     56.0 + (bottom?.preferredSize.height ?? 0.0),
   );
 
+  /// Build leading widget using ModalRoute.canPop for stable navigation state
+  ///
+  /// ModalRoute.of(context)?.canPop is more reliable than Navigator.canPop(context)
+  /// during navigation transitions, preventing the back button from disappearing
+  /// momentarily when returning from a pushed route.
+  Widget? _buildLeadingWidget(BuildContext context) {
+    if (!automaticallyImplyLeading) return null;
+
+    // Use ModalRoute.canPop for more stable state during navigation transitions
+    final modalRoute = ModalRoute.of(context);
+    final canPop = modalRoute?.canPop ?? false;
+
+    if (!canPop) return null;
+
+    return IconButton(
+      icon: const Icon(Icons.arrow_back, size: TossSpacing.iconMD),
+      onPressed: () => Navigator.of(context).pop(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Build custom action buttons if provided
@@ -163,12 +183,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       backgroundColor: backgroundColor ?? TossColors.background,
       elevation: elevation,
-      leading: leading ?? (automaticallyImplyLeading && Navigator.canPop(context)
-        ? IconButton(
-            icon: Icon(Icons.arrow_back, size: TossSpacing.iconMD),
-            onPressed: () => Navigator.of(context).pop(),
-          )
-        : null),
+      leading: leading ?? _buildLeadingWidget(context),
       actions: finalActions.isNotEmpty ? finalActions : null,
       bottom: bottom,
       iconTheme: iconTheme ?? const IconThemeData(

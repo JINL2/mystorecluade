@@ -16,7 +16,9 @@ class CartSummaryBar extends StatefulWidget {
   final VoidCallback onCreateInvoice;
   final String currencySymbol;
   final List<CartItem> cartItems;
-  final void Function(String productId)? onItemTap;
+  /// Callback when cart item is tapped
+  /// Parameters: productId, sku (for search functionality)
+  final void Function(String productId, String sku)? onItemTap;
 
   const CartSummaryBar({
     super.key,
@@ -149,7 +151,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                       item: item,
                       currencySymbol: widget.currencySymbol,
                       onTap: widget.onItemTap != null
-                          ? () => widget.onItemTap!(item.productId)
+                          ? () => widget.onItemTap!(item.productId, item.sku)
                           : null,
                     );
                   },
