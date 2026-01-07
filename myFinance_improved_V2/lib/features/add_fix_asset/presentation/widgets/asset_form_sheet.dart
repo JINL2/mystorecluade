@@ -110,7 +110,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                     // Handle bar
                     Center(
                       child: Container(
-                        width: 40,
+                        width: TossSpacing.iconXL,
                         height: 4,
                         margin: const EdgeInsets.only(bottom: TossSpacing.space5),
                         decoration: BoxDecoration(
@@ -142,7 +142,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                           ),
                           child: Icon(
                             isEdit ? Icons.edit_outlined : Icons.add_business,
-                            size: isEdit ? 24 : 26,
+                            size: isEdit ? TossSpacing.iconLG : TossSpacing.iconLG,
                             color: isEdit ? TossColors.primary : TossColors.white,
                           ),
                         ),
@@ -173,7 +173,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                         IconButton(
                           icon: const Icon(
                             Icons.close,
-                            size: 24,
+                            size: TossSpacing.iconLG,
                             color: TossColors.gray600,
                           ),
                           onPressed: () => Navigator.pop(context),
@@ -181,7 +181,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                       ],
                     ),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 28), // Custom spacing
 
                     // Asset Name Field
                     _buildTextField(
@@ -193,17 +193,17 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                       enabled: true,
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: TossSpacing.space6),
 
                     // Acquisition Date Field
                     _buildDateField(),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: TossSpacing.space6),
 
                     // Financial Information Section
                     _buildFinancialSection(isEdit),
 
-                    const SizedBox(height: 20),
+                    SizedBox(height: TossSpacing.space5),
 
                     // Depreciation Preview
                     _buildDepreciationPreview(),
@@ -252,8 +252,8 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
       children: [
         Row(
           children: [
-            Icon(icon, size: 18, color: TossColors.gray600),
-            const SizedBox(width: 6),
+            Icon(icon, size: TossSpacing.iconSM, color: TossColors.gray600),
+            SizedBox(width: TossSpacing.space1 + 2),
             Text(
               label,
               style: TossTextStyles.bodySmall.copyWith(
@@ -272,7 +272,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
               ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: TossSpacing.space2 + 2),
         AbsorbPointer(
           absorbing: !enabled,
           child: Opacity(
@@ -291,7 +291,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
         ),
         if (suffix != null)
           Padding(
-            padding: const EdgeInsets.only(top: 4, left: 4),
+            padding: const EdgeInsets.only(top: TossSpacing.space1, left: TossSpacing.space1),
             child: Text(
               suffix,
               style: TossTextStyles.bodySmall.copyWith(
@@ -312,8 +312,8 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
       children: [
         Row(
           children: [
-            const Icon(Icons.event_outlined, size: 18, color: TossColors.gray600),
-            const SizedBox(width: 6),
+            const Icon(Icons.event_outlined, size: TossSpacing.iconSM, color: TossColors.gray600),
+            SizedBox(width: TossSpacing.space1 + 2),
             Text(
               'Purchase Date',
               style: TossTextStyles.bodySmall.copyWith(
@@ -332,7 +332,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
               ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: TossSpacing.space2 + 2),
         AbsorbPointer(
           absorbing: isEdit,
           child: Opacity(
@@ -375,11 +375,11 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                 ),
                 child: const Icon(
                   Icons.payments_outlined,
-                  size: 16,
+                  size: TossSpacing.iconSM,
                   color: TossColors.success,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: TossSpacing.space2 + 2),
               Text(
                 'Financial Information',
                 style: TossTextStyles.body.copyWith(
@@ -466,11 +466,11 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                 ),
                 child: const Icon(
                   Icons.trending_down,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                   color: TossColors.primary,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: TossSpacing.space2 + 2),
               Text(
                 'Depreciation Preview',
                 style: TossTextStyles.body.copyWith(
@@ -495,9 +495,9 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
                   '${widget.currencySymbol}$annualDepreciation',
                   Icons.calendar_today_outlined,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: TossSpacing.space2 + 2),
                 Container(height: 1, color: TossColors.gray100),
-                const SizedBox(height: 10),
+                SizedBox(height: TossSpacing.space2 + 2),
                 _buildPreviewRow(
                   'Current Book Value',
                   '${widget.currencySymbol}$currentValue',
@@ -518,8 +518,8 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
       children: [
         Row(
           children: [
-            Icon(icon, size: 14, color: TossColors.gray600),
-            const SizedBox(width: 6),
+            Icon(icon, size: TossSpacing.iconXS, color: TossColors.gray600),
+            SizedBox(width: TossSpacing.space1 + 2),
             Text(
               label,
               style: TossTextStyles.bodySmall.copyWith(
@@ -559,7 +559,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
             leadingIcon: Icon(
               isEdit ? Icons.check_circle_outline : Icons.add_circle_outline,
               color: TossColors.white,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ),
         ),

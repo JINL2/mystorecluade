@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Debt Settings Header Widget
 ///
@@ -19,14 +21,9 @@ class DebtSettingsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return TossWhiteCard(
       margin: const EdgeInsets.all(TossSpacing.space4),
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,16 +41,16 @@ class DebtSettingsHeader extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 48,
-          height: 48,
+          width: TossSpacing.inputHeightLG,
+          height: TossSpacing.inputHeightLG,
           decoration: BoxDecoration(
-            color: TossColors.primary.withValues(alpha: 0.1),
+            color: TossColors.primary.withValues(alpha: TossOpacity.light),
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           ),
           child: const Icon(
             Icons.account_balance,
             color: TossColors.primary,
-            size: 24,
+            size: TossSpacing.iconMD,
           ),
         ),
         const SizedBox(width: TossSpacing.space3),
@@ -65,7 +62,7 @@ class DebtSettingsHeader extends StatelessWidget {
                 counterpartyName,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
               Text(
@@ -108,18 +105,18 @@ class DebtSettingsHeader extends StatelessWidget {
                   'Receivable',
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-            child: Icon(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
+            child: const Icon(
               Icons.sync_alt,
               color: TossColors.gray400,
-              size: 20,
+              size: TossSpacing.iconSM,
             ),
           ),
           Expanded(
@@ -137,7 +134,7 @@ class DebtSettingsHeader extends StatelessWidget {
                   'Payable',
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.success,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ],
@@ -157,7 +154,7 @@ class DebtSettingsHeader extends StatelessWidget {
             const Icon(
               Icons.check_circle,
               color: TossColors.success,
-              size: 16,
+              size: TossSpacing.iconXS,
             ),
             const SizedBox(width: TossSpacing.space2),
             Expanded(
@@ -177,7 +174,7 @@ class DebtSettingsHeader extends StatelessWidget {
             const Icon(
               Icons.info_outline,
               color: TossColors.info,
-              size: 16,
+              size: TossSpacing.iconXS,
             ),
             const SizedBox(width: TossSpacing.space2),
             Expanded(

@@ -14,6 +14,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TemplateCreationDialogs {
@@ -31,23 +32,23 @@ class TemplateCreationDialogs {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: TossSpacing.iconXL + TossSpacing.iconMD,
+                height: TossSpacing.iconXL + TossSpacing.iconMD,
                 decoration: const BoxDecoration(
                   color: TossColors.successLight,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.check_circle,
                   color: TossColors.success,
-                  size: 40,
+                  size: TossSpacing.iconXL,
                 ),
               ),
               const SizedBox(height: TossSpacing.space4),
               Text(
                 'Success!',
                 style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
               const SizedBox(height: TossSpacing.space2),
@@ -87,23 +88,23 @@ class TemplateCreationDialogs {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: TossSpacing.iconXL + TossSpacing.iconMD,
+                height: TossSpacing.iconXL + TossSpacing.iconMD,
                 decoration: const BoxDecoration(
                   color: TossColors.errorLight,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.error_outline,
                   color: TossColors.error,
-                  size: 40,
+                  size: TossSpacing.iconXL,
                 ),
               ),
               const SizedBox(height: TossSpacing.space4),
               Text(
                 'Error',
                 style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
               const SizedBox(height: TossSpacing.space2),
@@ -114,7 +115,7 @@ class TemplateCreationDialogs {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: TossSpacing.space1),
               Text(
                 error,
                 style: TossTextStyles.caption.copyWith(

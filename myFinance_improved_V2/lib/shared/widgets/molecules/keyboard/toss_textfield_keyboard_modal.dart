@@ -44,7 +44,7 @@ class TossTextFieldKeyboardModal extends StatefulWidget {
   }) {
     return showModalBottomSheet<T>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       barrierColor: TossColors.black54,
       isScrollControlled: true,
       isDismissible: dismissOnTapOutside,
@@ -108,7 +108,7 @@ class TossTextFieldKeyboardModal extends StatefulWidget {
       child: TextButton(
         onPressed: () => Navigator.of(context).pop(),
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
         ),
         child: Text(
           text,
@@ -145,7 +145,7 @@ class TossTextFieldKeyboardModal extends StatefulWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: TossColors.primary,
               disabledBackgroundColor: TossColors.gray200,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
@@ -269,19 +269,19 @@ class _TossTextFieldKeyboardModalState
 
   Widget _buildHandle() {
     return Container(
-      margin: const EdgeInsets.only(top: 12, bottom: 8),
-      width: 40,
+      margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space2),
+      width: TossSpacing.iconXL,
       height: 4,
       decoration: BoxDecoration(
         color: TossColors.gray300,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
       ),
     );
   }
 
   Widget _buildTitle() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space3),
       child: Row(
         children: [
           Expanded(
@@ -301,7 +301,7 @@ class _TossTextFieldKeyboardModalState
               icon: const Icon(
                 Icons.close,
                 color: TossColors.gray600,
-                size: 24,
+                size: TossSpacing.iconLG,
               ),
             ),
         ],

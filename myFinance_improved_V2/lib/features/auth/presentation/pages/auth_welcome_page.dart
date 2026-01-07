@@ -80,7 +80,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       backgroundColor: TossColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4 * 2),
           child: SlideTransition(
             position: _slideAnimation,
             child: FadeTransition(
@@ -184,7 +184,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
               ? TossLoadingView.inline(size: 24, color: TossColors.white)
               : const Icon(
                   Icons.apple,
-                  size: 24,
+                  size: TossSpacing.iconLG,
                   color: TossColors.white,
                 ),
           label: _isAppleLoading ? 'Signing in...' : 'Continue with Apple',
@@ -209,7 +209,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
       onPressed: onPressed,
       leadingIcon: icon,
       fullWidth: true,
-      height: 56,
+      height: TossSpacing.icon3XL,
       backgroundColor: backgroundColor,
       textColor: textColor,
       borderColor: borderColor,
@@ -220,7 +220,7 @@ class _AuthWelcomePageState extends ConsumerState<AuthWelcomePage>
     return TossButton.textButton(
       text: 'Sign in with email',
       onPressed: () => context.push('/auth/login'),
-      leadingIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+      leadingIcon: const Icon(Icons.mail_outline_rounded, size: TossSpacing.iconMD),
       fontWeight: FontWeight.w600,
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space4,

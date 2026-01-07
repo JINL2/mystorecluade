@@ -66,7 +66,7 @@ class ShiftSignupCard extends StatelessWidget {
         border: Border.all(color: TossColors.gray100, width: 1),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      padding: EdgeInsets.all(TossSpacing.space4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -83,60 +83,57 @@ class ShiftSignupCard extends StatelessWidget {
                     shiftType,
                     style: TossTextStyles.h3.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: TossSpacing.space2),
 
                   // Time with clock icon
                   Row(
                     children: [
                       Icon(
                         Icons.access_time,
-                        size: 16,
+                        size: TossSpacing.iconSM2,
                         color: TossColors.gray700,
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
                       Text(
                         timeRange,
-                        style: TossTextStyles.body.copyWith(
+                        style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray700,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space0_5),
 
                   // Location
                   Text(
                     location,
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray700,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
 
                   // Always show applied count with avatars (if any applicants exist)
                   // Show regardless of user's own application status
                   if (appliedCount > 0 || (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty)) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(height: TossSpacing.space2),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // Avatar stack for applied users (always show if available)
                         if (assignedUserAvatars != null && assignedUserAvatars!.isNotEmpty) ...[
                           _buildAvatarStackWithoutGesture(assignedUserAvatars!),
-                          const SizedBox(width: 8),
+                          SizedBox(width: TossSpacing.space2),
                         ],
                         Text(
                           '$appliedCount applied',
-                          style: TossTextStyles.labelSmall.copyWith(
+                          style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray600,
-                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -147,7 +144,7 @@ class ShiftSignupCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: 12),
+          SizedBox(width: TossSpacing.space3),
 
           // Right side: Action button + slots count (NOT tappable for bottom sheet)
           Column(
@@ -155,13 +152,12 @@ class ShiftSignupCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildActionButton(),
-              const SizedBox(height: 4),
+              SizedBox(height: TossSpacing.space1),
               Text(
                 // Always show "X/Y assigned" - filledSlots = approved employees count
                 '$filledSlots/$totalSlots assigned',
-                style: TossTextStyles.labelSmall.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.gray500,
-                  fontSize: 11,
                 ),
               ),
             ],
@@ -179,8 +175,8 @@ class ShiftSignupCard extends StatelessWidget {
           text: 'Apply',
           onPressed: isLoading ? null : onApply,
           isLoading: isLoading,
-          leadingIcon: isLoading ? null : const Icon(Icons.add, size: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          leadingIcon: isLoading ? null : Icon(Icons.add, size: TossSpacing.iconSM2),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
         );
 
       case ShiftSignupStatus.applied:
@@ -189,8 +185,8 @@ class ShiftSignupCard extends StatelessWidget {
           text: 'Withdraw',
           onPressed: isLoading ? null : onWithdraw,
           isLoading: isLoading,
-          leadingIcon: isLoading ? null : const Icon(Icons.remove, size: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          leadingIcon: isLoading ? null : Icon(Icons.remove, size: TossSpacing.iconSM2),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
         );
 
       case ShiftSignupStatus.waitlist:
@@ -199,8 +195,8 @@ class ShiftSignupCard extends StatelessWidget {
           text: 'Waitlist',
           onPressed: isLoading ? null : onWaitlist,
           isLoading: isLoading,
-          leadingIcon: isLoading ? null : const Icon(Icons.add, size: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          leadingIcon: isLoading ? null : Icon(Icons.add, size: TossSpacing.iconSM2),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
         );
 
       case ShiftSignupStatus.onWaitlist:
@@ -209,9 +205,8 @@ class ShiftSignupCard extends StatelessWidget {
           text: 'Leave',
           onPressed: isLoading ? null : onLeaveWaitlist,
           isLoading: isLoading,
-          leadingIcon: isLoading ? null : const Icon(Icons.remove, size: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          fontSize: 14,
+          leadingIcon: isLoading ? null : Icon(Icons.remove, size: TossSpacing.iconSM2),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
         );
 
       case ShiftSignupStatus.assigned:
@@ -219,8 +214,7 @@ class ShiftSignupCard extends StatelessWidget {
         return TossButton.secondary(
           text: 'Assigned',
           onPressed: null, // Disabled - non-interactive badge
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          fontSize: 14,
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
         );
     }
   }
@@ -228,13 +222,13 @@ class ShiftSignupCard extends StatelessWidget {
   /// Build avatar stack without gesture (used when parent row handles tap)
   Widget _buildAvatarStackWithoutGesture(List<String> avatars) {
     return SizedBox(
-      height: 24,
-      width: (avatars.length * 18).toDouble() + 6,
+      height: TossSpacing.space6,
+      width: (avatars.length * TossSpacing.iconSM).toDouble() + TossSpacing.badgePaddingHorizontalXS,
       child: Stack(
         children: List.generate(
           avatars.length.clamp(0, 4),
           (index) => Positioned(
-            left: index * 18.0,
+            left: index * TossSpacing.iconSM,
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -242,14 +236,14 @@ class ShiftSignupCard extends StatelessWidget {
               ),
               child: avatars[index].isNotEmpty
                 ? CircleAvatar(
-                    radius: 12,
+                    radius: TossSpacing.space3,
                     backgroundColor: TossColors.gray200,
                     backgroundImage: NetworkImage(avatars[index]),
                   )
                 : CircleAvatar(
-                    radius: 12,
+                    radius: TossSpacing.space3,
                     backgroundColor: TossColors.gray200,
-                    child: const Icon(Icons.person, size: 12, color: TossColors.gray500),
+                    child: Icon(Icons.person, size: TossSpacing.iconXS2, color: TossColors.gray500),
                   ),
             ),
           ),

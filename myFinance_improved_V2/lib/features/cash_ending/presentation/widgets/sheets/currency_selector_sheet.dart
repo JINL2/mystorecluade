@@ -115,7 +115,7 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
           const SizedBox(height: TossSpacing.space3),
 
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4 * 2),
             child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
           ),
 
@@ -200,18 +200,16 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
                                       children: [
                                         Text(
                                           currency.currencyCode,
-                                          style: TossTextStyles.body.copyWith(
+                                          style: TossTextStyles.bodyLarge.copyWith(
                                             color: TossColors.textPrimary,
                                             fontWeight: FontWeight.w500,
-                                            fontSize: 16,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+                                        SizedBox(height: TossSpacing.space1 / 2),
                                         Text(
                                           currency.currencyName,
-                                          style: TossTextStyles.caption.copyWith(
+                                          style: TossTextStyles.bodySmall.copyWith(
                                             color: TossColors.gray600,
-                                            fontSize: 13,
                                           ),
                                         ),
                                       ],

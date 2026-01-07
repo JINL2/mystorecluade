@@ -14,7 +14,7 @@ class SubscriptionDialogs {
   }) {
     final isPro = planName == 'pro';
     final planDisplayName = isPro ? 'Pro' : 'Basic';
-    final planColor = isPro ? const Color(0xFF3B82F6) : const Color(0xFF10B981);
+    final planColor = isPro ? TossColors.primary : TossColors.emerald;
 
     showDialog(
       context: context,
@@ -28,16 +28,16 @@ class SubscriptionDialogs {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
-                color: planColor.withValues(alpha: 0.1),
+                color: planColor.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 isPro ? LucideIcons.crown : LucideIcons.checkCircle,
                 color: planColor,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: TossSpacing.space3),
             Expanded(
               child: Text(
                 'Welcome to $planDisplayName!',
@@ -78,16 +78,16 @@ class SubscriptionDialogs {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
-                color: TossColors.error.withValues(alpha: 0.1),
+                color: TossColors.error.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
-              child: const Icon(
+              child: Icon(
                 LucideIcons.alertCircle,
                 color: TossColors.error,
-                size: 20,
+                size: TossSpacing.iconSM,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: TossSpacing.space3),
             const Text('Oops!'),
           ],
         ),
@@ -108,7 +108,7 @@ class SubscriptionDialogs {
     required bool isProPlan,
     required String currentPlanName,
   }) {
-    final planColor = isProPlan ? const Color(0xFF3B82F6) : const Color(0xFF10B981);
+    final planColor = isProPlan ? TossColors.primary : TossColors.emerald;
 
     showDialog(
       context: context,
@@ -122,16 +122,16 @@ class SubscriptionDialogs {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
-                color: planColor.withValues(alpha: 0.1),
+                color: planColor.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 isProPlan ? LucideIcons.crown : LucideIcons.checkCircle,
                 color: planColor,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: TossSpacing.space3),
             Expanded(
               child: Text(
                 'Purchases Restored!',

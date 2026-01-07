@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
@@ -109,7 +110,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+            Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(state.error!, style: TossTextStyles.bodyMedium),
             TossButton.textButton(
@@ -175,7 +176,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
           if (pi.validityDate != null) ...[
             Icon(
               Icons.schedule,
-              size: 16,
+              size: TossSpacing.iconSM2,
               color: pi.isExpired ? TossColors.error : TossColors.gray500,
             ),
             const SizedBox(width: TossSpacing.space1),
@@ -240,7 +241,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               Text(
                 pi.counterpartyName ?? 'Unknown Counterparty',
                 style: TossTextStyles.bodyLarge
-                    .copyWith(fontWeight: FontWeight.w600),
+                    .copyWith(fontWeight: TossFontWeight.semibold),
               ),
               if (pi.counterpartyInfo != null && pi.counterpartyInfo!.isNotEmpty) ...[
                 const SizedBox(height: TossSpacing.space2),
@@ -395,7 +396,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
                         '-${pi.currencyCode} ${_formatAmount(pi.discountAmount)}',
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.success,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                         ),
                       ),
                       if (showDualCurrency && convertedDiscount != null)
@@ -429,13 +430,12 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Icon(Icons.info_outline, size: 12, color: TossColors.gray400),
-                  const SizedBox(width: 4),
+                  Icon(Icons.info_outline, size: TossSpacing.iconXXS, color: TossColors.gray400),
+                  const SizedBox(width: TossSpacing.space1),
                   Text(
                     'Rate: 1 ${pi.currencyCode} = ${_formatAmountForCurrency(rate, baseCurrency!)} $baseCurrency',
-                    style: TossTextStyles.caption.copyWith(
+                    style: TossTextStyles.small.copyWith(
                       color: TossColors.gray400,
-                      fontSize: 10,
                     ),
                   ),
                 ],
@@ -563,8 +563,8 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               SnackBar(
                 content: Row(
                   children: [
-                    TossLoadingView.inline(size: 20, color: TossColors.white),
-                    const SizedBox(width: 12),
+                    TossLoadingView.inline(size: TossSpacing.iconMD, color: TossColors.white),
+                    const SizedBox(width: TossSpacing.space3),
                     const Text('Processing...'),
                   ],
                 ),
@@ -600,7 +600,7 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text('Please provide a reason for rejection (optional):'),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
                   TossTextField.filled(
                     controller: controller,
                     maxLines: 3,
@@ -630,8 +630,8 @@ class _PIDetailPageState extends ConsumerState<PIDetailPage> {
               SnackBar(
                 content: Row(
                   children: [
-                    TossLoadingView.inline(size: 20, color: TossColors.white),
-                    const SizedBox(width: 12),
+                    TossLoadingView.inline(size: TossSpacing.iconMD, color: TossColors.white),
+                    const SizedBox(width: TossSpacing.space3),
                     const Text('Processing...'),
                   ],
                 ),
@@ -777,7 +777,7 @@ class _InfoRow extends StatelessWidget {
             value,
             style: TossTextStyles.bodyMedium.copyWith(
               color: valueColor ?? TossColors.gray900,
-              fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+              fontWeight: isBold ? TossFontWeight.semibold : TossFontWeight.regular,
             ),
           ),
         ],
@@ -808,7 +808,7 @@ class _StatusBadge extends StatelessWidget {
         label,
         style: TossTextStyles.bodyMedium.copyWith(
           color: color,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );
@@ -875,7 +875,7 @@ class _ItemCard extends StatelessWidget {
           // Description
           Text(
             item.description,
-            style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
+            style: TossTextStyles.bodyMedium.copyWith(fontWeight: TossFontWeight.medium),
           ),
           if (item.sku != null) ...[
             const SizedBox(height: TossSpacing.space1),
@@ -909,7 +909,7 @@ class _ItemCard extends StatelessWidget {
                 children: [
                   Text(
                     '$currencyCode ${NumberFormat('#,##0.00').format(item.lineTotal)}',
-                    style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                    style: TossTextStyles.bodyMedium.copyWith(fontWeight: TossFontWeight.semibold),
                   ),
                   if (showDualCurrency && convertedTotal != null)
                     Text(

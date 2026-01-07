@@ -86,7 +86,7 @@ final infoCardComponent = WidgetbookComponent(
               ),
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             InfoCard.highlight(
               label: 'Total Balance',
               value: '12,500,000',
@@ -94,7 +94,7 @@ final infoCardComponent = WidgetbookComponent(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   '+5.2%',
@@ -118,12 +118,12 @@ final infoCardComponent = WidgetbookComponent(
               label: 'Supplier',
               value: 'ABC Trading Co., Ltd.',
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             InfoCard(
               label: 'PO Number',
               value: 'PO-2024-0128',
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             InfoCard.highlight(
               label: 'Order Amount',
               value: '\$25,000.00',

@@ -174,6 +174,15 @@ class TossTextStyles {
     height: 1.455,  // 16px line height
   );
 
+  /// Micro - Smallest text, badges, timestamps (10px)
+  /// Usage: Chip labels, micro badges
+  static TextStyle get micro => GoogleFonts.inter(
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.02,
+    height: 1.4,  // 14px line height
+  );
+
   // ==================== SPECIAL STYLES ====================
 
   /// Amount - Financial numbers with monospace font (20px)

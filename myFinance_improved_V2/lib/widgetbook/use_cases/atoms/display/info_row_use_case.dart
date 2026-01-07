@@ -33,12 +33,12 @@ final infoRowComponent = WidgetbookComponent(
                 initialValue: false,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             InfoRow.fixed(
               label: 'Email',
               value: 'john@example.com',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             InfoRow.fixed(
               label: 'Status',
               value: 'Active',
@@ -68,14 +68,14 @@ final infoRowComponent = WidgetbookComponent(
                 initialValue: false,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             InfoRow.between(
               label: 'Bonus',
               value: '100,000',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             Container(height: 1, color: TossColors.gray100),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             InfoRow.between(
               label: 'Total Payment',
               value: '600,000',
@@ -102,15 +102,15 @@ final infoRowComponent = WidgetbookComponent(
                 initialValue: '8h 00m',
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             InfoRow.between(
               label: 'Base Pay',
               value: '550,000',
               originalValue: '500,000',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             Container(height: 1, color: TossColors.gray100),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             InfoRow.between(
               label: 'Total Payment',
               value: '650,000',
@@ -137,7 +137,7 @@ final infoRowComponent = WidgetbookComponent(
                 constraints: const BoxConstraints(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             InfoRow.between(
               label: 'Status',
               value: 'Pending',
@@ -145,7 +145,7 @@ final infoRowComponent = WidgetbookComponent(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: TossColors.warning,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   'Review',

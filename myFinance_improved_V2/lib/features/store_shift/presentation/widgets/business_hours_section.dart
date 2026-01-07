@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/business_hours.dart';
@@ -28,7 +29,7 @@ class BusinessHoursSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hoursAsync = ref.watch(businessHoursProvider);
 
-    return TossCard(
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +58,7 @@ class BusinessHoursSection extends ConsumerWidget {
                     'Business Hours',
                     style: TossTextStyles.bodyLarge.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
                 ],
@@ -122,7 +123,7 @@ class BusinessHoursSection extends ConsumerWidget {
               _getShortDayName(hours.dayName),
               style: TossTextStyles.body.copyWith(
                 color: isWeekend ? TossColors.primary : TossColors.gray700,
-                fontWeight: isWeekend ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: isWeekend ? TossFontWeight.semibold : TossFontWeight.medium,
               ),
             ),
           ),
@@ -138,10 +139,10 @@ class BusinessHoursSection extends ConsumerWidget {
                         ),
                       ),
                       if (hours.closesNextDay) ...[
-                        const SizedBox(width: 4),
+                        SizedBox(width: TossSpacing.space1),
                         const Icon(
                           LucideIcons.moon,
-                          size: 12,
+                          size: TossSpacing.space3,
                           color: TossColors.warning,
                         ),
                       ],

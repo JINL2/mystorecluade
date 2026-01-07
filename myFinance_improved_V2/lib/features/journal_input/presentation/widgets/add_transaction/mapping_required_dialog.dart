@@ -69,19 +69,19 @@ class MappingRequiredDialog extends StatelessWidget {
           children: [
             // Warning Icon
             Container(
-              width: 64,
-              height: 64,
+              width: TossSpacing.icon4XL,
+              height: TossSpacing.icon4XL,
               decoration: BoxDecoration(
                 color: TossColors.warning.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.warning_amber_rounded,
                 color: TossColors.warning,
-                size: 36,
+                size: TossSpacing.space9,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: TossSpacing.space5),
 
             // Title
             Text(
@@ -104,7 +104,7 @@ class MappingRequiredDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: TossSpacing.space6),
 
             // Setup Button
             TossButton.primary(

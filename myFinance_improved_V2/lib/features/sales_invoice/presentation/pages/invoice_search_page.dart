@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/invoice.dart';
@@ -132,12 +134,12 @@ class _InvoiceSearchPageState extends ConsumerState<InvoiceSearchPage> {
         TossSpacing.space4,
         TossSpacing.space3,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TossColors.white,
         border: Border(
           bottom: BorderSide(
             color: TossColors.gray100,
-            width: 1,
+            width: TossDimensions.dividerThickness,
           ),
         ),
       ),
@@ -148,10 +150,10 @@ class _InvoiceSearchPageState extends ConsumerState<InvoiceSearchPage> {
             onTap: () => Navigator.of(context).pop(),
             child: Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
                 color: TossColors.gray900,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
             ),
           ),
@@ -214,8 +216,8 @@ class _InvoiceSearchPageState extends ConsumerState<InvoiceSearchPage> {
           if (index == currentIndex) {
             return Padding(
               padding: EdgeInsets.only(
-                top: currentIndex == 0 ? 0 : 20,
-                bottom: 2,
+                top: currentIndex == 0 ? 0 : TossSpacing.space5,
+                bottom: TossSpacing.space0_5,
               ),
               child: _buildDateSeparator(entry.key),
             );
@@ -287,7 +289,7 @@ class _InvoiceSearchPageState extends ConsumerState<InvoiceSearchPage> {
     return Text(
       '$dayName, ${date.day} $monthName ${date.year}',
       style: TossTextStyles.caption.copyWith(
-        fontWeight: FontWeight.w400,
+        fontWeight: TossFontWeight.regular,
         color: TossColors.gray600,
       ),
     );
@@ -304,7 +306,7 @@ class _InvoiceSearchPageState extends ConsumerState<InvoiceSearchPage> {
         children: [
           Icon(
             icon,
-            size: 64,
+            size: TossDimensions.errorIconSize,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space3),

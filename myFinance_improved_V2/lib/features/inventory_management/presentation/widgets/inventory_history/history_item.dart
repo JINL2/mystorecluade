@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../domain/repositories/inventory_repository.dart';
@@ -46,13 +47,13 @@ class HistoryItem extends StatelessWidget {
                 Text(
                   entry.productName ?? 'Unknown Product',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: TossSpacing.space0_5),
                 // SKU
                 if (entry.productSku != null && entry.productSku!.isNotEmpty)
                   Text(
@@ -61,16 +62,16 @@ class HistoryItem extends StatelessWidget {
                       color: TossColors.gray500,
                     ),
                   ),
-                const SizedBox(height: 4),
+                SizedBox(height: TossSpacing.space1),
                 // Event type with icon
                 Row(
                   children: [
                     Icon(
                       _getTransactionIcon(eventType),
-                      size: 14,
+                      size: TossSpacing.iconXS,
                       color: TossColors.gray600,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: TossSpacing.space1),
                     Text(
                       _getTransactionTitle(eventType),
                       style: TossTextStyles.bodySmall.copyWith(
@@ -79,7 +80,7 @@ class HistoryItem extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: TossSpacing.space1),
                 // Date and time
                 Text(
                   _formatCreatedAt(entry.createdAt),
@@ -110,8 +111,8 @@ class HistoryItem extends StatelessWidget {
 
   Widget _buildProductImage() {
     return Container(
-      width: 48,
-      height: 48,
+      width: TossSpacing.space12,
+      height: TossSpacing.space12,
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -123,10 +124,10 @@ class HistoryItem extends StatelessWidget {
             : null,
       ),
       child: entry.productImage == null
-          ? const Center(
+          ? Center(
               child: Icon(
                 Icons.inventory_2_outlined,
-                size: 24,
+                size: TossSpacing.iconMD2,
                 color: TossColors.gray400,
               ),
             )
@@ -136,7 +137,7 @@ class HistoryItem extends StatelessWidget {
 
   Widget _buildTransferInfo() {
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: EdgeInsets.only(top: TossSpacing.space1),
       child: Row(
         children: [
           Text(
@@ -145,13 +146,13 @@ class HistoryItem extends StatelessWidget {
               color: TossColors.gray600,
             ),
           ),
-          const SizedBox(width: 4),
-          const Icon(
+          SizedBox(width: TossSpacing.space1),
+          Icon(
             Icons.arrow_forward,
-            size: 12,
+            size: TossSpacing.iconXS2,
             color: TossColors.gray500,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: TossSpacing.space1),
           Text(
             entry.toStoreName ?? '',
             style: TossTextStyles.caption.copyWith(
@@ -165,13 +166,13 @@ class HistoryItem extends StatelessWidget {
 
   Widget _buildUserInfo() {
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: EdgeInsets.only(top: TossSpacing.space2),
       child: Row(
         children: [
           // Avatar
           Container(
-            width: 16,
-            height: 16,
+            width: TossSpacing.iconSM2,
+            height: TossSpacing.iconSM2,
             decoration: BoxDecoration(
               color: TossColors.gray200,
               shape: BoxShape.circle,
@@ -188,16 +189,15 @@ class HistoryItem extends StatelessWidget {
                       entry.createdUser!.isNotEmpty
                           ? entry.createdUser![0].toUpperCase()
                           : 'U',
-                      style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w600,
+                      style: TossTextStyles.micro.copyWith(
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray600,
-                        fontSize: 10,
                       ),
                     ),
                   )
                 : null,
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
           Text(
             entry.createdUser!,
             style: TossTextStyles.caption.copyWith(
@@ -223,21 +223,21 @@ class HistoryItem extends StatelessWidget {
             color: TossColors.gray500,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: TossSpacing.space1),
         // After quantity with arrow (colored, below)
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.arrow_forward,
-              size: 14,
+              size: TossSpacing.iconXS,
               color: changeColor,
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: TossSpacing.space1),
             Text(
               '${entry.quantityAfter}',
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: changeColor,
               ),
             ),

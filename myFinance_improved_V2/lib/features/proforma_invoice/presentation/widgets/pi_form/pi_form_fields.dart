@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -153,7 +154,7 @@ class PIDateField extends StatelessWidget {
               ),
             ),
             if (isRequired) ...[
-              const SizedBox(width: 2),
+              SizedBox(width: TossSpacing.space1 / 2),
               Text(
                 '*',
                 style: TossTextStyles.label.copyWith(
@@ -252,9 +253,9 @@ class PISwitchTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: TossSpacing.space1),
           SizedBox(
-            height: 24,
+            height: TossSpacing.space6,
             child: FittedBox(
               fit: BoxFit.contain,
               child: Switch(

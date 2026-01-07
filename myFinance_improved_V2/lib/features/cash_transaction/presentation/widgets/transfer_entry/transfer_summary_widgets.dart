@@ -26,17 +26,17 @@ class FromSummaryCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: TossSpacing.iconXL,
+            height: TossSpacing.iconXL,
             decoration: BoxDecoration(
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.logout,
                 color: TossColors.gray600,
-                size: 20,
+                size: TossSpacing.iconSM,
               ),
             ),
           ),
@@ -133,17 +133,17 @@ class TransferSummaryWidget extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: TossSpacing.iconLG2,
+          height: TossSpacing.iconLG2,
           decoration: const BoxDecoration(
             color: TossColors.gray100,
             shape: BoxShape.circle,
           ),
-          child: const Center(
+          child: Center(
             child: Icon(
               Icons.logout,
               color: TossColors.gray600,
-              size: 16,
+              size: TossSpacing.iconSM2,
             ),
           ),
         ),
@@ -184,17 +184,17 @@ class TransferSummaryWidget extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: TossSpacing.iconLG2,
+          height: TossSpacing.iconLG2,
           decoration: const BoxDecoration(
             color: TossColors.gray100,
             shape: BoxShape.circle,
           ),
-          child: const Center(
+          child: Center(
             child: Icon(
               Icons.login,
               color: TossColors.gray600,
-              size: 16,
+              size: TossSpacing.iconSM2,
             ),
           ),
         ),

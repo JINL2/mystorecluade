@@ -8,6 +8,7 @@ import '../../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../../../shared/themes/toss_font_weight.dart';
 import '../domain/entities/cpa_audit_data.dart';
 import '../domain/entities/transaction_entry.dart';
 import 'transaction_card.dart';
@@ -53,7 +54,7 @@ class _AllTransactionsSectionState extends State<AllTransactionsSection> {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +96,7 @@ class _AllTransactionsSectionState extends State<AllTransactionsSection> {
                         '${transactions.length} transactions',
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray600,
-                          fontWeight: FontWeight.w400,
+                          fontWeight: TossFontWeight.regular,
                         ),
                       ),
                     ],

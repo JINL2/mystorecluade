@@ -45,6 +45,8 @@ class TossBorderRadius {
   static const double badge = 4.0;            // Badge
   static const double avatar = 999.0;         // Avatar (circular)
   static const double thumbnail = 8.0;        // Image thumbnail
+  static const double dragHandle = 2.0;       // Bottom sheet drag handle
+  static const double indicator = 2.0;        // Progress/rank indicators
   
   // ==================== RESPONSIVE RADIUS ====================
   

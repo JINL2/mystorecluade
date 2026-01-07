@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/work_schedule_template.dart';
@@ -175,10 +176,10 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.xl),
+          top: Radius.circular(TossBorderRadius.bottomSheet),
         ),
       ),
       child: SafeArea(
@@ -197,11 +198,11 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
                   // Handle
                   Center(
                     child: Container(
-                      width: 40,
-                      height: 4,
+                      width: TossSpacing.iconXL,
+                      height: TossSpacing.space1,
                       decoration: BoxDecoration(
                         color: TossColors.gray300,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossSpacing.space1 / 2),
                       ),
                     ),
                   ),
@@ -211,7 +212,7 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
                   Text(
                     widget.isEditing ? 'Edit Template' : 'Create Template',
                     style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                       color: TossColors.gray900,
                     ),
                   ),
@@ -241,7 +242,7 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
                   Text(
                     'Working Hours',
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray700,
                     ),
                   ),
@@ -283,7 +284,7 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
                   Text(
                     'Working Days',
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray700,
                     ),
                   ),
@@ -359,14 +360,14 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
           children: [
             const Icon(
               LucideIcons.clock,
-              size: 18,
+              size: TossSpacing.iconSM,
               color: TossColors.gray500,
             ),
             const SizedBox(width: TossSpacing.space2),
             Text(
               time.format(context),
               style: TossTextStyles.bodyLarge.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
@@ -397,19 +398,18 @@ class _TemplateFormDialogState extends ConsumerState<TemplateFormDialog> {
             day.$3(!isActive);
           },
           child: Container(
-            width: 44,
-            height: 44,
+            width: TossSpacing.buttonHeightMD + TossSpacing.space1,
+            height: TossSpacing.buttonHeightMD + TossSpacing.space1,
             decoration: BoxDecoration(
               color: isActive ? TossColors.primary : TossColors.gray100,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
             ),
             child: Center(
               child: Text(
                 day.$1,
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.label.copyWith(
                   color: isActive ? TossColors.white : TossColors.gray500,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  fontSize: 12,
+                  fontWeight: isActive ? TossFontWeight.semibold : TossFontWeight.regular,
                 ),
               ),
             ),

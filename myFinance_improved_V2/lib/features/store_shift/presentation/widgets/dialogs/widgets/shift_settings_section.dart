@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../../../core/constants/icon_mapper.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shift Settings Section Widget
 ///
@@ -42,7 +44,7 @@ class ShiftSettingsSection extends StatelessWidget {
           const SizedBox(height: TossSpacing.space4),
           _buildNumberOfEmployees(),
           const SizedBox(height: TossSpacing.space4),
-          const Divider(height: 1, color: TossColors.gray200),
+          const GrayDividerSpace(),
           const SizedBox(height: TossSpacing.space4),
           _buildOvertimeToggle(),
         ],
@@ -63,7 +65,7 @@ class ShiftSettingsSection extends StatelessWidget {
           'Shift Settings',
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],
@@ -81,7 +83,7 @@ class ShiftSettingsSection extends StatelessWidget {
                 'Required Employees',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
               const SizedBox(height: TossSpacing.space1),
@@ -107,12 +109,12 @@ class ShiftSettingsSection extends StatelessWidget {
               enabled: numberShift > 1,
             ),
             Container(
-              width: 48,
+              width: TossSpacing.space12,
               alignment: Alignment.center,
               child: Text(
                 '$numberShift',
                 style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
@@ -143,7 +145,7 @@ class ShiftSettingsSection extends StatelessWidget {
                 'Allow Overtime',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
               const SizedBox(height: TossSpacing.space1),
@@ -188,8 +190,8 @@ class _StepperButton extends StatelessWidget {
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
-        width: 36,
-        height: 36,
+        width: TossSpacing.buttonHeightSM + TossSpacing.space1,
+        height: TossSpacing.buttonHeightSM + TossSpacing.space1,
         decoration: BoxDecoration(
           color: enabled ? TossColors.gray200 : TossColors.gray100,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),

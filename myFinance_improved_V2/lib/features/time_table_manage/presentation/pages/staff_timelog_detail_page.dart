@@ -419,7 +419,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                         ),
                         // Issue report card with integrated memo (if employee reported an issue)
                         if (employeeIssueReport != null && employeeIssueReport!.isNotEmpty) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: TossSpacing.space4),
                           IssueReportCard(
                             employeeName: widget.staffRecord.staffName,
                             employeeAvatarUrl: widget.staffRecord.avatarUrl,
@@ -436,21 +436,21 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                         ],
                         // Standalone memo card (only if NO report exists)
                         if (employeeIssueReport == null || employeeIssueReport!.isEmpty) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: TossSpacing.space4),
                           ManageMemoCard(
                             memoController: _memoController,
                             onChanged: (_) => setState(() {}),
                             existingMemos: widget.staffRecord.managerMemos,
                           ),
                         ],
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         RecordedAttendanceCard(
                           isExpanded: _recordedAttendanceExpanded,
                           onToggle: () => setState(() => _recordedAttendanceExpanded = !_recordedAttendanceExpanded),
                           recordedCheckIn: recordedCheckIn,
                           recordedCheckOut: recordedCheckOut,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         ConfirmedAttendanceCard(
                           isExpanded: _confirmedAttendanceExpanded,
                           onToggle: () => setState(() => _confirmedAttendanceExpanded = !_confirmedAttendanceExpanded),
@@ -478,7 +478,7 @@ class _StaffTimelogDetailPageState extends ConsumerState<StaffTimelogDetailPage>
                           hasUnsolvedReport: widget.staffRecord.hasUnsolvedReport,
                         ),
                         // Shift Logs Section - shows audit history
-                        const SizedBox(height: 16),
+                        const SizedBox(height: TossSpacing.space4),
                         ShiftLogsSection(
                           shiftRequestId: widget.staffRecord.shiftRequestId,
                         ),

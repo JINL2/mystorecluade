@@ -3,9 +3,11 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/work_schedule_template.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Template Card Widget
 ///
@@ -24,25 +26,14 @@ class TemplateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.gray900.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return TossWhiteCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           _buildHeader(),
 
-          const Divider(height: 1, color: TossColors.gray200),
+          const GrayDividerSpace(),
 
           // Content
           Padding(
@@ -76,13 +67,13 @@ class TemplateCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(TossSpacing.space2),
             decoration: BoxDecoration(
-              color: TossColors.primary.withOpacity(0.1),
+              color: TossColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: const Icon(
               LucideIcons.calendarClock,
               color: TossColors.primary,
-              size: 18,
+              size: TossSpacing.iconSM,
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -98,7 +89,7 @@ class TemplateCard extends StatelessWidget {
                       child: Text(
                         template.templateName,
                         style: TossTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray900,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -107,27 +98,26 @@ class TemplateCard extends StatelessWidget {
                     if (template.isDefault) ...[
                       const SizedBox(width: TossSpacing.space2),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space1 + 2,
+                          vertical: TossSpacing.space1 / 2,
                         ),
                         decoration: BoxDecoration(
-                          color: TossColors.success.withOpacity(0.1),
+                          color: TossColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Text(
                           'Default',
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.small.copyWith(
                             color: TossColors.success,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 10,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
                       ),
                     ],
                   ],
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   '${template.employeeCount} employee${template.employeeCount != 1 ? 's' : ''} assigned',
                   style: TossTextStyles.caption.copyWith(
@@ -143,7 +133,7 @@ class TemplateCard extends StatelessWidget {
             PopupMenuButton<String>(
               icon: const Icon(
                 LucideIcons.moreVertical,
-                size: 18,
+                size: TossSpacing.iconSM,
                 color: TossColors.gray500,
               ),
               onSelected: (value) {
@@ -155,24 +145,24 @@ class TemplateCard extends StatelessWidget {
               },
               itemBuilder: (context) => [
                 if (onEdit != null)
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(LucideIcons.pencil, size: 16),
-                        SizedBox(width: 8),
-                        Text('Edit'),
+                        Icon(LucideIcons.pencil, size: TossSpacing.iconXS),
+                        SizedBox(width: TossSpacing.space2),
+                        const Text('Edit'),
                       ],
                     ),
                   ),
                 if (onDelete != null)
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(LucideIcons.trash2, size: 16, color: TossColors.error),
-                        SizedBox(width: 8),
-                        Text('Delete', style: TextStyle(color: TossColors.error)),
+                        Icon(LucideIcons.trash2, size: TossSpacing.iconXS, color: TossColors.error),
+                        SizedBox(width: TossSpacing.space2),
+                        const Text('Delete', style: TextStyle(color: TossColors.error)),
                       ],
                     ),
                   ),
@@ -188,7 +178,7 @@ class TemplateCard extends StatelessWidget {
       children: [
         const Icon(
           LucideIcons.clock,
-          size: 16,
+          size: TossSpacing.iconXS,
           color: TossColors.gray500,
         ),
         const SizedBox(width: TossSpacing.space2),
@@ -196,7 +186,7 @@ class TemplateCard extends StatelessWidget {
           template.timeRangeText,
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
       ],
@@ -218,21 +208,21 @@ class TemplateCard extends StatelessWidget {
       children: [
         const Icon(
           LucideIcons.calendar,
-          size: 16,
+          size: TossSpacing.iconXS,
           color: TossColors.gray500,
         ),
         const SizedBox(width: TossSpacing.space2),
         Expanded(
           child: Wrap(
-            spacing: 4,
+            spacing: TossSpacing.space1,
             children: days.map((day) {
               final isActive = day.$2;
               return Container(
-                width: 28,
-                height: 28,
+                width: TossSpacing.space6 + TossSpacing.space1,
+                height: TossSpacing.space6 + TossSpacing.space1,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? TossColors.primary.withOpacity(0.1)
+                      ? TossColors.primary.withValues(alpha: 0.1)
                       : TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
@@ -241,7 +231,7 @@ class TemplateCard extends StatelessWidget {
                     day.$1,
                     style: TossTextStyles.caption.copyWith(
                       color: isActive ? TossColors.primary : TossColors.gray400,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: isActive ? TossFontWeight.semibold : TossFontWeight.regular,
                     ),
                   ),
                 ),

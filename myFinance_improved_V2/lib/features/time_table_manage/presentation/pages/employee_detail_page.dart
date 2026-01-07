@@ -132,7 +132,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
             icon: const Icon(Icons.chevron_left, color: TossColors.gray600),
             onPressed: () => _changeMonth(-1),
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            constraints: const BoxConstraints(minWidth: TossDimensions.avatarMD, minHeight: TossDimensions.avatarMD),
           ),
           GestureDetector(
             onTap: _showMonthPicker,
@@ -143,13 +143,13 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
                   _monthLabel,
                   style: TossTextStyles.titleMedium.copyWith(
                     color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: TossSpacing.space1),
                 const Icon(
                   Icons.keyboard_arrow_down,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.primary,
                 ),
               ],
@@ -159,7 +159,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
             icon: const Icon(Icons.chevron_right, color: TossColors.gray600),
             onPressed: () => _changeMonth(1),
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            constraints: const BoxConstraints(minWidth: TossDimensions.avatarMD, minHeight: TossDimensions.avatarMD),
           ),
         ],
       ),
@@ -172,7 +172,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       context: context,
       backgroundColor: TossColors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
       ),
       builder: (context) => MonthPickerSheet(
         selectedMonth: _selectedMonth,
@@ -198,7 +198,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
             EmployeeProfileAvatar(
               imageUrl: employee.avatarUrl,
               name: employee.name,
-              size: 56,
+              size: TossDimensions.avatarXXL,
               showBorder: true,
               borderColor: TossColors.gray200,
             ),
@@ -210,11 +210,11 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
                   Text(
                     employee.name,
                     style: TossTextStyles.titleLarge.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: TossSpacing.space1),
                   Text(
                     '${employee.role ?? 'Staff'} · ${employee.storeName ?? 'Store'}',
                     style: TossTextStyles.body.copyWith(
@@ -296,7 +296,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
           child: Text(
             'Attendance History',
             style: TossTextStyles.titleMedium.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
         ),
@@ -377,7 +377,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
             children: [
               const Icon(
                 Icons.check_circle_outline,
-                size: 48,
+                size: TossSpacing.icon3XL,
                 color: TossColors.gray300,
               ),
               const SizedBox(height: TossSpacing.space3),
@@ -424,7 +424,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
               Text(
                 'Recent Activity',
                 style: TossTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
               if (auditLogs.isNotEmpty)
@@ -446,7 +446,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
                 children: [
                   const Icon(
                     Icons.history,
-                    size: 48,
+                    size: TossSpacing.icon3XL,
                     color: TossColors.gray300,
                   ),
                   const SizedBox(height: TossSpacing.space3),
@@ -498,10 +498,10 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
         Text(
           'Salary Breakdown This Month',
           style: TossTextStyles.titleMedium.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: TossSpacing.space1),
         Text(
           'From $monthRange',
           style: TossTextStyles.caption.copyWith(
@@ -513,33 +513,33 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
           label: 'Total confirmed time',
           value: summary?.formattedWorkedHours ?? '0h 0m',
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         SalaryRow(
           label: 'Hourly salary',
           value: '${formatter.format(salaryAmount.toInt())}$currencySymbol',
         ),
-        const SizedBox(height: 12),
-        Container(height: 1, color: TossColors.gray100),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
+        Container(height: TossDimensions.dividerThickness, color: TossColors.gray100),
+        const SizedBox(height: TossSpacing.space3),
         SalaryRow(
           label: 'Base pay',
           value: '${formatter.format(basePay.toInt())}$currencySymbol',
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         SalaryRow(
           label: 'Bonus pay',
           value: '${formatter.format(totalBonus.toInt())}$currencySymbol',
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         SalaryRow(
           label: 'Total payment',
           value: '${formatter.format(totalPayment.toInt())}$currencySymbol',
           labelStyle: TossTextStyles.titleMedium.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
           valueStyle: TossTextStyles.titleMedium.copyWith(
             color: TossColors.primary,
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
         const SizedBox(height: TossSpacing.space3),
@@ -547,14 +547,14 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
           Container(
             padding: const EdgeInsets.all(TossSpacing.space3),
             decoration: BoxDecoration(
-              color: TossColors.warning.withValues(alpha: 0.1),
+              color: TossColors.warning.withValues(alpha: TossOpacity.light),
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(
               children: [
                 const Icon(
                   Icons.warning_amber_rounded,
-                  size: 18,
+                  size: TossSpacing.iconMD + 2, // 18px
                   color: TossColors.warning,
                 ),
                 const SizedBox(width: TossSpacing.space2),
@@ -563,7 +563,7 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
                     'Warning: $unresolvedCount unresolved problems may affect final payment',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.warning,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
                 ),

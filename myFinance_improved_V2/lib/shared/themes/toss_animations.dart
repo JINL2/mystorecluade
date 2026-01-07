@@ -140,6 +140,10 @@ class TossAnimations {
   /// 사용: 온보딩 화면 전환, 대규모 레이아웃 변경
   static const Duration slower = Duration(milliseconds: 400);
 
+  /// Server processing delay (500ms)
+  /// 사용: 서버 처리 완료 대기, API 호출 후 UI 갱신 딜레이
+  static const Duration serverProcessingDelay = Duration(milliseconds: 500);
+
   // ==================== LOADING DURATION CONSTANTS ====================
 
   /// 로딩 펄스 애니메이션 (스켈레톤용)

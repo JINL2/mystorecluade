@@ -66,7 +66,7 @@ class TransferScopeCard extends StatelessWidget {
                         color: TossColors.gray900,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       scope.description,
                       style: TossTextStyles.caption.copyWith(
@@ -74,7 +74,7 @@ class TransferScopeCard extends StatelessWidget {
                       ),
                     ),
                     if (scope.isDebtTransaction) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: TossSpacing.space1),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: TossSpacing.space2,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/index.dart';
@@ -96,7 +97,7 @@ class ShipmentPickerSheet extends StatelessWidget {
                     title: Text(
                       shipment.shipmentNumber,
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: isSelected
                             ? TossColors.primary
                             : TossColors.gray900,

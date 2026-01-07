@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/sales_product.dart';
@@ -108,7 +110,7 @@ class _PaymentBreakdownSectionState
         Text(
           'Payment breakdown',
           style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
           ),
         ),
@@ -131,7 +133,7 @@ class _PaymentBreakdownSectionState
                   ? '-${PaymentHelpers.formatNumber(discountAmount.round())}${widget.currencySymbol}'
                   : '~${((discountAmount / _cartTotal) * 100).toStringAsFixed(1)}% discount',
               style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w400,
+                fontWeight: TossFontWeight.regular,
                 color: TossColors.error,
               ),
             ),
@@ -140,7 +142,7 @@ class _PaymentBreakdownSectionState
 
         // Divider
         Container(
-          height: 1,
+          height: TossDimensions.dividerThickness,
           color: TossColors.gray100,
           margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
         ),
@@ -158,14 +160,14 @@ class _PaymentBreakdownSectionState
         Text(
           'Sub-total',
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray600,
           ),
         ),
         Text(
           '${PaymentHelpers.formatNumber(_cartTotal.round())}${widget.currencySymbol}',
           style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.gray900,
           ),
         ),
@@ -183,7 +185,7 @@ class _PaymentBreakdownSectionState
             Text(
               'Discount',
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
                 color: TossColors.gray600,
               ),
             ),
@@ -202,7 +204,7 @@ class _PaymentBreakdownSectionState
               },
               child: const Icon(
                 Icons.edit_outlined,
-                size: 16,
+                size: TossSpacing.iconSM2,
                 color: TossColors.gray500,
               ),
             ),
@@ -214,7 +216,7 @@ class _PaymentBreakdownSectionState
 
   Widget _buildDiscountToggle() {
     return ToggleButtonGroup(
-      height: 32,
+      height: TossSpacing.space8,
       items: [
         ToggleButtonItem(id: 'amount', label: widget.currencySymbol),
         const ToggleButtonItem(id: 'percent', label: '%'),
@@ -249,20 +251,20 @@ class _PaymentBreakdownSectionState
     }
 
     return SizedBox(
-      width: 100,
+      width: TossDimensions.metadataLabelWidth,
       child: TextFormField(
         controller: _discountController,
         focusNode: _discountFocusNode,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         style: TossTextStyles.bodyLarge.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
           color: discountAmount > 0 ? TossColors.error : TossColors.gray400,
         ),
         textAlign: TextAlign.right,
         decoration: InputDecoration(
           hintText: displayText,
           hintStyle: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: discountAmount > 0 ? TossColors.error : TossColors.gray400,
           ),
           border: InputBorder.none,
@@ -272,7 +274,7 @@ class _PaymentBreakdownSectionState
           contentPadding: EdgeInsets.zero,
           suffixText: _isPercentageDiscount ? '%' : null,
           suffixStyle: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: discountAmount > 0 ? TossColors.error : TossColors.gray400,
           ),
         ),
@@ -320,21 +322,21 @@ class _PaymentBreakdownSectionState
 
   Widget _buildTotalRow(double finalTotal) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Total payment',
             style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
           Text(
             '${PaymentHelpers.formatNumber(finalTotal.round())}${widget.currencySymbol}',
             style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.primary,
             ),
           ),

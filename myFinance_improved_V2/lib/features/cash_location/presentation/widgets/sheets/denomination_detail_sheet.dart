@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -55,8 +58,8 @@ class DenominationDetailSheet extends StatelessWidget {
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
         ),
       ),
       constraints: BoxConstraints(
@@ -68,8 +71,8 @@ class DenominationDetailSheet extends StatelessWidget {
           // Handle bar
           Container(
             margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -86,12 +89,12 @@ class DenominationDetailSheet extends StatelessWidget {
                   child: Text(
                     'Cash Count Details',
                     style: TossTextStyles.h2.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 24),
+                  icon: Icon(Icons.close, size: TossSpacing.iconMD2),
                   onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -111,7 +114,7 @@ class DenominationDetailSheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(TossSpacing.space4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: TossOpacity.light),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Row(
@@ -130,7 +133,7 @@ class DenominationDetailSheet extends StatelessWidget {
                             Text(
                               _formatCurrency(realEntry.totalAmount, currencySymbol),
                               style: TossTextStyles.h1.copyWith(
-                                fontWeight: FontWeight.w700,
+                                fontWeight: TossFontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
@@ -139,7 +142,7 @@ class DenominationDetailSheet extends StatelessWidget {
                         Icon(
                           Icons.attach_money,
                           color: Theme.of(context).colorScheme.primary,
-                          size: 32,
+                          size: TossSpacing.iconLG2,
                         ),
                       ],
                     ),
@@ -212,7 +215,7 @@ class DenominationDetailSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
@@ -226,7 +229,7 @@ class DenominationDetailSheet extends StatelessWidget {
               Text(
                 '× ${denomination.quantity}',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ],

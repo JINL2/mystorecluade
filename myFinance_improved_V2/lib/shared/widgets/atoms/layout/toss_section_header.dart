@@ -36,7 +36,7 @@ class TossSectionHeader extends StatelessWidget {
             vertical: TossSpacing.space3,
           ),
       decoration: BoxDecoration(
-        color: backgroundColor ?? TossColors.primary.withOpacity(0.05),
+        color: backgroundColor ?? TossColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Row(

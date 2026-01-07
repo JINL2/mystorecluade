@@ -3,6 +3,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 import 'alert_preview_helper.dart';
 
@@ -30,7 +33,7 @@ class AlertModeSection extends StatelessWidget {
           child: Text(
             'ALERT MODE',
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray700,
               letterSpacing: 0.5,
             ),
@@ -42,7 +45,7 @@ class AlertModeSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
-                color: TossColors.gray900.withValues(alpha: 0.04),
+                color: TossColors.gray900.withValues(alpha: TossOpacity.subtle),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -114,7 +117,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
+      child: Divider(height: TossDimensions.dividerThickness, thickness: TossDimensions.dividerThickness, color: TossColors.gray100),
     );
   }
 }
@@ -167,17 +170,17 @@ class _AlertModeOption extends StatelessWidget {
 
   Widget _buildIcon() {
     return Container(
-      width: 44,
-      height: 44,
+      width: TossSpacing.space11,
+      height: TossSpacing.space11,
       decoration: BoxDecoration(
         color: isSelected
-            ? TossColors.primary.withValues(alpha: 0.15)
+            ? TossColors.primary.withValues(alpha: TossOpacity.medium)
             : TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Icon(
         icon,
-        size: 22,
+        size: TossSpacing.iconMD,
         color: isSelected ? TossColors.primary : TossColors.gray600,
       ),
     );
@@ -190,7 +193,7 @@ class _AlertModeOption extends StatelessWidget {
         Text(
           title,
           style: TossTextStyles.body.copyWith(
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
             color: isSelected ? TossColors.primary : TossColors.gray900,
           ),
         ),
@@ -199,7 +202,7 @@ class _AlertModeOption extends StatelessWidget {
           description,
           style: TossTextStyles.caption.copyWith(
             color: isSelected
-                ? TossColors.primary.withValues(alpha: 0.7)
+                ? TossColors.primary.withValues(alpha: TossOpacity.heavy)
                 : TossColors.gray600,
             height: 1.3,
           ),
@@ -210,20 +213,20 @@ class _AlertModeOption extends StatelessWidget {
 
   Widget _buildCheckIndicator() {
     if (isSelected) {
-      return const Icon(
+      return Icon(
         Icons.check_circle_rounded,
         color: TossColors.primary,
-        size: 24,
+        size: TossSpacing.iconMD2,
       );
     }
     return Container(
-      width: 20,
-      height: 20,
+      width: TossSpacing.iconSM,
+      height: TossSpacing.iconSM,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
           color: TossColors.gray300,
-          width: 2,
+          width: TossDimensions.dividerThicknessBold,
         ),
       ),
     );

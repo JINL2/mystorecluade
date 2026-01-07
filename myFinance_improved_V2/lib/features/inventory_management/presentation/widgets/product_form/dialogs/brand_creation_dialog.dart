@@ -6,6 +6,8 @@ import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../di/inventory_providers.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/inventory_metadata.dart';
 import '../../../providers/inventory_providers.dart';
@@ -153,7 +155,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
       title: Text(
         'Add Brand',
         style: TossTextStyles.h3.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),
@@ -171,7 +173,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
               autofocus: true,
               isRequired: true,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             // Brand Code Field
             TossTextField(
               label: 'Brand code (optional)',
@@ -190,7 +192,7 @@ class _BrandCreationDialogState extends ConsumerState<BrandCreationDialog> {
                 onPressed: _isCreating ? null : () => context.pop(),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: TossSpacing.space2),
             Expanded(
               child: TossButton.primary(
                 text: 'Create',

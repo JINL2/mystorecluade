@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/core/utils/number_formatter.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -114,7 +115,7 @@ class SalaryTab extends StatelessWidget {
             border: Border(
               top: BorderSide(
                 color: TossColors.gray200,
-                width: 1,
+                width: TossDimensions.dividerThickness,
               ),
             ),
           ),

@@ -5,6 +5,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 
 /// Product image widget with fallback support
 ///
@@ -61,7 +62,7 @@ class ProductImageWidget extends StatelessWidget {
       ),
       child: const Center(
         child: TossLoadingView.inline(
-          size: 16,
+          size: TossSpacing.iconSM2,
           color: TossColors.gray300,
         ),
       ),

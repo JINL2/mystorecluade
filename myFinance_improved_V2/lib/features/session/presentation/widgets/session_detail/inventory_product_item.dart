@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/states/session_detail_state.dart';
@@ -33,7 +34,7 @@ class InventoryProductItem extends StatelessWidget {
             // Product image
             CachedProductImage(
               imageUrl: product.imageUrl,
-              size: 60,
+              size: TossSpacing.icon3XL,
               borderRadius: 8,
             ),
             const SizedBox(width: TossSpacing.space3),
@@ -45,13 +46,13 @@ class InventoryProductItem extends StatelessWidget {
                   Text(
                     product.productName,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   if (product.sku != null)
                     Text(
                       product.sku!,
@@ -60,7 +61,7 @@ class InventoryProductItem extends StatelessWidget {
                       ),
                     ),
                   if (product.barcode != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       product.barcode!,
                       style: TossTextStyles.caption.copyWith(
@@ -79,10 +80,9 @@ class InventoryProductItem extends StatelessWidget {
               ),
               child: Text(
                 _hasCount ? '$quantity' : '-',
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                style: TossTextStyles.h4.copyWith(
+                  fontWeight: TossFontWeight.semibold,
                   color: _hasCount ? TossColors.primary : TossColors.gray400,
-                  fontSize: 18,
                 ),
               ),
             ),

@@ -3,6 +3,9 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -29,16 +32,16 @@ class InvoiceConfirmationDialogs {
         title: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: TossDimensions.avatarLG,
+              height: TossDimensions.avatarLG,
               decoration: BoxDecoration(
-                color: TossColors.error.withValues(alpha: 0.1),
+                color: TossColors.error.withValues(alpha: TossOpacity.light),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.replay,
                 color: TossColors.error,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
@@ -75,7 +78,7 @@ class InvoiceConfirmationDialogs {
                   Text(
                     _formatAmount(invoice.amounts.totalAmount, currencySymbol),
                     style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: TossFontWeight.bold,
                       color: TossColors.error,
                     ),
                   ),
@@ -135,16 +138,16 @@ class InvoiceConfirmationDialogs {
         title: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: TossDimensions.avatarLG,
+              height: TossDimensions.avatarLG,
               decoration: BoxDecoration(
-                color: TossColors.error.withValues(alpha: 0.1),
+                color: TossColors.error.withValues(alpha: TossOpacity.light),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.delete_outline,
                 color: TossColors.error,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
             ),
             const SizedBox(width: TossSpacing.space3),

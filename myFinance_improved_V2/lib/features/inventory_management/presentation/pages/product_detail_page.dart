@@ -6,10 +6,11 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/app_state.dart';
 import '../../di/inventory_providers.dart';
 import '../../../../shared/themes/toss_animations.dart';
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/pagination_params.dart';
@@ -190,7 +191,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                   children: [
                     GestureDetector(
                       onTap: () => context.pop(),
-                      child: const Icon(Icons.arrow_back_ios, size: 20),
+                      child: const Icon(Icons.arrow_back_ios, size: TossSpacing.iconMD),
                     ),
                   ],
                 ),
@@ -421,11 +422,11 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
           children: [
             const SizedBox(height: TossSpacing.space2),
             Container(
-              width: 36,
-              height: 4,
+              width: TossDimensions.dragHandleWidth,
+              height: TossDimensions.dragHandleHeight,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
               ),
             ),
             const SizedBox(height: TossSpacing.space4),
@@ -606,7 +607,7 @@ class _AnimatedSectionDividerState extends State<_AnimatedSectionDivider>
           child: child,
         ),
       ),
-      child: Container(height: 15, color: TossColors.gray100),
+      child: Container(height: TossSpacing.space3 + TossSpacing.space0_5, color: TossColors.gray100),
     );
   }
 }

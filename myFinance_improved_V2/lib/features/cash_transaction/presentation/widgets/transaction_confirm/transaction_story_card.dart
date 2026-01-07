@@ -158,7 +158,7 @@ class TransactionStoryCard extends StatelessWidget {
           // Amount with animated appearance
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.0, end: 1.0),
-            duration: const Duration(milliseconds: 400),
+            duration: TossAnimations.slower,
             curve: Curves.easeOutCubic,
             builder: (context, value, child) {
               return Opacity(
@@ -206,7 +206,7 @@ class TransactionStoryCard extends StatelessWidget {
           // Cash Flow Visual Diagram with animation
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.0, end: 1.0),
-            duration: const Duration(milliseconds: 500),
+            duration: TossAnimations.serverProcessingDelay,
             curve: Curves.easeOutCubic,
             builder: (context, value, child) {
               return Opacity(
@@ -252,7 +252,7 @@ class TransactionStoryCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
                 child: Container(
-                  padding: const EdgeInsets.all(TossSpacing.space1 + 2),
+                  padding: EdgeInsets.all(TossSpacing.space1 + TossSpacing.space1 / 2),
                   decoration: const BoxDecoration(
                     color: TossColors.gray200,
                     shape: BoxShape.circle,
@@ -260,7 +260,7 @@ class TransactionStoryCard extends StatelessWidget {
                   child: const Icon(
                     Icons.arrow_forward_rounded,
                     color: TossColors.gray600,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
                 ),
               ),
@@ -329,9 +329,9 @@ class TransactionStoryCard extends StatelessWidget {
                         const Icon(
                           Icons.arrow_downward_rounded,
                           color: TossColors.gray600,
-                          size: 16,
+                          size: TossSpacing.iconSM2,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: TossSpacing.space1),
                         Text(
                           _formattedAmount,
                           style: TossTextStyles.caption.copyWith(
@@ -418,7 +418,7 @@ class TransactionStoryCard extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: TossColors.gray500),
+        Icon(icon, size: TossSpacing.iconXS, color: TossColors.gray500),
         const SizedBox(width: TossSpacing.space1),
         Text(
           '$label:',
@@ -488,7 +488,7 @@ class TransactionStoryCard extends StatelessWidget {
         children: [
           const Icon(
             Icons.shopping_bag_outlined,
-            size: 24,
+            size: TossSpacing.iconLG,
             color: TossColors.gray500,
           ),
           const SizedBox(height: TossSpacing.space1),

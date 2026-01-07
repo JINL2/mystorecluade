@@ -25,7 +25,7 @@ class ToggleButtonGroup extends StatelessWidget {
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(height / 2),
       ),
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(TossSpacing.space1 / 2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: items.map((item) {
@@ -37,7 +37,7 @@ class ToggleButtonGroup extends StatelessWidget {
               duration: TossAnimations.normal,
               curve: TossAnimations.standard,
               padding: const EdgeInsets.symmetric(
-                horizontal: 16,
+                horizontal: TossSpacing.space4,
                 vertical: 0,
               ),
               decoration: BoxDecoration(

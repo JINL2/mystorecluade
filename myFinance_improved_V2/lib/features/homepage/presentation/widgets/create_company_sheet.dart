@@ -78,7 +78,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                 Icons.warning_amber_rounded,
                 color: Theme.of(context).colorScheme.error,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               const Text('Required Fields'),
             ],
           ),
@@ -87,9 +87,9 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Please fill in the following required fields:'),
-              const SizedBox(height: 12),
+              SizedBox(height: TossSpacing.space3),
               ...missingFields.map((field) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.only(bottom: TossSpacing.space1),
                     child: Text(
                       field,
                       style: TextStyle(
@@ -142,7 +142,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
               content: const Row(
                 children: [
                   TossLoadingView.inline(size: 20, color: TossColors.white),
-                  SizedBox(width: 12),
+                  SizedBox(width: TossSpacing.space3),
                   Text('Creating company...'),
                 ],
               ),
@@ -160,7 +160,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
               content: Row(
                 children: [
                   const Icon(Icons.error_outline, color: TossColors.white),
-                  const SizedBox(width: 12),
+                  SizedBox(width: TossSpacing.space3),
                   Expanded(child: Text(message)),
                 ],
               ),
@@ -203,7 +203,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
               content: Row(
                 children: [
                   const Icon(Icons.check_circle_outline, color: TossColors.white),
-                  const SizedBox(width: 12),
+                  SizedBox(width: TossSpacing.space3),
                   Expanded(
                     child: Text('Company "${company.name}" created successfully!'),
                   ),
@@ -243,7 +243,7 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
           children: [
             // Handle bar
             Container(
-              width: 40,
+              width: TossSpacing.iconXL,
               height: 4,
               margin: const EdgeInsets.only(
                 top: TossSpacing.space2,

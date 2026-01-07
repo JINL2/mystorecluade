@@ -37,7 +37,7 @@ class GrayDividerSpace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
       child: Container(
         height: height,
         width: double.infinity,

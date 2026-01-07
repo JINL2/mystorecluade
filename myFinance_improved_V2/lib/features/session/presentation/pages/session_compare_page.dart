@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../di/session_providers.dart';
@@ -120,13 +121,13 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
         icon: const Icon(
           Icons.chevron_left,
           color: TossColors.gray900,
-          size: 28,
+          size: TossSpacing.iconLG,
         ),
       ),
       title: Text(
         'Compare Sessions',
         style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),
@@ -138,7 +139,7 @@ class _SessionComparePageState extends ConsumerState<SessionComparePage>
               unselectedLabelColor: TossColors.gray500,
               indicatorColor: TossColors.primary,
               labelStyle: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
               unselectedLabelStyle: TossTextStyles.caption,
               labelPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),

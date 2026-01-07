@@ -60,16 +60,16 @@ class DateRangeSelector extends ConsumerWidget {
               children: [
                 // Calendar Icon
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: TossSpacing.iconXL,
+                  height: TossSpacing.iconXL,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.calendar_today_outlined,
                     color: TossColors.primary,
-                    size: 20,
+                    size: TossSpacing.iconSM,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
@@ -85,7 +85,7 @@ class DateRangeSelector extends ConsumerWidget {
                           color: TossColors.gray500,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         '$startDate ~ $endDate',
                         style: TossTextStyles.body.copyWith(
@@ -142,11 +142,11 @@ class DateRangeSelector extends ConsumerWidget {
                     // Handle bar
                     Container(
                       margin: const EdgeInsets.only(top: TossSpacing.space3),
-                      width: 40,
+                      width: TossSpacing.iconXL,
                       height: 4,
                       decoration: BoxDecoration(
                         color: TossColors.gray300,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
                       ),
                     ),
 
@@ -375,7 +375,7 @@ class _DatePickerCard extends StatelessWidget {
                       color: TossColors.gray500,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space1 / 2),
                   Text(
                     formattedDate,
                     style: TossTextStyles.body.copyWith(

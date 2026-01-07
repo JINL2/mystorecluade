@@ -14,6 +14,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 
 import '../../../../journal_input/presentation/providers/journal_input_providers.dart';
 import 'entry_edit_state.dart';
@@ -122,7 +123,7 @@ class _CounterpartyDisplay extends StatelessWidget {
                     ? Icons.business
                     : Icons.person_outline,
                 color: TossColors.gray600,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
               const SizedBox(width: TossSpacing.space2),
               Expanded(
@@ -133,7 +134,7 @@ class _CounterpartyDisplay extends StatelessWidget {
                       entryState.counterpartyName ?? 'Unknown',
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                       ),
                     ),
                     if (entryState.isCounterpartyInternal)
@@ -149,7 +150,7 @@ class _CounterpartyDisplay extends StatelessWidget {
               Icon(
                 Icons.lock_outline,
                 color: TossColors.gray400,
-                size: 16,
+                size: TossSpacing.iconSM2,
               ),
             ],
           ),
@@ -188,8 +189,8 @@ class _CounterpartyStoreSelector extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline,
-                    size: 18, color: TossColors.gray500),
+                Icon(Icons.info_outline,
+                    size: TossSpacing.iconSM, color: TossColors.gray500),
                 const SizedBox(width: TossSpacing.space2),
                 Text(
                   'No stores configured for this counterparty',
@@ -213,7 +214,7 @@ class _CounterpartyStoreSelector extends ConsumerWidget {
               onTap: () => _showStoreSelectionBottomSheet(context, stores),
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space3 + TossSpacing.space1 / 2),
                 decoration: BoxDecoration(
                   color: TossColors.white,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -223,7 +224,7 @@ class _CounterpartyStoreSelector extends ConsumerWidget {
                   children: [
                     Icon(
                       Icons.store,
-                      size: 20,
+                      size: TossSpacing.iconMD,
                       color: entryState.counterpartyStoreId != null
                           ? TossColors.primary
                           : TossColors.gray400,
@@ -238,8 +239,8 @@ class _CounterpartyStoreSelector extends ConsumerWidget {
                               ? TossColors.gray900
                               : TossColors.gray400,
                           fontWeight: entryState.counterpartyStoreId != null
-                              ? FontWeight.w500
-                              : FontWeight.normal,
+                              ? TossFontWeight.medium
+                              : TossFontWeight.regular,
                         ),
                       ),
                     ),
@@ -324,8 +325,8 @@ class _StoreSelectionSheet extends StatelessWidget {
         children: [
           Container(
             margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 36,
-            height: 4,
+            width: TossSpacing.space9,
+            height: TossSpacing.space1,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -338,7 +339,7 @@ class _StoreSelectionSheet extends StatelessWidget {
               children: [
                 Text('Select Store',
                     style:
-                        TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600)),
+                        TossTextStyles.h3.copyWith(fontWeight: TossFontWeight.semibold)),
                 IconButton(
                   icon: const Icon(Icons.close, color: TossColors.gray500),
                   onPressed: () => Navigator.pop(context),
@@ -386,7 +387,7 @@ class _StoreSelectionSheet extends StatelessWidget {
                     storeName,
                     style: TossTextStyles.body.copyWith(
                       fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                          isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
                       color:
                           isSelected ? TossColors.primary : TossColors.gray900,
                     ),
@@ -456,13 +457,13 @@ class _AccountMappingStatusState extends State<_AccountMappingStatus> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.check_circle, color: TossColors.success, size: 20),
+            const Icon(Icons.check_circle, color: TossColors.success, size: TossSpacing.iconMD),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Account mapping verified',
               style: TossTextStyles.bodySmall.copyWith(
                 color: TossColors.success,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
@@ -480,7 +481,7 @@ class _AccountMappingStatusState extends State<_AccountMappingStatus> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.warning, color: TossColors.error, size: 20),
+            const Icon(Icons.warning, color: TossColors.error, size: TossSpacing.iconMD),
             const SizedBox(width: TossSpacing.space2),
             Expanded(
               child: Text(
@@ -510,7 +511,7 @@ class _AccountMappingStatusState extends State<_AccountMappingStatus> {
                     'Set Up',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.white,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -529,7 +530,7 @@ class _AccountMappingStatusState extends State<_AccountMappingStatus> {
       ),
       child: Row(
         children: [
-          const TossLoadingView.inline(size: 16),
+          TossLoadingView.inline(size: TossSpacing.iconSM2),
           const SizedBox(width: TossSpacing.space2),
           Text(
             'Checking account mapping...',

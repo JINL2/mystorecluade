@@ -8,6 +8,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 
 /// Helper class for notification alert previews
 class AlertPreviewHelper {
@@ -94,7 +96,7 @@ class AlertPreviewHelper {
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.black.withValues(alpha: 0.3),
+                    color: TossColors.black.withValues(alpha: TossOpacity.strong),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -103,8 +105,8 @@ class AlertPreviewHelper {
               child: Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: TossSpacing.space10,
+                    height: TossSpacing.space10,
                     decoration: BoxDecoration(
                       color: TossColors.primary,
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -112,7 +114,7 @@ class AlertPreviewHelper {
                     child: const Icon(
                       Icons.store_rounded,
                       color: TossColors.white,
-                      size: 22,
+                      size: TossSpacing.iconMD,
                     ),
                   ),
                   const SizedBox(width: TossSpacing.space3),
@@ -125,16 +127,14 @@ class AlertPreviewHelper {
                           'Shift Starting Soon',
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            fontWeight: TossFontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 3),
+                        SizedBox(height: TossSpacing.space0_5),
                         Text(
                           'Your shift starts in 15 minutes',
                           style: TossTextStyles.caption.copyWith(
-                            color: TossColors.white.withValues(alpha: 0.85),
-                            fontSize: 13,
+                            color: TossColors.white.withValues(alpha: TossOpacity.textHigh),
                           ),
                         ),
                       ],
@@ -142,9 +142,8 @@ class AlertPreviewHelper {
                   ),
                   Text(
                     'now',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.white.withValues(alpha: 0.6),
-                      fontSize: 12,
+                    style: TossTextStyles.small.copyWith(
+                      color: TossColors.white.withValues(alpha: TossOpacity.heavy),
                     ),
                   ),
                 ],

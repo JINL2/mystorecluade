@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/ai/ai_description_row.dart';
 import '../../../domain/entities/invoice.dart';
@@ -86,15 +88,15 @@ class InvoiceListItem extends ConsumerWidget {
         children: [
           // Payment method icon
           SizedBox(
-            width: 24,
-            height: 24,
+            width: TossSpacing.iconMD2,
+            height: TossSpacing.iconMD2,
             child: Icon(
               _paymentIcon,
-              size: 16,
+              size: TossSpacing.iconSM2,
               color: TossColors.gray900,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: TossSpacing.space3),
 
           // Main content
           Expanded(
@@ -108,26 +110,26 @@ class InvoiceListItem extends ConsumerWidget {
                       TextSpan(
                         text: invoice.invoiceNumber,
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray900,
                         ),
                       ),
                       TextSpan(
                         text: ' · ${invoice.timeString}',
                         style: TossTextStyles.caption.copyWith(
-                          fontWeight: FontWeight.w400,
+                          fontWeight: TossFontWeight.regular,
                           color: TossColors.gray600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: TossSpacing.space1),
                 // Product summary
                 Text(
                   _productSummary,
                   style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w400,
+                    fontWeight: TossFontWeight.regular,
                     color: TossColors.gray600,
                     height: 1.4,
                   ),
@@ -135,13 +137,13 @@ class InvoiceListItem extends ConsumerWidget {
                 // AI Summary (if available)
                 if (invoice.aiDescription != null &&
                     invoice.aiDescription!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: TossSpacing.space1),
                   AiDescriptionRow(text: invoice.aiDescription!),
                 ],
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: TossSpacing.space3),
 
           // Amount and status
           Column(
@@ -150,15 +152,14 @@ class InvoiceListItem extends ConsumerWidget {
               // Amount
               Text(
                 _formatAmount(invoice.amounts.totalAmount, currency?.symbol ?? ''),
-                style: TossTextStyles.body.copyWith(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                style: TossTextStyles.titleMedium.copyWith(
+                  fontWeight: TossFontWeight.semibold,
                   color: _isCancelled ? TossColors.error : TossColors.primary,
                 ),
               ),
               // Cancelled pill (if cancelled)
               if (_isCancelled) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: TossSpacing.space1),
                 _buildCancelledPill(),
               ],
             ],
@@ -170,15 +171,18 @@ class InvoiceListItem extends ConsumerWidget {
 
   Widget _buildCancelledPill() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.badgePaddingHorizontalSM,
+        vertical: TossSpacing.badgePaddingVerticalSM,
+      ),
       decoration: BoxDecoration(
         color: TossColors.error,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
       ),
       child: Text(
         'Cancelled',
         style: TossTextStyles.small.copyWith(
-          fontWeight: FontWeight.w500,
+          fontWeight: TossFontWeight.medium,
           color: TossColors.white,
         ),
       ),

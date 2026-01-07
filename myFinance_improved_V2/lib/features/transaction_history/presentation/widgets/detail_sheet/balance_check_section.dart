@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/utils/number_formatter.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -42,7 +43,7 @@ class BalanceCheckSection extends StatelessWidget {
             children: [
               Icon(
                 isBalanced ? Icons.check_circle : Icons.error,
-                size: 16,
+                size: TossSpacing.iconXS,
                 color: TossColors.gray600,
               ),
               const SizedBox(width: TossSpacing.space2),
@@ -50,16 +51,15 @@ class BalanceCheckSection extends StatelessWidget {
                 isBalanced ? 'Balanced' : 'Unbalanced',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray700,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],
           ),
           Text(
             'D: ${_formatCurrency(totalDebit)} | C: ${_formatCurrency(totalCredit)}',
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.small.copyWith(
               color: TossColors.gray600,
-              fontSize: 11,
               fontFamily: 'JetBrains Mono',
             ),
           ),

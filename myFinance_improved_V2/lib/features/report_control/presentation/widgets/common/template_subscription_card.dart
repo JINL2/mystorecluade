@@ -38,7 +38,7 @@ class TemplateSubscriptionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: isSubscribed
-              ? TossColors.primary.withOpacity(0.3)
+              ? TossColors.primary.withValues(alpha: TossOpacity.heavy)
               : TossColors.gray100,
           width: isSubscribed ? 1.5 : 1,
         ),
@@ -58,16 +58,16 @@ class TemplateSubscriptionCard extends StatelessWidget {
                   children: [
                     // Icon circle with category icon
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: TossDimensions.avatarLG,
+                      height: TossDimensions.avatarLG,
                       decoration: BoxDecoration(
-                        color: _getCategoryColor().withOpacity(0.1),
+                        color: _getCategoryColor().withValues(alpha: TossOpacity.light),
                         borderRadius:
                             BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: Icon(
                         ReportIcons.getCategoryIcon(template.categoryName),
-                        size: 20,
+                        size: TossSpacing.iconMD,
                         color: _getCategoryColor(),
                       ),
                     ),
@@ -80,7 +80,7 @@ class TemplateSubscriptionCard extends StatelessWidget {
                         children: [
                           Text(
                             template.templateName,
-                            style: TossTextStyles.h4.copyWith(fontSize: 15),
+                            style: TossTextStyles.titleMedium,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -89,15 +89,15 @@ class TemplateSubscriptionCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.schedule,
-                                size: 12,
+                                size: TossSpacing.iconXS2,
                                 color: TossColors.gray500,
                               ),
-                              SizedBox(width: 4),
+                              SizedBox(width: TossSpacing.space1),
                               Text(
                                 _getFrequencyLabel(template.frequency),
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray600,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: TossFontWeight.medium,
                                 ),
                               ),
                             ],
@@ -120,14 +120,14 @@ class TemplateSubscriptionCard extends StatelessWidget {
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: _getCategoryColor().withOpacity(0.05),
+                      color: _getCategoryColor().withValues(alpha: TossOpacity.subtle),
                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(
                       template.categoryName!,
                       style: TossTextStyles.caption.copyWith(
                         color: _getCategoryColor(),
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ),
@@ -164,16 +164,16 @@ class TemplateSubscriptionCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.access_time,
-                                size: 12,
+                                size: TossSpacing.iconXS2,
                                 color: TossColors.primary,
                               ),
-                              SizedBox(width: 4),
+                              SizedBox(width: TossSpacing.space1),
                               Text(
                                 _convertUtcToLocalTime(template
                                     .subscriptionScheduleTime!), // ✅ Convert UTC → Local
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.primary,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TossFontWeight.semibold,
                                 ),
                               ),
                             ],
@@ -182,25 +182,23 @@ class TemplateSubscriptionCard extends StatelessWidget {
                         // Schedule days
                         if (template.subscriptionScheduleDays != null &&
                             template.subscriptionScheduleDays!.isNotEmpty) ...[
-                          SizedBox(height: 4),
+                          SizedBox(height: TossSpacing.space1),
                           Text(
                             _formatScheduleDays(
                                 template.subscriptionScheduleDays!),
-                            style: TossTextStyles.caption.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: TossColors.gray600,
-                              fontSize: 11,
                             ),
                           ),
                         ],
 
                         // Next schedule
                         if (template.subscriptionNextScheduledAt != null) ...[
-                          SizedBox(height: 4),
+                          SizedBox(height: TossSpacing.space1),
                           Text(
                             'Next: ${DateFormat('MMM dd, HH:mm').format(template.subscriptionNextScheduledAt!)}',
-                            style: TossTextStyles.caption.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: TossColors.gray600,
-                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -216,15 +214,14 @@ class TemplateSubscriptionCard extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.description_outlined,
-                          size: 12,
+                          size: TossSpacing.iconXS2,
                           color: TossColors.gray500,
                         ),
-                        SizedBox(width: 4),
+                        SizedBox(width: TossSpacing.space1),
                         Text(
                           '${template.recentReportsCount} reports',
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.small.copyWith(
                             color: TossColors.gray600,
-                            fontSize: 11,
                           ),
                         ),
                         if (template.lastReportDate != null) ...[
@@ -237,9 +234,8 @@ class TemplateSubscriptionCard extends StatelessWidget {
                           Text(
                             DateFormat('MMM dd')
                                 .format(template.lastReportDate!),
-                            style: TossTextStyles.caption.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: TossColors.gray500,
-                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -277,12 +273,12 @@ class TemplateSubscriptionCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: TossOpacity.light),
         shape: BoxShape.circle,
       ),
       child: Icon(
         icon,
-        size: 16,
+        size: TossSpacing.iconSM2,
         color: color,
       ),
     );

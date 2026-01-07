@@ -184,14 +184,14 @@ class _ReliabilityRankingsPageState
                 Text(
                   selectedCriteria.label,
                   style: TossTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: TossSpacing.space1),
                 const Icon(
                   Icons.keyboard_arrow_down,
                   color: TossColors.gray600,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                 ),
               ],
             ),
@@ -213,7 +213,7 @@ class _ReliabilityRankingsPageState
       context: context,
       backgroundColor: TossColors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
       ),
       builder: (context) => _RankingCriteriaBottomSheet(
         selectedCriteria: selectedCriteria,
@@ -274,9 +274,9 @@ class _ReliabilityRankingsPageState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.people_outline,
-              size: 64,
+              size: TossSpacing.icon4XL,
               color: TossColors.gray300,
             ),
             const SizedBox(height: TossSpacing.space3),
@@ -342,7 +342,7 @@ class _LevelTab extends StatelessWidget {
           border: Border(
             bottom: BorderSide(
               color: isActive ? TossColors.primary : TossColors.transparent,
-              width: 3,
+              width: TossSpacing.space0_5 + 1, // 3px tab indicator
             ),
           ),
         ),
@@ -350,7 +350,7 @@ class _LevelTab extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: isActive ? TossColors.gray900 : TossColors.gray500,
           ),
         ),
@@ -384,13 +384,13 @@ class _RankingRow extends StatelessWidget {
             children: [
               // Rank number (red for needs attention, blue for top reliability)
               SizedBox(
-                width: 28,
+                width: TossDimensions.avatarSM, // 28px for rank number column
                 child: Text(
                   employee.rank.toString(),
                   textAlign: TextAlign.center,
                   style: TossTextStyles.body.copyWith(
                     color: isNeedsAttention ? TossColors.error : TossColors.primary,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
               ),
@@ -400,7 +400,7 @@ class _RankingRow extends StatelessWidget {
               EmployeeProfileAvatar(
                 imageUrl: employee.avatarUrl,
                 name: employee.name,
-                size: 48,
+                size: TossDimensions.avatarXL,
                 showBorder: true,
                 borderColor: TossColors.gray200,
               ),
@@ -414,14 +414,14 @@ class _RankingRow extends StatelessWidget {
                     Text(
                       employee.name,
                       style: TossTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       employee.subtitle,
                       style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w400,
+                        fontWeight: TossFontWeight.regular,
                         color: TossColors.gray600,
                       ),
                       maxLines: 1,
@@ -438,15 +438,15 @@ class _RankingRow extends StatelessWidget {
                   Text(
                     employee.score.toString(),
                     style: TossTextStyles.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
                   if (employee.change != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       '${employee.change! >= 0 ? '+' : ''}${employee.change}',
                       style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: employee.change! >= 0
                             ? TossColors.primary
                             : TossColors.error,
@@ -481,12 +481,15 @@ class _RankingCriteriaBottomSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 40,
-            height: 4,
+            margin: EdgeInsets.only(
+              top: TossSpacing.space3,
+              bottom: TossSpacing.space2,
+            ),
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
             ),
           ),
 
@@ -499,19 +502,19 @@ class _RankingCriteriaBottomSheet extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SizedBox(width: 40), // Spacer for centering
+                SizedBox(width: TossDimensions.dragHandleWidth), // Spacer for centering
                 Text(
                   'Reliability Rankings',
                   style: TossTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(
+                  child: Icon(
                     Icons.close,
                     color: TossColors.gray600,
-                    size: 24,
+                    size: TossSpacing.iconLG,
                   ),
                 ),
               ],
@@ -540,16 +543,16 @@ class _RankingCriteriaBottomSheet extends StatelessWidget {
                     Text(
                       criteria.label,
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color:
                             isSelected ? TossColors.primary : TossColors.gray900,
                       ),
                     ),
                     if (isSelected)
-                      const Icon(
+                      Icon(
                         Icons.check,
                         color: TossColors.primary,
-                        size: 24,
+                        size: TossSpacing.iconLG,
                       ),
                   ],
                 ),

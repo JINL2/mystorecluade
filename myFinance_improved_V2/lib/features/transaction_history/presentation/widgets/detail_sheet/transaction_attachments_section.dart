@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import '../../../../../core/utils/storage_url_helper.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/ai/index.dart';
@@ -75,9 +78,9 @@ class _AttachmentsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
+        Icon(
           Icons.attach_file,
-          size: 16,
+          size: TossSpacing.iconXS,
           color: TossColors.gray500,
         ),
         const SizedBox(width: TossSpacing.space1),
@@ -85,25 +88,24 @@ class _AttachmentsHeader extends StatelessWidget {
           'Attachments',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(width: TossSpacing.space2),
         Container(
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: TossSpacing.space2,
-            vertical: 2,
+            vertical: TossSpacing.space1 / 2,
           ),
           decoration: BoxDecoration(
-            color: TossColors.primary.withValues(alpha: 0.1),
+            color: TossColors.primary.withValues(alpha: TossOpacity.light),
             borderRadius: BorderRadius.circular(TossBorderRadius.full),
           ),
           child: Text(
             '$count',
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.small.copyWith(
               color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         ),
@@ -133,7 +135,7 @@ class _ImageGallery extends StatelessWidget {
           onTap: () => _openFullscreenViewer(context, images, 0),
           child: Container(
             width: double.infinity,
-            height: 200,
+            height: TossDimensions.imagePreviewHeight,
             decoration: BoxDecoration(
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -153,7 +155,7 @@ class _ImageGallery extends StatelessWidget {
         if (remainingImages.isNotEmpty) ...[
           const SizedBox(height: TossSpacing.space2),
           SizedBox(
-            height: 64,
+            height: TossDimensions.thumbnailSize,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: remainingImages.length,
@@ -167,8 +169,8 @@ class _ImageGallery extends StatelessWidget {
                   onTap: () =>
                       _openFullscreenViewer(context, images, actualIndex),
                   child: Container(
-                    width: 64,
-                    height: 64,
+                    width: TossDimensions.thumbnailSize,
+                    height: TossDimensions.thumbnailSize,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       border: Border.all(color: TossColors.gray200),
@@ -192,7 +194,7 @@ class _ImageGallery extends StatelessWidget {
                                   '+${remainingImages.length - 3}',
                                   style: TossTextStyles.body.copyWith(
                                     color: TossColors.white,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: TossFontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -256,8 +258,8 @@ class _NetworkImage extends StatelessWidget {
       fit: fit,
       placeholder: (context, url) => Container(
         color: TossColors.gray100,
-        child: const Center(
-          child: TossLoadingView.inline(size: 24, color: TossColors.gray400),
+        child: Center(
+          child: TossLoadingView.inline(size: TossSpacing.iconLG, color: TossColors.gray400),
         ),
       ),
       errorWidget: (context, url, error) => Container(
@@ -292,13 +294,13 @@ class _FileItem extends StatelessWidget {
             padding: const EdgeInsets.all(TossSpacing.space2),
             decoration: BoxDecoration(
               color: attachment.isPdf
-                  ? TossColors.error.withValues(alpha: 0.1)
+                  ? TossColors.error.withValues(alpha: TossOpacity.light)
                   : TossColors.gray200,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
             child: Icon(
               attachment.isPdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
-              size: 20,
+              size: TossSpacing.iconSM,
               color: attachment.isPdf ? TossColors.error : TossColors.gray500,
             ),
           ),
@@ -311,24 +313,23 @@ class _FileItem extends StatelessWidget {
                   attachment.fileName,
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray700,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   attachment.fileExtension.toUpperCase(),
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.small.copyWith(
                     color: TossColors.gray400,
-                    fontSize: 10,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.open_in_new,
-            size: 16,
+            size: TossSpacing.iconXS,
             color: TossColors.gray400,
           ),
         ],

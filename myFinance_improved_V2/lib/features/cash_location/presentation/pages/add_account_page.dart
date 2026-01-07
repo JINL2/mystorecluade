@@ -5,6 +5,8 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -149,9 +151,9 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: _pageTitle,
-        backgroundColor: TossColors.gray50,
+        backgroundColor: TossColors.white,
       ),
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -268,7 +270,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                 color: showError ? TossColors.error : TossColors.gray700,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: TossSpacing.space0),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
@@ -354,7 +356,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                       : Text(
                           'Select currency',
                           style: TossTextStyles.body.copyWith(
-                            color: showError ? TossColors.error.withOpacity(0.7) : TossColors.gray400,
+                            color: showError ? TossColors.error.withValues(alpha: TossOpacity.heavy) : TossColors.gray400,
                           ),
                         ),
                 ),
@@ -362,7 +364,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                 Icon(
                   Icons.keyboard_arrow_down,
                   color: showError ? TossColors.error : TossColors.gray400,
-                  size: 24,
+                  size: TossSpacing.iconMD2,
                 ),
               ],
             ),
@@ -437,7 +439,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                 children: [
                   Icon(
                     Icons.public,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: TossColors.gray600,
                   ),
                   const SizedBox(width: TossSpacing.space3),
@@ -451,7 +453,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                             color: TossColors.gray900,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: TossSpacing.space0),
                         Text(
                           'For international trade & wire transfers',
                           style: TossTextStyles.caption.copyWith(
@@ -467,7 +469,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: TossColors.gray400,
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                     ),
                   ),
                 ],
@@ -581,7 +583,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             ),
             decoration: BoxDecoration(
               color: isSelected
-                  ? TossColors.primary.withValues(alpha: 0.1)
+                  ? TossColors.primary.withValues(alpha: TossOpacity.light)
                   : TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.full),
               border: Border.all(
@@ -619,7 +621,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
       child: SafeArea(
         child: SizedBox(
           width: double.infinity,
-          height: 56,
+          height: TossSpacing.buttonHeightLG,
           child: TossButton.primary(
             text: 'Confirm',
             onPressed: isButtonEnabled ? () {
@@ -628,7 +630,7 @@ class _AddAccountPageState extends ConsumerState<AddAccountPage> {
             } : null,
             isEnabled: isButtonEnabled,
             fullWidth: true,
-            height: 56,
+            height: TossSpacing.buttonHeightLG,
             borderRadius: TossBorderRadius.md,
             textStyle: TossTextStyles.button.copyWith(
               color: isButtonEnabled ? TossColors.white : TossColors.gray500,

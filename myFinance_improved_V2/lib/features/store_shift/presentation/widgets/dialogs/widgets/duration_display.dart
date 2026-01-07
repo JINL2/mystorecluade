@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../../core/constants/icon_mapper.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../dialog_utils.dart';
@@ -47,7 +48,7 @@ class DurationDisplay extends StatelessWidget {
                 'Total Duration',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
               const SizedBox(height: TossSpacing.space1),
@@ -55,7 +56,7 @@ class DurationDisplay extends StatelessWidget {
                 calculateDuration(startTime, endTime),
                 style: TossTextStyles.bodyLarge.copyWith(
                   color: TossColors.success,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
             ],

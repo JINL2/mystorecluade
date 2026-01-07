@@ -56,7 +56,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 40),
+              SizedBox(height: TossSpacing.space10),
 
               // Welcome Message
               Text(
@@ -78,7 +78,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 textAlign: TextAlign.left,
               ),
 
-              const SizedBox(height: 60),
+              const SizedBox(height: 60), // Custom spacing
 
               // Create Company Card
               _buildActionCard(
@@ -90,7 +90,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 onTap: () => _navigateToPage('/onboarding/create-business'),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: TossSpacing.space5),
 
               // Join Company Card
               _buildActionCard(
@@ -102,7 +102,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 onTap: () => _navigateToPage('/onboarding/join-business'),
               ),
 
-              const SizedBox(height: 60),
+              const SizedBox(height: 60), // Custom spacing
 
               // Help Section
               Row(
@@ -120,7 +120,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                       color: TossColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: TossSpacing.space1),
                   GestureDetector(
                     onTap: () {
                       _showHelpDialog(context);
@@ -136,7 +136,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                 ],
               ),
 
-              const SizedBox(height: 40),
+              SizedBox(height: TossSpacing.space10),
             ],
           ),
         ),
@@ -196,7 +196,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
             ),
             boxShadow: [
               BoxShadow(
-                color: TossColors.black.withOpacity(0.05),
+                color: TossColors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -206,19 +206,19 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
             children: [
               // Icon Container
               Container(
-                width: 56,
-                height: 56,
+                width: TossSpacing.icon3XL,
+                height: TossSpacing.icon3XL,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(
                   icon,
                   color: color,
-                  size: 28,
+                  size: TossSpacing.iconLG,
                 ),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: TossSpacing.space5),
               // Text Content
               Expanded(
                 child: Column(
@@ -231,7 +231,7 @@ class _ChooseRolePageState extends ConsumerState<ChooseRolePage> {
                         color: TossColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: TossSpacing.space1),
                     Text(
                       subtitle,
                       style: TossTextStyles.body.copyWith(

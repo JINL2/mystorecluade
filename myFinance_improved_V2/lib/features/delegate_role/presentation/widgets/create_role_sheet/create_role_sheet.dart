@@ -5,6 +5,8 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/features/delegate_role/di/delegate_role_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -109,8 +111,8 @@ class _CreateRoleSheetState extends ConsumerState<CreateRoleSheet> {
   Widget _buildDragHandle() {
     return Container(
       margin: const EdgeInsets.only(top: TossSpacing.space3),
-      width: 40,
-      height: 4,
+      width: TossDimensions.dragHandleWidth,
+      height: TossDimensions.dragHandleHeight,
       decoration: BoxDecoration(
         color: TossColors.gray300,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -186,20 +188,20 @@ class _CreateRoleSheetState extends ConsumerState<CreateRoleSheet> {
     final isCompleted = _currentStep > step;
 
     return Container(
-      width: 32,
-      height: 32,
+      width: TossSpacing.iconLG2,
+      height: TossSpacing.iconLG2,
       decoration: BoxDecoration(
         color: isActive || isCompleted ? TossColors.primary : TossColors.gray200,
         shape: BoxShape.circle,
       ),
       child: Center(
         child: isCompleted
-            ? const Icon(Icons.check, size: 16, color: TossColors.white)
+            ? const Icon(Icons.check, size: TossSpacing.iconSM2, color: TossColors.white)
             : Text(
                 '${step + 1}',
                 style: TossTextStyles.body.copyWith(
                   color: isActive ? TossColors.white : TossColors.gray600,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
       ),
@@ -210,8 +212,8 @@ class _CreateRoleSheetState extends ConsumerState<CreateRoleSheet> {
     final isCompleted = _currentStep > step;
 
     return Container(
-      width: 30,
-      height: 2,
+      width: TossSpacing.space6,
+      height: TossDimensions.timelineLineWidth,
       color: isCompleted ? TossColors.primary : TossColors.gray200,
     );
   }

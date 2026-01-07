@@ -58,7 +58,7 @@ class Step1BusinessName extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: TossSpacing.space1),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(

@@ -6,6 +6,7 @@ import '../../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../../shared/themes/toss_font_weight.dart';
 import '../domain/entities/transaction_entry.dart';
 
 /// 2줄 미니멀 거래 카드 - Toss Design System
@@ -52,7 +53,7 @@ class TransactionCard extends StatelessWidget {
                         transaction.debitAccount,
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray700,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -70,7 +71,7 @@ class TransactionCard extends StatelessWidget {
                         transaction.creditAccount,
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray700,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),

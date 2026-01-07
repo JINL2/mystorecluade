@@ -24,9 +24,9 @@ class DialogHeader extends StatelessWidget {
       children: [
         // Drag Handle
         Container(
-          margin: const EdgeInsets.only(top: 12),
-          width: 40,
-          height: 4,
+          margin: const EdgeInsets.only(top: TossSpacing.space3),
+          width: TossSpacing.space10,
+          height: TossSpacing.space1,
           decoration: BoxDecoration(
             color: TossColors.gray300,
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -50,7 +50,7 @@ class DialogHeader extends StatelessWidget {
                 onPressed: () => context.pop(),
                 icon: const Icon(Icons.close, color: TossColors.gray600),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                constraints: const BoxConstraints(minWidth: TossSpacing.space8, minHeight: TossSpacing.space8),
               ),
             ],
           ),

@@ -6,6 +6,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/transaction.dart';
@@ -28,7 +30,7 @@ class TransactionMetadataSection extends StatelessWidget {
           'Metadata',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -70,24 +72,22 @@ class _MetadataRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space1 / 2),
       child: Row(
         children: [
           SizedBox(
-            width: 100,
+            width: TossDimensions.metadataLabelWidth,
             child: Text(
               label,
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.small.copyWith(
                 color: TossColors.gray400,
-                fontSize: 11,
               ),
             ),
           ),
           Text(
             value,
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.small.copyWith(
               color: valueColor ?? TossColors.gray700,
-              fontSize: 11,
             ),
           ),
         ],

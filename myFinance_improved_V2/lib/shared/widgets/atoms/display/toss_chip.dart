@@ -67,7 +67,7 @@ class TossChip extends StatelessWidget {
                 ),
               ),
               if (showCount && count != null) ...[
-                const SizedBox(width: 4),
+                SizedBox(width: TossSpacing.space1),
                 Text(
                   '$count',
                   style: TossTextStyles.caption.copyWith(
@@ -114,7 +114,7 @@ class TossChipGroup extends StatelessWidget {
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.full),
       ),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(TossSpacing.space1),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: items.asMap().entries.map((entry) {
@@ -149,7 +149,7 @@ class TossChipGroup extends StatelessWidget {
                       ),
                     ),
                     if (item.count != null) ...[
-                      const SizedBox(width: 4),
+                      SizedBox(width: TossSpacing.space1),
                       Text(
                         '${item.count}',
                         style: TossTextStyles.caption.copyWith(

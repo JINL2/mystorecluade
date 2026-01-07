@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/proforma_invoice.dart';
@@ -102,7 +103,7 @@ class _FilterChip extends StatelessWidget {
           label,
           style: TossTextStyles.caption.copyWith(
             color: isSelected ? TossColors.white : TossColors.gray700,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
           ),
         ),
       ),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/account_mapping.dart';
@@ -38,13 +40,8 @@ class AccountMappingListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -54,40 +51,39 @@ class AccountMappingListItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space2,
-                  vertical: 4,
+                  vertical: TossSpacing.space1,
                 ),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   mapping.direction.toUpperCase(),
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 10,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
+                icon: const Icon(Icons.edit_outlined, size: TossSpacing.iconSM),
                 color: TossColors.gray600,
                 onPressed: onEdit,
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
+                constraints: BoxConstraints(
+                  minWidth: TossDimensions.minTouchTargetSmall,
+                  minHeight: TossDimensions.minTouchTargetSmall,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
+                icon: const Icon(Icons.delete_outline, size: TossSpacing.iconSM),
                 color: TossColors.error,
                 onPressed: () => _showDeleteConfirmation(context),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
+                constraints: BoxConstraints(
+                  minWidth: TossDimensions.minTouchTargetSmall,
+                  minHeight: TossDimensions.minTouchTargetSmall,
                 ),
               ),
             ],
@@ -100,15 +96,15 @@ class AccountMappingListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: TossDimensions.minTouchTargetSmall,
+                height: TossDimensions.minTouchTargetSmall,
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: const Icon(
                   Icons.account_balance_wallet,
-                  size: 16,
+                  size: TossSpacing.iconXS,
                   color: TossColors.primary,
                 ),
               ),
@@ -121,15 +117,14 @@ class AccountMappingListItem extends StatelessWidget {
                       'My Account',
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.textTertiary,
-                        fontSize: 11,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       mapping.myAccountName ?? 'Unknown Account',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ],
@@ -143,16 +138,16 @@ class AccountMappingListItem extends StatelessWidget {
           // Arrow
           Row(
             children: [
-              const SizedBox(width: 16),
+              SizedBox(width: TossSpacing.iconXS),
               Icon(
                 Icons.arrow_downward,
-                size: 16,
+                size: TossSpacing.iconXS,
                 color: TossColors.gray400,
               ),
               const SizedBox(width: TossSpacing.space2),
               Expanded(
                 child: Container(
-                  height: 1,
+                  height: TossDimensions.dividerThickness,
                   color: TossColors.gray200,
                 ),
               ),
@@ -166,15 +161,15 @@ class AccountMappingListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: TossDimensions.minTouchTargetSmall,
+                height: TossDimensions.minTouchTargetSmall,
                 decoration: BoxDecoration(
-                  color: TossColors.success.withValues(alpha: 0.1),
+                  color: TossColors.success.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: const Icon(
                   Icons.account_balance,
-                  size: 16,
+                  size: TossSpacing.iconXS,
                   color: TossColors.success,
                 ),
               ),
@@ -187,24 +182,22 @@ class AccountMappingListItem extends StatelessWidget {
                       'Their Account',
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.textTertiary,
-                        fontSize: 11,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       mapping.linkedAccountName ?? 'Unknown Account',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                     if (mapping.linkedCompanyName != null) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: TossSpacing.space0_5),
                       Text(
                         mapping.linkedCompanyName!,
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.textSecondary,
-                          fontSize: 11,
                         ),
                       ),
                     ],

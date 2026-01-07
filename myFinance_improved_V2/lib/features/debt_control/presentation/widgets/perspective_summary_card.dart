@@ -84,7 +84,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1 + 2),
                     decoration: BoxDecoration(
                       color: TossColors.white.withValues(alpha: 0.2),
                       borderRadius:
@@ -97,7 +97,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                           size: 14,
                           color: TossColors.textInverse,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: TossSpacing.space1),
                         Text(
                           '${summary.counterpartyCount} counterparties',
                           style: TossTextStyles.caption.copyWith(
@@ -111,7 +111,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: TossSpacing.space5),
 
               // Net Position
               Text(
@@ -120,7 +120,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                   color: TossColors.textInverse.withValues(alpha: 0.8),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: TossSpacing.space1),
               Text(
                 NumberFormatter.formatCurrency(
                     summary.netPosition.abs(), currency,),
@@ -135,7 +135,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: TossSpacing.space5),
 
               // Internal vs External breakdown
               Row(
@@ -191,9 +191,9 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                       final store = summary.storeAggregates[index];
 
                       return Container(
-                        margin: const EdgeInsets.only(right: 8),
+                        margin: const EdgeInsets.only(right: TossSpacing.space2),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8,),
+                            horizontal: TossSpacing.space3, vertical: TossSpacing.space2,),
                         decoration: BoxDecoration(
                           color: TossColors.white.withValues(alpha: 0.15),
                           borderRadius:
@@ -217,7 +217,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                                     size: 10,
                                     color: TossColors.warning,
                                   ),
-                                  const SizedBox(width: 2),
+                                  SizedBox(width: TossSpacing.space1 / 2),
                                 ],
                                 Flexible(
                                   child: Text(
@@ -235,7 +235,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: TossSpacing.space1 / 2),
                             Text(
                               NumberFormatter.formatCompact(
                                   store.netPosition.abs(),),
@@ -297,7 +297,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
                 size: 14,
                 color: TossColors.textInverse.withValues(alpha: 0.8),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: TossSpacing.space1),
               Text(
                 title,
                 style: TossTextStyles.small.copyWith(
@@ -314,7 +314,7 @@ class PerspectiveSummaryCard extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: TossSpacing.space1),
           Row(
             children: [
               Expanded(

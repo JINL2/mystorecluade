@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -52,7 +54,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(Icons.error_outline,
-                          color: TossColors.error, size: 48),
+                          color: TossColors.error, size: TossSpacing.iconXXL),
                       const SizedBox(height: TossSpacing.space3),
                       Text(
                         'Failed to load members',
@@ -111,7 +113,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
                     Text(
                       'Team Members',
                       style: TossTextStyles.h3.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -128,7 +130,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
               if (widget.canEdit)
                 IconButton(
                   icon: const Icon(Icons.add,
-                      size: 24, color: TossColors.primary),
+                      size: TossSpacing.iconMD2, color: TossColors.primary),
                   onPressed: () => _showAddMemberModal(),
                   tooltip: 'Add Member',
                 ),
@@ -146,7 +148,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
         children: [
           const Icon(
             Icons.people_outline,
-            size: 64,
+            size: TossSpacing.icon4XL,
             color: TossColors.gray300,
           ),
           const SizedBox(height: TossSpacing.space4),
@@ -180,8 +182,8 @@ class _MembersTabState extends ConsumerState<MembersTab> {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: TossSpacing.iconXXL,
+            height: TossSpacing.iconXXL,
             decoration: BoxDecoration(
               color: TossColors.gray200,
               borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -196,7 +198,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
                 Text(
                   name,
                   style: TossTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),

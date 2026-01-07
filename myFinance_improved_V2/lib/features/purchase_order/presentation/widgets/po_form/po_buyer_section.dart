@@ -121,7 +121,7 @@ class _POBuyerSectionState extends ConsumerState<POBuyerSection> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: TossSpacing.space1 / 2),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
@@ -137,7 +137,7 @@ class _POBuyerSectionState extends ConsumerState<POBuyerSection> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.add, size: 16, color: TossColors.primary),
-              const SizedBox(width: 2),
+              SizedBox(width: TossSpacing.space1 / 2),
               Text(
                 'Add New',
                 style: TossTextStyles.caption.copyWith(

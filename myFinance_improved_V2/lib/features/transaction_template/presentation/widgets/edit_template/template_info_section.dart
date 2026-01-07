@@ -50,10 +50,10 @@ class TemplateInfoSection extends StatelessWidget {
               color: TossColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.edit_note,
               color: TossColors.primary,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -73,7 +73,7 @@ class TemplateInfoSection extends StatelessWidget {
                     '$debitAccount → $creditAccount',
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray700,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
               ],

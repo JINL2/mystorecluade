@@ -39,7 +39,7 @@ class DashboardHeader extends ConsumerWidget {
                     color: TossColors.gray900,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   _getSubtitle(dateRange),
                   style: TossTextStyles.caption.copyWith(
@@ -72,7 +72,7 @@ class DashboardHeader extends ConsumerWidget {
                   size: 14,
                   color: TossColors.gray600,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: TossSpacing.space1 + 2),
                 Text(
                   dateRange.label,
                   style: TossTextStyles.caption.copyWith(

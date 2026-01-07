@@ -167,12 +167,12 @@ class _AttachmentPickerSectionState
             children: [
               // Handle bar
               Container(
-                width: 40,
+                width: TossSpacing.iconXL,
                 height: 4,
                 margin: const EdgeInsets.only(bottom: TossSpacing.space4),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
                 ),
               ),
               Text(
@@ -244,7 +244,7 @@ class _AttachmentPickerSectionState
               children: [
                 const Icon(
                   Icons.attach_file,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                   color: TossColors.gray600,
                 ),
                 const SizedBox(width: TossSpacing.space1),
@@ -282,7 +282,7 @@ class _AttachmentPickerSectionState
               TossButton.textButton(
                 text: _isPickingImages ? 'Loading...' : 'Add',
                 onPressed: _isPickingImages ? null : _showSourceSelectionDialog,
-                leadingIcon: _isPickingImages ? null : const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                leadingIcon: _isPickingImages ? null : const Icon(Icons.add_photo_alternate_outlined, size: TossSpacing.iconSM),
                 isLoading: _isPickingImages,
               ),
           ],
@@ -317,7 +317,7 @@ class _AttachmentPickerSectionState
           children: [
             const Icon(
               Icons.add_photo_alternate_outlined,
-              size: 32,
+              size: TossSpacing.iconXL,
               color: TossColors.gray400,
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -385,7 +385,7 @@ class _AttachmentPickerSectionState
               ),
               child: const Icon(
                 Icons.close,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.white,
               ),
             ),
@@ -399,7 +399,7 @@ class _AttachmentPickerSectionState
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1 / 2),
               decoration: BoxDecoration(
                 color: TossColors.error.withValues(alpha: 0.9),
                 borderRadius: const BorderRadius.vertical(
@@ -441,10 +441,10 @@ class _AttachmentPickerSectionState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 2),
+            Icon(icon, color: color, size: TossSpacing.iconLG),
+            SizedBox(height: TossSpacing.space1 / 2),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
               child: Text(
                 attachment.fileName,
                 style: TossTextStyles.caption.copyWith(

@@ -92,10 +92,10 @@ class _InlineTextFieldRowState extends State<InlineTextFieldRow> {
                   onChanged: (_) => widget.onChanged(),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: TossSpacing.space1),
               const Icon(
                 Icons.chevron_right,
-                size: 20,
+                size: TossSpacing.iconMD,
                 color: TossColors.gray400,
               ),
             ],

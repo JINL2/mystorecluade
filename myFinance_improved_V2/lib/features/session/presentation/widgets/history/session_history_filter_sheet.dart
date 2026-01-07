@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/session_history_provider.dart';
@@ -175,7 +176,7 @@ class _SessionHistoryFilterSheetState
   Widget _buildHandleBar() {
     return Container(
       margin: const EdgeInsets.only(top: TossSpacing.space3),
-      width: 40,
+      width: TossSpacing.iconXL,
       height: 4,
       decoration: BoxDecoration(
         color: TossColors.gray300,
@@ -194,7 +195,7 @@ class _SessionHistoryFilterSheetState
             'Filter',
             style: TossTextStyles.h3.copyWith(
               color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
           TossButton.textButton(
@@ -218,7 +219,7 @@ class _SessionHistoryFilterSheetState
         text: 'Apply Filters',
         onPressed: _applyFilters,
         fullWidth: true,
-        height: 52,
+        height: TossSpacing.inputHeightLG + 4,
       ),
     );
   }
@@ -230,7 +231,7 @@ class _SessionHistoryFilterSheetState
         title,
         style: TossTextStyles.bodySmall.copyWith(
           color: TossColors.textSecondary,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );
@@ -315,7 +316,7 @@ class _SessionHistoryFilterSheetState
                 onTap: _selectCustomDateRange,
                 prefixIcon: Icon(
                   Icons.calendar_today,
-                  size: 14,
+                  size: TossSpacing.iconXS,
                   color: _dateRangeType == DateRangeType.custom
                       ? TossColors.primary
                       : TossColors.textSecondary,

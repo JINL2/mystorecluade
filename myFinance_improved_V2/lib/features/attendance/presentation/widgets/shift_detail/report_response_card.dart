@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
+import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/widgets/index.dart';
 import '../../../domain/entities/shift_card.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Report and response card widget - shows user report and manager response
 class ReportResponseCard extends StatelessWidget {
@@ -44,13 +43,13 @@ class ReportResponseCard extends StatelessWidget {
             color: TossColors.gray600,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: TossSpacing.space1),
         Text(
           value,
           style: valueStyle ??
               TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
           maxLines: 5,
           overflow: TextOverflow.ellipsis,
@@ -85,24 +84,24 @@ class ReportResponseCard extends StatelessWidget {
             ),
           ],
           if (hasManagerMemo) ...[
-            if (hasReport) const SizedBox(height: 16),
+            if (hasReport) const SizedBox(height: TossSpacing.space4),
             _buildVerticalInfoRow(
               label: 'Manager response',
               value: managerMemoContent,
               valueStyle: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.primary,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
           if (hasReport) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             _buildInfoRow(
               label: 'Status',
               value: isSolved ? 'Resolved' : 'Pending',
               valueStyle: TossTextStyles.bodyLarge.copyWith(
                 color: isSolved ? TossColors.success : TossColors.warning,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],

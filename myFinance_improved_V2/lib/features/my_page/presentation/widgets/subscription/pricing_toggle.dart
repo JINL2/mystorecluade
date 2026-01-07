@@ -5,6 +5,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 
 /// Monthly/Annual toggle with savings badge
 class PricingToggle extends StatelessWidget {
@@ -39,11 +41,11 @@ class PricingToggle extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: !isAnnual ? TossColors.white : TossColors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                   boxShadow: !isAnnual
                       ? [
                           BoxShadow(
-                            color: TossColors.black.withValues(alpha: 0.08),
+                            color: TossColors.black.withValues(alpha: TossOpacity.subtle),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -54,7 +56,7 @@ class PricingToggle extends StatelessWidget {
                   child: Text(
                     'Monthly',
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: !isAnnual ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: !isAnnual ? TossFontWeight.bold : TossFontWeight.medium,
                       color: !isAnnual ? TossColors.gray900 : TossColors.gray500,
                     ),
                   ),
@@ -73,11 +75,11 @@ class PricingToggle extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 decoration: BoxDecoration(
                   color: isAnnual ? TossColors.white : TossColors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                   boxShadow: isAnnual
                       ? [
                           BoxShadow(
-                            color: TossColors.black.withValues(alpha: 0.08),
+                            color: TossColors.black.withValues(alpha: TossOpacity.subtle),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -90,24 +92,23 @@ class PricingToggle extends StatelessWidget {
                     Text(
                       'Annual',
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: isAnnual ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight: isAnnual ? TossFontWeight.bold : TossFontWeight.medium,
                         color: isAnnual ? TossColors.gray900 : TossColors.gray500,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: TossSpacing.space1_5),
                     // Savings badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1 + 2, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1_5, vertical: TossSpacing.space0_5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
+                        color: TossColors.emerald,
                         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                       child: Text(
                         '-40%',
-                        style: TossTextStyles.small.copyWith(
+                        style: TossTextStyles.micro.copyWith(
                           color: TossColors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10,
+                          fontWeight: TossFontWeight.bold,
                         ),
                       ),
                     ),

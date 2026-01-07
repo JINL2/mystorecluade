@@ -55,9 +55,9 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
           children: [
             // Drag handle
             Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(top: 8, bottom: 12),
+              width: TossSpacing.space9,
+              height: TossSpacing.space1,
+              margin: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -138,8 +138,8 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                           filled: true,
                           fillColor: TossColors.gray50,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                            horizontal: TossSpacing.space4,
+                            vertical: TossSpacing.space3,
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -160,7 +160,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                     ),
                   ),
                   
-                  const SizedBox(height: 20),
+                  const SizedBox(height: TossSpacing.space5),
                   
                   // Type selection
                   Text(
@@ -181,7 +181,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                           onTap: () => setState(() => selectedType = DenominationType.coin),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: TossSpacing.space2 + TossSpacing.space1 / 2),
                       Expanded(
                         child: _TypeSelectionButton(
                           label: 'Bill',
@@ -199,10 +199,10 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
             // Bottom buttons
             Container(
               padding: EdgeInsets.fromLTRB(
-                20,
-                24,
-                20,
-                16 + MediaQuery.of(context).padding.bottom,
+                TossSpacing.space5,
+                TossSpacing.space6,
+                TossSpacing.space5,
+                TossSpacing.space4 + MediaQuery.of(context).padding.bottom,
               ),
               child: Row(
                 children: [
@@ -213,7 +213,7 @@ class _AddDenominationBottomSheetState extends ConsumerState<AddDenominationBott
                       onPressed: () => context.pop(),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: TossSpacing.space2 + TossSpacing.space1 / 2),
 
                   // Add button
                   Expanded(
@@ -363,7 +363,7 @@ class _TypeSelectionButton extends StatelessWidget {
               emoji,
               style: TossTextStyles.bodyLarge,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: TossSpacing.space1 + TossSpacing.space1 / 2),
             Text(
               label,
               style: TossTextStyles.button.copyWith(

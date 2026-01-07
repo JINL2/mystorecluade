@@ -35,7 +35,7 @@ class SalaryRow extends StatelessWidget {
           style: valueStyle ??
               TossTextStyles.body.copyWith(
                 color: valueColor ?? TossColors.gray900,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
         ),
       ],

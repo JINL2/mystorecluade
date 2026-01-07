@@ -137,8 +137,8 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
         children: [
           // Handle bar
           Container(
-            width: 40,
-            height: 4,
+            width: TossSpacing.space10,
+            height: TossSpacing.space1,
             margin: const EdgeInsets.only(
               top: TossSpacing.space2,
               bottom: TossSpacing.space4,
@@ -164,7 +164,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         widget.subtitle,
                         style: TossTextStyles.caption.copyWith(
@@ -231,7 +231,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline, color: TossColors.error, size: 20),
+                          const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconMD),
                           const SizedBox(width: TossSpacing.space2),
                           Expanded(
                             child: Text(

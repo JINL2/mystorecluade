@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 
@@ -53,12 +54,12 @@ class AddAttributeDialog extends StatelessWidget {
             Text(
               'Add $title',
               style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
                 color: TossColors.gray900,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.paddingXL),
             TossTextField(
               label: 'Name',
               controller: nameController,
@@ -66,7 +67,7 @@ class AddAttributeDialog extends StatelessWidget {
               autofocus: true,
               autocorrect: false,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.paddingXL),
             Row(
               children: [
                 Expanded(
@@ -76,7 +77,7 @@ class AddAttributeDialog extends StatelessWidget {
                     fullWidth: true,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: TossButton.primary(
                     text: 'Add',

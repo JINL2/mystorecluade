@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import '../../pages/staff_timelog_detail_page.dart';
 import 'shift_section.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -70,7 +68,7 @@ class TimelogsSection extends StatelessWidget {
               icon: Icon(
                 isExpanded ? Icons.calendar_view_week : Icons.calendar_month,
                 color: isExpanded ? TossColors.primary : TossColors.gray600,
-                size: 24,
+                size: TossSpacing.iconLG,
               ),
               tooltip: isExpanded ? 'Show week view' : 'Show month view',
             ),
@@ -102,7 +100,7 @@ class TimelogsSection extends StatelessWidget {
           'Timelogs for ${_formatSelectedDate(selectedDate)}',
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray600,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
 
@@ -142,7 +140,7 @@ class TimelogsSection extends StatelessWidget {
                   '$monthName $year',
                   style: TossTextStyles.h4.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ],

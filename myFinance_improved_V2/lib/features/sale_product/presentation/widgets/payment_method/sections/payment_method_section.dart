@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/cash_location.dart';
@@ -52,7 +55,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
         Text(
           'Payment method',
           style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
           ),
         ),
@@ -76,7 +79,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Row(
         children: [
-          const TossLoadingView.inline(size: 20),
+          const TossLoadingView.inline(size: TossSpacing.iconMD),
           const SizedBox(width: TossSpacing.space3),
           Text(
             'Loading payment methods...',
@@ -95,11 +98,11 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
         Container(
           padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
-            color: TossColors.error.withValues(alpha: 0.1),
+            color: TossColors.error.withValues(alpha: TossOpacity.light),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: TossColors.error.withValues(alpha: 0.3),
-              width: 1,
+              color: TossColors.error.withValues(alpha: TossOpacity.heavy),
+              width: TossDimensions.dividerThickness,
             ),
           ),
           child: Row(
@@ -107,7 +110,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
               const Icon(
                 Icons.error_outline,
                 color: TossColors.error,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
               const SizedBox(width: TossSpacing.space2),
               Expanded(
@@ -138,7 +141,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
         children: [
           const Icon(
             Icons.account_balance_wallet_outlined,
-            size: 48,
+            size: TossSpacing.iconXXL,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space2),
@@ -253,14 +256,14 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
                       children: [
                         Icon(
                           icon,
-                          size: 18,
+                          size: TossSpacing.iconSM,
                           color: TossColors.gray600,
                         ),
                         const SizedBox(width: TossSpacing.space2),
                         Text(
                           label,
                           style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.gray900,
                           ),
                         ),
@@ -272,7 +275,7 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
                     isExpanded
                         ? Icons.keyboard_arrow_down
                         : Icons.keyboard_arrow_right,
-                    size: 18,
+                    size: TossSpacing.iconSM,
                     color: TossColors.gray600,
                   ),
                 ],
@@ -292,11 +295,11 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
     CashLocation? selectedLocation,
   ) {
     return Container(
-      margin: const EdgeInsets.only(left: 40),
+      margin: const EdgeInsets.only(left: TossSpacing.space10),
       padding: const EdgeInsets.only(left: TossSpacing.space5),
       decoration: const BoxDecoration(
         border: Border(
-          left: BorderSide(color: TossColors.gray200, width: 1),
+          left: BorderSide(color: TossColors.gray200, width: TossDimensions.dividerThickness),
         ),
       ),
       child: Column(
@@ -319,17 +322,17 @@ class _PaymentMethodSectionState extends ConsumerState<PaymentMethodSection> {
                     child: Text(
                       location.name,
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: TossColors.gray900,
                       ),
                     ),
                   ),
                   SizedBox(
-                    width: 28,
+                    width: TossSpacing.iconLG,
                     child: isSelected
                         ? const Icon(
                             Icons.check,
-                            size: 24,
+                            size: TossSpacing.iconMD2,
                             color: TossColors.primary,
                           )
                         : null,

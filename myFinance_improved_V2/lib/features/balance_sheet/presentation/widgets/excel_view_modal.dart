@@ -56,7 +56,7 @@ class ExcelViewModal extends StatelessWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
                 ),
               ),
 

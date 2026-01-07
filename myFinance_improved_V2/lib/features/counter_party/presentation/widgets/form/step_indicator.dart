@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 
 /// Step indicator for multi-step counter party form
@@ -29,8 +30,8 @@ class StepIndicator extends StatelessWidget {
               // Step dot indicator
               AnimatedContainer(
                 duration: TossAnimations.slow,
-                width: index == currentStep ? 32 : 8,
-                height: 8,
+                width: index == currentStep ? TossSpacing.space8 : TossSpacing.space2,
+                height: TossSpacing.space2,
                 decoration: BoxDecoration(
                   color: index <= currentStep ? TossColors.primary : TossColors.gray300,
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -40,10 +41,10 @@ class StepIndicator extends StatelessWidget {
               // Connector line between steps
               if (index < totalSteps - 1)
                 Container(
-                  width: 16,
-                  height: 1,
+                  width: TossSpacing.space4,
+                  height: TossDimensions.dividerThickness,
                   color: index < currentStep ? TossColors.primary : TossColors.gray200,
-                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  margin: const EdgeInsets.symmetric(horizontal: TossSpacing.badgePaddingHorizontalXS),
                 ),
             ],
           );

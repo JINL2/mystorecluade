@@ -502,10 +502,10 @@ Journal ID: $result''';
                           onTap: () => _selectTemplate(template),
                           child: Container(
                             width: 150,
-                            margin: const EdgeInsets.only(right: 8),
+                            margin: const EdgeInsets.only(right: TossSpacing.space2),
                             padding: const EdgeInsets.all(TossSpacing.space3),
                             decoration: BoxDecoration(
-                              color: isSelected ? TossColors.primary.withOpacity(0.1) : TossColors.gray100,
+                              color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray100,
                               border: Border.all(
                                 color: isSelected ? TossColors.primary : TossColors.gray300,
                                 width: isSelected ? 2 : 1,
@@ -675,7 +675,7 @@ Journal ID: $result''';
                             const SnackBar(content: Text('Copied to clipboard')),
                           );
                         },
-                        icon: const Icon(Icons.copy, size: 16),
+                        icon: const Icon(Icons.copy, size: TossSpacing.iconSM),
                         label: const Text('Copy JSON'),
                       ),
                     ],
@@ -691,7 +691,7 @@ Journal ID: $result''';
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
                       backgroundColor: TossColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: TossColors.white,
                     ),
                   ),
 
@@ -705,16 +705,16 @@ Journal ID: $result''';
                     padding: const EdgeInsets.all(TossSpacing.space3),
                     decoration: BoxDecoration(
                       color: _rpcResult.startsWith('SUCCESS')
-                          ? Colors.green.withOpacity(0.1)
+                          ? TossColors.success.withValues(alpha: 0.1)
                           : _rpcResult.startsWith('ERROR')
-                              ? Colors.red.withOpacity(0.1)
+                              ? TossColors.error.withValues(alpha: 0.1)
                               : TossColors.gray100,
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: Border.all(
                         color: _rpcResult.startsWith('SUCCESS')
-                            ? Colors.green
+                            ? TossColors.success
                             : _rpcResult.startsWith('ERROR')
-                                ? Colors.red
+                                ? TossColors.error
                                 : TossColors.gray300,
                       ),
                     ),

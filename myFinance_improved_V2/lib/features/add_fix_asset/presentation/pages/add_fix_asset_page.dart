@@ -478,16 +478,16 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: TossSpacing.iconXL,
+                  height: TossSpacing.iconXL,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.store,
                     color: TossColors.primary,
-                    size: 20,
+                    size: TossSpacing.iconSM,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),

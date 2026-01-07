@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
@@ -35,7 +36,7 @@ class VaultSubmitButton extends ConsumerWidget {
     final tabState = ref.watch(vaultTabProvider);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
+      padding: const EdgeInsets.only(bottom: TossSpacing.space8),
       child: _buildButton(tabState),
     );
   }
@@ -44,7 +45,7 @@ class VaultSubmitButton extends ConsumerWidget {
     // Consistent button style
     final buttonTextStyle = TossTextStyles.body.copyWith(
       color: TossColors.white,
-      fontSize: 16,
+      fontSize: TossSpacing.iconSM2,
       fontWeight: FontWeight.w600,
     );
     const buttonPadding = EdgeInsets.symmetric(
@@ -61,7 +62,7 @@ class VaultSubmitButton extends ConsumerWidget {
         onPressed: onRecountPressed,
         textStyle: buttonTextStyle,
         padding: buttonPadding,
-        borderRadius: 12,
+        borderRadius: TossBorderRadius.md,
       );
     }
 

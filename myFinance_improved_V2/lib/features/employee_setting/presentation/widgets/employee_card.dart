@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -67,20 +68,20 @@ class EmployeeCard extends StatelessWidget {
                         if (employee.isActive)
                           Container(
                             margin: const EdgeInsets.only(left: TossSpacing.space2),
-                            width: 8,
-                            height: 8,
+                            width: TossDimensions.statusDotXS,
+                            height: TossDimensions.statusDotXS,
                             decoration: BoxDecoration(
                               color: TossColors.success,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: TossColors.surface,
-                                width: 1.5,
+                                width: TossDimensions.dividerThicknessMedium,
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: TossSpacing.space1),
                     // Role or department
                     Text(
                       employee.roleName.isNotEmpty
@@ -92,30 +93,29 @@ class EmployeeCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     // Last activity - always show
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Row(
                       children: [
                         Icon(
                           employee.isActiveToday
                               ? Icons.circle
                               : Icons.access_time_rounded,
-                          size: 10,
+                          size: TossSpacing.iconXXS,
                           color: employee.isActiveToday
                               ? TossColors.success
                               : (employee.isInactive
                                   ? TossColors.gray300
                                   : TossColors.gray400),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: TossSpacing.space1),
                         Text(
                           employee.lastActivityText,
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.small.copyWith(
                             color: employee.isActiveToday
                                 ? TossColors.success
                                 : (employee.isInactive
                                     ? TossColors.gray400
                                     : TossColors.gray500),
-                            fontSize: 11,
                           ),
                         ),
                       ],
@@ -153,7 +153,7 @@ class EmployeeCard extends StatelessWidget {
               const Icon(
                 Icons.chevron_right_rounded,
                 color: TossColors.gray300,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
             ],
           ),
@@ -164,8 +164,8 @@ class EmployeeCard extends StatelessWidget {
 
   Widget _buildAvatar() {
     return Container(
-      width: 52,
-      height: 52,
+      width: TossDimensions.employeeAvatarSize,
+      height: TossDimensions.employeeAvatarSize,
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),

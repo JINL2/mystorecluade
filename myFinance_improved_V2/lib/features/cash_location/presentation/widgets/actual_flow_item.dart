@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -38,7 +39,7 @@ class ActualFlowItem extends StatelessWidget {
           children: [
             // Date section (centered vertically, aligned left)
             Container(
-              width: 50,
+              width: TossDimensions.dateColumnWidth,
               padding: EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(

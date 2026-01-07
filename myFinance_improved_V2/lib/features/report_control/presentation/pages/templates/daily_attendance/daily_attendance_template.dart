@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../domain/entities/report_notification.dart';
 import '../../../utils/template_registry.dart';
 import '../../../utils/report_parser.dart';
@@ -54,8 +55,8 @@ class DailyAttendanceTemplate {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: TossColors.error),
-            const SizedBox(height: 16),
+            Icon(Icons.error_outline, size: TossSpacing.icon4XL, color: TossColors.error),
+            SizedBox(height: TossSpacing.space4),
             Text(message),
           ],
         ),

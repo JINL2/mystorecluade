@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/repositories/inventory_repository.dart';
 
 /// Transaction type for display purposes
@@ -35,10 +36,10 @@ class TransactionItem extends StatelessWidget {
         children: [
           // Icon - aligned with title top
           Padding(
-            padding: const EdgeInsets.only(top: 2),
+            padding: const EdgeInsets.only(top: TossSpacing.space0_5),
             child: Icon(
               _getTransactionIcon(eventType),
-              size: 20,
+              size: TossSpacing.iconMD,
               color: TossColors.gray600,
             ),
           ),
@@ -52,11 +53,11 @@ class TransactionItem extends StatelessWidget {
                 Text(
                   _getTransactionTitle(eventType),
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: TossSpacing.space1),
                 // Date and time
                 Text(
                   _formatCreatedAt(transaction.createdAt),
@@ -64,7 +65,7 @@ class TransactionItem extends StatelessWidget {
                     color: TossColors.gray500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: TossSpacing.space1),
                 // Location info
                 if (isTransfer &&
                     transaction.fromStoreName != null &&
@@ -78,7 +79,7 @@ class TransactionItem extends StatelessWidget {
                       color: TossColors.gray600,
                     ),
                   ),
-                const SizedBox(height: 8),
+                const SizedBox(height: TossSpacing.space2),
                 // User info
                 if (transaction.createdUser != null &&
                     transaction.createdUser!.isNotEmpty)
@@ -105,13 +106,13 @@ class TransactionItem extends StatelessWidget {
             color: TossColors.gray600,
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: TossSpacing.space1),
         const Icon(
           Icons.arrow_forward,
-          size: 12,
+          size: TossSpacing.iconXS2,
           color: TossColors.gray500,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: TossSpacing.space1),
         Text(
           transaction.toStoreName ?? '',
           style: TossTextStyles.bodySmall.copyWith(
@@ -127,8 +128,8 @@ class TransactionItem extends StatelessWidget {
       children: [
         // Avatar
         Container(
-          width: 16,
-          height: 16,
+          width: TossSpacing.iconSM2,
+          height: TossSpacing.iconSM2,
           decoration: BoxDecoration(
             color: TossColors.gray200,
             shape: BoxShape.circle,
@@ -146,14 +147,14 @@ class TransactionItem extends StatelessWidget {
                         ? transaction.createdUser![0].toUpperCase()
                         : 'U',
                     style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray600,
                     ),
                   ),
                 )
               : null,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: TossSpacing.space2),
         Text(
           transaction.createdUser!,
           style: TossTextStyles.bodySmall.copyWith(
@@ -176,11 +177,11 @@ class TransactionItem extends StatelessWidget {
         Text(
           '${isIncrease ? '+' : ''}$change',
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
             color: changeColor,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: TossSpacing.space1),
         // Before → After (gray, subtle)
         Text(
           '${transaction.quantityBefore} → ${transaction.quantityAfter}',

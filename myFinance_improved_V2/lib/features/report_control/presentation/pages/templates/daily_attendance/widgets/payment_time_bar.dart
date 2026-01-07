@@ -3,10 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../../shared/themes/index.dart';
 
 /// Payment Time Bar - Salary payment time timeline
 class PaymentTimeBar extends StatelessWidget {
@@ -86,7 +83,7 @@ class PaymentTimeBar extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: isManagerAdjusted
-                      ? TossColors.primary.withValues(alpha: 0.1)
+                      ? TossColors.primary.withValues(alpha: TossOpacity.light)
                       : TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.full),
                 ),
@@ -97,7 +94,7 @@ class PaymentTimeBar extends StatelessWidget {
                       isManagerAdjusted
                           ? LucideIcons.userCheck
                           : LucideIcons.calculator,
-                      size: 10,
+                      size: TossSpacing.iconXXS,
                       color: isManagerAdjusted
                           ? TossColors.primary
                           : TossColors.gray600,
@@ -170,7 +167,7 @@ class PaymentTimeBar extends StatelessWidget {
                         style: TossTextStyles.bodyMedium.copyWith(
                           color:
                               netPayment >= 0 ? TossColors.success : TossColors.error,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                         ),
                       ),
                       SizedBox(width: TossSpacing.space1),
@@ -188,7 +185,7 @@ class PaymentTimeBar extends StatelessWidget {
                   '${(scheduledMinutes + netPayment) ~/ 60}h ${(scheduledMinutes + netPayment) % 60}min',
                   style: TossTextStyles.h3.copyWith(
                     color: isManagerAdjusted ? TossColors.primary : TossColors.gray900,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
               ],
@@ -205,7 +202,7 @@ class PaymentTimeBar extends StatelessWidget {
               children: [
                 Icon(
                   LucideIcons.messageSquare,
-                  size: 12,
+                  size: TossSpacing.iconXS2,
                   color: TossColors.gray500,
                 ),
                 SizedBox(width: TossSpacing.space1),
@@ -271,12 +268,12 @@ class ComparisonTimeBar extends StatelessWidget {
         Row(
           children: [
             SizedBox(
-              width: 70,
+              width: TossDimensions.avatarXXL,
               child: Text(
                 label,
                 style: TossTextStyles.small.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: isPayment ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isPayment ? TossFontWeight.semibold : TossFontWeight.regular,
                 ),
               ),
             ),
@@ -285,10 +282,10 @@ class ComparisonTimeBar extends StatelessWidget {
                 children: [
                   Icon(
                     LucideIcons.clock,
-                    size: 12,
+                    size: TossSpacing.iconXS2,
                     color: startDiff > 0 ? TossColors.error : TossColors.success,
                   ),
-                  SizedBox(width: 2),
+                  SizedBox(width: TossSpacing.space0_5),
                   Text(
                     '${startDiff > 0 ? "+" : ""}$startDiff min',
                     style: TossTextStyles.labelSmall.copyWith(
@@ -307,10 +304,10 @@ class ComparisonTimeBar extends StatelessWidget {
                       color: endDiff > 0 ? TossColors.success : TossColors.error,
                     ),
                   ),
-                  SizedBox(width: 2),
+                  SizedBox(width: TossSpacing.space0_5),
                   Icon(
                     LucideIcons.clock,
-                    size: 12,
+                    size: TossSpacing.iconXS2,
                     color: endDiff > 0 ? TossColors.success : TossColors.error,
                   ),
                 ],
@@ -322,7 +319,7 @@ class ComparisonTimeBar extends StatelessWidget {
         // Time bar with colors
         Row(
           children: [
-            SizedBox(width: 70),
+            SizedBox(width: TossDimensions.avatarXXL),
             Expanded(
               child: Column(
                 children: [
@@ -357,26 +354,26 @@ class ComparisonTimeBar extends StatelessWidget {
                               // Left - Late (red)
                               if (startDiff > 0)
                                 Container(
-                                  width: 40,
-                                  color: TossColors.error.withValues(alpha: 0.6),
+                                  width: TossDimensions.avatarLG,
+                                  color: TossColors.error.withValues(alpha: TossOpacity.darkScrim),
                                 )
                               else if (startDiff < 0)
                                 Container(
-                                  width: 30,
-                                  color: TossColors.success.withValues(alpha: 0.6),
+                                  width: TossDimensions.avatarSM,
+                                  color: TossColors.success.withValues(alpha: TossOpacity.darkScrim),
                                 ),
                               // Middle - Normal
                               Expanded(child: SizedBox()),
                               // Right - Overtime (green)
                               if (endDiff > 0)
                                 Container(
-                                  width: 25,
-                                  color: TossColors.success.withValues(alpha: 0.6),
+                                  width: TossDimensions.avatarSM,
+                                  color: TossColors.success.withValues(alpha: TossOpacity.darkScrim),
                                 )
                               else if (endDiff < 0)
                                 Container(
-                                  width: 20,
-                                  color: TossColors.error.withValues(alpha: 0.6),
+                                  width: TossDimensions.avatarXS,
+                                  color: TossColors.error.withValues(alpha: TossOpacity.darkScrim),
                                 ),
                             ],
                           ),
@@ -395,7 +392,7 @@ class ComparisonTimeBar extends StatelessWidget {
                                     color: isManagerAdjusted
                                         ? TossColors.primary
                                         : TossColors.gray900,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: TossFontWeight.bold,
                                   ),
                                 ),
                                 Text(
@@ -404,7 +401,7 @@ class ComparisonTimeBar extends StatelessWidget {
                                     color: isManagerAdjusted
                                         ? TossColors.primary
                                         : TossColors.gray900,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: TossFontWeight.bold,
                                   ),
                                 ),
                               ],
@@ -415,7 +412,7 @@ class ComparisonTimeBar extends StatelessWidget {
                     ),
                   ),
                   // Scheduled markers
-                  SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space0_5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

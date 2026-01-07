@@ -66,13 +66,13 @@ class MonthDatesPicker extends StatelessWidget {
     final daysInMonth = _getDaysInMonth();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12), // Same as WeekDatesPicker
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3), // Same as WeekDatesPicker
       child: Column(
         children: [
           // Weekday labels - Same style as WeekDatesPicker
           _buildWeekdayLabels(),
 
-          const SizedBox(height: 4), // Same as WeekDatesPicker
+          SizedBox(height: TossSpacing.space1), // Same as WeekDatesPicker
 
           // Calendar grid
           GridView.builder(
@@ -208,11 +208,11 @@ class _DateCell extends StatelessWidget {
         children: [
           // Date circle (32x32)
           Container(
-            width: 32,
-            height: 32,
+            width: TossSpacing.iconLG2,
+            height: TossSpacing.iconLG2,
             decoration: BoxDecoration(
               color: isSelected ? TossColors.primary : TossColors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -224,10 +224,10 @@ class _DateCell extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 4), // Same as WeekDatesPicker
+          SizedBox(height: TossSpacing.space1), // Same as WeekDatesPicker
 
           // Status indicator dot (4×4)
-          if (isCurrentMonth) _buildStatusDot() else const SizedBox(height: 4),
+          if (isCurrentMonth) _buildStatusDot() else SizedBox(height: TossSpacing.space1),
         ],
       ),
     );
@@ -290,7 +290,7 @@ class _DateCell extends StatelessWidget {
       height: 4,
       decoration: BoxDecoration(
         color: dotColor,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
       ),
     );
   }

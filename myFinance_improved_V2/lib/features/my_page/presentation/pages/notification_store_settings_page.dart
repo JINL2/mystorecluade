@@ -5,6 +5,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 import '../../data/datasources/notification_settings_datasource.dart';
 import '../providers/notification_settings_provider.dart';
@@ -69,7 +72,7 @@ class _NotificationStoreSettingsPageState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+          Icon(Icons.error_outline, size: TossSpacing.space12, color: TossColors.gray400),
           const SizedBox(height: TossSpacing.space4),
           Text(
             'Failed to load settings',
@@ -113,7 +116,7 @@ class _NotificationStoreSettingsPageState
                     padding: const EdgeInsets.only(top: TossSpacing.space1 / 2),
                     child: Icon(
                       Icons.info_outline,
-                      size: 16,
+                      size: TossSpacing.iconSM2,
                       color: TossColors.gray500,
                     ),
                   ),
@@ -139,8 +142,8 @@ class _NotificationStoreSettingsPageState
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  TossColors.primary.withValues(alpha: 0.08),
-                  TossColors.primary.withValues(alpha: 0.03),
+                  TossColors.primary.withValues(alpha: TossOpacity.light),
+                  TossColors.primary.withValues(alpha: TossOpacity.subtle),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -150,10 +153,10 @@ class _NotificationStoreSettingsPageState
             child: Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: TossSpacing.space12,
+                  height: TossSpacing.space12,
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.15),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.medium),
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Icon(
@@ -161,7 +164,7 @@ class _NotificationStoreSettingsPageState
                         ? Icons.notifications_active
                         : Icons.notifications_off,
                     color: TossColors.primary,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
@@ -173,21 +176,19 @@ class _NotificationStoreSettingsPageState
                       Text(
                         '$enabledCount of $totalCount stores active',
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray900,
-                          fontSize: 15,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: TossSpacing.space1),
                       Text(
                         settings.allStoresEnabled
                             ? 'All stores enabled'
                             : 'Custom settings',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray600,
-                          fontSize: 12,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -239,7 +240,7 @@ class _NotificationStoreSettingsPageState
                 Text(
                   'STORES BY LOCATION',
                   style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.gray700,
                     letterSpacing: 0.5,
                   ),
@@ -247,7 +248,7 @@ class _NotificationStoreSettingsPageState
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space2,
-                    vertical: 4,
+                    vertical: TossSpacing.space1,
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.gray200,
@@ -255,10 +256,9 @@ class _NotificationStoreSettingsPageState
                   ),
                   child: Text(
                     '$enabledCount/$totalCount',
-                    style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: TossTextStyles.small.copyWith(
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray700,
-                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -298,7 +298,7 @@ class _NotificationStoreSettingsPageState
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: TossColors.primary.withValues(alpha: 0.2),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.hover),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -310,14 +310,14 @@ class _NotificationStoreSettingsPageState
           children: [
             Icon(
               icon,
-              size: 18,
+              size: TossSpacing.iconSM3,
               color: isSelected ? TossColors.white : TossColors.gray700,
             ),
             const SizedBox(width: TossSpacing.space2),
             Text(
               label,
               style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: isSelected ? TossColors.white : TossColors.gray900,
               ),
             ),
@@ -340,17 +340,17 @@ class _NotificationStoreSettingsPageState
           Stack(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: TossSpacing.space10,
+                height: TossSpacing.space10,
                 decoration: BoxDecoration(
                   color: isEnabled
-                      ? TossColors.primary.withValues(alpha: 0.12)
+                      ? TossColors.primary.withValues(alpha: TossOpacity.light)
                       : TossColors.gray100,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Icon(
                   Icons.store,
-                  size: 20,
+                  size: TossSpacing.iconSM,
                   color: isEnabled ? TossColors.primary : TossColors.gray400,
                 ),
               ),
@@ -359,12 +359,12 @@ class _NotificationStoreSettingsPageState
                   right: 0,
                   bottom: 0,
                   child: Container(
-                    width: 12,
-                    height: 12,
+                    width: TossSpacing.space3,
+                    height: TossSpacing.space3,
                     decoration: BoxDecoration(
                       color: TossColors.success,
                       shape: BoxShape.circle,
-                      border: Border.all(color: TossColors.white, width: 2),
+                      border: Border.all(color: TossColors.white, width: TossDimensions.dividerThicknessBold),
                     ),
                   ),
                 ),
@@ -378,16 +378,15 @@ class _NotificationStoreSettingsPageState
                 Text(
                   storeName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text(
                   isEnabled ? 'Notifications active' : 'Muted',
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.small.copyWith(
                     color: isEnabled ? TossColors.success : TossColors.gray500,
-                    fontSize: 11,
                   ),
                 ),
               ],
@@ -419,7 +418,7 @@ class _NotificationStoreSettingsPageState
             child: Text(
               title,
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
@@ -534,7 +533,7 @@ class _NotificationStoreSettingsPageState
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: enabledCount > 0
-                ? TossColors.primary.withValues(alpha: 0.2)
+                ? TossColors.primary.withValues(alpha: TossOpacity.hover)
                 : TossColors.gray200,
           ),
         ),
@@ -542,17 +541,17 @@ class _NotificationStoreSettingsPageState
           children: [
             // Group icon
             Container(
-              width: 44,
-              height: 44,
+              width: TossSpacing.space11,
+              height: TossSpacing.space11,
               decoration: BoxDecoration(
                 color: enabledCount > 0
-                    ? TossColors.primary.withValues(alpha: 0.12)
+                    ? TossColors.primary.withValues(alpha: TossOpacity.light)
                     : TossColors.gray100,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
               ),
               child: Icon(
                 Icons.business,
-                size: 22,
+                size: TossSpacing.iconMD,
                 color: enabledCount > 0 ? TossColors.primary : TossColors.gray400,
               ),
             ),
@@ -564,16 +563,15 @@ class _NotificationStoreSettingsPageState
                   Text(
                     groupName,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                       color: TossColors.gray900,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   Text(
                     '$enabledCount of $storeCount stores active',
-                    style: TossTextStyles.caption.copyWith(
+                    style: TossTextStyles.small.copyWith(
                       color: enabledCount > 0 ? TossColors.success : TossColors.gray500,
-                      fontSize: 11,
                     ),
                   ),
                 ],
@@ -581,14 +579,14 @@ class _NotificationStoreSettingsPageState
             ),
             // Expand/collapse indicator
             Container(
-              padding: const EdgeInsets.all(TossSpacing.space1 + 2),
+              padding: const EdgeInsets.all(TossSpacing.space1_5),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                size: 20,
+                size: TossSpacing.iconSM,
                 color: TossColors.gray700,
               ),
             ),

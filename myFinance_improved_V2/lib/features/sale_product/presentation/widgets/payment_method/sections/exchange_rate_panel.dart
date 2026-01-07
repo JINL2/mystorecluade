@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/exchange_rate_data.dart';
@@ -215,7 +218,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const TossLoadingView.inline(size: 16),
+            const TossLoadingView.inline(size: TossSpacing.iconSM2),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Loading real-time rates...',
@@ -231,7 +234,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 16, color: TossColors.error),
+            Icon(Icons.error_outline, size: TossSpacing.iconSM2, color: TossColors.error),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Failed to load rates',
@@ -270,14 +273,14 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
               Text(
                 currencyCode,
                 style: TossTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.gray900,
                 ),
               ),
               const SizedBox(width: TossSpacing.space1),
               const Icon(
                 Icons.keyboard_arrow_down,
-                size: 18,
+                size: TossSpacing.iconSM,
                 color: TossColors.gray900,
               ),
             ],
@@ -287,10 +290,10 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         GestureDetector(
           onTap: () => focusNode.requestFocus(),
           child: Container(
-            padding: const EdgeInsets.only(bottom: 2),
+            padding: const EdgeInsets.only(bottom: TossSpacing.space0_5),
             decoration: const BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: TossColors.gray200, width: 1),
+                bottom: BorderSide(color: TossColors.gray200, width: TossDimensions.dividerThickness),
               ),
             ),
             child: IntrinsicWidth(
@@ -303,19 +306,19 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                   _ThousandsSeparatorInputFormatter(),
                 ],
                 style: TossTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray600,
                 ),
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
                   hintText: showHint ? displayHint : null,
                   hintStyle: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray600,
                   ),
                   suffixText: symbol,
                   suffixStyle: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray600,
                   ),
                   border: InputBorder.none,
@@ -323,7 +326,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                   focusedBorder: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 60),
+                  constraints: const BoxConstraints(minWidth: TossDimensions.profileImageWidth),
                 ),
                 onChanged: onChanged,
               ),
@@ -366,14 +369,14 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
           children: [
             Icon(
               Icons.check_circle_outline,
-              size: 18,
+              size: TossSpacing.iconSM,
               color: isValidDiscount ? TossColors.white : TossColors.gray400,
             ),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Apply as Total',
               style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: isValidDiscount ? TossColors.white : TossColors.gray400,
               ),
             ),
@@ -381,17 +384,17 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
               const SizedBox(width: TossSpacing.space2),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space1 + 2,
-                  vertical: 2,
+                  horizontal: TossSpacing.space1 + TossSpacing.space0_5,
+                  vertical: TossSpacing.space0_5,
                 ),
                 decoration: BoxDecoration(
-                  color: TossColors.white.withValues(alpha: 0.2),
+                  color: TossColors.white.withValues(alpha: TossOpacity.strong),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
                   '-${PaymentHelpers.formatNumber(discount.round())}',
                   style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.white,
                   ),
                 ),
@@ -416,7 +419,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(12),
+          top: Radius.circular(TossBorderRadius.lg),
         ),
       ),
       builder: (context) => DraggableScrollableSheet(
@@ -432,7 +435,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
               Text(
                 'Select Currency',
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
@@ -458,7 +461,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                         '${currency.symbol} ${currency.currencyCode}',
                         style: TossTextStyles.body.copyWith(
                           fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                              isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
                           color: isSelected
                               ? TossColors.primary
                               : TossColors.gray900,
@@ -468,7 +471,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                           ? const Icon(
                               Icons.check,
                               color: TossColors.primary,
-                              size: 24,
+                              size: TossSpacing.iconMD2,
                             )
                           : null,
                       onTap: () {

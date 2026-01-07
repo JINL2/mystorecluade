@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/session_review_provider.dart';
@@ -93,8 +94,8 @@ class ReviewItemCard extends ConsumerWidget {
           children: [
             // Product Image
             Container(
-              width: 56,
-              height: 56,
+              width: TossSpacing.icon3XL,
+              height: TossSpacing.icon3XL,
               decoration: BoxDecoration(
                 color: TossColors.gray100,
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -109,7 +110,7 @@ class ReviewItemCard extends ConsumerWidget {
                           return const Icon(
                             Icons.inventory_2_outlined,
                             color: TossColors.textTertiary,
-                            size: 24,
+                            size: TossSpacing.iconMD2,
                           );
                         },
                       ),
@@ -117,7 +118,7 @@ class ReviewItemCard extends ConsumerWidget {
                   : const Icon(
                       Icons.inventory_2_outlined,
                       color: TossColors.textTertiary,
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                     ),
             ),
 
@@ -131,13 +132,13 @@ class ReviewItemCard extends ConsumerWidget {
                   Text(
                     item.productName,
                     style: TossTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                       color: TossColors.textPrimary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   if (item.sku != null) ...[
                     Text(
                       item.sku!,
@@ -147,7 +148,7 @@ class ReviewItemCard extends ConsumerWidget {
                     ),
                   ],
                   if (item.brand != null || item.category != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       [item.brand, item.category].whereType<String>().join(' · '),
                       style: TossTextStyles.caption.copyWith(
@@ -175,23 +176,23 @@ class ReviewItemCard extends ConsumerWidget {
                         color: TossColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: TossSpacing.space1),
                     const Icon(
                       Icons.arrow_forward,
-                      size: 14,
+                      size: TossSpacing.iconXS,
                       color: TossColors.textTertiary,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: TossSpacing.space1),
                     Text(
                       '$effectiveNewStock',
                       style: TossTextStyles.body.copyWith(
                         color: isEdited ? TossColors.primary : TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: TossSpacing.space1),
                 // Change indicator
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -206,7 +207,7 @@ class ReviewItemCard extends ConsumerWidget {
                     '$changePrefix$effectiveStockChange',
                     style: TossTextStyles.caption.copyWith(
                       color: changeColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -232,7 +233,7 @@ class ReviewItemCard extends ConsumerWidget {
                 ),
                 child: Icon(
                   Icons.edit,
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: isEdited ? TossColors.primary : TossColors.textSecondary,
                 ),
               ),

@@ -257,9 +257,8 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
               child: TossButton.primary(
                 text: 'Close',
                 fullWidth: true,
-                textStyle: TossTextStyles.body.copyWith(
+                textStyle: TossTextStyles.bodyLarge.copyWith(
                   color: TossColors.white,
-                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
                 padding: const EdgeInsets.symmetric(
@@ -287,7 +286,6 @@ class _CashEndingCompletionPageState extends ConsumerState<CashEndingCompletionP
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray900,
               fontWeight: FontWeight.w700,
-              fontSize: 14,
             ),
           ),
           const Spacer(),

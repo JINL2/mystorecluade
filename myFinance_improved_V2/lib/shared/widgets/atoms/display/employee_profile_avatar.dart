@@ -142,7 +142,7 @@ class EmployeeAvatarList extends StatelessWidget {
         // Show overflow indicator
         if (overflowCount > 0)
           Padding(
-            padding: const EdgeInsets.only(left: 4),
+            padding: const EdgeInsets.only(left: TossSpacing.space1),
             child: GestureDetector(
               onTap: onOverflowTap,
               child: Container(

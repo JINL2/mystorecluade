@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
@@ -92,7 +93,7 @@ class HistoryStatisticsSummary extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.edit, size: 16, color: TossColors.primary),
+          const Icon(Icons.edit, size: TossSpacing.iconSM2, color: TossColors.primary),
           const SizedBox(width: TossSpacing.space2),
           Text(
             'Manager adjusted: ',
@@ -104,7 +105,7 @@ class HistoryStatisticsSummary extends StatelessWidget {
             '${session.totalScannedQuantity} → ${session.totalConfirmedQuantity}',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.primary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           const Spacer(),
@@ -119,10 +120,9 @@ class HistoryStatisticsSummary extends StatelessWidget {
             ),
             child: Text(
               '${(session.totalConfirmedQuantity ?? 0) - session.totalScannedQuantity >= 0 ? '+' : ''}${(session.totalConfirmedQuantity ?? 0) - session.totalScannedQuantity}',
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.micro.copyWith(
                 color: TossColors.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 10,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),
@@ -157,7 +157,7 @@ class HistoryStatisticsSummary extends StatelessWidget {
                 : isPositive
                     ? Icons.trending_up
                     : Icons.check_circle_outline,
-            size: 16,
+            size: TossSpacing.iconSM2,
             color: isNegative
                 ? TossColors.error
                 : isPositive
@@ -179,7 +179,7 @@ class HistoryStatisticsSummary extends StatelessWidget {
                   : isPositive
                       ? TossColors.success
                       : TossColors.textSecondary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         ],

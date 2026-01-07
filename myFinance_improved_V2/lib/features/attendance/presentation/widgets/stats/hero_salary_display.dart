@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/index.dart';
 
 /// Hero section displaying estimated salary with growth indicator
 class HeroSalaryDisplay extends StatelessWidget {
@@ -34,52 +32,49 @@ class HeroSalaryDisplay extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TossTextStyles.bodyMedium.copyWith(
+                style: TossTextStyles.bodySmall.copyWith(
                   color: TossColors.gray700,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
-              const SizedBox(width: TossSpacing.space1),
+              SizedBox(width: TossSpacing.space1),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
-                size: 20,
+                size: TossSpacing.iconSM,
                 color: TossColors.gray600,
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
 
         // Large amount display
         Text(
           amount,
-          style: TossTextStyles.display.copyWith(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
+          style: TossTextStyles.h1.copyWith(
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
             height: 1.2,
             letterSpacing: -0.5,
           ),
         ),
 
-        const SizedBox(height: 10),
+        SizedBox(height: TossSpacing.space2 + TossSpacing.space1 / 2),
 
         // Growth indicator
         Row(
           children: [
             Icon(
               isPositiveGrowth ? LucideIcons.arrowUpRight : LucideIcons.arrowDownRight,
-              size: 16,
+              size: TossSpacing.iconXS,
               color: isPositiveGrowth ? TossColors.primary : TossColors.loss,
             ),
-            const SizedBox(width: TossSpacing.space1),
+            SizedBox(width: TossSpacing.space1),
             Text(
               growthText,
-              style: TossTextStyles.body.copyWith(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+              style: TossTextStyles.bodySmall.copyWith(
+                fontWeight: TossFontWeight.semibold,
                 color: isPositiveGrowth ? TossColors.primary : TossColors.loss,
               ),
             ),

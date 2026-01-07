@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../domain/entities/employee_salary.dart';
 import 'employee_card.dart';
@@ -21,21 +23,18 @@ class EmployeeListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
+    return TossWhiteCard(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           // Section Header
           Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
                   color: TossColors.gray100,
-                  width: 1,
+                  width: TossDimensions.dividerThickness,
                 ),
               ),
             ),
@@ -44,7 +43,7 @@ class EmployeeListSection extends StatelessWidget {
                 const Icon(
                   Icons.groups_rounded,
                   color: TossColors.primary,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 Text(
@@ -91,7 +90,7 @@ class EmployeeListSection extends StatelessWidget {
                 ),
                 if (index < employees.length - 1)
                   const Divider(
-                    height: 1,
+                    height: TossDimensions.dividerThickness,
                     color: TossColors.gray100,
                     indent: TossSpacing.space4,
                     endIndent: TossSpacing.space4,

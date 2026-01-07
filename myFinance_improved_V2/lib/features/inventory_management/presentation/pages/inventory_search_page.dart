@@ -10,6 +10,7 @@ import '../../../../app/providers/app_state.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -20,7 +21,6 @@ import '../../domain/value_objects/product_filter.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/inventory_product_card.dart';
 import '../widgets/move_stock_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Inventory Search Page
 class InventorySearchPage extends ConsumerStatefulWidget {
@@ -140,7 +140,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
         border: Border(
           bottom: BorderSide(
             color: TossColors.gray100,
-            width: 1,
+            width: TossDimensions.dividerThickness,
           ),
         ),
       ),
@@ -154,7 +154,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
               child: const Icon(
                 Icons.arrow_back,
                 color: TossColors.gray900,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
             ),
           ),
@@ -358,7 +358,7 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
         children: [
           Icon(
             icon,
-            size: 64,
+            size: TossSpacing.icon4XL,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space3),

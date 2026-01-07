@@ -81,12 +81,12 @@ class _POListPageState extends ConsumerState<POListPage> {
               // Handle bar
               Center(
                 child: Container(
-                  width: 40,
+                  width: TossSpacing.iconXL,
                   height: 4,
                   margin: const EdgeInsets.only(bottom: TossSpacing.space4),
                   decoration: BoxDecoration(
                     color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
                   ),
                 ),
               ),
@@ -163,7 +163,7 @@ class _POListPageState extends ConsumerState<POListPage> {
                   content: Row(
                     children: [
                       TossLoadingView.inline(size: 20, color: TossColors.white),
-                      const SizedBox(width: 12),
+                      SizedBox(width: TossSpacing.space3),
                       const Text('Converting PI to PO...'),
                     ],
                   ),
@@ -249,7 +249,7 @@ class _POListPageState extends ConsumerState<POListPage> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             child: TossTextField.filled(
               hintText: 'Search by PO number or buyer...',
-              prefixIcon: const Icon(Icons.search, size: 20),
+              prefixIcon: const Icon(Icons.search, size: TossSpacing.iconMD),
               onChanged: _onSearch,
             ),
           ),
@@ -278,7 +278,7 @@ class _POListPageState extends ConsumerState<POListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+            Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(
               'Failed to load',
@@ -301,7 +301,7 @@ class _POListPageState extends ConsumerState<POListPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.shopping_cart_outlined,
-                size: 64, color: TossColors.gray400),
+                size: TossSpacing.icon4XL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space4),
             Text(
               'No Purchase Orders',
@@ -316,7 +316,7 @@ class _POListPageState extends ConsumerState<POListPage> {
             const SizedBox(height: TossSpacing.space4),
             TossButton.primary(
               text: 'Create PO',
-              leadingIcon: const Icon(Icons.add, size: 20, color: TossColors.white),
+              leadingIcon: const Icon(Icons.add, size: TossSpacing.iconMD, color: TossColors.white),
               onPressed: () => context.push('/purchase-order/new'),
             ),
           ],
@@ -387,13 +387,13 @@ class _CreateOptionTile extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: TossSpacing.iconXXL,
+                height: TossSpacing.iconXXL,
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
-                child: Icon(icon, color: iconColor, size: 24),
+                child: Icon(icon, color: iconColor, size: TossSpacing.iconMD2),
               ),
               const SizedBox(width: TossSpacing.space3),
               Expanded(
@@ -406,7 +406,7 @@ class _CreateOptionTile extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       subtitle,
                       style: TossTextStyles.bodySmall.copyWith(
@@ -446,11 +446,11 @@ class _PISelectionSheet extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
           child: Center(
             child: Container(
-              width: 40,
+              width: TossSpacing.iconXL,
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
               ),
             ),
           ),
@@ -488,7 +488,7 @@ class _PISelectionSheet extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+                  Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
                   const SizedBox(height: TossSpacing.space3),
                   Text(
                     'Failed to load PIs',
@@ -508,7 +508,7 @@ class _PISelectionSheet extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.inbox_outlined, size: 64, color: TossColors.gray400),
+                      Icon(Icons.inbox_outlined, size: TossSpacing.icon4XL, color: TossColors.gray400),
                       const SizedBox(height: TossSpacing.space4),
                       Text(
                         'No Available PIs',
@@ -574,8 +574,8 @@ class _PIItemCard extends StatelessWidget {
             children: [
               // PI Icon
               Container(
-                width: 48,
-                height: 48,
+                width: TossSpacing.iconXXL,
+                height: TossSpacing.iconXXL,
                 decoration: BoxDecoration(
                   color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -583,7 +583,7 @@ class _PIItemCard extends StatelessWidget {
                 child: Icon(
                   Icons.description_outlined,
                   color: TossColors.primary,
-                  size: 24,
+                  size: TossSpacing.iconMD2,
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -599,7 +599,7 @@ class _PIItemCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       item.buyerName,
                       style: TossTextStyles.bodySmall.copyWith(
@@ -622,10 +622,10 @@ class _PIItemCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    margin: const EdgeInsets.only(top: 4),
+                    margin: const EdgeInsets.only(top: TossSpacing.space1),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
+                      horizontal: TossSpacing.space2,
+                      vertical: TossSpacing.space1 / 2,
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.success.withValues(alpha: 0.1),

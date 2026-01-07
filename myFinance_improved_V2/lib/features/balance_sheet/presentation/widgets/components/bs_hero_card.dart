@@ -237,7 +237,7 @@ class BsHeroCard extends StatelessWidget {
           height: 8,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
           ),
         ),
         const SizedBox(width: TossSpacing.space1),

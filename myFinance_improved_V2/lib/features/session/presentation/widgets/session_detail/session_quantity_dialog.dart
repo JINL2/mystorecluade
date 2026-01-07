@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/states/session_detail_state.dart';
@@ -53,7 +54,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
             Text(
               'Enter Quantity',
               style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
                 color: TossColors.gray900,
               ),
               textAlign: TextAlign.center,
@@ -109,13 +110,13 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                       color: TossColors.gray500,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: TossSpacing.space1),
                   Icon(
                     _showRejected
                         ? Icons.keyboard_arrow_down
                         : Icons.keyboard_arrow_right,
                     color: TossColors.gray400,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
                 ],
               ),
@@ -151,7 +152,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                       child: Text(
                         'Cancel',
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray700,
                         ),
                       ),
@@ -176,7 +177,7 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
                       child: Text(
                         'Save',
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.white,
                         ),
                       ),

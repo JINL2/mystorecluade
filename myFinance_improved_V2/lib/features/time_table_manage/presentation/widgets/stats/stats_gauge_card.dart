@@ -44,10 +44,10 @@ class StatsGaugeCard extends StatelessWidget {
                   selectedPeriod,
                   style: TossTextStyles.titleMedium,
                 ),
-                const SizedBox(width: 2),
-                const Icon(
+                const SizedBox(width: TossSpacing.space0_5),
+                Icon(
                   Icons.keyboard_arrow_down,
-                  size: 16,
+                  size: TossSpacing.iconSM,
                   color: TossColors.gray600,
                 ),
               ],
@@ -105,7 +105,7 @@ class _GaugeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 116,
+      height: TossDimensions.statsGaugeCardHeight,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -119,18 +119,18 @@ class _GaugeWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: 8,
+            bottom: TossSpacing.space2,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 16),
+                const SizedBox(height: TossSpacing.space4),
                 Text(
                   displayValue,
                   style: TossTextStyles.h4.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: TossSpacing.space1),
                 GestureDetector(
                   onTap: onTap,
                   child: Row(
@@ -139,15 +139,15 @@ class _GaugeWidget extends StatelessWidget {
                       Text(
                         label,
                         style: TossTextStyles.label.copyWith(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                           color: TossColors.gray600,
                         ),
                       ),
                       if (showArrow) ...[
-                        const SizedBox(width: 2),
-                        const Icon(
+                        const SizedBox(width: TossSpacing.space0_5),
+                        Icon(
                           Icons.chevron_right,
-                          size: 12,
+                          size: TossSpacing.iconXS,
                           color: TossColors.gray600,
                         ),
                       ],

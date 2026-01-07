@@ -31,11 +31,11 @@ void showStoreSelectorSheet(
             // Handle bar
             Container(
               margin: const EdgeInsets.only(top: TossSpacing.space3),
-              width: 40,
+              width: TossSpacing.iconXL,
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
               ),
             ),
 
@@ -116,8 +116,8 @@ class _StoreOptionItem extends ConsumerWidget {
           children: [
             // Store icon
             Container(
-              width: 40,
-              height: 40,
+              width: TossSpacing.iconXL,
+              height: TossSpacing.iconXL,
               decoration: BoxDecoration(
                 color: isSelected
                     ? TossColors.primary.withValues(alpha: 0.1)
@@ -127,7 +127,7 @@ class _StoreOptionItem extends ConsumerWidget {
               child: Icon(
                 storeId.isEmpty ? Icons.business_outlined : Icons.store_outlined,
                 color: isSelected ? TossColors.primary : TossColors.gray500,
-                size: 20,
+                size: TossSpacing.iconSM,
               ),
             ),
             const SizedBox(width: TossSpacing.space3),

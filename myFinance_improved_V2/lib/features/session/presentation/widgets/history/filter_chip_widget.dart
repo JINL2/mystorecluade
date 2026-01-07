@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -57,7 +58,7 @@ class FilterChipWidget extends StatelessWidget {
                               ? TossColors.primary
                               : TossColors.textPrimary,
                           fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                              isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -69,7 +70,7 @@ class FilterChipWidget extends StatelessWidget {
                   style: TossTextStyles.bodySmall.copyWith(
                     color:
                         isSelected ? TossColors.primary : TossColors.textPrimary,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                   ),
                 ),
         ),
@@ -116,7 +117,7 @@ class StoreChipWidget extends StatelessWidget {
           label,
           style: TossTextStyles.bodySmall.copyWith(
             color: isSelected ? TossColors.primary : TossColors.textPrimary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
           ),
         ),
       ),

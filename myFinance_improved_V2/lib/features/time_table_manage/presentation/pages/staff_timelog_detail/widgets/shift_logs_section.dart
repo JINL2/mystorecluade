@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/shift_audit_log.dart';
 import '../../../providers/state/shift_audit_logs_provider.dart';
 import 'shift_log_item.dart';
@@ -82,11 +79,11 @@ class _ShiftLogsSectionState extends ConsumerState<ShiftLogsSection> {
                 color: TossColors.gray900,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: TossSpacing.space2),
             // Count badge
             if (count > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space0_5),
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -95,7 +92,7 @@ class _ShiftLogsSectionState extends ConsumerState<ShiftLogsSection> {
                   '$count',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),
@@ -105,11 +102,11 @@ class _ShiftLogsSectionState extends ConsumerState<ShiftLogsSection> {
               data: (_) => Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
                 color: TossColors.gray600,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
               loading: () => const SizedBox(
-                width: 16,
-                height: 16,
+                width: TossSpacing.iconSM,
+                height: TossSpacing.iconSM,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   color: TossColors.gray400,
@@ -118,7 +115,7 @@ class _ShiftLogsSectionState extends ConsumerState<ShiftLogsSection> {
               error: (_, __) => const Icon(
                 Icons.error_outline,
                 color: TossColors.error,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
             ),
           ],
@@ -174,16 +171,16 @@ class _ShiftLogsSectionState extends ConsumerState<ShiftLogsSection> {
               const Icon(
                 Icons.error_outline,
                 color: TossColors.error,
-                size: 24,
+                size: TossSpacing.iconLG,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: TossSpacing.space2),
               Text(
                 'Failed to load logs',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.error,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: TossSpacing.space1),
               TextButton(
                 onPressed: () {
                   ref.invalidate(shiftAuditLogsProvider(widget.shiftRequestId));
@@ -192,7 +189,7 @@ class _ShiftLogsSectionState extends ConsumerState<ShiftLogsSection> {
                   'Retry',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.primary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),

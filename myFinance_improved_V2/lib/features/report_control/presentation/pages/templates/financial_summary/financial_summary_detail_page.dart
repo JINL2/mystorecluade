@@ -41,7 +41,7 @@ class _FinancialSummaryDetailPageState
         backgroundColor: TossColors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TossSpacing.space4),
+        padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -50,21 +50,21 @@ class _FinancialSummaryDetailPageState
               accountChanges: widget.report.accountChanges,
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: TossSpacing.space5),
 
             // AI Insights
             AiInsightsSection(
               insights: widget.report.aiInsights,
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: TossSpacing.space5),
 
             // Red Flags
             RedFlagsSection(
               redFlags: widget.report.redFlags,
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: TossSpacing.space5),
 
             // All Transactions (실제 거래 데이터 - 맨 아래로 이동!)
             if (widget.auditData != null) ...[
@@ -74,7 +74,7 @@ class _FinancialSummaryDetailPageState
               ),
             ],
 
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
           ],
         ),
       ),

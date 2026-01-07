@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import 'staff_timelog_card.dart' show StaffTimeRecord;
 import '../../pages/staff_timelog_detail_page.dart';
 import 'problem_card.dart';
@@ -46,7 +44,7 @@ class ProblemsSection extends StatelessWidget {
           'Problems',
           style: TossTextStyles.h3.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
 

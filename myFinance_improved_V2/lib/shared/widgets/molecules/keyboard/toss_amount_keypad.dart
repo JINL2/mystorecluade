@@ -181,7 +181,7 @@ class TossAmountKeypadState extends State<TossAmountKeypad> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Spacer for symmetry when calculator button is shown
-                if (showCalculatorButton) const SizedBox(width: 48),
+                if (showCalculatorButton) SizedBox(width: TossSpacing.iconXXL),
 
                 Expanded(
                   child: Row(
@@ -272,7 +272,7 @@ class TossAmountKeypadState extends State<TossAmountKeypad> {
             child: const Icon(
               Icons.calculate_outlined,
               color: TossColors.white,
-              size: 24,
+              size: TossSpacing.iconLG,
             ),
           ),
         ),
@@ -339,7 +339,7 @@ class TossAmountKeypadState extends State<TossAmountKeypad> {
                     ? const Icon(
                         Icons.backspace_outlined,
                         color: TossColors.gray600,
-                        size: 24,
+                        size: TossSpacing.iconLG,
                       )
                     : Text(
                         key,
@@ -361,13 +361,13 @@ class TossAmountKeypadState extends State<TossAmountKeypad> {
 
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: TossSpacing.icon3XL,
       child: TossButton.primary(
         text: widget.submitButtonText,
         onPressed: isEnabled ? widget.onSubmit : null,
         isEnabled: isEnabled,
         fullWidth: true,
-        height: 56,
+        height: TossSpacing.icon3XL,
         backgroundColor: TossColors.gray900,
         borderRadius: TossBorderRadius.lg,
         textStyle: TossTextStyles.h4.copyWith(

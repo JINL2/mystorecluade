@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Recorded Attendance Card widget
@@ -30,9 +29,9 @@ class RecordedAttendanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildInfoRow(label: 'Recorded check-in', value: recordedCheckIn),
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
           _buildInfoRow(label: 'Recorded check-out', value: recordedCheckOut),
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
           Text(
             'Based on check-in/out device logs.',
             style: TossTextStyles.caption.copyWith(color: TossColors.gray500),

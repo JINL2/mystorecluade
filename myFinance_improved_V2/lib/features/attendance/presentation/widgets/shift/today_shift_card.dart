@@ -121,14 +121,14 @@ class TossTodayShiftCard extends StatelessWidget {
             Icon(
               Icons.calendar_today_outlined,
               color: TossColors.gray400,
-              size: 48,
+              size: TossSpacing.iconXXL,
             ),
             SizedBox(height: TossSpacing.space2),
             Text(
               'You have no shift',
               style: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
               textAlign: TextAlign.center,
             ),
@@ -198,7 +198,7 @@ class TossTodayShiftCard extends StatelessWidget {
       return TossButton.outlinedGray(
         text: buttonText,
         onPressed: isLoading ? null : onPressed,
-        leadingIcon: Icon(buttonIcon, size: 20),
+        leadingIcon: Icon(buttonIcon, size: TossSpacing.iconMD),
         fullWidth: true,
         isLoading: isLoading,
       );
@@ -209,7 +209,7 @@ class TossTodayShiftCard extends StatelessWidget {
       return TossButton.destructive(
         text: buttonText,
         onPressed: isLoading ? null : onPressed,
-        leadingIcon: Icon(buttonIcon, size: 20, color: TossColors.white),
+        leadingIcon: Icon(buttonIcon, size: TossSpacing.iconMD, color: TossColors.white),
         fullWidth: true,
         isLoading: isLoading,
       );
@@ -218,7 +218,7 @@ class TossTodayShiftCard extends StatelessWidget {
     return TossButton.primary(
       text: buttonText,
       onPressed: isLoading ? null : onPressed,
-      leadingIcon: Icon(buttonIcon, size: 20, color: TossColors.white),
+      leadingIcon: Icon(buttonIcon, size: TossSpacing.iconMD, color: TossColors.white),
       fullWidth: true,
       isLoading: isLoading,
     );
@@ -237,16 +237,16 @@ class TossTodayShiftCard extends StatelessWidget {
         vertical: TossSpacing.space3,
       ),
       decoration: BoxDecoration(
-        color: TossColors.error.withValues(alpha: 0.1),
+        color: TossColors.error.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
+        border: Border.all(color: TossColors.error.withValues(alpha: TossOpacity.heavy)),
       ),
       child: Row(
         children: [
           Icon(
             Icons.warning_amber_rounded,
             color: TossColors.error,
-            size: 20,
+            size: TossSpacing.iconMD,
           ),
           SizedBox(width: TossSpacing.space2),
           Expanded(
@@ -254,7 +254,7 @@ class TossTodayShiftCard extends StatelessWidget {
               "You haven't checked in yet!",
               style: TossTextStyles.body.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ),
@@ -372,7 +372,7 @@ class TossTodayShiftCard extends StatelessWidget {
                   '+$hiddenCount',
                   style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),
@@ -385,7 +385,7 @@ class TossTodayShiftCard extends StatelessWidget {
           TossButton.outlinedGray(
             text: 'Report Issue',
             onPressed: onReportIssue,
-            leadingIcon: const Icon(Icons.flag_outlined, size: 18),
+            leadingIcon: Icon(Icons.flag_outlined, size: TossSpacing.iconSM),
             fullWidth: true,
           ),
         ],
@@ -405,20 +405,20 @@ class TossTodayShiftCard extends StatelessWidget {
         vertical: TossSpacing.space1,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withValues(alpha: TossOpacity.heavy)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          SizedBox(width: 4),
+          Icon(icon, size: TossSpacing.iconXS, color: color),
+          SizedBox(width: TossSpacing.space1),
           Text(
             label,
             style: TossTextStyles.labelSmall.copyWith(
               color: color,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         ],
@@ -452,7 +452,7 @@ class TossTodayShiftCard extends StatelessWidget {
           Text(
             timeRange ?? 'No time',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
@@ -531,7 +531,7 @@ class TossTodayShiftCard extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: 16,
+          size: TossSpacing.iconSM2,
           color: highlight ? TossColors.primary : TossColors.gray500,
         ),
         SizedBox(width: TossSpacing.space2),
@@ -545,7 +545,7 @@ class TossTodayShiftCard extends StatelessWidget {
         Text(
           '$startTime - $endTime',
           style: TossTextStyles.body.copyWith(
-            fontWeight: highlight ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: highlight ? TossFontWeight.semibold : TossFontWeight.medium,
             color: highlight ? TossColors.primary : TossColors.gray900,
             fontFeatures: [FontFeature.tabularFigures()],
           ),
@@ -596,9 +596,7 @@ class TossTodayShiftCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   shiftType ?? 'Unknown Shift',
-                  style: TossTextStyles.h2.copyWith(
-                    fontSize: 22,
-                  ),
+                  style: TossTextStyles.h2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -617,7 +615,7 @@ class TossTodayShiftCard extends StatelessWidget {
                   _getStatusText(),
                   style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.white,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),
@@ -670,7 +668,7 @@ class TossTodayShiftCard extends StatelessWidget {
               Text(
                 location ?? 'No location',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],

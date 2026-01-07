@@ -7,6 +7,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_opacity.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/letter_of_credit.dart';
 import '../../domain/repositories/lc_repository.dart';
@@ -40,8 +42,10 @@ class _LCListPageState extends ConsumerState<LCListPage> {
 
     if (companyId.isEmpty) {
       return TossScaffold(
+        backgroundColor: TossColors.white,
         appBar: TossAppBar(
           title: 'Letter of Credit',
+          backgroundColor: TossColors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => _navigateBack(context),
@@ -61,8 +65,10 @@ class _LCListPageState extends ConsumerState<LCListPage> {
     final lcListAsync = ref.watch(lcListProvider(params));
 
     return TossScaffold(
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: 'Letter of Credit',
+        backgroundColor: TossColors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => _navigateBack(context),
@@ -79,7 +85,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
             child: TossTextField.filled(
               controller: _searchController,
               hintText: 'Search by LC number...',
-              prefixIcon: const Icon(Icons.search, size: 20),
+              prefixIcon: Icon(Icons.search, size: TossSpacing.iconMD),
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value.isEmpty ? null : value;
@@ -130,7 +136,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
         _selectedStatuses!.contains(LCStatus.advised);
 
     return SizedBox(
-      height: 40,
+      height: TossSpacing.buttonHeightMD,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
@@ -206,14 +212,14 @@ class _LCListPageState extends ConsumerState<LCListPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isSelected) ...[
-              Icon(Icons.check, size: 14, color: textColor),
-              const SizedBox(width: 4),
+              Icon(Icons.check, size: TossSpacing.iconXS, color: textColor),
+              const SizedBox(width: TossSpacing.space1),
             ],
             Text(
               label,
               style: TossTextStyles.caption.copyWith(
                 color: textColor,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
               ),
             ),
           ],
@@ -227,7 +233,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+          Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
           const SizedBox(height: TossSpacing.space3),
           Text(
             'Failed to load',
@@ -258,7 +264,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.account_balance_outlined,
-                size: 64, color: TossColors.gray400),
+                size: TossSpacing.icon4XL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space4),
             Text(
               'No Letters of Credit',
@@ -273,7 +279,7 @@ class _LCListPageState extends ConsumerState<LCListPage> {
             const SizedBox(height: TossSpacing.space4),
             TossButton.primary(
               text: 'Create LC',
-              leadingIcon: const Icon(Icons.add, size: 20, color: TossColors.white),
+              leadingIcon: Icon(Icons.add, size: TossSpacing.iconMD, color: TossColors.white),
               onPressed: () => context.push('/letter-of-credit/new'),
             ),
           ],
@@ -347,11 +353,9 @@ class _LCListItemWidget extends StatelessWidget {
     final dateFormat = DateFormat('MMM dd, yyyy');
     final amountFormat = NumberFormat('#,##0.00');
 
-    return Card(
+    return TossWhiteCard(
       margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
+      borderRadius: TossBorderRadius.lg,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -370,11 +374,11 @@ class _LCListItemWidget extends StatelessWidget {
                         Text(
                           item.lcNumber,
                           style: TossTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                         if (item.applicantName != null) ...[
-                          const SizedBox(height: 2),
+                          const SizedBox(height: TossSpacing.space1 / 2),
                           Text(
                             item.applicantName!,
                             style: TossTextStyles.bodyMedium.copyWith(
@@ -407,7 +411,7 @@ class _LCListItemWidget extends StatelessWidget {
                         Text(
                           '${item.currencyCode} ${amountFormat.format(item.amount)}',
                           style: TossTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.primary,
                           ),
                         ),
@@ -428,7 +432,7 @@ class _LCListItemWidget extends StatelessWidget {
                           Text(
                             '${item.utilizationPercent.toStringAsFixed(1)}%',
                             style: TossTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                               color: TossColors.success,
                             ),
                           ),
@@ -449,14 +453,14 @@ class _LCListItemWidget extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.event,
-                          size: 16,
+                          size: TossSpacing.iconSM,
                           color: item.isExpired
                               ? TossColors.error
                               : item.isExpiryApproaching
                                   ? TossColors.warning
                                   : TossColors.gray500,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: TossSpacing.space1),
                         Text(
                           'Exp: ${dateFormat.format(item.expiryDateUtc)}',
                           style: TossTextStyles.caption.copyWith(
@@ -467,8 +471,8 @@ class _LCListItemWidget extends StatelessWidget {
                                     : TossColors.gray600,
                             fontWeight: item.isExpired ||
                                     item.isExpiryApproaching
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                                ? TossFontWeight.semibold
+                                : TossFontWeight.regular,
                           ),
                         ),
                       ],
@@ -480,10 +484,10 @@ class _LCListItemWidget extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.link,
-                          size: 14,
+                          size: TossSpacing.iconXS,
                           color: TossColors.gray500,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: TossSpacing.space1),
                         Text(
                           item.poNumber ?? item.piNumber ?? '',
                           style: TossTextStyles.caption.copyWith(
@@ -502,10 +506,10 @@ class _LCListItemWidget extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.account_balance,
-                      size: 14,
+                      size: TossSpacing.iconXS,
                       color: TossColors.gray500,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: TossSpacing.space1),
                     Expanded(
                       child: Text(
                         item.issuingBankName!,
@@ -529,8 +533,8 @@ class _LCListItemWidget extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: item.isExpired
-                        ? TossColors.error.withOpacity(0.1)
-                        : TossColors.warning.withOpacity(0.1),
+                        ? TossColors.error.withValues(alpha: TossOpacity.light)
+                        : TossColors.warning.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Row(
@@ -540,12 +544,12 @@ class _LCListItemWidget extends StatelessWidget {
                         item.isExpired
                             ? Icons.error_outline
                             : Icons.warning_amber,
-                        size: 14,
+                        size: TossSpacing.iconXS,
                         color: item.isExpired
                             ? TossColors.error
                             : TossColors.warning,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: TossSpacing.space1),
                       Text(
                         item.isExpired
                             ? 'Expired'
@@ -554,7 +558,7 @@ class _LCListItemWidget extends StatelessWidget {
                           color: item.isExpired
                               ? TossColors.error
                               : TossColors.warning,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                         ),
                       ),
                     ],
@@ -578,35 +582,35 @@ class _LCListItemWidget extends StatelessWidget {
         textColor = TossColors.gray700;
         break;
       case LCStatus.applied:
-        bgColor = TossColors.warning.withOpacity(0.1);
+        bgColor = TossColors.warning.withValues(alpha: TossOpacity.light);
         textColor = TossColors.warning;
         break;
       case LCStatus.issued:
-        bgColor = TossColors.primary.withOpacity(0.1);
+        bgColor = TossColors.primary.withValues(alpha: TossOpacity.light);
         textColor = TossColors.primary;
         break;
       case LCStatus.advised:
-        bgColor = TossColors.info.withOpacity(0.1);
+        bgColor = TossColors.info.withValues(alpha: TossOpacity.light);
         textColor = TossColors.info;
         break;
       case LCStatus.confirmed:
-        bgColor = TossColors.success.withOpacity(0.1);
+        bgColor = TossColors.success.withValues(alpha: TossOpacity.light);
         textColor = TossColors.success;
         break;
       case LCStatus.amended:
-        bgColor = TossColors.warning.withOpacity(0.1);
+        bgColor = TossColors.warning.withValues(alpha: TossOpacity.light);
         textColor = TossColors.warning;
         break;
       case LCStatus.documentsSubmitted:
-        bgColor = TossColors.info.withOpacity(0.1);
+        bgColor = TossColors.info.withValues(alpha: TossOpacity.light);
         textColor = TossColors.info;
         break;
       case LCStatus.utilized:
-        bgColor = TossColors.success.withOpacity(0.2);
+        bgColor = TossColors.success.withValues(alpha: TossOpacity.overlay);
         textColor = TossColors.success;
         break;
       case LCStatus.expired:
-        bgColor = TossColors.error.withOpacity(0.1);
+        bgColor = TossColors.error.withValues(alpha: TossOpacity.light);
         textColor = TossColors.error;
         break;
       case LCStatus.closed:
@@ -632,7 +636,7 @@ class _LCListItemWidget extends StatelessWidget {
         status.label,
         style: TossTextStyles.caption.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

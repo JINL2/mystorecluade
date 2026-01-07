@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../themes/toss_animations.dart';
-import '../../themes/toss_border_radius.dart';
-import '../../themes/toss_colors.dart';
-import '../../themes/toss_spacing.dart';
-import '../../themes/toss_text_styles.dart';
+import '../../themes/index.dart';
 
 /// AI analysis details box for attachment OCR results (collapsible)
 ///
@@ -63,9 +59,9 @@ class _AiAnalysisDetailsBoxState extends State<AiAnalysisDetailsBox> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+        color: TossColors.warningLight,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        border: Border.all(color: Colors.amber.shade200),
+        border: Border.all(color: TossColors.warning.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,23 +77,23 @@ class _AiAnalysisDetailsBoxState extends State<AiAnalysisDetailsBox> {
                 children: [
                   Icon(
                     widget.icon,
-                    size: 14,
-                    color: Colors.amber.shade700,
+                    size: TossSpacing.iconXS,
+                    color: TossColors.warning,
                   ),
                   const SizedBox(width: TossSpacing.space2),
                   Expanded(
                     child: Text(
                       '$displayTitle (${widget.items.length})',
                       style: TossTextStyles.caption.copyWith(
-                        color: Colors.amber.shade800,
+                        color: TossColors.warning,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
-                    size: 18,
-                    color: Colors.amber.shade600,
+                    size: TossSpacing.iconSM,
+                    color: TossColors.warning,
                   ),
                 ],
               ),
@@ -130,7 +126,7 @@ class _AiAnalysisDetailsBoxState extends State<AiAnalysisDetailsBox> {
         children: [
           Container(
             height: 1,
-            color: Colors.amber.shade200,
+            color: TossColors.warning.withValues(alpha: 0.3),
           ),
           const SizedBox(height: TossSpacing.space2),
           ...widget.items.asMap().entries.map((entry) {
@@ -155,17 +151,17 @@ class _AiAnalysisDetailsBoxState extends State<AiAnalysisDetailsBox> {
         children: [
           // Number badge
           Container(
-            width: 20,
-            height: 20,
+            width: TossSpacing.iconSM,
+            height: TossSpacing.iconSM,
             decoration: BoxDecoration(
-              color: Colors.amber.shade100,
+              color: TossColors.warningLight,
               borderRadius: BorderRadius.circular(TossBorderRadius.full),
             ),
             child: Center(
               child: Text(
                 '${index + 1}',
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.amber.shade800,
+                  color: TossColors.warning,
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                 ),

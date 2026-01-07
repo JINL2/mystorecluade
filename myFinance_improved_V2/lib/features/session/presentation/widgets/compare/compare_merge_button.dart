@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -32,8 +33,8 @@ class CompareMergeButton extends StatelessWidget {
           onPressed: isMerging ? null : onMerge,
           isLoading: isMerging,
           fullWidth: true,
-          height: 52,
-          fontWeight: FontWeight.w700,
+          height: TossSpacing.inputHeightLG + 4,
+          fontWeight: TossFontWeight.bold,
         ),
       ),
     );

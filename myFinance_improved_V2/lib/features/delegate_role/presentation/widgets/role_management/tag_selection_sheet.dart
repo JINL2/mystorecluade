@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/core/utils/tag_validator.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -106,8 +109,8 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
           // Handle bar
           Container(
             margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -126,7 +129,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                       Text(
                         'Edit Tags',
                         style: TossTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TossFontWeight.bold,
                           color: TossColors.gray900,
                         ),
                       ),
@@ -204,7 +207,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                 'Selected Tags',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
               Text(
@@ -213,7 +216,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                   color: _selectedTags.length >= TagValidator.MAX_TAGS
                       ? TossColors.primary
                       : TossColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],
@@ -239,13 +242,13 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
       ),
       decoration: BoxDecoration(
         color: Color.alphaBlend(
-          _getTagColor(tag).withOpacity(0.1),
+          _getTagColor(tag).withValues(alpha: TossOpacity.light),
           TossColors.background,
         ),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         border: Border.all(
           color: Color.alphaBlend(
-            _getTagColor(tag).withOpacity(0.3),
+            _getTagColor(tag).withValues(alpha: TossOpacity.heavy),
             TossColors.background,
           ),
           width: 1,
@@ -258,7 +261,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
             tag,
             style: TossTextStyles.caption.copyWith(
               color: _getTagColor(tag),
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           const SizedBox(width: TossSpacing.space1),
@@ -267,7 +270,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
             borderRadius: BorderRadius.circular(TossBorderRadius.full),
             child: Icon(
               Icons.close,
-              size: 14,
+              size: TossSpacing.iconXS,
               color: _getTagColor(tag),
             ),
           ),
@@ -284,7 +287,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
           'Suggested Tags',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -324,7 +327,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
             children: [
               const Icon(
                 Icons.add,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.textSecondary,
               ),
               const SizedBox(width: TossSpacing.space1),
@@ -332,7 +335,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                 tag,
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],
@@ -359,7 +362,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
           ),
           child: SizedBox(
             width: double.infinity,
-            height: 56,
+            height: TossSpacing.buttonHeightLG,
             child: Material(
               color: TossColors.primary,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -369,15 +372,15 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                   Navigator.pop(context);
                 },
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                splashColor: TossColors.white.withOpacity(0.1),
-                highlightColor: TossColors.white.withOpacity(0.05),
+                splashColor: TossColors.white.withValues(alpha: TossOpacity.light),
+                highlightColor: TossColors.white.withValues(alpha: TossOpacity.subtle),
                 child: Container(
                   alignment: Alignment.center,
                   child: Text(
                     'Save Tags',
                     style: TossTextStyles.bodyLarge.copyWith(
                       color: TossColors.white,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),

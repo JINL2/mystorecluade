@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -25,7 +26,7 @@ class StoreInfoCard extends StatelessWidget {
 
 @override
   Widget build(BuildContext context) {
-    return TossCard(
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +55,7 @@ class StoreInfoCard extends StatelessWidget {
                       'Store Information',
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray600,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space1),
@@ -62,7 +63,7 @@ class StoreInfoCard extends StatelessWidget {
                       store['store_name']?.toString() ?? 'Unnamed Store',
                       style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
                   ],

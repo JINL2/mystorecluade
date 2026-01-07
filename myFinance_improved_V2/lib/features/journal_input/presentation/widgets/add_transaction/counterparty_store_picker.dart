@@ -73,7 +73,7 @@ class CounterpartyStorePicker extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, size: 20, color: TossColors.gray500),
+              const Icon(Icons.info_outline, size: TossSpacing.iconMD, color: TossColors.gray500),
               const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
@@ -111,7 +111,7 @@ class CounterpartyStorePicker extends ConsumerWidget {
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space3 + TossSpacing.space1 / 2),
             decoration: BoxDecoration(
               color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -124,7 +124,7 @@ class CounterpartyStorePicker extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.store,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: selectedStoreId != null
                       ? TossColors.primary
                       : TossColors.gray400,
@@ -173,7 +173,7 @@ class CounterpartyStorePicker extends ConsumerWidget {
         ),
         const SizedBox(height: TossSpacing.space2),
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
           child: const Center(
             child: TossLoadingView(),
           ),

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -84,7 +86,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
           padding: const EdgeInsets.all(TossSpacing.space5),
           child: Column(
             children: [
-              const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+              const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconXXL),
               const SizedBox(height: TossSpacing.space3),
               Text(
                 'Failed to load permissions',
@@ -114,7 +116,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
               Text(
                 'Role Permissions',
                 style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
@@ -265,7 +267,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                     Text(
                       title,
                       style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -281,8 +283,8 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
               ),
               // Expand/collapse icon
               Container(
-                width: 24,
-                height: 24,
+                width: TossSpacing.iconMD2,
+                height: TossSpacing.iconMD2,
                 alignment: Alignment.center,
                 child: AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0,
@@ -290,7 +292,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                   child: const Icon(
                     Icons.expand_more,
                     color: TossColors.gray600,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                   ),
                 ),
               ),
@@ -316,13 +318,13 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
             : null,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          width: 32,
-          height: 32,
+          width: TossSpacing.iconLG,
+          height: TossSpacing.iconLG,
           alignment: Alignment.center,
           child: AnimatedContainer(
             duration: TossAnimations.normal,
-            width: 20,
-            height: 20,
+            width: TossSpacing.iconMD,
+            height: TossSpacing.iconMD,
             decoration: BoxDecoration(
               color: allSelected || someSelected
                   ? TossColors.primary
@@ -338,14 +340,14 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
             child: allSelected
                 ? const Icon(
                     Icons.check,
-                    size: 14,
+                    size: TossSpacing.iconXS,
                     color: TossColors.white,
                   )
                 : someSelected
                     ? Center(
                         child: Container(
-                          width: 8,
-                          height: 2,
+                          width: TossSpacing.space2,
+                          height: TossDimensions.timelineLineWidth,
                           decoration: BoxDecoration(
                             color: TossColors.white,
                             borderRadius:
@@ -385,13 +387,13 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
               const SizedBox(width: TossSpacing.space8),
               // Individual checkbox
               Container(
-                width: 32,
-                height: 32,
+                width: TossSpacing.iconLG,
+                height: TossSpacing.iconLG,
                 alignment: Alignment.center,
                 child: AnimatedContainer(
                   duration: TossAnimations.normal,
-                  width: 20,
-                  height: 20,
+                  width: TossSpacing.iconMD,
+                  height: TossSpacing.iconMD,
                   decoration: BoxDecoration(
                     color:
                         isSelected ? TossColors.primary : TossColors.background,
@@ -405,7 +407,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                   child: isSelected
                       ? const Icon(
                           Icons.check,
-                          size: 14,
+                          size: TossSpacing.iconXS,
                           color: TossColors.white,
                         )
                       : null,
@@ -418,7 +420,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                   style: TossTextStyles.body.copyWith(
                     color:
                         widget.canEdit ? TossColors.gray900 : TossColors.gray500,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: TossFontWeight.regular,
                   ),
                 ),
               ),

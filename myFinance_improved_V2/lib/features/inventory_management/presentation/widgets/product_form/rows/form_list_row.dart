@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../help_badge.dart';
 
@@ -41,7 +43,7 @@ class FormListRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         constraints: const BoxConstraints(minHeight: 48),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -54,7 +56,7 @@ class FormListRow extends StatelessWidget {
                       TextSpan(
                         text: label,
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                           color: TossColors.gray600,
                         ),
                       ),
@@ -63,14 +65,14 @@ class FormListRow extends StatelessWidget {
                           text: ' *',
                           style: TextStyle(
                             color: TossColors.error,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
                     ],
                   ),
                 ),
                 if (showHelpBadge) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   HelpBadge(onTap: onHelpTap),
                 ],
               ],
@@ -82,18 +84,18 @@ class FormListRow extends StatelessWidget {
                   hasValue ? value! : placeholder,
                   style: TossTextStyles.body.copyWith(
                     fontWeight: hasValue && isValueActive
-                        ? FontWeight.w500
-                        : FontWeight.w400,
+                        ? TossFontWeight.medium
+                        : TossFontWeight.regular,
                     color: hasValue && isValueActive
                         ? TossColors.gray900
                         : TossColors.gray500,
                   ),
                 ),
                 if (showChevron) ...[
-                  const SizedBox(width: 6),
+                  const SizedBox(width: TossSpacing.space1 + TossSpacing.space0_5),
                   const Icon(
                     Icons.chevron_right,
-                    size: 18,
+                    size: TossSpacing.iconSM,
                     color: TossColors.gray500,
                   ),
                 ],

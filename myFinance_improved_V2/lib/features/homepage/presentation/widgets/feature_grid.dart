@@ -246,8 +246,8 @@ class _FeatureListItem extends ConsumerWidget {
             children: [
               // Icon
               Container(
-                width: 36,
-                height: 36,
+                width: TossSpacing.space9,
+                height: TossSpacing.space9,
                 decoration: const BoxDecoration(
                   color: TossColors.gray100,
                   shape: BoxShape.circle,
@@ -256,7 +256,7 @@ class _FeatureListItem extends ConsumerWidget {
                   child: DynamicIcon(
                     iconKey: feature.iconKey,
                     featureName: feature.featureName,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: TossColors.gray700,
                     useDefaultColor: false,
                   ),
@@ -271,10 +271,9 @@ class _FeatureListItem extends ConsumerWidget {
                   children: [
                     Text(
                       feature.featureName,
-                      style: TossTextStyles.body.copyWith(
+                      style: TossTextStyles.titleMedium.copyWith(
                         color: TossColors.textPrimary,
                         fontWeight: FontWeight.w600,
-                        fontSize: 15,
                         letterSpacing: -0.4,
                         height: 1.3,
                       ),
@@ -283,12 +282,11 @@ class _FeatureListItem extends ConsumerWidget {
                     ),
                     if (feature.featureDescription != null &&
                         feature.featureDescription!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         feature.featureDescription!,
-                        style: TossTextStyles.caption.copyWith(
+                        style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.textSecondary,
-                          fontSize: 13,
                           letterSpacing: -0.2,
                           height: 1.2,
                         ),
@@ -304,7 +302,7 @@ class _FeatureListItem extends ConsumerWidget {
               const Icon(
                 Icons.chevron_right,
                 color: TossColors.textTertiary,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
             ],
           ),

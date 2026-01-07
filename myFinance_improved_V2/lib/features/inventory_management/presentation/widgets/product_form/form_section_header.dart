@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'help_badge.dart';
 
@@ -27,7 +29,10 @@ class FormSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 12),
+      padding: const EdgeInsets.only(
+        top: TossSpacing.marginLG,
+        bottom: TossSpacing.space3,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -36,12 +41,12 @@ class FormSectionHeader extends StatelessWidget {
               Text(
                 title,
                 style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
               if (showHelpBadge) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 HelpBadge(onTap: onHelpTap),
               ],
             ],
@@ -52,7 +57,7 @@ class FormSectionHeader extends StatelessWidget {
               child: Text(
                 actionText!,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.primary,
                 ),
               ),

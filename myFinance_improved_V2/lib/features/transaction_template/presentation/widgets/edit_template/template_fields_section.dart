@@ -12,6 +12,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 
 import '../../../domain/enums/template_constants.dart';
 
@@ -55,17 +56,17 @@ class TemplateFieldsSection extends StatelessWidget {
           // Section header
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.settings,
                 color: TossColors.primary,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 'Template Settings',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],
@@ -149,7 +150,7 @@ class _ToggleRow extends StatelessWidget {
               Text(
                 label,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.gray900,
                 ),
               ),
@@ -200,7 +201,7 @@ class _PermissionSelector extends StatelessWidget {
             Text(
               'Access Level',
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
@@ -210,7 +211,7 @@ class _PermissionSelector extends StatelessWidget {
                   'Admin: Only visible in Admin tab\nGeneral: Visible in General tab',
               child: Icon(
                 Icons.info_outline,
-                size: 16,
+                size: TossSpacing.iconSM2,
                 color: TossColors.gray500,
               ),
             ),
@@ -289,7 +290,7 @@ class _PermissionChip extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 16,
+              size: TossSpacing.iconSM2,
               color: isSelected ? TossColors.white : TossColors.gray700,
             ),
             const SizedBox(width: TossSpacing.space1),
@@ -297,7 +298,7 @@ class _PermissionChip extends StatelessWidget {
               label,
               style: TossTextStyles.label.copyWith(
                 color: isSelected ? TossColors.white : TossColors.gray700,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
               ),
             ),
           ],

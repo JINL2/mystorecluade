@@ -186,7 +186,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
               if (po.requiredShipmentDateUtc != null) ...[
                 Icon(
                   Icons.local_shipping_outlined,
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: _getShipmentDateColor(po.requiredShipmentDateUtc!),
                 ),
                 const SizedBox(width: TossSpacing.space1),
@@ -243,7 +243,7 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
             value: percent / 100,
             backgroundColor: TossColors.gray200,
             valueColor: const AlwaysStoppedAnimation<Color>(TossColors.primary),
-            minHeight: 8,
+            minHeight: TossSpacing.space2,
           ),
         ),
       ],
@@ -422,8 +422,8 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Icon(Icons.info_outline, size: 12, color: TossColors.gray400),
-                  const SizedBox(width: 4),
+                  Icon(Icons.info_outline, size: TossSpacing.iconXXS, color: TossColors.gray400),
+                  SizedBox(width: TossSpacing.space1),
                   Text(
                     'Rate: 1 ${po.currencyCode} = ${_formatAmountForCurrency(rate, baseCurrency!)} $baseCurrency',
                     style: TossTextStyles.caption.copyWith(
@@ -767,7 +767,7 @@ class _POItemCard extends StatelessWidget {
             Row(
               children: [
                 const Icon(Icons.local_shipping,
-                    size: 14, color: TossColors.success),
+                    size: TossSpacing.iconXS, color: TossColors.success),
                 const SizedBox(width: TossSpacing.space1),
                 Text(
                   'Shipped: ${NumberFormat('#,##0.##').format(item.shippedQuantity)}',

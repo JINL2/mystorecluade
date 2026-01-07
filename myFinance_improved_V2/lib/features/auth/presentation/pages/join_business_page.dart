@@ -138,7 +138,7 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
             Container(
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
-                color: TossColors.success.withOpacity(0.1),
+                color: TossColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               ),
               child: const Icon(

@@ -117,9 +117,8 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
             children: [
               Text(
                 'Total',
-                style: TossTextStyles.body.copyWith(
+                style: TossTextStyles.titleMedium.copyWith(
                   color: TossColors.gray900,
-                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -128,20 +127,18 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                 children: [
                   Text(
                     formattedAmount,
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.titleMedium.copyWith(
                       color: TossColors.gray900,
                       fontWeight: FontWeight.w600,
-                      fontSize: 15,
                     ),
                   ),
                   // Show converted base currency amount for foreign currencies
                   if (isForeignCurrency) ...[
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       '${widget.baseCurrencySymbol}${formatter.format(convertedAmountToBase.toInt())}',
-                      style: TossTextStyles.body.copyWith(
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
-                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -173,12 +170,11 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                       color: TossColors.gray500,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: TossSpacing.space1),
                   Text(
                     'Compare with Journal',
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray500,
-                      fontSize: 13,
                     ),
                   ),
                 ],
@@ -218,7 +214,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                     'View History',
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray600,
-                      fontSize: 14,
                     ),
                   ),
                   const Icon(
@@ -253,7 +248,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
   }) {
     if (widget.isLoadingJournal) {
       return const Padding(
-        padding: EdgeInsets.only(left: 12),
+        padding: EdgeInsets.only(left: TossSpacing.space3),
         child: TossLoadingView.inline(size: 16, color: TossColors.gray400),
       );
     }
@@ -352,7 +347,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
             ),
           ),
         ),
-        padding: const EdgeInsets.only(left: 12),
+        padding: const EdgeInsets.only(left: TossSpacing.space3),
         child: Column(
           children: [
             // Current Real (actual stock before transaction)
@@ -369,7 +364,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               valueColor: widget.isDebit ? TossColors.success : TossColors.error,
               valueStyle: TossTextStyles.body.copyWith(
                 color: widget.isDebit ? TossColors.success : TossColors.error,
-                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -381,7 +375,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               valueColor: TossColors.gray900,
               valueStyle: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
-                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -403,7 +396,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               valueColor: flowDifferenceColor,
               valueStyle: TossTextStyles.body.copyWith(
                 color: flowDifferenceColor,
-                fontSize: 14,
                 fontWeight: !isFlowBalanced ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -423,7 +415,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
           ),
         ),
       ),
-      padding: const EdgeInsets.only(left: 12),
+      padding: const EdgeInsets.only(left: TossSpacing.space3),
       child: Column(
         children: [
           // Journal row
@@ -440,7 +432,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
             valueColor: differenceColor,
             valueStyle: TossTextStyles.body.copyWith(
               color: differenceColor,
-              fontSize: 14,
               fontWeight: !isBalanced ? FontWeight.w600 : FontWeight.normal,
             ),
           ),

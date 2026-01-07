@@ -214,8 +214,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
   Widget _buildHeader() {
     return Text(
       'Revenue Overview',
-      style: TossTextStyles.h3.copyWith(
-        fontSize: 15,
+      style: TossTextStyles.titleMedium.copyWith(
         color: TossColors.textPrimary,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.4,
@@ -242,14 +241,13 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
           height: 12,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(3),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: TossSpacing.space1 + 2),
         Text(
           label,
           style: TossTextStyles.caption.copyWith(
-            fontSize: 12,
             color: TossColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
@@ -305,7 +303,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
             fitInsideVertically: true,
             getTooltipColor: (group) => TossColors.gray800,
             tooltipPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
             tooltipMargin: 8,
             tooltipRoundedRadius: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -313,10 +311,9 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
               final formatter = NumberFormat.compact();
               return BarTooltipItem(
                 '${point.label}\n',
-                TossTextStyles.caption.copyWith(
+                TossTextStyles.small.copyWith(
                   color: TossColors.gray400,
                   fontWeight: FontWeight.w500,
-                  fontSize: 11,
                 ),
                 children: [
                   TextSpan(
@@ -324,7 +321,6 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.white,
                       fontWeight: FontWeight.w600,
-                      fontSize: 12,
                     ),
                   ),
                   TextSpan(
@@ -332,7 +328,6 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.success,
                       fontWeight: FontWeight.w600,
-                      fontSize: 12,
                     ),
                   ),
                   TextSpan(
@@ -340,7 +335,6 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.warning,
                       fontWeight: FontWeight.w600,
-                      fontSize: 12,
                     ),
                   ),
                 ],
@@ -371,11 +365,10 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
                 }
                 final isSelected = _touchedIndex == index;
                 return Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: TossSpacing.space2),
                   child: Text(
                     chartPoints[index].label,
-                    style: TossTextStyles.caption.copyWith(
-                      fontSize: chartPoints.length > 12 ? 8 : 10,
+                    style: TossTextStyles.small.copyWith(
                       color: isSelected
                           ? TossColors.primary
                           : TossColors.textSecondary,
@@ -396,8 +389,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
               getTitlesWidget: (value, meta) {
                 return Text(
                   _formatYAxisLabel(value),
-                  style: TossTextStyles.caption.copyWith(
-                    fontSize: 10,
+                  style: TossTextStyles.small.copyWith(
                     color: TossColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),

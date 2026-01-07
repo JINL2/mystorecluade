@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 
 /// Salary breakdown card showing time, rates, and payment summary
 ///
@@ -49,17 +48,17 @@ class SalaryBreakdownCard extends StatelessWidget {
           'Salary breakdown this shift',
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: TossSpacing.space1),
         Text(
           'As of $asOfDate',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
 
         // Total confirmed time
         _InfoRow(
@@ -67,11 +66,11 @@ class SalaryBreakdownCard extends StatelessWidget {
           value: totalConfirmedTime,
           originalValue: originalConfirmedTime,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
         _InfoRow(label: 'Hourly salary', value: hourlySalary),
-        const SizedBox(height: 12),
-        Container(height: 1, color: TossColors.gray100),
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
+        Container(height: TossDimensions.dividerThickness, color: TossColors.gray100),
+        SizedBox(height: TossSpacing.space3),
 
         // Base pay
         _InfoRow(
@@ -79,7 +78,7 @@ class SalaryBreakdownCard extends StatelessWidget {
           value: basePay,
           originalValue: originalBasePay,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
 
         // Bonus pay
         _InfoRow(
@@ -87,7 +86,7 @@ class SalaryBreakdownCard extends StatelessWidget {
           value: bonusPay,
           originalValue: originalBonusPay,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
 
         // Total payment
         _InfoRow(
@@ -139,18 +138,18 @@ class _InfoRow extends StatelessWidget {
                   decoration: TextDecoration.lineThrough,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               // New value (primary color)
               Text(
                 value,
                 style: isTotal
                     ? TossTextStyles.titleMedium.copyWith(
                         color: TossColors.primary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       )
                     : TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
               ),
             ],
@@ -161,11 +160,11 @@ class _InfoRow extends StatelessWidget {
             style: isTotal
                 ? TossTextStyles.titleMedium.copyWith(
                     color: TossColors.primary,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   )
                 : TossTextStyles.bodyLarge.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
           ),
       ],

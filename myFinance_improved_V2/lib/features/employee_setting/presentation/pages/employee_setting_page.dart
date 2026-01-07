@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 
 import '../../domain/entities/employee_salary.dart';
@@ -170,10 +171,10 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
         FocusScope.of(context).unfocus();
       },
       child: TossScaffold(
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         appBar: const TossAppBar(
           title: 'Team Management',
-          backgroundColor: TossColors.gray100,
+          backgroundColor: TossColors.white,
         ),
         body: RefreshIndicator(
           onRefresh: _handleRefresh,
@@ -207,7 +208,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
                               searchQuery.isNotEmpty || _hasActiveFilters()
                                   ? Icons.search_off_rounded
                                   : Icons.groups_rounded,
-                              size: 64,
+                              size: TossDimensions.avatar3XL,
                               color: TossColors.gray400,
                             ),
                             title: searchQuery.isNotEmpty || _hasActiveFilters()
@@ -391,7 +392,7 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
               heroTag: 'scroll_to_top',
               backgroundColor: TossColors.surface,
               foregroundColor: TossColors.primary,
-              elevation: 4,
+              elevation: 0,
               onPressed: () {
                 HapticFeedback.lightImpact();
                 _scrollController.animateTo(

@@ -188,7 +188,7 @@ class _KeyboardToolbarState extends State<KeyboardToolbar> {
           left: 0,
           right: 0,
           child: Material(
-            color: Colors.transparent,
+            color: TossColors.transparent,
             elevation: 0,
             child: Container(
               height: widget.height,

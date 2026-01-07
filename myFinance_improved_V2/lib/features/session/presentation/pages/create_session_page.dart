@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../auth/di/auth_providers.dart';
@@ -209,13 +210,13 @@ class _CreateSessionPageState extends ConsumerState<CreateSessionPage> {
         icon: const Icon(
           Icons.close,
           color: TossColors.gray900,
-          size: 22,
+          size: TossSpacing.iconMD + 2,
         ),
       ),
       title: Text(
         _pageTitle,
         style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),
@@ -274,10 +275,10 @@ class _CreateSessionPageState extends ConsumerState<CreateSessionPage> {
                         : TossColors.gray400,
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: TossSpacing.space1),
                 const Icon(
                   Icons.chevron_right,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.gray400,
                 ),
               ],
@@ -331,10 +332,10 @@ class _CreateSessionPageState extends ConsumerState<CreateSessionPage> {
                           : TossColors.gray400,
                     ),
                   ),
-                const SizedBox(width: 4),
+                const SizedBox(width: TossSpacing.space1),
                 const Icon(
                   Icons.chevron_right,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.gray400,
                 ),
               ],

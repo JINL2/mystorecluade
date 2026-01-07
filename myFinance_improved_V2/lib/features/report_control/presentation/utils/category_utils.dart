@@ -41,21 +41,21 @@ class CategoryUtils {
         normalized.contains('hr') ||
         normalized.contains('인사') ||
         normalized.contains('근태')) {
-      color = const Color(0xFF9C27B0); // Purple
+      color = TossColors.categoryPurple;
     } else if (normalized.contains('sales') ||
         normalized.contains('영업') ||
         normalized.contains('판매')) {
       color = TossColors.success;
     } else if (normalized.contains('marketing') ||
         normalized.contains('마케팅')) {
-      color = const Color(0xFFFF5722); // Deep Orange
+      color = TossColors.categoryOrange;
     } else if (normalized.contains('operation') ||
         normalized.contains('운영')) {
-      color = const Color(0xFF607D8B); // Blue Grey
+      color = TossColors.categoryGray;
     } else if (normalized.contains('it') ||
         normalized.contains('tech') ||
         normalized.contains('기술')) {
-      color = const Color(0xFF00BCD4); // Cyan
+      color = TossColors.categoryCyan;
     } else {
       color = TossColors.primary;
     }

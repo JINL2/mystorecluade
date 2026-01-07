@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 // Autonomous Selectors
@@ -126,7 +127,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
                   label,
                   style: TossTextStyles.caption.copyWith(
                     color: textColor,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -134,7 +135,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
               const SizedBox(width: TossSpacing.space2),
               Icon(
                 iconData,
-                size: 16,
+                size: TossSpacing.iconSM2,
                 color: textColor,
               ),
             ],
@@ -265,9 +266,9 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.info_outline,
-                      size: 16,
+                      size: TossSpacing.iconSM2,
                       color: TossColors.warning,
                     ),
                     const SizedBox(width: TossSpacing.space1),
@@ -276,7 +277,7 @@ class _AccountSelectorCardState extends ConsumerState<AccountSelectorCard> {
                         'Required: Where will the cash be received in the internal company?',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.warning,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                       ),
                     ),

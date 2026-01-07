@@ -231,7 +231,7 @@ class _CashLocationSelectorState extends ConsumerState<CashLocationSelector> {
                         maxLines: 1,
                       ),
                       if (selectedLocation != null && widget.showTransactionCount) ...[
-                        const SizedBox(height: 2),
+                        SizedBox(height: TossSpacing.space1 / 2),
                         Text(
                           selectedLocation.subtitle,
                           style: TossTextStyles.caption.copyWith(color: TossColors.gray500),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/monthly_attendance.dart';
 
 /// Monthly 직원용 캘린더 위젯 (심플 버전)
@@ -25,7 +23,7 @@ class MonthlyCalendar extends StatelessWidget {
     return Column(
       children: [
         _buildWeekDayHeader(),
-        const SizedBox(height: 8),
+        const SizedBox(height: TossSpacing.space2),
         _buildCalendarGrid(),
       ],
     );
@@ -44,7 +42,7 @@ class MonthlyCalendar extends StatelessWidget {
               day,
               style: TossTextStyles.caption.copyWith(
                 color: isWeekend ? TossColors.gray400 : TossColors.gray600,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),
@@ -75,8 +73,8 @@ class MonthlyCalendar extends StatelessWidget {
       crossAxisCount: 7,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 4,
-      crossAxisSpacing: 4,
+      mainAxisSpacing: TossSpacing.space1,
+      crossAxisSpacing: TossSpacing.space1,
       children: days,
     );
   }
@@ -107,13 +105,13 @@ class MonthlyCalendar extends StatelessWidget {
     if (attendance != null) {
       switch (attendance.status) {
         case 'completed':
-          bgColor = TossColors.primary.withValues(alpha: 0.1);
+          bgColor = TossColors.primary.withValues(alpha: TossOpacity.light);
           textColor = TossColors.primary;
         case 'checked_in':
-          bgColor = TossColors.success.withValues(alpha: 0.1);
+          bgColor = TossColors.success.withValues(alpha: TossOpacity.light);
           textColor = TossColors.success;
         case 'absent':
-          bgColor = TossColors.error.withValues(alpha: 0.1);
+          bgColor = TossColors.error.withValues(alpha: TossOpacity.light);
           textColor = TossColors.error;
         case 'day_off':
           bgColor = TossColors.gray100;
@@ -128,7 +126,7 @@ class MonthlyCalendar extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? TossColors.primary.withValues(alpha: 0.2) : bgColor,
+            color: isSelected ? TossColors.primary.withValues(alpha: TossOpacity.strong) : bgColor,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: isToday
                 ? Border.all(color: TossColors.primary, width: 2)

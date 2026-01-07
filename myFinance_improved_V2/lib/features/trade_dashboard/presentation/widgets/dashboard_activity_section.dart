@@ -108,7 +108,7 @@ class DashboardActivitySection extends StatelessWidget {
                           borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: TossSpacing.space1 + 2),
                       Container(
                         width: 200,
                         height: 12,

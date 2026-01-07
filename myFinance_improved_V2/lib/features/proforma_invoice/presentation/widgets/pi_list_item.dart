@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/proforma_invoice.dart';
@@ -43,7 +44,7 @@ class PIListItemWidget extends StatelessWidget {
                     Text(
                       item.piNumber,
                       style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                     _StatusChip(status: item.status),
@@ -68,7 +69,7 @@ class PIListItemWidget extends StatelessWidget {
                     Text(
                       '${item.currencyCode} ${_formatAmount(item.totalAmount)}',
                       style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -127,7 +128,7 @@ class _StatusChip extends StatelessWidget {
         label,
         style: TossTextStyles.caption.copyWith(
           color: color,
-          fontWeight: FontWeight.w500,
+          fontWeight: TossFontWeight.medium,
         ),
       ),
     );
@@ -168,7 +169,7 @@ class _ValidityInfo extends StatelessWidget {
     if (isExpired) {
       return Row(
         children: [
-          const Icon(Icons.warning_amber, size: 14, color: TossColors.error),
+          Icon(Icons.warning_amber, size: TossSpacing.iconXS, color: TossColors.error),
           const SizedBox(width: TossSpacing.space1),
           Text(
             'Expired',
@@ -181,7 +182,7 @@ class _ValidityInfo extends StatelessWidget {
     if (isUrgent) {
       return Row(
         children: [
-          const Icon(Icons.schedule, size: 14, color: TossColors.warning),
+          Icon(Icons.schedule, size: TossSpacing.iconXS, color: TossColors.warning),
           const SizedBox(width: TossSpacing.space1),
           Text(
             'Expires in $diff day${diff == 1 ? '' : 's'}',
@@ -193,7 +194,7 @@ class _ValidityInfo extends StatelessWidget {
 
     return Row(
       children: [
-        const Icon(Icons.event, size: 14, color: TossColors.gray500),
+        Icon(Icons.event, size: TossSpacing.iconXS, color: TossColors.gray500),
         const SizedBox(width: TossSpacing.space1),
         Text(
           'Valid until ${DateFormat('MMM dd').format(validityDate)}',

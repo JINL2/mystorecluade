@@ -35,44 +35,41 @@ class RankingBarWidget extends StatelessWidget {
           // Name
           Text(
             name,
-            style: TossTextStyles.bodyMedium.copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+            style: TossTextStyles.bodySmall.copyWith(
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray700,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: TossSpacing.space2),
 
           // Value
           Text(
             '$value$unit',
-            style: TossTextStyles.body.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+            style: TossTextStyles.h3.copyWith(
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: TossSpacing.space2),
 
           // Ranking Label
           Row(
             children: [
               Icon(
                 icon,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: color,
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: TossSpacing.space1),
               Expanded(
                 child: Text(
                   rankingLabel,
-                  style: TossTextStyles.caption.copyWith(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                  style: TossTextStyles.small.copyWith(
+                    fontWeight: TossFontWeight.semibold,
                     color: color,
                   ),
                   maxLines: 1,

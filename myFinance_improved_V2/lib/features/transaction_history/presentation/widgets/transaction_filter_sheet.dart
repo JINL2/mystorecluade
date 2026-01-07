@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 // Autonomous Selectors
@@ -234,7 +235,7 @@ class _TransactionFilterSheetState
         Text(
           'Filter Transactions',
           style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
         IconButton(

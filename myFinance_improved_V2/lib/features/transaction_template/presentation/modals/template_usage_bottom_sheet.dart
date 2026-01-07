@@ -25,6 +25,7 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart' as Legacy;
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 // Autonomous Selectors
 
 // ✅ Clean Architecture: Domain layer entities
@@ -430,7 +431,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+              Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconXXL),
               const SizedBox(height: TossSpacing.space3),
               Text(
                 _rpcError!,
@@ -474,28 +475,18 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
     );
   }
 
-  /// Builds input section with blue border
+  /// Builds input section
   Widget _buildInputSection() {
     final analysis = _rpcResponse?.analysis;
     final missingItems = analysis?.missingItems ?? [];
     final showGuidance = missingItems.isNotEmpty && missingItems.length <= 3;
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.3),
-          width: 2,
-        ),
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      ),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InputSectionHeader(showGuidance: showGuidance),
-          _buildDynamicFields(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InputSectionHeader(showGuidance: showGuidance),
+        _buildDynamicFields(),
+      ],
     );
   }
 
@@ -590,15 +581,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
               'Cash Location',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: TossSpacing.space1 / 2),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
@@ -643,15 +634,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
               'Counterparty',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: TossSpacing.space1 / 2),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],

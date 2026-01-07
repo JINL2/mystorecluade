@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 
 import '../../domain/entities/transfer_scope.dart';
 
@@ -21,11 +22,11 @@ extension TransferScopeUIX on TransferScope {
   Color get color {
     switch (this) {
       case TransferScope.withinStore:
-        return Colors.blue;
+        return TossColors.info;
       case TransferScope.withinCompany:
-        return Colors.teal;
+        return TossColors.info;
       case TransferScope.betweenCompanies:
-        return Colors.indigo;
+        return TossColors.primary;
     }
   }
 }

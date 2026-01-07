@@ -52,8 +52,7 @@ class RevenueCard extends ConsumerWidget {
                   children: [
                     Text(
                       selectedPeriod.displayName,
-                      style: TossTextStyles.h3.copyWith(
-                        fontSize: 15,
+                      style: TossTextStyles.titleMedium.copyWith(
                         color: TossColors.textPrimary,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.4,
@@ -243,10 +242,9 @@ class _RevenueContentState extends State<_RevenueContent>
           builder: (context, child) {
             return Text(
               '${widget.revenue.currencyCode}${_formatAmount(_amountAnimation.value)}',
-              style: TossTextStyles.display.copyWith(
+              style: TossTextStyles.h1.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w700,
-                fontSize: 28,
                 height: 1.2,
                 letterSpacing: -1.0,
               ),
@@ -261,7 +259,7 @@ class _RevenueContentState extends State<_RevenueContent>
           switchOutCurve: TossAnimations.exit,
           child: Padding(
             key: ValueKey('${widget.revenue.growthPercentage}_${widget.revenue.isIncreased}'),
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: TossSpacing.space1),
             child: widget.revenue.previousAmount != 0
                 ? Row(
                     children: [
@@ -275,13 +273,12 @@ class _RevenueContentState extends State<_RevenueContent>
                         '${widget.revenue.isIncreased ? '' : '-'}${widget.revenue.growthPercentage.abs().toStringAsFixed(1)}% ${widget.revenue.period.comparisonText}',
                         style: TossTextStyles.caption.copyWith(
                           color: widget.revenue.isIncreased ? TossColors.primary : TossColors.error,
-                          fontSize: 12,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
                   )
-                : const SizedBox(height: 16),
+                : SizedBox(height: TossSpacing.space4),
           ),
         ),
       ],
@@ -367,7 +364,7 @@ class _LoadingRevenue extends StatelessWidget {
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: TossSpacing.space1),
           Container(
             width: 150,
             height: 16,
@@ -415,17 +412,16 @@ class _TabSelector extends StatelessWidget {
       onTap: () => onTabChanged(tab),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 6,
+          horizontal: TossSpacing.space3 + 2,
+          vertical: TossSpacing.space1 + 2,
         ),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary : TossColors.transparent,
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
         ),
         child: Text(
           label,
           style: TossTextStyles.caption.copyWith(
-            fontSize: 12,
             color: isSelected ? TossColors.white : TossColors.textTertiary,
             fontWeight: FontWeight.w600,
           ),

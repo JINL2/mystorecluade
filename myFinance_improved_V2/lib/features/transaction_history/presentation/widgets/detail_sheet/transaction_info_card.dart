@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/utils/number_formatter.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/ai/index.dart';
@@ -29,8 +30,7 @@ class TransactionInfoCard extends StatelessWidget {
     final hasAiDesc = transaction.aiDescription != null &&
         transaction.aiDescription!.isNotEmpty;
 
-    return TossCard(
-      backgroundColor: TossColors.gray50,
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,13 +44,13 @@ class TransactionInfoCard extends StatelessWidget {
                 'Total Amount',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
               Text(
                 '${transaction.currencySymbol}${_formatCurrency(transaction.totalAmount)}',
                 style: TossTextStyles.h2.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.textPrimary,
                 ),
               ),
@@ -73,9 +73,9 @@ class TransactionInfoCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.edit_note,
-                          size: 14,
+                          size: TossSpacing.iconXXS,
                           color: TossColors.gray400,
                         ),
                         const SizedBox(width: TossSpacing.space2),

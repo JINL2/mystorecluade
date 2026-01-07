@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../pages/shift_stats_tab.dart';
 
 /// Period selector bottom sheet widget
@@ -24,12 +22,15 @@ class PeriodSelectorBottomSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 40,
-            height: 4,
+            margin: EdgeInsets.only(
+              top: TossSpacing.space3,
+              bottom: TossSpacing.space2,
+            ),
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
             ),
           ),
           // Title
@@ -59,22 +60,22 @@ class PeriodSelectorBottomSheet extends StatelessWidget {
           vertical: TossSpacing.space3,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.08) : null,
+          color: isSelected ? TossColors.primary.withValues(alpha: TossOpacity.hover) : null,
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: TossDimensions.avatarLG,
+              height: TossDimensions.avatarLG,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? TossColors.primary.withValues(alpha: 0.12)
+                    ? TossColors.primary.withValues(alpha: TossOpacity.pressed)
                     : TossColors.gray100,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md + 2), // 10px
               ),
               child: Icon(
                 Icons.calendar_today_outlined,
-                size: 20,
+                size: TossSpacing.iconMD,
                 color: isSelected ? TossColors.primary : TossColors.gray500,
               ),
             ),
@@ -83,15 +84,15 @@ class PeriodSelectorBottomSheet extends StatelessWidget {
               child: Text(
                 period.label,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                   color: isSelected ? TossColors.gray900 : TossColors.gray700,
                 ),
               ),
             ),
             if (isSelected)
-              const Icon(
+              Icon(
                 Icons.check,
-                size: 20,
+                size: TossSpacing.iconMD,
                 color: TossColors.primary,
               ),
           ],

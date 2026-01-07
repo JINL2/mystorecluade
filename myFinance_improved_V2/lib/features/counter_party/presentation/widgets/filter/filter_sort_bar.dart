@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -33,13 +34,7 @@ class FilterSortBar extends ConsumerWidget {
         decoration: BoxDecoration(
           color: TossColors.surface,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          boxShadow: [
-            BoxShadow(
-              color: TossColors.black.withValues(alpha: 0.02),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ],
+          border: Border.all(color: TossColors.gray200, width: TossDimensions.dividerThickness),
         ),
         child: Row(
           children: [
@@ -50,8 +45,8 @@ class FilterSortBar extends ConsumerWidget {
             ),
 
             Container(
-              width: 1,
-              height: 20,
+              width: TossDimensions.dividerThickness,
+              height: TossSpacing.space5,
               color: TossColors.gray200,
             ),
 
@@ -84,16 +79,16 @@ class FilterSortBar extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.filter_list_rounded,
-                  size: 22,
+                  size: TossSpacing.iconMD,
                   color: hasActiveFilters ? TossColors.primary : TossColors.gray600,
                 ),
                 if (hasActiveFilters)
                   Positioned(
-                    right: -4,
-                    top: -4,
+                    right: -TossSpacing.space1,
+                    top: -TossSpacing.space1,
                     child: Container(
-                      width: 8,
-                      height: 8,
+                      width: TossSpacing.space2,
+                      height: TossSpacing.space2,
                       decoration: const BoxDecoration(
                         color: TossColors.primary,
                         shape: BoxShape.circle,
@@ -114,7 +109,7 @@ class FilterSortBar extends ConsumerWidget {
             ),
             const Icon(
               Icons.keyboard_arrow_down_rounded,
-              size: 20,
+              size: TossSpacing.iconSM,
               color: TossColors.gray500,
             ),
           ],
@@ -136,7 +131,7 @@ class FilterSortBar extends ConsumerWidget {
           children: [
             const Icon(
               Icons.sort_rounded,
-              size: 22,
+              size: TossSpacing.iconMD,
               color: TossColors.primary,
             ),
             const SizedBox(width: TossSpacing.space2),
@@ -151,7 +146,7 @@ class FilterSortBar extends ConsumerWidget {
             ),
             const Icon(
               Icons.keyboard_arrow_down_rounded,
-              size: 20,
+              size: TossSpacing.iconSM,
               color: TossColors.gray500,
             ),
           ],

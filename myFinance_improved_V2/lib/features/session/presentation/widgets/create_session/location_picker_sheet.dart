@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../auth/domain/entities/store_entity.dart';
@@ -91,7 +92,7 @@ class LocationPickerSheet extends StatelessWidget {
                     title: Text(
                       store.name,
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: isSelected
                             ? TossColors.primary
                             : TossColors.gray900,

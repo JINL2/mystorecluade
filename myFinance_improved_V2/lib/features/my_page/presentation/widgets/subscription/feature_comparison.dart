@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 
 import 'subscription_models.dart';
 
@@ -29,7 +30,7 @@ class FeatureComparison extends StatelessWidget {
           Text(
             'Compare Plans',
             style: TossTextStyles.h3.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -61,7 +62,7 @@ class FeatureComparison extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TossTextStyles.small.copyWith(
                             color: TossColors.gray500,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ),
@@ -70,8 +71,8 @@ class FeatureComparison extends StatelessWidget {
                           'Basic',
                           textAlign: TextAlign.center,
                           style: TossTextStyles.small.copyWith(
-                            color: const Color(0xFF10B981),
-                            fontWeight: FontWeight.w600,
+                            color: TossColors.emerald,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ),
@@ -80,8 +81,8 @@ class FeatureComparison extends StatelessWidget {
                           'Pro',
                           textAlign: TextAlign.center,
                           style: TossTextStyles.small.copyWith(
-                            color: const Color(0xFF3B82F6),
-                            fontWeight: FontWeight.w600,
+                            color: TossColors.primary,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ),
@@ -114,7 +115,7 @@ class FeatureComparison extends StatelessWidget {
                             feature.name,
                             style: TossTextStyles.small.copyWith(
                               color: TossColors.gray700,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: TossFontWeight.medium,
                             ),
                           ),
                         ),
@@ -141,8 +142,8 @@ class FeatureComparison extends StatelessWidget {
                             feature.proValue,
                             textAlign: TextAlign.center,
                             style: TossTextStyles.small.copyWith(
-                              color: const Color(0xFF3B82F6),
-                              fontWeight: FontWeight.w600,
+                              color: TossColors.primary,
+                              fontWeight: TossFontWeight.semibold,
                             ),
                           ),
                         ),

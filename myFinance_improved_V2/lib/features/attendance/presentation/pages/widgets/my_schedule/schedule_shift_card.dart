@@ -69,11 +69,11 @@ class ScheduleShiftCard extends StatelessWidget {
                       Text(
                         card.shiftName ?? 'Unknown Shift',
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray900,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         timeRange,
                         style: TossTextStyles.labelSmall.copyWith(
@@ -86,14 +86,14 @@ class ScheduleShiftCard extends StatelessWidget {
                 ),
                 // Status badge
                 ScheduleStatusBadge(status: status),
-                const SizedBox(width: 8),
-                const Icon(Icons.chevron_right, color: TossColors.gray400, size: 20),
+                SizedBox(width: TossSpacing.space2),
+                Icon(Icons.chevron_right, color: TossColors.gray400, size: TossSpacing.iconMD),
               ],
             ),
 
             // Problem badges row (if any)
             if (pd != null && pd.problemCount > 0) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: TossSpacing.space2),
               ScheduleProblemBadges(
                 problemDetails: pd,
                 hasManagerMemo: card.managerMemos.isNotEmpty,

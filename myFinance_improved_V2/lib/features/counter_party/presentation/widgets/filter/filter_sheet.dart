@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -34,8 +36,8 @@ class CounterPartyFilterSheet extends ConsumerWidget {
         children: [
           // Handle
           Container(
-            width: 48,
-            height: 4,
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             margin: const EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
@@ -49,7 +51,7 @@ class CounterPartyFilterSheet extends ConsumerWidget {
             child: Text(
               'Filter Counter Parties',
               style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
             ),
           ),
@@ -152,7 +154,7 @@ class CounterPartyFilterSheet extends ConsumerWidget {
                 children: [
                   Icon(
                     option['icon']! as IconData,
-                    size: 20,
+                    size: TossSpacing.iconSM,
                     color: TossColors.gray600,
                   ),
                   const SizedBox(width: TossSpacing.space3),
@@ -160,7 +162,7 @@ class CounterPartyFilterSheet extends ConsumerWidget {
                     option['label']! as String,
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
                   const Spacer(),
@@ -168,7 +170,7 @@ class CounterPartyFilterSheet extends ConsumerWidget {
                     const Icon(
                       Icons.check_rounded,
                       color: TossColors.primary,
-                      size: 20,
+                      size: TossSpacing.iconSM,
                     ),
                 ],
               ),

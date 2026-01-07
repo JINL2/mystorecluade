@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../di/inventory_providers.dart';
@@ -212,7 +214,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                 color: TossColors.gray900,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             // Product name
             Text(
               widget.productName,
@@ -220,7 +222,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                 color: TossColors.gray600,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.paddingXL),
             // From label
             Align(
               alignment: Alignment.centerLeft,
@@ -231,23 +233,23 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             // From store selector
             _buildStoreSelector(
               store: _fromStore,
               onTap: () => _showStorePickerSheet(isFrom: true),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             // Swap button
             GestureDetector(
               onTap: _swapStores,
               child: Icon(
                 Icons.swap_vert,
-                size: 24,
+                size: TossSpacing.iconMD2,
                 color: TossColors.gray600,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             // To label
             Align(
               alignment: Alignment.centerLeft,
@@ -258,13 +260,13 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             // To store selector
             _buildStoreSelector(
               store: _toStore,
               onTap: () => _showStorePickerSheet(isFrom: false),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.paddingXL),
             // Quantity stepper (no max limit - allow negative stock)
             TossQuantityStepper(
               initialValue: 0,
@@ -277,7 +279,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                 });
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.paddingXL),
             // Action buttons
             Row(
               children: [
@@ -286,7 +288,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      height: 48,
+                      height: TossSpacing.buttonHeightLG,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -295,20 +297,20 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                       child: Text(
                         'Cancel',
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray700,
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: TossSpacing.space3),
                 // Submit button
                 Expanded(
                   child: GestureDetector(
                     onTap: canSubmit && !_isSubmitting ? _handleSubmit : null,
                     child: Container(
-                      height: 48,
+                      height: TossSpacing.buttonHeightLG,
                       decoration: BoxDecoration(
                         color: canSubmit && !_isSubmitting ? TossColors.primary : TossColors.gray300,
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -316,13 +318,13 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                       alignment: Alignment.center,
                       child: _isSubmitting
                           ? TossLoadingView.inline(
-                              size: 20,
+                              size: TossSpacing.iconMD,
                               color: TossColors.white,
                             )
                           : Text(
                               'Submit',
                               style: TossTextStyles.body.copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                                 color: TossColors.white,
                               ),
                             ),
@@ -347,10 +349,10 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
         padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
         decoration: BoxDecoration(
           color: TossColors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
           border: Border.all(
             color: TossColors.gray100,
-            width: 1,
+            width: TossDimensions.dividerThickness,
           ),
         ),
         child: Row(
@@ -362,21 +364,21 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                   Text(
                     store.name,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   Text(
                     '·',
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray400,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   // Stock badge with loading state
                   _isLoading
-                      ? TossLoadingView.inline(size: 16)
+                      ? TossLoadingView.inline(size: TossSpacing.iconSM2)
                       : Container(
                           padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
                           decoration: BoxDecoration(
@@ -386,7 +388,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
                           child: Text(
                             '${store.stock}',
                             style: TossTextStyles.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                               color: TossColors.primary,
                             ),
                           ),
@@ -396,7 +398,7 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
             ),
             Icon(
               Icons.keyboard_arrow_down,
-              size: 20,
+              size: TossSpacing.iconMD,
               color: TossColors.gray500,
             ),
           ],

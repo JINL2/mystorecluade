@@ -37,12 +37,12 @@ class TradeDeadlineCard extends StatelessWidget {
           color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
-            color: urgencyColor.withOpacity(0.3),
+            color: urgencyColor.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: urgencyColor.withOpacity(0.08),
+              color: urgencyColor.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -54,16 +54,16 @@ class TradeDeadlineCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: TossSpacing.iconXL,
+                  height: TossSpacing.iconXL,
                   decoration: BoxDecoration(
-                    color: urgencyColor.withOpacity(0.1),
+                    color: urgencyColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
                     icon,
                     color: urgencyColor,
-                    size: 20,
+                    size: TossSpacing.iconSM,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
@@ -98,14 +98,14 @@ class TradeDeadlineCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
-                color: urgencyColor.withOpacity(0.05),
+                color: urgencyColor.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.event_outlined,
-                    size: 16,
+                    size: TossSpacing.iconSM,
                     color: urgencyColor,
                   ),
                   const SizedBox(width: TossSpacing.space2),
@@ -144,13 +144,13 @@ class TradeDeadlineCard extends StatelessWidget {
     }
 
     return Container(
-      width: 56,
-      height: 56,
+      width: TossSpacing.icon3XL,
+      height: TossSpacing.icon3XL,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -220,7 +220,7 @@ class TradeDeadlineChip extends StatelessWidget {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Row(
@@ -230,10 +230,10 @@ class TradeDeadlineChip extends StatelessWidget {
             daysRemaining < 0
                 ? Icons.warning_amber_rounded
                 : Icons.schedule_outlined,
-            size: 14,
+            size: TossSpacing.iconXS,
             color: color,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: TossSpacing.space1),
           Text(
             _formatDeadlineText(daysRemaining),
             style: TossTextStyles.caption.copyWith(
@@ -313,7 +313,7 @@ class TradeExpiryCalendarItem extends StatelessWidget {
               width: 44,
               padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Column(
@@ -350,7 +350,7 @@ class TradeExpiryCalendarItem extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space1 / 2),
                   Row(
                     children: [
                       Container(

@@ -513,8 +513,8 @@ class _SignupPageState extends ConsumerState<SignupPage>
     return Row(
       children: [
         SizedBox(
-          width: 24,
-          height: 24,
+          width: TossSpacing.iconMD2,
+          height: TossSpacing.iconMD2,
           child: Checkbox(
             value: _agreedToTerms,
             onChanged: (value) {

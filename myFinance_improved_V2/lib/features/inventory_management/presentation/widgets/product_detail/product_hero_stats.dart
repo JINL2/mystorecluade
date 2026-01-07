@@ -4,6 +4,8 @@ import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../../sale_product/presentation/utils/currency_formatter.dart';
 import '../../../domain/entities/product.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -91,7 +93,7 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space4,
-        vertical: 4,
+        vertical: TossSpacing.space1,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +106,7 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
             ),
           ),
           // Divider
-          const GrayVerticalDivider(height: 50, horizontalMargin: 12),
+          const GrayVerticalDivider(height: TossSpacing.space12, horizontalMargin: TossSpacing.space3),
           // Cost column
           Expanded(
             child: _buildAnimatedColumn(
@@ -114,10 +116,10 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
           ),
           // Divider
           Container(
-            width: 1,
-            height: 50,
+            width: TossDimensions.dividerThickness,
+            height: TossDimensions.dividerHeight,
             color: TossColors.gray200,
-            margin: const EdgeInsets.only(left: 12, right: 8),
+            margin: const EdgeInsets.only(left: TossSpacing.space3, right: TossSpacing.space2),
           ),
           // Price column
           Expanded(
@@ -154,25 +156,25 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
         Text(
           'Attributes',
           style: TossTextStyles.labelSmall.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray600,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: TossSpacing.space0_5),
         if (widget.product.brandName != null)
           Text(
             '· ${widget.product.brandName}',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray900,
               height: 1.2,
             ),
           ),
-        const SizedBox(height: 2),
+        const SizedBox(height: TossSpacing.space0_5),
         Text(
           '· ${widget.product.categoryName ?? 'Uncategorized'}',
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray900,
             height: 1.2,
           ),
@@ -188,15 +190,15 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
         Text(
           'Cost',
           style: TossTextStyles.labelSmall.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray600,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: TossSpacing.space0_5),
         Text(
           '${widget.currencySymbol}${CurrencyFormatter.formatPrice(widget.product.costPrice)}',
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray900,
             height: 1.2,
           ),
@@ -212,15 +214,15 @@ class _ProductHeroStatsState extends State<ProductHeroStats>
         Text(
           'Price',
           style: TossTextStyles.labelSmall.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray600,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: TossSpacing.space0_5),
         Text(
           '${widget.currencySymbol}${CurrencyFormatter.formatPrice(widget.product.salePrice)}',
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.primary,
             height: 1.2,
           ),

@@ -59,13 +59,13 @@ class WeekDatesPicker extends StatelessWidget {
     final weekDates = List.generate(7, (index) => weekStartDate.add(Duration(days: index)));
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12), // Same as MonthDatesPicker
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3), // Same as MonthDatesPicker
       child: Column(
         children: [
           // Weekday labels row - Same structure as MonthDatesPicker
           _buildWeekdayLabels(weekDates),
 
-          const SizedBox(height: 4), // Same as MonthDatesPicker
+          SizedBox(height: TossSpacing.space1), // Same as MonthDatesPicker
 
           // Date circles row - Expanded to match MonthDatesPicker grid alignment
           Row(
@@ -152,12 +152,12 @@ class _DateCell extends StatelessWidget {
         children: [
           // Date circle (32x32) - Same as MonthDatesPicker
           Container(
-            width: 32,
-            height: 32,
+            width: TossSpacing.iconLG2,
+            height: TossSpacing.iconLG2,
             decoration: BoxDecoration(
               // Selected date: blue filled background
               color: isSelected ? TossColors.primary : TossColors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -169,7 +169,7 @@ class _DateCell extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 4), // Same as MonthDatesPicker
+          SizedBox(height: TossSpacing.space1), // Same as MonthDatesPicker
 
           // Indicator dot (4×4) - Same as MonthDatesPicker
           _buildStatusDot(),
@@ -227,7 +227,7 @@ class _DateCell extends StatelessWidget {
       height: 4,
       decoration: BoxDecoration(
         color: dotColor,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
       ),
     );
   }

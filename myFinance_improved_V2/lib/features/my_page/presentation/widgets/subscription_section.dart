@@ -10,6 +10,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Subscription Section Widget for My Page
@@ -69,8 +72,8 @@ class SubscriptionSection extends ConsumerWidget {
           boxShadow: [
             BoxShadow(
               color: isFreePlan
-                  ? TossColors.gray900.withValues(alpha: 0.04)
-                  : _getPrimaryColor(planType).withValues(alpha: 0.3),
+                  ? TossColors.gray900.withValues(alpha: TossOpacity.subtle)
+                  : _getPrimaryColor(planType).withValues(alpha: TossOpacity.strong),
               blurRadius: isFreePlan ? 8 : 16,
               offset: const Offset(0, 4),
             ),
@@ -93,8 +96,8 @@ class SubscriptionSection extends ConsumerWidget {
           top: -20,
           child: Icon(
             LucideIcons.sparkles,
-            size: 120,
-            color: TossColors.primary.withValues(alpha: 0.05),
+            size: TossDimensions.avatarHero,
+            color: TossColors.primary.withValues(alpha: TossOpacity.subtle),
           ),
         ),
         Padding(
@@ -107,23 +110,23 @@ class SubscriptionSection extends ConsumerWidget {
                 children: [
                   // Plan icon
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: TossSpacing.space12,
+                    height: TossSpacing.space12,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          TossColors.primary.withValues(alpha: 0.1),
-                          TossColors.info.withValues(alpha: 0.1),
+                          TossColors.primary.withValues(alpha: TossOpacity.light),
+                          TossColors.info.withValues(alpha: TossOpacity.light),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       LucideIcons.crown,
                       color: TossColors.primary,
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                     ),
                   ),
                   const SizedBox(width: TossSpacing.space3),
@@ -137,28 +140,28 @@ class SubscriptionSection extends ConsumerWidget {
                               'Current Plan',
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.textSecondary,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: TossFontWeight.medium,
                               ),
                             ),
                             const SizedBox(width: TossSpacing.space2),
                             SubscriptionBadge.fromPlanType('free', compact: true),
                           ],
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: TossSpacing.space0_5),
                         Text(
                           'Free Plan',
                           style: TossTextStyles.h3.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TossFontWeight.bold,
                             color: TossColors.textPrimary,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
                     color: TossColors.textTertiary,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                   ),
                 ],
               ),
@@ -167,7 +170,7 @@ class SubscriptionSection extends ConsumerWidget {
 
               // Divider
               Container(
-                height: 1,
+                height: TossDimensions.dividerThickness,
                 color: TossColors.gray100,
               ),
 
@@ -203,23 +206,23 @@ class SubscriptionSection extends ConsumerWidget {
               // Upgrade CTA
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: TossSpacing.space3 + 2,
+                padding: EdgeInsets.symmetric(
+                  vertical: TossSpacing.space3 + TossSpacing.space0_5,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                     colors: [
                       TossColors.primary,
-                      Color(0xFF6366F1), // Indigo
+                      TossColors.purpleDark, // Indigo
                     ],
                   ),
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   boxShadow: [
                     BoxShadow(
-                      color: TossColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 8,
+                      color: TossColors.primary.withValues(alpha: TossOpacity.heavy),
+                      blurRadius: TossSpacing.space2,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -227,17 +230,17 @@ class SubscriptionSection extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       LucideIcons.rocket,
                       color: TossColors.white,
-                      size: 18,
+                      size: TossSpacing.iconSM,
                     ),
                     const SizedBox(width: TossSpacing.space2),
                     Text(
                       'Upgrade to Pro',
                       style: TossTextStyles.bodyLarge.copyWith(
                         color: TossColors.white,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
                   ],
@@ -259,21 +262,21 @@ class SubscriptionSection extends ConsumerWidget {
       children: [
         // Decorative elements
         Positioned(
-          right: -30,
-          top: -30,
+          right: -TossSpacing.space8,
+          top: -TossSpacing.space8,
           child: Icon(
             LucideIcons.crown,
-            size: 150,
-            color: TossColors.white.withValues(alpha: 0.1),
+            size: TossDimensions.decorativeIconLG,
+            color: TossColors.white.withValues(alpha: TossOpacity.light),
           ),
         ),
         Positioned(
-          left: -20,
-          bottom: -20,
+          left: -TossSpacing.space5,
+          bottom: -TossSpacing.space5,
           child: Icon(
             LucideIcons.sparkles,
-            size: 100,
-            color: TossColors.white.withValues(alpha: 0.08),
+            size: TossDimensions.decorativeIconMD,
+            color: TossColors.white.withValues(alpha: TossOpacity.hover),
           ),
         ),
         Padding(
@@ -286,20 +289,20 @@ class SubscriptionSection extends ConsumerWidget {
                 children: [
                   // Plan icon with glow
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: TossSpacing.space12,
+                    height: TossSpacing.space12,
                     decoration: BoxDecoration(
-                      color: TossColors.white.withValues(alpha: 0.2),
+                      color: TossColors.white.withValues(alpha: TossOpacity.strong),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                       border: Border.all(
-                        color: TossColors.white.withValues(alpha: 0.3),
-                        width: 1,
+                        color: TossColors.white.withValues(alpha: TossOpacity.heavy),
+                        width: TossDimensions.dividerThickness,
                       ),
                     ),
                     child: Icon(
                       isPro ? LucideIcons.crown : LucideIcons.star,
                       color: TossColors.white,
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                     ),
                   ),
                   const SizedBox(width: TossSpacing.space3),
@@ -310,15 +313,15 @@ class SubscriptionSection extends ConsumerWidget {
                         Text(
                           'Current Plan',
                           style: TossTextStyles.caption.copyWith(
-                            color: TossColors.white.withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w500,
+                            color: TossColors.white.withValues(alpha: TossOpacity.modalBackdrop),
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: TossSpacing.space0_5),
                         Text(
                           '$planName Plan',
                           style: TossTextStyles.h3.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TossFontWeight.bold,
                             color: TossColors.white,
                           ),
                         ),
@@ -332,11 +335,11 @@ class SubscriptionSection extends ConsumerWidget {
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(100),
+                      color: TossColors.white.withValues(alpha: TossOpacity.strong),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.full),
                       border: Border.all(
-                        color: TossColors.white.withValues(alpha: 0.3),
-                        width: 1,
+                        color: TossColors.white.withValues(alpha: TossOpacity.heavy),
+                        width: TossDimensions.dividerThickness,
                       ),
                     ),
                     child: Row(
@@ -345,14 +348,14 @@ class SubscriptionSection extends ConsumerWidget {
                         Icon(
                           LucideIcons.check,
                           color: TossColors.white,
-                          size: 14,
+                          size: TossSpacing.iconXS,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: TossSpacing.space1),
                         Text(
                           'Active',
                           style: TossTextStyles.small.copyWith(
                             color: TossColors.white,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ],
@@ -392,14 +395,14 @@ class SubscriptionSection extends ConsumerWidget {
                   Text(
                     'Manage subscription',
                     style: TossTextStyles.body.copyWith(
-                      color: TossColors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w500,
+                      color: TossColors.white.withValues(alpha: TossOpacity.textHigh),
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: TossColors.white.withValues(alpha: 0.8),
-                    size: 24,
+                    color: TossColors.white.withValues(alpha: TossOpacity.modalBackdrop),
+                    size: TossSpacing.iconMD2,
                   ),
                 ],
               ),
@@ -420,16 +423,16 @@ class SubscriptionSection extends ConsumerWidget {
     return Row(
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: TossSpacing.space8,
+          height: TossSpacing.space8,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withValues(alpha: TossOpacity.light),
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           ),
           child: Icon(
             icon,
             color: color,
-            size: 16,
+            size: TossSpacing.iconSM2,
           ),
         ),
         const SizedBox(width: TossSpacing.space3),
@@ -448,7 +451,7 @@ class SubscriptionSection extends ConsumerWidget {
                 text: current,
                 style: TossTextStyles.bodyLarge.copyWith(
                   color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
               TextSpan(
@@ -474,7 +477,7 @@ class SubscriptionSection extends ConsumerWidget {
           vertical: TossSpacing.space2,
         ),
         decoration: BoxDecoration(
-          color: TossColors.white.withValues(alpha: 0.15),
+          color: TossColors.white.withValues(alpha: TossOpacity.medium),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Column(
@@ -482,15 +485,14 @@ class SubscriptionSection extends ConsumerWidget {
             Icon(
               icon,
               color: TossColors.white,
-              size: 18,
+              size: TossSpacing.iconSM,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: TossSpacing.space1),
             Text(
               label,
               style: TossTextStyles.small.copyWith(
                 color: TossColors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 10,
+                fontWeight: TossFontWeight.semibold,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -506,13 +508,13 @@ class SubscriptionSection extends ConsumerWidget {
     switch (planType.toLowerCase()) {
       case 'pro':
         return [
-          const Color(0xFF3B82F6), // Blue
-          const Color(0xFF8B5CF6), // Purple
+          TossColors.primary, // Blue
+          TossColors.violet, // Purple
         ];
       case 'basic':
         return [
-          const Color(0xFF10B981), // Emerald
-          const Color(0xFF059669), // Green
+          TossColors.emerald, // Emerald
+          TossColors.emeraldDark, // Green
         ];
       default:
         return [TossColors.gray100, TossColors.gray200];
@@ -522,9 +524,9 @@ class SubscriptionSection extends ConsumerWidget {
   Color _getPrimaryColor(String planType) {
     switch (planType.toLowerCase()) {
       case 'pro':
-        return const Color(0xFF3B82F6);
+        return TossColors.primary;
       case 'basic':
-        return const Color(0xFF10B981);
+        return TossColors.emerald;
       default:
         return TossColors.gray500;
     }
@@ -541,8 +543,8 @@ class SubscriptionSection extends ConsumerWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: TossColors.gray900.withValues(alpha: 0.04),
-            blurRadius: 8,
+            color: TossColors.gray900.withValues(alpha: TossOpacity.subtle),
+            blurRadius: TossSpacing.space2,
             offset: const Offset(0, 4),
           ),
         ],
@@ -555,8 +557,8 @@ class SubscriptionSection extends ConsumerWidget {
             children: [
               // Icon placeholder
               Container(
-                width: 48,
-                height: 48,
+                width: TossSpacing.space12,
+                height: TossSpacing.space12,
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -568,17 +570,17 @@ class SubscriptionSection extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 80,
-                      height: 12,
+                      width: TossSpacing.space20,
+                      height: TossSpacing.space3,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
                         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: TossSpacing.space2),
                     Container(
-                      width: 120,
-                      height: 20,
+                      width: TossSpacing.space20 + TossSpacing.space10,
+                      height: TossSpacing.space5,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
                         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -596,7 +598,7 @@ class SubscriptionSection extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TossLoadingView.inline(
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: TossColors.gray400,
                 ),
                 const SizedBox(width: TossSpacing.space2),

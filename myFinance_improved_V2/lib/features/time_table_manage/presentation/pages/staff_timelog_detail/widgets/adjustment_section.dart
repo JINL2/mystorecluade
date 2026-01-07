@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 
 /// Adjustment section for shift details
 ///
@@ -49,10 +48,10 @@ class _AdjustmentSectionState extends State<AdjustmentSection> {
           'Adjustment for this shift',
           style: TossTextStyles.h4.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: TossSpacing.space4),
 
         // Add bonus text field
         _AdjustmentTextField(
@@ -95,7 +94,7 @@ class _AdjustmentTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         children: [
           // Label
@@ -109,7 +108,7 @@ class _AdjustmentTextField extends StatelessWidget {
           ),
           // Text field with underline
           SizedBox(
-            width: 100,
+            width: TossDimensions.inputLabelWidth,
             child: TextField(
               controller: controller,
               focusNode: focusNode,
@@ -117,7 +116,7 @@ class _AdjustmentTextField extends StatelessWidget {
               textAlign: TextAlign.right,
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
@@ -150,13 +149,13 @@ class _AdjustmentTextField extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: TossSpacing.space2),
           // Edit icon - tappable to focus the text field
           GestureDetector(
             onTap: onEditTap,
-            child: const Icon(
+            child: Icon(
               Icons.edit_outlined,
-              size: 20,
+              size: TossSpacing.iconMD,
               color: TossColors.gray400,
             ),
           ),

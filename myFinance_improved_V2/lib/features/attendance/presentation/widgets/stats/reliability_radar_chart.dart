@@ -1,7 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 
 /// Radar chart showing reliability score components
 /// Clean, minimal design matching app's style
@@ -40,23 +39,21 @@ class ReliabilityRadarChart extends StatelessWidget {
             width: 1,
           ),
           tickCount: 5,
-          ticksTextStyle: TossTextStyles.caption.copyWith(
-            fontSize: 10,
+          ticksTextStyle: TossTextStyles.labelSmall.copyWith(
             color: TossColors.gray500,
           ),
           radarBackgroundColor: TossColors.transparent,
           dataSets: [
             RadarDataSet(
-              fillColor: TossColors.primary.withOpacity(0.15),
+              fillColor: TossColors.primary.withValues(alpha: TossOpacity.strong),
               borderColor: TossColors.primary,
               borderWidth: 2,
               entryRadius: 3,
               dataEntries: _buildDataEntries(displayCriteria),
             ),
           ],
-          titleTextStyle: TossTextStyles.caption.copyWith(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
+          titleTextStyle: TossTextStyles.labelSmall.copyWith(
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.gray700,
           ),
           getTitle: (index, angle) {

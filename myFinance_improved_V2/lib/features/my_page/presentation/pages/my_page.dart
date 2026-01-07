@@ -10,6 +10,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 
 import '../../../../app/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
@@ -128,7 +129,7 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, size: 24),
+                    icon: Icon(Icons.arrow_back, size: TossSpacing.iconMD2),
                     onPressed: () {
                       if (context.canPop()) {
                         context.pop();
@@ -144,11 +145,11 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                     'Account',
                     style: TossTextStyles.h3.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                   const Spacer(),
-                  const SizedBox(width: 24), // Balance for back button
+                  SizedBox(width: TossSpacing.iconMD2), // Balance for back button
                 ],
               ),
             ),

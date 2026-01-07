@@ -205,7 +205,7 @@ class TossSelectionCard extends StatelessWidget {
             Icon(
               isSelected ? Icons.check : Icons.chevron_right,
               color: isSelected ? TossColors.gray900 : TossColors.gray300,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ],
         ),
@@ -256,7 +256,7 @@ class TossSelectionCard extends StatelessWidget {
           ),
         ),
         if (description != null) ...[
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space1 / 2),
           Text(
             description!,
             style: TossTextStyles.caption.copyWith(
@@ -265,7 +265,7 @@ class TossSelectionCard extends StatelessWidget {
           ),
         ],
         if (subtitle != null) ...[
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space1 / 2),
           Text(
             subtitle!,
             style: TossTextStyles.caption.copyWith(
@@ -304,7 +304,7 @@ class TossSummaryCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: TossColors.gray500),
+          Icon(icon, size: TossSpacing.iconSM, color: TossColors.gray500),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Column(
@@ -371,10 +371,10 @@ class TossNoticeCard extends StatelessWidget {
     return TossNoticeCard(
       key: key,
       message: message,
-      backgroundColor: Colors.amber.shade50,
-      borderColor: Colors.amber.shade200,
-      iconColor: Colors.amber.shade700,
-      textColor: Colors.amber.shade900,
+      backgroundColor: TossColors.warningLight,
+      borderColor: TossColors.warning.withValues(alpha: 0.3),
+      iconColor: TossColors.warning,
+      textColor: TossColors.warning,
     );
   }
 
@@ -386,10 +386,10 @@ class TossNoticeCard extends StatelessWidget {
     return TossNoticeCard(
       key: key,
       message: message,
-      backgroundColor: Colors.blue.shade50,
-      borderColor: Colors.blue.shade200,
-      iconColor: Colors.blue.shade700,
-      textColor: Colors.blue.shade900,
+      backgroundColor: TossColors.infoLight,
+      borderColor: TossColors.info.withValues(alpha: 0.3),
+      iconColor: TossColors.info,
+      textColor: TossColors.info,
     );
   }
 
@@ -401,10 +401,10 @@ class TossNoticeCard extends StatelessWidget {
     return TossNoticeCard(
       key: key,
       message: message,
-      backgroundColor: Colors.green.shade50,
-      borderColor: Colors.green.shade200,
-      iconColor: Colors.green.shade700,
-      textColor: Colors.green.shade900,
+      backgroundColor: TossColors.successLight,
+      borderColor: TossColors.success.withValues(alpha: 0.3),
+      iconColor: TossColors.success,
+      textColor: TossColors.success,
     );
   }
 
@@ -416,10 +416,10 @@ class TossNoticeCard extends StatelessWidget {
     return TossNoticeCard(
       key: key,
       message: message,
-      backgroundColor: Colors.red.shade50,
-      borderColor: Colors.red.shade200,
-      iconColor: Colors.red.shade700,
-      textColor: Colors.red.shade900,
+      backgroundColor: TossColors.errorLight,
+      borderColor: TossColors.error.withValues(alpha: 0.3),
+      iconColor: TossColors.error,
+      textColor: TossColors.error,
     );
   }
 
@@ -428,23 +428,23 @@ class TossNoticeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.amber.shade50,
+        color: backgroundColor ?? TossColors.warningLight,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: borderColor ?? Colors.amber.shade200),
+        border: Border.all(color: borderColor ?? TossColors.warning.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Icon(
             icon,
-            color: iconColor ?? Colors.amber.shade700,
-            size: 20,
+            color: iconColor ?? TossColors.warning,
+            size: TossSpacing.iconMD,
           ),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Text(
               message,
               style: TossTextStyles.caption.copyWith(
-                color: textColor ?? Colors.amber.shade900,
+                color: textColor ?? TossColors.warning,
               ),
             ),
           ),
@@ -474,7 +474,7 @@ class TossTransferArrow extends StatelessWidget {
         child: Icon(
           icon,
           color: color ?? TossColors.gray400,
-          size: 20,
+          size: TossSpacing.iconMD,
         ),
       ),
     );

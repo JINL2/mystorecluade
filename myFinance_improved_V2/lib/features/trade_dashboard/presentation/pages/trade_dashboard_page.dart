@@ -397,11 +397,11 @@ class _AlertsBottomSheet extends ConsumerWidget {
         // Handle bar
         Container(
           margin: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-          width: 40,
+          width: TossSpacing.iconXL,
           height: 4,
           decoration: BoxDecoration(
             color: TossColors.gray300,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
           ),
         ),
 
@@ -511,11 +511,11 @@ class _DateFilterBottomSheet extends ConsumerWidget {
           Center(
             child: Container(
               margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-              width: 40,
+              width: TossSpacing.iconXL,
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
               ),
             ),
           ),
@@ -603,7 +603,7 @@ class _DateFilterBottomSheet extends ConsumerWidget {
           vertical: TossSpacing.space3,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withOpacity(0.1) : null,
+          color: isSelected ? TossColors.primary.withValues(alpha: 0.1) : null,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Row(

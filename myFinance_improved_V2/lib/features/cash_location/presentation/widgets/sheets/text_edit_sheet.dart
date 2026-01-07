@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -40,8 +41,8 @@ class TextEditSheet extends StatelessWidget {
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
         ),
       ),
       child: SafeArea(
@@ -54,9 +55,9 @@ class TextEditSheet extends StatelessWidget {
             children: [
               // Handle bar
               Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
+                margin: const EdgeInsets.only(top: TossSpacing.space3),
+                width: TossDimensions.dragHandleWidth,
+                height: TossDimensions.dragHandleHeight,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -124,10 +125,10 @@ class TextEditSheet extends StatelessWidget {
                           color: TossColors.gray400,
                         ) : null,
                         suffixIcon: !multiline ? IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.cancel,
                             color: TossColors.gray400,
-                            size: 20,
+                            size: TossSpacing.iconMD,
                           ),
                           onPressed: () {
                             controller.clear();
@@ -141,12 +142,12 @@ class TextEditSheet extends StatelessWidget {
                     // Bottom button
                     SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: TossSpacing.buttonHeightLG,
                       child: TossButton.primary(
                         text: 'Save',
                         onPressed: () => onSave(controller.text),
                         fullWidth: true,
-                        height: 56,
+                        height: TossSpacing.buttonHeightLG,
                         borderRadius: TossBorderRadius.lg,
                         textStyle: TossTextStyles.button.copyWith(
                           color: TossColors.white,

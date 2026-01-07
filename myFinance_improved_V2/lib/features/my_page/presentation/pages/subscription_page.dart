@@ -11,6 +11,7 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 import '../widgets/subscription/subscription_widgets.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -572,13 +573,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
               ),
-              child: const Icon(Icons.close, size: 20, color: TossColors.gray700),
+              child: Icon(Icons.close, size: TossSpacing.iconSM, color: TossColors.gray700),
             ),
           ),
           const Spacer(),
-          const SizedBox(width: 36),
+          SizedBox(width: TossDimensions.closeButtonOffset),
         ],
       ),
     );

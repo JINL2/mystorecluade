@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_list_item.dart';
@@ -69,7 +70,7 @@ class _MergeSessionBottomSheetState
                     child: Text(
                       'Select Session to Merge',
                       style: TossTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -79,7 +80,7 @@ class _MergeSessionBottomSheetState
                     child: const Icon(
                       Icons.close,
                       color: TossColors.gray500,
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                     ),
                   ),
                 ],
@@ -155,12 +156,12 @@ class _MergeSessionBottomSheetState
           children: [
             // Date
             SizedBox(
-              width: 48,
+              width: TossSpacing.iconXXL,
               child: Text(
                 dateStr,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray500,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ),
@@ -172,18 +173,18 @@ class _MergeSessionBottomSheetState
                   Text(
                     session.sessionName,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   Text(
                     session.storeName,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray500,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: TossSpacing.space1),
                   Row(
                     children: [
                       // User avatar
@@ -199,15 +200,14 @@ class _MergeSessionBottomSheetState
                             session.createdByName.isNotEmpty
                                 ? session.createdByName[0].toUpperCase()
                                 : '?',
-                            style: TossTextStyles.caption.copyWith(
+                            style: TossTextStyles.micro.copyWith(
                               color: TossColors.gray600,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 9,
+                              fontWeight: TossFontWeight.semibold,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: TossSpacing.space1),
                       Text(
                         session.createdByName,
                         style: TossTextStyles.caption.copyWith(
@@ -217,10 +217,10 @@ class _MergeSessionBottomSheetState
                       const SizedBox(width: TossSpacing.space2),
                       const Icon(
                         Icons.people_outline,
-                        size: 12,
+                        size: TossSpacing.iconXXS,
                         color: TossColors.gray400,
                       ),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: TossSpacing.space0_5),
                       Text(
                         '${session.memberCount}',
                         style: TossTextStyles.caption.copyWith(
@@ -236,7 +236,7 @@ class _MergeSessionBottomSheetState
             const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ],
         ),

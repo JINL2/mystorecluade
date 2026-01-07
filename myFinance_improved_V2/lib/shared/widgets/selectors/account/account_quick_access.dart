@@ -119,7 +119,7 @@ class AccountQuickAccessSection extends StatelessWidget {
             ),
             if (quickAccount.usageCount > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1 + 2, vertical: TossSpacing.space1 / 2),
                 decoration: BoxDecoration(
                   color: TossColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -252,8 +252,8 @@ class AccountQuickAccessMultiSelect extends StatelessWidget {
                           const SizedBox(width: TossSpacing.space2),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                              horizontal: TossSpacing.space1 + 2,
+                              vertical: TossSpacing.space1 / 2,
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.warning.withValues(alpha: 0.1),

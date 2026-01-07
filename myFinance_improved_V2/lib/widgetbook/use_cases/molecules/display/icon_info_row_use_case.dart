@@ -23,13 +23,13 @@ final iconInfoRowComponent = WidgetbookComponent(
                 initialValue: 'Main Branch',
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             IconInfoRow(
               icon: Icons.calendar_today_outlined,
               label: 'Date',
               value: '2024-01-15',
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             IconInfoRow(
               icon: Icons.access_time_outlined,
               label: 'Time',
@@ -51,14 +51,14 @@ final iconInfoRowComponent = WidgetbookComponent(
               value: 'Completed',
               iconColor: TossColors.success,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             IconInfoRow(
               icon: Icons.warning_amber_outlined,
               label: 'Warning',
               value: 'Pending Review',
               iconColor: TossColors.warning,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             IconInfoRow(
               icon: Icons.error_outline,
               label: 'Error',
@@ -80,13 +80,13 @@ final iconInfoRowComponent = WidgetbookComponent(
               label: 'Phone',
               value: '+84 123 456 789',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             IconInfoRow.compact(
               icon: Icons.email_outlined,
               label: 'Email',
               value: 'contact@example.com',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             IconInfoRow.compact(
               icon: Icons.location_on_outlined,
               label: 'Address',
@@ -114,7 +114,7 @@ final iconInfoRowComponent = WidgetbookComponent(
                 color: TossColors.gray500,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             IconInfoRow(
               icon: Icons.link_outlined,
               label: 'Website',

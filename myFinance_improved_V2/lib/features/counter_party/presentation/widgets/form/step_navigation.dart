@@ -48,7 +48,7 @@ class StepNavigation extends StatelessWidget {
                 child: TossButton.secondary(
                   text: 'Back',
                   onPressed: isLoading ? null : onPrevious,
-                  leadingIcon: const Icon(Icons.arrow_back, size: 18),
+                  leadingIcon: Icon(Icons.arrow_back, size: TossSpacing.iconSM),
                   fullWidth: true,
                 ),
               )
@@ -73,7 +73,7 @@ class StepNavigation extends StatelessWidget {
                 isLoading: isLoading,
                 leadingIcon: Icon(
                   _getNextButtonIcon(),
-                  size: 18,
+                  size: TossSpacing.iconSM,
                 ),
                 fullWidth: true,
               ),

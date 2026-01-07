@@ -187,7 +187,7 @@ class _BankTabState extends ConsumerState<BankTab> {
                             color: TossColors.gray600,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: TossSpacing.space1 / 2),
                         Text(
                           'No bank accounts available',
                           style: TossTextStyles.bodyMedium.copyWith(
@@ -293,7 +293,7 @@ class _BankTabState extends ConsumerState<BankTab> {
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             border: Border.all(
               color: _bankAmountController.text.isNotEmpty
-                  ? TossColors.primary.withOpacity(0.5)
+                  ? TossColors.primary.withValues(alpha: 0.5)
                   : TossColors.gray200,
               width: 1.0,
             ),
@@ -319,14 +319,12 @@ class _BankTabState extends ConsumerState<BankTab> {
             style: TossTextStyles.bodyLarge.copyWith(
               color: TossColors.gray900,
               fontWeight: FontWeight.w600,
-              fontSize: 16,
             ),
             decoration: InputDecoration(
               hintText: 'Enter amount',
               hintStyle: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray400,
                 fontWeight: FontWeight.w400,
-                fontSize: 16,
               ),
               contentPadding: const EdgeInsets.all(TossSpacing.space3), // Match dropdown padding
               border: OutlineInputBorder(
@@ -371,9 +369,8 @@ class _BankTabState extends ConsumerState<BankTab> {
                     await widget.onSave(context, state, currencyId);
                   }
                 : null,
-            textStyle: TossTextStyles.body.copyWith(
+            textStyle: TossTextStyles.bodyLarge.copyWith(
               color: TossColors.white,
-              fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(

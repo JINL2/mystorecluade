@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 
 /// Dot indicator showing count
 class DotIndicator extends StatelessWidget {
@@ -23,9 +22,9 @@ class DotIndicator extends StatelessWidget {
         children: List.generate(
           count,
           (index) => Container(
-            width: 8,
-            height: 8,
-            margin: EdgeInsets.only(left: index > 0 ? 2 : 0),
+            width: TossSpacing.space2,
+            height: TossSpacing.space2,
+            margin: EdgeInsets.only(left: index > 0 ? TossSpacing.space0_5 : 0),
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -40,20 +39,19 @@ class DotIndicator extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: TossSpacing.space2,
+          height: TossSpacing.space2,
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
-        const SizedBox(width: 2),
+        SizedBox(width: TossSpacing.space0_5),
         Text(
           '×$count',
-          style: TossTextStyles.caption.copyWith(
+          style: TossTextStyles.small.copyWith(
             color: color,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],

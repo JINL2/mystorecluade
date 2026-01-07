@@ -176,7 +176,7 @@ class _ActivityListPageState extends ConsumerState<ActivityListPage> {
         });
       },
       backgroundColor: TossColors.white,
-      selectedColor: TossColors.primary.withOpacity(0.1),
+      selectedColor: TossColors.primary.withValues(alpha: 0.1),
       checkmarkColor: TossColors.primary,
       labelStyle: TossTextStyles.caption.copyWith(
         color: isSelected ? TossColors.primary : TossColors.gray600,

@@ -3,6 +3,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class SettingsSection extends StatelessWidget {
@@ -31,7 +34,7 @@ class SettingsSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: TossColors.gray900.withValues(alpha: 0.04),
+            color: TossColors.gray900.withValues(alpha: TossOpacity.subtle),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -45,7 +48,7 @@ class SettingsSection extends StatelessWidget {
               border: Border(
                 bottom: BorderSide(
                   color: TossColors.gray100,
-                  width: 1,
+                  width: TossDimensions.dividerThickness,
                 ),
               ),
             ),
@@ -99,8 +102,8 @@ class SettingsSection extends StatelessWidget {
   }) {
     final iconColor = isDestructive ? TossColors.error : TossColors.primary;
     final iconBgColor = isDestructive
-        ? TossColors.error.withValues(alpha: 0.1)
-        : TossColors.primary.withValues(alpha: 0.12);
+        ? TossColors.error.withValues(alpha: TossOpacity.light)
+        : TossColors.primary.withValues(alpha: TossOpacity.light);
     final textColor = isDestructive ? TossColors.error : TossColors.gray900;
 
     return InkWell(
@@ -127,7 +130,7 @@ class SettingsSection extends StatelessWidget {
               child: Text(
                 title,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: textColor,
                 ),
               ),

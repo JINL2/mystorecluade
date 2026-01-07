@@ -49,11 +49,10 @@ class CurrencyPillSelector extends StatelessWidget {
               TossButton.textButton(
                 text: 'Add currency',
                 onPressed: onAddCurrency,
-                leadingIcon: const Icon(Icons.add, size: 16),
+                leadingIcon: const Icon(Icons.add, size: TossSpacing.iconSM),
                 textColor: TossColors.primary,
-                fontSize: 14,
                 fontWeight: FontWeight.w600,
-                padding: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.only(right: TossSpacing.space1),
               ),
           ],
         ),

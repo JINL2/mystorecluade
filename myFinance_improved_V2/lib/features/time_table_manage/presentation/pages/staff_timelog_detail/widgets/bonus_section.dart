@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 
 /// Bonus section with input field for manager to set bonus amount
 class BonusSection extends StatelessWidget {
@@ -26,10 +24,10 @@ class BonusSection extends StatelessWidget {
           'Bonus for this shift (₫)',
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
         Stack(
           children: [
             // Show "0" when field is empty
@@ -41,7 +39,7 @@ class BonusSection extends StatelessWidget {
                       '0',
                       style: TossTextStyles.h2.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
                   ),
@@ -53,7 +51,7 @@ class BonusSection extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TossTextStyles.h2.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
@@ -81,7 +79,7 @@ class BonusSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   borderSide: const BorderSide(color: TossColors.gray100, width: 1),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space2),
                 isDense: true,
               ),
               onChanged: (value) {
@@ -91,7 +89,7 @@ class BonusSection extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: TossSpacing.space2),
         Text(
           'Optional one-time bonus approved by manager.',
           style: TossTextStyles.caption.copyWith(

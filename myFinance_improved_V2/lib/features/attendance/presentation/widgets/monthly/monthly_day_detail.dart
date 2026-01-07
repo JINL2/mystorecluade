@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/monthly_attendance.dart';
 
@@ -39,7 +36,7 @@ class MonthlyDayDetail extends StatelessWidget {
               Text(
                 _getStatusText(),
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: _getStatusColor(),
                 ),
               ),
@@ -47,13 +44,13 @@ class MonthlyDayDetail extends StatelessWidget {
               if (attendance!.isLate)
                 _buildBadge('Late', TossColors.warning),
               if (attendance!.isEarlyLeave) ...[
-                if (attendance!.isLate) const SizedBox(width: 4),
+                if (attendance!.isLate) const SizedBox(width: TossSpacing.space1),
                 _buildBadge('Early', TossColors.warning),
               ],
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: TossSpacing.space3),
 
           // Scheduled time (V3: UTC → Local 변환)
           _buildInfoRow(
@@ -63,7 +60,7 @@ class MonthlyDayDetail extends StatelessWidget {
 
           // Actual check-in
           if (attendance!.checkInTimeUtc != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             _buildInfoRow(
               'Check-in',
               _formatTime(attendance!.checkInTimeUtc!.toLocal()),
@@ -73,7 +70,7 @@ class MonthlyDayDetail extends StatelessWidget {
 
           // Actual check-out
           if (attendance!.checkOutTimeUtc != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             _buildInfoRow(
               'Check-out',
               _formatTime(attendance!.checkOutTimeUtc!.toLocal()),
@@ -83,7 +80,7 @@ class MonthlyDayDetail extends StatelessWidget {
 
           // Notes
           if (attendance!.notes != null && attendance!.notes!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: TossSpacing.space3),
             Text(
               attendance!.notes!,
               style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
@@ -104,16 +101,19 @@ class MonthlyDayDetail extends StatelessWidget {
 
   Widget _buildBadge(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.badgePaddingHorizontalSM,
+        vertical: TossSpacing.badgePaddingVerticalSM,
+      ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         text,
         style: TossTextStyles.labelSmall.copyWith(
           color: color,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

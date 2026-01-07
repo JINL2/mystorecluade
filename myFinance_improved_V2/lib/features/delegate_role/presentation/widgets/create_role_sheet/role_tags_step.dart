@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/core/utils/tag_validator.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -62,7 +64,7 @@ class RoleTagsStep extends StatelessWidget {
           Text(
             'Add Tags (Optional)',
             style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray900,
             ),
           ),
@@ -92,7 +94,7 @@ class RoleTagsStep extends StatelessWidget {
               'Suggested Tags',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
             Text(
@@ -101,7 +103,7 @@ class RoleTagsStep extends StatelessWidget {
                 color: selectedTags.length >= TagValidator.MAX_TAGS
                     ? TossColors.primary
                     : TossColors.gray600,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
@@ -131,7 +133,7 @@ class RoleTagsStep extends StatelessWidget {
             'Selected Tags',
             style: TossTextStyles.labelMedium.copyWith(
               color: TossColors.gray700,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -156,10 +158,10 @@ class RoleTagsStep extends StatelessWidget {
         vertical: TossSpacing.space2,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: TossOpacity.heavy),
           width: 1,
         ),
       ),
@@ -170,7 +172,7 @@ class RoleTagsStep extends StatelessWidget {
             tag,
             style: TossTextStyles.caption.copyWith(
               color: color,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           const SizedBox(width: TossSpacing.space1),
@@ -179,7 +181,7 @@ class RoleTagsStep extends StatelessWidget {
             borderRadius: BorderRadius.circular(TossBorderRadius.full),
             child: Icon(
               Icons.close,
-              size: 14,
+              size: TossSpacing.iconXS,
               color: color,
             ),
           ),
@@ -229,7 +231,7 @@ class RoleTagsStep extends StatelessWidget {
             children: [
               Icon(
                 isSelected ? Icons.check : Icons.add,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: isSelected ? TossColors.primary : TossColors.primary,
               ),
               const SizedBox(width: TossSpacing.space1),
@@ -237,7 +239,7 @@ class RoleTagsStep extends StatelessWidget {
                 tag,
                 style: TossTextStyles.caption.copyWith(
                   color: isSelected ? TossColors.primary : TossColors.gray700,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
                 ),
               ),
             ],

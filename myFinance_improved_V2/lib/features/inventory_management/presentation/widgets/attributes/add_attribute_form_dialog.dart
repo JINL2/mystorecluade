@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/attribute_types.dart';
@@ -96,12 +97,12 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
               child: Text(
                 'Add Attribute',
                 style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.paddingXL),
 
             // Name input
             TossTextField(
@@ -109,24 +110,24 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
               controller: _nameController,
               hintText: 'Enter attribute name',
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: TossSpacing.space5),
 
             // Type selector
             Text(
               'Type',
               style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
                 color: TossColors.gray600,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             InkWell(
               onTap: _showTypeSelector,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                  horizontal: TossSpacing.space4,
+                  vertical: TossSpacing.space3,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: TossColors.gray200),
@@ -144,14 +145,14 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
                     ),
                     const Icon(
                       LucideIcons.chevronDown,
-                      size: 18,
+                      size: TossSpacing.iconSM,
                       color: TossColors.gray400,
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: TossSpacing.paddingXL),
 
             // Action buttons
             Row(
@@ -162,7 +163,7 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: TossButton.primary(
                     text: 'Add',

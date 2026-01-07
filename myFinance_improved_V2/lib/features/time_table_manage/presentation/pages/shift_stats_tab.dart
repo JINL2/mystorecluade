@@ -110,12 +110,12 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
             error: (error, stack) => _buildErrorSection(error.toString()),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: TossSpacing.space4),
 
           // Section Divider (full width)
           const GrayDividerSpace(),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: TossSpacing.space4),
 
           // Reliability Leaderboard - Connected to real data
           // Leaderboard shows only Store employees, See All shows Company employees
@@ -287,7 +287,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
               widget.onNavigateToTimesheets?.call('this_month');
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: TossSpacing.space4),
 
           // Hero Stats with real data
           StatsMetricRow(
@@ -343,8 +343,8 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
     showModalBottomSheet<StatsPeriod>(
       context: context,
       backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
       ),
       builder: (context) => PeriodSelectorBottomSheet(
         selectedPeriod: selectedPeriod,
@@ -382,7 +382,7 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
       child: Center(
         child: Column(
           children: [
-            const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+            Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconXXL),
             const SizedBox(height: TossSpacing.space2),
             Text(
               'Failed to load store health data',

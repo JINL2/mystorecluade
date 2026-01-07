@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -55,10 +58,10 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
       context: context,
       heightFactor: 0.85,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
+            top: Radius.circular(TossBorderRadius.bottomSheet),
           ),
         ),
         child: Column(
@@ -66,12 +69,12 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
           children: [
             // Handle bar
             Container(
-              width: 40,
-              height: 4,
+              width: TossDimensions.dragHandleWidth,
+              height: TossDimensions.dragHandleHeight,
               margin: const EdgeInsets.only(top: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
               ),
             ),
             // Title
@@ -82,7 +85,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
                   Text(
                     roleName,
                     style: TossTextStyles.h4.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                       color: TossColors.gray900,
                     ),
                   ),

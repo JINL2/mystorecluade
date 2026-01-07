@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import 'time_button.dart';
@@ -40,7 +41,7 @@ class QuickFillRow extends StatelessWidget {
             label,
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray700,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
         ),
@@ -68,12 +69,12 @@ class QuickFillRow extends StatelessWidget {
         const SizedBox(width: TossSpacing.space2),
         IconButton(
           onPressed: onApply,
-          icon: const Icon(LucideIcons.check, size: 18),
+          icon: Icon(LucideIcons.check, size: TossSpacing.iconSM),
           color: TossColors.success,
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minWidth: 32,
-            minHeight: 32,
+          constraints: BoxConstraints(
+            minWidth: TossSpacing.buttonHeightSM,
+            minHeight: TossSpacing.buttonHeightSM,
           ),
           tooltip: 'Apply',
         ),

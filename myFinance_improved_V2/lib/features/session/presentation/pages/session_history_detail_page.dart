@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../domain/entities/session_history_item.dart';
 import '../widgets/history_detail/history_header_section.dart';

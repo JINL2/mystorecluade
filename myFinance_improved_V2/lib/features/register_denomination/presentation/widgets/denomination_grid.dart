@@ -102,8 +102,8 @@ class DenominationGrid extends ConsumerWidget {
           // Handle
           const SizedBox(height: TossSpacing.space3),
           Container(
-            width: 36,
-            height: 4,
+            width: TossSpacing.space9,
+            height: TossSpacing.space1,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -210,7 +210,7 @@ class DenominationGrid extends ConsumerWidget {
         ),
         title: Row(
           children: [
-            const Icon(Icons.error_outline, color: TossColors.error, size: 24),
+            const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconLG),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Cannot Delete',
@@ -251,7 +251,7 @@ class DenominationGrid extends ConsumerWidget {
                           Icon(
                             _getLocationIcon(location.locationType),
                             color: TossColors.error,
-                            size: 20,
+                            size: TossSpacing.iconMD,
                           ),
                           const SizedBox(width: TossSpacing.space2),
                           Expanded(
@@ -291,7 +291,7 @@ class DenominationGrid extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, color: TossColors.primary, size: 20),
+                  const Icon(Icons.info_outline, color: TossColors.primary, size: TossSpacing.iconMD),
                   const SizedBox(width: TossSpacing.space2),
                   Expanded(
                     child: Text(
@@ -348,7 +348,7 @@ class DenominationGrid extends ConsumerWidget {
           children: [
             Icon(
               icon,
-              size: 24,
+              size: TossSpacing.iconLG,
               color: isDestructive ? TossColors.error : TossColors.gray700,
             ),
             const SizedBox(width: TossSpacing.space4),
@@ -411,7 +411,7 @@ class DenominationItem extends StatelessWidget {
               // Smaller emoji icon
               Text(
                 denomination.emoji,
-                style: TossTextStyles.body.copyWith(fontSize: 18),
+                style: TossTextStyles.body.copyWith(fontSize: TossSpacing.iconSM3),
               ),
               const SizedBox(height: TossSpacing.space1),
               
@@ -421,13 +421,13 @@ class DenominationItem extends StatelessWidget {
                 style: TossTextStyles.body.copyWith(
                   fontWeight: FontWeight.w700,
                   color: TossColors.gray900,
-                  fontSize: 16,
+                  fontSize: TossSpacing.iconSM2,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: TossSpacing.space1 / 2),
               
               // Simple type text - smaller
               Text(
@@ -435,7 +435,7 @@ class DenominationItem extends StatelessWidget {
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray500,
                   fontWeight: FontWeight.w500,
-                  fontSize: 10,
+                  fontSize: TossSpacing.space2 + TossSpacing.space1 / 2,
                 ),
               ),
             ],

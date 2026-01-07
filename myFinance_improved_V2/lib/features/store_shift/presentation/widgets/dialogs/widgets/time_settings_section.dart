@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../../core/constants/icon_mapper.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -26,16 +27,8 @@ class TimeSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.primary.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.1),
-          width: TossSpacing.space1 / 4,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -62,7 +55,7 @@ class TimeSettingsSection extends StatelessWidget {
           'Shift Hours',
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],
@@ -77,7 +70,7 @@ class TimeSettingsSection extends StatelessWidget {
           'Start Time',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray600,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -99,7 +92,7 @@ class TimeSettingsSection extends StatelessWidget {
           'End Time',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray600,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),

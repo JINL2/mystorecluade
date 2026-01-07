@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -34,7 +35,7 @@ class RoleBasicInfoStep extends StatelessWidget {
           Text(
             'Role Name',
             style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray900,
             ),
           ),
@@ -59,7 +60,7 @@ class RoleBasicInfoStep extends StatelessWidget {
           Text(
             'Description (Optional)',
             style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray900,
             ),
           ),

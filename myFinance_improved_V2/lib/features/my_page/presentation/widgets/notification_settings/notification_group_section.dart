@@ -3,6 +3,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 import '../../../data/datasources/notification_settings_datasource.dart';
 import 'notification_setting_item.dart';
@@ -39,7 +42,7 @@ class NotificationGroupSection extends StatelessWidget {
           child: Text(
             NotificationUtils.formatName(groupName),
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray700,
               letterSpacing: 0.5,
             ),
@@ -53,7 +56,7 @@ class NotificationGroupSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(TossBorderRadius.xl),
             boxShadow: [
               BoxShadow(
-                color: TossColors.gray900.withValues(alpha: 0.04),
+                color: TossColors.gray900.withValues(alpha: TossOpacity.subtle),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -77,8 +80,8 @@ class NotificationGroupSection extends StatelessWidget {
                         horizontal: TossSpacing.space4,
                       ),
                       child: Divider(
-                        height: 1,
-                        thickness: 1,
+                        height: TossDimensions.dividerThickness,
+                        thickness: TossDimensions.dividerThickness,
                         color: TossColors.gray100,
                       ),
                     ),

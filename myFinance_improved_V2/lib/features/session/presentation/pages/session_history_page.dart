@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../providers/session_history_provider.dart';
@@ -51,10 +52,9 @@ class SessionHistoryPage extends ConsumerWidget {
                     ),
                     child: Text(
                       '${filter.activeFilterCount}',
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.micro.copyWith(
                         color: TossColors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -99,7 +99,7 @@ class SessionHistoryPage extends ConsumerWidget {
         children: [
           const Icon(
             Icons.calendar_today,
-            size: 16,
+            size: TossSpacing.iconSM2,
             color: TossColors.textSecondary,
           ),
           const SizedBox(width: TossSpacing.space2),
@@ -129,7 +129,7 @@ class SessionHistoryPage extends ConsumerWidget {
                   color: filter.sessionType == 'counting'
                       ? TossColors.primary
                       : TossColors.success,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ),
@@ -153,7 +153,7 @@ class SessionHistoryPage extends ConsumerWidget {
                   color: filter.isActive == true
                       ? TossColors.success
                       : TossColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ),
@@ -181,7 +181,7 @@ class SessionHistoryPage extends ConsumerWidget {
             children: [
               const Icon(
                 Icons.error_outline,
-                size: 64,
+                size: TossSpacing.icon4XL,
                 color: TossColors.error,
               ),
               const SizedBox(height: TossSpacing.space4),
@@ -219,7 +219,7 @@ class SessionHistoryPage extends ConsumerWidget {
             children: [
               const Icon(
                 Icons.history,
-                size: 64,
+                size: TossSpacing.icon4XL,
                 color: TossColors.textTertiary,
               ),
               const SizedBox(height: TossSpacing.space4),

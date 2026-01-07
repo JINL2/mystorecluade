@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:intl/intl.dart';
 import 'staff_timelog_card.dart';
 import '../../pages/staff_timelog_detail_page.dart';
@@ -79,7 +76,7 @@ class _ShiftSectionState extends State<ShiftSection> {
           '$problemCount problems',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.error,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       );
@@ -93,7 +90,7 @@ class _ShiftSectionState extends State<ShiftSection> {
           'solved $solvedCount',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.success,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
       );
@@ -136,22 +133,22 @@ class _ShiftSectionState extends State<ShiftSection> {
                               widget.shift.shiftName,
                               style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray900,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: TossFontWeight.bold,
                               ),
                             ),
                             // Problem & Solved indicators
                             ..._buildProblemSolvedIndicators(),
                           ],
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: TossSpacing.space0_5),
                         Row(
                           children: [
                             Icon(
                               Icons.access_time,
-                              size: 14,
+                              size: TossSpacing.iconXS,
                               color: TossColors.gray600,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: TossSpacing.space1),
                             Text(
                               widget.shift.timeRange,
                               style: TossTextStyles.caption.copyWith(
@@ -165,7 +162,7 @@ class _ShiftSectionState extends State<ShiftSection> {
                           '${widget.shift.assignedCount}/${widget.shift.totalCount} assigned',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray600,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ],
@@ -178,7 +175,7 @@ class _ShiftSectionState extends State<ShiftSection> {
                   Icon(
                     _isExpanded ? Icons.expand_more : Icons.chevron_right,
                     color: TossColors.gray600,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
                 ],
               ),

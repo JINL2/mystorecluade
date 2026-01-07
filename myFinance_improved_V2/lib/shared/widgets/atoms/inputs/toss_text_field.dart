@@ -241,7 +241,7 @@ class TossTextField extends StatelessWidget {
                     ),
               ),
               if (isRequired) ...[
-                const SizedBox(width: 2),
+                SizedBox(width: TossSpacing.space1 / 2),
                 Text(
                   '*',
                   style: TossTextStyles.label.copyWith(

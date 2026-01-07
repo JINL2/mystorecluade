@@ -400,7 +400,7 @@ class _TossDialogState extends State<TossDialog>
                     children: [
                       Icon(
                         item.icon,
-                        size: 18,
+                        size: TossSpacing.iconSM,
                         color: item.iconColor ?? TossColors.textSecondary,
                       ),
                       const SizedBox(width: TossSpacing.space3),
@@ -558,7 +558,7 @@ class TossDialogs {
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, color: TossColors.info, size: 20),
+              const Icon(Icons.info_outline, color: TossColors.info, size: TossSpacing.iconMD),
               const SizedBox(width: TossSpacing.space2),
               Expanded(
                 child: Text(

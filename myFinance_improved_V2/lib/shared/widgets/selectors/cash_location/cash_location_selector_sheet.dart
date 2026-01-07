@@ -137,10 +137,10 @@ class _CashLocationScopedSheetState extends State<CashLocationScopedSheet> {
         Navigator.pop(context);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
         child: Row(
           children: [
-            const Icon(Icons.clear, size: 20, color: TossColors.gray500),
+            const Icon(Icons.clear, size: TossSpacing.iconMD, color: TossColors.gray500),
             const SizedBox(width: TossSpacing.space3),
             Text(
               'Clear selection',
@@ -232,10 +232,10 @@ class CashLocationSimpleSheet extends StatelessWidget {
         Navigator.pop(context);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
         child: Row(
           children: [
-            const Icon(Icons.clear, size: 20, color: TossColors.gray500),
+            const Icon(Icons.clear, size: TossSpacing.iconMD, color: TossColors.gray500),
             const SizedBox(width: TossSpacing.space3),
             Text(
               'Clear selection',

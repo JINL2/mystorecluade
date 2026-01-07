@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../themes/toss_border_radius.dart';
 import '../../../../themes/toss_colors.dart';
 import '../../../../themes/toss_spacing.dart';
 
@@ -51,15 +52,15 @@ class _ChatInputFieldState extends State<ChatInputField> {
           decoration: InputDecoration(
             hintText: 'Ask about your store...',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(TossBorderRadius.bottomSheet),
               borderSide: const BorderSide(color: TossColors.gray300),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(TossBorderRadius.bottomSheet),
               borderSide: const BorderSide(color: TossColors.gray300),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(TossBorderRadius.bottomSheet),
               borderSide: const BorderSide(color: TossColors.primary, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(

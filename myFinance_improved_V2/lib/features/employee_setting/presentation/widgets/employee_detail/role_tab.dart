@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -59,7 +60,7 @@ class RoleTab extends ConsumerWidget {
                     children: [
                       Icon(
                         hasRole ? Icons.verified_user : Icons.person_outline,
-                        size: 48,
+                        size: TossDimensions.avatarXL,
                         color: hasRole ? TossColors.primary : TossColors.gray400,
                       ),
                       const SizedBox(height: TossSpacing.space3),
@@ -86,7 +87,7 @@ class RoleTab extends ConsumerWidget {
             border: Border(
               top: BorderSide(
                 color: TossColors.gray200,
-                width: 1,
+                width: TossDimensions.dividerThickness,
               ),
             ),
           ),

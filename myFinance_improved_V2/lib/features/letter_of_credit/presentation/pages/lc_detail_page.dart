@@ -7,6 +7,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_opacity.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
 import '../../../trade_shared/presentation/widgets/trade_amount_display.dart';
 import '../../domain/entities/letter_of_credit.dart';
@@ -25,8 +27,10 @@ class LCDetailPage extends ConsumerWidget {
 
     return lcAsync.when(
       loading: () => TossScaffold(
+        backgroundColor: TossColors.white,
         appBar: TossAppBar(
           title: 'LC Details',
+          backgroundColor: TossColors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
@@ -35,8 +39,10 @@ class LCDetailPage extends ConsumerWidget {
         body: const TossLoadingView(message: 'Loading...'),
       ),
       error: (error, _) => TossScaffold(
+        backgroundColor: TossColors.white,
         appBar: TossAppBar(
           title: 'LC Details',
+          backgroundColor: TossColors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
@@ -46,7 +52,7 @@ class LCDetailPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: TossColors.error),
+              Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.error),
               const SizedBox(height: TossSpacing.space3),
               Text('Failed to load LC', style: TossTextStyles.bodyLarge),
               const SizedBox(height: TossSpacing.space2),
@@ -81,8 +87,10 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
     final lc = widget.lc;
 
     return TossScaffold(
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: lc.lcNumber,
+        backgroundColor: TossColors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(true),
@@ -320,94 +328,92 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
     final rate = exchangeRateData?.getRate(lc.currencyCode);
     final convertedAvailable = showDualCurrency && rate != null ? lc.availableAmount * rate : null;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Status',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    _buildStatusBadge(lc.status),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Available',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      lc.formattedAvailableAmount,
-                      style: TossTextStyles.h3.copyWith(
-                        color: TossColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (showDualCurrency && convertedAvailable != null)
-                      Text(
-                        '≈ ${exchangeRateData!.baseCurrencySymbol}${_formatAmountForCurrency(convertedAvailable, baseCurrency!)}',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-            if (lc.amountUtilized > 0) ...[
-              const SizedBox(height: TossSpacing.space3),
-              // Utilization progress bar
+    return TossWhiteCard(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Utilization',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                        ),
-                      ),
-                      Text(
-                        '${lc.utilizationPercent.toStringAsFixed(1)}%',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray600,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: lc.utilizationPercent / 100,
-                    backgroundColor: TossColors.gray200,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      lc.utilizationPercent >= 100
-                          ? TossColors.success
-                          : TossColors.primary,
+                  Text(
+                    'Status',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
                     ),
                   ),
+                  const SizedBox(height: TossSpacing.space1),
+                  _buildStatusBadge(lc.status),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Available',
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                  const SizedBox(height: TossSpacing.space1),
+                  Text(
+                    lc.formattedAvailableAmount,
+                    style: TossTextStyles.h3.copyWith(
+                      color: TossColors.primary,
+                      fontWeight: TossFontWeight.bold,
+                    ),
+                  ),
+                  if (showDualCurrency && convertedAvailable != null)
+                    Text(
+                      '≈ ${exchangeRateData!.baseCurrencySymbol}${_formatAmountForCurrency(convertedAvailable, baseCurrency!)}',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
                 ],
               ),
             ],
+          ),
+          if (lc.amountUtilized > 0) ...[
+            const SizedBox(height: TossSpacing.space3),
+            // Utilization progress bar
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Utilization',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                      ),
+                    ),
+                    Text(
+                      '${lc.utilizationPercent.toStringAsFixed(1)}%',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray600,
+                        fontWeight: TossFontWeight.semibold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                LinearProgressIndicator(
+                  value: lc.utilizationPercent / 100,
+                  backgroundColor: TossColors.gray200,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    lc.utilizationPercent >= 100
+                        ? TossColors.success
+                        : TossColors.primary,
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -419,9 +425,9 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: TossColors.error.withOpacity(0.1),
+        color: TossColors.error.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.error.withOpacity(0.3)),
+        border: Border.all(color: TossColors.error.withValues(alpha: TossOpacity.overlay)),
       ),
       child: Row(
         children: [
@@ -436,7 +442,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
                     'LC has expired',
                     style: TossTextStyles.bodyMedium.copyWith(
                       color: TossColors.error,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 if (isShipmentOverdue)
@@ -444,7 +450,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
                     'Shipment deadline has passed',
                     style: TossTextStyles.bodyMedium.copyWith(
                       color: TossColors.error,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
               ],
@@ -517,13 +523,12 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Icon(Icons.info_outline, size: 12, color: TossColors.gray400),
-              const SizedBox(width: 4),
+              Icon(Icons.info_outline, size: TossSpacing.iconXS, color: TossColors.gray400),
+              const SizedBox(width: TossSpacing.space1),
               Text(
                 'Rate: 1 ${lc.currencyCode} = ${_formatAmountForCurrency(rate, baseCurrency!)} $baseCurrency',
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.gray400,
-                  fontSize: 10,
                 ),
               ),
             ],
@@ -547,16 +552,14 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
         Text(
           title,
           style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.gray800,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            child: Column(children: children),
-          ),
+        TossWhiteCard(
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          child: Column(children: children),
         ),
       ],
     );
@@ -595,7 +598,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
               child: Text(
                 value,
                 style: TossTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.primary,
                   decoration: TextDecoration.underline,
                 ),
@@ -612,7 +615,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
       padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
       child: Row(
         children: [
-          Icon(Icons.description_outlined, size: 18, color: TossColors.gray500),
+          Icon(Icons.description_outlined, size: TossSpacing.iconSM, color: TossColors.gray500),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Text(
@@ -649,7 +652,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
               Text(
                 'Amendment #${amendment.amendmentNumber}',
                 style: TossTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
               _buildAmendmentStatusBadge(amendment.status),
@@ -684,35 +687,35 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
         textColor = TossColors.gray700;
         break;
       case LCStatus.applied:
-        bgColor = TossColors.warning.withOpacity(0.1);
+        bgColor = TossColors.warning.withValues(alpha: TossOpacity.light);
         textColor = TossColors.warning;
         break;
       case LCStatus.issued:
-        bgColor = TossColors.primary.withOpacity(0.1);
+        bgColor = TossColors.primary.withValues(alpha: TossOpacity.light);
         textColor = TossColors.primary;
         break;
       case LCStatus.advised:
-        bgColor = TossColors.info.withOpacity(0.1);
+        bgColor = TossColors.info.withValues(alpha: TossOpacity.light);
         textColor = TossColors.info;
         break;
       case LCStatus.confirmed:
-        bgColor = TossColors.success.withOpacity(0.1);
+        bgColor = TossColors.success.withValues(alpha: TossOpacity.light);
         textColor = TossColors.success;
         break;
       case LCStatus.amended:
-        bgColor = TossColors.warning.withOpacity(0.1);
+        bgColor = TossColors.warning.withValues(alpha: TossOpacity.light);
         textColor = TossColors.warning;
         break;
       case LCStatus.documentsSubmitted:
-        bgColor = TossColors.info.withOpacity(0.1);
+        bgColor = TossColors.info.withValues(alpha: TossOpacity.light);
         textColor = TossColors.info;
         break;
       case LCStatus.utilized:
-        bgColor = TossColors.success.withOpacity(0.2);
+        bgColor = TossColors.success.withValues(alpha: TossOpacity.overlay);
         textColor = TossColors.success;
         break;
       case LCStatus.expired:
-        bgColor = TossColors.error.withOpacity(0.1);
+        bgColor = TossColors.error.withValues(alpha: TossOpacity.light);
         textColor = TossColors.error;
         break;
       case LCStatus.closed:
@@ -738,7 +741,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
         status.label,
         style: TossTextStyles.bodyMedium.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );
@@ -750,15 +753,15 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
 
     switch (status) {
       case LCAmendmentStatus.pending:
-        bgColor = TossColors.warning.withOpacity(0.1);
+        bgColor = TossColors.warning.withValues(alpha: TossOpacity.light);
         textColor = TossColors.warning;
         break;
       case LCAmendmentStatus.approved:
-        bgColor = TossColors.success.withOpacity(0.1);
+        bgColor = TossColors.success.withValues(alpha: TossOpacity.light);
         textColor = TossColors.success;
         break;
       case LCAmendmentStatus.rejected:
-        bgColor = TossColors.error.withOpacity(0.1);
+        bgColor = TossColors.error.withValues(alpha: TossOpacity.light);
         textColor = TossColors.error;
         break;
     }
@@ -766,7 +769,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
-        vertical: 2,
+        vertical: TossSpacing.space1 / 2,
       ),
       decoration: BoxDecoration(
         color: bgColor,
@@ -776,7 +779,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
         status.label,
         style: TossTextStyles.caption.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

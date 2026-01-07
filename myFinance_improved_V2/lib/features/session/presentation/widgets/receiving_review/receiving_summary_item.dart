@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
 /// Summary item widget for receiving review stats
@@ -28,12 +30,12 @@ class ReceivingSummaryItem extends StatelessWidget {
             color: TossColors.textTertiary,
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: TossSpacing.space0_5),
         Text(
           value,
           style: TossTextStyles.bodyMedium.copyWith(
             color: color ?? TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],

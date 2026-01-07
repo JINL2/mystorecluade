@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/session_review_item.dart';
@@ -58,7 +59,7 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
           'Receiving Complete',
           style: TossTextStyles.titleMedium.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
         centerTitle: true,
@@ -100,11 +101,11 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
             children: [
               const Text('New'),
               if (_newItems.isNotEmpty) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: TossSpacing.space1_5),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: TossSpacing.badgePaddingHorizontalXS,
+                    vertical: TossSpacing.badgePaddingVerticalXS,
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.warning,
@@ -112,10 +113,9 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
                   ),
                   child: Text(
                     '${_newItems.length}',
-                    style: TossTextStyles.small.copyWith(
+                    style: TossTextStyles.labelSmall.copyWith(
                       color: TossColors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -128,22 +128,21 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text('All'),
-              const SizedBox(width: 6),
+              const SizedBox(width: TossSpacing.space1_5),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
+                padding: EdgeInsets.symmetric(
+                  horizontal: TossSpacing.badgePaddingHorizontalXS,
+                  vertical: TossSpacing.badgePaddingVerticalXS,
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Text(
                   '${_allItems.length}',
-                  style: TossTextStyles.small.copyWith(
+                  style: TossTextStyles.labelSmall.copyWith(
                     color: TossColors.gray700,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),
@@ -168,8 +167,8 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
         children: [
           // Success Icon
           Container(
-            width: 56,
-            height: 56,
+            width: TossSpacing.icon3XL,
+            height: TossSpacing.icon3XL,
             decoration: BoxDecoration(
               color: TossColors.success.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -177,7 +176,7 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
             child: const Icon(
               Icons.check_circle,
               color: TossColors.success,
-              size: 32,
+              size: TossSpacing.iconLG2,
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -187,7 +186,7 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
             widget.response.receivingNumber,
             style: TossTextStyles.h3.copyWith(
               color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
           const SizedBox(height: TossSpacing.space2),
@@ -233,7 +232,7 @@ class _ReceivingResultPageState extends ConsumerState<ReceivingResultPage>
                   '$newDisplayCount new',
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.warning,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ],
@@ -310,9 +309,9 @@ class _StockChangeRow extends StatelessWidget {
           // NEW badge for new products
           if (isNew) ...[
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: 2,
+              padding: EdgeInsets.symmetric(
+                horizontal: TossSpacing.badgePaddingHorizontalXS,
+                vertical: TossSpacing.badgePaddingVerticalXS,
               ),
               decoration: BoxDecoration(
                 color: TossColors.warning,
@@ -320,10 +319,9 @@ class _StockChangeRow extends StatelessWidget {
               ),
               child: Text(
                 'NEW',
-                style: TossTextStyles.small.copyWith(
+                style: TossTextStyles.micro.copyWith(
                   color: TossColors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
             ),
@@ -336,7 +334,7 @@ class _StockChangeRow extends StatelessWidget {
               item.productName,
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
-                fontWeight: isNew ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: isNew ? TossFontWeight.semibold : TossFontWeight.regular,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -355,18 +353,18 @@ class _StockChangeRow extends StatelessWidget {
                   color: TossColors.gray500,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: TossSpacing.space1_5),
               const Icon(
                 Icons.arrow_forward,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.gray400,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: TossSpacing.space1_5),
               Text(
                 '${item.quantityAfter}',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],
@@ -376,9 +374,9 @@ class _StockChangeRow extends StatelessWidget {
 
           // Received quantity badge
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 4,
+            padding: EdgeInsets.symmetric(
+              horizontal: TossSpacing.badgePaddingHorizontalSM,
+              vertical: TossSpacing.badgePaddingVerticalMD,
             ),
             decoration: BoxDecoration(
               color: TossColors.success.withValues(alpha: 0.1),
@@ -388,7 +386,7 @@ class _StockChangeRow extends StatelessWidget {
               '+${item.quantityReceived}',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.success,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),

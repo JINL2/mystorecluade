@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
 /// Rejected quantity stepper with red styling
@@ -132,8 +133,8 @@ class _RejectedQuantityStepperState extends State<RejectedQuantityStepper> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 48,
-        height: 48,
+        width: TossSpacing.iconXXL,
+        height: TossSpacing.iconXXL,
         decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -145,7 +146,7 @@ class _RejectedQuantityStepperState extends State<RejectedQuantityStepper> {
         alignment: Alignment.center,
         child: Icon(
           icon,
-          size: 24,
+          size: TossSpacing.iconMD2,
           color: TossColors.loss,
         ),
       ),

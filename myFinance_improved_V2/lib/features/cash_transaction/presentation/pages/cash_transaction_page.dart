@@ -709,7 +709,7 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     required Color backgroundColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2 + 2, vertical: TossSpacing.space1),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -864,7 +864,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: TossAnimations.loadingPulse,
       vsync: this,
     )..repeat();
     _animation = Tween<double>(begin: 0.3, end: 0.6).animate(
@@ -894,8 +894,8 @@ class _SkeletonCardState extends State<_SkeletonCard>
             children: [
               // Icon placeholder
               Container(
-                width: 40,
-                height: 40,
+                width: TossSpacing.iconXL,
+                height: TossSpacing.iconXL,
                 decoration: BoxDecoration(
                   color: TossColors.gray200.withValues(alpha: _animation.value),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -909,19 +909,19 @@ class _SkeletonCardState extends State<_SkeletonCard>
                   children: [
                     Container(
                       width: 120,
-                      height: 16,
+                      height: TossSpacing.iconSM2,
                       decoration: BoxDecoration(
                         color: TossColors.gray200.withValues(alpha: _animation.value),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: TossSpacing.space1 + 2),
                     Container(
                       width: 80,
                       height: 12,
                       decoration: BoxDecoration(
                         color: TossColors.gray100.withValues(alpha: _animation.value),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                       ),
                     ),
                   ],

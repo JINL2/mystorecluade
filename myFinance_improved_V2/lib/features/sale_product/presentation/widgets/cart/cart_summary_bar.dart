@@ -4,6 +4,9 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../domain/entities/cart_item.dart';
 import '../../utils/currency_formatter.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -44,10 +47,10 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
           topLeft: Radius.circular(TossBorderRadius.bottomSheet),
           topRight: Radius.circular(TossBorderRadius.bottomSheet),
         ),
-        border: Border.all(color: TossColors.gray200, width: 1),
+        border: Border.all(color: TossColors.gray200, width: TossDimensions.dividerThickness),
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withValues(alpha: 0.08),
+            color: TossColors.black.withValues(alpha: TossOpacity.hover),
             blurRadius: 18,
             offset: const Offset(0, -6),
           ),
@@ -67,10 +70,13 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                   // Chevron
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.only(top: 12, bottom: 4),
+                    padding: const EdgeInsets.only(
+                      top: TossSpacing.space3,
+                      bottom: TossSpacing.space1,
+                    ),
                     child: Icon(
                       _isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
-                      size: 20,
+                      size: TossSpacing.iconMD,
                       color: TossColors.textSecondary,
                     ),
                   ),
@@ -85,34 +91,42 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                             Text(
                               'Sub-total',
                               style: TossTextStyles.titleMedium.copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                                 color: TossColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: TossSpacing.space2),
                             // Circular item count badge - auto-resize for large numbers
                             Container(
                               constraints: const BoxConstraints(
-                                minWidth: 28,
-                                minHeight: 28,
+                                minWidth: TossSpacing.iconLG,
+                                minHeight: TossSpacing.iconLG,
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: TossSpacing.badgePaddingHorizontalXS,
+                              ),
                               decoration: BoxDecoration(
                                 shape: widget.itemCount > 99 ? BoxShape.rectangle : BoxShape.circle,
-                                borderRadius: widget.itemCount > 99 ? BorderRadius.circular(14) : null,
+                                borderRadius: widget.itemCount > 99
+                                    ? BorderRadius.circular(TossBorderRadius.lg + 2)
+                                    : null,
                                 border: Border.all(
                                   color: TossColors.primary,
-                                  width: 1.5,
+                                  width: TossDimensions.dividerThicknessMedium,
                                 ),
                               ),
                               child: Center(
                                 child: Text(
                                   '${widget.itemCount}',
-                                  style: TossTextStyles.titleMedium.copyWith(
-                                    fontSize: widget.itemCount > 99 ? 12 : 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: TossColors.primary,
-                                  ),
+                                  style: widget.itemCount > 99
+                                      ? TossTextStyles.caption.copyWith(
+                                          fontWeight: TossFontWeight.medium,
+                                          color: TossColors.primary,
+                                        )
+                                      : TossTextStyles.body.copyWith(
+                                          fontWeight: TossFontWeight.medium,
+                                          color: TossColors.primary,
+                                        ),
                                 ),
                               ),
                             ),
@@ -120,9 +134,8 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                         ),
                         Text(
                           CurrencyFormatter.formatPrice(widget.subtotal),
-                          style: TossTextStyles.bodyMedium.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          style: TossTextStyles.subtitle.copyWith(
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.textPrimary,
                           ),
                         ),
@@ -134,7 +147,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
             ),
             // Expanded cart items
             if (_isExpanded) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: TossSpacing.space3),
               ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(context).size.height * 0.35,
@@ -156,7 +169,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                 ),
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: TossSpacing.space3),
             // Create invoice button
             Padding(
               padding: const EdgeInsets.only(
@@ -199,35 +212,38 @@ class _CartItemRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(
+            vertical: TossSpacing.space2,
+            horizontal: TossSpacing.space1,
+          ),
           child: Row(
             children: [
               // Product image
               ClipRRect(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 child: SizedBox(
-                  width: 48,
-                  height: 48,
+                  width: TossSpacing.iconXXL,
+                  height: TossSpacing.iconXXL,
                   child: item.image != null && item.image!.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: item.image!,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => Container(
                             color: TossColors.gray100,
-                            child: const Icon(Icons.image, color: TossColors.gray400, size: 24),
+                            child: const Icon(Icons.image, color: TossColors.gray400, size: TossSpacing.iconMD2),
                           ),
                           errorWidget: (_, __, ___) => Container(
                             color: TossColors.gray100,
-                            child: const Icon(Icons.image, color: TossColors.gray400, size: 24),
+                            child: const Icon(Icons.image, color: TossColors.gray400, size: TossSpacing.iconMD2),
                           ),
                         )
                       : Container(
                           color: TossColors.gray100,
-                          child: const Icon(Icons.image, color: TossColors.gray400, size: 24),
+                          child: const Icon(Icons.image, color: TossColors.gray400, size: TossSpacing.iconMD2),
                         ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: TossSpacing.space3),
               // Product info
               Expanded(
                 child: Column(
@@ -236,12 +252,12 @@ class _CartItemRow extends StatelessWidget {
                     Text(
                       item.name,
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       item.sku,
                       style: TossTextStyles.labelSmall.copyWith(
@@ -251,12 +267,12 @@ class _CartItemRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: TossSpacing.space3),
               // Quantity × Price
               Text(
                 '${item.quantity} × ${CurrencyFormatter.formatPrice(item.price)}',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.textPrimary,
                 ),
               ),

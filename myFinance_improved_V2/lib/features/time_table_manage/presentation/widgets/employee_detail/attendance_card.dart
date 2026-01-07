@@ -26,8 +26,8 @@ class AttendanceCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: TossDimensions.avatarMD,
+            height: TossDimensions.avatarMD,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: TossColors.gray100,
@@ -36,7 +36,7 @@ class AttendanceCard extends StatelessWidget {
               child: Text(
                 '${shift.dayOfMonth ?? '-'}',
                 style: TossTextStyles.small.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.gray700,
                 ),
               ),
@@ -50,11 +50,11 @@ class AttendanceCard extends StatelessWidget {
                 Text(
                   shift.shiftName ?? 'Shift',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text.rich(
                   TextSpan(
                     children: [
@@ -62,7 +62,7 @@ class AttendanceCard extends StatelessWidget {
                         text: '$workedHoursText · ',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray600,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                       ),
                       TextSpan(
@@ -142,13 +142,13 @@ class IssueBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
       ),
       child: Text(
         issueType.label,
         style: TossTextStyles.small.copyWith(
           color: TossColors.white,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

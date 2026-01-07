@@ -58,17 +58,17 @@ class ScheduleEmptyState extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.calendar_today_outlined,
                   color: TossColors.gray400,
-                  size: 48,
+                  size: TossSpacing.iconXXL,
                 ),
                 const SizedBox(height: TossSpacing.space3),
                 Text(
                   'You have no shift',
                   style: TossTextStyles.bodyLarge.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                   textAlign: TextAlign.center,
                 ),

@@ -102,7 +102,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                       ),
                       decoration: BoxDecoration(
                         color: state.showUnreadOnly
-                            ? TossColors.primary.withOpacity(0.1)
+                            ? TossColors.primary.withValues(alpha: TossOpacity.light)
                             : TossColors.gray50,
                         borderRadius:
                             BorderRadius.circular(TossBorderRadius.sm),
@@ -120,7 +120,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                             state.showUnreadOnly
                                 ? Icons.mark_email_unread
                                 : Icons.mail_outline,
-                            size: 16,
+                            size: TossSpacing.iconSM2,
                             color: state.showUnreadOnly
                                 ? TossColors.primary
                                 : TossColors.gray600,
@@ -134,8 +134,8 @@ class ReceivedReportsTab extends ConsumerWidget {
                                     ? TossColors.primary
                                     : TossColors.gray700,
                                 fontWeight: state.showUnreadOnly
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
+                                    ? TossFontWeight.semibold
+                                    : TossFontWeight.regular,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -158,7 +158,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color:
                             (state.startDate != null || state.endDate != null)
-                                ? TossColors.primary.withOpacity(0.1)
+                                ? TossColors.primary.withValues(alpha: TossOpacity.light)
                                 : TossColors.gray50,
                         borderRadius:
                             BorderRadius.circular(TossBorderRadius.sm),
@@ -175,7 +175,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                         children: [
                           Icon(
                             Icons.calendar_today,
-                            size: 16,
+                            size: TossSpacing.iconSM2,
                             color: (state.startDate != null ||
                                     state.endDate != null)
                                 ? TossColors.primary
@@ -192,8 +192,8 @@ class ReceivedReportsTab extends ConsumerWidget {
                                     : TossColors.gray700,
                                 fontWeight: (state.startDate != null ||
                                         state.endDate != null)
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
+                                    ? TossFontWeight.semibold
+                                    : TossFontWeight.regular,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -217,7 +217,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                         children: [
                           Icon(
                             Icons.bar_chart,
-                            size: 16,
+                            size: TossSpacing.iconSM2,
                             color: TossColors.primary,
                           ),
                           SizedBox(width: TossSpacing.space1),
@@ -225,7 +225,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                             'Example',
                             style: TossTextStyles.bodySmall.copyWith(
                               color: TossColors.primary,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                             ),
                           ),
                         ],
@@ -246,7 +246,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                           children: [
                             Icon(
                               Icons.refresh,
-                              size: 16,
+                              size: TossSpacing.iconSM2,
                               color: TossColors.gray600,
                             ),
                             SizedBox(width: TossSpacing.space1),
@@ -275,10 +275,10 @@ class ReceivedReportsTab extends ConsumerWidget {
                     children: [
                       Icon(
                         Icons.inbox_outlined,
-                        size: 64,
+                        size: TossSpacing.icon4XL,
                         color: TossColors.gray300,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: TossSpacing.space4),
                       Text(
                         ReportStrings.noReportsMessage,
                         style: TossTextStyles.titleMedium.copyWith(
@@ -286,7 +286,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                         ),
                       ),
                       if (state.hasActiveFilters) ...[
-                        const SizedBox(height: 8),
+                        SizedBox(height: TossSpacing.space2),
                         TossButton.textButton(
                           text: ReportStrings.filterReset,
                           onPressed: () => notifier.clearFilters(),
@@ -296,7 +296,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                   ),
                 )
               : ColoredBox(
-                  color: TossColors.gray50,
+                  color: TossColors.white,
                   child: RefreshIndicator(
                     onRefresh: () async {
                       await notifier.loadReceivedReports(
@@ -368,24 +368,24 @@ class ReceivedReportsTab extends ConsumerWidget {
         builder: (context, scrollController) => Container(
           decoration: const BoxDecoration(
             color: TossColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
           ),
           child: Column(
             children: [
               // Handle bar
               Container(
-                margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space2),
-                width: 40,
-                height: 4,
+                margin: EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space2),
+                width: TossDimensions.avatarLG,
+                height: TossDimensions.dragHandleHeight,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.indicator),
                 ),
               ),
 
               // Header
               Container(
-                padding: const EdgeInsets.all(TossSpacing.space4),
+                padding: EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(color: TossColors.gray200),
@@ -401,12 +401,12 @@ class ReceivedReportsTab extends ConsumerWidget {
                             report.templateIcon!,
                             style: TossTextStyles.h2,
                           ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: TossSpacing.space2),
                         Expanded(
                           child: Text(
                             report.templateName,
                             style: TossTextStyles.h4.copyWith(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: TossFontWeight.bold,
                             ),
                           ),
                         ),
@@ -416,7 +416,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: TossSpacing.space2),
                     Text(
                       DateFormat('yyyy-MM-dd HH:mm').format(report.reportDate),
                       style: TossTextStyles.body.copyWith(
@@ -424,7 +424,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                       ),
                     ),
                     if (report.storeName != null) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: TossSpacing.space1),
                       Text(
                         '${ReportStrings.storeLabel}: ${report.storeName}',
                         style: TossTextStyles.body.copyWith(
@@ -440,7 +440,7 @@ class ReceivedReportsTab extends ConsumerWidget {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(TossSpacing.space4),
+                  padding: EdgeInsets.all(TossSpacing.space4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -463,7 +463,7 @@ class ReceivedReportsTab extends ConsumerWidget {
 
                           // H1 - Main titles (bold, larger)
                           h1: TossTextStyles.h3.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TossFontWeight.bold,
                             height: 2.0, // More spacing
                             color: TossColors.gray900,
                           ),
@@ -472,7 +472,7 @@ class ReceivedReportsTab extends ConsumerWidget {
 
                           // H2 - Section titles (semi-bold, medium)
                           h2: TossTextStyles.h4.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             height: 1.9,
                             color: TossColors.gray800,
                           ),
@@ -481,7 +481,7 @@ class ReceivedReportsTab extends ConsumerWidget {
 
                           // H3 - Subsection titles (medium weight)
                           h3: TossTextStyles.titleMedium.copyWith(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                             height: 1.8,
                             color: TossColors.gray700,
                           ),
@@ -495,7 +495,7 @@ class ReceivedReportsTab extends ConsumerWidget {
 
                           // Strong/Bold text - use only when explicitly marked **bold**
                           strong: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.primary,
                           ),
 
@@ -513,21 +513,21 @@ class ReceivedReportsTab extends ConsumerWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      SizedBox(height: TossSpacing.space6),
 
                       // Session info
                       if (report.sessionErrorMessage != null) ...[
                         Container(
-                          padding: const EdgeInsets.all(TossSpacing.space3),
+                          padding: EdgeInsets.all(TossSpacing.space3),
                           decoration: BoxDecoration(
-                            color: TossColors.error.withOpacity(0.1),
+                            color: TossColors.error.withValues(alpha: TossOpacity.light),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Icon(Icons.error, color: TossColors.error),
-                              const SizedBox(width: 8),
+                              SizedBox(width: TossSpacing.space2),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -535,11 +535,11 @@ class ReceivedReportsTab extends ConsumerWidget {
                                     Text(
                                       ReportStrings.errorOccurred,
                                       style: TossTextStyles.body.copyWith(
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: TossFontWeight.bold,
                                         color: TossColors.error,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
+                                    SizedBox(height: TossSpacing.space1),
                                     Text(
                                       report.sessionErrorMessage!,
                                       style: TossTextStyles.body,
@@ -550,7 +550,7 @@ class ReceivedReportsTab extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: TossSpacing.space4),
                       ],
 
                       // Processing time
@@ -579,24 +579,24 @@ class ReceivedReportsTab extends ConsumerWidget {
     IconData icon;
 
     if (report.isCompleted) {
-      bgColor = TossColors.success.withOpacity(0.1);
+      bgColor = TossColors.success.withValues(alpha: TossOpacity.light);
       textColor = TossColors.success;
       statusText = ReportStrings.statusCompleted;
       icon = Icons.check_circle;
     } else if (report.isFailed) {
-      bgColor = TossColors.error.withOpacity(0.1);
+      bgColor = TossColors.error.withValues(alpha: TossOpacity.light);
       textColor = TossColors.error;
       statusText = ReportStrings.statusFailed;
       icon = Icons.error;
     } else {
-      bgColor = TossColors.warning.withOpacity(0.1);
+      bgColor = TossColors.warning.withValues(alpha: TossOpacity.light);
       textColor = TossColors.warning;
       statusText = ReportStrings.statusPending;
       icon = Icons.pending;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -604,13 +604,13 @@ class ReceivedReportsTab extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: textColor),
-          const SizedBox(width: 4),
+          Icon(icon, size: TossSpacing.iconSM2, color: textColor),
+          SizedBox(width: TossSpacing.space1),
           Text(
             statusText,
             style: TossTextStyles.body.copyWith(
               color: textColor,
-              fontWeight: FontWeight.bold,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
         ],
@@ -690,11 +690,11 @@ class ReceivedReportsTab extends ConsumerWidget {
       context: context,
       backgroundColor: TossColors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
       ),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
+          padding: EdgeInsets.all(TossSpacing.space4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -702,23 +702,23 @@ class ReceivedReportsTab extends ConsumerWidget {
               Text(
                 'Example Reports',
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: TossSpacing.space4),
               // Cash Location Example
               ListTile(
                 leading: Container(
-                  width: 40,
-                  height: 40,
+                  width: TossDimensions.avatarLG,
+                  height: TossDimensions.avatarLG,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.1),
+                    color: TossColors.emerald.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: const Icon(
                     Icons.account_balance_wallet,
-                    color: Color(0xFF10B981),
-                    size: 20,
+                    color: TossColors.emerald,
+                    size: TossSpacing.iconMD,
                   ),
                 ),
                 title: const Text('Cash Location Report'),
@@ -737,16 +737,16 @@ class ReceivedReportsTab extends ConsumerWidget {
               // Financial Summary Example (placeholder)
               ListTile(
                 leading: Container(
-                  width: 40,
-                  height: 40,
+                  width: TossDimensions.avatarLG,
+                  height: TossDimensions.avatarLG,
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
                     Icons.analytics,
                     color: TossColors.primary,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
                 ),
                 title: const Text('Financial Summary'),

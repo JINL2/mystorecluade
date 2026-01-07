@@ -206,7 +206,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
                       ),
                       child: const Icon(
                         Icons.mark_email_read_outlined,
-                        size: 40,
+                        size: TossSpacing.iconXL + TossSpacing.space2,
                         color: TossColors.primary,
                       ),
                     ),
@@ -257,7 +257,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
                             const Icon(
                               Icons.error_outline,
                               color: TossColors.error,
-                              size: 20,
+                              size: TossSpacing.iconMD,
                             ),
                             const SizedBox(width: TossSpacing.space2),
                             Expanded(
@@ -293,7 +293,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
                         text: _isResending ? 'Sending...' : 'Resend code',
                         onPressed: _isResending ? null : _handleResendOtp,
                         isLoading: _isResending,
-                        leadingIcon: _isResending ? null : const Icon(Icons.refresh, size: 18),
+                        leadingIcon: _isResending ? null : const Icon(Icons.refresh, size: TossSpacing.iconSM),
                         fontWeight: FontWeight.w600,
                       ),
                     ],
@@ -339,7 +339,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
                 ),
                 child: const Icon(
                   Icons.check_circle_rounded,
-                  size: 40,
+                  size: TossSpacing.iconXL + TossSpacing.space2,
                   color: TossColors.success,
                 ),
               ),
@@ -406,7 +406,7 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
           icon: const Icon(
             Icons.arrow_back_ios,
             color: TossColors.textPrimary,
-            size: 20,
+            size: TossSpacing.iconMD,
           ),
           onPressed: () => context.go('/auth/login'),
           padding: EdgeInsets.zero,
@@ -421,8 +421,8 @@ class _VerifyEmailOtpPageState extends ConsumerState<VerifyEmailOtpPage> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(6, (index) {
         return SizedBox(
-          width: 48,
-          height: 56,
+          width: TossSpacing.iconXXL,
+          height: TossSpacing.icon3XL,
           child: TextFormField(
             controller: _controllers[index],
             focusNode: _focusNodes[index],

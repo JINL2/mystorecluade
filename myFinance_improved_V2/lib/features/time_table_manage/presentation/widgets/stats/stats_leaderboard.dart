@@ -124,7 +124,7 @@ class _StatsLeaderboardState extends State<StatsLeaderboard> {
               'See all',
               textAlign: TextAlign.center,
               style: TossTextStyles.titleMedium.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
                 color: TossColors.gray600,
               ),
             ),
@@ -141,7 +141,7 @@ class _StatsLeaderboardState extends State<StatsLeaderboard> {
       backgroundColor: TossColors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
       ),
       builder: (context) => _AllEmployeesBottomSheet(
         employees: widget.allEmployeesList,
@@ -173,7 +173,7 @@ class _LeaderboardTab extends StatelessWidget {
           border: Border(
             bottom: BorderSide(
               color: isActive ? TossColors.primary : TossColors.transparent,
-              width: 3,
+              width: TossSpacing.space0_5 + 1, // 3px tab indicator
             ),
           ),
         ),
@@ -181,7 +181,7 @@ class _LeaderboardTab extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: isActive ? TossColors.gray900 : TossColors.gray600,
           ),
         ),
@@ -215,13 +215,13 @@ class _LeaderboardRow extends StatelessWidget {
             children: [
               // Rank number
               SizedBox(
-                width: 24,
+                width: TossDimensions.rankBadgeSize,
                 child: Text(
                   employee.rank.toString(),
                   textAlign: TextAlign.center,
                   style: TossTextStyles.body.copyWith(
                     color: isNeedsAttention ? TossColors.error : TossColors.primary,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
               ),
@@ -231,7 +231,7 @@ class _LeaderboardRow extends StatelessWidget {
               EmployeeProfileAvatar(
                 imageUrl: employee.avatarUrl,
                 name: employee.name,
-                size: 44,
+                size: TossDimensions.avatarLG + 4, // 44px
                 showBorder: true,
                 borderColor: TossColors.gray200,
               ),
@@ -245,14 +245,14 @@ class _LeaderboardRow extends StatelessWidget {
                     Text(
                       employee.name,
                       style: TossTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       employee.subtitle,
                       style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w400,
+                        fontWeight: TossFontWeight.regular,
                         color: TossColors.gray600,
                       ),
                     ),
@@ -267,16 +267,16 @@ class _LeaderboardRow extends StatelessWidget {
                   Text(
                     employee.score.toString(),
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                   // Only show change if RPC provides historical data
                   if (employee.change != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       '${employee.isPositive ? '+' : ''}${employee.change}',
                       style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: employee.isPositive ? TossColors.primary : TossColors.error,
                       ),
                     ),
@@ -351,12 +351,15 @@ class _AllEmployeesBottomSheetState extends State<_AllEmployeesBottomSheet> {
           children: [
             // Handle bar
             Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 40,
-              height: 4,
+              margin: EdgeInsets.only(
+                top: TossSpacing.space3,
+                bottom: TossSpacing.space2,
+              ),
+              width: TossDimensions.dragHandleWidth,
+              height: TossDimensions.dragHandleHeight,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
               ),
             ),
             // Title

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/index.dart';
@@ -59,8 +60,8 @@ class ReviewItemDetailSheet extends ConsumerWidget {
             children: [
               // Drag handle
               Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
+                margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space2),
+                width: TossSpacing.iconXL,
                 height: 4,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
@@ -133,8 +134,8 @@ class ReviewItemDetailSheet extends ConsumerWidget {
         children: [
           // Product Image
           Container(
-            width: 64,
-            height: 64,
+            width: TossSpacing.icon4XL,
+            height: TossSpacing.icon4XL,
             decoration: BoxDecoration(
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -149,7 +150,7 @@ class ReviewItemDetailSheet extends ConsumerWidget {
                         return const Icon(
                           Icons.inventory_2_outlined,
                           color: TossColors.textTertiary,
-                          size: 28,
+                          size: TossSpacing.iconLG,
                         );
                       },
                     ),
@@ -157,7 +158,7 @@ class ReviewItemDetailSheet extends ConsumerWidget {
                 : const Icon(
                     Icons.inventory_2_outlined,
                     color: TossColors.textTertiary,
-                    size: 28,
+                    size: TossSpacing.iconLG,
                   ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -170,14 +171,14 @@ class ReviewItemDetailSheet extends ConsumerWidget {
                 Text(
                   item.productName,
                   style: TossTextStyles.h4.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (item.sku != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: TossSpacing.space1),
                   Text(
                     item.sku!,
                     style: TossTextStyles.caption.copyWith(
@@ -212,14 +213,14 @@ class ReviewItemDetailSheet extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.edit, size: 16, color: TossColors.primary),
+              const Icon(Icons.edit, size: TossSpacing.iconSM2, color: TossColors.primary),
               const SizedBox(width: TossSpacing.space2),
               Expanded(
                 child: Text(
                   'Manager edited count: ${item.totalQuantity} → $effectiveQuantity',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.primary,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
               ),
@@ -249,7 +250,7 @@ class ReviewItemDetailSheet extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildStockColumn('Previous', '${item.previousStock}', TossColors.textSecondary),
-          const Icon(Icons.arrow_forward, color: TossColors.textTertiary, size: 20),
+          const Icon(Icons.arrow_forward, color: TossColors.textTertiary, size: TossSpacing.iconMD),
           _buildStockColumn(
             'New',
             '$effectiveNewStock',
@@ -268,7 +269,7 @@ class ReviewItemDetailSheet extends ConsumerWidget {
               '$changePrefix$effectiveStockChange',
               style: TossTextStyles.h4.copyWith(
                 color: changeColor,
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
             ),
           ),
@@ -286,12 +287,12 @@ class ReviewItemDetailSheet extends ConsumerWidget {
             color: TossColors.textTertiary,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: TossSpacing.space1),
         Text(
           value,
           style: TossTextStyles.h4.copyWith(
             color: valueColor,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],
@@ -343,16 +344,16 @@ class ReviewItemDetailSheet extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 4),
+          Icon(icon, size: TossSpacing.iconMD, color: color),
+          const SizedBox(height: TossSpacing.space1),
           Text(
             value,
             style: TossTextStyles.h4.copyWith(
               color: color,
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: TossSpacing.space0_5),
           Text(
             label,
             style: TossTextStyles.caption.copyWith(
@@ -370,12 +371,12 @@ class ReviewItemDetailSheet extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Row(
         children: [
-          const Icon(Icons.people_outline, size: 20, color: TossColors.textSecondary),
+          const Icon(Icons.people_outline, size: TossSpacing.iconMD, color: TossColors.textSecondary),
           const SizedBox(width: TossSpacing.space2),
           Text(
             'Scanned By (${item.scannedBy.length} users)',
             style: TossTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.textPrimary,
             ),
           ),
@@ -398,7 +399,7 @@ class ReviewItemDetailSheet extends ConsumerWidget {
           // User Avatar
           EmployeeProfileAvatar(
             name: user.userName,
-            size: 40,
+            size: TossSpacing.iconXL,
           ),
           const SizedBox(width: TossSpacing.space3),
 
@@ -407,7 +408,7 @@ class ReviewItemDetailSheet extends ConsumerWidget {
             child: Text(
               user.userName,
               style: TossTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
                 color: TossColors.textPrimary,
               ),
             ),
@@ -420,29 +421,29 @@ class ReviewItemDetailSheet extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.add_box_outlined, size: 16, color: TossColors.success),
-                  const SizedBox(width: 4),
+                  const Icon(Icons.add_box_outlined, size: TossSpacing.iconSM2, color: TossColors.success),
+                  const SizedBox(width: TossSpacing.space1),
                   Text(
                     '${user.quantity}',
                     style: TossTextStyles.bodyMedium.copyWith(
                       color: TossColors.success,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ],
               ),
               if (user.quantityRejected > 0) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: TossSpacing.space1),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.cancel_outlined, size: 16, color: TossColors.loss),
-                    const SizedBox(width: 4),
+                    const Icon(Icons.cancel_outlined, size: TossSpacing.iconSM2, color: TossColors.loss),
+                    const SizedBox(width: TossSpacing.space1),
                     Text(
                       '${user.quantityRejected}',
                       style: TossTextStyles.bodyMedium.copyWith(
                         color: TossColors.loss,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ],

@@ -6,8 +6,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -201,18 +203,18 @@ class _TemplateAttachmentPickerSectionState
             children: [
               // Handle bar
               Container(
-                width: 40,
-                height: 4,
+                width: TossSpacing.space10,
+                height: TossSpacing.space1,
                 margin: const EdgeInsets.only(bottom: TossSpacing.space4),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
                 ),
               ),
               Text(
                 'Add Attachment',
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
               const SizedBox(height: TossSpacing.space4),
@@ -251,7 +253,7 @@ class _TemplateAttachmentPickerSectionState
                 subtitle: const Text('Use camera to capture'),
                 onTap: () async {
                   Navigator.pop(bottomSheetContext);
-                  await Future.delayed(const Duration(milliseconds: 100));
+                  await Future.delayed(TossAnimations.quick);
                   _pickImageFromCamera();
                 },
               ),
@@ -278,7 +280,7 @@ class _TemplateAttachmentPickerSectionState
               children: [
                 Icon(
                   Icons.attach_file,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                   color: widget.isRequired ? TossColors.primary : TossColors.gray600,
                 ),
                 const SizedBox(width: TossSpacing.space1),
@@ -289,12 +291,12 @@ class _TemplateAttachmentPickerSectionState
                   ),
                 ),
                 if (widget.isRequired) ...[
-                  const SizedBox(width: 2),
+                  SizedBox(width: TossSpacing.space1 / 2),
                   Text(
                     '*',
                     style: TossTextStyles.label.copyWith(
                       color: TossColors.error,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ],
@@ -303,7 +305,7 @@ class _TemplateAttachmentPickerSectionState
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space2,
-                      vertical: 2,
+                      vertical: TossSpacing.space1 / 2,
                     ),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withValues(alpha: 0.1),
@@ -313,7 +315,7 @@ class _TemplateAttachmentPickerSectionState
                       '${attachments.length}/${TemplateAttachment.maxAttachments}',
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ),
@@ -325,7 +327,7 @@ class _TemplateAttachmentPickerSectionState
               TossButton.textButton(
                 text: _isPickingImages ? 'Loading...' : 'Add',
                 onPressed: _isPickingImages ? null : _showSourceSelectionDialog,
-                leadingIcon: _isPickingImages ? null : const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                leadingIcon: _isPickingImages ? null : Icon(Icons.add_photo_alternate_outlined, size: TossSpacing.iconSM),
                 isLoading: _isPickingImages,
               ),
           ],
@@ -358,9 +360,9 @@ class _TemplateAttachmentPickerSectionState
         ),
         child: Column(
           children: [
-            const Icon(
+            Icon(
               Icons.add_photo_alternate_outlined,
-              size: 32,
+              size: TossSpacing.iconLG2,
               color: TossColors.gray400,
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -378,7 +380,7 @@ class _TemplateAttachmentPickerSectionState
 
   Widget _buildAttachmentsGrid(List<TemplateAttachment> attachments) {
     return SizedBox(
-      height: 80,
+      height: TossSpacing.space20,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: attachments.length,
@@ -396,8 +398,8 @@ class _TemplateAttachmentPickerSectionState
       children: [
         // Thumbnail
         Container(
-          width: 80,
-          height: 80,
+          width: TossSpacing.space20,
+          height: TossSpacing.space20,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(color: TossColors.gray200),
@@ -426,9 +428,9 @@ class _TemplateAttachmentPickerSectionState
                 color: TossColors.error,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.close,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.white,
               ),
             ),
@@ -442,7 +444,7 @@ class _TemplateAttachmentPickerSectionState
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: EdgeInsets.symmetric(vertical: TossSpacing.space1 / 2),
               decoration: BoxDecoration(
                 color: TossColors.error.withValues(alpha: 0.9),
                 borderRadius: const BorderRadius.vertical(
@@ -452,9 +454,8 @@ class _TemplateAttachmentPickerSectionState
               child: Text(
                 'Too large',
                 textAlign: TextAlign.center,
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.white,
-                  fontSize: 10,
                 ),
               ),
             ),
@@ -484,14 +485,13 @@ class _TemplateAttachmentPickerSectionState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 2),
+            Icon(icon, color: color, size: TossSpacing.iconLG),
+            SizedBox(height: TossSpacing.space1 / 2),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
               child: Text(
                 attachment.fileName,
-                style: TossTextStyles.caption.copyWith(
-                  fontSize: 8,
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.gray600,
                 ),
                 maxLines: 1,

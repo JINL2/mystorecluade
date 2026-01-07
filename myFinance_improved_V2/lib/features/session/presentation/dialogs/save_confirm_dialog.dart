@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -105,16 +106,16 @@ class SaveConfirmDialog extends StatelessWidget {
           Text(
             '${item.quantity}',
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.primary,
             ),
           ),
           if (item.quantityRejected > 0) ...[
-            const SizedBox(width: 4),
+            const SizedBox(width: TossSpacing.space1),
             Text(
               '(${item.quantityRejected})',
               style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.error,
               ),
             ),

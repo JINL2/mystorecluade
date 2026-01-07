@@ -465,8 +465,8 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
             // Handle bar
             Container(
               margin: const EdgeInsets.only(top: TossSpacing.space3),
-              width: 36,
-              height: 4,
+              width: TossSpacing.space9,
+              height: TossSpacing.space1,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -486,12 +486,12 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
                           onPressed: _previousStep,
                         )
                       else
-                        const SizedBox(width: 48),
+                        SizedBox(width: TossSpacing.space12),
                       Expanded(
                         child: Text(
                           'New Transaction Template',
                           style: TossTextStyles.h3.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                           textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,

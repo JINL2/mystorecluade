@@ -323,7 +323,7 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
                     setState(() => _selectedDebtCategory = category);
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: TossAnimations.normal,
                     padding: const EdgeInsets.symmetric(
                       vertical: TossSpacing.space2,
                       horizontal: TossSpacing.space2,
@@ -355,7 +355,7 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: TossSpacing.space1 / 2),
                         Text(
                           category.labelKo,
                           style: TossTextStyles.small.copyWith(

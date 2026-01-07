@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/transaction_filter.dart';
@@ -31,7 +33,7 @@ class ScopeToggleSection extends StatelessWidget {
           'Scope',
           style: TossTextStyles.label.copyWith(
             color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -51,7 +53,7 @@ class ScopeToggleSection extends StatelessWidget {
                 isLeft: true,
               ),
               Container(
-                width: 1,
+                width: TossDimensions.dividerThickness,
                 height: TossSpacing.space6,
                 color: TossColors.gray200,
               ),
@@ -119,7 +121,7 @@ class _ScopeOption extends StatelessWidget {
                   label,
                   style: TossTextStyles.caption.copyWith(
                     color: isSelected ? TossColors.primary : TossColors.gray600,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                   ),
                 ),
               ],

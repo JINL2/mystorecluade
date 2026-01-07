@@ -34,7 +34,7 @@ class ReportNotificationCard extends StatelessWidget {
         border: Border.all(
           color: report.isRead
               ? TossColors.gray100
-              : TossColors.primary.withOpacity(0.3),
+              : TossColors.primary.withValues(alpha: TossOpacity.heavy),
           width: report.isRead ? 1 : 1.5,
         ),
       ),
@@ -53,16 +53,16 @@ class ReportNotificationCard extends StatelessWidget {
                   children: [
                     // Icon circle with category icon
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: TossDimensions.avatarLG,
+                      height: TossDimensions.avatarLG,
                       decoration: BoxDecoration(
-                        color: _getCategoryColor().withOpacity(0.1),
+                        color: _getCategoryColor().withValues(alpha: TossOpacity.light),
                         borderRadius:
                             BorderRadius.circular(TossBorderRadius.md),
                       ),
                       child: Icon(
                         ReportIcons.getCategoryIcon(report.categoryName),
-                        size: 20,
+                        size: TossSpacing.iconMD,
                         color: _getCategoryColor(),
                       ),
                     ),
@@ -81,9 +81,7 @@ class ReportNotificationCard extends StatelessWidget {
                                       ? TossTextStyles.bodyMedium.copyWith(
                                           color: TossColors.gray700,
                                         )
-                                      : TossTextStyles.h4.copyWith(
-                                          fontSize: 15,
-                                        ),
+                                      : TossTextStyles.titleMedium,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -93,7 +91,7 @@ class ReportNotificationCard extends StatelessWidget {
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: TossSpacing.space2,
-                                    vertical: 2,
+                                    vertical: TossSpacing.space0_5,
                                   ),
                                   decoration: BoxDecoration(
                                     color: TossColors.primary,
@@ -102,10 +100,9 @@ class ReportNotificationCard extends StatelessWidget {
                                   ),
                                   child: Text(
                                     'NEW',
-                                    style: TossTextStyles.caption.copyWith(
+                                    style: TossTextStyles.small.copyWith(
                                       color: TossColors.white,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 10,
+                                      fontWeight: TossFontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -116,17 +113,17 @@ class ReportNotificationCard extends StatelessWidget {
                           // Date and time
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.access_time,
-                                size: 12,
+                                size: TossSpacing.iconXS2,
                                 color: TossColors.gray500,
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: TossSpacing.space1),
                               Text(
                                 DateFormat('MM/dd').format(report.reportDate),
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray600,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: TossFontWeight.medium,
                                 ),
                               ),
                               if (report.sentAt != null) ...[
@@ -169,16 +166,16 @@ class ReportNotificationCard extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.store_outlined,
-                          size: 12,
+                          size: TossSpacing.iconXS2,
                           color: TossColors.gray600,
                         ),
-                        SizedBox(width: 4),
+                        SizedBox(width: TossSpacing.space1),
                         Flexible(
                           child: Text(
                             report.storeName!,
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray700,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: TossFontWeight.medium,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -197,14 +194,14 @@ class ReportNotificationCard extends StatelessWidget {
                       vertical: TossSpacing.space1,
                     ),
                     decoration: BoxDecoration(
-                      color: TossColors.primary.withOpacity(0.05),
+                      color: TossColors.primary.withValues(alpha: TossOpacity.subtle),
                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Text(
                       report.categoryName!,
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.primary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ),
@@ -250,12 +247,12 @@ class ReportNotificationCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: TossOpacity.light),
         shape: BoxShape.circle,
       ),
       child: Icon(
         icon,
-        size: 16,
+        size: TossSpacing.iconSM2,
         color: color,
       ),
     );

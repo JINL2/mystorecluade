@@ -137,7 +137,7 @@ class PnlHeroCard extends StatelessWidget {
             size: 12,
             color: isPositive ? TossColors.success : TossColors.error,
           ),
-          const SizedBox(width: 2),
+          SizedBox(width: TossSpacing.space1 / 2),
           Text(
             '${changePct.abs().toStringAsFixed(1)}%',
             style: TossTextStyles.caption.copyWith(
@@ -226,7 +226,7 @@ class PnlHeroCard extends StatelessWidget {
                 height: 8,
                 decoration: BoxDecoration(
                   color: color,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
                 ),
               ),
               const SizedBox(width: TossSpacing.space1),
@@ -239,7 +239,7 @@ class PnlHeroCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space1 / 2),
           Text(
             '${margin.toStringAsFixed(1)}%',
             style: TossTextStyles.bodySmall.copyWith(

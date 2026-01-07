@@ -36,8 +36,8 @@ class CodesBottomSheet extends StatelessWidget {
         children: [
           // Drag handle
           Container(
-            width: 40,
-            height: 4,
+            width: TossSpacing.space10,
+            height: TossSpacing.space1,
             margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
@@ -156,13 +156,13 @@ class _CodeCard extends StatelessWidget {
             children: [
               // Icon
               Container(
-                width: 40,
-                height: 40,
+                width: TossSpacing.space10,
+                height: TossSpacing.space10,
                 decoration: BoxDecoration(
                   color: TossColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
-                child: Icon(icon, color: TossColors.primary, size: 20),
+                child: Icon(icon, color: TossColors.primary, size: TossSpacing.iconMD),
               ),
               const SizedBox(width: TossSpacing.space3),
 
@@ -177,7 +177,7 @@ class _CodeCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       subtitle,
                       style: TossTextStyles.caption.copyWith(
@@ -202,11 +202,11 @@ class _CodeCard extends StatelessWidget {
                     ),
                   ),
                   if (code.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: TossSpacing.space1),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.space2,
-                        vertical: 4,
+                        vertical: TossSpacing.space1,
                       ),
                       decoration: BoxDecoration(
                         color: TossColors.primary.withValues(alpha: 0.1),
@@ -217,16 +217,15 @@ class _CodeCard extends StatelessWidget {
                         children: [
                           const Icon(
                             Icons.copy_outlined,
-                            size: 12,
+                            size: TossSpacing.iconXXS,
                             color: TossColors.primary,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: TossSpacing.space1),
                           Text(
                             'Copy',
-                            style: TossTextStyles.caption.copyWith(
+                            style: TossTextStyles.small.copyWith(
                               color: TossColors.primary,
                               fontWeight: FontWeight.w500,
-                              fontSize: 11,
                             ),
                           ),
                         ],

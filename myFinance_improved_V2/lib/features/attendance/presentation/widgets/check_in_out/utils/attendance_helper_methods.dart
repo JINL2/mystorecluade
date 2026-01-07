@@ -4,6 +4,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../../../../core/monitoring/sentry_config.dart';
 import '../../../../../../core/utils/datetime_utils.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_opacity.dart';
 import '../../../../domain/entities/shift_card.dart';
 import '../../../pages/utils/schedule_date_utils.dart';
 
@@ -109,7 +110,7 @@ class AttendanceHelpers {
       case 'completed':
         return TossColors.success; // Green for completed shift
       case 'approved':
-        return TossColors.success.withOpacity(0.7); // Lighter green for approved but not started
+        return TossColors.success.withValues(alpha: TossOpacity.secondaryOnDark); // Lighter green for approved but not started
       case 'pending':
         return TossColors.warning; // Orange for pending approval
       default:
@@ -169,7 +170,7 @@ class AttendanceHelpers {
       case 'Completed':
         return TossColors.success; // Green for completed
       case 'Approved':
-        return TossColors.success.withOpacity(0.7); // Lighter green for approved
+        return TossColors.success.withValues(alpha: TossOpacity.secondaryOnDark); // Lighter green for approved
       default:
         return TossColors.gray400;
     }

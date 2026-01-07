@@ -4,6 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:myfinance_improved/core/utils/storage_url_helper.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/ai/index.dart';
@@ -36,8 +39,8 @@ class JournalDetailSheet extends StatelessWidget {
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
         ),
       ),
       constraints: BoxConstraints(
@@ -49,8 +52,8 @@ class JournalDetailSheet extends StatelessWidget {
           // Handle bar
           Container(
             margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -72,12 +75,12 @@ class JournalDetailSheet extends StatelessWidget {
                   child: Text(
                     'Journal Entry Details',
                     style: TossTextStyles.h2.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 24),
+                  icon: Icon(Icons.close, size: TossSpacing.iconMD2),
                   onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -132,8 +135,8 @@ class JournalDetailSheet extends StatelessWidget {
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: isPositive
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-            : TossColors.error.withValues(alpha: 0.1),
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: TossOpacity.light)
+            : TossColors.error.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
       ),
       child: Column(
@@ -163,7 +166,7 @@ class JournalDetailSheet extends StatelessWidget {
                   'Before', formatBalance(flow.balanceBefore, currencySymbol)),
               Container(
                 width: 1,
-                height: 30,
+                height: TossSpacing.iconLG2,
                 color: TossColors.gray300,
               ),
               _buildBalanceItem(
@@ -220,7 +223,7 @@ class JournalDetailSheet extends StatelessWidget {
           if (hasUserDesc) ...[
             Row(
               children: [
-                const Icon(Icons.notes, size: 14, color: TossColors.gray500),
+                Icon(Icons.notes, size: TossSpacing.iconXS, color: TossColors.gray500),
                 const SizedBox(width: TossSpacing.space2),
                 Text(
                   'Description',
@@ -319,8 +322,8 @@ class JournalDetailSheet extends StatelessWidget {
         // Profile image or default icon
         if (hasProfileImage)
           Container(
-            width: 24,
-            height: 24,
+            width: TossSpacing.iconMD2,
+            height: TossSpacing.iconMD2,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: TossColors.gray200, width: 1),
@@ -332,29 +335,29 @@ class JournalDetailSheet extends StatelessWidget {
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: TossColors.gray100,
-                  child: const Icon(Icons.person, size: 14, color: TossColors.gray400),
+                  child: Icon(Icons.person, size: TossSpacing.iconXS, color: TossColors.gray400),
                 ),
                 errorWidget: (context, url, error) => Container(
                   color: TossColors.gray100,
-                  child: const Icon(Icons.person, size: 14, color: TossColors.gray400),
+                  child: Icon(Icons.person, size: TossSpacing.iconXS, color: TossColors.gray400),
                 ),
               ),
             ),
           )
         else
           Container(
-            width: 24,
-            height: 24,
+            width: TossSpacing.iconMD2,
+            height: TossSpacing.iconMD2,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: TossColors.gray100,
               border: Border.all(color: TossColors.gray200, width: 1),
             ),
-            child: const Icon(Icons.person, size: 14, color: TossColors.gray400),
+            child: Icon(Icons.person, size: TossSpacing.iconXS, color: TossColors.gray400),
           ),
         const SizedBox(width: TossSpacing.space2),
         SizedBox(
-          width: 60,
+          width: TossDimensions.profileImageWidth,
           child: Text(
             'By',
             style: TossTextStyles.caption.copyWith(
@@ -366,7 +369,7 @@ class JournalDetailSheet extends StatelessWidget {
           child: Text(
             flow.createdBy.fullName,
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -386,13 +389,13 @@ class JournalDetailSheet extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: 16,
+          size: TossSpacing.iconXS,
           color: TossColors.gray400,
         ),
         const SizedBox(width: TossSpacing.space2),
         if (!compact) ...[
           SizedBox(
-            width: 60,
+            width: TossDimensions.profileImageWidth,
             child: Text(
               label,
               style: TossTextStyles.caption.copyWith(
@@ -405,7 +408,7 @@ class JournalDetailSheet extends StatelessWidget {
           child: Text(
             value,
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -426,9 +429,9 @@ class JournalDetailSheet extends StatelessWidget {
         // Header
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.attach_file,
-              size: 16,
+              size: TossSpacing.iconXS,
               color: TossColors.gray500,
             ),
             const SizedBox(width: TossSpacing.space1),
@@ -436,17 +439,17 @@ class JournalDetailSheet extends StatelessWidget {
               'Attachments',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: TossSpacing.space2,
-                vertical: 2,
+                vertical: TossSpacing.space0,
               ),
               decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.1),
+                color: TossColors.primary.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
               child: Text(
@@ -490,7 +493,7 @@ class JournalDetailSheet extends StatelessWidget {
           onTap: () => _openFullscreenViewer(context, images, 0),
           child: Container(
             width: double.infinity,
-            height: 200,
+            height: TossDimensions.imagePreviewHeight,
             decoration: BoxDecoration(
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -508,7 +511,7 @@ class JournalDetailSheet extends StatelessWidget {
         if (remainingImages.isNotEmpty) ...[
           const SizedBox(height: TossSpacing.space2),
           SizedBox(
-            height: 64,
+            height: TossSpacing.icon4XL,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: remainingImages.length,
@@ -521,8 +524,8 @@ class JournalDetailSheet extends StatelessWidget {
                 return GestureDetector(
                   onTap: () => _openFullscreenViewer(context, images, actualIndex),
                   child: Container(
-                    width: 64,
-                    height: 64,
+                    width: TossSpacing.icon4XL,
+                    height: TossSpacing.icon4XL,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                       border: Border.all(color: TossColors.gray200),
@@ -544,7 +547,7 @@ class JournalDetailSheet extends StatelessWidget {
                                   '+${remainingImages.length - 3}',
                                   style: TossTextStyles.body.copyWith(
                                     color: TossColors.white,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: TossFontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -596,8 +599,8 @@ class JournalDetailSheet extends StatelessWidget {
       fit: fit,
       placeholder: (context, url) => Container(
         color: TossColors.gray100,
-        child: const Center(
-          child: TossLoadingView.inline(size: 24, color: TossColors.gray400),
+        child: Center(
+          child: TossLoadingView.inline(size: TossSpacing.iconMD2, color: TossColors.gray400),
         ),
       ),
       errorWidget: (context, url, error) => Container(
@@ -634,7 +637,7 @@ class JournalDetailSheet extends StatelessWidget {
         children: [
           Icon(
             attachment.isPdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
-            size: 20,
+            size: TossSpacing.iconMD,
             color: attachment.isPdf ? TossColors.error : TossColors.gray500,
           ),
           const SizedBox(width: TossSpacing.space2),

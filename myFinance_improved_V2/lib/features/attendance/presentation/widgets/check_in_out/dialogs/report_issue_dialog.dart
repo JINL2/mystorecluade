@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../core/monitoring/sentry_config.dart';
 import '../../../../../../core/utils/datetime_utils.dart';
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../providers/attendance_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -49,13 +46,13 @@ class ReportIssueDialog {
                         Container(
                           padding: const EdgeInsets.all(TossSpacing.space2),
                           decoration: BoxDecoration(
-                            color: TossColors.error.withOpacity(0.1),
+                            color: TossColors.error.withValues(alpha: TossOpacity.light),
                             borderRadius: BorderRadius.circular(TossBorderRadius.md),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.flag_outlined,
                             color: TossColors.error,
-                            size: 24,
+                            size: TossSpacing.iconLG,
                           ),
                         ),
                         const SizedBox(width: TossSpacing.space3),
@@ -67,10 +64,10 @@ class ReportIssueDialog {
                                 'Report Issue',
                                 style: TossTextStyles.h4.copyWith(
                                   color: TossColors.gray900,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: TossFontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: TossSpacing.space1),
                               Text(
                                 'Please describe the problem',
                                 style: TossTextStyles.bodySmall.copyWith(
@@ -287,7 +284,7 @@ class ReportIssueDialog {
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               boxShadow: [
                 BoxShadow(
-                  color: TossColors.black.withOpacity(0.1),
+                  color: TossColors.black.withValues(alpha: TossOpacity.light),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -297,16 +294,16 @@ class ReportIssueDialog {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: TossDimensions.avatarLG,
+                  height: TossDimensions.avatarLG,
                   decoration: BoxDecoration(
-                    color: TossColors.success.withOpacity(0.1),
+                    color: TossColors.success.withValues(alpha: TossOpacity.light),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check_circle_rounded,
                     color: TossColors.success,
-                    size: 36,
+                    size: TossSpacing.iconXL,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space4),
@@ -314,7 +311,7 @@ class ReportIssueDialog {
                   'Report Submitted',
                   style: TossTextStyles.h4.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space2),
@@ -349,7 +346,7 @@ class ReportIssueDialog {
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               boxShadow: [
                 BoxShadow(
-                  color: TossColors.black.withOpacity(0.1),
+                  color: TossColors.black.withValues(alpha: TossOpacity.light),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -359,16 +356,16 @@ class ReportIssueDialog {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: TossDimensions.avatarLG,
+                  height: TossDimensions.avatarLG,
                   decoration: BoxDecoration(
-                    color: TossColors.error.withOpacity(0.1),
+                    color: TossColors.error.withValues(alpha: TossOpacity.light),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.error_outline_rounded,
                     color: TossColors.error,
-                    size: 36,
+                    size: TossSpacing.iconXL,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space4),
@@ -376,7 +373,7 @@ class ReportIssueDialog {
                   'Report Failed',
                   style: TossTextStyles.h4.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space2),

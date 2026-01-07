@@ -5,10 +5,11 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/index.dart';
 
 /// Date range callback
 typedef DateRangeCallback = void Function(DateTime from, DateTime to);
@@ -31,7 +32,7 @@ class QuickDateFiltersSection extends StatelessWidget {
           'Quick Filters',
           style: TossTextStyles.label.copyWith(
             color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -39,7 +40,7 @@ class QuickDateFiltersSection extends StatelessWidget {
           spacing: TossSpacing.space2,
           runSpacing: TossSpacing.space2,
           children: [
-            _QuickFilterChip(
+            TossChip(
               label: 'Today',
               onTap: () {
                 final now = DateTime.now();
@@ -49,7 +50,7 @@ class QuickDateFiltersSection extends StatelessWidget {
                 );
               },
             ),
-            _QuickFilterChip(
+            TossChip(
               label: 'Yesterday',
               onTap: () {
                 final yesterday = DateTime.now().subtract(const Duration(days: 1));
@@ -59,7 +60,7 @@ class QuickDateFiltersSection extends StatelessWidget {
                 );
               },
             ),
-            _QuickFilterChip(
+            TossChip(
               label: 'This Week',
               onTap: () {
                 final now = DateTime.now();
@@ -70,7 +71,7 @@ class QuickDateFiltersSection extends StatelessWidget {
                 );
               },
             ),
-            _QuickFilterChip(
+            TossChip(
               label: 'This Month',
               onTap: () {
                 final now = DateTime.now();
@@ -83,44 +84,6 @@ class QuickDateFiltersSection extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-/// Quick filter chip
-class _QuickFilterChip extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickFilterChip({
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space2,
-        ),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          border: Border.all(
-            color: TossColors.gray200,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray700,
-          ),
-        ),
-      ),
     );
   }
 }

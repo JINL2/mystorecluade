@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// A custom time picker bottom sheet for confirming check-in/check-out times.
@@ -111,7 +108,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
 
   Widget _buildHeader() {
     return Container(
-      height: 52,
+      height: TossDimensions.headerHeight,
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: TossColors.gray100)),
@@ -119,21 +116,21 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
       child: Row(
         children: [
           // Left spacer to balance the close button
-          const SizedBox(width: 40),
+          SizedBox(width: TossDimensions.avatarLG),
           // Title centered
           Expanded(
             child: Text(
               widget.title,
               textAlign: TextAlign.center,
               style: TossTextStyles.titleMedium.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
           ),
           // Close button on the right
           IconButton(
-            icon: const Icon(Icons.close, size: 20, color: TossColors.gray900),
+            icon: const Icon(Icons.close, size: TossSpacing.iconMD, color: TossColors.gray900),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -154,14 +151,14 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
                 widget.recordedTimeLabel,
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
               Text(
                 widget.recordedTime,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ],
@@ -177,16 +174,16 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
 
   Widget _buildTimePicker() {
     return SizedBox(
-      height: 144,
+      height: TossDimensions.timePickerHeight,
       child: Stack(
         children: [
           // Selection Band (light blue background)
           Positioned.fill(
             child: Center(
               child: Container(
-                height: 32,
+                height: TossDimensions.timePickerSelectionHeight,
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.08),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.hover),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
@@ -227,10 +224,10 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
     required ValueChanged<int> onChanged,
   }) {
     return SizedBox(
-      width: 72,
+      width: TossDimensions.timePickerColumnWidth,
       child: ListWheelScrollView.useDelegate(
         controller: controller,
-        itemExtent: 28,
+        itemExtent: TossDimensions.timePickerItemExtent,
         perspective: 0.005,
         diameterRatio: 1.2,
         physics: const FixedExtentScrollPhysics(),
@@ -243,7 +240,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
               child: Text(
                 index.toString().padLeft(2, '0'),
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
                   color: isSelected ? TossColors.primary : TossColors.gray600,
                 ),
               ),
@@ -270,7 +267,7 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: TossSpacing.space2),
 
           // Confirm Button
           Expanded(

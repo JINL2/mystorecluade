@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -30,42 +33,42 @@ class ProfileAvatarSection extends StatelessWidget {
       child: Stack(
         children: [
           Container(
-            width: 90,
-            height: 90,
+            width: TossDimensions.avatar5XL,
+            height: TossDimensions.avatar5XL,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
                 color: TossColors.gray100,
-                width: 3,
+                width: TossDimensions.rankIndicatorWidth,
               ),
             ),
             child: _buildAvatar(),
           ),
           // Edit indicator
           Positioned(
-            bottom: 2,
-            right: 2,
+            bottom: TossSpacing.space0_5,
+            right: TossSpacing.space0_5,
             child: Container(
-              width: 28,
-              height: 28,
+              width: TossDimensions.editBadgeSize,
+              height: TossDimensions.editBadgeSize,
               decoration: BoxDecoration(
                 color: TossColors.primary,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: TossColors.surface,
-                  width: 2,
+                  width: TossDimensions.dividerThicknessBold,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.gray900.withValues(alpha: 0.1),
-                    blurRadius: 8,
+                    color: TossColors.gray900.withValues(alpha: TossOpacity.light),
+                    blurRadius: TossSpacing.space2,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.camera_alt,
-                size: 14,
+                size: TossDimensions.editBadgeIconSize,
                 color: TossColors.surface,
               ),
             ),
@@ -78,7 +81,7 @@ class ProfileAvatarSection extends StatelessWidget {
   Widget _buildAvatar() {
     if (temporaryImageUrl != null) {
       return CircleAvatar(
-        radius: 42,
+        radius: TossDimensions.avatarRadius5XL,
         backgroundImage: temporaryImageUrl!.startsWith('http')
             ? NetworkImage(temporaryImageUrl!) as ImageProvider
             : FileImage(File(temporaryImageUrl!)),
@@ -87,19 +90,19 @@ class ProfileAvatarSection extends StatelessWidget {
 
     if (profile.hasProfileImage) {
       return CircleAvatar(
-        radius: 42,
+        radius: TossDimensions.avatarRadius5XL,
         backgroundImage: NetworkImage(profile.profileImage!),
       );
     }
 
     return CircleAvatar(
-      radius: 42,
-      backgroundColor: TossColors.primary.withValues(alpha: 0.1),
+      radius: TossDimensions.avatarRadius5XL,
+      backgroundColor: TossColors.primary.withValues(alpha: TossOpacity.light),
       child: Text(
         profile.initials,
         style: TossTextStyles.h3.copyWith(
           color: TossColors.primary,
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
         ),
       ),
     );
@@ -121,17 +124,17 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TossColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
       ),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 4,
+              width: TossDimensions.dragHandleWidth,
+              height: TossDimensions.dragHandleHeight,
               margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
@@ -145,7 +148,7 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
                   Text(
                     'Change Profile Picture',
                     style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                       color: TossColors.gray900,
                     ),
                   ),
@@ -274,7 +277,7 @@ class _AvatarOption extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 24,
+              size: TossSpacing.iconMD2,
               color: isDestructive ? TossColors.error : TossColors.gray700,
             ),
             const SizedBox(width: TossSpacing.space4),
@@ -282,7 +285,7 @@ class _AvatarOption extends StatelessWidget {
               child: Text(
                 title,
                 style: TossTextStyles.bodyLarge.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: isDestructive ? TossColors.error : TossColors.gray900,
                 ),
               ),

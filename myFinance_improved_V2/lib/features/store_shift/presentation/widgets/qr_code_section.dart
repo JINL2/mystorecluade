@@ -8,6 +8,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -25,61 +26,43 @@ class QRCodeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.gray900.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: TossColors.transparent,
-        child: InkWell(
-          onTap: () {
-            _showStoreQRCode(context);
-          },
-          borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          child: Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              children: [
-                Container(
-                  width: TossSpacing.iconXL,
-                  height: TossSpacing.iconXL,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  child: Icon(
-                    IconMapper.getIcon('qrCode'),
-                    color: TossColors.primary,
-                    size: TossSpacing.iconMD,
-                  ),
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                Expanded(
-                  child: Text(
-                    'View My Store QR Code',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(
-                  IconMapper.getIcon('chevronRight'),
-                  color: TossColors.gray400,
-                  size: TossSpacing.iconSM,
-                ),
-              ],
+    return GestureDetector(
+      onTap: () {
+        _showStoreQRCode(context);
+      },
+      child: TossWhiteCard(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Row(
+          children: [
+            Container(
+              width: TossSpacing.iconXL,
+              height: TossSpacing.iconXL,
+              decoration: BoxDecoration(
+                color: TossColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              ),
+              child: Icon(
+                IconMapper.getIcon('qrCode'),
+                color: TossColors.primary,
+                size: TossSpacing.iconMD,
+              ),
             ),
-          ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Text(
+                'View My Store QR Code',
+                style: TossTextStyles.body.copyWith(
+                  color: TossColors.gray900,
+                  fontWeight: TossFontWeight.semibold,
+                ),
+              ),
+            ),
+            Icon(
+              IconMapper.getIcon('chevronRight'),
+              color: TossColors.gray400,
+              size: TossSpacing.iconSM,
+            ),
+          ],
         ),
       ),
     );
@@ -101,7 +84,7 @@ class QRCodeSection extends StatelessWidget {
           storeName,
           style: TossTextStyles.h3.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),

@@ -5,6 +5,9 @@ import 'package:myfinance_improved/core/utils/number_formatter.dart';
 import 'package:myfinance_improved/core/utils/text_utils.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/ai/index.dart';
@@ -15,7 +18,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class TransactionListItem extends ConsumerWidget {
   final Transaction transaction;
-  
+
   const TransactionListItem({
     super.key,
     required this.transaction,
@@ -23,18 +26,19 @@ class TransactionListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return TossCard(
+    return GestureDetector(
       onTap: () => _showTransactionDetail(context),
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: TossWhiteCard(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header with time and creator/store chips (JRN REMOVED FOR SPACE)
           Row(
             children: [
               // Time - Fixed width to prevent expansion
               SizedBox(
-                width: 50,
+                width: TossDimensions.timeColumnWidth,
                 child: Text(
                   DateFormat('HH:mm').format(transaction.createdAt),
                   style: TossTextStyles.caption.copyWith(
@@ -42,15 +46,15 @@ class TransactionListItem extends ConsumerWidget {
                   ),
                 ),
               ),
-              
+
               // Expanded content area with optimized spacing
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
                   child: Wrap(
                     alignment: WrapAlignment.start,
-                    spacing: 2, // Reduced from 4px
-                    runSpacing: 2,
+                    spacing: TossSpacing.space1 / 2,
+                    runSpacing: TossSpacing.space1 / 2,
                     children: [
                       if (transaction.createdByName.isNotEmpty && transaction.createdByName != 'Unknown')
                         _buildCreatorChip(transaction.createdByName),
@@ -62,18 +66,18 @@ class TransactionListItem extends ConsumerWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: TossSpacing.space3),
-          
+
           // Transaction Lines - Sort debits first, then credits
           ...() {
             // Separate debits and credits
             final debitLines = transaction.lines.where((line) => line.isDebit).toList();
             final creditLines = transaction.lines.where((line) => !line.isDebit).toList();
-            
+
             // Combine with debits first
             final sortedLines = [...debitLines, ...creditLines];
-            
+
             return sortedLines.asMap().entries.map((entry) {
               final index = entry.key;
               final line = entry.value;
@@ -85,14 +89,14 @@ class TransactionListItem extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
                       child: Divider(
                         color: TossColors.gray100,
-                        height: 1,
+                        height: TossDimensions.dividerThickness,
                       ),
                     ),
                 ],
               );
             });
           }(),
-          
+
           // Description (if exists and different from line descriptions)
           if (transaction.description.isNotEmpty &&
               !transaction.lines.any((l) => l.description == transaction.description))
@@ -117,30 +121,30 @@ class TransactionListItem extends ConsumerWidget {
                 alignment: CrossAxisAlignment.start,
               ),
             ),
-          
+
           // Attachments indicator
           if (transaction.attachments.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: TossSpacing.space3),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.attach_file,
-                    size: 14,
+                    size: TossSpacing.iconXXS,
                     color: TossColors.gray400,
                   ),
                   const SizedBox(width: TossSpacing.space1),
                   Text(
                     '${transaction.attachments.length} attachment${transaction.attachments.length > 1 ? 's' : ''}',
-                    style: TossTextStyles.caption.copyWith(
+                    style: TossTextStyles.small.copyWith(
                       color: TossColors.gray400,
-                      fontSize: 11,
                     ),
                   ),
                 ],
               ),
             ),
         ],
+      ),
       ),
     );
   }
@@ -149,14 +153,14 @@ class TransactionListItem extends ConsumerWidget {
     final isDebit = line.isDebit;
     final amount = isDebit ? line.debit : line.credit;
     final color = isDebit ? TossColors.primary : TossColors.textPrimary;
-    
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Icon - Optimized size for space efficiency
         Container(
-          width: 26,
-          height: 26,
+          width: TossDimensions.transactionIconSize,
+          height: TossDimensions.transactionIconSize,
           decoration: BoxDecoration(
             color: TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -164,12 +168,12 @@ class TransactionListItem extends ConsumerWidget {
           child: Icon(
             isDebit ? Icons.arrow_downward : Icons.arrow_upward,
             color: TossColors.gray500,
-            size: 13,
+            size: TossSpacing.iconXXS,
           ),
         ),
-        
+
         const SizedBox(width: TossSpacing.space2),
-        
+
         // Main Content
         Expanded(
           child: Column(
@@ -179,32 +183,31 @@ class TransactionListItem extends ConsumerWidget {
               Text(
                 line.accountName,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.gray900,
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
-              
+
               // Cash Location as separate row to prevent overflow
               if (line.cashLocation != null)
                 Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: TossSpacing.space1 / 2),
                   child: Row(
                     children: [
                       Icon(
                         _getCashLocationIcon(line.cashLocation!['type'] as String? ?? ''),
-                        size: 10,
+                        size: TossSpacing.iconXXS,
                         color: TossColors.primary,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: TossSpacing.space1),
                       Expanded(
                         child: Text(
                           line.displayLocation,
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.small.copyWith(
                             color: TossColors.primary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -213,19 +216,19 @@ class TransactionListItem extends ConsumerWidget {
                     ],
                   ),
                 ),
-              
+
               // Counterparty (fixed overflow)
               if (line.counterparty != null)
                 Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: TossSpacing.space1 / 2),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person_outline,
-                        size: 12,
+                        size: TossSpacing.iconXXS,
                         color: TossColors.gray400,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: TossSpacing.space1),
                       Expanded(
                         child: Text(
                           line.displayCounterparty,
@@ -239,11 +242,11 @@ class TransactionListItem extends ConsumerWidget {
                     ],
                   ),
                 ),
-              
+
               // Line Description (fixed overflow)
               if (line.description != null && line.description!.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: TossSpacing.space1 / 2),
                   child: Text(
                     line.description!.withoutTrailingDate,
                     style: TossTextStyles.caption.copyWith(
@@ -256,7 +259,7 @@ class TransactionListItem extends ConsumerWidget {
             ],
           ),
         ),
-        
+
         // Amount - No fixed width to show full numbers
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -265,16 +268,15 @@ class TransactionListItem extends ConsumerWidget {
               '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
               style: TossTextStyles.body.copyWith(
                 color: color,
-                fontWeight: FontWeight.bold,
+                fontWeight: TossFontWeight.bold,
               ),
               textAlign: TextAlign.right,
             ),
             if (line.accountType.isNotEmpty)
               Text(
                 _getAccountTypeLabel(line.accountType),
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.gray400,
-                  fontSize: 10,
                 ),
                 textAlign: TextAlign.right,
               ),
@@ -339,29 +341,31 @@ class TransactionListItem extends ConsumerWidget {
   // Helper method to build creator chip (expanded width with JRN removal)
   Widget _buildCreatorChip(String creatorName) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 120), // Increased from 80
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      constraints: BoxConstraints(maxWidth: TossDimensions.chipMaxWidthSM),
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space1,
+        vertical: TossSpacing.space1 / 4,
+      ),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200, width: 0.5),
+        border: Border.all(color: TossColors.gray200, width: TossDimensions.dividerThicknessThin),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.person_outline,
-            size: 10,
+            size: TossSpacing.iconXXS,
             color: TossColors.gray400,
           ),
-          const SizedBox(width: 2),
+          const SizedBox(width: TossSpacing.space1 / 2),
           Flexible(
             child: Text(
               creatorName,
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.micro.copyWith(
                 color: TossColors.gray500,
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
@@ -375,32 +379,34 @@ class TransactionListItem extends ConsumerWidget {
   // Helper method to build store chip (expanded width with JRN removal)
   Widget _buildStoreChip(String storeName) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 140), // Increased from 100
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      constraints: BoxConstraints(maxWidth: TossDimensions.chipMaxWidthMD),
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.space1,
+        vertical: TossSpacing.space1 / 4,
+      ),
       decoration: BoxDecoration(
-        color: TossColors.primarySurface.withValues(alpha: 0.1),
+        color: TossColors.primarySurface.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.2),
-          width: 0.5,
+          color: TossColors.primary.withValues(alpha: TossOpacity.overlay),
+          width: TossDimensions.dividerThicknessThin,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.store,
-            size: 10,
+            size: TossSpacing.iconXXS,
             color: TossColors.primary,
           ),
-          const SizedBox(width: 2),
+          const SizedBox(width: TossSpacing.space1 / 2),
           Flexible(
             child: Text(
               storeName,
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.micro.copyWith(
                 color: TossColors.primary,
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -89,15 +90,8 @@ class InfoTab extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray200,
-          width: 1,
+          width: TossDimensions.dividerThickness,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +108,7 @@ class InfoTab extends StatelessWidget {
               border: Border(
                 bottom: BorderSide(
                   color: color.withValues(alpha: 0.1),
-                  width: 1,
+                  width: TossDimensions.dividerThickness,
                 ),
               ),
             ),
@@ -128,7 +122,7 @@ class InfoTab extends StatelessWidget {
                   ),
                   child: Icon(
                     icon,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: color,
                   ),
                 ),
@@ -162,7 +156,7 @@ class InfoTab extends StatelessWidget {
       child: InfoRow.fixed(
         label: label,
         value: value,
-        labelWidth: 140,
+        labelWidth: TossDimensions.infoLabelWidth,
         showEmptyStyle: true,
       ),
     );
@@ -175,7 +169,7 @@ class InfoTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 140,
+            width: TossDimensions.infoLabelWidth,
             child: Text(
               'Last Activity',
               style: TossTextStyles.bodySmall.copyWith(
@@ -192,14 +186,14 @@ class InfoTab extends StatelessWidget {
                   employee.isActiveToday
                       ? Icons.circle
                       : Icons.access_time_rounded,
-                  size: 12,
+                  size: TossSpacing.iconXS2,
                   color: employee.isActiveToday
                       ? TossColors.success
                       : (employee.isInactive
                           ? TossColors.gray300
                           : TossColors.gray400),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
                 Expanded(
                   child: Text(
                     employee.lastActivityAt != null

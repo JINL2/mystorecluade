@@ -43,8 +43,8 @@ class ChatBubble extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: TossColors.primary,
-        borderRadius: BorderRadius.circular(20).copyWith(
-          bottomRight: const Radius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.bottomSheet).copyWith(
+          bottomRight: const Radius.circular(TossBorderRadius.xs),
         ),
       ),
       child: Text(
@@ -72,8 +72,8 @@ class ChatBubble extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: const Color(0xFFF5F5F5), // Light neutral gray
-            borderRadius: BorderRadius.circular(20).copyWith(
-              bottomLeft: const Radius.circular(4),
+            borderRadius: BorderRadius.circular(TossBorderRadius.bottomSheet).copyWith(
+              bottomLeft: const Radius.circular(TossBorderRadius.xs),
             ),
           ),
           child: MarkdownBody(

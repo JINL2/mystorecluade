@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -65,7 +66,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
       title: Text(
         'Edit Count',
         style: TossTextStyles.h4.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
       content: Column(
@@ -82,7 +83,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
             overflow: TextOverflow.ellipsis,
           ),
           if (widget.item.sku != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: TossSpacing.space1),
             Text(
               widget.item.sku!,
               style: TossTextStyles.caption.copyWith(
@@ -112,7 +113,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
                   '${widget.item.totalQuantity}',
                   style: TossTextStyles.bodyMedium.copyWith(
                     color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ],
@@ -140,7 +141,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
                     color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
-                  child: const Icon(Icons.remove, size: 20),
+                  child: const Icon(Icons.remove, size: TossSpacing.iconMD),
                 ),
               ),
 
@@ -151,7 +152,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: isChanged ? TossColors.primary : TossColors.textPrimary,
                   ),
                   decoration: InputDecoration(
@@ -199,7 +200,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
                     color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
-                  child: const Icon(Icons.add, size: 20, color: TossColors.primary),
+                  child: const Icon(Icons.add, size: TossSpacing.iconMD, color: TossColors.primary),
                 ),
               ),
             ],
@@ -221,7 +222,7 @@ class _ReviewEditQuantityDialogState extends State<ReviewEditQuantityDialog> {
                 children: [
                   const Icon(
                     Icons.info_outline,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color: TossColors.primary,
                   ),
                   const SizedBox(width: TossSpacing.space2),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -44,7 +45,7 @@ class HistoryHeaderSection extends StatelessWidget {
                   children: [
                     Icon(
                       isCounting ? Icons.inventory_2_outlined : Icons.local_shipping_outlined,
-                      size: 14,
+                      size: TossSpacing.iconXS,
                       color: typeColor,
                     ),
                     const SizedBox(width: TossSpacing.space1),
@@ -52,7 +53,7 @@ class HistoryHeaderSection extends StatelessWidget {
                       isCounting ? 'Counting' : 'Receiving',
                       style: TossTextStyles.caption.copyWith(
                         color: typeColor,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ],
@@ -155,10 +156,9 @@ class HistoryHeaderSection extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TossTextStyles.caption.copyWith(
+        style: TossTextStyles.micro.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w500,
-          fontSize: 10,
+          fontWeight: TossFontWeight.medium,
         ),
       ),
     );

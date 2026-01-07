@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
@@ -43,7 +44,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.inventory_2,
-                    size: 18,
+                    size: TossSpacing.iconSM,
                     color: TossColors.success,
                   ),
                 ),
@@ -51,7 +52,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
                 Text(
                   'Stock Update',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
                   ),
                 ),
@@ -139,13 +140,13 @@ class HistoryReceivingInfoSection extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: color),
+          Icon(icon, size: TossSpacing.iconSM2, color: color),
           const SizedBox(width: TossSpacing.space1),
           Text(
             '$count $label',
             style: TossTextStyles.bodySmall.copyWith(
               color: color,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         ],
@@ -185,7 +186,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(icon, size: 16, color: color),
+                Icon(icon, size: TossSpacing.iconSM2, color: color),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Column(
@@ -194,15 +195,14 @@ class HistoryReceivingInfoSection extends StatelessWidget {
                       Text(
                         title,
                         style: TossTextStyles.bodySmall.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: color,
                         ),
                       ),
                       Text(
                         subtitle,
-                        style: TossTextStyles.caption.copyWith(
+                        style: TossTextStyles.micro.copyWith(
                           color: TossColors.textTertiary,
-                          fontSize: 10,
                         ),
                       ),
                     ],
@@ -220,7 +220,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
                   child: Text(
                     '${items.length}',
                     style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                       color: color,
                     ),
                   ),
@@ -271,9 +271,8 @@ class HistoryReceivingInfoSection extends StatelessWidget {
                 ),
                 Text(
                   'SKU: ${item.sku}',
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.micro.copyWith(
                     color: TossColors.textTertiary,
-                    fontSize: 10,
                   ),
                 ),
               ],
@@ -299,13 +298,13 @@ class HistoryReceivingInfoSection extends StatelessWidget {
                     color: TossColors.textTertiary,
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward, size: 10, color: TossColors.textTertiary),
-                const SizedBox(width: 4),
+                const SizedBox(width: TossSpacing.space1),
+                const Icon(Icons.arrow_forward, size: TossSpacing.iconXXS, color: TossColors.textTertiary),
+                const SizedBox(width: TossSpacing.space1),
                 Text(
                   '${item.quantityAfter}',
                   style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
                   ),
                 ),
@@ -326,7 +325,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
             child: Text(
               '+${item.quantityReceived}',
               style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
                 color: accentColor,
               ),
             ),

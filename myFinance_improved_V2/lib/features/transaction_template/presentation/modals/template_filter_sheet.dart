@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 // Autonomous Selectors
 
 import '../../domain/value_objects/template_filter.dart';
@@ -64,7 +65,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
                   Text(
                     'Filter Templates',
                     style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
                   IconButton(
@@ -178,7 +179,7 @@ class _TemplateFilterSheetState extends ConsumerState<TemplateFilterSheet> {
           'Search Templates',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),

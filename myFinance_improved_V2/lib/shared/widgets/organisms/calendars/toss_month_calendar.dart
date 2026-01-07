@@ -51,7 +51,7 @@ class TossMonthCalendar extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         color: TossColors.white,
       ),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(TossSpacing.space2),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -72,7 +72,7 @@ class TossMonthCalendar extends StatelessWidget {
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: TossSpacing.space1),
           // Calendar grid
           GridView.builder(
             shrinkWrap: true,
@@ -180,7 +180,7 @@ class _CalendarDayCell extends StatelessWidget {
             textColor: _getTextColor(),
           ),
           // Always render dot space to maintain alignment
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space1 / 2),
           _DateDot(
             hasShift: hasShift,
             shiftsAvailable: shiftsAvailable,
@@ -214,12 +214,12 @@ class _DateCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 32,
-      height: 32,
+      width: TossSpacing.iconLG2,
+      height: TossSpacing.iconLG2,
       decoration: BoxDecoration(
         color: backgroundColor,
         border: border,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
       alignment: Alignment.center,
       child: Text(
@@ -264,7 +264,7 @@ class _DateDot extends StatelessWidget {
                 ? (shiftsAvailable ? TossColors.primary : TossColors.gray300)
                 : TossColors.transparent)
             : TossColors.transparent, // Invisible but maintains space
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
       ),
     );
   }

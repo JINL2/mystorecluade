@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -118,10 +119,10 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     }
 
     return Scaffold(
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: 'Transaction Templates',
-        backgroundColor: TossColors.gray50,
+        backgroundColor: TossColors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -141,7 +142,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           'New Template',
           style: TossTextStyles.body.copyWith(
             color: TossColors.white,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ),
@@ -162,16 +163,16 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
-                size: 64,
+                size: TossSpacing.icon4XL,
                 color: TossColors.error,
               ),
               const SizedBox(height: TossSpacing.space4),
               Text(
                 'Error Loading Templates',
                 style: TossTextStyles.h2.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
               const SizedBox(height: TossSpacing.space2),
@@ -201,16 +202,16 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.receipt_long_outlined,
-                size: 80,
+                size: TossSpacing.icon4XL + TossSpacing.iconSM2, // 80 = 64 + 16
                 color: TossColors.gray400,
               ),
               const SizedBox(height: TossSpacing.space4),
               Text(
                 'No Templates Yet',
                 style: TossTextStyles.h2.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray700,
                 ),
               ),
@@ -278,16 +279,16 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.receipt_long_outlined,
-                size: 64,
+                size: TossSpacing.icon4XL,
                 color: TossColors.gray400,
               ),
               const SizedBox(height: TossSpacing.space4),
               Text(
                 'No Templates Found',
                 style: TossTextStyles.h2.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray700,
                 ),
               ),
@@ -335,10 +336,10 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       clipBehavior: Clip.none,
       children: [
         IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.filter_list,
             color: TossColors.gray600,
-            size: 24,
+            size: TossSpacing.iconMD2,
           ),
           onPressed: _showFilterSheet,
         ),
@@ -431,13 +432,13 @@ class _TemplateCard extends ConsumerWidget {
       details.add(
         Row(
           children: [
-            const Icon(Icons.account_balance_wallet, size: 14, color: TossColors.primary),
+            Icon(Icons.account_balance_wallet, size: TossSpacing.iconXS, color: TossColors.primary),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'My Cash: ',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
             Flexible(
@@ -445,7 +446,7 @@ class _TemplateCard extends ConsumerWidget {
                 cashLocationName,
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray700,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -460,13 +461,13 @@ class _TemplateCard extends ConsumerWidget {
       details.add(
         Row(
           children: [
-            const Icon(Icons.person, size: 14, color: TossColors.warning),
+            Icon(Icons.person, size: TossSpacing.iconXS, color: TossColors.warning),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Party: ',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
             Flexible(
@@ -474,7 +475,7 @@ class _TemplateCard extends ConsumerWidget {
                 counterpartyName,
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray700,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -489,13 +490,13 @@ class _TemplateCard extends ConsumerWidget {
       details.add(
         Row(
           children: [
-            const Icon(Icons.store, size: 14, color: TossColors.warning),
+            Icon(Icons.store, size: TossSpacing.iconXS, color: TossColors.warning),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Their Cash: ',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray500,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
             Flexible(
@@ -503,7 +504,7 @@ class _TemplateCard extends ConsumerWidget {
                 counterpartyCashLocationName,
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray700,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -525,24 +526,10 @@ class _TemplateCard extends ConsumerWidget {
     // Check edit permission - admin can edit any, creator can edit own
     final canEdit = ref.watch(canEditTemplateProvider(template.createdBy));
 
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.borderLight,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.textPrimary.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return TossWhiteCard(
       child: Material(
         color: TossColors.transparent,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: InkWell(
           onTap: () {
             // Open template usage modal with edit permission
@@ -563,16 +550,16 @@ class _TemplateCard extends ConsumerWidget {
                   children: [
                     // Icon
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: TossSpacing.iconXL,
+                      height: TossSpacing.iconXL,
                       decoration: BoxDecoration(
                         color: TossColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.receipt_long,
                         color: TossColors.primary,
-                        size: 20,
+                        size: TossSpacing.iconMD,
                       ),
                     ),
                     const SizedBox(width: TossSpacing.space3),
@@ -588,7 +575,7 @@ class _TemplateCard extends ConsumerWidget {
                                 child: Text(
                                   template.name,
                                   style: TossTextStyles.bodyLarge.copyWith(
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: TossFontWeight.semibold,
                                     color: TossColors.textPrimary,
                                   ),
                                   maxLines: 1,
@@ -611,22 +598,21 @@ class _TemplateCard extends ConsumerWidget {
                                   ),
                                   child: Text(
                                     'ADMIN',
-                                    style: TossTextStyles.caption.copyWith(
+                                    style: TossTextStyles.small.copyWith(
                                       color: TossColors.textSecondary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10,
+                                      fontWeight: TossFontWeight.bold,
                                     ),
                                   ),
                                 ),
                               ],
                             ],
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: TossSpacing.space1 / 2),
                           Text(
                             transactionFlow,
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.textSecondary,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: TossFontWeight.medium,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -638,10 +624,10 @@ class _TemplateCard extends ConsumerWidget {
                     // Delete button (if user has permission)
                     if (canDelete)
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.delete_outline,
                           color: TossColors.error,
-                          size: 20,
+                          size: TossSpacing.iconMD,
                         ),
                         onPressed: () async {
                           // Show confirmation dialog
@@ -672,10 +658,10 @@ class _TemplateCard extends ConsumerWidget {
                     const SizedBox(width: TossSpacing.space2),
 
                     // Arrow
-                    const Icon(
+                    Icon(
                       Icons.chevron_right,
                       color: TossColors.textTertiary,
-                      size: 20,
+                      size: TossSpacing.iconMD,
                     ),
                   ],
                 ),

@@ -6,6 +6,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
 import '../move_stock_dialog.dart';
 
 /// Individual store row item for the locations section
@@ -101,7 +103,7 @@ class _StoreRowItemState extends State<StoreRowItem>
         child: AnimatedContainer(
           duration: TossAnimations.quick,
           curve: TossAnimations.standard,
-          constraints: const BoxConstraints(minHeight: 48),
+          constraints: const BoxConstraints(minHeight: TossDimensions.minRowHeight),
           padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
           decoration: BoxDecoration(
             color: _isPressed ? TossColors.gray50 : TossColors.transparent,
@@ -121,7 +123,7 @@ class _StoreRowItemState extends State<StoreRowItem>
                       transformAlignment: Alignment.center,
                       child: const Icon(
                         Icons.store_outlined,
-                        size: 18,
+                        size: TossSpacing.iconSM,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -134,7 +136,7 @@ class _StoreRowItemState extends State<StoreRowItem>
                             TextSpan(
                               text: widget.store.name,
                               style: TossTextStyles.body.copyWith(
-                                fontWeight: FontWeight.w500,
+                                fontWeight: TossFontWeight.medium,
                                 color: TossColors.gray900,
                               ),
                             ),
@@ -142,7 +144,7 @@ class _StoreRowItemState extends State<StoreRowItem>
                               TextSpan(
                                 text: ' · This store',
                                 style: TossTextStyles.bodySmall.copyWith(
-                                  fontWeight: FontWeight.w400,
+                                  fontWeight: TossFontWeight.regular,
                                   color: TossColors.gray600,
                                 ),
                               ),
@@ -157,14 +159,14 @@ class _StoreRowItemState extends State<StoreRowItem>
               Row(
                 children: [
                   _StockBadge(stock: widget.store.stock),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   AnimatedContainer(
                     duration: TossAnimations.quick,
                     transform: Matrix4.identity()
                       ..translate(_isPressed ? 2.0 : 0.0, 0.0),
                     child: const Icon(
                       Icons.chevron_right,
-                      size: 18,
+                      size: TossSpacing.iconSM,
                       color: TossColors.gray500,
                     ),
                   ),
@@ -191,8 +193,8 @@ class _StockBadge extends StatelessWidget {
     return AnimatedContainer(
       duration: TossAnimations.fast,
       curve: TossAnimations.standard,
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: TossSpacing.iconLG,
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2_5),
       decoration: BoxDecoration(
         color: hasStock ? TossColors.primarySurface : TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -201,7 +203,7 @@ class _StockBadge extends StatelessWidget {
       child: Text(
         '$stock',
         style: TossTextStyles.body.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
           color: hasStock ? TossColors.primary : TossColors.gray400,
         ),
       ),

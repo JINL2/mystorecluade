@@ -70,10 +70,10 @@ class TemplateInfoCard extends StatelessWidget {
               color: TossColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.receipt_long,
               color: TossColors.primary,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -84,7 +84,7 @@ class TemplateInfoCard extends StatelessWidget {
                 Text(
                   templateName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.gray900,
                   ),
                 ),

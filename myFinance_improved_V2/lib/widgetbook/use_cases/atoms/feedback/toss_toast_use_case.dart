@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_toast.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 
 final tossToastComponent = WidgetbookComponent(
   name: 'TossToast',
@@ -19,12 +20,12 @@ final tossToastComponent = WidgetbookComponent(
                   'TossToast Utility',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: TossSpacing.space2),
                 const Text(
                   'Tap buttons to show different toast types',
                   style: TextStyle(color: TossColors.gray500),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: TossSpacing.space6),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,

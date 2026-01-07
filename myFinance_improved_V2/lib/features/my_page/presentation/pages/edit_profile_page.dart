@@ -6,6 +6,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 
 import '../../domain/entities/user_profile.dart';
 import '../providers/user_profile_providers.dart';
@@ -223,7 +224,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   text: 'Save',
                   onPressed: _saveProfile,
                   textColor: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ]
             : null,

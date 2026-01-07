@@ -6,6 +6,7 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -64,7 +65,7 @@ class StoreSelectorWidget extends ConsumerWidget {
           'Store',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray600,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -129,7 +130,7 @@ class StoreSelectorWidget extends ConsumerWidget {
                     storeName,
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),

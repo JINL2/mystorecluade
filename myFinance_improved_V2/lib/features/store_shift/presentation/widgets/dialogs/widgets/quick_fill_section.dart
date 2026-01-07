@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -68,7 +69,7 @@ class QuickFillSection extends StatelessWidget {
                 'Quick Fill',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
             ],
@@ -106,7 +107,7 @@ class QuickFillSection extends StatelessWidget {
             width: double.infinity,
             child: TossButton.outlined(
               onPressed: onApplyBoth,
-              leadingIcon: const Icon(LucideIcons.copyCheck, size: 18),
+              leadingIcon: Icon(LucideIcons.copyCheck, size: TossSpacing.iconSM),
               text: 'Apply Both',
             ),
           ),

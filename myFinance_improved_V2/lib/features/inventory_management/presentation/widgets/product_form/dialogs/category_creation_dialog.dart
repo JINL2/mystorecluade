@@ -6,6 +6,7 @@ import '../../../../../../app/providers/app_state_provider.dart';
 import '../../../../di/inventory_providers.dart';
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/inventory_metadata.dart';
@@ -142,9 +143,9 @@ class _CategoryCreationDialogState
           children: [
             Text(
               'Parent Category',
-              style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w700),
+              style: TossTextStyles.h3.copyWith(fontWeight: TossFontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             Expanded(
               child: ListView.builder(
                 itemCount: metadata.categories.length,
@@ -186,7 +187,7 @@ class _CategoryCreationDialogState
       title: Text(
         'Add Category',
         style: TossTextStyles.h3.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),
@@ -205,25 +206,25 @@ class _CategoryCreationDialogState
               isRequired: true,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
 
             // Parent Category Selection
             Text(
               'Parent Category (Optional)',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             InkWell(
               onTap: _isCreating || metadata == null
                   ? null
                   : () => _showParentCategorySelector(metadata),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
+                  horizontal: TossSpacing.space3,
+                  vertical: TossSpacing.space3,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: TossColors.gray300),
@@ -245,7 +246,7 @@ class _CategoryCreationDialogState
                     const Icon(
                       Icons.chevron_right,
                       color: TossColors.gray400,
-                      size: 20,
+                      size: TossSpacing.iconMD,
                     ),
                   ],
                 ),
@@ -263,7 +264,7 @@ class _CategoryCreationDialogState
                 onPressed: _isCreating ? null : () => context.pop(),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: TossSpacing.space2),
             Expanded(
               child: TossButton.primary(
                 text: 'Create',

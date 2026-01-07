@@ -342,10 +342,9 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
               padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space2, TossSpacing.space4, TossSpacing.space3),
               child: Text(
                 'Available Shifts on ${DateFormat.MMMd().format(selectedDate)}',
-                style: TossTextStyles.label.copyWith(
+                style: TossTextStyles.body.copyWith(
                   color: TossColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ),
@@ -361,7 +360,6 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
                         'No shifts available',
                         style: TossTextStyles.body.copyWith(
                           color: TossColors.gray500,
-                          fontSize: 14,
                         ),
                       ),
                     ),

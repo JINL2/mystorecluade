@@ -290,7 +290,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
       child: Row(
         children: [
           // Spacer for alignment
-          const SizedBox(width: 48),
+          const SizedBox(width: TossSpacing.iconXXL),
 
           Expanded(
             child: Text(
@@ -328,8 +328,8 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: TossSpacing.iconLG2,
+                height: TossSpacing.iconLG2,
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -340,7 +340,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
                         ? Icons.arrow_forward
                         : Icons.arrow_back,
                     color: TossColors.gray600,
-                    size: 16,
+                    size: TossSpacing.iconSM,
                   ),
                 ),
               ),
@@ -379,17 +379,17 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: TossSpacing.iconLG2,
+                height: TossSpacing.iconLG2,
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.business,
                     color: TossColors.gray600,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                   ),
                 ),
               ),
@@ -534,7 +534,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: TossColors.gray600, size: 18),
+          Icon(icon, color: TossColors.gray600, size: TossSpacing.iconSM),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Column(

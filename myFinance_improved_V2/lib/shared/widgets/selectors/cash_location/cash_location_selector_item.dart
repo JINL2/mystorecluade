@@ -82,7 +82,7 @@ class CashLocationSelectorItem extends StatelessWidget {
             maxLines: 2,
           ),
           if (showTransactionCount && location.subtitle.isNotEmpty) ...[
-            const SizedBox(height: 2),
+            SizedBox(height: TossSpacing.space1 / 2),
             Text(
               location.subtitle,
               style: TossTextStyles.small.copyWith(
@@ -93,7 +93,7 @@ class CashLocationSelectorItem extends StatelessWidget {
             ),
           ],
           if (isBlocked) ...[
-            const SizedBox(height: 2),
+            SizedBox(height: TossSpacing.space1 / 2),
             Text(
               'Already selected',
               style: TossTextStyles.small.copyWith(

@@ -205,7 +205,7 @@ class AvatarStackInteract extends StatelessWidget {
 
           // User count text
           if (showCount) ...[
-            if (users.isNotEmpty) const SizedBox(width: 8),
+            if (users.isNotEmpty) SizedBox(width: TossSpacing.space2),
             Text(
               _getCountText(),
               style: TossTextStyles.labelSmall.copyWith(
@@ -217,7 +217,7 @@ class AvatarStackInteract extends StatelessWidget {
 
           // Optional trailing widget
           if (trailingWidget != null) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: TossSpacing.space2),
             trailingWidget!,
           ],
         ],
@@ -382,7 +382,7 @@ class _UsersBottomSheet extends StatelessWidget {
           Container(
             width: 36,
             height: 4,
-            margin: const EdgeInsets.only(top: 12, bottom: 16),
+            margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2), // 2.0 - handle
@@ -391,7 +391,7 @@ class _UsersBottomSheet extends StatelessWidget {
 
           // Header - centered like TossDropdown
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -411,9 +411,9 @@ class _UsersBottomSheet extends StatelessWidget {
 
           // Subtitle (if provided)
           if (subtitle != null) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: TossSpacing.space1),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
               child: Text(
                 subtitle!,
                 textAlign: TextAlign.center,
@@ -425,12 +425,12 @@ class _UsersBottomSheet extends StatelessWidget {
             ),
           ],
 
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4 * 2),
             child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: TossSpacing.space2),
 
           // User list
           Flexible(
@@ -438,7 +438,7 @@ class _UsersBottomSheet extends StatelessWidget {
                 ? _buildEmptyState()
                 : ListView.separated(
                     shrinkWrap: true,
-                    padding: const EdgeInsets.only(top: 8, bottom: 32),
+                    padding: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space4 * 2),
                     itemCount: users.length,
                     separatorBuilder: (context, index) => const Divider(
                       height: 1,
@@ -469,7 +469,7 @@ class _UsersBottomSheet extends StatelessWidget {
     return InkWell(
       onTap: onUserTap != null ? () => onUserTap!(user) : null,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space3),
         child: Row(
           children: [
             // Avatar
@@ -482,7 +482,7 @@ class _UsersBottomSheet extends StatelessWidget {
                   ? Icon(Icons.person, size: TossSpacing.iconSM, color: TossColors.gray500)
                   : null,
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: TossSpacing.space3),
 
             // Name and subtitle
             Expanded(
@@ -497,7 +497,7 @@ class _UsersBottomSheet extends StatelessWidget {
                     ),
                   ),
                   if (user.subtitle != null) ...[
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       user.subtitle!,
                       style: TossTextStyles.labelSmall.copyWith(
@@ -512,10 +512,10 @@ class _UsersBottomSheet extends StatelessWidget {
 
             // Trailing widget or action buttons
             if (user.trailingWidget != null) ...[
-              const SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               user.trailingWidget!,
             ] else if (actionButtons != null && actionButtons!.isNotEmpty) ...[
-              const SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               _buildActionButtons(user),
             ],
           ],
@@ -560,8 +560,8 @@ class _UsersBottomSheet extends StatelessWidget {
       child: AnimatedContainer(
         duration: TossAnimations.normal,
         curve: TossAnimations.standard,
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        height: TossSpacing.iconLG2,
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1 + 2),
         decoration: BoxDecoration(
           color: isActive
               ? (currentButton.backgroundColor ?? TossColors.primary)
@@ -587,7 +587,7 @@ class _UsersBottomSheet extends StatelessWidget {
                     ? (currentButton.textColor ?? TossColors.white)
                     : TossColors.gray700,
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: TossSpacing.space1),
             ],
             Text(
               currentButton.label,
@@ -609,7 +609,7 @@ class _UsersBottomSheet extends StatelessWidget {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(40),
+        padding: const EdgeInsets.all(TossSpacing.space4 * 2 + TossSpacing.space2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -618,7 +618,7 @@ class _UsersBottomSheet extends StatelessWidget {
               size: TossSpacing.iconLG + TossSpacing.iconXS, // 48 - large display
               color: TossColors.gray400,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             Text(
               emptyMessage ?? 'No users yet',
               style: TossTextStyles.body.copyWith(

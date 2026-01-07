@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_list_item.dart';
@@ -139,13 +141,13 @@ class _SessionCountDetailPageState
         icon: const Icon(
           Icons.chevron_left,
           color: TossColors.gray900,
-          size: 28,
+          size: TossSpacing.iconLG,
         ),
       ),
       title: Text(
         _isCounting ? 'Count Details' : 'Receiving Details',
         style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),
@@ -155,7 +157,7 @@ class _SessionCountDetailPageState
           text: 'Submit',
           onPressed: _onSubmit,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: TossSpacing.space1),
       ],
     );
   }

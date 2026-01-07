@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'move_stock_dialog.dart';
@@ -55,11 +56,11 @@ class StorePickerSheet extends StatelessWidget {
           children: [
             const SizedBox(height: TossSpacing.space2),
             Container(
-              width: 36,
-              height: 4,
+              width: TossSpacing.space9,
+              height: TossSpacing.space1,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
               ),
             ),
             const SizedBox(height: TossSpacing.space4),
@@ -87,14 +88,14 @@ class StorePickerSheet extends StatelessWidget {
                     title: Text(
                       store.name,
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: TossColors.gray900,
                       ),
                     ),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+                        horizontal: TossSpacing.badgePaddingHorizontalLG,
+                        vertical: TossSpacing.space1,
                       ),
                       decoration: BoxDecoration(
                         color: TossColors.primarySurface,
@@ -103,7 +104,7 @@ class StorePickerSheet extends StatelessWidget {
                       child: Text(
                         '${store.stock}',
                         style: TossTextStyles.bodySmall.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.primary,
                         ),
                       ),

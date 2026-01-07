@@ -3,6 +3,9 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
 /// Thumbnail widget for product image upload
@@ -25,13 +28,16 @@ class ProductImageThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 24),
+      padding: const EdgeInsets.only(
+        top: TossSpacing.space4,
+        bottom: TossSpacing.marginLG,
+      ),
       child: Center(
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 88,
-            height: 88,
+            width: _thumbnailSize,
+            height: _thumbnailSize,
             decoration: BoxDecoration(
               border: Border.all(
                 color: TossColors.gray200,
@@ -46,20 +52,22 @@ class ProductImageThumbnail extends StatelessWidget {
     );
   }
 
+  static const double _thumbnailSize = 88.0;
+
   Widget _buildPlaceholder() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Icon(
           Icons.camera_alt_outlined,
-          size: 26,
+          size: TossDimensions.transactionIconSize,
           color: TossColors.gray500,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: TossSpacing.badgePaddingHorizontalXS),
         Text(
           'Add Photo',
           style: TossTextStyles.caption.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray500,
           ),
         ),
@@ -69,27 +77,27 @@ class ProductImageThumbnail extends StatelessWidget {
 
   Widget _buildImage() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(11),
+      borderRadius: BorderRadius.circular(TossBorderRadius.lg - 1),
       child: existingImageUrls.isNotEmpty
           ? Image.network(
               existingImageUrls.first,
               fit: BoxFit.cover,
-              width: 88,
-              height: 88,
+              width: _thumbnailSize,
+              height: _thumbnailSize,
               errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.image,
-                size: 40,
+                size: TossSpacing.iconXL,
                 color: TossColors.gray400,
               ),
             )
           : Image.asset(
               selectedImages.first.path,
               fit: BoxFit.cover,
-              width: 88,
-              height: 88,
+              width: _thumbnailSize,
+              height: _thumbnailSize,
               errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.image,
-                size: 40,
+                size: TossSpacing.iconXL,
                 color: TossColors.gray400,
               ),
             ),

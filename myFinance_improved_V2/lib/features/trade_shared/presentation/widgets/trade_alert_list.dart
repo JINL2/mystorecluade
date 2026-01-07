@@ -30,7 +30,7 @@ class TradeAlertListItem extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: TossSpacing.space4),
         decoration: BoxDecoration(
-          color: TossColors.error.withOpacity(0.1),
+          color: TossColors.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Icon(
@@ -49,10 +49,10 @@ class TradeAlertListItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(TossSpacing.space3),
           decoration: BoxDecoration(
-            color: alert.isRead ? TossColors.white : TossColors.primary.withOpacity(0.03),
+            color: alert.isRead ? TossColors.white : TossColors.primary.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: alert.isRead ? TossColors.gray200 : TossColors.primary.withOpacity(0.15),
+              color: alert.isRead ? TossColors.gray200 : TossColors.primary.withValues(alpha: 0.15),
               width: 1,
             ),
           ),
@@ -128,7 +128,7 @@ class TradeAlertListItem extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: priorityColor.withOpacity(0.1),
+        color: priorityColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Icon(
@@ -243,10 +243,10 @@ class TradeAlertCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
-          color: priorityColor.withOpacity(0.05),
+          color: priorityColor.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(
-            color: priorityColor.withOpacity(0.2),
+            color: priorityColor.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -272,7 +272,7 @@ class TradeAlertCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (alert.dueDate != null) ...[
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       _formatDueDate(alert.dueDate!),
                       style: TossTextStyles.caption.copyWith(
@@ -389,10 +389,10 @@ class TradeAlertSummary extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: urgentCount > 0
-              ? TossColors.error.withOpacity(0.1)
+              ? TossColors.error.withValues(alpha: 0.1)
               : highCount > 0
-                  ? TossColors.warning.withOpacity(0.1)
-                  : TossColors.primary.withOpacity(0.1),
+                  ? TossColors.warning.withValues(alpha: 0.1)
+                  : TossColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Row(
@@ -428,7 +428,7 @@ class TradeAlertSummary extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.error,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Text(
                   '$urgentCount urgent',

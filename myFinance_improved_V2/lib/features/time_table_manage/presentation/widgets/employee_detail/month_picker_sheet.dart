@@ -44,12 +44,12 @@ class _MonthPickerSheetState extends State<MonthPickerSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 4,
+              width: TossDimensions.dragHandleWidth,
+              height: TossDimensions.dragHandleHeight,
               margin: const EdgeInsets.only(bottom: TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
               ),
             ),
             Row(
@@ -63,7 +63,7 @@ class _MonthPickerSheetState extends State<MonthPickerSheet> {
                 Text(
                   '$_selectedYear',
                   style: TossTextStyles.titleLarge.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
                 IconButton(
@@ -80,8 +80,8 @@ class _MonthPickerSheetState extends State<MonthPickerSheet> {
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
                 childAspectRatio: 1.5,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
+                crossAxisSpacing: TossSpacing.space2,
+                mainAxisSpacing: TossSpacing.space2,
               ),
               itemCount: 12,
               itemBuilder: (context, index) {
@@ -122,7 +122,7 @@ class _MonthPickerSheetState extends State<MonthPickerSheet> {
                                   ? TossColors.gray400
                                   : TossColors.gray900,
                           fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                              isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
                         ),
                       ),
                     ),

@@ -8,6 +8,9 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../../inventory_management/domain/entities/product.dart';
 import '../../../domain/entities/cart_item.dart';
 import '../../../domain/entities/sales_product.dart';
@@ -122,7 +125,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
               // Product Image
               ProductImageWidget(
                 imageUrl: widget.product.images.mainImage,
-                size: 44,
+                size: TossDimensions.minTouchTarget,
                 fallbackIcon: Icons.inventory_2,
               ),
               const SizedBox(width: TossSpacing.space4),
@@ -135,28 +138,28 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                     Text(
                       widget.product.productName,
                       style: TossTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     // SKU and Stock Badge Row
                     Row(
                       children: [
                         Text(
                           widget.product.sku,
                           style: TossTextStyles.bodySmall.copyWith(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                             color: TossColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: TossSpacing.space1_5),
                         _buildStockBadge(stockQuantity, isSelected),
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     // Price Row with Controls
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,7 +167,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                         Text(
                           '${widget.currencySymbol}${CurrencyFormatter.formatPrice(widget.product.pricing.sellingPrice ?? 0)}',
                           style: TossTextStyles.titleMedium.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.primary,
                           ),
                         ),
@@ -211,7 +214,10 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.badgePaddingHorizontalXS,
+        vertical: TossSpacing.badgePaddingVerticalXS,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -219,7 +225,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
       child: Text(
         displayText,
         style: TossTextStyles.bodySmall.copyWith(
-          fontWeight: FontWeight.w500,
+          fontWeight: TossFontWeight.medium,
           color: textColor,
         ),
       ),
@@ -228,7 +234,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
 
   Widget _buildQuantityStepper() {
     return Container(
-      height: 44,
+      height: TossDimensions.minTouchTarget,
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -251,12 +257,12 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
               }
             },
             child: const SizedBox(
-              width: 44,
-              height: 44,
+              width: TossDimensions.minTouchTarget,
+              height: TossDimensions.minTouchTarget,
               child: Center(
                 child: Icon(
                   Icons.remove,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.textPrimary,
                 ),
               ),
@@ -267,15 +273,15 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
             behavior: HitTestBehavior.opaque,
             onTap: () => _showQuantityNumberPad(context),
             child: Container(
-              width: 52,
-              height: 44,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: TossSpacing.iconXL + TossSpacing.space3,
+              height: TossDimensions.minTouchTarget,
+              margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
               decoration: BoxDecoration(
                 color: TossColors.white,
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.black.withValues(alpha: 0.12),
+                    color: TossColors.black.withValues(alpha: TossOpacity.pressed),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -284,9 +290,8 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
               child: Center(
                 child: Text(
                   '${widget.cartItem.quantity}',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  style: TossTextStyles.subtitle.copyWith(
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
                   ),
                 ),
@@ -304,12 +309,12 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                   );
             },
             child: const SizedBox(
-              width: 44,
-              height: 44,
+              width: TossDimensions.minTouchTarget,
+              height: TossDimensions.minTouchTarget,
               child: Center(
                 child: Icon(
                   Icons.add,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.textPrimary,
                 ),
               ),
@@ -327,8 +332,8 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
         ref.read(cartNotifierProvider.notifier).addItem(widget.product);
       },
       child: Container(
-        width: 44,
-        height: 44,
+        width: TossDimensions.minTouchTarget,
+        height: TossDimensions.minTouchTarget,
         decoration: BoxDecoration(
           color: TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -336,7 +341,7 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
         child: const Center(
           child: Icon(
             Icons.add,
-            size: 18,
+            size: TossSpacing.iconSM,
             color: TossColors.textPrimary,
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -52,7 +53,7 @@ class SessionUserCard extends StatelessWidget {
                   child: Text(
                     user.userName,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                   ),
@@ -81,8 +82,8 @@ class SessionUserCard extends StatelessWidget {
 
   Widget _buildUserProfileImage(String? profileImageUrl) {
     return Container(
-      width: 20,
-      height: 20,
+      width: TossSpacing.iconMD,
+      height: TossSpacing.iconMD,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: TossColors.gray100,
@@ -97,7 +98,7 @@ class SessionUserCard extends StatelessWidget {
           ? const Icon(
               Icons.person,
               color: TossColors.gray400,
-              size: 12,
+              size: TossSpacing.iconXXS,
             )
           : null,
     );

@@ -7,6 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -74,10 +75,10 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.8,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: TossColors.background,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(16),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(TossBorderRadius.xl),
           ),
         ),
         child: Column(
@@ -126,7 +127,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          borderSide: const BorderSide(color: TossColors.primary, width: 2),
+                          borderSide: const BorderSide(color: TossColors.primary, width: TossDimensions.dividerThicknessBold),
                         ),
                         filled: true,
                         fillColor: TossColors.background,
@@ -244,7 +245,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                             const Icon(
                               Icons.calendar_today,
                               color: TossColors.gray600,
-                              size: 20,
+                              size: TossSpacing.iconMD,
                             ),
                             const SizedBox(width: TossSpacing.space3),
                             Text(
@@ -276,7 +277,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
         border: Border(
           bottom: BorderSide(
             color: TossColors.gray200,
-            width: 1,
+            width: TossDimensions.dividerThickness,
           ),
         ),
       ),
@@ -383,9 +384,8 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                 // Navigate to Staff & Store Settings > Schedule tab
                 context.push('/store-shift');
               },
-              leadingIcon: const Icon(LucideIcons.settings, size: 14),
+              leadingIcon: const Icon(LucideIcons.settings, size: TossSpacing.iconXS),
               textColor: TossColors.primary,
-              fontSize: 13,
             ),
           ],
         ),
@@ -448,7 +448,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
               const Icon(
                 LucideIcons.alertTriangle,
                 color: TossColors.warning,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
               const SizedBox(width: TossSpacing.space2),
               Expanded(
@@ -479,7 +479,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
                 // Navigate to Staff & Store Settings > Schedule tab
                 context.push('/store-shift');
               },
-              leadingIcon: const Icon(LucideIcons.plus, size: 16),
+              leadingIcon: const Icon(LucideIcons.plus, size: TossSpacing.iconSM),
               fullWidth: true,
             ),
           ),
@@ -491,21 +491,14 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   Widget _buildBottomActions(List<CurrencyType> currencies) {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: TossColors.background,
-        border: const Border(
+        border: Border(
           top: BorderSide(
             color: TossColors.gray200,
-            width: 1,
+            width: TossDimensions.dividerThickness,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
       ),
       child: SafeArea(
         child: Row(

@@ -98,29 +98,29 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                 children: [
                   Icon(
                     Icons.check_circle,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color: TossColors.primary,
                   ),
-                  SizedBox(width: 4),
+                  SizedBox(width: TossSpacing.space1),
                   Text(
                     'Subscribed: ${subscribedTemplates.length}',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray600,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
                   SizedBox(width: TossSpacing.space3),
                   Icon(
                     Icons.campaign_outlined,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color: TossColors.gray500,
                   ),
-                  SizedBox(width: 4),
+                  SizedBox(width: TossSpacing.space1),
                   Text(
                     'Available: ${availableTemplates.length}',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray600,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
                 ],
@@ -138,7 +138,7 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                     children: [
                       Icon(
                         Icons.description_outlined,
-                        size: 64,
+                        size: TossSpacing.icon4XL,
                         color: TossColors.gray300,
                       ),
                       SizedBox(height: TossSpacing.space4),
@@ -165,7 +165,7 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                   ),
                 )
               : ColoredBox(
-                  color: TossColors.gray50,
+                  color: TossColors.white,
                   child: RefreshIndicator(
                     onRefresh: () async {
                       await ref
@@ -190,28 +190,26 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 3,
-                                  height: 16,
+                                  width: TossDimensions.rankIndicatorWidth,
+                                  height: TossSpacing.space4,
                                   decoration: BoxDecoration(
                                     color: TossColors.primary,
-                                    borderRadius: BorderRadius.circular(2),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.indicator),
                                   ),
                                 ),
                                 SizedBox(width: TossSpacing.space2),
                                 Text(
                                   'Subscribed',
-                                  style: TossTextStyles.h4.copyWith(
-                                    fontSize: 16,
-                                  ),
+                                  style: TossTextStyles.subtitle,
                                 ),
                                 SizedBox(width: TossSpacing.space2),
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: TossSpacing.space2,
-                                    vertical: 2,
+                                    vertical: TossSpacing.space0_5,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: TossColors.primary.withOpacity(0.1),
+                                    color: TossColors.primary.withValues(alpha: TossOpacity.light),
                                     borderRadius: BorderRadius.circular(
                                         TossBorderRadius.xs),
                                   ),
@@ -219,7 +217,7 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                                     '${subscribedTemplates.length}',
                                     style: TossTextStyles.caption.copyWith(
                                       color: TossColors.primary,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: TossFontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -248,18 +246,17 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 3,
-                                  height: 16,
+                                  width: TossDimensions.rankIndicatorWidth,
+                                  height: TossSpacing.space4,
                                   decoration: BoxDecoration(
                                     color: TossColors.gray400,
-                                    borderRadius: BorderRadius.circular(2),
+                                    borderRadius: BorderRadius.circular(TossBorderRadius.indicator),
                                   ),
                                 ),
                                 SizedBox(width: TossSpacing.space2),
                                 Text(
                                   'Available',
-                                  style: TossTextStyles.h4.copyWith(
-                                    fontSize: 16,
+                                  style: TossTextStyles.subtitle.copyWith(
                                     color: TossColors.gray700,
                                   ),
                                 ),
@@ -267,7 +264,7 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: TossSpacing.space2,
-                                    vertical: 2,
+                                    vertical: TossSpacing.space0_5,
                                   ),
                                   decoration: BoxDecoration(
                                     color: TossColors.gray100,
@@ -278,7 +275,7 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
                                     '${availableTemplates.length}',
                                     style: TossTextStyles.caption.copyWith(
                                       color: TossColors.gray700,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: TossFontWeight.bold,
                                     ),
                                   ),
                                 ),

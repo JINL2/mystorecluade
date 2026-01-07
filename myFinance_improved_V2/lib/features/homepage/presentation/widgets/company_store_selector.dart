@@ -43,7 +43,7 @@ class CompanyStoreSelector extends ConsumerWidget {
         children: [
           // Handle bar
           Container(
-            width: 40,
+            width: TossSpacing.iconXL,
             height: 4,
             margin: const EdgeInsets.only(
               top: TossSpacing.space2,
@@ -88,7 +88,7 @@ class CompanyStoreSelector extends ConsumerWidget {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: TossSpacing.space1 / 2),
                             Text(
                               'Select Company & Store',
                               style: TossTextStyles.caption.copyWith(
@@ -141,7 +141,7 @@ class CompanyStoreSelector extends ConsumerWidget {
               width: double.infinity,
               child: TossButton.primary(
                 text: 'Add Company',
-                leadingIcon: const Icon(LucideIcons.plus, size: 20),
+                leadingIcon: const Icon(LucideIcons.plus, size: TossSpacing.iconMD),
                 onPressed: () => _showCompanyActionsBottomSheet(context, ref),
               ),
             ),
