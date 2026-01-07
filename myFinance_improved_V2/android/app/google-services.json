@@ -1,0 +1,57 @@
+{
+  "project_info": {
+    "project_number": "204633647743",
+    "project_id": "notification-f1653",
+    "storage_bucket": "notification-f1653.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204633647743:android:c08b099d6f056c51a12d4a",
+        "android_client_info": {
+          "package_name": "com.mycompany.luxappv1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6etEeirje5omw-Y7X3PpNdaux7yTtH1M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204633647743:android:86fe8fbe9c3a16cda12d4a",
+        "android_client_info": {
+          "package_name": "com.storebase.myfinance_improved"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "204633647743-ju0hppu60fd4psbp60hbteehp1buf8j0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.storebase.myfinance_improved",
+            "certificate_hash": "c9d130f88d225f61dc88688b2771788d50500211"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6etEeirje5omw-Y7X3PpNdaux7yTtH1M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

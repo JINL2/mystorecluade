@@ -465,6 +465,7 @@ class _EditTemplateBottomSheetState
   }
 
   void _navigateToAccountSettings(String counterpartyId, String counterpartyName) {
+    if (!mounted) return;
     context.pop();
     context.pushNamed(
       'debtAccountSettings',
@@ -520,7 +521,9 @@ class _EditTemplateBottomSheetState
     }
 
     try {
-      setState(() => _isSubmitting = true);
+      if (mounted) {
+        setState(() => _isSubmitting = true);
+      }
 
       final updatedData = _buildUpdatedData();
 

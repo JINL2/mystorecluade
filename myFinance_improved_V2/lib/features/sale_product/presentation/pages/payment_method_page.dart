@@ -59,6 +59,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   bool _isExchangeRatePanelExpanded = false;
   // Scroll controller for auto-scrolling when dropdown expands
   final ScrollController _scrollController = ScrollController();
+  // GlobalKey to access PaymentBreakdownSection state
+  final GlobalKey<PaymentBreakdownSectionState> _paymentBreakdownKey =
+      GlobalKey<PaymentBreakdownSectionState>();
 
   @override
   void initState() {
@@ -125,18 +128,16 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   }
 
   /// Handle when user applies exchange rate converted amount as total payment
-  /// This auto-calculates the discount based on subtotal - converted amount
+  /// Clears existing discount/tax and applies the target total
+  /// [convertedAmount] = the target total user wants
+  /// [discount] = subtotal - convertedAmount (for display purposes, not used in logic)
   void _handleApplyExchangeRateAsTotal(
       double convertedAmount, double discount) {
-    // Calculate percentage from discount and subtotal
-    final percentage = _cartTotal > 0 ? (discount / _cartTotal) * 100 : 0.0;
-
-    // Update discount with amount and percentage sync
-    ref.read(paymentMethodNotifierProvider.notifier).updateDiscountWithSync(
-      amount: discount,
-      percentage: percentage,
-      isPercentageMode: false, // Apply as Total sets amount mode
-    );
+    // Use the new applyAsTotal method which:
+    // 1. Clears all existing discount and tax/fees
+    // 2. Calculates the required adjustment based on subtotal vs targetTotal
+    // 3. Applies discount (if targetTotal < subtotal) or tax/fees (if targetTotal > subtotal)
+    _paymentBreakdownKey.currentState?.applyAsTotal(convertedAmount);
 
     // Collapse exchange rate panel after applying
     setState(() {
@@ -163,13 +164,15 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   Widget build(BuildContext context) {
     final paymentState = ref.watch(paymentMethodNotifierProvider);
     final discountAmount = paymentState.discountAmount;
-    final finalTotal = _cartTotal - discountAmount;
+    final taxFeesAmount = paymentState.taxFeesAmount;
+    final netTotal = _cartTotal - discountAmount;
+    final grandTotal = netTotal + taxFeesAmount;
 
     // Determine if invoice can be completed
-    // - finalTotal >= 0 (allow free/gift, but not negative)
+    // - grandTotal >= 0 (allow free/gift, but not negative)
     // - cash location must be selected
     // - not currently submitting (prevents duplicate clicks)
-    final bool canCompleteInvoice = finalTotal >= 0 &&
+    final bool canCompleteInvoice = grandTotal >= 0 &&
         paymentState.selectedCashLocation != null &&
         !paymentState.isSubmitting;
 
@@ -199,7 +202,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       padding: const EdgeInsets.all(TossSpacing.space3),
                       child: ExchangeRatePanel(
                         exchangeRateData: _exchangeRateData!,
-                        finalTotal: finalTotal,
+                        finalTotal: grandTotal,
                         subtotal: _cartTotal,
                         onApplyAsTotal: _handleApplyExchangeRateAsTotal,
                       ),
@@ -223,6 +226,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
                       horizontal: TossSpacing.space3,
                     ),
                     child: PaymentBreakdownSection(
+                      key: _paymentBreakdownKey,
                       selectedProducts: widget.selectedProducts,
                       productQuantities: widget.productQuantities,
                       currencySymbol:
@@ -503,15 +507,18 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   ) async {
     final invoiceId = result.invoiceId;
     final invoiceNumber = result.invoiceNumber ?? 'Unknown';
-    final totalAmount = result.totalAmount ?? 0;
+
+    // Calculate actual total amount for journal entry:
+    // Total = Subtotal - Discount + Tax/Fees
+    final subtotal = _cartTotal;
+    final discountAmount = paymentState.discountAmount;
+    final taxFeesAmount = paymentState.taxFeesAmount;
+    final netTotal = subtotal - discountAmount;
+    final totalAmount = netTotal + taxFeesAmount;
 
     // Create journal entry for the cash sales transaction
     String? journalEntryId;
     try {
-      print('📒 [JOURNAL] Starting journal entry creation...');
-      print('📒 [JOURNAL] selectedCashLocation: ${paymentState.selectedCashLocation}');
-      print('📒 [JOURNAL] invoiceId: $invoiceId');
-
       if (paymentState.selectedCashLocation != null && invoiceId != null) {
         final journalDescription = _buildJournalDescription(
           paymentState,
@@ -520,10 +527,6 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
 
         // Calculate total cost for COGS entry
         final totalCost = _getTotalCost();
-
-        print('📒 [JOURNAL] Calling createSalesJournalEntry...');
-        print('📒 [JOURNAL] amount: $totalAmount, totalCost: $totalCost');
-        print('📒 [JOURNAL] cashLocationId: ${paymentState.selectedCashLocation!.id}');
 
         journalEntryId = await ref.read(paymentMethodNotifierProvider.notifier).createSalesJournalEntry(
               companyId: companyId,
@@ -593,10 +596,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         companyId: companyId,
         userId: userId,
         onDismiss: () {
-          // Navigate back to Sales Product page
-          // Note: Data refresh is handled in SaleProductPage._navigateToPayment()
-          // after Navigator.push returns
-          context.pop();
+          // Navigate back to Sales Product page with success result
+          // SaleProductPage will clear cart and refresh data
+          context.pop(true);
         },
       );
     }

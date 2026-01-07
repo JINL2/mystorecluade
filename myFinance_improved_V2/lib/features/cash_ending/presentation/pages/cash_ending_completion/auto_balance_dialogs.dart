@@ -287,9 +287,11 @@ void showAutoBalanceConfirmation({
                         vertical: TossSpacing.space3,
                       ),
                       borderRadius: 12,
-                      onPressed: () async {
-                        // Apply auto-balance
-                        await onConfirm(type);
+                      onPressed: () {
+                        // Close dialog first, then apply auto-balance
+                        // This prevents "deactivated widget" errors when showing toast
+                        Navigator.of(context).pop();
+                        onConfirm(type);
                       },
                       leadingIcon: const Icon(
                         Icons.check,

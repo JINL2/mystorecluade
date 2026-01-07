@@ -27,5 +27,9 @@ class PaymentMethodState with _$PaymentMethodState {
     @Default(0.0) double discountPercentage,
     /// Whether discount was set as percentage mode (true) or amount mode (false)
     @Default(false) bool isPercentageMode,
+    /// Tax/Fees amount in base currency (added to total)
+    @Default(0.0) double taxFeesAmount,
+    /// Tax/Fees percentage (0-100), synced with taxFeesAmount
+    @Default(0.0) double taxFeesPercentage,
   }) = _PaymentMethodState;
 }

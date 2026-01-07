@@ -26,8 +26,15 @@ class SalesProductNotifier extends _$SalesProductNotifier {
   }
 
   /// Load products from repository (initial load)
-  Future<void> loadProducts({String? search}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+  /// When keepCurrentData is true, maintains existing products during loading
+  Future<void> loadProducts({String? search, bool keepCurrentData = false}) async {
+    final showLoading = !keepCurrentData || state.products.isEmpty;
+
+    state = state.copyWith(
+      isLoading: showLoading,
+      isRefreshing: keepCurrentData && state.products.isNotEmpty,
+      errorMessage: null,
+    );
 
     try {
       final appState = ref.read(appStateProvider);
@@ -56,6 +63,7 @@ class SalesProductNotifier extends _$SalesProductNotifier {
         products: result.products,
         totalCount: result.totalCount,
         isLoading: false,
+        isRefreshing: false,
         searchQuery: search ?? state.searchQuery,
         currentPage: 1,
         pageSize: _defaultPageSize,
@@ -64,6 +72,7 @@ class SalesProductNotifier extends _$SalesProductNotifier {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
+        isRefreshing: false,
         errorMessage: 'Error loading products: $e',
         products: [],
       );
@@ -115,10 +124,11 @@ class SalesProductNotifier extends _$SalesProductNotifier {
   }
 
   /// Search products (reset pagination)
-  void search(String query) {
+  /// Set smoothTransition: true for cart item tap (keeps existing data visible)
+  void search(String query, {bool smoothTransition = false}) {
     state = state.copyWith(searchQuery: query);
     // Reload from page 1 when search query changes
-    loadProducts(search: query);
+    loadProducts(search: query, keepCurrentData: smoothTransition);
   }
 
   /// Update sort option

@@ -57,6 +57,14 @@ extension StaffTimeRecordProblemX on StaffTimeRecord {
         (p) => checkOutProblemTypes.contains(p.type) && p.isSolved != true,);
   }
 
+  /// Check if absence problem is unsolved
+  /// Used to show both check-in and check-out as red when absent
+  bool get hasUnsolvedAbsenceProblem {
+    final pd = problemDetails;
+    if (pd == null) return false;
+    return pd.problems.any((p) => p.type == 'absence' && p.isSolved != true);
+  }
+
   /// Check if ALL check-in problems were solved by DB
   bool get isCheckInProblemSolved {
     final pd = problemDetails;

@@ -83,16 +83,25 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
   @override
   void dispose() {
-    _toolbarController?.dispose();
-    _toolbarController = null;
+    // Clear toolbar controller's focus nodes list first to prevent double disposal
+    // since those focus nodes are managed by _focusNodes map
+    // Don't dispose _toolbarController here - just clear the reference
+    if (_toolbarController != null) {
+      _toolbarController!.focusNodes.clear();
+      _toolbarController = null;
+    }
 
+    // Dispose all focus nodes from our map
     for (final currencyFocusNodes in _focusNodes.values) {
       for (final focusNode in currencyFocusNodes.values) {
-        focusNode.dispose();
+        if (focusNode.canRequestFocus) {
+          focusNode.dispose();
+        }
       }
     }
     _focusNodes.clear();
 
+    // Dispose all text controllers
     for (final currencyControllers in _controllers.values) {
       for (final controller in currencyControllers.values) {
         controller.dispose();
@@ -161,9 +170,11 @@ class _VaultTabState extends ConsumerState<VaultTab> {
   }
 
   void _initializeToolbarController(List<Denomination> denominations, String currencyId) {
-    _toolbarController?.focusNodes.clear();
-    _toolbarController?.dispose();
-    _toolbarController = null;
+    // Clear previous controller's focus nodes list (don't dispose - we manage them)
+    if (_toolbarController != null) {
+      _toolbarController!.focusNodes.clear();
+      _toolbarController = null;
+    }
 
     _toolbarController = KeyboardToolbarController(
       fieldCount: denominations.length,
@@ -174,6 +185,8 @@ class _VaultTabState extends ConsumerState<VaultTab> {
       final ourFocusNode = _getFocusNode(currencyId, denom.denominationId);
       final defaultFocusNode = _toolbarController!.focusNodes[i];
 
+      // Dispose the default focus node created by KeyboardToolbarController
+      // only if it's different from our managed focus node
       if (defaultFocusNode != ourFocusNode) {
         defaultFocusNode.dispose();
       }
@@ -366,7 +379,8 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
         if (quantity > 0) {
           currencyQuantities[denom.value.toString()] = quantity;
-          grandTotal += denom.value * quantity;
+          // Apply exchange rate to convert to base currency
+          grandTotal += denom.value * quantity * currency.exchangeRateToBase;
         }
 
         return denom.copyWith(quantity: quantity);
@@ -392,14 +406,18 @@ class _VaultTabState extends ConsumerState<VaultTab> {
 
       await vaultTabNotifier.executeMultiCurrencyRecount(multiCurrencyRecount);
 
+      if (!mounted) return;
+
       await vaultTabNotifier.submitVaultEnding(
         locationId: state.selectedVaultLocationId!,
       );
 
+      if (!mounted) return;
+
       final vaultTabState = ref.read(vaultTabProvider);
       final balanceSummary = vaultTabState.balanceSummary;
 
-      if (!context.mounted) return;
+      if (!mounted || !context.mounted) return;
 
       final getCurrentUserUseCase = ref.read(getCurrentUserUseCaseProvider);
       final userId = getCurrentUserUseCase.executeOrNull() ?? '';

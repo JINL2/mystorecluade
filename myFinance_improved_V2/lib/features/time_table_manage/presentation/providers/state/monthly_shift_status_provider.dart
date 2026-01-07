@@ -72,7 +72,6 @@ class MonthlyShiftStatusNotifier
       return;
     }
 
-    debugPrint('📥 [monthlyShiftStatusProvider] loadMonth - monthKey: $monthKey');
     _safeSetState(state.copyWith(isLoading: true, error: null));
 
     try {
@@ -102,6 +101,19 @@ class MonthlyShiftStatusNotifier
       );
 
       // Update state with new data
+      debugPrint('   ✅ RPC SUCCESS - received ${data.length} MonthlyShiftStatus items');
+
+      // Log pending requests count for debugging
+      int totalPending = 0;
+      for (final status in data) {
+        for (final daily in status.dailyShifts) {
+          for (final shift in daily.shifts) {
+            totalPending += shift.pendingRequests.length;
+          }
+        }
+      }
+      debugPrint('   📊 Total pending requests in response: $totalPending');
+
       final newDataByMonth = Map<String, List<MonthlyShiftStatus>>.from(state.dataByMonth);
       newDataByMonth[monthKey] = data;
 
@@ -119,6 +131,7 @@ class MonthlyShiftStatusNotifier
         loadedMonths: newLoadedMonths,
         isLoading: false,
       ));
+      debugPrint('   ✅ State updated - loadedMonths: $newLoadedMonths');
     } catch (e) {
       debugPrint('   ❌ [monthlyShiftStatusProvider] Failed after retries: $e');
       _safeSetState(state.copyWith(
