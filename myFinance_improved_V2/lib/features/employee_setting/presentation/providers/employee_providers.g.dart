@@ -321,7 +321,7 @@ typedef AssignWorkScheduleTemplateRef = AutoDisposeProviderRef<
     Future<Map<String, dynamic>> Function(
         {required String userId, String? templateId})>;
 String _$mutableEmployeeListHash() =>
-    r'80fda47f7dd5e11974b4eff601a8e328afa1b431';
+    r'06b0aeb4fd5b02a08c4ce67a25db40b4b144904a';
 
 /// Mutable Employee List Notifier for instant updates
 ///

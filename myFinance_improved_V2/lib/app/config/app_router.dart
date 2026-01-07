@@ -36,6 +36,8 @@ import '../../features/inventory_management/presentation/pages/add_product_page.
 import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
 import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
 import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
+import '../../features/inventory_analysis/presentation/pages/analytics_pages.dart';
+import '../../core/domain/entities/feature.dart';
 import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../features/my_page/presentation/pages/edit_profile_page.dart';
 import '../../features/my_page/presentation/pages/language_settings_page.dart';
@@ -735,6 +737,73 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 productId: productId,
                 initialProduct: product,
               );
+            },
+          ),
+        ],
+      ),
+
+      // Inventory Analysis Routes (separate feature)
+      GoRoute(
+        path: '/inventoryAnalysis',
+        name: 'inventoryAnalysis',
+        builder: (context, state) {
+          // Handle both Feature object (from homepage) and Map (from inventory page)
+          String companyId = '';
+          String? storeId;
+
+          if (state.extra is Feature) {
+            // Feature object from homepage - companyId/storeId not passed
+            // Will be retrieved from appStateProvider in the page
+          } else if (state.extra is Map<String, dynamic>) {
+            final extra = state.extra as Map<String, dynamic>;
+            companyId = extra['companyId'] as String? ?? '';
+            storeId = extra['storeId'] as String?;
+          }
+
+          return InventoryAnalyticsHubPage(
+            companyId: companyId,
+            storeId: storeId,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: 'sales',
+            name: 'inventory-analytics-sales',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              final companyId = extra?['companyId'] as String? ?? '';
+              final storeId = extra?['storeId'] as String?;
+              return SalesDashboardPage(
+                companyId: companyId,
+                storeId: storeId,
+              );
+            },
+          ),
+          GoRoute(
+            path: 'optimization',
+            name: 'inventory-analytics-optimization',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              final companyId = extra?['companyId'] as String? ?? '';
+              return InventoryOptimizationPage(companyId: companyId);
+            },
+          ),
+          GoRoute(
+            path: 'supply-chain',
+            name: 'inventory-analytics-supply-chain',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              final companyId = extra?['companyId'] as String? ?? '';
+              return SupplyChainPage(companyId: companyId);
+            },
+          ),
+          GoRoute(
+            path: 'discrepancy',
+            name: 'inventory-analytics-discrepancy',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              final companyId = extra?['companyId'] as String? ?? '';
+              return DiscrepancyPage(companyId: companyId);
             },
           ),
         ],

@@ -109,6 +109,17 @@ class _InventoryManagementPageState
           HapticFeedback.lightImpact();
           _showSortOptionsSheet();
         }),
+        _buildAppBarIconButton(Icons.analytics_outlined, () {
+          HapticFeedback.lightImpact();
+          final appState = ref.read(appStateProvider);
+          context.push(
+            '/inventoryAnalysis',
+            extra: {
+              'companyId': appState.companyChoosen,
+              'storeId': appState.storeChoosen,
+            },
+          );
+        }),
         _buildAppBarIconButton(Icons.history, () {
           HapticFeedback.lightImpact();
           Navigator.of(context).push<void>(

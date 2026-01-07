@@ -245,11 +245,12 @@ class _ExpenseAccountsProviderElement
 }
 
 String _$expenseAccountsOnlyHash() =>
-    r'eeb73accd8ab0837b8796e723d640baf5d47f15c';
+    r'4745d74c32eff2b5d167875f2110970dd9fbddec';
 
 /// Expense accounts only provider (account_type = 'expense')
 /// Returns only accounts where account_type = 'expense'
 /// AND (is_default = TRUE OR company_id = params.companyId)
+/// Uses keepAlive to cache across navigation
 ///
 /// Copied from [expenseAccountsOnly].
 @ProviderFor(expenseAccountsOnly)
@@ -258,6 +259,7 @@ const expenseAccountsOnlyProvider = ExpenseAccountsOnlyFamily();
 /// Expense accounts only provider (account_type = 'expense')
 /// Returns only accounts where account_type = 'expense'
 /// AND (is_default = TRUE OR company_id = params.companyId)
+/// Uses keepAlive to cache across navigation
 ///
 /// Copied from [expenseAccountsOnly].
 class ExpenseAccountsOnlyFamily
@@ -265,6 +267,7 @@ class ExpenseAccountsOnlyFamily
   /// Expense accounts only provider (account_type = 'expense')
   /// Returns only accounts where account_type = 'expense'
   /// AND (is_default = TRUE OR company_id = params.companyId)
+  /// Uses keepAlive to cache across navigation
   ///
   /// Copied from [expenseAccountsOnly].
   const ExpenseAccountsOnlyFamily();
@@ -272,6 +275,7 @@ class ExpenseAccountsOnlyFamily
   /// Expense accounts only provider (account_type = 'expense')
   /// Returns only accounts where account_type = 'expense'
   /// AND (is_default = TRUE OR company_id = params.companyId)
+  /// Uses keepAlive to cache across navigation
   ///
   /// Copied from [expenseAccountsOnly].
   ExpenseAccountsOnlyProvider call(
@@ -309,6 +313,7 @@ class ExpenseAccountsOnlyFamily
 /// Expense accounts only provider (account_type = 'expense')
 /// Returns only accounts where account_type = 'expense'
 /// AND (is_default = TRUE OR company_id = params.companyId)
+/// Uses keepAlive to cache across navigation
 ///
 /// Copied from [expenseAccountsOnly].
 class ExpenseAccountsOnlyProvider
@@ -316,6 +321,7 @@ class ExpenseAccountsOnlyProvider
   /// Expense accounts only provider (account_type = 'expense')
   /// Returns only accounts where account_type = 'expense'
   /// AND (is_default = TRUE OR company_id = params.companyId)
+  /// Uses keepAlive to cache across navigation
   ///
   /// Copied from [expenseAccountsOnly].
   ExpenseAccountsOnlyProvider(
@@ -405,7 +411,7 @@ class _ExpenseAccountsOnlyProviderElement
 }
 
 String _$searchExpenseAccountsHash() =>
-    r'994359402418bdc674944b2ff34509e4d2b79233';
+    r'2b7bd7d1ef647d463fba9275e8ad39a2e6a183fb';
 
 /// Search expense accounts provider
 /// Returns expense accounts matching the search query
@@ -719,7 +725,7 @@ class _CounterpartiesProviderElement
   String get companyId => (origin as CounterpartiesProvider).companyId;
 }
 
-String _$selfCounterpartyHash() => r'5608da9f28b70feec90b14ef1dab443a41b4dc7c';
+String _$selfCounterpartyHash() => r'9b123df97b1f242de47b5699a3c585cc4816fa4c';
 
 /// Self-counterparty provider
 /// Returns the counterparty where company_id = linked_company_id
@@ -1025,25 +1031,29 @@ class _CashLocationsForCompanyProviderElement
 }
 
 String _$cashLocationsForStoreHash() =>
-    r'39f3d8beaaa9358b56e88cc93aac320f8ace72d2';
+    r'84929c4c368fafdd8939cd2221588cfdfcf1e796';
 
 /// Cash locations provider for a store
+/// Uses keepAlive to cache for 3 minutes
 ///
 /// Copied from [cashLocationsForStore].
 @ProviderFor(cashLocationsForStore)
 const cashLocationsForStoreProvider = CashLocationsForStoreFamily();
 
 /// Cash locations provider for a store
+/// Uses keepAlive to cache for 3 minutes
 ///
 /// Copied from [cashLocationsForStore].
 class CashLocationsForStoreFamily
     extends Family<AsyncValue<List<CashLocation>>> {
   /// Cash locations provider for a store
+  /// Uses keepAlive to cache for 3 minutes
   ///
   /// Copied from [cashLocationsForStore].
   const CashLocationsForStoreFamily();
 
   /// Cash locations provider for a store
+  /// Uses keepAlive to cache for 3 minutes
   ///
   /// Copied from [cashLocationsForStore].
   CashLocationsForStoreProvider call({
@@ -1082,11 +1092,13 @@ class CashLocationsForStoreFamily
 }
 
 /// Cash locations provider for a store
+/// Uses keepAlive to cache for 3 minutes
 ///
 /// Copied from [cashLocationsForStore].
 class CashLocationsForStoreProvider
     extends AutoDisposeFutureProvider<List<CashLocation>> {
   /// Cash locations provider for a store
+  /// Uses keepAlive to cache for 3 minutes
   ///
   /// Copied from [cashLocationsForStore].
   CashLocationsForStoreProvider({
@@ -1190,7 +1202,7 @@ class _CashLocationsForStoreProviderElement
 }
 
 String _$companyCurrencySymbolHash() =>
-    r'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0';
+    r'87c247081a92377951656e8ab03647b6e5b4d357';
 
 /// Company base currency symbol provider
 /// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
@@ -1250,8 +1262,7 @@ class CompanyCurrencySymbolFamily extends Family<AsyncValue<String>> {
 /// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
 ///
 /// Copied from [companyCurrencySymbol].
-class CompanyCurrencySymbolProvider
-    extends AutoDisposeFutureProvider<String> {
+class CompanyCurrencySymbolProvider extends AutoDisposeFutureProvider<String> {
   /// Company base currency symbol provider
   /// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
   ///
@@ -1312,7 +1323,8 @@ class CompanyCurrencySymbolProvider
 
   @override
   bool operator ==(Object other) {
-    return other is CompanyCurrencySymbolProvider && other.companyId == companyId;
+    return other is CompanyCurrencySymbolProvider &&
+        other.companyId == companyId;
   }
 
   @override

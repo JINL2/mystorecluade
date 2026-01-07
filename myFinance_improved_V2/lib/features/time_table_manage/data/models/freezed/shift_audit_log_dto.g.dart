@@ -40,6 +40,8 @@ Map<String, dynamic> _$$ShiftAuditLogDtoImplToJson(
       'changed_columns': instance.changedColumns,
       'change_details': instance.changeDetails,
       'changed_by': instance.changedBy,
+      'changed_by_name': instance.changedByName,
+      'changed_by_profile_image': instance.changedByProfileImage,
       'changed_at': instance.changedAt,
       'reason': instance.reason,
       'new_data': instance.newData,

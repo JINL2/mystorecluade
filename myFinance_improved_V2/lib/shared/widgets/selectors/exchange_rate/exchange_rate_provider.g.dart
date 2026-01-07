@@ -7,7 +7,7 @@ part of 'exchange_rate_provider.dart';
 // **************************************************************************
 
 String _$calculatorExchangeRateDataHash() =>
-    r'calculator_exchange_rate_data_hash_001';
+    r'cda583d44c7dbabf31db2c934dfe0f4d0934d204';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -183,6 +183,5 @@ class _CalculatorExchangeRateDataProviderElement
   CalculatorExchangeRateParams get params =>
       (origin as CalculatorExchangeRateDataProvider).params;
 }
-
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

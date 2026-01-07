@@ -1886,8 +1886,8 @@ mixin _$ProblemItemDto {
   @JsonKey(name: 'reason')
   String? get reason => throw _privateConstructorUsedError;
   @JsonKey(name: 'reported_at')
-  String? get reportedAt => throw _privateConstructorUsedError;
-  // null = pending, true = approved, false = rejected
+  String? get reportedAt =>
+      throw _privateConstructorUsedError; // null = pending, true = approved, false = rejected
   @JsonKey(name: 'is_report_solved')
   bool? get isReportSolved => throw _privateConstructorUsedError;
 
@@ -2079,6 +2079,7 @@ class _$ProblemItemDtoImpl implements _ProblemItemDto {
   @override
   @JsonKey(name: 'reported_at')
   final String? reportedAt;
+// null = pending, true = approved, false = rejected
   @override
   @JsonKey(name: 'is_report_solved')
   final bool? isReportSolved;
@@ -2160,7 +2161,7 @@ abstract class _ProblemItemDto implements ProblemItemDto {
   String? get reason;
   @override
   @JsonKey(name: 'reported_at')
-  String? get reportedAt;
+  String? get reportedAt; // null = pending, true = approved, false = rejected
   @override
   @JsonKey(name: 'is_report_solved')
   bool? get isReportSolved;

@@ -7,7 +7,7 @@ part of 'sale_preload_provider.dart';
 // **************************************************************************
 
 String _$salePreloadNotifierHash() =>
-    r'1a27810d6d1c3b6384d9052fd51ee99d65e861f4';
+    r'98be9c32f7c8b1808eaa5f4b04761d1753ca5f94';
 
 /// Provider to preload sale data (exchange rates + cash locations)
 ///

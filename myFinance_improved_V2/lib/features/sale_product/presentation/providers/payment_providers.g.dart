@@ -26,7 +26,7 @@ final paymentMethodDataProvider = AutoDisposeFutureProvider<void>.internal(
 // ignore: unused_element
 typedef PaymentMethodDataRef = AutoDisposeFutureProviderRef<void>;
 String _$paymentMethodNotifierHash() =>
-    r'2b53eb5172c693aede372cba065701d3ddc384ee';
+    r'8e99f00a32a081c65e500d97c3d801457cc43370';
 
 /// Payment method notifier - manages payment method selection and currency data
 ///
