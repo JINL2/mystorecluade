@@ -125,7 +125,7 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
             child: GestureDetector(
               onTap: _toggle,
               child: Container(
-                color: Colors.transparent,
+                color: TossColors.transparent,
               ),
             ),
           ),
@@ -144,14 +144,14 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
                   offset: _isExpanded ? Offset.zero : const Offset(0, 0.5),
                   duration: TossAnimations.quick + Duration(milliseconds: index * 50),
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: TossSpacing.space3),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                            horizontal: TossSpacing.space3,
+                            vertical: TossSpacing.space2,
                           ),
                           decoration: BoxDecoration(
                             color: TossColors.white,
@@ -171,7 +171,7 @@ class _TossFABState extends State<TossFAB> with SingleTickerProviderStateMixin {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: TossSpacing.space3),
                         FloatingActionButton.small(
                           heroTag: 'fab_action_$index',
                           onPressed: () {

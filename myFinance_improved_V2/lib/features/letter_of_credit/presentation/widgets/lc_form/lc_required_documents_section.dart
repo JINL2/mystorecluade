@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/repositories/lc_repository.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -26,7 +28,7 @@ class LCRequiredDocumentsSection extends StatelessWidget {
         const SizedBox(height: TossSpacing.space2),
         TossButton.textButton(
           text: 'Add Document',
-          leadingIcon: const Icon(Icons.add, size: 18),
+          leadingIcon: Icon(Icons.add, size: TossSpacing.iconSM),
           onPressed: () => _addDocument(context),
         ),
       ],
@@ -34,19 +36,41 @@ class LCRequiredDocumentsSection extends StatelessWidget {
   }
 
   Widget _buildDocumentItem(BuildContext context, int index, LCRequiredDocumentParams doc) {
-    return Card(
+    return TossWhiteCard(
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      child: ListTile(
-        title: Text(doc.name ?? doc.code),
-        subtitle: Text('Original: ${doc.copiesOriginal}, Copy: ${doc.copiesCopy}'),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () {
-            final newList = List<LCRequiredDocumentParams>.from(requiredDocuments);
-            newList.removeAt(index);
-            onDocumentsChanged(newList);
-          },
-        ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  doc.name ?? doc.code,
+                  style: TossTextStyles.bodyMedium,
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                Text(
+                  'Original: ${doc.copiesOriginal}, Copy: ${doc.copiesCopy}',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              final newList = List<LCRequiredDocumentParams>.from(requiredDocuments);
+              newList.removeAt(index);
+              onDocumentsChanged(newList);
+            },
+          ),
+        ],
       ),
     );
   }
@@ -120,21 +144,21 @@ class _LCAddDocumentDialogState extends State<LCAddDocumentDialog> {
                 }
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             TossTextField(
               inlineLabel: 'Code',
               controller: TextEditingController(text: _code),
               hintText: '',
               onChanged: (v) => _code = v,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             TossTextField(
               inlineLabel: 'Name',
               controller: TextEditingController(text: _name),
               hintText: '',
               onChanged: (v) => _name = v,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: TossSpacing.space4),
             Row(
               children: [
                 Expanded(
@@ -146,7 +170,7 @@ class _LCAddDocumentDialogState extends State<LCAddDocumentDialog> {
                     onChanged: (v) => _original = int.tryParse(v) ?? 3,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: TossSpacing.space4),
                 Expanded(
                   child: TossTextField(
                     inlineLabel: 'Copy Copies',

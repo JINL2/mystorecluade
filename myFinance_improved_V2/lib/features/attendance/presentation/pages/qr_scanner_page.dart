@@ -11,10 +11,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/utils/datetime_utils.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/index.dart';
 import '../../domain/entities/attendance_location.dart';
 import '../providers/attendance_providers.dart';
 import '../providers/monthly_attendance_providers.dart';
@@ -595,7 +592,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
           // Scanner overlay
           Container(
             decoration: BoxDecoration(
-              color: TossColors.black.withValues(alpha: 0.5),
+              color: TossColors.black.withValues(alpha: TossOpacity.scrim),
             ),
             child: Stack(
               children: [
@@ -636,7 +633,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                             ? 'Processing...'
                             : 'Position the QR code within the frame',
                         style: TossTextStyles.body.copyWith(
-                          color: TossColors.white.withValues(alpha: 0.8),
+                          color: TossColors.white.withValues(alpha: TossOpacity.modalBackdrop),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -651,7 +648,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
           ClipPath(
             clipper: _ScannerOverlayClipper(),
             child: Container(
-              color: TossColors.black.withValues(alpha: 0.5),
+              color: TossColors.black.withValues(alpha: TossOpacity.scrim),
             ),
           ),
         ],

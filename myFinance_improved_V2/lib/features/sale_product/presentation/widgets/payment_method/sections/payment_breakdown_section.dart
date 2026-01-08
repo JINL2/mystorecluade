@@ -4,6 +4,8 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../../shared/themes/toss_animations.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/sales_product.dart';
@@ -358,7 +360,7 @@ class PaymentBreakdownSectionState
         Text(
           'Payment breakdown',
           style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
           ),
         ),
@@ -398,7 +400,7 @@ class PaymentBreakdownSectionState
 
         // Divider before Net total
         Container(
-          height: 1,
+          height: TossDimensions.dividerThickness,
           color: TossColors.gray100,
           margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
         ),
@@ -694,8 +696,8 @@ class PaymentBreakdownSectionState
         Text(
           label,
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
-            color: TossColors.gray700,
+            fontWeight: TossFontWeight.medium,
+            color: TossColors.gray600,
           ),
         ),
         const SizedBox(width: 4),
@@ -714,7 +716,7 @@ class PaymentBreakdownSectionState
         Text(
           '${PaymentHelpers.formatNumber(amount.round())}${widget.currencySymbol}',
           style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.gray900,
           ),
         ),
@@ -745,19 +747,18 @@ class PaymentBreakdownSectionState
         Text(
           'Total',
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.gray700,
           ),
         ),
         Text(
           '${PaymentHelpers.formatNumber(grandTotal.round())}${widget.currencySymbol}',
           style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.primary,
           ),
         ),
       ],
     );
   }
-
 }

@@ -26,7 +26,7 @@ class SessionEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: TossColors.gray400),
+            Icon(icon, size: TossSpacing.icon4XL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space4),
             Text(
               title,

@@ -26,7 +26,7 @@ class ReviewErrorView extends StatelessWidget {
           children: [
             const Icon(
               Icons.error_outline,
-              size: 64,
+              size: TossSpacing.icon4XL,
               color: TossColors.error,
             ),
             const SizedBox(height: TossSpacing.space4),

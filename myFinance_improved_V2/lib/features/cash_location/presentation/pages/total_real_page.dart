@@ -6,7 +6,8 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -141,7 +142,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return const TossScaffold(
-        backgroundColor: TossColors.gray50,
+        backgroundColor: TossColors.white,
         body: Center(
           child: Text('Please select a company and store first'),
         ),
@@ -159,10 +160,10 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
     ),);
     
     return TossScaffold(
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: _pageTitle,
-        backgroundColor: TossColors.gray50,
+        backgroundColor: TossColors.white,
       ),
       body: SafeArea(
         child: Column(
@@ -243,7 +244,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         children: [
@@ -348,9 +349,9 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                 color: TossColors.gray600,
               ),
             ),
-            const Icon(
+            Icon(
               Icons.keyboard_arrow_down,
-              size: 18,
+              size: TossSpacing.iconSM,
               color: TossColors.gray600,
             ),
           ],
@@ -381,7 +382,7 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
           children: [
             // Date section
             Container(
-              width: 42,
+              width: TossSpacing.space10,
               padding: const EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
@@ -546,8 +547,8 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
               // Handle bar
               Container(
                 margin: const EdgeInsets.only(top: TossSpacing.space3),
-                width: 40,
-                height: 4,
+                width: TossDimensions.dragHandleWidth,
+                height: TossDimensions.dragHandleHeight,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -563,11 +564,11 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
                     Text(
                       'Filter Records',
                       style: TossTextStyles.h2.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 24),
+                      icon: Icon(Icons.close, size: TossSpacing.iconMD2),
                       onPressed: () => Navigator.pop(context),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -610,14 +611,14 @@ class _TotalRealPageState extends ConsumerState<TotalRealPage> {
             Text(
               title,
               style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w400,
+                fontWeight: TossFontWeight.regular,
               ),
             ),
             if (isSelected)
               Icon(
                 Icons.check,
                 color: Theme.of(context).colorScheme.primary,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
           ],
         ),

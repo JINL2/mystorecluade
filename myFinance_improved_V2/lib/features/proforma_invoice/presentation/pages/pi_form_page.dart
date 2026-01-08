@@ -7,6 +7,7 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/domain/entities/selector_entities.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../register_denomination/domain/entities/currency.dart';
@@ -395,7 +396,7 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray600)),
-          Text(value, style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+          Text(value, style: TossTextStyles.bodyMedium.copyWith(fontWeight: TossFontWeight.semibold)),
         ],
       ),
     );
@@ -417,7 +418,7 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
             label,
             style: TossTextStyles.label.copyWith(
               color: TossColors.textSecondary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           const SizedBox(height: TossSpacing.space2),
@@ -429,13 +430,13 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
           validator: validator,
           style: TossTextStyles.bodyLarge.copyWith(
             color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
           decoration: InputDecoration(
             hintText: 'Enter $label',
             hintStyle: TossTextStyles.bodyLarge.copyWith(
               color: TossColors.textTertiary,
-              fontWeight: FontWeight.w400,
+              fontWeight: TossFontWeight.regular,
             ),
             filled: true,
             fillColor: TossColors.surface,
@@ -476,16 +477,16 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
               label,
               style: TossTextStyles.label.copyWith(
                 color: hasError ? TossColors.error : TossColors.textSecondary,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
             if (isRequired) ...[
-              const SizedBox(width: 2),
+              const SizedBox(width: TossSpacing.space0_5),
               Text(
                 '*',
                 style: TossTextStyles.label.copyWith(
                   color: TossColors.error,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],
@@ -521,13 +522,13 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
                     value != null ? DateFormat('yyyy-MM-dd').format(value) : 'Select date',
                     style: TossTextStyles.bodyLarge.copyWith(
                       color: value != null ? TossColors.textPrimary : TossColors.textTertiary,
-                      fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: value != null ? TossFontWeight.semibold : TossFontWeight.regular,
                     ),
                   ),
                 ),
                 Icon(
                   Icons.calendar_today,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.gray600,
                 ),
               ],
@@ -565,9 +566,9 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: TossSpacing.space1),
           SizedBox(
-            height: 24,
+            height: TossSpacing.space6,
             child: FittedBox(
               fit: BoxFit.contain,
               child: Switch(

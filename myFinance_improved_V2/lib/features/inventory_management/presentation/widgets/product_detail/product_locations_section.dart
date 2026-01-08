@@ -5,6 +5,9 @@ import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_border_radius.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/product.dart';
 import '../move_stock_dialog.dart';
@@ -98,7 +101,7 @@ class _ProductLocationsSectionState extends State<ProductLocationsSection>
                   padding:
                       const EdgeInsets.symmetric(vertical: TossSpacing.space4),
                   child: Center(
-                    child: TossLoadingView.inline(size: 24),
+                    child: TossLoadingView.inline(size: TossSpacing.iconMD2),
                   ),
                 )
               else
@@ -152,7 +155,7 @@ class _ProductLocationsSectionState extends State<ProductLocationsSection>
                 Text(
                   'Has stock',
                   style: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray600,
                   ),
                 ),
@@ -244,21 +247,21 @@ class _AnimatedToggleState extends State<_AnimatedToggle>
         child: AnimatedContainer(
           duration: TossAnimations.fast,
           curve: TossAnimations.standard,
-          width: 34,
-          height: 20,
+          width: TossSpacing.space8 + TossSpacing.space0_5,
+          height: TossSpacing.space5,
           decoration: BoxDecoration(
             color: widget.isOn ? TossColors.primary : TossColors.gray200,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(TossBorderRadius.full),
           ),
-          padding: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(TossSpacing.space0_5),
           child: AnimatedAlign(
             duration: TossAnimations.fast,
             curve: TossAnimations.standard,
             alignment:
                 widget.isOn ? Alignment.centerRight : Alignment.centerLeft,
             child: Container(
-              width: 14,
-              height: 14,
+              width: TossSpacing.iconXS2,
+              height: TossSpacing.iconXS2,
               decoration: BoxDecoration(
                 color: TossColors.white,
                 shape: BoxShape.circle,
@@ -266,7 +269,7 @@ class _AnimatedToggleState extends State<_AnimatedToggle>
                     ? null
                     : [
                         BoxShadow(
-                          color: TossColors.gray900.withValues(alpha: 0.1),
+                          color: TossColors.gray900.withValues(alpha: TossOpacity.light),
                           blurRadius: 2,
                           offset: const Offset(0, 1),
                         ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -65,7 +67,7 @@ class FormPriceRow extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           child: Container(
             constraints: const BoxConstraints(minHeight: 48),
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -73,7 +75,7 @@ class FormPriceRow extends StatelessWidget {
                 Text(
                   label,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray600,
                   ),
                 ),
@@ -88,16 +90,16 @@ class FormPriceRow extends StatelessWidget {
                           hasValue ? value.text : placeholder,
                           textAlign: TextAlign.right,
                           style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w400,
+                            fontWeight: TossFontWeight.regular,
                             color: hasValue ? TossColors.gray900 : TossColors.gray500,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: TossSpacing.space1 + TossSpacing.space0_5),
                       const Icon(
                         Icons.chevron_right,
-                        size: 18,
+                        size: TossSpacing.iconSM,
                         color: TossColors.gray500,
                       ),
                     ],

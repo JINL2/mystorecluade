@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -98,12 +100,12 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     final filter = ref.watch(transactionFilterStateProvider);
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: widget.counterpartyName != null
           ? '${widget.counterpartyName} Transactions'
           : 'Transaction History',
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         actions: const [],
       ),
       body: transactionsAsync.when(
@@ -129,14 +131,14 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                               color: TossColors.primarySurface,
                               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                               border: Border.all(
-                                color: TossColors.primary.withValues(alpha: 0.2),
+                                color: TossColors.primary.withValues(alpha: TossOpacity.strong),
                               ),
                             ),
                             child: Row(
                               children: [
                                 const Icon(
                                   Icons.filter_alt,
-                                  size: 16,
+                                  size: TossSpacing.iconXS,
                                   color: TossColors.primary,
                                 ),
                                 const SizedBox(width: TossSpacing.space2),
@@ -144,7 +146,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                                   'Filters Active',
                                   style: TossTextStyles.body.copyWith(
                                     color: TossColors.primary,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: TossFontWeight.semibold,
                                   ),
                                 ),
                               ],
@@ -160,12 +162,12 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                           child: Container(
                             padding: const EdgeInsets.all(TossSpacing.space3),
                             decoration: BoxDecoration(
-                              color: TossColors.error.withValues(alpha: 0.1),
+                              color: TossColors.error.withValues(alpha: TossOpacity.light),
                               borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             ),
                             child: const Icon(
                               Icons.close,
-                              size: 20,
+                              size: TossSpacing.iconSM,
                               color: TossColors.error,
                             ),
                           ),
@@ -212,9 +214,9 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                             child: Container(
                               padding: const EdgeInsets.all(TossSpacing.space3),
                               decoration: BoxDecoration(
-                                color: _hasActiveFilters(filter) 
+                                color: _hasActiveFilters(filter)
                                     ? TossColors.primarySurface
-                                    : TossColors.gray100,
+                                    : TossColors.white,
                                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                 border: Border.all(
                                   color: _hasActiveFilters(filter) 
@@ -227,8 +229,8 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                                 children: [
                                   Icon(
                                     Icons.filter_list,
-                                    size: 18,
-                                    color: _hasActiveFilters(filter) 
+                                    size: TossSpacing.iconSM,
+                                    color: _hasActiveFilters(filter)
                                         ? TossColors.primary
                                         : TossColors.gray600,
                                   ),
@@ -239,7 +241,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                                       color: _hasActiveFilters(filter) 
                                           ? TossColors.primary
                                           : TossColors.gray600,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: TossFontWeight.semibold,
                                     ),
                                   ),
                                 ],
@@ -259,11 +261,11 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                               decoration: BoxDecoration(
                                 color: TossColors.errorLight,
                                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                                border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
+                                border: Border.all(color: TossColors.error.withValues(alpha: TossOpacity.heavy)),
                               ),
                               child: const Icon(
                                 Icons.clear,
-                                size: 18,
+                                size: TossSpacing.iconSM,
                                 color: TossColors.error,
                               ),
                             ),
@@ -302,7 +304,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
                                   _formatDateHeader(date),
                                   style: TossTextStyles.caption.copyWith(
                                     color: TossColors.gray500,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: TossFontWeight.semibold,
                                   ),
                                 ),
                                 const SizedBox(width: TossSpacing.space2),
@@ -383,7 +385,7 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
-        vertical: 2,
+        vertical: TossSpacing.space1 / 2,
       ),
       decoration: BoxDecoration(
         color: TossColors.gray100,
@@ -391,9 +393,8 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
       ),
       child: Text(
         '$count',
-        style: TossTextStyles.caption.copyWith(
+        style: TossTextStyles.small.copyWith(
           color: TossColors.gray600,
-          fontSize: 11,
         ),
       ),
     );

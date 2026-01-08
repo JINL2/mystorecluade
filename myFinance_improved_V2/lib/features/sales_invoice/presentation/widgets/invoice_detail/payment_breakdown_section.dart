@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/invoice.dart';
@@ -39,7 +42,7 @@ class PaymentBreakdownSection extends StatelessWidget {
           Text(
             'Payment breakdown',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -64,7 +67,7 @@ class PaymentBreakdownSection extends StatelessWidget {
 
           // Divider before total
           Container(
-            height: 1,
+            height: TossDimensions.dividerThickness,
             color: TossColors.gray200,
           ),
 
@@ -77,14 +80,14 @@ class PaymentBreakdownSection extends StatelessWidget {
               Text(
                 'Total payment',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
               Text(
                 _formatAmount(totalAmount),
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.primary,
                 ),
               ),
@@ -108,7 +111,7 @@ class PaymentBreakdownSection extends StatelessWidget {
         Text(
           value,
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray900,
           ),
         ),
@@ -134,18 +137,18 @@ class PaymentBreakdownSection extends StatelessWidget {
             Text(
               '-${_formatAmount(discountAmount)}',
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
                 color: TossColors.error,
               ),
             ),
           ],
         ),
         if (discountPercent.isNotEmpty) ...[
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space0_5),
           Text(
             '~$discountPercent discount',
             style: TossTextStyles.caption.copyWith(
-              color: TossColors.error.withValues(alpha: 0.7),
+              color: TossColors.error.withValues(alpha: TossOpacity.strong),
             ),
           ),
         ],

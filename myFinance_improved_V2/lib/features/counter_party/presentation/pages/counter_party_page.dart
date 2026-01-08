@@ -175,10 +175,10 @@ class _CounterPartyPageState extends ConsumerState<CounterPartyPage> {
     ref.watch(selectedCompanyIdProvider);
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: 'Counter Party',
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: TossColors.textPrimary),
           onPressed: () => context.pop(),

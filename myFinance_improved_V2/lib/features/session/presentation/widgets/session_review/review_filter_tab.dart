@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -44,7 +45,7 @@ class ReviewFilterTab extends StatelessWidget {
           label,
           style: TossTextStyles.caption.copyWith(
             color: isActive ? activeColor : TossColors.textSecondary,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            fontWeight: isActive ? TossFontWeight.semibold : TossFontWeight.regular,
           ),
         ),
       ),

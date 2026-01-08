@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/manager_memo.dart';
 
 /// Manage memo card - Expandable card style
@@ -67,15 +64,15 @@ class _ManageMemoCardState extends State<ManageMemoCard> {
                           'Manager Memo',
                           style: TossTextStyles.bodyLarge.copyWith(
                             color: TossColors.gray900,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                         if (widget.existingMemos.isNotEmpty) ...[
-                          const SizedBox(width: 8),
+                          SizedBox(width: TossSpacing.space2),
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: TossSpacing.space2,
-                              vertical: 2,
+                              vertical: TossSpacing.space0_5,
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.gray100,
@@ -85,7 +82,7 @@ class _ManageMemoCardState extends State<ManageMemoCard> {
                               '${widget.existingMemos.length}',
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.gray600,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                               ),
                             ),
                           ),
@@ -118,7 +115,7 @@ class _ManageMemoCardState extends State<ManageMemoCard> {
                   // Existing memos (read-only)
                   if (widget.existingMemos.isNotEmpty) ...[
                     _buildExistingMemos(),
-                    const SizedBox(height: 16),
+                    SizedBox(height: TossSpacing.space4),
                   ],
 
                   // New memo text field
@@ -141,10 +138,10 @@ class _ManageMemoCardState extends State<ManageMemoCard> {
           'Previous memos',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: TossSpacing.space2),
         ...widget.existingMemos.map((memo) => _buildMemoItem(memo)),
       ],
     );
@@ -171,7 +168,7 @@ class _ManageMemoCardState extends State<ManageMemoCard> {
             ),
           ),
           if (memo.createdAt != null && memo.createdAt!.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: TossSpacing.space1),
             Text(
               _formatDateString(memo.createdAt!),
               style: TossTextStyles.caption.copyWith(
@@ -193,10 +190,10 @@ class _ManageMemoCardState extends State<ManageMemoCard> {
           'Add new memo',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: TossSpacing.space2),
         TextField(
           controller: widget.memoController,
           maxLines: 3,

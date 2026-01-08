@@ -4,6 +4,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../app/providers/locale_provider.dart';
@@ -183,7 +186,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
                   text: 'Save',
                   onPressed: _applyLanguageChange,
                   textColor: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ]
             : null,
@@ -221,7 +224,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 boxShadow: [
                   BoxShadow(
-                    color: TossColors.gray900.withValues(alpha: 0.04),
+                    color: TossColors.gray900.withValues(alpha: TossOpacity.subtle),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -232,9 +235,9 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
                   for (int i = 0; i < _languages.length; i++) ...[
                     _buildLanguageTile(_languages[i]),
                     if (i < _languages.length - 1)
-                      const Divider(
-                        height: 1,
-                        thickness: 1,
+                      Divider(
+                        height: TossDimensions.dividerThickness,
+                        thickness: TossDimensions.dividerThickness,
                         color: TossColors.gray100,
                         indent: TossSpacing.space16,
                       ),
@@ -253,11 +256,11 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
               child: Container(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
-                  color: TossColors.info.withValues(alpha: 0.1),
+                  color: TossColors.info.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   border: Border.all(
-                    color: TossColors.info.withValues(alpha: 0.2),
-                    width: 1,
+                    color: TossColors.info.withValues(alpha: TossOpacity.hover),
+                    width: TossDimensions.dividerThickness,
                   ),
                 ),
                 child: Row(
@@ -314,9 +317,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
                   languageCode,
                   style: TossTextStyles.caption.copyWith(
                     color: isSelected ? TossColors.white : TossColors.gray700,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    letterSpacing: -0.5,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
               ),
@@ -332,7 +333,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
                     language['name']!,
                     style: TossTextStyles.body.copyWith(
                       color: isSelected ? TossColors.primary : TossColors.gray900,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space1),

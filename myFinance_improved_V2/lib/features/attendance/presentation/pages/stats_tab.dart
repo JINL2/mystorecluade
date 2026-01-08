@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/index.dart';
 import '../../domain/entities/user_shift_stats.dart';
 import '../providers/attendance_providers.dart';
 import '../widgets/stats/hero_salary_display.dart';
 import '../widgets/stats/performance_kpi_card.dart';
 import '../widgets/stats/salary_breakdown_card.dart';
 import '../widgets/stats/salary_trend_section.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// StatsTab - Attendance statistics and salary overview
@@ -113,13 +111,13 @@ class _StatsTabState extends ConsumerState<StatsTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(LucideIcons.alertCircle, size: 48, color: TossColors.gray400),
-            const SizedBox(height: 16),
+            Icon(LucideIcons.alertCircle, size: TossSpacing.iconXXL, color: TossColors.gray400),
+            SizedBox(height: TossSpacing.space4),
             const Text(
               'Failed to load stats',
               style: TextStyle(color: TossColors.gray600),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             TossButton.secondary(
               text: 'Retry',
               onPressed: () => ref.invalidate(userShiftStatsProvider),
@@ -182,7 +180,7 @@ class _StatsTabState extends ConsumerState<StatsTab> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: TossSpacing.space4),
 
               // Gray Divider before Salary Breakdown
               const GrayDividerSpace(),
@@ -196,16 +194,14 @@ class _StatsTabState extends ConsumerState<StatsTab> {
                     // Section Title
                     Text(
                       'Salary Breakdown $_selectedPeriod',
-                      style: TossTextStyles.h3.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                      style: TossTextStyles.h4.copyWith(
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
                     SizedBox(height: TossSpacing.space1),
                     Text(
                       dateSubtitle,
-                      style: TossTextStyles.caption.copyWith(
-                        fontSize: 13,
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
                       ),
                     ),

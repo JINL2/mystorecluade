@@ -59,13 +59,6 @@ class AmountField extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: TossColors.primary,
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  boxShadow: [
-                    BoxShadow(
-                      color: TossColors.primary.withValues(alpha: 0.25),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: Material(
                   color: TossColors.transparent,
@@ -74,10 +67,10 @@ class AmountField extends StatelessWidget {
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     child: Container(
                       padding: const EdgeInsets.all(TossSpacing.space3),
-                      child: const Icon(
+                      child: Icon(
                         Icons.calculate_outlined,
                         color: TossColors.white,
-                        size: 24,
+                        size: TossSpacing.iconMD2,
                       ),
                     ),
                   ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -92,7 +95,7 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
         : screenHeight * 0.7;
 
     return AnimatedPadding(
-      duration: const Duration(milliseconds: 100),
+      duration: TossAnimations.quick,
       padding: EdgeInsets.only(bottom: keyboardHeight),
       child: Container(
         // 키보드가 열렸을 때는 고정 높이, 아니면 최대 높이 제한
@@ -119,8 +122,8 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
                 padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
                 child: Center(
                   child: Container(
-                    width: 40,
-                    height: 4,
+                    width: TossDimensions.dragHandleWidth,
+                    height: TossDimensions.dragHandleHeight,
                     decoration: BoxDecoration(
                       color: TossColors.gray300,
                       borderRadius: BorderRadius.circular(TossBorderRadius.full),
@@ -138,7 +141,7 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 40), // Balance for close button
+                  SizedBox(width: TossDimensions.avatarLG), // Balance for close button
                   Expanded(
                     child: Text(
                       'Select Currency',
@@ -153,16 +156,16 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
                       Navigator.pop(context);
                     },
                     child: Container(
-                      width: 40,
-                      height: 40,
+                      width: TossDimensions.avatarLG,
+                      height: TossDimensions.avatarLG,
                       decoration: BoxDecoration(
                         color: TossColors.gray100,
                         borderRadius: BorderRadius.circular(TossBorderRadius.full),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
                         color: TossColors.gray600,
-                        size: 20,
+                        size: TossSpacing.iconMD,
                       ),
                     ),
                   ),
@@ -239,7 +242,7 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
           vertical: TossSpacing.space4,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary.withValues(alpha: 0.05) : TossColors.transparent,
+          color: isSelected ? TossColors.primary.withValues(alpha: TossOpacity.subtle) : TossColors.transparent,
           border: Border(
             bottom: BorderSide(
               color: TossColors.gray100,
@@ -251,11 +254,11 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
           children: [
             // Flag emoji
             Container(
-              width: 44,
-              height: 44,
+              width: TossDimensions.avatarLG,
+              height: TossDimensions.avatarLG,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? TossColors.primary.withValues(alpha: 0.1)
+                    ? TossColors.primary.withValues(alpha: TossOpacity.light)
                     : TossColors.gray50,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
@@ -280,7 +283,7 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
                         ? TossTextStyles.bodyMedium.copyWith(color: TossColors.gray900)
                         : TossTextStyles.body.copyWith(color: TossColors.gray900),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space0),
                   Text(
                     currency.currencyCode,
                     style: TossTextStyles.caption.copyWith(
@@ -293,10 +296,10 @@ class _CurrencySelectorSheetState extends State<CurrencySelectorSheet> {
 
             // Selected indicator
             if (isSelected)
-              const Icon(
+              Icon(
                 Icons.check_circle,
                 color: TossColors.primary,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
           ],
         ),

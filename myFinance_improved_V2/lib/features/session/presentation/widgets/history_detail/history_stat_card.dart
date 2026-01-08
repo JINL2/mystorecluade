@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -34,20 +35,19 @@ class HistoryStatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 20, color: color),
+          Icon(icon, size: TossSpacing.iconMD, color: color),
           const SizedBox(height: TossSpacing.space1),
           Text(
             value,
             style: TossTextStyles.h4.copyWith(
               color: TossColors.textPrimary,
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
           Text(
             label,
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.micro.copyWith(
               color: TossColors.textTertiary,
-              fontSize: 10,
             ),
           ),
         ],

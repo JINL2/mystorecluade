@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_icons.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
@@ -665,8 +667,8 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       items: items,
       selectedId: _selectedLocation,
       showSubtitle: false,
-      selectedFontWeight: FontWeight.w700,
-      unselectedFontWeight: FontWeight.w500,
+      selectedFontWeight: TossFontWeight.bold,
+      unselectedFontWeight: TossFontWeight.medium,
       unselectedIconColor: TossColors.gray500,
       borderBottomWidth: 0.5,
       checkIcon: TossIcons.check,
@@ -786,7 +788,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
                   const GrayDividerSpace(),
                   // Inventory section
                   _buildInventorySection(metadataState.metadata),
-                  const SizedBox(height: 100),
+                  SizedBox(height: TossSpacing.space24 + TossSpacing.space1),
                 ],
               ),
             ),
@@ -984,7 +986,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       child: SafeArea(
         child: SizedBox(
           width: double.infinity,
-          height: 52,
+          height: TossDimensions.headerHeight,
           child: TossButton.primary(
             text: 'Save',
             fullWidth: true,

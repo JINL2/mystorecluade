@@ -34,7 +34,7 @@ final tossCardComponent = WidgetbookComponent(
             child: Row(
               children: [
                 const Icon(Icons.touch_app, color: TossColors.primary),
-                const SizedBox(width: 12),
+                SizedBox(width: TossSpacing.space3),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

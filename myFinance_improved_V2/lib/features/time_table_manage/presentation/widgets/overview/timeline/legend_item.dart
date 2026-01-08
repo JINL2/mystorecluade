@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 
 /// Legend item for timeline
 class LegendItem extends StatelessWidget {
@@ -21,14 +19,14 @@ class LegendItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: TossSpacing.space2,
+          height: TossSpacing.space2,
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: TossSpacing.space1),
         Text(
           label,
           style: TossTextStyles.caption.copyWith(

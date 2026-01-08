@@ -74,8 +74,8 @@ class CachedProductImage extends StatelessWidget {
       color: TossColors.gray100,
       child: const Center(
         child: SizedBox(
-          width: 16,
-          height: 16,
+          width: TossSpacing.iconSM2,
+          height: TossSpacing.iconSM2,
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(TossColors.gray300),

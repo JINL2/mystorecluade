@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/shift_audit_log.dart';
 
 /// Shift Log Item Widget
@@ -49,7 +47,7 @@ class ShiftLogItem extends StatelessWidget {
                           config.title,
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.gray900,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ),
@@ -64,7 +62,7 @@ class ShiftLogItem extends StatelessWidget {
 
                   // Changed by info
                   if (log.changedByName != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       'by ${log.changedByName}',
                       style: TossTextStyles.caption.copyWith(
@@ -87,20 +85,20 @@ class ShiftLogItem extends StatelessWidget {
   /// Build the timeline indicator (circle + vertical line)
   Widget _buildTimelineIndicator(Color color) {
     return SizedBox(
-      width: 24,
+      width: TossDimensions.timelineIndicatorCircle,
       child: Column(
         children: [
           // Circle indicator
           Container(
-            width: 24,
-            height: 24,
+            width: TossDimensions.timelineIndicatorCircle,
+            height: TossDimensions.timelineIndicatorCircle,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withValues(alpha: 0.15),
+              color: color.withValues(alpha: TossOpacity.medium),
             ),
             child: Icon(
               _getEventConfig(log.eventType).icon,
-              size: 14,
+              size: TossSpacing.iconXS,
               color: color,
             ),
           ),
@@ -109,7 +107,7 @@ class ShiftLogItem extends StatelessWidget {
           if (!isLast)
             Expanded(
               child: Container(
-                width: 2,
+                width: TossDimensions.timelineLineWidth,
                 color: TossColors.gray200,
               ),
             ),
@@ -131,7 +129,7 @@ class ShiftLogItem extends StatelessWidget {
           padding: const EdgeInsets.all(TossSpacing.space2),
           decoration: BoxDecoration(
             color: TossColors.gray50,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
           ),
           child: Text(
             '"$reportReason"',
@@ -155,10 +153,10 @@ class ShiftLogItem extends StatelessWidget {
           children: [
             const Icon(
               Icons.note_outlined,
-              size: 14,
+              size: TossSpacing.iconXS,
               color: TossColors.gray500,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: TossSpacing.space1),
             Expanded(
               child: Text(
                 'Memo: "$memo"',
@@ -184,15 +182,15 @@ class ShiftLogItem extends StatelessWidget {
           children: [
             Icon(
               bonusChange.isIncrease ? Icons.add_circle_outline : Icons.remove_circle_outline,
-              size: 14,
+              size: TossSpacing.iconXS,
               color: bonusChange.isIncrease ? TossColors.success : TossColors.error,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: TossSpacing.space1),
             Text(
               'Bonus: ${formatter.format(bonusChange.from)} → ${formatter.format(bonusChange.to)}',
               style: TossTextStyles.caption.copyWith(
                 color: bonusChange.isIncrease ? TossColors.success : TossColors.error,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ],
@@ -233,15 +231,15 @@ class ShiftLogItem extends StatelessWidget {
       children: [
         const Icon(
           Icons.schedule_outlined,
-          size: 14,
+          size: TossSpacing.iconXS,
           color: TossColors.primary,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: TossSpacing.space1),
         Text(
           '$label: $from → $to',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.primary,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
       ],

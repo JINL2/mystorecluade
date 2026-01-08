@@ -241,7 +241,7 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: TossColors.error, size: 48),
+              Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconXXL),
               const SizedBox(height: TossSpacing.space3),
               Text(
                 state.rpcError!,
@@ -402,15 +402,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
               'Cash Location',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: TossSpacing.space1 / 2),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
@@ -451,15 +451,15 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
               'Counterparty',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: TossSpacing.space1 / 2),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],

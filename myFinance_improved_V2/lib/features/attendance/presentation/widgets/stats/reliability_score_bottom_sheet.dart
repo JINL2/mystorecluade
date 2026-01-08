@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/index.dart';
 import 'reliability_radar_chart.dart';
 import 'ranking_bar_widget.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -54,17 +52,15 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           // Title
           Text(
             'Reliability Score',
-            style: TossTextStyles.h2.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+            style: TossTextStyles.h3.copyWith(
+              fontWeight: TossFontWeight.bold,
             ),
           ),
           SizedBox(height: TossSpacing.space1),
           Text(
             'How we calculate your reliability',
-            style: TossTextStyles.body.copyWith(
+            style: TossTextStyles.bodySmall.copyWith(
               color: TossColors.gray600,
-              fontSize: 13,
             ),
           ),
 
@@ -79,9 +75,8 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           if (criteria.isNotEmpty) ...[
             Text(
               'Performance Overview',
-              style: TossTextStyles.bodyMedium.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+              style: TossTextStyles.body.copyWith(
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
@@ -99,9 +94,8 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           // Components - 2x2 Grid
           Text(
             'Detailed Breakdown',
-            style: TossTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray900,
             ),
           ),
@@ -129,22 +123,21 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           children: [
             Icon(
               LucideIcons.clock,
-              size: TossSpacing.space12,
+              size: TossSpacing.iconXXL,
               color: TossColors.gray400,
             ),
-            SizedBox(height: TossSpacing.paddingMD),
+            SizedBox(height: TossSpacing.space4),
             Text(
               'Not Enough Data',
-              style: TossTextStyles.h3.copyWith(
-                fontSize: 18,
+              style: TossTextStyles.h4.copyWith(
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
-            SizedBox(height: TossSpacing.gapSM),
+            SizedBox(height: TossSpacing.space2),
             Text(
               'Complete more shifts to see your score',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray600,
-                fontSize: 14,
               ),
               textAlign: TextAlign.center,
             ),
@@ -166,32 +159,29 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
         children: [
           Text(
             'Your Score',
-            style: TossTextStyles.caption.copyWith(
-              fontSize: 12,
+            style: TossTextStyles.labelSmall.copyWith(
               color: TossColors.gray600,
             ),
           ),
-          SizedBox(height: TossSpacing.marginXS + 2), // 6px
+          SizedBox(height: TossSpacing.space1 + TossSpacing.space1 / 2), // 6px
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 widget.finalScore.toStringAsFixed(1),
-                style: TossTextStyles.display.copyWith(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
+                style: TossTextStyles.h1.copyWith(
+                  fontWeight: TossFontWeight.bold,
                   color: color,
                   height: 1.0,
                 ),
               ),
-              SizedBox(width: TossSpacing.gapSM),
+              SizedBox(width: TossSpacing.space2),
               Padding(
                 padding: EdgeInsets.only(bottom: TossSpacing.space1),
                 child: Text(
                   label,
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    fontWeight: TossFontWeight.semibold,
                     color: color,
                   ),
                 ),
@@ -259,34 +249,31 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           children: [
             Icon(
               LucideIcons.shieldCheck,
-              size: 18,
+              size: TossSpacing.iconSM,
               color: TossColors.primary,
             ),
-            SizedBox(width: TossSpacing.gapSM),
+            SizedBox(width: TossSpacing.space2),
             Text(
               'Data Confidence',
-              style: TossTextStyles.bodyMedium.copyWith(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+              style: TossTextStyles.bodySmall.copyWith(
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
         ),
-        SizedBox(height: TossSpacing.gapSM),
+        SizedBox(height: TossSpacing.space2),
         Text(
           'Score is adjusted based on your work history. More shifts = higher confidence.',
-          style: TossTextStyles.caption.copyWith(
-            fontSize: 12,
+          style: TossTextStyles.labelSmall.copyWith(
             color: TossColors.gray600,
             height: 1.4,
           ),
         ),
-        SizedBox(height: TossSpacing.gapSM),
+        SizedBox(height: TossSpacing.space2),
         Text(
           'Confidence: ${(reliabilityValue * 100).toStringAsFixed(0)}%',
-          style: TossTextStyles.body.copyWith(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+          style: TossTextStyles.bodySmall.copyWith(
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.primary,
           ),
         ),

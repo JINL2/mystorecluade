@@ -3,11 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../../domain/entities/templates/daily_attendance/attendance_report.dart';
 
 /// Manager Quality Flags Section
@@ -26,7 +22,7 @@ class ManagerQualitySection extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,7 +33,7 @@ class ManagerQualitySection extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
-                  color: TossColors.warning.withValues(alpha: 0.1),
+                  color: TossColors.warning.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
@@ -70,10 +66,10 @@ class ManagerQualitySection extends StatelessWidget {
       margin: EdgeInsets.only(bottom: TossSpacing.space2),
       padding: EdgeInsets.all(TossSpacing.paddingSM),
       decoration: BoxDecoration(
-        color: TossColors.warning.withValues(alpha: 0.05),
+        color: TossColors.warning.withValues(alpha: TossOpacity.subtle),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: TossColors.warning.withValues(alpha: 0.2),
+          color: TossColors.warning.withValues(alpha: TossOpacity.strong),
           width: 1,
         ),
       ),
@@ -94,7 +90,7 @@ class ManagerQualitySection extends StatelessWidget {
                   flag.description,
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray800,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
                 if (flag.affectedEmployee != null) ...[

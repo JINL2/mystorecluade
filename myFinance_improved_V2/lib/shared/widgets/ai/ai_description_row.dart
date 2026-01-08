@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../themes/toss_text_styles.dart';
+import '../../themes/index.dart';
 
 /// Compact AI description row for list items
 ///
@@ -45,15 +45,15 @@ class AiDescriptionRow extends StatelessWidget {
         Icon(
           Icons.auto_awesome,
           size: iconSize,
-          color: Colors.amber.shade600,
+          color: TossColors.warning,
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: TossSpacing.space1),
         Expanded(
           child: Text(
             text,
             style: TossTextStyles.caption.copyWith(
               fontSize: fontSize,
-              color: Colors.amber.shade700,
+              color: TossColors.warning,
             ),
             maxLines: maxLines,
             overflow: TextOverflow.ellipsis,

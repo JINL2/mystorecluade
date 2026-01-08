@@ -117,7 +117,7 @@ class LCDatesSection extends StatelessWidget {
                 color: value != null ? TossColors.gray800 : TossColors.gray500,
               ),
             ),
-            Icon(Icons.calendar_today, size: 20, color: TossColors.gray400),
+            Icon(Icons.calendar_today, size: TossSpacing.iconMD, color: TossColors.gray400),
           ],
         ),
       ),

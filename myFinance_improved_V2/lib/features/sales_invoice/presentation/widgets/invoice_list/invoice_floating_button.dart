@@ -5,7 +5,11 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 
 /// Invoice floating add button widget
 ///
@@ -23,22 +27,16 @@ class InvoiceFloatingButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 52,
-        height: 52,
+        width: TossDimensions.avatarXL2,
+        height: TossDimensions.avatarXL2,
         decoration: BoxDecoration(
           color: TossColors.primary,
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.18),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
+          boxShadow: TossShadows.fab,
         ),
-        child: const Icon(
+        child: Icon(
           Icons.add,
-          size: 24,
+          size: TossSpacing.iconMD2,
           color: TossColors.white,
         ),
       ),

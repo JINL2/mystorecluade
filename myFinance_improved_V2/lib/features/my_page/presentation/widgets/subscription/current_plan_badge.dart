@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 /// Badge showing the user's current subscription plan status
 class CurrentPlanBadge extends StatelessWidget {
@@ -35,13 +40,13 @@ class CurrentPlanBadge extends StatelessWidget {
 
     if (isProPlan) {
       planText = 'Pro Plan';
-      bgColor = const Color(0xFF3B82F6).withValues(alpha: 0.1);
-      textColor = const Color(0xFF3B82F6);
+      bgColor = TossColors.primary.withValues(alpha: TossOpacity.light);
+      textColor = TossColors.primary;
       icon = LucideIcons.crown;
     } else if (isBasicPlan) {
       planText = 'Basic Plan';
-      bgColor = const Color(0xFF10B981).withValues(alpha: 0.1);
-      textColor = const Color(0xFF10B981);
+      bgColor = TossColors.emerald.withValues(alpha: TossOpacity.light);
+      textColor = TossColors.emerald;
       icon = LucideIcons.checkCircle;
     } else {
       planText = 'Free Plan';
@@ -51,47 +56,45 @@ class CurrentPlanBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space2_5),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
         border: Border.all(
-          color: textColor.withValues(alpha: 0.2),
-          width: 1,
+          color: textColor.withValues(alpha: TossOpacity.hover),
+          width: TossDimensions.dividerThickness,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: textColor),
-          const SizedBox(width: 8),
+          Icon(icon, size: TossSpacing.iconSM2, color: textColor),
+          SizedBox(width: TossSpacing.space2),
           Text(
             'Current: $planText',
             style: TossTextStyles.body.copyWith(
               color: textColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           if (hasActiveSubscription && expirationDate != null) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: TossSpacing.space2),
             Container(
-              width: 4,
-              height: 4,
+              width: TossSpacing.space1,
+              height: TossSpacing.space1,
               decoration: BoxDecoration(
-                color: textColor.withValues(alpha: 0.4),
+                color: textColor.withValues(alpha: TossOpacity.medium),
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: TossSpacing.space2),
             Text(
               willRenew
                   ? 'Renews ${_formatShortDate(expirationDate!)}'
                   : 'Expires ${_formatShortDate(expirationDate!)}',
               style: TossTextStyles.small.copyWith(
-                color: textColor.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
+                color: textColor.withValues(alpha: TossOpacity.textHigh),
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ],

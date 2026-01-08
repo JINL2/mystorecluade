@@ -218,8 +218,8 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(20).copyWith(
-                    bottomLeft: const Radius.circular(4),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.bottomSheet).copyWith(
+                    bottomLeft: const Radius.circular(TossBorderRadius.xs),
                   ),
                 ),
                 child: Text(
@@ -286,7 +286,7 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
         children: [
           const Icon(
             Icons.chat_bubble_outline,
-            size: 64,
+            size: TossSpacing.icon4XL,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space4),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
@@ -45,7 +46,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.merge_type,
-                    size: 18,
+                    size: TossSpacing.iconSM,
                     color: TossColors.info,
                   ),
                 ),
@@ -53,7 +54,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                 Text(
                   'Merged Session',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
                   ),
                 ),
@@ -71,7 +72,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                     '${mergeInfo.totalMergedSessionsCount + 1} sessions',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.info,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -90,7 +91,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.check_circle, size: 18, color: TossColors.success),
+                const Icon(Icons.check_circle, size: TossSpacing.iconSM, color: TossColors.success),
                 const SizedBox(width: TossSpacing.space2),
                 Text(
                   'Total after merge: ',
@@ -101,7 +102,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                 Text(
                   '${session.totalQuantity} items',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.success,
                   ),
                 ),
@@ -182,7 +183,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
               children: [
                 Icon(
                   isOriginal ? Icons.star : Icons.merge_type,
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: isOriginal ? TossColors.primary : TossColors.textSecondary,
                 ),
                 const SizedBox(width: TossSpacing.space2),
@@ -196,7 +197,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                             child: Text(
                               sessionName,
                               style: TossTextStyles.bodySmall.copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                                 color: isOriginal ? TossColors.primary : TossColors.textPrimary,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -215,10 +216,9 @@ class HistoryMergeInfoSection extends StatelessWidget {
                               ),
                               child: Text(
                                 'Original',
-                                style: TossTextStyles.caption.copyWith(
+                                style: TossTextStyles.micro.copyWith(
                                   color: TossColors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 9,
+                                  fontWeight: TossFontWeight.semibold,
                                 ),
                               ),
                             ),
@@ -230,9 +230,8 @@ class HistoryMergeInfoSection extends StatelessWidget {
                           '${createdBy.firstName} ${createdBy.lastName}'.trim().isEmpty
                               ? 'by Unknown'
                               : 'by ${createdBy.firstName} ${createdBy.lastName}'.trim(),
-                          style: TossTextStyles.caption.copyWith(
+                          style: TossTextStyles.micro.copyWith(
                             color: TossColors.textTertiary,
-                            fontSize: 10,
                           ),
                         ),
                     ],
@@ -253,7 +252,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                       Text(
                         '$totalQuantity',
                         style: TossTextStyles.caption.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TossFontWeight.bold,
                           color: TossColors.success,
                         ),
                       ),
@@ -267,7 +266,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                         Text(
                           '$totalRejected',
                           style: TossTextStyles.caption.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.error,
                           ),
                         ),
@@ -329,9 +328,8 @@ class HistoryMergeInfoSection extends StatelessWidget {
                 if (item.sku.isNotEmpty)
                   Text(
                     'SKU: ${item.sku}',
-                    style: TossTextStyles.caption.copyWith(
+                    style: TossTextStyles.micro.copyWith(
                       color: TossColors.textTertiary,
-                      fontSize: 10,
                     ),
                   ),
               ],
@@ -344,7 +342,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
               Text(
                 '${item.quantity}',
                 style: TossTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.success,
                 ),
               ),
@@ -358,7 +356,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
                 Text(
                   '${item.quantityRejected}',
                   style: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.error,
                   ),
                 ),

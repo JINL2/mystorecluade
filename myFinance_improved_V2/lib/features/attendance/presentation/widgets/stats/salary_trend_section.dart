@@ -49,22 +49,22 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
         Text(
           'Salary Trend (Last 5 Weeks)',
           style: TossTextStyles.bodySmall.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
           ),
         ),
 
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
 
         // Chart card
         TossWhiteCard(
-          padding: const EdgeInsets.all(TossSpacing.space3),
+          padding: EdgeInsets.all(TossSpacing.space3),
           showBorder: false,
           child: Column(
             children: [
               // Chart area with gesture detector
               SizedBox(
-                height: 100,
+                height: 120.0, // Chart height
                 child: GestureDetector(
                   onTapDown: (details) {
                     _handleTap(details.localPosition);
@@ -87,11 +87,11 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
                 ),
               ),
 
-              const SizedBox(height: 2),
+              SizedBox(height: TossSpacing.space1 / 2),
 
               // Week labels
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(widget.weekLabels.length, (index) {
@@ -99,7 +99,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
                     return Text(
                       widget.weekLabels[index],
                       style: TossTextStyles.labelSmall.copyWith(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                         color: isSelected ? TossColors.primary : TossColors.gray600,
                       ),
                     );
@@ -110,7 +110,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
           ),
         ),
 
-        const SizedBox(height: 16),
+        SizedBox(height: TossSpacing.space4),
 
         // Footer note
         Text(
@@ -264,7 +264,7 @@ class _TrendLinePainter extends CustomPainter {
       text: TextSpan(
         text: selectedValue,
         style: TossTextStyles.labelSmall.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
           color: TossColors.gray900,
         ),
       ),

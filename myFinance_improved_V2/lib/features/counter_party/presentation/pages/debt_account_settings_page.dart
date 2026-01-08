@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/account_mapping.dart';
@@ -124,10 +125,10 @@ class _DebtAccountSettingsPageState
         ref.watch(accountMappingsProvider(widget.counterpartyId));
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: 'Account Settings',
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: TossColors.textPrimary),
           onPressed: () => context.pop(),
@@ -182,8 +183,7 @@ class _DebtAccountSettingsPageState
                   'Account Mappings',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.textTertiary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),
@@ -203,12 +203,12 @@ class _DebtAccountSettingsPageState
         );
       },
       loading: () => Container(
-        height: 300,
+        height: TossSpacing.space10 * 7.5,
         alignment: Alignment.center,
         child: const TossLoadingView(),
       ),
       error: (error, stack) => Container(
-        height: 300,
+        height: TossSpacing.space10 * 7.5,
         alignment: Alignment.center,
         padding: const EdgeInsets.all(TossSpacing.space4),
         child: Column(
@@ -216,7 +216,7 @@ class _DebtAccountSettingsPageState
           children: [
             const Icon(
               Icons.error_outline,
-              size: 48,
+              size: TossSpacing.inputHeightLG,
               color: TossColors.error,
             ),
             const SizedBox(height: TossSpacing.space3),
@@ -224,7 +224,7 @@ class _DebtAccountSettingsPageState
               'Failed to load mappings',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -248,15 +248,15 @@ class _DebtAccountSettingsPageState
 
   Widget _buildEmptyState() {
     return Container(
-      height: 350,
+      height: TossSpacing.space10 * 8.75,
       margin: const EdgeInsets.all(TossSpacing.space4),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: TossSpacing.space20,
+              height: TossSpacing.space20,
               decoration: const BoxDecoration(
                 color: TossColors.gray100,
                 shape: BoxShape.circle,
@@ -264,7 +264,7 @@ class _DebtAccountSettingsPageState
               child: const Icon(
                 Icons.add_link,
                 color: TossColors.gray400,
-                size: 40,
+                size: TossSpacing.space10,
               ),
             ),
             const SizedBox(height: TossSpacing.space4),
@@ -272,7 +272,7 @@ class _DebtAccountSettingsPageState
               'No mappings yet',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.textPrimary,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
             const SizedBox(height: TossSpacing.space2),

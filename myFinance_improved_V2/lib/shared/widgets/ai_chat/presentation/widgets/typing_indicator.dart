@@ -28,9 +28,9 @@ class TypingIndicator extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _DotIndicator(delay: 0),
-            SizedBox(width: 4),
+            SizedBox(width: TossSpacing.space1),
             _DotIndicator(delay: 200),
-            SizedBox(width: 4),
+            SizedBox(width: TossSpacing.space1),
             _DotIndicator(delay: 400),
           ],
         ),

@@ -25,7 +25,7 @@ final tossSelectionCardComponent = WidgetbookComponent(
               ),
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSelectionCard(
               title: 'Vault A',
               icon: Icons.lock,
@@ -51,7 +51,7 @@ final tossSelectionCardComponent = WidgetbookComponent(
               isSelected: false,
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSelectionCard(
               title: 'Expense',
               description: 'Record outgoing money',
@@ -79,7 +79,7 @@ final tossSelectionCardComponent = WidgetbookComponent(
               isHighlighted: true,
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSelectionCard(
               title: 'XYZ Corp',
               subtitle: '1 store',
@@ -107,7 +107,7 @@ final tossSelectionCardComponent = WidgetbookComponent(
               isSelected: true,
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSelectionCard.entryType(
               label: 'Debt',
               description: 'Lend or borrow money',
@@ -115,7 +115,7 @@ final tossSelectionCardComponent = WidgetbookComponent(
               isSelected: false,
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSelectionCard.entryType(
               label: 'Transfer',
               description: 'Move cash between locations',
@@ -141,7 +141,7 @@ final tossSelectionCardComponent = WidgetbookComponent(
               isSelected: true,
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSelectionCard.store(
               storeName: 'Downtown Store',
               isSelected: false,
@@ -165,7 +165,7 @@ final tossSelectionCardComponent = WidgetbookComponent(
               isSelected: false,
               onTap: () {},
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSelectionCard.company(
               companyName: 'XYZ Corporation',
               storeCount: 1,
@@ -193,7 +193,7 @@ final tossSummaryCardComponent = WidgetbookComponent(
               label: 'Cash Location',
               value: 'Main Vault',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossSummaryCard(
               icon: Icons.store,
               label: 'Store',
@@ -219,15 +219,15 @@ final tossNoticeCardComponent = WidgetbookComponent(
             TossNoticeCard.warning(
               message: 'This transfer will create a debt entry.',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossNoticeCard.info(
               message: 'You can edit this later in settings.',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossNoticeCard.success(
               message: 'Transaction completed successfully.',
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossNoticeCard.error(
               message: 'Failed to process transaction.',
             ),

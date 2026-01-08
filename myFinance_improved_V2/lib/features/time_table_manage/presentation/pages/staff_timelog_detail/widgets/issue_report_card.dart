@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../../../shared/widgets/index.dart';
 import '../../../../domain/entities/manager_memo.dart';
 
@@ -105,18 +102,18 @@ class _IssueReportCardState extends State<IssueReportCard> {
                           'Report & Response',
                           style: TossTextStyles.bodyLarge.copyWith(
                             color: TossColors.gray900,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: TossSpacing.space2),
                         // Status badge in header
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: TossSpacing.space2,
-                            vertical: 2,
+                            vertical: TossSpacing.space0_5,
                           ),
                           decoration: BoxDecoration(
-                            color: _statusColor.withValues(alpha: 0.1),
+                            color: _statusColor.withValues(alpha: TossOpacity.light),
                             borderRadius:
                                 BorderRadius.circular(TossBorderRadius.full),
                           ),
@@ -124,7 +121,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
                             _statusText,
                             style: TossTextStyles.caption.copyWith(
                               color: _statusColor,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                             ),
                           ),
                         ),
@@ -158,12 +155,12 @@ class _IssueReportCardState extends State<IssueReportCard> {
                   // 1. Employee report section
                   _buildReportSection(),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
 
                   // 2. Manager response (memo) section
                   _buildManagerResponseSection(),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: TossSpacing.space4),
 
                   // 3. Action buttons (always visible)
                   _buildActionButtons(),
@@ -184,10 +181,10 @@ class _IssueReportCardState extends State<IssueReportCard> {
           'Employee report',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: TossSpacing.space2),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(TossSpacing.space3),
@@ -205,22 +202,22 @@ class _IssueReportCardState extends State<IssueReportCard> {
                   EmployeeProfileAvatar(
                     imageUrl: widget.employeeAvatarUrl,
                     name: widget.employeeName,
-                    size: 28,
+                    size: TossDimensions.avatarSM,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: TossSpacing.space2),
                   // Name
                   Expanded(
                     child: Text(
                       widget.employeeName,
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray700,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: TossSpacing.space2),
 
               // Report content
               Text(
@@ -246,15 +243,15 @@ class _IssueReportCardState extends State<IssueReportCard> {
           'Manager response',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: TossSpacing.space2),
 
         // Existing memos (read-only)
         if (widget.existingMemos.isNotEmpty) ...[
           ...widget.existingMemos.map((memo) => _buildMemoItem(memo)),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
         ],
 
         // New memo text field
@@ -299,10 +296,10 @@ class _IssueReportCardState extends State<IssueReportCard> {
       margin: const EdgeInsets.only(bottom: TossSpacing.space2),
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: TossColors.primary.withValues(alpha: 0.05),
+        color: TossColors.primary.withValues(alpha: TossOpacity.subtle),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.1),
+          color: TossColors.primary.withValues(alpha: TossOpacity.light),
           width: 1,
         ),
       ),
@@ -316,7 +313,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
             ),
           ),
           if (memo.createdAt != null && memo.createdAt!.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: TossSpacing.space1),
             Text(
               _formatDateString(memo.createdAt!),
               style: TossTextStyles.caption.copyWith(
@@ -348,10 +345,10 @@ class _IssueReportCardState extends State<IssueReportCard> {
           'Decision',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: TossSpacing.space2),
         Row(
           children: [
             // Reject button - selected style when rejected
@@ -363,7 +360,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
                 onPressed: isRejected ? null : widget.onReject,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             // Approve button - selected style when approved
             Expanded(
               child: _buildToggleButton(
@@ -377,20 +374,20 @@ class _IssueReportCardState extends State<IssueReportCard> {
         ),
         // Show change indicator if user changed from DB value
         if (_hasUserChangedFromDb()) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           Row(
             children: [
               Icon(
                 Icons.info_outline,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.primary,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: TossSpacing.space1),
               Text(
                 'Changed from ${_getDbStatusText()} → ${_statusText}',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ],
@@ -441,9 +438,9 @@ class _IssueReportCardState extends State<IssueReportCard> {
     if (isSelected) {
       // Selected state - filled with color
       return Container(
-        height: 44,
+        height: TossSpacing.inputHeightMD,
         decoration: BoxDecoration(
-          color: selectedColor.withValues(alpha: 0.1),
+          color: selectedColor.withValues(alpha: TossOpacity.light),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(color: selectedColor, width: 1.5),
         ),
@@ -458,15 +455,15 @@ class _IssueReportCardState extends State<IssueReportCard> {
                 children: [
                   Icon(
                     Icons.check_circle,
-                    size: 18,
+                    size: TossSpacing.iconSM,
                     color: selectedColor,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
                   Text(
                     text,
                     style: TossTextStyles.body.copyWith(
                       color: selectedColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ],
@@ -479,7 +476,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
 
     // Unselected state - outlined
     return Container(
-      height: 44,
+      height: TossSpacing.inputHeightMD,
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -495,7 +492,7 @@ class _IssueReportCardState extends State<IssueReportCard> {
               text,
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray600,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ),

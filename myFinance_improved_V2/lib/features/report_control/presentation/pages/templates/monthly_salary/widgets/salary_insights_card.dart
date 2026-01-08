@@ -19,7 +19,7 @@ class SalaryInsightsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      padding: EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -32,30 +32,30 @@ class SalaryInsightsCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: TossDimensions.avatarMD,
+                height: TossDimensions.avatarMD,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEDE9FE),
+                  color: TossColors.purpleLight,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: const Icon(
                   LucideIcons.sparkles,
-                  size: 16,
-                  color: Color(0xFF7C3AED),
+                  size: TossSpacing.iconSM2,
+                  color: TossColors.purple,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: TossSpacing.space2_5),
               Text(
                 'AI Insights',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.gray900,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 14),
+          SizedBox(height: TossSpacing.space4),
 
           // Summary
           if (insights.summary.isNotEmpty) ...[
@@ -66,7 +66,7 @@ class SalaryInsightsCard extends StatelessWidget {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: TossSpacing.space4),
           ],
 
           // Attention Required
@@ -74,10 +74,10 @@ class SalaryInsightsCard extends StatelessWidget {
             _buildSection(
               title: 'Attention Required',
               icon: LucideIcons.alertTriangle,
-              color: const Color(0xFFDC2626),
+              color: TossColors.red,
               items: insights.attentionRequired,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
           ],
 
           // Recommendations
@@ -85,7 +85,7 @@ class SalaryInsightsCard extends StatelessWidget {
             _buildSection(
               title: 'Recommendations',
               icon: LucideIcons.lightbulb,
-              color: const Color(0xFFF59E0B),
+              color: TossColors.amber,
               items: insights.recommendations,
             ),
         ],
@@ -104,29 +104,29 @@ class SalaryInsightsCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
+            Icon(icon, size: TossSpacing.iconXS, color: color),
+            SizedBox(width: TossSpacing.space1_5),
             Text(
               title,
               style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: color,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: TossSpacing.space2),
         ...items.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.only(bottom: TossSpacing.space1 + TossSpacing.space1 / 2),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 4,
-                    height: 4,
-                    margin: EdgeInsets.only(top: 6, right: TossSpacing.space2),
+                    width: TossDimensions.timelineDotSmall,
+                    height: TossDimensions.timelineDotSmall,
+                    margin: EdgeInsets.only(top: TossSpacing.space1_5, right: TossSpacing.space2),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.5),
+                      color: color.withValues(alpha: TossOpacity.scrim),
                       shape: BoxShape.circle,
                     ),
                   ),

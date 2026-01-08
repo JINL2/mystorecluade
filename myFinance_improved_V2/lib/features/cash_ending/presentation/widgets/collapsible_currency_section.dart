@@ -79,20 +79,18 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
                       children: [
                         Text(
                           '${widget.currency.currencyCode} • ${widget.currency.currencyName}',
-                          style: TossTextStyles.body.copyWith(
+                          style: TossTextStyles.titleMedium.copyWith(
                             color: TossColors.gray900,
                             fontWeight: FontWeight.w700,
-                            fontSize: 15,
                           ),
                         ),
                         // Show exchange rate on same line for non-base currencies
                         if (!widget.currency.isBaseCurrency && widget.currency.exchangeRateToBase != 1.0) ...[
-                          const SizedBox(width: 8),
+                          SizedBox(width: TossSpacing.space2),
                           Text(
                             '1 ${widget.currency.currencyCode} = ${widget.baseCurrencySymbol ?? ''}${NumberFormat('#,##0.00').format(widget.currency.exchangeRateToBase)}',
                             style: TossTextStyles.caption.copyWith(
                               color: TossColors.gray500,
-                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -138,7 +136,7 @@ class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection>
                     // Grid header
                     DenominationGridHeader(currencyCode: widget.currency.currencyCode),
 
-                    const SizedBox(height: 4),
+                    SizedBox(height: TossSpacing.space1),
 
                     // Denomination inputs
                     ...widget.currency.denominations.map((denom) {

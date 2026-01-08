@@ -26,7 +26,7 @@ class SalaryNoticesCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      padding: EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -39,37 +39,37 @@ class SalaryNoticesCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: TossDimensions.avatarMD,
+                height: TossDimensions.avatarMD,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: TossColors.amberLight,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: const Icon(
                   LucideIcons.bell,
-                  size: 16,
-                  color: Color(0xFFD97706),
+                  size: TossSpacing.iconSM2,
+                  color: TossColors.amberDark,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: TossSpacing.space2_5),
               Text(
                 'Notices',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.gray900,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.badgePaddingHorizontalXS, vertical: TossSpacing.badgePaddingVerticalXS),
                 decoration: BoxDecoration(
                   color: TossColors.gray200,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Text(
                   '${notices.length}',
                   style: TossTextStyles.labelSmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray600,
                   ),
                 ),
@@ -77,7 +77,7 @@ class SalaryNoticesCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 14),
+          SizedBox(height: TossSpacing.space4),
 
           // Notice list
           ...notices.map((notice) => _buildNoticeItem(notice)),
@@ -90,8 +90,8 @@ class SalaryNoticesCard extends StatelessWidget {
     final colors = _getNoticeColors(notice.type);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      margin: const EdgeInsets.only(bottom: TossSpacing.space2 + TossSpacing.space1 / 2),
+      padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: colors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -105,15 +105,15 @@ class SalaryNoticesCard extends StatelessWidget {
             children: [
               Icon(
                 colors.icon,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: colors.iconColor,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: TossSpacing.space1_5),
               Expanded(
                 child: Text(
                   notice.title,
                   style: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: colors.textColor,
                   ),
                 ),
@@ -122,7 +122,7 @@ class SalaryNoticesCard extends StatelessWidget {
                 Text(
                   notice.amountFormatted!,
                   style: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: colors.textColor,
                   ),
                 ),
@@ -130,7 +130,7 @@ class SalaryNoticesCard extends StatelessWidget {
           ),
 
           if (notice.message.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: TossSpacing.space1_5),
             Text(
               notice.message,
               style: TossTextStyles.bodySmall.copyWith(
@@ -141,15 +141,15 @@ class SalaryNoticesCard extends StatelessWidget {
           ],
 
           if (notice.employeeName != null) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: TossSpacing.space1_5),
             Row(
               children: [
                 const Icon(
                   LucideIcons.user,
-                  size: 12,
+                  size: TossSpacing.iconXS2,
                   color: TossColors.gray500,
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: TossSpacing.space1),
                 Text(
                   notice.employeeName!,
                   style: TossTextStyles.labelSmall.copyWith(
@@ -168,28 +168,28 @@ class SalaryNoticesCard extends StatelessWidget {
     switch (type) {
       case 'critical':
         return _NoticeColors(
-          background: const Color(0xFFFEF2F2),
-          border: const Color(0xFFFECACA),
+          background: TossColors.redSurface,
+          border: TossColors.redLighter,
           icon: LucideIcons.alertTriangle,
-          iconColor: const Color(0xFFDC2626),
-          textColor: const Color(0xFFDC2626),
+          iconColor: TossColors.red,
+          textColor: TossColors.red,
         );
       case 'warning':
         return _NoticeColors(
-          background: const Color(0xFFFEFCE8),
-          border: const Color(0xFFFEF08A),
+          background: TossColors.yellowSurface,
+          border: TossColors.yellowBorder,
           icon: LucideIcons.alertCircle,
-          iconColor: const Color(0xFFD97706),
-          textColor: const Color(0xFFD97706),
+          iconColor: TossColors.amberDark,
+          textColor: TossColors.amberDark,
         );
       case 'info':
       default:
         return _NoticeColors(
-          background: const Color(0xFFF0F9FF),
-          border: const Color(0xFFBAE6FD),
+          background: TossColors.blueSurface,
+          border: TossColors.blueBorder,
           icon: LucideIcons.info,
-          iconColor: const Color(0xFF0284C7),
-          textColor: const Color(0xFF0284C7),
+          iconColor: TossColors.blueText,
+          textColor: TossColors.blueText,
         );
     }
   }

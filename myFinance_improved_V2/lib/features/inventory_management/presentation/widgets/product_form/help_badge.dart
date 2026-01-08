@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
 /// A small help badge widget with a question mark
@@ -19,8 +21,8 @@ class HelpBadge extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 18,
-        height: 18,
+        width: TossDimensions.badgeHeight,
+        height: TossDimensions.badgeHeight,
         decoration: const BoxDecoration(
           color: TossColors.gray100,
           shape: BoxShape.circle,
@@ -29,7 +31,7 @@ class HelpBadge extends StatelessWidget {
         child: Text(
           '?',
           style: TossTextStyles.caption.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray500,
           ),
         ),

@@ -28,7 +28,7 @@ class AssetListItem extends StatelessWidget {
     final salvageValue = asset.financialInfo.salvageValue;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space2),
       decoration: BoxDecoration(
         color: TossColors.background,
         borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
@@ -55,15 +55,15 @@ class AssetListItem extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: TossSpacing.iconXL,
+                  height: TossSpacing.iconXL,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.business_center_outlined,
-                    size: 20,
+                    size: TossSpacing.iconSM,
                     color: TossColors.primary,
                   ),
                 ),
@@ -80,7 +80,7 @@ class AssetListItem extends StatelessWidget {
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         'Purchased ${_formatDate(asset.acquisitionDate)}',
                         style: TossTextStyles.bodySmall.copyWith(
@@ -94,7 +94,7 @@ class AssetListItem extends StatelessWidget {
                 SafePopupMenuButton<String>(
                   icon: const Icon(
                     Icons.more_vert,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: TossColors.gray600,
                   ),
                   shape: RoundedRectangleBorder(
@@ -112,7 +112,7 @@ class AssetListItem extends StatelessWidget {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit_outlined, size: 18, color: TossColors.gray700),
+                          Icon(Icons.edit_outlined, size: TossSpacing.iconSM, color: TossColors.gray700),
                           SizedBox(width: TossSpacing.space3),
                           Text('Edit Asset'),
                         ],
@@ -122,7 +122,7 @@ class AssetListItem extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          const Icon(Icons.delete_outline, size: 18, color: TossColors.error),
+                          const Icon(Icons.delete_outline, size: TossSpacing.iconSM, color: TossColors.error),
                           const SizedBox(width: TossSpacing.space3),
                           Text('Delete', style: TossTextStyles.body.copyWith(color: TossColors.error)),
                         ],
@@ -166,7 +166,7 @@ class AssetListItem extends StatelessWidget {
                                 fontSize: 12,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: TossSpacing.space1),
                             Text(
                               '$currencySymbol${depreciation.currentValue.toStringAsFixed(0)}',
                               style: TossTextStyles.h3.copyWith(
@@ -178,7 +178,7 @@ class AssetListItem extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1 + 2),
                         decoration: BoxDecoration(
                           color: depreciation.depreciationRate > 50
                               ? TossColors.error.withValues(alpha: 0.1)
@@ -189,12 +189,12 @@ class AssetListItem extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.trending_down,
-                              size: 16,
+                              size: TossSpacing.iconSM,
                               color: depreciation.depreciationRate > 50
                                   ? TossColors.error
                                   : TossColors.warning,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: TossSpacing.space1),
                             Text(
                               '${depreciation.depreciationRate.toStringAsFixed(1)}%',
                               style: TossTextStyles.bodySmall.copyWith(
@@ -279,15 +279,15 @@ class AssetListItem extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: TossSpacing.iconLG2,
+            height: TossSpacing.iconLG2,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Icon(
               icon,
-              size: 16,
+              size: TossSpacing.iconSM2,
               color: color,
             ),
           ),
@@ -303,7 +303,7 @@ class AssetListItem extends StatelessWidget {
                     fontSize: 11,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   value,
                   style: TossTextStyles.bodySmall.copyWith(

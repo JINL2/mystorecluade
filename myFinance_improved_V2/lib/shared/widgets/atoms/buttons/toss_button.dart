@@ -499,6 +499,29 @@ class _TossButtonState extends State<TossButton>
     }
   }
 
+  /// Build icon with forced color override
+  Widget _buildIcon(Widget icon, double size) {
+    final color = _getTextColor();
+
+    // If it's an Icon widget, rebuild it with the correct color
+    if (icon is Icon) {
+      return Icon(
+        icon.icon,
+        size: size,
+        color: color,
+      );
+    }
+
+    // For other widgets, wrap with IconTheme
+    return IconTheme(
+      data: IconThemeData(
+        color: color,
+        size: size,
+      ),
+      child: icon,
+    );
+  }
+
   /// Get adjusted padding to compensate for border (inset border effect)
   EdgeInsets _getAdjustedPadding() {
     final basePadding = widget.padding ??
@@ -621,37 +644,25 @@ class _TossButtonState extends State<TossButton>
                   ),
                   const SizedBox(width: TossSpacing.space2),
                 ] else if (widget.leadingIcon != null) ...[
-                  IconTheme(
-                    data: IconThemeData(
-                      color: _getTextColor(),
-                      size: iconSize,
-                    ),
-                    child: widget.leadingIcon!,
-                  ),
+                  _buildIcon(widget.leadingIcon!, iconSize),
                   const SizedBox(width: TossSpacing.space2),
                 ],
                 Flexible(
                   child: Text(
                     widget.text,
-                    style: widget.textStyle ??
-                        TossTextStyles.body.copyWith(
-                          color: _getTextColor(),
-                          fontWeight: widget.fontWeight ?? FontWeight.w600,
-                          fontSize: widget.fontSize,
-                        ),
+                    style: (widget.textStyle ??
+                            TossTextStyles.body.copyWith(
+                              fontWeight: widget.fontWeight ?? FontWeight.w600,
+                              fontSize: widget.fontSize,
+                            ))
+                        .copyWith(color: _getTextColor()),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
                 ),
                 if (!widget.isLoading && widget.trailingIcon != null) ...[
                   const SizedBox(width: TossSpacing.space2),
-                  IconTheme(
-                    data: IconThemeData(
-                      color: _getTextColor(),
-                      size: iconSize,
-                    ),
-                    child: widget.trailingIcon!,
-                  ),
+                  _buildIcon(widget.trailingIcon!, iconSize),
                 ],
               ],
             ),

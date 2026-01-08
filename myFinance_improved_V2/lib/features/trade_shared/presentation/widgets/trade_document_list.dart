@@ -51,13 +51,13 @@ class TradeDocumentListItem extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: _getDocumentColor().withOpacity(0.1),
+                color: _getDocumentColor().withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Icon(
                 _getDocumentIcon(),
                 color: _getDocumentColor(),
-                size: 22,
+                size: TossSpacing.iconMD,
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
@@ -74,7 +74,7 @@ class TradeDocumentListItem extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space1 / 2),
                   Row(
                     children: [
                       _buildTypeChip(),
@@ -109,7 +109,7 @@ class TradeDocumentListItem extends StatelessWidget {
                 icon: Icon(
                   Icons.download_outlined,
                   color: TossColors.gray500,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                 ),
                 constraints: const BoxConstraints(
                   minWidth: 36,
@@ -123,7 +123,7 @@ class TradeDocumentListItem extends StatelessWidget {
                 icon: Icon(
                   Icons.delete_outline,
                   color: TossColors.gray400,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                 ),
                 constraints: const BoxConstraints(
                   minWidth: 36,
@@ -187,7 +187,7 @@ class TradeDocumentListItem extends StatelessWidget {
     return Icon(
       icon,
       color: color,
-      size: 20,
+      size: TossSpacing.iconMD,
     );
   }
 
@@ -268,16 +268,16 @@ class TradeDocumentUploadButton extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: TossSpacing.iconXXL,
+              height: TossSpacing.iconXXL,
               decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.1),
+                color: TossColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.cloud_upload_outlined,
                 color: TossColors.primary,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -292,7 +292,7 @@ class TradeDocumentUploadButton extends StatelessWidget {
                   ),
                 ),
                 if (isRequired) ...[
-                  const SizedBox(width: 4),
+                  SizedBox(width: TossSpacing.space1),
                   Text(
                     '*',
                     style: TossTextStyles.bodyMedium.copyWith(
@@ -398,7 +398,7 @@ class TradeDocumentChecklist extends StatelessWidget {
                 width: double.infinity,
                 child: TossButton.outlinedGray(
                   text: 'Upload Document',
-                  leadingIcon: const Icon(Icons.add, size: 18),
+                  leadingIcon: const Icon(Icons.add, size: TossSpacing.iconSM),
                   onPressed: onUpload,
                 ),
               ),
@@ -425,8 +425,8 @@ class TradeDocumentChecklist extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: TossSpacing.iconMD2,
+            height: TossSpacing.iconMD2,
             decoration: BoxDecoration(
               color: item.isCompleted
                   ? TossColors.success
@@ -436,7 +436,7 @@ class TradeDocumentChecklist extends StatelessWidget {
             child: Icon(
               item.isCompleted ? Icons.check : Icons.remove,
               color: item.isCompleted ? TossColors.white : TossColors.gray400,
-              size: 16,
+              size: TossSpacing.iconSM2,
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -459,7 +459,7 @@ class TradeDocumentChecklist extends StatelessWidget {
                       ),
                     ),
                     if (item.isRequired) ...[
-                      const SizedBox(width: 4),
+                      SizedBox(width: TossSpacing.space1),
                       Text(
                         '*',
                         style: TossTextStyles.bodySmall.copyWith(
@@ -486,7 +486,7 @@ class TradeDocumentChecklist extends StatelessWidget {
                 vertical: 4,
               ),
               decoration: BoxDecoration(
-                color: TossColors.success.withOpacity(0.1),
+                color: TossColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
               child: Text(

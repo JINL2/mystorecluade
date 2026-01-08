@@ -31,7 +31,7 @@ class FormDatePicker extends StatelessWidget {
     return InkWell(
       onTap: () => _showPicker(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space3),
         decoration: BoxDecoration(
           color: TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -42,7 +42,7 @@ class FormDatePicker extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today, size: 18, color: TossColors.gray600),
+            const Icon(Icons.calendar_today, size: TossSpacing.iconSM, color: TossColors.gray600),
             const SizedBox(width: TossSpacing.space2),
             Text(
               date != null ? DateFormat('yyyy-MM-dd').format(date!) : placeholder,

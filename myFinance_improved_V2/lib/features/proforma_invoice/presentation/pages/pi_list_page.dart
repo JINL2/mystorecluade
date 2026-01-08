@@ -111,7 +111,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             child: TossTextField.filled(
               hintText: 'Search by PI number or buyer...',
-              prefixIcon: const Icon(Icons.search, size: 20),
+              prefixIcon: Icon(Icons.search, size: TossSpacing.iconMD),
               onChanged: _onSearch,
             ),
           ),
@@ -140,7 +140,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+            Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(
               'Failed to load',
@@ -161,7 +161,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.description_outlined, size: 64, color: TossColors.gray400),
+            Icon(Icons.description_outlined, size: TossSpacing.icon4XL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space4),
             Text(
               'No Proforma Invoices',
@@ -175,7 +175,7 @@ class _PIListPageState extends ConsumerState<PIListPage> {
             const SizedBox(height: TossSpacing.space4),
             TossButton.primary(
               text: 'Create PI',
-              leadingIcon: const Icon(Icons.add, size: 20, color: TossColors.white),
+              leadingIcon: Icon(Icons.add, size: TossSpacing.iconMD, color: TossColors.white),
               onPressed: () => context.push('/proforma-invoice/new'),
             ),
           ],

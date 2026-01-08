@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/invoice.dart';
@@ -42,7 +44,7 @@ class CreatedBySection extends StatelessWidget {
           Text(
             'Created by',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -51,8 +53,8 @@ class CreatedBySection extends StatelessWidget {
             children: [
               // Avatar - show profile image if available, otherwise initials
               Container(
-                width: 32,
-                height: 32,
+                width: TossDimensions.avatarMD,
+                height: TossDimensions.avatarMD,
                 decoration: BoxDecoration(
                   color: TossColors.primary,
                   shape: BoxShape.circle,
@@ -69,7 +71,7 @@ class CreatedBySection extends StatelessWidget {
                         child: Text(
                           initials,
                           style: TossTextStyles.small.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.white,
                           ),
                         ),
@@ -81,7 +83,7 @@ class CreatedBySection extends StatelessWidget {
               Text(
                 createdByName,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray900,
                 ),
               ),

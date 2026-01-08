@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import 'day_hours_data.dart';
@@ -51,12 +52,12 @@ class DayItem extends StatelessWidget {
             children: [
               // Day name
               SizedBox(
-                width: 50,
+                width: TossSpacing.space12 + TossSpacing.space1,
                 child: Text(
                   _getShortDayName(data.dayName),
                   style: TossTextStyles.body.copyWith(
                     color: isWeekend ? TossColors.primary : TossColors.gray700,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),
@@ -80,7 +81,7 @@ class DayItem extends StatelessWidget {
                     style: TossTextStyles.caption.copyWith(
                       color:
                           data.isOpen ? TossColors.success : TossColors.gray500,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -117,17 +118,16 @@ class DayItem extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Icon(
+                  Icon(
                     LucideIcons.moon,
-                    size: 12,
+                    size: TossSpacing.space3,
                     color: TossColors.warning,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: TossSpacing.space1),
                   Text(
                     'Closes next day',
-                    style: TossTextStyles.caption.copyWith(
+                    style: TossTextStyles.small.copyWith(
                       color: TossColors.warning,
-                      fontSize: 10,
                     ),
                   ),
                 ],

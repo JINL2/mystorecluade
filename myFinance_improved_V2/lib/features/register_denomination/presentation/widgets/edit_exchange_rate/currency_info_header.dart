@@ -42,8 +42,8 @@ class CurrencyInfoHeader extends StatelessWidget {
 
   Widget _buildFlagContainer() {
     return Container(
-      width: 48,
-      height: 48,
+      width: TossSpacing.iconXXL,
+      height: TossSpacing.iconXXL,
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),

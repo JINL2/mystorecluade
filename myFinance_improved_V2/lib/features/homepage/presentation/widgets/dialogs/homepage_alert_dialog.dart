@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -42,8 +43,8 @@ class _HomepageAlertDialogState extends State<HomepageAlertDialog> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 24,
-            height: 24,
+            width: TossSpacing.iconMD2,
+            height: TossSpacing.iconMD2,
             child: Checkbox(
               value: _dontShowAgain,
               onChanged: (value) {
@@ -57,7 +58,7 @@ class _HomepageAlertDialogState extends State<HomepageAlertDialog> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: TossSpacing.space2),
           GestureDetector(
             onTap: () {
               setState(() {

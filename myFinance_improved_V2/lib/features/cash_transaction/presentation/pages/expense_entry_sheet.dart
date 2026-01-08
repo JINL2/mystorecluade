@@ -339,7 +339,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
               color: TossColors.gray600,
             )
           else
-            const SizedBox(width: 48),
+            const SizedBox(width: TossSpacing.iconXXL),
 
           Expanded(
             child: Text(

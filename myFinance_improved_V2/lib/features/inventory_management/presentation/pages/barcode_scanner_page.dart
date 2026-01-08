@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -109,7 +111,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     return SafeArea(
       bottom: false,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space2),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -125,7 +127,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
             Text(
               'Scan barcode',
               style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: textColor,
               ),
             ),
@@ -185,7 +187,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           children: [
             // Scanner frame corners (decorative)
             _buildScannerFrame(),
-            const SizedBox(height: 32),
+            const SizedBox(height: TossSpacing.space8),
             // Permission message
             Text(
               'Camera access is required to scan barcodes.',
@@ -293,7 +295,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
   Widget _buildBottomInstruction() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space4),
       decoration: const BoxDecoration(
         color: TossColors.white,
       ),
@@ -304,10 +306,10 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
             // Barcode icon
             const Icon(
               Icons.view_week_outlined,
-              size: 24,
+              size: TossSpacing.iconMD2,
               color: TossColors.gray600,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
             // Instruction text
             Expanded(
               child: Text(

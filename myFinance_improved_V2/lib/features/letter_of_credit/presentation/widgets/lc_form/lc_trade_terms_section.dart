@@ -165,9 +165,9 @@ class LCTradeTermsSection extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: TossSpacing.space1),
           SizedBox(
-            height: 24,
+            height: TossSpacing.space6,
             child: FittedBox(
               fit: BoxFit.contain,
               child: Switch(

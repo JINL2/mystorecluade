@@ -3,11 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../../domain/entities/templates/daily_attendance/attendance_report.dart';
 import 'payment_time_bar.dart';
 
@@ -35,12 +31,12 @@ class _IssuesDetailSectionState extends State<IssuesDetailSection> {
         decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-          boxShadow: TossShadows.card,
+          border: Border.all(color: TossColors.gray100),
         ),
         child: Center(
           child: Column(
             children: [
-              Icon(LucideIcons.checkCircle, size: 48, color: TossColors.success),
+              Icon(LucideIcons.checkCircle, size: TossSpacing.iconXXL, color: TossColors.success),
               SizedBox(height: TossSpacing.space3),
               Text(
                 'No issues found',
@@ -131,7 +127,7 @@ class IssueGroupContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +138,7 @@ class IssueGroupContainer extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
+                  color: iconColor.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
@@ -167,7 +163,7 @@ class IssueGroupContainer extends StatelessWidget {
                       subtitle,
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray600,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: TossFontWeight.regular,
                       ),
                     ),
                   ],
@@ -223,8 +219,8 @@ class IssueGroupContainer extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: TossDimensions.avatarMD,
+                        height: TossDimensions.avatarMD,
                         decoration: BoxDecoration(
                           color: TossColors.gray100,
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -279,7 +275,7 @@ class IssueGroupContainer extends StatelessWidget {
                     children: [
                       Icon(
                         LucideIcons.store,
-                        size: 12,
+                        size: TossSpacing.iconXS2,
                         color: TossColors.gray500,
                       ),
                       SizedBox(width: TossSpacing.marginXS),
@@ -297,12 +293,12 @@ class IssueGroupContainer extends StatelessWidget {
                             issue.isSolved
                                 ? LucideIcons.userCheck
                                 : LucideIcons.clock,
-                            size: 12,
+                            size: TossSpacing.iconXS2,
                             color: issue.isSolved
                                 ? TossColors.success
                                 : TossColors.gray500,
                           ),
-                          SizedBox(width: 2),
+                          SizedBox(width: TossSpacing.space0_5),
                           Text(
                             issue.isSolved
                                 ? (issue.managerAdjustment.adjustedBy != null
@@ -313,7 +309,7 @@ class IssueGroupContainer extends StatelessWidget {
                               color: issue.isSolved
                                   ? TossColors.success
                                   : TossColors.gray600,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: TossFontWeight.medium,
                             ),
                           ),
                         ],
@@ -330,8 +326,8 @@ class IssueGroupContainer extends StatelessWidget {
             Divider(
               height: 1,
               color: isCritical
-                  ? TossColors.error.withValues(alpha: 0.1)
-                  : TossColors.warning.withValues(alpha: 0.1),
+                  ? TossColors.error.withValues(alpha: TossOpacity.light)
+                  : TossColors.warning.withValues(alpha: TossOpacity.light),
             ),
             Padding(
               padding: EdgeInsets.all(TossSpacing.paddingSM),
@@ -360,7 +356,7 @@ class IssueGroupContainer extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.all(TossSpacing.paddingSM),
                       decoration: BoxDecoration(
-                        color: TossColors.primary.withValues(alpha: 0.05),
+                        color: TossColors.primary.withValues(alpha: TossOpacity.subtle),
                         borderRadius:
                             BorderRadius.circular(TossBorderRadius.md),
                       ),
@@ -379,7 +375,7 @@ class IssueGroupContainer extends StatelessWidget {
                               style: TossTextStyles.bodySmall.copyWith(
                                 color: TossColors.gray700,
                                 height: 1.5,
-                                fontWeight: FontWeight.w400,
+                                fontWeight: TossFontWeight.regular,
                               ),
                             ),
                           ),

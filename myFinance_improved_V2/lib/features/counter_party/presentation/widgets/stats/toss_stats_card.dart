@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -50,13 +50,8 @@ class TossStatsCard extends StatelessWidget {
       return _buildErrorState();
     }
 
-    return Container(
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,7 +69,7 @@ class TossStatsCard extends StatelessWidget {
                 totalCount.toString(),
                 style: TossTextStyles.h2.copyWith(
                   color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
             ],
@@ -84,7 +79,7 @@ class TossStatsCard extends StatelessWidget {
 
           // Divider
           Container(
-            height: TossSpacing.space0 + 1,
+            height: TossDimensions.dividerThickness,
             color: TossColors.border,
           ),
 
@@ -123,25 +118,17 @@ class TossStatsCard extends StatelessWidget {
   Widget _buildStatItem(TossStatItem item) {
     return Column(
       children: [
-        Container(
-          width: TossSpacing.space10,
-          height: TossSpacing.space10,
-          decoration: BoxDecoration(
-            color: TossColors.gray100,
-            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          ),
-          child: Icon(
-            item.icon,
-            color: item.color,
-            size: TossSpacing.iconSM,
-          ),
+        Icon(
+          item.icon,
+          color: item.color,
+          size: TossSpacing.iconMD2,
         ),
         const SizedBox(height: TossSpacing.space2),
         Text(
           item.count.toString(),
           style: TossTextStyles.h3.copyWith(
             color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         Text(
@@ -155,26 +142,18 @@ class TossStatsCard extends StatelessWidget {
   }
 
   Widget _buildLoadingState() {
-    return Container(
-      height: TossSpacing.space10 * 3.5,
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+      child: SizedBox(
+        height: TossSpacing.space10 * 3.5,
+        child: const TossLoadingView(),
       ),
-      child: const TossLoadingView(),
     );
   }
 
   Widget _buildErrorState() {
-    return Container(
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
-      ),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

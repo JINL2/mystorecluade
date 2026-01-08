@@ -162,13 +162,12 @@ class CompletionSummarySection extends StatelessWidget {
             ),
             // Show subtitle (percentage) if provided
             if (subtitle != null) ...[
-              const SizedBox(height: 2),
+              SizedBox(height: TossSpacing.space1 / 2),
               Text(
                 subtitle,
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: subtitleColor ?? TossColors.gray500,
                   fontWeight: FontWeight.w500,
-                  fontSize: 11,
                 ),
               ),
             ],
@@ -237,10 +236,10 @@ class _AdjustmentInfoSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: boxColor.withOpacity(0.05),
+        color: boxColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
-          color: boxColor.withOpacity(0.2),
+          color: boxColor.withValues(alpha: 0.2),
           width: 1.0,
         ),
       ),

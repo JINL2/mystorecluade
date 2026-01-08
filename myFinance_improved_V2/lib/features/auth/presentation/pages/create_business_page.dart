@@ -218,7 +218,7 @@ class _CreateBusinessPageState extends ConsumerState<CreateBusinessPage>
         color: TossColors.white,
         boxShadow: [
           BoxShadow(
-            color: TossColors.black.withOpacity(0.05),
+            color: TossColors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),

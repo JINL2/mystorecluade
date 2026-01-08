@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../dialogs/save_confirm_dialog.dart';
@@ -135,13 +136,13 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
         icon: const Icon(
           Icons.arrow_back,
           color: TossColors.gray900,
-          size: 24,
+          size: TossSpacing.iconMD2,
         ),
       ),
       title: Text(
         widget.sessionName ?? 'Session Detail',
         style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),

@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/account_mapping.dart';
@@ -128,9 +131,9 @@ class _AccountMappingFormSheetState
         children: [
           // Handle
           Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 16),
-            width: 48,
-            height: 4,
+            margin: EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -152,10 +155,10 @@ class _AccountMappingFormSheetState
                           : 'Edit Account Mapping',
                       style: TossTextStyles.h3.copyWith(
                         color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       widget.counterpartyName,
                       style: TossTextStyles.caption.copyWith(
@@ -168,9 +171,9 @@ class _AccountMappingFormSheetState
                   icon: const Icon(Icons.close, color: TossColors.gray600),
                   onPressed: () => context.pop(),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
+                  constraints: BoxConstraints(
+                    minWidth: TossDimensions.minTouchTarget,
+                    minHeight: TossDimensions.minTouchTarget,
                   ),
                 ),
               ],
@@ -195,7 +198,7 @@ class _AccountMappingFormSheetState
                       'Direction',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space2),
@@ -308,7 +311,7 @@ class _AccountMappingFormSheetState
             padding: const EdgeInsets.all(TossSpacing.space5),
             decoration: const BoxDecoration(
               border: Border(
-                top: BorderSide(color: TossColors.gray200, width: 1),
+                top: BorderSide(color: TossColors.gray200, width: TossDimensions.dividerThickness),
               ),
             ),
             child: Row(
@@ -348,7 +351,7 @@ class _AccountMappingFormSheetState
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? TossColors.primary.withValues(alpha: 0.1)
+              ? TossColors.primary.withValues(alpha: TossOpacity.light)
               : TossColors.gray50,
           border: Border.all(
             color: isSelected ? TossColors.primary : TossColors.gray200,
@@ -361,7 +364,7 @@ class _AccountMappingFormSheetState
             label,
             style: TossTextStyles.bodySmall.copyWith(
               color: isSelected ? TossColors.primary : TossColors.textSecondary,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              fontWeight: isSelected ? TossFontWeight.semibold : FontWeight.normal,
             ),
           ),
         ),
@@ -377,7 +380,7 @@ class _AccountMappingFormSheetState
           'Their Account',
           style: TossTextStyles.bodySmall.copyWith(
             color: TossColors.textPrimary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -391,7 +394,7 @@ class _AccountMappingFormSheetState
             children: [
               const Icon(
                 Icons.info_outline,
-                size: 16,
+                size: TossSpacing.iconXS,
                 color: TossColors.info,
               ),
               const SizedBox(width: TossSpacing.space2),

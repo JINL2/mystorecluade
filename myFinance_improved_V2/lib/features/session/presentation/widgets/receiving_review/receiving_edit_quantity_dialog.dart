@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/states/session_review_state.dart';
@@ -69,7 +70,7 @@ class _ReceivingEditQuantityDialogState
       title: Text(
         'Edit Received Count',
         style: TossTextStyles.h4.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
       content: Column(
@@ -86,7 +87,7 @@ class _ReceivingEditQuantityDialogState
             overflow: TextOverflow.ellipsis,
           ),
           if (widget.item.sku != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: TossSpacing.space1),
             Text(
               widget.item.sku!,
               style: TossTextStyles.caption.copyWith(
@@ -119,7 +120,7 @@ class _ReceivingEditQuantityDialogState
                       '$shipped',
                       style: TossTextStyles.bodyMedium.copyWith(
                         color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ],
@@ -137,7 +138,7 @@ class _ReceivingEditQuantityDialogState
                       '${widget.item.totalQuantity}',
                       style: TossTextStyles.bodyMedium.copyWith(
                         color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                   ],
@@ -167,7 +168,7 @@ class _ReceivingEditQuantityDialogState
                     color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
-                  child: const Icon(Icons.remove, size: 20),
+                  child: const Icon(Icons.remove, size: TossSpacing.iconMD),
                 ),
               ),
 
@@ -178,7 +179,7 @@ class _ReceivingEditQuantityDialogState
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color:
                         isChanged ? TossColors.primary : TossColors.textPrimary,
                   ),
@@ -230,7 +231,7 @@ class _ReceivingEditQuantityDialogState
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child:
-                      const Icon(Icons.add, size: 20, color: TossColors.primary),
+                      const Icon(Icons.add, size: TossSpacing.iconMD, color: TossColors.primary),
                 ),
               ),
             ],
@@ -255,7 +256,7 @@ class _ReceivingEditQuantityDialogState
                     children: [
                       const Icon(
                         Icons.info_outline,
-                        size: 16,
+                        size: TossSpacing.iconSM2,
                         color: TossColors.primary,
                       ),
                       const SizedBox(width: TossSpacing.space2),
@@ -269,7 +270,7 @@ class _ReceivingEditQuantityDialogState
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: TossSpacing.space1),
                   Text(
                     'Accepted will be: $newAccepted (Shipped: $shipped)',
                     style: TossTextStyles.caption.copyWith(
@@ -278,7 +279,7 @@ class _ReceivingEditQuantityDialogState
                           : (newAccepted < shipped
                               ? TossColors.loss
                               : TossColors.success),
-                      fontWeight: FontWeight.w500,
+                      fontWeight: TossFontWeight.medium,
                     ),
                   ),
                 ],

@@ -68,7 +68,7 @@ class TradeTimelineWidget extends StatelessWidget {
           children: [
             Icon(
               Icons.history_outlined,
-              size: 48,
+              size: TossSpacing.iconXXL,
               color: TossColors.gray300,
             ),
             const SizedBox(height: TossSpacing.space3),
@@ -109,7 +109,7 @@ class TradeTimelineItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 48,
+              width: TossSpacing.iconXXL,
               child: Column(
                 children: [
                   Container(
@@ -119,7 +119,7 @@ class TradeTimelineItem extends StatelessWidget {
                       color: _getActionColor(),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: _getActionColor().withOpacity(0.3),
+                        color: _getActionColor().withValues(alpha: 0.3),
                         width: 3,
                       ),
                     ),
@@ -150,7 +150,7 @@ class TradeTimelineItem extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getEntityTypeColor().withOpacity(0.1),
+                            color: _getEntityTypeColor().withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                           ),
                           child: Text(
@@ -195,10 +195,10 @@ class TradeTimelineItem extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.person_outline,
-                            size: 14,
+                            size: TossSpacing.iconXS,
                             color: TossColors.gray400,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: TossSpacing.space1),
                           Text(
                             activity.performedBy!,
                             style: TossTextStyles.caption.copyWith(
@@ -312,13 +312,13 @@ class TradeActivityListItem extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _getActionColor().withOpacity(0.1),
+                color: _getActionColor().withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Icon(
                 _getActionIcon(),
                 color: _getActionColor(),
-                size: 18,
+                size: TossSpacing.iconSM,
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
@@ -346,7 +346,7 @@ class TradeActivityListItem extends StatelessWidget {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space1 / 2),
                   Text(
                     activity.description,
                     style: TossTextStyles.bodySmall.copyWith(

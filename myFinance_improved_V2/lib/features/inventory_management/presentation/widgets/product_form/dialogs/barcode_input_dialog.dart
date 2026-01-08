@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 
@@ -33,11 +34,11 @@ class BarcodeInputDialog {
               Text(
                 'Enter SKU/Barcode Number',
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: TossSpacing.paddingXL),
               // Text field with underline
               TossTextField.underline(
                 controller: controller,
@@ -45,7 +46,7 @@ class BarcodeInputDialog {
                 autofocus: true,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: TossSpacing.paddingXL),
               // Buttons row
               Row(
                 children: [
@@ -57,7 +58,7 @@ class BarcodeInputDialog {
                       fullWidth: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: TossSpacing.space3),
                   // Done button
                   Expanded(
                     child: TossButton.primary(

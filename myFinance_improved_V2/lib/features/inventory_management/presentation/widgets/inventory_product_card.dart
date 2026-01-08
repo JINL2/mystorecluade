@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../sale_product/presentation/utils/currency_formatter.dart';
 import '../../domain/entities/product.dart';
@@ -36,7 +39,7 @@ class InventoryProductCard extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2, horizontal: TossSpacing.space1),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -44,8 +47,8 @@ class InventoryProductCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 child: Container(
-                  width: 44,
-                  height: 44,
+                  width: TossDimensions.minTouchTarget,
+                  height: TossDimensions.minTouchTarget,
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -53,17 +56,17 @@ class InventoryProductCard extends StatelessWidget {
                   child: product.images.isNotEmpty
                       ? Image.network(
                           product.images.first,
-                          width: 44,
-                          height: 44,
+                          width: TossDimensions.minTouchTarget,
+                          height: TossDimensions.minTouchTarget,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              width: 44,
-                              height: 44,
+                              width: TossDimensions.minTouchTarget,
+                              height: TossDimensions.minTouchTarget,
                               color: TossColors.gray50,
                               child: const Icon(
                                 Icons.image,
-                                size: 20,
+                                size: TossSpacing.iconMD,
                                 color: TossColors.gray500,
                               ),
                             );
@@ -71,16 +74,16 @@ class InventoryProductCard extends StatelessWidget {
                         )
                       : const Icon(
                           Icons.inventory_2,
-                          size: 20,
+                          size: TossSpacing.iconMD,
                           color: TossColors.gray500,
                         ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: TossSpacing.space2),
               // Product info
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 8, top: 2),
+                  padding: const EdgeInsets.only(left: TossSpacing.space2, top: TossSpacing.space0_5),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -88,26 +91,26 @@ class InventoryProductCard extends StatelessWidget {
                       Text(
                         product.name,
                         style: TossTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray900,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: TossSpacing.space0_5),
                       // SKU row with quantity pill
                       Row(
                         children: [
                           Text(
                             product.sku,
                             style: TossTextStyles.bodySmall.copyWith(
-                              fontWeight: FontWeight.w500,
+                              fontWeight: TossFontWeight.medium,
                               color: TossColors.gray600,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
                           _buildQuantityPill(product.onHand, hasQuantity),
                         ],
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: TossSpacing.space0_5),
                       // Price row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,7 +118,7 @@ class InventoryProductCard extends StatelessWidget {
                           Text(
                             '$currencySymbol${CurrencyFormatter.formatPrice(product.salePrice)}',
                             style: TossTextStyles.titleMedium.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                               color: TossColors.primary,
                             ),
                           ),
@@ -135,7 +138,7 @@ class InventoryProductCard extends StatelessWidget {
 
   Widget _buildQuantityPill(int quantity, bool isActive) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.badgePaddingHorizontalXS, vertical: TossSpacing.badgePaddingVerticalXS),
       decoration: BoxDecoration(
         color: isActive ? TossColors.primarySurface : TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -143,7 +146,7 @@ class InventoryProductCard extends StatelessWidget {
       child: Text(
         '$quantity',
         style: TossTextStyles.bodySmall.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
           color: isActive ? TossColors.primary : TossColors.gray900,
         ),
       ),
@@ -154,8 +157,8 @@ class InventoryProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTransferTap,
       child: Container(
-        width: 44,
-        height: 44,
+        width: TossDimensions.minTouchTarget,
+        height: TossDimensions.minTouchTarget,
         decoration: BoxDecoration(
           color: TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -163,7 +166,7 @@ class InventoryProductCard extends StatelessWidget {
         child: const Center(
           child: Icon(
             Icons.swap_horiz,
-            size: 18,
+            size: TossSpacing.iconSM,
             color: TossColors.gray900,
           ),
         ),

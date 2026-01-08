@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../providers/states/inventory_page_state.dart';
@@ -35,7 +37,7 @@ class InventoryFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
         children: [
           // Filter pills row
           SizedBox(
-            height: 56,
+            height: TossSpacing.space14,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
@@ -44,19 +46,19 @@ class InventoryFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
                   subtitle: selectedAvailability,
                   onTap: () => onFilterTap('Availability'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 InventoryFilterPill(
                   title: 'Location',
                   subtitle: selectedLocation,
                   onTap: () => onFilterTap('Location'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 InventoryFilterPill(
                   title: 'Brand',
                   subtitle: selectedBrand,
                   onTap: () => onFilterTap('Brand'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 InventoryFilterPill(
                   title: 'Categories',
                   subtitle: selectedCategory,
@@ -65,19 +67,19 @@ class InventoryFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: TossSpacing.space3),
           // Summary text - uses server-provided total value from v5 RPC
           Text(
             'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
             style: TossTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           // Divider
           Container(
-            height: 1,
+            height: TossDimensions.dividerThickness,
             color: TossColors.gray100,
           ),
         ],
@@ -140,24 +142,24 @@ class InventoryFilterPill extends StatelessWidget {
                   Text(
                     title,
                     style: TossTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   Text(
                     subtitle,
                     style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w400,
+                      fontWeight: TossFontWeight.regular,
                       color: TossColors.gray600,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: TossSpacing.space4),
               const Icon(
                 Icons.keyboard_arrow_down,
-                size: 16,
+                size: TossSpacing.iconSM2,
                 color: TossColors.gray600,
               ),
             ],
@@ -197,7 +199,7 @@ class InventoryFilterSection extends StatelessWidget {
         children: [
           // Filter pills row
           SizedBox(
-            height: 56,
+            height: TossSpacing.space14,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
@@ -206,19 +208,19 @@ class InventoryFilterSection extends StatelessWidget {
                   subtitle: selectedAvailability,
                   onTap: () => onFilterTap('Availability'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 InventoryFilterPill(
                   title: 'Location',
                   subtitle: selectedLocation,
                   onTap: () => onFilterTap('Location'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 InventoryFilterPill(
                   title: 'Brand',
                   subtitle: selectedBrand,
                   onTap: () => onFilterTap('Brand'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 InventoryFilterPill(
                   title: 'Categories',
                   subtitle: selectedCategory,
@@ -227,19 +229,19 @@ class InventoryFilterSection extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: TossSpacing.space3),
           // Summary text
           Text(
             'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
             style: TossTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
           // Divider
           Container(
-            height: 1,
+            height: TossDimensions.dividerThickness,
             color: TossColors.gray100,
           ),
         ],

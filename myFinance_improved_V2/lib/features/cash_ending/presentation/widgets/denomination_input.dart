@@ -59,7 +59,6 @@ class DenominationInput extends StatelessWidget {
               style: TossTextStyles.body.copyWith(
                 fontWeight: FontWeight.w600,
                 color: TossColors.gray900,
-                fontSize: 14,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
@@ -100,7 +99,6 @@ class DenominationInput extends StatelessWidget {
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: isZero ? TossColors.gray400 : TossColors.gray900,
-                    fontSize: 14,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,

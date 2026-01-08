@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
-import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_metadata.dart';
 import '../../providers/attendance_providers.dart';
@@ -197,10 +197,10 @@ class ShiftRequestsActions {
           id: employee.userId,
           title: employee.userName,
           avatarUrl: (employee.profileImage?.isNotEmpty ?? false) ? employee.profileImage : null,
-          trailing: const Icon(
+          trailing: Icon(
             LucideIcons.check,
             color: TossColors.info,
-            size: 20,
+            size: TossSpacing.iconMD,
           ),
         );
       }),

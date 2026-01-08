@@ -3,6 +3,9 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'product_image_picker.dart';
 
@@ -38,8 +41,8 @@ class ImageUploadSheet extends StatelessWidget {
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
+          topLeft: Radius.circular(TossBorderRadius.xl),
+          topRight: Radius.circular(TossBorderRadius.xl),
         ),
       ),
       child: Column(
@@ -47,23 +50,23 @@ class ImageUploadSheet extends StatelessWidget {
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 8),
-            width: 36,
-            height: 4,
+            margin: const EdgeInsets.only(top: TossSpacing.space2),
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
             ),
           ),
 
           // Title
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
             child: Text(
               'Upload Image',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
               textAlign: TextAlign.center,
             ),
@@ -100,7 +103,7 @@ class ImageUploadSheet extends StatelessWidget {
           ),
 
           // Bottom padding for safe area
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space2),
         ],
       ),
     );
@@ -127,8 +130,8 @@ class _ImageOptionItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+          horizontal: TossSpacing.space4,
+          vertical: TossSpacing.space3,
         ),
         decoration: BoxDecoration(
           border: isLast
@@ -136,7 +139,7 @@ class _ImageOptionItem extends StatelessWidget {
               : const Border(
                   bottom: BorderSide(
                     color: TossColors.gray100,
-                    width: 0.5,
+                    width: TossDimensions.dividerThicknessThin,
                   ),
                 ),
         ),
@@ -144,20 +147,20 @@ class _ImageOptionItem extends StatelessWidget {
           children: [
             // Icon container
             Container(
-              width: 36,
-              height: 36,
+              width: TossDimensions.minTouchTargetSmall,
+              height: TossDimensions.minTouchTargetSmall,
               decoration: BoxDecoration(
                 color: TossColors.gray100,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 icon,
-                size: 18,
+                size: TossSpacing.iconSM,
                 color: TossColors.gray600,
               ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: TossSpacing.space3),
 
             // Title
             Expanded(
@@ -165,7 +168,7 @@ class _ImageOptionItem extends StatelessWidget {
                 title,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: TossFontWeight.regular,
                 ),
               ),
             ),
@@ -174,7 +177,7 @@ class _ImageOptionItem extends StatelessWidget {
             const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ],
         ),

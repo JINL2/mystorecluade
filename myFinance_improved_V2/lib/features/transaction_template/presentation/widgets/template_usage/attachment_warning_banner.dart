@@ -30,7 +30,7 @@ class AttachmentWarningBanner extends StatelessWidget {
           Icon(
             Icons.warning_amber_rounded,
             color: TossColors.warning,
-            size: 20,
+            size: TossSpacing.iconMD,
           ),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
@@ -38,7 +38,7 @@ class AttachmentWarningBanner extends StatelessWidget {
               'This template requires an attachment (receipt, invoice, etc.)',
               style: TossTextStyles.bodySmall.copyWith(
                 color: TossColors.gray800,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ),

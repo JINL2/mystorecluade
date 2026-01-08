@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'session_user_card.dart';
@@ -61,7 +62,7 @@ class SessionUserSection extends StatelessWidget {
           Text(
             'Session User',
             style: TossTextStyles.titleMedium.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -71,11 +72,11 @@ class SessionUserSection extends StatelessWidget {
               GestureDetector(
                 onTap: isLoadingUsers ? null : onRefresh,
                 child: isLoadingUsers
-                    ? TossLoadingView.inline(size: 20, color: TossColors.gray400)
+                    ? TossLoadingView.inline(size: TossSpacing.iconMD, color: TossColors.gray400)
                     : const Icon(
                         Icons.refresh,
                         color: TossColors.gray500,
-                        size: 22,
+                        size: TossSpacing.iconMD + 2,
                       ),
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -87,7 +88,7 @@ class SessionUserSection extends StatelessWidget {
                     'Merge',
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray700,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -96,14 +97,14 @@ class SessionUserSection extends StatelessWidget {
               GestureDetector(
                 onTap: (isJoining || hasCurrentUserJoined) ? null : onJoin,
                 child: isJoining
-                    ? TossLoadingView.inline(size: 20)
+                    ? TossLoadingView.inline(size: TossSpacing.iconMD)
                     : Text(
                         '+ Join',
                         style: TossTextStyles.body.copyWith(
                           color: hasCurrentUserJoined
                               ? TossColors.gray400
                               : TossColors.primary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                         ),
                       ),
               ),

@@ -144,7 +144,7 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
                 children: [
                   const Text(ReportStrings.tabReceivedReports),
                   if (state.unreadCount > 0) ...[
-                    const SizedBox(width: 4),
+                    SizedBox(width: TossSpacing.space1),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
@@ -152,13 +152,13 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
                       ),
                       decoration: BoxDecoration(
                         color: TossColors.error,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                       ),
                       child: Text(
                         '${state.unreadCount}',
                         style: TossTextStyles.labelSmall.copyWith(
                           color: TossColors.white,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: TossFontWeight.bold,
                         ),
                       ),
                     ),
@@ -176,12 +176,12 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
           if (state.errorMessage != null)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(TossSpacing.space3),
-              color: TossColors.error.withOpacity(0.1),
+              padding: EdgeInsets.all(TossSpacing.space3),
+              color: TossColors.error.withValues(alpha: TossOpacity.light),
               child: Row(
                 children: [
                   const Icon(Icons.error_outline, color: TossColors.error),
-                  const SizedBox(width: 8),
+                  SizedBox(width: TossSpacing.space2),
                   Expanded(
                     child: Text(
                       state.errorMessage!,
@@ -189,7 +189,7 @@ class _ReportControlPageState extends ConsumerState<ReportControlPage>
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 20),
+                    icon: Icon(Icons.close, size: TossSpacing.iconMD),
                     onPressed: () {
                       // Reload data
                       if (userId.isNotEmpty && companyId.isNotEmpty) {

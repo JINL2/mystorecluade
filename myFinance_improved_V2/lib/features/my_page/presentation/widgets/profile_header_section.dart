@@ -3,6 +3,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 import '../../domain/entities/business_dashboard.dart';
 import '../../domain/entities/user_profile.dart';
@@ -33,7 +36,7 @@ class ProfileHeaderSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: TossColors.gray900.withValues(alpha: 0.04),
+            color: TossColors.gray900.withValues(alpha: TossOpacity.subtle),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -60,10 +63,8 @@ class ProfileHeaderSection extends StatelessWidget {
                 Text(
                   _getDisplayName(profile),
                   style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.gray900,
-                    fontSize: 20,
-                    height: 1.3,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -78,16 +79,14 @@ class ProfileHeaderSection extends StatelessWidget {
                     vertical: TossSpacing.space1,
                   ),
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.08),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.hover),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Text(
                     businessData?.userRole ?? profile.displayRole,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      letterSpacing: -0.2,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -99,8 +98,7 @@ class ProfileHeaderSection extends StatelessWidget {
                     businessData!.companyName,
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray700,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
+                      fontWeight: TossFontWeight.medium,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -113,7 +111,6 @@ class ProfileHeaderSection extends StatelessWidget {
                     businessData!.storeName,
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
-                      fontSize: 13,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

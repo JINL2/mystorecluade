@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
 import '../providers/account_settings_notifier.dart';
@@ -80,9 +80,9 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     return TossScaffold(
       appBar: const TossAppBar(
         title: 'Account Settings',
-        backgroundColor: TossColors.gray50,
+        backgroundColor: TossColors.white,
       ),
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       body: SafeArea(
         child: state.isLoading
             ? const Center(child: TossLoadingView())
@@ -123,7 +123,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +161,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         children: [
@@ -211,7 +211,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                 Text(
                   'Main Account',
                   style: TossTextStyles.h4.copyWith(
-                    fontWeight: FontWeight.w400,
+                    fontWeight: TossFontWeight.regular,
                     color: TossColors.gray700,
                   ),
                 ),
@@ -248,7 +248,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
             Text(
               label,
               style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w400,
+                fontWeight: TossFontWeight.regular,
                 color: TossColors.gray700,
               ),
             ),
@@ -257,7 +257,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
               child: Text(
                 value.isEmpty ? (hintText ?? '') : value,
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: value.isEmpty ? FontWeight.w400 : FontWeight.w600,
+                  fontWeight: value.isEmpty ? TossFontWeight.regular : TossFontWeight.semibold,
                   color: value.isEmpty ? TossColors.gray400 : TossColors.gray800,
                 ),
                 textAlign: TextAlign.end,
@@ -266,10 +266,10 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ],
         ),
@@ -287,14 +287,14 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: TossShadows.card,
+            border: Border.all(color: TossColors.gray200),
           ),
           child: Center(
             child: Text(
               'Delete Account',
               style: TossTextStyles.h4.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ),
@@ -317,7 +317,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         children: [
@@ -335,7 +335,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                 children: [
                   Icon(
                     Icons.public,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: hasTradeData
                         ? Theme.of(context).colorScheme.primary
                         : TossColors.gray600,
@@ -351,7 +351,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                             color: TossColors.black87,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: TossSpacing.space0),
                         Text(
                           hasTradeData
                               ? 'Tap to view/edit'
@@ -369,7 +369,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: TossColors.gray400,
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                     ),
                   ),
                 ],
@@ -598,7 +598,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
               Text(
                 'Select Account Type',
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
               const SizedBox(height: TossSpacing.space4),
@@ -608,7 +608,7 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
                   title: Text(
                     type,
                     style: TossTextStyles.h4.copyWith(
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
                           : TossColors.gray800,

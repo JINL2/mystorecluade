@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
 /// Product name input row with required indicator
@@ -21,8 +23,8 @@ class ProductNameRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      constraints: const BoxConstraints(minHeight: TossSpacing.buttonHeightLG),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -33,15 +35,15 @@ class ProductNameRow extends StatelessWidget {
                 TextSpan(
                   text: 'Product name',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray600,
                   ),
                 ),
-                const TextSpan(
+                TextSpan(
                   text: ' *',
                   style: TextStyle(
                     color: TossColors.error,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
               ],
@@ -57,7 +59,7 @@ class ProductNameRow extends StatelessWidget {
                     focusNode: focusNode,
                     textAlign: TextAlign.right,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w400,
+                      fontWeight: TossFontWeight.regular,
                       color: TossColors.gray900,
                     ),
                     decoration: InputDecoration(
@@ -65,7 +67,7 @@ class ProductNameRow extends StatelessWidget {
                           ? null
                           : 'Enter product name',
                       hintStyle: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w400,
+                        fontWeight: TossFontWeight.regular,
                         color: TossColors.gray500,
                       ),
                       border: InputBorder.none,
@@ -76,10 +78,10 @@ class ProductNameRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
                 const Icon(
                   Icons.chevron_right,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                   color: TossColors.gray500,
                 ),
               ],

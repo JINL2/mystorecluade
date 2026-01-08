@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 
 /// A reusable number input row widget for product forms
@@ -33,7 +35,7 @@ class FormNumberInputRow extends StatelessWidget {
 
         return Container(
           constraints: const BoxConstraints(minHeight: 48),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -41,7 +43,7 @@ class FormNumberInputRow extends StatelessWidget {
               Text(
                 label,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray600,
                 ),
               ),
@@ -65,13 +67,13 @@ class FormNumberInputRow extends StatelessWidget {
                               ]
                             : [FilteringTextInputFormatter.digitsOnly],
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w400,
+                          fontWeight: TossFontWeight.regular,
                           color: TossColors.gray900,
                         ),
                         decoration: InputDecoration(
                           hintText: isFocused || hasValue ? null : placeholder,
                           hintStyle: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w400,
+                            fontWeight: TossFontWeight.regular,
                             color: TossColors.gray500,
                           ),
                           border: InputBorder.none,
@@ -82,10 +84,10 @@ class FormNumberInputRow extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: TossSpacing.space1 + TossSpacing.space0_5),
                     const Icon(
                       Icons.chevron_right,
-                      size: 18,
+                      size: TossSpacing.iconSM,
                       color: TossColors.gray500,
                     ),
                   ],

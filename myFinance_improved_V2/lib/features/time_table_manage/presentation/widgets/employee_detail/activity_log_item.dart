@@ -17,15 +17,15 @@ class ActivityLogItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: TossDimensions.timelineDateCircle,
+            height: TossDimensions.timelineDateCircle,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _getActionColor().withValues(alpha: 0.1),
+              color: _getActionColor().withValues(alpha: TossOpacity.light),
             ),
             child: Icon(
               _getActionIcon(),
-              size: 16,
+              size: TossSpacing.iconSM,
               color: _getActionColor(),
             ),
           ),
@@ -37,10 +37,10 @@ class ActivityLogItem extends StatelessWidget {
                 Text(
                   log.actionType.label,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text.rich(
                   TextSpan(
                     children: [

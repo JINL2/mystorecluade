@@ -4,6 +4,9 @@ import 'package:myfinance_improved/features/delegate_role/presentation/providers
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -89,7 +92,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
             Text(
               'Select Permissions',
               style: TossTextStyles.bodyLarge.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
@@ -128,7 +131,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
                 isAllSelected ? 'Clear All' : 'Select All',
                 style: TossTextStyles.labelLarge.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ),
@@ -211,7 +214,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
                     Text(
                       title,
                       style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -233,7 +236,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
                 child: const Icon(
                   Icons.expand_more,
                   color: TossColors.gray600,
-                  size: 24,
+                  size: TossSpacing.iconMD2,
                 ),
               ),
             ],
@@ -253,13 +256,13 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
           padding: const EdgeInsets.all(TossSpacing.space1),
           child: AnimatedContainer(
             duration: TossAnimations.normal,
-            width: 20,
-            height: 20,
+            width: TossSpacing.iconMD,
+            height: TossSpacing.iconMD,
             decoration: BoxDecoration(
               color: allSelected
                   ? TossColors.primary
                   : someSelected
-                      ? TossColors.primary.withOpacity(0.3)
+                      ? TossColors.primary.withValues(alpha: TossOpacity.heavy)
                       : TossColors.white,
               border: Border.all(
                 color: allSelected || someSelected
@@ -270,12 +273,12 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
             child: allSelected
-                ? const Icon(Icons.check, size: 14, color: TossColors.white)
+                ? const Icon(Icons.check, size: TossSpacing.iconXS, color: TossColors.white)
                 : someSelected
                     ? Center(
                         child: Container(
-                          width: 8,
-                          height: 2,
+                          width: TossSpacing.space2,
+                          height: TossDimensions.timelineLineWidth,
                           color: TossColors.white,
                         ),
                       )
@@ -318,8 +321,8 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
                         const SizedBox(width: TossSpacing.space6),
                         AnimatedContainer(
                           duration: TossAnimations.normal,
-                          width: 20,
-                          height: 20,
+                          width: TossSpacing.iconMD,
+                          height: TossSpacing.iconMD,
                           decoration: BoxDecoration(
                             color: isSelected ? TossColors.primary : TossColors.white,
                             border: Border.all(
@@ -329,7 +332,7 @@ class _RolePermissionsStepState extends ConsumerState<RolePermissionsStep> {
                             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                           ),
                           child: isSelected
-                              ? const Icon(Icons.check, size: 14, color: TossColors.white)
+                              ? const Icon(Icons.check, size: TossSpacing.iconXS, color: TossColors.white)
                               : null,
                         ),
                         const SizedBox(width: TossSpacing.space3),

@@ -404,13 +404,13 @@ class _EditTemplateBottomSheetState
       children: [
         Row(
           children: [
-            const Icon(Icons.list_alt, color: TossColors.gray700, size: 20),
+            Icon(Icons.list_alt, color: TossColors.gray700, size: TossSpacing.iconMD),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Entry Details',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
@@ -448,13 +448,13 @@ class _EditTemplateBottomSheetState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const TossLoadingView.inline(size: 40),
+              TossLoadingView.inline(size: TossSpacing.iconXL),
               const SizedBox(height: TossSpacing.space3),
               Text(
                 'Saving changes...',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray700,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ],

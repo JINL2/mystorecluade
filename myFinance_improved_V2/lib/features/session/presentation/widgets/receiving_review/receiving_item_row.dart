@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/session_review_provider.dart';
@@ -104,8 +105,8 @@ class ReceivingItemRow extends ConsumerWidget {
               children: [
                 // Product image
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: TossSpacing.inputHeightMD,
+                  height: TossSpacing.inputHeightMD,
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -120,7 +121,7 @@ class ReceivingItemRow extends ConsumerWidget {
                               return const Icon(
                                 Icons.inventory_2_outlined,
                                 color: TossColors.textTertiary,
-                                size: 20,
+                                size: TossSpacing.iconMD,
                               );
                             },
                           ),
@@ -128,7 +129,7 @@ class ReceivingItemRow extends ConsumerWidget {
                       : const Icon(
                           Icons.inventory_2_outlined,
                           color: TossColors.textTertiary,
-                          size: 20,
+                          size: TossSpacing.iconMD,
                         ),
                 ),
                 const SizedBox(width: TossSpacing.space3),
@@ -142,13 +143,13 @@ class ReceivingItemRow extends ConsumerWidget {
                         item.productName,
                         style: TossTextStyles.bodyMedium.copyWith(
                           color: TossColors.textPrimary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (item.sku != null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: TossSpacing.space1),
                         Text(
                           item.sku!,
                           style: TossTextStyles.caption.copyWith(
@@ -168,16 +169,15 @@ class ReceivingItemRow extends ConsumerWidget {
           _buildDataCell('$shipped', TossColors.textSecondary, false),
           // Received column - show edited state
           SizedBox(
-            width: 52,
+            width: TossSpacing.inputHeightLG + 4,
             child: Text(
               '$received',
-              style: TextStyle(
-                fontSize: 14,
+              style: TossTextStyles.body.copyWith(
                 color: isEdited
                     ? TossColors.primary
                     : (receivedColor ?? TossColors.textPrimary),
                 fontWeight: (isEdited || receivedColor != null)
-                    ? FontWeight.w600
+                    ? TossFontWeight.semibold
                     : FontWeight.normal,
               ),
               textAlign: TextAlign.center,
@@ -189,9 +189,9 @@ class ReceivingItemRow extends ConsumerWidget {
           GestureDetector(
             onTap: () => _showEditDialog(context, ref, state),
             child: Container(
-              width: 32,
-              height: 32,
-              margin: const EdgeInsets.only(left: 8),
+              width: TossSpacing.iconLG2,
+              height: TossSpacing.iconLG2,
+              margin: const EdgeInsets.only(left: TossSpacing.space2),
               decoration: BoxDecoration(
                 color: isEdited
                     ? TossColors.primary.withValues(alpha: 0.1)
@@ -204,7 +204,7 @@ class ReceivingItemRow extends ConsumerWidget {
               ),
               child: Icon(
                 Icons.edit,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: isEdited ? TossColors.primary : TossColors.textSecondary,
               ),
             ),
@@ -217,13 +217,12 @@ class ReceivingItemRow extends ConsumerWidget {
 
   Widget _buildDataCell(String text, Color color, bool isBold) {
     return SizedBox(
-      width: 52,
+      width: TossSpacing.inputHeightLG + 4,
       child: Text(
         text,
-        style: TextStyle(
-          fontSize: 14,
+        style: TossTextStyles.body.copyWith(
           color: color,
-          fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+          fontWeight: isBold ? TossFontWeight.semibold : FontWeight.normal,
         ),
         textAlign: TextAlign.center,
       ),

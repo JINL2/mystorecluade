@@ -28,7 +28,7 @@ class TossMonthNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 48,
+      height: TossSpacing.iconXXL,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -42,9 +42,9 @@ class TossMonthNavigation extends StatelessWidget {
           // Center: Current month text (tappable)
           InkWell(
             onTap: onCurrentMonth,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space2),
               child: Text(
                 '$currentMonth $year',
                 style: TossTextStyles.body.copyWith(

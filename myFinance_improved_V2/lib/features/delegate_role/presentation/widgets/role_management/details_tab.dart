@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -90,7 +91,7 @@ class DetailsTab extends StatelessWidget {
           Text(
             'Role Details',
             style: TossTextStyles.h3.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -120,7 +121,7 @@ class DetailsTab extends StatelessWidget {
                         '$memberCount Members',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray700,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                       ),
                     ],
@@ -128,7 +129,7 @@ class DetailsTab extends StatelessWidget {
                 ),
                 Container(
                   width: 1,
-                  height: 16,
+                  height: TossSpacing.iconSM2,
                   color: TossColors.gray300,
                 ),
                 Expanded(
@@ -145,7 +146,7 @@ class DetailsTab extends StatelessWidget {
                         '$permissionCount Permissions',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray700,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                       ),
                     ],
@@ -167,7 +168,7 @@ class DetailsTab extends StatelessWidget {
           'Role Name',
           style: TossTextStyles.label.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -194,7 +195,7 @@ class DetailsTab extends StatelessWidget {
           'Description',
           style: TossTextStyles.label.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -225,7 +226,7 @@ class DetailsTab extends StatelessWidget {
               'Tags',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
             if (canEdit)
@@ -236,7 +237,7 @@ class DetailsTab extends StatelessWidget {
                   padding: const EdgeInsets.all(TossSpacing.space2),
                   child: Icon(
                     Icons.edit,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color: TossColors.primary,
                   ),
                 ),
@@ -271,7 +272,7 @@ class DetailsTab extends StatelessWidget {
                     tag,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ))

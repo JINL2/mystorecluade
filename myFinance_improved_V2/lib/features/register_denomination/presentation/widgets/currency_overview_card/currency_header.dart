@@ -51,8 +51,8 @@ class CurrencyHeader extends ConsumerWidget {
 
   Widget _buildFlagContainer() {
     return Container(
-      width: 48,
-      height: 48,
+      width: TossSpacing.iconXXL,
+      height: TossSpacing.iconXXL,
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),

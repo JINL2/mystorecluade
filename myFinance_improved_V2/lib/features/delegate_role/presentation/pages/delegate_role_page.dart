@@ -10,6 +10,8 @@ import 'package:myfinance_improved/features/delegate_role/presentation/widgets/r
 import 'package:myfinance_improved/features/delegate_role/presentation/widgets/role_stats_header.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -99,7 +101,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
         child: TossEmptyView(
           icon: const Icon(
             Icons.business_outlined,
-            size: 64,
+            size: TossSpacing.icon4XL,
             color: TossColors.gray600,
           ),
           title: 'No company selected',
@@ -157,7 +159,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
         child: TossEmptyView(
           icon: const Icon(
             Icons.people_outline,
-            size: 64,
+            size: TossSpacing.icon4XL,
             color: TossColors.gray600,
           ),
           title: 'No team roles yet',
@@ -175,7 +177,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
           children: [
             const Icon(
               Icons.search_off,
-              size: 48,
+              size: TossSpacing.iconXXL,
               color: TossColors.gray500,
             ),
             const SizedBox(height: TossSpacing.space4),
@@ -183,7 +185,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
               'No roles found',
               style: TossTextStyles.h4.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -209,7 +211,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
             Text(
               'Team Roles',
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray600,
               ),
             ),
@@ -219,19 +221,19 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
                 vertical: TossSpacing.space2,
               ),
               decoration: BoxDecoration(
-                color: TossColors.primary.withOpacity(0.1),
+                color: TossColors.primary.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.group, size: 16, color: TossColors.primary),
+                  const Icon(Icons.group, size: TossSpacing.iconSM2, color: TossColors.primary),
                   const SizedBox(width: TossSpacing.space1),
                   Text(
                     roles.length.toString(),
                     style: TossTextStyles.bodyLarge.copyWith(
                       color: TossColors.primary,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
                 ],

@@ -360,7 +360,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: TossSpacing.space1),
                 Text(
                   value != null ? DateFormat('yyyy-MM-dd').format(value) : 'Select date',
                   style: TossTextStyles.bodyMedium.copyWith(
@@ -369,7 +369,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
                 ),
               ],
             ),
-            Icon(Icons.calendar_today, size: 20, color: TossColors.gray400),
+            Icon(Icons.calendar_today, size: TossSpacing.iconMD, color: TossColors.gray400),
           ],
         ),
       ),

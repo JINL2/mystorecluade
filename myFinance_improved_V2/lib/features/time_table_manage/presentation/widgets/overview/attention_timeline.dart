@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/attention_item_data.dart';
 import 'timeline/date_attention_summary.dart';
 import 'timeline/legend_item.dart';
@@ -240,59 +237,68 @@ class AttentionTimeline extends StatelessWidget {
           'Need Attention',
           style: TossTextStyles.h4.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
         // Orange badge for schedule issues (empty/understaffed)
         if (totalSchedule > 0) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: TossSpacing.space2),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.badgePaddingHorizontalSM,
+              vertical: TossSpacing.badgePaddingVerticalXS,
+            ),
             decoration: BoxDecoration(
-              color: TossColors.warning.withValues(alpha: 0.1),
+              color: TossColors.warning.withValues(alpha: TossOpacity.light),
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Text(
               '$totalSchedule',
               style: TossTextStyles.labelSmall.copyWith(
                 color: TossColors.warning,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),
         ],
         // Red badge for problems
         if (totalProblem > 0) ...[
-          const SizedBox(width: 4),
+          const SizedBox(width: TossSpacing.space1),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.badgePaddingHorizontalSM,
+              vertical: TossSpacing.badgePaddingVerticalXS,
+            ),
             decoration: BoxDecoration(
-              color: TossColors.error.withValues(alpha: 0.1),
+              color: TossColors.error.withValues(alpha: TossOpacity.light),
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Text(
               '$totalProblem',
               style: TossTextStyles.labelSmall.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),
         ],
         // Show "All clear" badge when no issues
         if (totalSchedule == 0 && totalProblem == 0) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: TossSpacing.space2),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.badgePaddingHorizontalSM,
+              vertical: TossSpacing.badgePaddingVerticalXS,
+            ),
             decoration: BoxDecoration(
-              color: TossColors.success.withValues(alpha: 0.1),
+              color: TossColors.success.withValues(alpha: TossOpacity.light),
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             ),
             child: Text(
               'All clear',
               style: TossTextStyles.labelSmall.copyWith(
                 color: TossColors.success,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),

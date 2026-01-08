@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 
 /// Navigation direction for timeline buttons
 enum NavigationDirection { previous, next }
@@ -27,29 +26,29 @@ class NavigationButton extends StatelessWidget {
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
       child: Container(
-        width: 48,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        width: TossSpacing.icon3XL,
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (direction == NavigationDirection.previous) ...[
-              Icon(Icons.chevron_left, size: 20, color: color),
+              Icon(Icons.chevron_left, size: TossSpacing.iconMD, color: color),
               if (count > 0)
                 Text(
                   '$count',
                   style: TossTextStyles.caption.copyWith(
                     color: color,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
             ] else ...[
-              Icon(Icons.chevron_right, size: 20, color: color),
+              Icon(Icons.chevron_right, size: TossSpacing.iconMD, color: color),
               if (count > 0)
                 Text(
                   '$count',
                   style: TossTextStyles.caption.copyWith(
                     color: color,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
             ],

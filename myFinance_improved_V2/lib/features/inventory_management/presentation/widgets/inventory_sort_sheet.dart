@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/inventory_sort_types.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -125,12 +127,12 @@ class _SortOptionTile extends StatelessWidget {
       title: Text(
         label,
         style: TossTextStyles.body.copyWith(
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
           color: isSelected ? TossColors.primary : TossColors.gray900,
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+          ? const Icon(Icons.check, color: TossColors.primary, size: TossSpacing.iconMD)
           : null,
       onTap: () => onTap(option),
     );

@@ -43,7 +43,7 @@ class TossCurrencyExchangeModal extends StatefulWidget {
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: TossColors.transparent,
       barrierColor: TossColors.black54,
       builder: (context) => TossCurrencyExchangeModal(
         title: title,
@@ -169,19 +169,19 @@ class _TossCurrencyExchangeModalState extends State<TossCurrencyExchangeModal> {
         children: [
           // Handle
           Container(
-            width: 40,
+            width: TossSpacing.iconXL,
             height: 4,
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space2),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
             ),
           ),
 
           // Title
           if (widget.title != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space3),
               child: Text(
                 widget.title!,
                 style: TossTextStyles.h3.copyWith(
@@ -380,7 +380,7 @@ class _TossCurrencyExchangeModalState extends State<TossCurrencyExchangeModal> {
         height: 60,
         margin: const EdgeInsets.all(TossSpacing.space1),
         child: Material(
-          color: enabled ? TossColors.gray50 : TossColors.gray50.withOpacity(0.5),
+          color: enabled ? TossColors.gray50 : TossColors.gray50.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           child: InkWell(
             onTap: enabled ? () {
@@ -397,7 +397,7 @@ class _TossCurrencyExchangeModalState extends State<TossCurrencyExchangeModal> {
                   ? Icon(
                       icon,
                       color: enabled ? TossColors.gray700 : TossColors.gray300,
-                      size: 24,
+                      size: TossSpacing.iconLG,
                     )
                   : Text(
                       text,

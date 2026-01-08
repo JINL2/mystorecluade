@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/sales_product.dart';
@@ -40,7 +42,7 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
           // Items list - Expandable
           if (_isExpanded) ...[
             Container(
-              height: 1,
+              height: TossDimensions.dividerThickness,
               color: TossColors.gray100,
             ),
             _buildItemsList(),
@@ -73,27 +75,27 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
                 Text(
                   'View items',
                   style: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.gray900,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 // Item count badge
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: TossSpacing.iconLG,
+                  height: TossSpacing.iconLG,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: TossColors.primary,
-                      width: 2,
+                      width: TossDimensions.dividerThicknessBold,
                     ),
                   ),
                   child: Center(
                     child: Text(
                       '${widget.selectedProducts.length}',
                       style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.primary,
                       ),
                     ),
@@ -105,7 +107,7 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
               _isExpanded
                   ? Icons.keyboard_arrow_up
                   : Icons.keyboard_arrow_down,
-              size: 18,
+              size: TossSpacing.iconSM,
               color: TossColors.gray600,
             ),
           ],
@@ -135,10 +137,10 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
         children: [
           // Thumbnail
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
             child: ProductImageWidget(
               imageUrl: product.images.mainImage,
-              size: 40,
+              size: TossSpacing.iconXL,
               fallbackIcon: Icons.inventory_2,
             ),
           ),
@@ -151,17 +153,17 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
                 Text(
                   product.productName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.gray900,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text(
                   product.sku,
                   style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w400,
+                    fontWeight: TossFontWeight.regular,
                     color: TossColors.gray500,
                   ),
                 ),
@@ -172,7 +174,7 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
           Text(
             '$quantity × ${CurrencyFormatter.formatPrice(price)}',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray900,
             ),
           ),

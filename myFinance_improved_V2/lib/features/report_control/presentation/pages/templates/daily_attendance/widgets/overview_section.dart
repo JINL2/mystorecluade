@@ -3,11 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../../domain/entities/templates/daily_attendance/attendance_report.dart';
 
 /// Overview Section - Minimal one-line summary
@@ -35,7 +31,7 @@ class OverviewSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +67,7 @@ class OverviewSection extends StatelessWidget {
                   // Total Issues
                   Icon(
                     LucideIcons.alertCircle,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color: heroStats.totalIssues > 0
                         ? TossColors.error
                         : TossColors.gray400,
@@ -83,7 +79,7 @@ class OverviewSection extends StatelessWidget {
                       color: heroStats.totalIssues > 0
                           ? TossColors.error
                           : TossColors.gray600,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
 
@@ -92,7 +88,7 @@ class OverviewSection extends StatelessWidget {
                   // Resolved
                   Icon(
                     LucideIcons.checkCircle,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color: TossColors.success,
                   ),
                   SizedBox(width: TossSpacing.space1),
@@ -100,7 +96,7 @@ class OverviewSection extends StatelessWidget {
                     '$solvedCount',
                     style: TossTextStyles.bodyMedium.copyWith(
                       color: TossColors.success,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
 
@@ -109,7 +105,7 @@ class OverviewSection extends StatelessWidget {
                   // Pending
                   Icon(
                     LucideIcons.clock,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color:
                         unsolvedCount > 0 ? TossColors.warning : TossColors.gray400,
                   ),
@@ -120,7 +116,7 @@ class OverviewSection extends StatelessWidget {
                       color: unsolvedCount > 0
                           ? TossColors.warning
                           : TossColors.gray600,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ],
@@ -134,7 +130,7 @@ class OverviewSection extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(TossSpacing.paddingSM),
               decoration: BoxDecoration(
-                color: TossColors.primary.withValues(alpha: 0.05),
+                color: TossColors.primary.withValues(alpha: TossOpacity.subtle),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Row(
@@ -142,7 +138,7 @@ class OverviewSection extends StatelessWidget {
                 children: [
                   Icon(
                     LucideIcons.sparkles,
-                    size: 16,
+                    size: TossSpacing.iconSM2,
                     color: TossColors.primary,
                   ),
                   SizedBox(width: TossSpacing.space2),

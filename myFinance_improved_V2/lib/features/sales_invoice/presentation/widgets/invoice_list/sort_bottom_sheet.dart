@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/invoice_list_provider.dart';
 import 'invoice_sort_options.dart';
@@ -77,12 +79,12 @@ class InvoiceSortBottomSheet {
       title: Text(
         label,
         style: TossTextStyles.body.copyWith(
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
           color: isSelected ? TossColors.primary : TossColors.gray900,
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+          ? Icon(Icons.check, color: TossColors.primary, size: TossSpacing.iconMD)
           : null,
       onTap: () {
         Navigator.pop(context);

@@ -24,10 +24,10 @@ class IssueLocationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
         border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
@@ -37,12 +37,12 @@ class IssueLocationCard extends StatelessWidget {
           Row(
             children: [
               _buildLocationIcon(),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               Expanded(
                 child: Text(
                   issue.locationName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),
@@ -51,14 +51,14 @@ class IssueLocationCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 10),
+          SizedBox(height: TossSpacing.space2_5),
 
           // Amounts row
           _buildAmountsRow(),
 
           // Last entry info (if available)
           if (issue.lastEntry != null) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: TossSpacing.space2_5),
             _buildLastEntryInfo(),
           ],
         ],
@@ -85,13 +85,13 @@ class IssueLocationCard extends StatelessWidget {
 
     // Gray icon - no color variation
     return Container(
-      width: 28,
-      height: 28,
+      width: TossDimensions.avatarSM,
+      height: TossDimensions.avatarSM,
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
-      child: Icon(icon, size: 14, color: TossColors.gray600),
+      child: Icon(icon, size: TossSpacing.iconXS, color: TossColors.gray600),
     );
   }
 
@@ -100,7 +100,7 @@ class IssueLocationCard extends StatelessWidget {
     final isShortage = issue.issueType != 'surplus';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.badgePaddingHorizontalXS, vertical: TossSpacing.badgePaddingVerticalXS),
       decoration: BoxDecoration(
         color: isShortage ? TossColors.errorLight : TossColors.warningLight,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -108,7 +108,7 @@ class IssueLocationCard extends StatelessWidget {
       child: Text(
         isShortage ? 'Shortage' : 'Surplus',
         style: TossTextStyles.labelSmall.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
           color: isShortage ? TossColors.error : TossColors.warning,
         ),
       ),
@@ -133,11 +133,11 @@ class IssueLocationCard extends StatelessWidget {
                   color: TossColors.gray500,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: TossSpacing.space0_5),
               Text(
                 issue.bookFormatted,
                 style: TossTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray700,
                 ),
               ),
@@ -155,11 +155,11 @@ class IssueLocationCard extends StatelessWidget {
                   color: TossColors.gray500,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: TossSpacing.space0_5),
               Text(
                 issue.actualFormatted,
                 style: TossTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray700,
                 ),
               ),
@@ -176,11 +176,11 @@ class IssueLocationCard extends StatelessWidget {
                 color: TossColors.gray500,
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: TossSpacing.space0_5),
             Text(
               issue.differenceFormatted,
               style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: diffColor,
               ),
             ),
@@ -194,7 +194,7 @@ class IssueLocationCard extends StatelessWidget {
     final entry = issue.lastEntry!;
 
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -207,28 +207,28 @@ class IssueLocationCard extends StatelessWidget {
             children: [
               Icon(
                 LucideIcons.history,
-                size: 12,
+                size: TossSpacing.iconXS2,
                 color: TossColors.gray500,
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: TossSpacing.space1),
               Text(
                 'Last Entry',
                 style: TossTextStyles.labelSmall.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: TossSpacing.space2),
 
           // Employee info - all gray
           Row(
             children: [
               // Employee avatar - GRAY
               Container(
-                width: 24,
-                height: 24,
+                width: TossDimensions.avatarXS,
+                height: TossDimensions.avatarXS,
                 decoration: BoxDecoration(
                   color: TossColors.gray200,
                   shape: BoxShape.circle,
@@ -239,13 +239,13 @@ class IssueLocationCard extends StatelessWidget {
                         ? entry.employeeName[0].toUpperCase()
                         : '?',
                     style: TossTextStyles.labelSmall.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray600,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +253,7 @@ class IssueLocationCard extends StatelessWidget {
                     Text(
                       entry.employeeName,
                       style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray800,
                       ),
                     ),
@@ -270,7 +270,7 @@ class IssueLocationCard extends StatelessWidget {
               Text(
                 entry.formattedAmount,
                 style: TossTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray700,
                 ),
               ),
@@ -279,7 +279,7 @@ class IssueLocationCard extends StatelessWidget {
 
           // Description
           if (entry.description != null && entry.description!.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: TossSpacing.space1_5),
             Text(
               entry.description!,
               style: TossTextStyles.labelSmall.copyWith(

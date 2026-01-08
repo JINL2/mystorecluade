@@ -4,6 +4,8 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 
 /// Reusable section wrapper for LC form
 class LCFormSection extends StatelessWidget {
@@ -24,7 +26,7 @@ class LCFormSection extends StatelessWidget {
         Text(
           title,
           style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.gray800,
           ),
         ),
@@ -54,9 +56,9 @@ class LCInfoRow extends StatelessWidget {
         vertical: TossSpacing.space2,
       ),
       decoration: BoxDecoration(
-        color: TossColors.primary.withValues(alpha: 0.05),
+        color: TossColors.primary.withValues(alpha: TossOpacity.subtle),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: TossColors.primary.withValues(alpha: TossOpacity.overlay)),
       ),
       child: Row(
         children: [
@@ -69,7 +71,7 @@ class LCInfoRow extends StatelessWidget {
           Text(
             value,
             style: TossTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.primary,
             ),
           ),

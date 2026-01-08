@@ -104,7 +104,7 @@ class _ExpandedHeader extends StatelessWidget {
                     color: TossColors.gray900,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   subtitle,
                   style: TossTextStyles.caption.copyWith(
@@ -218,7 +218,7 @@ class DebtSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2 + 2, vertical: TossSpacing.space1),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),

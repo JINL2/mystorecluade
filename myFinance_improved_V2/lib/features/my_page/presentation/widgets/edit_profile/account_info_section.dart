@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 
 import 'package:myfinance_improved/features/my_page/domain/entities/user_profile.dart';
 import 'profile_form_section.dart';
@@ -47,7 +48,7 @@ class AccountInfoSection extends StatelessWidget {
           label,
           style: TossTextStyles.labelLarge.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),

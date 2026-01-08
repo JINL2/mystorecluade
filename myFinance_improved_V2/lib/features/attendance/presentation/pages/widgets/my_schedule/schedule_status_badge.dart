@@ -32,7 +32,7 @@ class ScheduleStatusBadge extends StatelessWidget {
 
     // Chip style with solid fill background and white text
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2 + TossSpacing.space1 / 2, vertical: TossSpacing.space1),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -41,7 +41,7 @@ class ScheduleStatusBadge extends StatelessWidget {
         label,
         style: TossTextStyles.labelSmall.copyWith(
           color: TossColors.white,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

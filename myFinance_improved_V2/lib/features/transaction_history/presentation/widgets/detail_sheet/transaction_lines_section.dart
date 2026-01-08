@@ -9,6 +9,7 @@ import '../../../../../core/utils/number_formatter.dart';
 import '../../../../../core/utils/text_utils.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/transaction.dart';
@@ -88,8 +89,8 @@ class _SectionHeader extends StatelessWidget {
         Row(
           children: [
             Container(
-              width: 4,
-              height: 16,
+              width: TossSpacing.space1,
+              height: TossSpacing.space4,
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -99,15 +100,15 @@ class _SectionHeader extends StatelessWidget {
             Text(
               title,
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
             const SizedBox(width: TossSpacing.space2),
             Container(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: TossSpacing.space2,
-                vertical: 2,
+                vertical: TossSpacing.space1 / 2,
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray100,
@@ -115,9 +116,8 @@ class _SectionHeader extends StatelessWidget {
               ),
               child: Text(
                 '${lines.length} items',
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.gray600,
-                  fontSize: 11,
                 ),
               ),
             ),
@@ -126,7 +126,7 @@ class _SectionHeader extends StatelessWidget {
         Text(
           '$currencySymbol${_formatCurrency(total)}',
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: TossFontWeight.bold,
             color: color,
           ),
         ),
@@ -160,7 +160,7 @@ class _LineDetailCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-      child: TossCard(
+      child: TossWhiteCard(
         padding: const EdgeInsets.all(TossSpacing.space3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,14 +176,13 @@ class _LineDetailCard extends StatelessWidget {
                       Text(
                         line.accountName,
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                         ),
                       ),
                       Text(
                         _getAccountTypeLabel(line.accountType),
-                        style: TossTextStyles.caption.copyWith(
+                        style: TossTextStyles.small.copyWith(
                           color: TossColors.gray500,
-                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -193,7 +192,7 @@ class _LineDetailCard extends StatelessWidget {
                   '${isDebit ? '+' : '-'}${_formatCurrency(amount)}',
                   style: TossTextStyles.body.copyWith(
                     color: color,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
               ],
@@ -216,9 +215,8 @@ class _LineDetailCard extends StatelessWidget {
               const SizedBox(height: TossSpacing.space2),
               Text(
                 line.description!.withoutTrailingDate,
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.gray500,
-                  fontSize: 11,
                 ),
               ),
             ],
@@ -272,24 +270,22 @@ class _CashLocationRow extends StatelessWidget {
         children: [
           Icon(
             _getCashLocationIcon(line.cashLocation!['type'] as String? ?? ''),
-            size: 14,
+            size: TossSpacing.iconXXS,
             color: TossColors.primary,
           ),
           const SizedBox(width: TossSpacing.space2),
           Text(
             'Cash Location: ',
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.small.copyWith(
               color: TossColors.gray600,
-              fontSize: 11,
             ),
           ),
           Expanded(
             child: Text(
               line.displayLocation,
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.small.copyWith(
                 color: TossColors.primary,
-                fontWeight: FontWeight.w500,
-                fontSize: 11,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ),
@@ -324,25 +320,23 @@ class _CounterpartyRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
+        Icon(
           Icons.person_outline,
-          size: 14,
+          size: TossSpacing.iconXXS,
           color: TossColors.gray400,
         ),
         const SizedBox(width: TossSpacing.space2),
         Text(
           '${line.counterparty!['type'] as String? ?? ''}: ',
-          style: TossTextStyles.caption.copyWith(
+          style: TossTextStyles.small.copyWith(
             color: TossColors.gray500,
-            fontSize: 11,
           ),
         ),
         Text(
           line.displayCounterparty,
-          style: TossTextStyles.caption.copyWith(
+          style: TossTextStyles.small.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w500,
-            fontSize: 11,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
       ],

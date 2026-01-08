@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -67,16 +70,16 @@ class CashAccountCard extends StatelessWidget {
           children: [
             // Logo icon
             Container(
-              width: 44,
-              height: 44,
+              width: TossDimensions.avatarLG,
+              height: TossDimensions.avatarLG,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: TossOpacity.hover),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 icon,
                 color: TossColors.primary,
-                size: 22,
+                size: TossSpacing.iconMD,
               ),
             ),
 
@@ -89,10 +92,8 @@ class CashAccountCard extends StatelessWidget {
                 children: [
                   Text(
                     location.locationName,
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.subtitle.copyWith(
                       color: TossColors.gray900,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space1),
@@ -116,10 +117,8 @@ class CashAccountCard extends StatelessWidget {
                   children: [
                     Text(
                       formatCurrency(location.totalJournalCashAmount, location.currencySymbol),
-                      style: TossTextStyles.body.copyWith(
+                      style: TossTextStyles.subtitle.copyWith(
                         color: TossColors.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space1),
@@ -127,16 +126,15 @@ class CashAccountCard extends StatelessWidget {
                       formatCurrency(location.cashDifference.abs(), ''),
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.error,
-                        fontSize: 14,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(width: TossSpacing.space2),
-                const Icon(
+                Icon(
                   Icons.chevron_right,
                   color: TossColors.gray400,
-                  size: 22,
+                  size: TossSpacing.iconMD,
                 ),
               ],
             ),

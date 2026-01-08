@@ -7,11 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 // Core utilities
 import '../../../../../core/utils/datetime_utils.dart';
-import '../../../../../shared/themes/toss_border_radius.dart';
 // Shared themes
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 // Shared widgets
 // Feature providers
 import '../../providers/time_table_providers.dart';
@@ -127,8 +124,8 @@ class AddShiftBottomSheet extends ConsumerWidget {
         decoration: const BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(TossBorderRadius.xxxl),
+            topRight: Radius.circular(TossBorderRadius.xxxl),
           ),
         ),
         child: const Center(
@@ -145,23 +142,23 @@ class AddShiftBottomSheet extends ConsumerWidget {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(TossBorderRadius.xxxl),
+          topRight: Radius.circular(TossBorderRadius.xxxl),
         ),
       ),
       child: Column(
         children: [
           // Handle bar
           Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
+            margin: EdgeInsets.only(top: TossSpacing.space3),
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+              borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
             ),
           ),
 
@@ -174,7 +171,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
                   'Add Shift',
                   style: TossTextStyles.h2.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                   ),
                 ),
                 const Spacer(),
@@ -185,9 +182,9 @@ class AddShiftBottomSheet extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
                   child: Container(
                     padding: const EdgeInsets.all(TossSpacing.space2),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close,
-                      size: 24,
+                      size: TossSpacing.iconLG,
                       color: TossColors.gray600,
                     ),
                   ),
@@ -198,7 +195,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
 
           // Divider
           Container(
-            height: 1,
+            height: TossDimensions.dividerThickness,
             color: TossColors.gray200,
           ),
 
@@ -213,9 +210,9 @@ class AddShiftBottomSheet extends ConsumerWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.error_outline,
-                              size: 48,
+                              size: TossSpacing.iconXXL,
                               color: TossColors.error,
                             ),
                             const SizedBox(height: TossSpacing.space3),
@@ -245,7 +242,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
                                   'Retry',
                                   style: TossTextStyles.bodyLarge.copyWith(
                                     color: TossColors.primary,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: TossFontWeight.semibold,
                                   ),
                                 ),
                               ),
@@ -309,7 +306,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
                               'Date',
                               style: TossTextStyles.bodyLarge.copyWith(
                                 color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                               ),
                             ),
                             const SizedBox(height: TossSpacing.space2),
@@ -327,9 +324,9 @@ class AddShiftBottomSheet extends ConsumerWidget {
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.calendar_today,
-                                      size: 20,
+                                      size: TossSpacing.iconMD,
                                       color: TossColors.gray600,
                                     ),
                                     const SizedBox(width: TossSpacing.space3),
@@ -344,9 +341,9 @@ class AddShiftBottomSheet extends ConsumerWidget {
                                       ),
                                     ),
                                     const Spacer(),
-                                    const Icon(
+                                    Icon(
                                       Icons.arrow_forward_ios,
-                                      size: 16,
+                                      size: TossSpacing.iconSM,
                                       color: TossColors.gray400,
                                     ),
                                   ],
@@ -361,17 +358,17 @@ class AddShiftBottomSheet extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
-                                  color: TossColors.warning.withValues(alpha: 0.1),
+                                  color: TossColors.warning.withValues(alpha: TossOpacity.light),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                                   border: Border.all(
-                                    color: TossColors.warning.withValues(alpha: 0.3),
+                                    color: TossColors.warning.withValues(alpha: TossOpacity.heavy),
                                   ),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.info_outline,
-                                      size: 20,
+                                      size: TossSpacing.iconMD,
                                       color: TossColors.warning,
                                     ),
                                     const SizedBox(width: TossSpacing.space2),
@@ -393,7 +390,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
 
           // Divider
           Container(
-            height: 1,
+            height: TossDimensions.dividerThickness,
             color: TossColors.gray200,
           ),
 
@@ -418,7 +415,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
                           'Cancel',
                           style: TossTextStyles.bodyLarge.copyWith(
                             color: TossColors.gray700,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ),
@@ -446,14 +443,14 @@ class AddShiftBottomSheet extends ConsumerWidget {
                       child: Center(
                         child: formState.isSaving
                             ? const TossLoadingView.inline(
-                                size: 20,
+                                size: TossSpacing.iconMD,
                                 color: TossColors.white,
                               )
                             : Text(
                                 'Save',
                                 style: TossTextStyles.bodyLarge.copyWith(
                                   color: formState.isFormValid ? TossColors.white : TossColors.gray500,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TossFontWeight.semibold,
                                 ),
                               ),
                       ),

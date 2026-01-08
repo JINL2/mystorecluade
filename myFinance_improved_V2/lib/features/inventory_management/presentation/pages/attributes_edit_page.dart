@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../widgets/attributes/add_attribute_form_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -133,7 +134,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
         title: Text(
           'Delete Attribute',
           style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
           ),
         ),
@@ -185,7 +186,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
 
   Widget _buildBody() {
     return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space4),
       itemCount: _attributes.length,
       proxyDecorator: (child, index, animation) {
         return AnimatedBuilder(
@@ -237,12 +238,12 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
             : DismissDirection.endToStart,
         background: Container(
           alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20),
+          padding: const EdgeInsets.only(right: TossSpacing.space5),
           color: TossColors.error,
           child: const Icon(
             LucideIcons.trash2,
             color: TossColors.white,
-            size: 22,
+            size: TossSpacing.iconMD + TossSpacing.space0_5,
           ),
         ),
         confirmDismiss: (direction) async {
@@ -250,7 +251,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
           return false;
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
           child: Row(
             children: [
               // Attribute name
@@ -258,7 +259,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
                 child: Text(
                   attribute.name,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray900,
                   ),
                 ),
@@ -270,19 +271,19 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
                 child: Text(
                   attribute.type.label,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w400,
+                    fontWeight: TossFontWeight.regular,
                     color: TossColors.gray500,
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: TossSpacing.space4),
 
               // Reorder handle
               ReorderableDragStartListener(
                 index: index,
                 child: const Icon(
                   Icons.menu,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.gray400,
                 ),
               ),

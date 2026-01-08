@@ -35,7 +35,6 @@ class TotalDisplay extends StatelessWidget {
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray600,
               fontWeight: FontWeight.w500,
-              fontSize: 14,
             ),
           ),
           Text(
@@ -43,7 +42,6 @@ class TotalDisplay extends StatelessWidget {
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray900,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
             ),
           ),
         ],

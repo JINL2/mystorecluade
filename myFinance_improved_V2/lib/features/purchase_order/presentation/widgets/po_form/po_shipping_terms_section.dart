@@ -157,9 +157,9 @@ class POShipmentOptionsSection extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: TossSpacing.space1),
           SizedBox(
-            height: 24,
+            height: TossSpacing.iconMD2,
             child: FittedBox(
               fit: BoxFit.contain,
               child: Switch(

@@ -280,7 +280,7 @@ class AppTheme {
       ),
       checkColor: WidgetStateProperty.all(TossColors.white),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       side: const BorderSide(color: TossColors.gray300, width: 1.5),
     ),
@@ -310,7 +310,7 @@ class AppTheme {
       backgroundColor: TossColors.surface,
       surfaceTintColor: TossColors.transparent,
       elevation: 0,
-      height: 64,
+      height: TossSpacing.icon4XL,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       indicatorColor: TossColors.primarySurface,
       indicatorShape: RoundedRectangleBorder(

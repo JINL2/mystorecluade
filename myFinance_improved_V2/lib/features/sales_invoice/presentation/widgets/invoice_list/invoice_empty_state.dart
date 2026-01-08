@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -32,7 +33,7 @@ class InvoiceEmptyState extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 64,
+            size: TossDimensions.errorIconSize,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space3),

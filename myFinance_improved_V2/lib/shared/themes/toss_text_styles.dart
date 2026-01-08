@@ -174,6 +174,25 @@ class TossTextStyles {
     height: 1.455,  // 16px line height
   );
 
+  /// Micro - Smallest text, badges, timestamps (10px)
+  /// Usage: Chip labels, micro badges
+  static TextStyle get micro => GoogleFonts.inter(
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.02,
+    height: 1.4,  // 14px line height
+  );
+
+  /// Small Section Title - Section labels like "Cash Location" (12px, gray)
+  /// Usage: Form section headers, card section labels
+  static TextStyle get smallSectionTitle => GoogleFonts.inter(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.01,
+    height: 1.333,  // 16px line height
+    color: const Color(0xFF6B7280),  // gray600
+  );
+
   // ==================== SPECIAL STYLES ====================
 
   /// Amount - Financial numbers with monospace font (20px)

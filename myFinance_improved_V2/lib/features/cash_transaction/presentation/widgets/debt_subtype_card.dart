@@ -83,7 +83,7 @@ class DebtSubtypeCard extends StatelessWidget {
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space1 / 2),
                   Text(
                     subType.description,
                     style: TossTextStyles.caption.copyWith(

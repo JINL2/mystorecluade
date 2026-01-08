@@ -76,7 +76,7 @@ class TossWeekShiftCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2 + TossSpacing.space0_5, horizontal: TossSpacing.space3),
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -91,18 +91,16 @@ class TossWeekShiftCard extends StatelessWidget {
                 children: [
                   Text(
                     date,
-                    style: TossTextStyles.body.copyWith(
-                      fontSize: 13,
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                   Text(
                     timeRange,
-                    style: TossTextStyles.body.copyWith(
-                      fontSize: 13,
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       fontFeatures: [FontFeature.tabularFigures()],
                     ),
                   ),
@@ -114,17 +112,15 @@ class TossWeekShiftCard extends StatelessWidget {
                 children: [
                   Text(
                     shiftType,
-                    style: TossTextStyles.body.copyWith(
-                      fontSize: 13,
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
                     ),
                   ),
                   if (statusText != null) ...[
-                    Text(' • ', style: TossTextStyles.body.copyWith(fontSize: 13, color: TossColors.gray400)),
+                    Text(' • ', style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray400)),
                     Text(
                       statusText,
-                      style: TossTextStyles.body.copyWith(
-                        fontSize: 13,
+                      style: TossTextStyles.bodySmall.copyWith(
                         color: status == ShiftCardStatus.onTime
                             ? TossColors.success
                             : status == ShiftCardStatus.late

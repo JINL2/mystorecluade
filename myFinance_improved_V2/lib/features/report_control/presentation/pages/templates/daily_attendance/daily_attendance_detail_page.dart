@@ -99,7 +99,7 @@ class DailyAttendanceDetailPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alertCircle, size: 64, color: TossColors.error),
+            Icon(LucideIcons.alertCircle, size: TossSpacing.icon4XL, color: TossColors.error),
             SizedBox(height: TossSpacing.space4),
             Text(
               message,

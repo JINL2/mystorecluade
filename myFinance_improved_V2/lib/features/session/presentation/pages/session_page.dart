@@ -21,7 +21,7 @@ class SessionPage extends ConsumerWidget {
       appBar: TossAppBar(
         title: 'Inventory',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 24),
+          icon: const Icon(Icons.arrow_back, size: TossSpacing.iconMD2),
           onPressed: () => context.go('/'),
         ),
       ),
@@ -128,15 +128,15 @@ class _SessionTypeCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: TossSpacing.icon3XL,
+                height: TossSpacing.icon3XL,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Icon(
                   icon,
-                  size: 28,
+                  size: TossSpacing.iconLG,
                   color: color,
                 ),
               ),

@@ -43,19 +43,19 @@ class AccountMappingStatusRow extends StatelessWidget {
       backgroundColor = TossColors.gray50;
       borderColor = TossColors.gray200;
       textColor = TossColors.gray600;
-      leadingWidget = const TossLoadingView.inline(size: 16);
+      leadingWidget = TossLoadingView.inline(size: TossSpacing.iconSM2);
     } else if (isError) {
       backgroundColor = TossColors.error.withValues(alpha: 0.1);
       borderColor = TossColors.error.withValues(alpha: 0.3);
       textColor = TossColors.error;
       leadingWidget =
-          const Icon(Icons.warning, color: TossColors.error, size: 18);
+          Icon(Icons.warning, color: TossColors.error, size: TossSpacing.iconSM);
     } else if (isSuccess) {
       backgroundColor = TossColors.success.withValues(alpha: 0.1);
       borderColor = TossColors.success.withValues(alpha: 0.3);
       textColor = TossColors.success;
       leadingWidget =
-          const Icon(Icons.check_circle, color: TossColors.success, size: 18);
+          Icon(Icons.check_circle, color: TossColors.success, size: TossSpacing.iconSM);
     } else {
       return const SizedBox.shrink();
     }
@@ -77,7 +77,7 @@ class AccountMappingStatusRow extends StatelessWidget {
               message,
               style: TossTextStyles.bodySmall.copyWith(
                 color: textColor,
-                fontWeight: isError ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: isError ? TossFontWeight.semibold : TossFontWeight.medium,
               ),
             ),
           ),
@@ -102,7 +102,7 @@ class AccountMappingStatusRow extends StatelessWidget {
                   'Set Up',
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.white,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ),

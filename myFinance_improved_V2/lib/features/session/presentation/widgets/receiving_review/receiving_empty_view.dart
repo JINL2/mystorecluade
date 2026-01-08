@@ -18,7 +18,7 @@ class ReceivingEmptyView extends StatelessWidget {
           children: [
             const Icon(
               Icons.inbox_outlined,
-              size: 64,
+              size: TossSpacing.icon4XL,
               color: TossColors.textTertiary,
             ),
             const SizedBox(height: TossSpacing.space4),

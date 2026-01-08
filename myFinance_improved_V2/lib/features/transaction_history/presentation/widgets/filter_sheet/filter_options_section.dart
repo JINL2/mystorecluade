@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/transaction_filter.dart';
@@ -47,7 +48,7 @@ class FilterOptionsSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              color: TossColors.error.withValues(alpha: 0.1),
+              color: TossColors.error.withValues(alpha: TossOpacity.light),
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: Row(

@@ -8,6 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/utils/storage_url_helper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_opacity.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -107,44 +110,45 @@ class _InvoiceAttachmentSectionState
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(TossBorderRadius.xl),
         ),
       ),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
+          padding: EdgeInsets.all(TossSpacing.space4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Handle bar
               Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: TossSpacing.space4),
+                width: TossDimensions.dragHandleWidth,
+                height: TossDimensions.dragHandleHeight,
+                margin: EdgeInsets.only(bottom: TossSpacing.space4),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
                 ),
               ),
               Text(
                 'Add Image',
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
-              const SizedBox(height: TossSpacing.space4),
+              SizedBox(height: TossSpacing.space4),
               ListTile(
                 leading: Container(
-                  padding: const EdgeInsets.all(TossSpacing.space2),
+                  padding: EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.photo_library_outlined,
                     color: TossColors.primary,
+                    size: TossSpacing.iconMD2,
                   ),
                 ),
                 title: const Text('Choose from Gallery'),
@@ -156,14 +160,15 @@ class _InvoiceAttachmentSectionState
               ),
               ListTile(
                 leading: Container(
-                  padding: const EdgeInsets.all(TossSpacing.space2),
+                  padding: EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
-                    color: TossColors.success.withValues(alpha: 0.1),
+                    color: TossColors.success.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.camera_alt_outlined,
                     color: TossColors.success,
+                    size: TossSpacing.iconMD2,
                   ),
                 ),
                 title: const Text('Take Photo'),
@@ -173,7 +178,7 @@ class _InvoiceAttachmentSectionState
                   _pickImageFromCamera();
                 },
               ),
-              const SizedBox(height: TossSpacing.space2),
+              SizedBox(height: TossSpacing.space2),
             ],
           ),
         ),
@@ -189,7 +194,7 @@ class _InvoiceAttachmentSectionState
     final totalCount = existingAttachments.length + pendingAttachments.length;
 
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      padding: EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -202,41 +207,41 @@ class _InvoiceAttachmentSectionState
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(TossSpacing.space2),
+                padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.attach_file,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                   color: TossColors.primary,
                 ),
               ),
-              const SizedBox(width: TossSpacing.space3),
+              SizedBox(width: TossSpacing.space3),
               Text(
                 'Attachments',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                   color: TossColors.gray900,
                 ),
               ),
               if (totalCount > 0) ...[
-                const SizedBox(width: TossSpacing.space2),
+                SizedBox(width: TossSpacing.space2),
                 Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: TossSpacing.space2,
-                    vertical: 2,
+                    vertical: TossSpacing.badgePaddingVerticalSM,
                   ),
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.full),
                   ),
                   child: Text(
                     '$totalCount',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.primary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -249,22 +254,22 @@ class _InvoiceAttachmentSectionState
                   onPressed:
                       state.isPickingImages ? null : _showSourceSelectionDialog,
                   leadingIcon: state.isPickingImages
-                      ? const TossLoadingView.inline(size: 16)
-                      : const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                      ? TossLoadingView.inline(size: TossSpacing.iconSM2)
+                      : Icon(Icons.add_photo_alternate_outlined, size: TossSpacing.iconSM),
                 ),
             ],
           ),
 
           // Attachments grid
           if (totalCount > 0) ...[
-            const SizedBox(height: TossSpacing.space3),
+            SizedBox(height: TossSpacing.space3),
             SizedBox(
-              height: 80,
+              height: TossDimensions.productImageLarge,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: existingAttachments.length + pendingAttachments.length,
                 separatorBuilder: (_, __) =>
-                    const SizedBox(width: TossSpacing.space2),
+                    SizedBox(width: TossSpacing.space2),
                 itemBuilder: (context, index) {
                   // Existing attachments first
                   if (index < existingAttachments.length) {
@@ -281,13 +286,13 @@ class _InvoiceAttachmentSectionState
             ),
           ] else ...[
             // Empty state
-            const SizedBox(height: TossSpacing.space3),
+            SizedBox(height: TossSpacing.space3),
             InkWell(
               onTap: state.isPickingImages ? null : _showSourceSelectionDialog,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(TossSpacing.space4),
+                padding: EdgeInsets.all(TossSpacing.space4),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: TossColors.gray200,
@@ -298,12 +303,12 @@ class _InvoiceAttachmentSectionState
                 ),
                 child: Column(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.add_photo_alternate_outlined,
-                      size: 32,
+                      size: TossSpacing.iconLG2,
                       color: TossColors.gray400,
                     ),
-                    const SizedBox(height: TossSpacing.space2),
+                    SizedBox(height: TossSpacing.space2),
                     Text(
                       'Tap to add receipts or screenshots',
                       style: TossTextStyles.caption.copyWith(
@@ -326,8 +331,8 @@ class _InvoiceAttachmentSectionState
     final showImage = attachment.isImage && fileUrl != null;
 
     return Container(
-      width: 80,
-      height: 80,
+      width: TossDimensions.productImageLarge,
+      height: TossDimensions.productImageLarge,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(color: TossColors.gray200),
@@ -341,8 +346,8 @@ class _InvoiceAttachmentSectionState
                 fit: BoxFit.cover,
                 placeholder: (_, __) => Container(
                   color: TossColors.gray100,
-                  child: const Center(
-                    child: TossLoadingView.inline(size: 20),
+                  child: Center(
+                    child: TossLoadingView.inline(size: TossSpacing.iconMD),
                   ),
                 ),
                 errorWidget: (_, __, ___) => _buildFileIcon(),
@@ -358,11 +363,11 @@ class _InvoiceAttachmentSectionState
       children: [
         // Thumbnail
         Container(
-          width: 80,
-          height: 80,
+          width: TossDimensions.productImageLarge,
+          height: TossDimensions.productImageLarge,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            border: Border.all(color: TossColors.primary.withValues(alpha: 0.5)),
+            border: Border.all(color: TossColors.primary.withValues(alpha: TossOpacity.scrim)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(TossBorderRadius.md - 1),
@@ -381,11 +386,11 @@ class _InvoiceAttachmentSectionState
           top: 0,
           left: 0,
           child: Container(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               horizontal: TossSpacing.space1,
-              vertical: 2,
+              vertical: TossSpacing.badgePaddingVerticalSM,
             ),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: TossColors.primary,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(TossBorderRadius.md - 1),
@@ -394,10 +399,9 @@ class _InvoiceAttachmentSectionState
             ),
             child: Text(
               'NEW',
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.small.copyWith(
                 color: TossColors.white,
-                fontSize: 8,
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
             ),
           ),
@@ -410,14 +414,14 @@ class _InvoiceAttachmentSectionState
           child: GestureDetector(
             onTap: () => _removeAttachment(index),
             child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
+              padding: EdgeInsets.all(TossSpacing.space0_5),
+              decoration: BoxDecoration(
                 color: TossColors.error,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.close,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.white,
               ),
             ),
@@ -430,11 +434,11 @@ class _InvoiceAttachmentSectionState
   Widget _buildFileIcon() {
     return Container(
       color: TossColors.gray100,
-      child: const Center(
+      child: Center(
         child: Icon(
           Icons.image,
           color: TossColors.gray400,
-          size: 28,
+          size: TossSpacing.iconLG,
         ),
       ),
     );

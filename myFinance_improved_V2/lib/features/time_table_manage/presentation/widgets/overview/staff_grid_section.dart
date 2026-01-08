@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import 'shift_info_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -53,7 +51,7 @@ class _StaffGridSectionState extends State<StaffGridSection> {
 
         // Show more/less button
         if (hasMore) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: TossSpacing.space1),
           _buildShowMoreButton(),
         ],
       ],
@@ -72,7 +70,7 @@ class _StaffGridSectionState extends State<StaffGridSection> {
         child: Icon(
           _showAll ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
           color: TossColors.gray500,
-          size: 20,
+          size: TossSpacing.iconMD,
         ),
       ),
     );
@@ -86,7 +84,7 @@ class _StaffGridSectionState extends State<StaffGridSection> {
         EmployeeProfileAvatar(
           imageUrl: staff.avatarUrl,
           name: staff.name,
-          size: 24,
+          size: TossDimensions.avatarXS,
           showBorder: true,
           borderColor: TossColors.gray200,
         ),
@@ -96,9 +94,8 @@ class _StaffGridSectionState extends State<StaffGridSection> {
         Expanded(
           child: Text(
             staff.name,
-            style: TossTextStyles.bodyMedium.copyWith(
+            style: TossTextStyles.caption.copyWith(
               color: TossColors.gray900,
-              fontSize: 13,
             ),
             overflow: TextOverflow.ellipsis,
           ),

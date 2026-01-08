@@ -6,6 +6,7 @@ import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../domain/entities/product.dart';
 import '../../pages/product_transactions_page.dart';
 
@@ -24,7 +25,7 @@ class ProductDetailTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 56,
+      height: TossDimensions.topBarHeight,
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Row(
         children: [
@@ -97,7 +98,7 @@ class _AnimatedIconButton extends StatefulWidget {
   const _AnimatedIconButton({
     required this.icon,
     required this.onTap,
-    this.size = 22,
+    this.size = TossSpacing.iconMD2,
   });
 
   @override
@@ -141,8 +142,8 @@ class _AnimatedIconButtonState extends State<_AnimatedIconButton>
         builder: (context, child) => Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
-            width: 40,
-            height: 40,
+            width: TossSpacing.iconXL,
+            height: TossSpacing.iconXL,
             alignment: Alignment.center,
             child: Icon(
               widget.icon,

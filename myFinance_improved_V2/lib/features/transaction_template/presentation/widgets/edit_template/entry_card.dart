@@ -129,7 +129,7 @@ class _EntryHeader extends StatelessWidget {
             type.toUpperCase(),
             style: TossTextStyles.caption.copyWith(
               color: type == 'debit' ? TossColors.primary : TossColors.success,
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
         ),
@@ -138,7 +138,7 @@ class _EntryHeader extends StatelessWidget {
           child: Text(
             accountName,
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray900,
             ),
           ),

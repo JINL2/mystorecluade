@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import 'date_attention_summary.dart';
 import 'dot_indicator.dart';
 
@@ -42,20 +40,20 @@ class TimelineDate extends StatelessWidget {
           _formatDayName(date),
           style: TossTextStyles.labelSmall.copyWith(
             color: isToday ? TossColors.primary : TossColors.gray500,
-            fontWeight: isToday ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: isToday ? TossFontWeight.semibold : TossFontWeight.medium,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: TossSpacing.space0_5),
 
         // Day number (tappable)
         GestureDetector(
           onTap: onDateTap,
           child: Container(
-            width: 32,
-            height: 32,
+            width: TossDimensions.timelineDateCircle,
+            height: TossDimensions.timelineDateCircle,
             decoration: isToday
                 ? BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                   )
                 : null,
@@ -64,26 +62,26 @@ class TimelineDate extends StatelessWidget {
               '${date.day}',
               style: TossTextStyles.body.copyWith(
                 color: isToday ? TossColors.primary : TossColors.gray900,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: TossSpacing.space2),
 
         // Vertical line
         Container(
-          width: 1,
-          height: 16,
+          width: TossDimensions.timelineConnectorWidth,
+          height: TossDimensions.timelineConnectorHeight,
           color: hasItems ? TossColors.gray300 : TossColors.gray200,
         ),
 
-        const SizedBox(height: 4),
+        const SizedBox(height: TossSpacing.space1),
 
         // Dots row - Fixed height container for consistent alignment
         SizedBox(
-          height: 32, // Fixed height: dots(8) + spacing(4) + text(~18) + padding
+          height: TossDimensions.timelineDateCircle, // Fixed height: dots(8) + spacing(4) + text(~18) + padding
           child: hasItems
               ? Column(
                   mainAxisSize: MainAxisSize.min,
@@ -103,7 +101,7 @@ class TimelineDate extends StatelessWidget {
 
                         if (summary!.scheduleCount > 0 &&
                             summary!.problemCount > 0)
-                          const SizedBox(width: 4),
+                          const SizedBox(width: TossSpacing.space1),
 
                         // Red dots (problems)
                         if (summary!.problemCount > 0)
@@ -117,14 +115,13 @@ class TimelineDate extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: TossSpacing.space1),
 
                     // Total count
                     Text(
                       '(${summary!.totalCount})',
-                      style: TossTextStyles.caption.copyWith(
+                      style: TossTextStyles.small.copyWith(
                         color: TossColors.gray500,
-                        fontSize: 10,
                       ),
                     ),
                   ],

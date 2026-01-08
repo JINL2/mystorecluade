@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -92,8 +95,8 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
           // Handle bar
           Container(
             margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -112,7 +115,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                       Text(
                         'Add Member to ${widget.roleName}',
                         style: TossTextStyles.h2.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TossFontWeight.bold,
                           color: TossColors.gray900,
                         ),
                       ),
@@ -153,7 +156,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                           children: [
                             const Icon(
                               Icons.people_outline,
-                              size: 64,
+                              size: TossSpacing.icon4XL,
                               color: TossColors.gray300,
                             ),
                             const SizedBox(height: TossSpacing.space4),
@@ -214,13 +217,13 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 44,
-                                    height: 44,
+                                    width: TossSpacing.iconXXL,
+                                    height: TossSpacing.iconXXL,
                                     decoration: BoxDecoration(
                                       color: isOwner
                                           ? Color.alphaBlend(
                                               TossColors.primary
-                                                  .withOpacity(0.1),
+                                                  .withValues(alpha: TossOpacity.light),
                                               TossColors.background,
                                             )
                                           : isDisabled
@@ -247,7 +250,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                                         Text(
                                           userName,
                                           style: TossTextStyles.body.copyWith(
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: TossFontWeight.semibold,
                                             color: isDisabled
                                                 ? TossColors.gray500
                                                 : TossColors.gray900,
@@ -269,7 +272,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                                             color: isDisabled
                                                 ? TossColors.gray400
                                                 : TossColors.gray500,
-                                            fontWeight: FontWeight.w500,
+                                            fontWeight: TossFontWeight.medium,
                                           ),
                                         ),
                                       ],
@@ -281,7 +284,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                                     const Icon(
                                       Icons.check,
                                       color: TossColors.primary,
-                                      size: 24,
+                                      size: TossSpacing.iconMD2,
                                     ),
                                   ],
                                 ],
@@ -300,7 +303,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.error_outline,
-                            color: TossColors.error, size: 48),
+                            color: TossColors.error, size: TossSpacing.iconXXL),
                         const SizedBox(height: TossSpacing.space3),
                         Text(
                           'Failed to load users',
@@ -320,7 +323,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.error_outline,
-                        color: TossColors.error, size: 48),
+                        color: TossColors.error, size: TossSpacing.iconXXL),
                     const SizedBox(height: TossSpacing.space3),
                     Text(
                       'Failed to load role',
@@ -407,7 +410,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
           'Assigned',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.primary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       );

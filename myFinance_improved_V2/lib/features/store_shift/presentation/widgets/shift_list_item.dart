@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/store_shift.dart';
@@ -48,10 +49,11 @@ class ShiftListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, color) = _getTimeBasedIconAndColor();
 
-    return TossCard(
+    return GestureDetector(
       onTap: onEdit,
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      child: Row(
+      child: TossWhiteCard(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Row(
         children: [
           // Icon Container
           Container(
@@ -78,7 +80,7 @@ class ShiftListItem extends StatelessWidget {
                   shift.shiftName,
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space1 / 2),
@@ -96,7 +98,7 @@ class ShiftListItem extends StatelessWidget {
                       children: [
                         const Icon(
                           LucideIcons.users,
-                          size: 12,
+                          size: TossSpacing.space3,
                           color: TossColors.gray500,
                         ),
                         const SizedBox(width: TossSpacing.space1),
@@ -104,7 +106,7 @@ class ShiftListItem extends StatelessWidget {
                           '${shift.numberShift}',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray600,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                           ),
                         ),
                       ],
@@ -149,6 +151,7 @@ class ShiftListItem extends StatelessWidget {
             ],
           ),
         ],
+        ),
       ),
     );
   }

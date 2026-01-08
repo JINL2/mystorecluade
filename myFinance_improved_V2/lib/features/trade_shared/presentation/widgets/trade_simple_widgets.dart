@@ -57,14 +57,14 @@ class TradeStatChip extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: TossSpacing.space1 + 2),
             Text(
               label,
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray600,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: TossSpacing.space1),
             Text(
               value,
               style: TossTextStyles.caption.copyWith(
@@ -189,7 +189,7 @@ class TradeActionChip extends StatelessWidget {
               color: color,
               size: 16,
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: TossSpacing.space1 + 2),
             Text(
               label,
               style: TossTextStyles.caption.copyWith(
@@ -344,7 +344,7 @@ class TradeSimpleAmountCard extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: TossSpacing.space1 + 2),
               Text(
                 amount,
                 style: TossTextStyles.h2.copyWith(
@@ -411,7 +411,7 @@ class TradeSimpleInfoRow extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: TossSpacing.space1 + 2),
                     Text(
                       label,
                       style: TossTextStyles.caption.copyWith(
@@ -419,7 +419,7 @@ class TradeSimpleInfoRow extends StatelessWidget {
                       ),
                     ),
                     if (value != null) ...[
-                      const SizedBox(width: 4),
+                      SizedBox(width: TossSpacing.space1),
                       Text(
                         value!,
                         style: TossTextStyles.caption.copyWith(
@@ -431,7 +431,7 @@ class TradeSimpleInfoRow extends StatelessWidget {
                   ],
                 ),
                 if (amount != null) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: TossSpacing.space1),
                   Text(
                     amount!,
                     style: TossTextStyles.bodyMedium.copyWith(
@@ -496,7 +496,7 @@ class TradeSectionHeader extends StatelessWidget {
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: TossSpacing.space1 + 2),
         ],
         Text(
           title,
@@ -506,7 +506,7 @@ class TradeSectionHeader extends StatelessWidget {
           ),
         ),
         if (badge != null) ...[
-          const SizedBox(width: 4),
+          SizedBox(width: TossSpacing.space1),
           Text(
             badge!,
             style: TossTextStyles.caption.copyWith(

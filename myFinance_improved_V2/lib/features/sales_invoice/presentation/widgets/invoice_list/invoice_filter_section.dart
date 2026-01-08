@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/invoice.dart';
@@ -31,13 +34,13 @@ class InvoiceFilterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: TossColors.white,
-      padding: const EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space2, TossSpacing.space3, 0),
+      padding: EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space2, TossSpacing.space3, TossSpacing.space0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Filter pills row - equal distribution
           SizedBox(
-            height: 52,
+            height: TossDimensions.headerHeight,
             child: Row(
               children: [
                 Expanded(
@@ -47,7 +50,7 @@ class InvoiceFilterSection extends StatelessWidget {
                     onTap: () => onFilterTap('Time'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: _FilterPill(
                     title: 'Location',
@@ -56,7 +59,7 @@ class InvoiceFilterSection extends StatelessWidget {
                     onTap: () => onFilterTap('Cash Location'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: _FilterPill(
                     title: 'Status',
@@ -68,13 +71,13 @@ class InvoiceFilterSection extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
           // Summary text with bold numbers
           _buildSummaryText(),
-          const SizedBox(height: 8),
+          SizedBox(height: TossSpacing.space2),
           // Divider
           Container(
-            height: 1,
+            height: TossDimensions.dividerThickness,
             color: TossColors.gray100,
           ),
         ],
@@ -88,7 +91,7 @@ class InvoiceFilterSection extends StatelessWidget {
     return RichText(
       text: TextSpan(
         style: TossTextStyles.caption.copyWith(
-          fontWeight: FontWeight.w500,
+          fontWeight: TossFontWeight.medium,
           color: TossColors.gray600,
         ),
         children: [
@@ -96,7 +99,7 @@ class InvoiceFilterSection extends StatelessWidget {
           TextSpan(
             text: '${invoiceState.filteredInvoices.length} invoices',
             style: TossTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -104,7 +107,7 @@ class InvoiceFilterSection extends StatelessWidget {
           TextSpan(
             text: _formatCurrency(totalAmount),
             style: TossTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -147,12 +150,12 @@ class _FilterPill extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          height: 52,
-          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
+          height: TossDimensions.headerHeight,
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
           decoration: BoxDecoration(
-            color: isActive ? TossColors.primary.withValues(alpha: 0.1) : TossColors.gray50,
+            color: isActive ? TossColors.primary.withValues(alpha: TossOpacity.light) : TossColors.gray50,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            border: isActive ? Border.all(color: TossColors.primary, width: 1) : null,
+            border: isActive ? Border.all(color: TossColors.primary, width: TossDimensions.dividerThickness) : null,
           ),
           child: Row(
             children: [
@@ -165,7 +168,7 @@ class _FilterPill extends StatelessWidget {
                     Text(
                       title,
                       style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: isActive ? TossColors.primary : TossColors.gray900,
                       ),
                       maxLines: 1,
@@ -174,7 +177,7 @@ class _FilterPill extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w400,
+                        fontWeight: TossFontWeight.regular,
                         color: isActive ? TossColors.primary : TossColors.gray600,
                       ),
                       maxLines: 1,
@@ -183,10 +186,10 @@ class _FilterPill extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: TossSpacing.space1),
               Icon(
                 Icons.keyboard_arrow_down,
-                size: 16,
+                size: TossSpacing.iconSM2,
                 color: isActive ? TossColors.primary : TossColors.gray600,
               ),
             ],

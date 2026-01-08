@@ -64,12 +64,12 @@ WidgetbookComponent _placeholderComponent(String name, String path) {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.widgets, size: 48, color: TossColors.gray400),
-              const SizedBox(height: 16),
+              SizedBox(height: TossSpacing.space4),
               Text(
                 name,
                 style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: TossSpacing.space2),
               Text(
                 'lib/shared/widgets/selectors/$path',
                 style: TossTextStyles.caption.copyWith(
@@ -78,18 +78,18 @@ WidgetbookComponent _placeholderComponent(String name, String path) {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: TossSpacing.space6),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: TossColors.warningLight,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.info_outline, color: TossColors.warning, size: 20),
-                    const SizedBox(width: 8),
+                    SizedBox(width: TossSpacing.space2),
                     Flexible(
                       child: Text(
                         'This selector requires Riverpod providers.\nTest in the actual app.',

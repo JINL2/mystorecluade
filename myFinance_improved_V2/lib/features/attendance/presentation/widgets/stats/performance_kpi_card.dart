@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
+import '../../../../../shared/themes/index.dart';
 import 'reliability_score_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -49,10 +47,10 @@ class PerformanceKpiCard extends StatelessWidget {
 
               // Divider
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
                 child: Container(
                   width: 1,
-                  height: 32,
+                  height: TossSpacing.space8,
                   color: TossColors.gray100,
                 ),
               ),
@@ -68,10 +66,10 @@ class PerformanceKpiCard extends StatelessWidget {
 
               // Divider
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
                 child: Container(
                   width: 1,
-                  height: 32,
+                  height: TossSpacing.space8,
                   color: TossColors.gray100,
                 ),
               ),
@@ -151,9 +149,8 @@ class _KpiColumn extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style: TossTextStyles.caption.copyWith(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
+                style: TossTextStyles.small.copyWith(
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray600,
                 ),
                 maxLines: 1,
@@ -163,38 +160,36 @@ class _KpiColumn extends StatelessWidget {
             if (showInfoIcon)
               GestureDetector(
                 onTap: onInfoTap,
-                child: const Icon(
+                child: Icon(
                   LucideIcons.info,
-                  size: 16,
+                  size: TossSpacing.iconXS,
                   color: TossColors.gray600,
                 ),
               ),
           ],
         ),
 
-        const SizedBox(height: 4),
+        SizedBox(height: TossSpacing.space1),
 
         // Value with change percentage - wrap to prevent overflow
         Wrap(
           alignment: alignRight ? WrapAlignment.end : WrapAlignment.start,
           crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 4,
-          runSpacing: 2,
+          spacing: TossSpacing.space1,
+          runSpacing: TossSpacing.space1 / 2,
           children: [
             Text(
               value,
-              style: TossTextStyles.bodyMedium.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
+              style: TossTextStyles.h4.copyWith(
+                fontWeight: TossFontWeight.bold,
                 color: TossColors.gray900,
               ),
             ),
             if (changePercentage != null)
               Text(
                 changePercentage!,
-                style: TossTextStyles.caption.copyWith(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                style: TossTextStyles.small.copyWith(
+                  fontWeight: TossFontWeight.semibold,
                   color: _changeColor,
                 ),
               ),

@@ -156,7 +156,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
         padding: const EdgeInsets.all(TossSpacing.space1),
         child: Icon(
           isSelected ? LucideIcons.chevronDown : LucideIcons.chevronRight,
-          size: 18,
+          size: TossSpacing.iconSM3,
           color: TossColors.textSecondary,
         ),
       ),
@@ -176,8 +176,8 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: TossSpacing.space8,
+            height: TossSpacing.space8,
             decoration: BoxDecoration(
               color: isSelected ? TossColors.primary : TossColors.gray200,
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -185,7 +185,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
             child: Icon(
               LucideIcons.building2,
               color: isSelected ? TossColors.white : TossColors.textSecondary,
-              size: 18,
+              size: TossSpacing.iconSM3,
             ),
           ),
           const SizedBox(width: TossSpacing.space2),
@@ -200,12 +200,11 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
                         companyName,
                         style: TossTextStyles.body.copyWith(
                           fontWeight: FontWeight.w600,
-                          fontSize: 14,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: TossSpacing.space1 + TossSpacing.space1 / 2),
                     SubscriptionBadge.fromPlanType(
                       (company['subscription'] as Map<String, dynamic>?)?['plan_name'] as String?,
                       compact: true,
@@ -214,9 +213,8 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
                 ),
                 Text(
                   '${stores.length} ${stores.length == 1 ? 'store' : 'stores'}',
-                  style: TossTextStyles.caption.copyWith(
+                  style: TossTextStyles.small.copyWith(
                     color: TossColors.textTertiary,
-                    fontSize: 11,
                   ),
                 ),
               ],
@@ -235,7 +233,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
         padding: const EdgeInsets.all(TossSpacing.space1),
         child: Icon(
           LucideIcons.moreHorizontal,
-          size: 18,
+          size: TossSpacing.iconSM3,
           color: TossColors.textSecondary,
         ),
       ),
@@ -315,7 +313,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
           children: [
             Icon(
               LucideIcons.store,
-              size: 16,
+              size: TossSpacing.iconSM2,
               color: isStoreSelected ? TossColors.textPrimary : TossColors.textSecondary,
             ),
             const SizedBox(width: TossSpacing.space2),
@@ -323,7 +321,6 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
               child: Text(
                 storeName,
                 style: TossTextStyles.body.copyWith(
-                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: TossColors.textPrimary,
                 ),
@@ -333,7 +330,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
               const Icon(
                 LucideIcons.check,
                 color: TossColors.primary,
-                size: 16,
+                size: TossSpacing.iconSM2,
               ),
           ],
         ),
@@ -353,8 +350,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
         padding: const EdgeInsets.only(left: TossSpacing.space8),
         child: Text(
           'No stores',
-          style: TossTextStyles.caption.copyWith(
-            fontSize: 14,
+          style: TossTextStyles.body.copyWith(
             fontWeight: FontWeight.w500,
             color: TossColors.textTertiary,
           ),
@@ -403,8 +399,8 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
           children: [
             // Handle bar
             Container(
-              width: 40,
-              height: 4,
+              width: TossSpacing.space10,
+              height: TossSpacing.space1,
               margin: const EdgeInsets.only(
                 top: TossSpacing.space2,
                 bottom: TossSpacing.space4,
@@ -416,7 +412,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
             ),
             // View codes option
             ListTile(
-              leading: const Icon(LucideIcons.qrCode, size: 20),
+              leading: const Icon(LucideIcons.qrCode, size: TossSpacing.iconMD),
               title: const Text('View Codes'),
               onTap: () {
                 Navigator.pop(bottomSheetContext);
@@ -426,7 +422,7 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
             const Divider(height: 1),
             // Add store option (create or join)
             ListTile(
-              leading: const Icon(LucideIcons.plus, size: 20),
+              leading: const Icon(LucideIcons.plus, size: TossSpacing.iconMD),
               title: const Text('Add Store'),
               onTap: () {
                 Navigator.pop(bottomSheetContext);

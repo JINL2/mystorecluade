@@ -9,6 +9,7 @@ import '../../../../core/cache/hive_cache_service.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/notifications/services/production_token_service.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/widgets/ai_chat/ai_chat.dart';
 import '../../../attendance/presentation/providers/attendance_providers.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
@@ -194,7 +195,7 @@ class _HomepageState extends ConsumerState<Homepage> {
               if (appState.companyChoosen.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                     child: _hasRevenuePermission()
                         ? const RevenueCard()
                         : const SalaryCard(), // Show salary if no revenue permission
@@ -202,26 +203,26 @@ class _HomepageState extends ConsumerState<Homepage> {
                 ),
 
               // Quick Access Section
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: QuickAccessSection(),
+                  padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                  child: const QuickAccessSection(),
                 ),
               ),
 
               // Revenue Chart Card (only for managers with revenue permission)
               if (appState.companyChoosen.isNotEmpty && _hasRevenuePermission())
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.only(left: 16, right: 16, top: 16),
-                    child: RevenueChartCard(),
+                    padding: EdgeInsets.only(left: TossSpacing.space4, right: TossSpacing.space4, top: TossSpacing.space4),
+                    child: const RevenueChartCard(),
                   ),
                 ),
 
               // Line Divider
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 21),
+                  padding: EdgeInsets.symmetric(vertical: TossSpacing.space5 + 1),
                   child: Container(
                     height: 18,
                     color: TossColors.borderLight,
@@ -230,10 +231,10 @@ class _HomepageState extends ConsumerState<Homepage> {
               ),
 
               // Feature Grid
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: FeatureGrid(),
+                  padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+                  child: const FeatureGrid(),
                 ),
               ),
             ],

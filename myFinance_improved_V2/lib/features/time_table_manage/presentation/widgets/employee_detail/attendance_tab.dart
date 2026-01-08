@@ -33,7 +33,7 @@ class AttendanceTab extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: isActive ? TossColors.gray900 : TossColors.gray500,
           ),
         ),

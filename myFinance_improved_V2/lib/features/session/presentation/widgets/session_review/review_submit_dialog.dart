@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -63,8 +64,8 @@ class _ReviewSubmitDialogState extends State<ReviewSubmitDialog> {
                   child: Row(
                     children: [
                       SizedBox(
-                        width: 24,
-                        height: 24,
+                        width: TossSpacing.iconMD2,
+                        height: TossSpacing.iconMD2,
                         child: Checkbox(
                           value: _isFinal,
                           onChanged: (value) {
@@ -86,11 +87,11 @@ class _ReviewSubmitDialogState extends State<ReviewSubmitDialog> {
                             Text(
                               'No more deliveries expected',
                               style: TossTextStyles.bodyMedium.copyWith(
-                                fontWeight: FontWeight.w500,
+                                fontWeight: TossFontWeight.medium,
                                 color: TossColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: TossSpacing.space0_5),
                             Text(
                               'Check this only when this is the final delivery for this shipment',
                               style: TossTextStyles.caption.copyWith(

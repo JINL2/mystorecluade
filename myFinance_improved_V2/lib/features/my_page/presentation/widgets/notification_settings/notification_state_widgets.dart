@@ -3,6 +3,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Error view for notification settings
@@ -23,15 +26,15 @@ class NotificationErrorView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: TossSpacing.space20,
+            height: TossSpacing.space20,
             decoration: BoxDecoration(
-              color: TossColors.error.withValues(alpha: 0.1),
+              color: TossColors.error.withValues(alpha: TossOpacity.light),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.notifications_off_outlined,
-              size: 40,
+              size: TossSpacing.space10,
               color: TossColors.error,
             ),
           ),
@@ -39,7 +42,7 @@ class NotificationErrorView extends StatelessWidget {
           Text(
             'Failed to load settings',
             style: TossTextStyles.h3.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray900,
             ),
           ),
@@ -71,15 +74,15 @@ class NotificationEmptyState extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: TossSpacing.space20,
+              height: TossSpacing.space20,
               decoration: const BoxDecoration(
                 color: TossColors.gray100,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.notifications_none_outlined,
-                size: 40,
+                size: TossSpacing.space10,
                 color: TossColors.gray400,
               ),
             ),
@@ -87,7 +90,7 @@ class NotificationEmptyState extends StatelessWidget {
             Text(
               'No notification settings',
               style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray700,
               ),
             ),
@@ -119,21 +122,21 @@ class NotificationDisabledState extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
           color: TossColors.gray200,
-          width: 1,
+          width: TossDimensions.dividerThickness,
         ),
       ),
       child: Column(
         children: [
           const Icon(
             Icons.notifications_off_outlined,
-            size: 48,
+            size: TossSpacing.space12,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space3),
           Text(
             'Notifications are disabled',
             style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray700,
             ),
           ),

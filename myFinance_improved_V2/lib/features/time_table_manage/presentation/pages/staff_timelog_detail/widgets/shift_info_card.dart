@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 import '../../../../domain/entities/problem_details.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -58,26 +55,24 @@ class _ShiftInfoCardState extends State<ShiftInfoCard> {
                   children: [
                     Text(
                       widget.shiftDate,
-                      style: TossTextStyles.label.copyWith(
+                      style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray600,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: TossSpacing.space1 + 2), // 6px
                     Text(
                       widget.shiftName,
                       style: TossTextStyles.titleMedium.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: TossSpacing.space1 + 2), // 6px
                     Text(
                       widget.shiftTimeRange,
-                      style: TossTextStyles.bodyLarge.copyWith(
+                      style: TossTextStyles.body.copyWith(
                         color: TossColors.gray600,
-                        fontSize: 14,
                       ),
                     ),
                   ],
@@ -87,10 +82,10 @@ class _ShiftInfoCardState extends State<ShiftInfoCard> {
           ),
           // Status Badges - displayed below shift info when present
           if (widget.problemDetails != null && widget.problemDetails!.problems.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             _buildProblemBadges(),
           ] else if (widget.isLate || widget.isOvertime) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
             TossBadge(
               label: widget.isLate ? 'Late' : 'OT',
               backgroundColor: TossColors.error,
@@ -118,8 +113,8 @@ class _ShiftInfoCardState extends State<ShiftInfoCard> {
     final hiddenCount = totalCount - _maxVisibleTags;
 
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: TossSpacing.space1 + 2,
+      runSpacing: TossSpacing.space1 + 2,
       children: [
         // Visible problem badges
         ...visibleProblems.map((problem) => TossBadge(
@@ -149,7 +144,7 @@ class _ShiftInfoCardState extends State<ShiftInfoCard> {
                 _showAllTags ? 'Less' : '+$hiddenCount',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray600,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ),

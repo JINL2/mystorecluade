@@ -5,6 +5,7 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/utils/number_formatter.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -147,7 +148,7 @@ class AttendanceTab extends ConsumerWidget {
                       const Icon(
                         Icons.history,
                         color: TossColors.gray400,
-                        size: 20,
+                        size: TossSpacing.iconMD,
                       ),
                       const SizedBox(width: TossSpacing.space2),
                       Text(
@@ -179,7 +180,7 @@ class AttendanceTab extends ConsumerWidget {
             },
             loading: () => const Padding(
               padding: EdgeInsets.all(TossSpacing.space4),
-              child: TossLoadingView.inline(size: 24),
+              child: TossLoadingView.inline(size: TossSpacing.iconLG),
             ),
             error: (error, _) => Container(
               padding: const EdgeInsets.all(TossSpacing.space3),
@@ -192,7 +193,7 @@ class AttendanceTab extends ConsumerWidget {
                   const Icon(
                     Icons.error_outline,
                     color: TossColors.error,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
                   const SizedBox(width: TossSpacing.space2),
                   Expanded(
@@ -222,7 +223,7 @@ class AttendanceTab extends ConsumerWidget {
                 const Icon(
                   Icons.info_outline,
                   color: TossColors.gray600,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
@@ -280,15 +281,15 @@ class AttendanceTab extends ConsumerWidget {
         children: [
           // Icon
           Container(
-            width: 36,
-            height: 36,
+            width: TossDimensions.avatarMD2,
+            height: TossDimensions.avatarMD2,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
             child: Icon(
               icon,
-              size: 18,
+              size: TossSpacing.iconSM2,
               color: iconColor,
             ),
           ),
@@ -318,7 +319,7 @@ class AttendanceTab extends ConsumerWidget {
                     ],
                   ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text(
                   log.relativeTimeText,
                   style: TossTextStyles.caption.copyWith(

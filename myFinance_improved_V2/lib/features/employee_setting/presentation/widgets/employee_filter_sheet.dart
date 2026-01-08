@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -50,8 +51,8 @@ class EmployeeFilterSheet extends ConsumerWidget {
         children: [
           // Handle
           Container(
-            width: 48,
-            height: 4,
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             margin: const EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
@@ -167,7 +168,7 @@ class _FilterSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: TossSpacing.space3),
             child: Row(
               children: [
-                Icon(icon, size: 20, color: TossColors.gray600),
+                Icon(icon, size: TossSpacing.iconMD, color: TossColors.gray600),
                 const SizedBox(width: TossSpacing.space2),
                 Text(
                   title,
@@ -269,7 +270,7 @@ class _FilterOption extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 20,
+                size: TossSpacing.iconMD,
                 color: TossColors.gray600,
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -293,7 +294,7 @@ class _FilterOption extends StatelessWidget {
                 const Icon(
                   Icons.check_rounded,
                   color: TossColors.primary,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                 ),
             ],
           ),

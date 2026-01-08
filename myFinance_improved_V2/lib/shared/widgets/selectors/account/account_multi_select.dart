@@ -366,7 +366,7 @@ class AccountMultiSelectItem extends StatelessWidget {
               onChanged: onChanged,
               activeColor: TossColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
             const SizedBox(width: TossSpacing.space2),

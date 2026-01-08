@@ -28,13 +28,13 @@ class TossWeekNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 48,
+      height: TossSpacing.iconXXL,
       child: Row(
         children: [
           // Left: Previous week button (icon only)
           IconButton(
             onPressed: onPrevWeek,
-            icon: Icon(Icons.chevron_left, size: 24, color: TossColors.gray600),
+            icon: Icon(Icons.chevron_left, size: TossSpacing.iconLG, color: TossColors.gray600),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 40, minHeight: 48),
           ),
@@ -43,10 +43,10 @@ class TossWeekNavigation extends StatelessWidget {
           Expanded(
             child: InkWell(
               onTap: onCurrentWeek,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
                   child: Text(
                     '$weekLabel • $dateRange',
                     style: TossTextStyles.body.copyWith(
@@ -64,7 +64,7 @@ class TossWeekNavigation extends StatelessWidget {
           // Right: Next week button (icon only)
           IconButton(
             onPressed: onNextWeek,
-            icon: Icon(Icons.chevron_right, size: 24, color: TossColors.gray600),
+            icon: Icon(Icons.chevron_right, size: TossSpacing.iconLG, color: TossColors.gray600),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 40, minHeight: 48),
           ),

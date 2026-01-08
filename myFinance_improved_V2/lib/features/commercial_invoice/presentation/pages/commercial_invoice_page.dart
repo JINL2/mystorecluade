@@ -14,8 +14,10 @@ class CommercialInvoicePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TossScaffold(
-      appBar: const TossAppBar(
+      backgroundColor: TossColors.white,
+      appBar: TossAppBar(
         title: 'Commercial Invoice',
+        backgroundColor: TossColors.white,
       ),
       body: Center(
         child: Column(
@@ -23,7 +25,7 @@ class CommercialInvoicePage extends ConsumerWidget {
           children: [
             Icon(
               Icons.receipt_long_outlined,
-              size: 64,
+              size: TossSpacing.icon4XL,
               color: TossColors.gray400,
             ),
             const SizedBox(height: TossSpacing.space4),

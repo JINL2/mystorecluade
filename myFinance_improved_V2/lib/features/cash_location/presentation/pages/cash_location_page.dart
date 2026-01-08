@@ -8,7 +8,9 @@ import 'package:myfinance_improved/core/domain/entities/feature.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/top_feature.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/ai_chat/ai_chat.dart';
@@ -192,9 +194,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       return TossScaffold(
         appBar: const TossAppBar(
           title: 'Cash Control',
-          backgroundColor: TossColors.gray100,
+          backgroundColor: TossColors.white,
         ),
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         body: SafeArea(
           child: Column(
             children: [
@@ -225,9 +227,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return TossScaffold(
       appBar: const TossAppBar(
         title: 'Cash Control',
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
       ),
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -252,6 +254,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Extra spacing above Balance section
+                          const SizedBox(height: TossSpacing.space4),
+
                           // Balance Section
                           _buildBalanceSection(filteredLocations),
                           
@@ -277,9 +282,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // Error icon
-                          const Icon(
+                          Icon(
                             Icons.wifi_off_rounded,
-                            size: 64,
+                            size: TossSpacing.icon4XL,
                             color: TossColors.gray400,
                           ),
                           const SizedBox(height: TossSpacing.space4),
@@ -316,9 +321,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                               child: Container(
                                 padding: const EdgeInsets.all(TossSpacing.space3),
                                 decoration: BoxDecoration(
-                                  color: TossColors.error.withOpacity(0.1),
+                                  color: TossColors.error.withValues(alpha: TossOpacity.light),
                                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                                  border: Border.all(color: TossColors.error.withOpacity(0.3)),
+                                  border: Border.all(color: TossColors.error.withValues(alpha: TossOpacity.heavy)),
                                 ),
                                 child: Text(
                                   'Network connection failed',
@@ -378,6 +383,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return TossTabBar(
       tabs: const ['Cash', 'Bank', 'Vault'],
       controller: _tabController,
+      showDivider: false,
       onTabChanged: (index) {
         setState(() {
           _selectedTab = index;
@@ -401,21 +407,19 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Balance',
-            style: TossTextStyles.body.copyWith(
+            style: TossTextStyles.subtitle.copyWith(
               color: TossColors.gray900,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: TossSpacing.space4),
-          
+
           // Total Journal
           _buildBalanceRow(
             'Total Journal',
@@ -446,17 +450,15 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
             children: [
               Text(
                 'Error',
-                style: TossTextStyles.body.copyWith(
+                style: TossTextStyles.subtitle.copyWith(
                   color: TossColors.gray900,
-                  fontSize: 16,
+                  fontWeight: TossFontWeight.regular,
                 ),
               ),
               Text(
                 _formatCurrency(totalError, currencySymbol),
-                style: TossTextStyles.body.copyWith(
+                style: TossTextStyles.subtitle.copyWith(
                   color: TossColors.error,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -476,7 +478,6 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 label,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray700,
-                  fontSize: 16,
                 ),
               ),
             ],
@@ -487,14 +488,13 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 amount,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
-                  fontSize: 16,
                 ),
               ),
               const SizedBox(width: TossSpacing.space1),
               if (isClickable)
-                const Icon(
+                Icon(
                   Icons.chevron_right,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.gray400,
                 ),
             ],
@@ -571,17 +571,15 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Accounts',
-            style: TossTextStyles.body.copyWith(
+            style: TossTextStyles.subtitle.copyWith(
               color: TossColors.gray900,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -613,16 +611,16 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 children: [
                   // Plus icon
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: TossDimensions.avatarLG,
+                    height: TossDimensions.avatarLG,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.add,
                       color: TossColors.gray600,
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                     ),
                   ),
                   

@@ -186,7 +186,7 @@ class TossQuantityStepperState extends State<TossQuantityStepper> {
         ),
         // Stock change indicator
         if (widget.previousValue != null) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
           _buildStockChangeIndicator(),
         ],
       ],
@@ -200,8 +200,8 @@ class TossQuantityStepperState extends State<TossQuantityStepper> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 48,
-        height: 48,
+        width: TossSpacing.iconXXL,
+        height: TossSpacing.iconXXL,
         decoration: BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
@@ -234,13 +234,13 @@ class TossQuantityStepperState extends State<TossQuantityStepper> {
             color: TossColors.gray500,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: TossSpacing.space2),
         Icon(
           Icons.arrow_forward,
           size: TossSpacing.iconXS,
           color: TossColors.gray500,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: TossSpacing.space2),
         Text(
           '$newValue',
           style: TossTextStyles.body.copyWith(

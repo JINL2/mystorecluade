@@ -5,6 +5,9 @@ import 'package:myfinance_improved/core/utils/storage_url_helper.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -97,7 +100,7 @@ class _AttachmentFullscreenViewerState
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      TossColors.black.withValues(alpha: 0.6),
+                      TossColors.black.withValues(alpha: TossOpacity.darkScrim),
                       TossColors.transparent,
                     ],
                   ),
@@ -110,7 +113,7 @@ class _AttachmentFullscreenViewerState
                       icon: const Icon(
                         Icons.close,
                         color: TossColors.white,
-                        size: 28,
+                        size: TossSpacing.iconLG,
                       ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
@@ -123,20 +126,20 @@ class _AttachmentFullscreenViewerState
                           vertical: TossSpacing.space1,
                         ),
                         decoration: BoxDecoration(
-                          color: TossColors.black.withValues(alpha: 0.45),
+                          color: TossColors.black.withValues(alpha: TossOpacity.darkOverlay),
                           borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                         ),
                         child: Text(
                           '${_currentIndex + 1} / ${imageAttachments.length}',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.white,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
                       ),
 
                     // Placeholder for balance
-                    const SizedBox(width: 48),
+                    const SizedBox(width: TossDimensions.avatarLG),
                   ],
                 ),
               ),
@@ -156,7 +159,7 @@ class _AttachmentFullscreenViewerState
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      TossColors.black.withValues(alpha: 0.6),
+                      TossColors.black.withValues(alpha: TossOpacity.darkScrim),
                       TossColors.transparent,
                     ],
                   ),
@@ -168,7 +171,7 @@ class _AttachmentFullscreenViewerState
                     Text(
                       imageAttachments[_currentIndex].fileName,
                       style: TossTextStyles.caption.copyWith(
-                        color: TossColors.white.withValues(alpha: 0.7),
+                        color: TossColors.white.withValues(alpha: TossOpacity.secondaryOnDark),
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -216,7 +219,7 @@ class _AttachmentFullscreenViewerState
                       const Icon(
                         Icons.broken_image,
                         color: TossColors.gray400,
-                        size: 64,
+                        size: TossDimensions.errorIconSize,
                       ),
                       const SizedBox(height: TossSpacing.space2),
                       Text(
@@ -231,7 +234,7 @@ class _AttachmentFullscreenViewerState
               : const Icon(
                   Icons.image_not_supported,
                   color: TossColors.gray400,
-                  size: 64,
+                  size: TossDimensions.errorIconSize,
                 ),
         ),
       ),
@@ -257,11 +260,11 @@ class _AttachmentFullscreenViewerState
         count,
         (index) => AnimatedContainer(
           duration: TossAnimations.normal,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: index == _currentIndex ? 20 : 8,
-          height: 8,
+          margin: const EdgeInsets.symmetric(horizontal: TossDimensions.pageIndicatorDotSpacing),
+          width: index == _currentIndex ? TossDimensions.pageIndicatorActiveDotWidth : TossDimensions.pageIndicatorDotSize,
+          height: TossDimensions.pageIndicatorDotSize,
           decoration: BoxDecoration(
-            color: index == _currentIndex ? TossColors.white : TossColors.white.withValues(alpha: 0.38),
+            color: index == _currentIndex ? TossColors.white : TossColors.white.withValues(alpha: TossOpacity.disabled),
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
           ),
         ),

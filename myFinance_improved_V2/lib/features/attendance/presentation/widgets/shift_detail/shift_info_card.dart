@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
+import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/widgets/index.dart';
 import '../../../domain/entities/shift_card.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shift info card widget showing date, type, time, and status
 class ShiftInfoCard extends StatelessWidget {
@@ -124,7 +121,7 @@ class ShiftInfoCard extends StatelessWidget {
         horizontal: TossSpacing.space2,
         vertical: TossSpacing.space1,
       ),
-      borderRadius: 12,
+      borderRadius: TossBorderRadius.lg,
     );
   }
 
@@ -146,26 +143,24 @@ class ShiftInfoCard extends StatelessWidget {
               children: [
                 Text(
                   _formatDate(shift.requestDate),
-                  style: TossTextStyles.label.copyWith(
+                  style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: TossSpacing.badgePaddingHorizontalXS),
                 Text(
                   shift.shiftName ?? 'Shift',
                   style: TossTextStyles.titleMedium.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: TossSpacing.badgePaddingHorizontalXS),
                 Text(
                   '${_formatHours(shift.scheduledHours)} scheduled',
-                  style: TossTextStyles.bodyLarge.copyWith(
+                  style: TossTextStyles.body.copyWith(
                     color: TossColors.gray600,
-                    fontSize: 14,
                   ),
                 ),
               ],

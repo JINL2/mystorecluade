@@ -21,7 +21,7 @@ class DebitCreditToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
+      height: TossSpacing.iconXXL,
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -37,7 +37,7 @@ class DebitCreditToggle extends StatelessWidget {
             child: FractionallySizedBox(
               widthFactor: 0.5,
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
+                margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space1 / 2),
                 decoration: BoxDecoration(
                   color: isDebit ? TossColors.primary : TossColors.success,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),

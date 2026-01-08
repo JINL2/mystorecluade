@@ -43,16 +43,16 @@ class TemplateDetailsSection extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.info_outline,
                       color: TossColors.gray600,
-                      size: 20,
+                      size: TossSpacing.iconMD,
                     ),
                     const SizedBox(width: TossSpacing.space2),
                     Text(
                       'Template Details',
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray800,
                       ),
                     ),
@@ -153,7 +153,7 @@ class _TemplateEntryRow extends StatelessWidget {
               type.toUpperCase(),
               style: TossTextStyles.caption.copyWith(
                 color: type == 'debit' ? TossColors.primary : TossColors.success,
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
             ),
           ),
@@ -166,7 +166,7 @@ class _TemplateEntryRow extends StatelessWidget {
                   accountName,
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
                 if (cashLocationName != null)
@@ -214,7 +214,7 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.only(top: TossSpacing.space1),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: TossColors.gray500),
+          Icon(icon, size: TossSpacing.iconXS, color: TossColors.gray500),
           const SizedBox(width: TossSpacing.space1),
           Text(
             text,

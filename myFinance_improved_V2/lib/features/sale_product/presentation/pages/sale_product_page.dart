@@ -7,6 +7,9 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_opacity.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
 
 import '../../../debt_control/presentation/providers/currency_provider.dart';
 import 'payment_method_page.dart';
@@ -298,7 +301,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
       title: 'Sale',
       backgroundColor: TossColors.white,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, size: 24),
+        icon: const Icon(Icons.arrow_back, size: TossSpacing.iconMD2),
         onPressed: () async {
           final shouldPop = await _onWillPop();
           if (shouldPop && context.mounted) {
@@ -320,7 +323,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
           const SizedBox(height: TossSpacing.space2),
           _buildBrandChips(brands),
           const SizedBox(height: TossSpacing.space2),
-          Container(height: 1, color: TossColors.border),
+          Container(height: TossDimensions.dividerThickness, color: TossColors.border),
         ],
       ),
     );
@@ -336,11 +339,11 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
   Widget _buildBrandChips(List<String> brands) {
     return SizedBox(
-      height: 40,
+      height: TossSpacing.buttonHeightMD,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: brands.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        separatorBuilder: (_, __) => const SizedBox(width: TossSpacing.space4),
         itemBuilder: (context, index) {
           final brand = brands[index];
           final isSelected = _selectedBrand == brand;
@@ -351,7 +354,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               child: AnimatedContainer(
                 duration: TossAnimations.normal,
                 curve: TossAnimations.standard,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.badgePaddingHorizontalLG,
+                  vertical: TossSpacing.badgePaddingVerticalLG,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? TossColors.gray100 : TossColors.transparent,
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -359,7 +365,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                 child: Text(
                   brand,
                   style: TossTextStyles.label.copyWith(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
                     color: isSelected ? TossColors.textPrimary : TossColors.textSecondary,
                   ),
                 ),
@@ -390,7 +396,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
+            const Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(errorMessage, style: TossTextStyles.body),
             const SizedBox(height: TossSpacing.space3),
@@ -408,7 +414,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.shopping_cart_outlined, size: 64, color: TossColors.gray400),
+            const Icon(Icons.shopping_cart_outlined, size: TossSpacing.icon4XL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text('No products found',
                 style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600)),
@@ -516,7 +522,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black26,
+      barrierColor: TossColors.black.withValues(alpha: TossOpacity.heavy),
       builder: (context) => const Center(
         child: CircularProgressIndicator(
           color: TossColors.primary,

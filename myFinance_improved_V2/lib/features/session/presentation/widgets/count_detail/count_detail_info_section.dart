@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -129,7 +130,7 @@ class CountDetailInfoSection extends StatelessWidget {
             const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ],
         ],
@@ -168,7 +169,7 @@ class CountDetailInfoSection extends StatelessWidget {
               Text(
                 'Memo',
                 style: TossTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),

@@ -37,7 +37,7 @@ class TransferEntryHeader extends StatelessWidget {
               color: TossColors.gray600,
             )
           else
-            const SizedBox(width: 48),
+            const SizedBox(width: TossSpacing.iconXXL),
 
           Expanded(
             child: Column(
@@ -50,7 +50,7 @@ class TransferEntryHeader extends StatelessWidget {
                   ),
                 ),
                 if (selectedScope != null) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: TossSpacing.space1),
                   Text(
                     selectedScope!.label,
                     style: TossTextStyles.caption.copyWith(

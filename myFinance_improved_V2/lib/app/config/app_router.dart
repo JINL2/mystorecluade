@@ -375,7 +375,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: TossSpacing.space6),
               ElevatedButton(
                 onPressed: () => context.go('/'),
                 child: const Text('Go to Home'),

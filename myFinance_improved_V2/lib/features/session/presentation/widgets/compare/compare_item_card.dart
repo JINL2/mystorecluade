@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_compare_result.dart';
@@ -28,8 +29,8 @@ class CompareItemCard extends StatelessWidget {
         children: [
           // Product image
           Container(
-            width: 48,
-            height: 48,
+            width: TossSpacing.iconXXL,
+            height: TossSpacing.iconXXL,
             decoration: BoxDecoration(
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -44,7 +45,7 @@ class CompareItemCard extends StatelessWidget {
                 ? const Icon(
                     Icons.inventory_2_outlined,
                     color: TossColors.gray400,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                   )
                 : null,
           ),
@@ -57,14 +58,14 @@ class CompareItemCard extends StatelessWidget {
                 Text(
                   item.productName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (item.sku != null && item.sku!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   Text(
                     'SKU: ${item.sku}',
                     style: TossTextStyles.caption.copyWith(
@@ -74,7 +75,7 @@ class CompareItemCard extends StatelessWidget {
                 ],
                 if (item.scannedByName != null &&
                     item.scannedByName!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   Text(
                     'By: ${item.scannedByName}',
                     style: TossTextStyles.caption.copyWith(
@@ -99,7 +100,7 @@ class CompareItemCard extends StatelessWidget {
             child: Text(
               '${item.quantity}',
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
                 color: accentColor,
               ),
             ),

@@ -28,10 +28,10 @@ class TradeStatusChip extends StatelessWidget {
         vertical: compact ? TossSpacing.space1 : TossSpacing.space1,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -165,10 +165,10 @@ class TradeStatusBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(TossSpacing.space3),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
           border: Border.all(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -178,7 +178,7 @@ class TradeStatusBadge extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Icon(
@@ -201,7 +201,7 @@ class TradeStatusBadge extends StatelessWidget {
                     ),
                   ),
                   if (description != null) ...[
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       description!,
                       style: TextStyle(
@@ -259,7 +259,7 @@ class TradeStatusFilterChip extends StatelessWidget {
       label: Text(displayName),
       selected: isSelected,
       onSelected: onSelected,
-      selectedColor: color.withOpacity(0.2),
+      selectedColor: color.withValues(alpha: 0.2),
       checkmarkColor: color,
       labelStyle: TextStyle(
         color: isSelected ? color : TossColors.gray600,
@@ -267,7 +267,7 @@ class TradeStatusFilterChip extends StatelessWidget {
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
       ),
       side: BorderSide(
-        color: isSelected ? color.withOpacity(0.5) : TossColors.gray300,
+        color: isSelected ? color.withValues(alpha: 0.5) : TossColors.gray300,
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,

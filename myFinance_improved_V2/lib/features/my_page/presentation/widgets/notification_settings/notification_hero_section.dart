@@ -4,6 +4,9 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 /// Hero section with master toggle and description
 class NotificationHeroSection extends StatelessWidget {
@@ -26,14 +29,14 @@ class NotificationHeroSection extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            TossColors.primary.withValues(alpha: 0.08),
-            TossColors.primary.withValues(alpha: 0.03),
+            TossColors.primary.withValues(alpha: TossOpacity.light),
+            TossColors.primary.withValues(alpha: TossOpacity.subtle),
           ],
         ),
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
-          color: TossColors.primary.withValues(alpha: 0.1),
-          width: 1,
+          color: TossColors.primary.withValues(alpha: TossOpacity.light),
+          width: TossDimensions.dividerThickness,
         ),
       ),
       child: Column(
@@ -63,15 +66,15 @@ class NotificationHeroSection extends StatelessWidget {
 
   Widget _buildIconContainer() {
     return Container(
-      width: 48,
-      height: 48,
+      width: TossSpacing.space12,
+      height: TossSpacing.space12,
       decoration: BoxDecoration(
         color: isEnabled ? TossColors.primary : TossColors.gray300,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         boxShadow: isEnabled
             ? [
                 BoxShadow(
-                  color: TossColors.primary.withValues(alpha: 0.3),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.strong),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -83,7 +86,7 @@ class NotificationHeroSection extends StatelessWidget {
             ? Icons.notifications_active
             : Icons.notifications_off_outlined,
         color: TossColors.white,
-        size: 24,
+        size: TossSpacing.iconLG,
       ),
     );
   }
@@ -95,7 +98,7 @@ class NotificationHeroSection extends StatelessWidget {
         Text(
           'Push Notifications',
           style: TossTextStyles.h3.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
           ),
         ),
@@ -104,7 +107,7 @@ class NotificationHeroSection extends StatelessWidget {
           isEnabled ? 'Active and ready' : 'Currently disabled',
           style: TossTextStyles.caption.copyWith(
             color: isEnabled ? TossColors.primary : TossColors.gray600,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],
@@ -115,11 +118,11 @@ class NotificationHeroSection extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
+        Padding(
+          padding: EdgeInsets.only(top: TossSpacing.space1 / 2),
           child: Icon(
             Icons.info_outline,
-            size: 16,
+            size: TossSpacing.iconSM2,
             color: TossColors.gray500,
           ),
         ),

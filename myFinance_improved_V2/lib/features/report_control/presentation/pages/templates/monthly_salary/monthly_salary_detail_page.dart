@@ -94,14 +94,14 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
         backgroundColor: TossColors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(TossSpacing.space4),
+        padding: EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Month badge
             _buildMonthBadge(report.reportMonth),
 
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
 
             // Hero card with filters
             SalaryHeroCard(
@@ -114,7 +114,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
               },
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: TossSpacing.space5),
 
             // Section header
             _buildSectionHeader(
@@ -122,7 +122,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
               count: sortedEmployees.length,
             ),
 
-            const SizedBox(height: 12),
+            SizedBox(height: TossSpacing.space3),
 
             // Employee cards
             if (sortedEmployees.isEmpty)
@@ -133,24 +133,24 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
                     initiallyExpanded: false,
                   )),
 
-            const SizedBox(height: 20),
+            SizedBox(height: TossSpacing.space5),
 
             // Important Notices
             if (report.notices.isNotEmpty) ...[
               SalaryNoticesCard(notices: report.notices),
-              const SizedBox(height: 16),
+              SizedBox(height: TossSpacing.space4),
             ],
 
             // Manager Quality
             if (report.managerQuality != null) ...[
               ManagerQualityCard(quality: report.managerQuality!),
-              const SizedBox(height: 16),
+              SizedBox(height: TossSpacing.space4),
             ],
 
             // AI Insights
             SalaryInsightsCard(insights: report.aiInsights),
 
-            const SizedBox(height: 24),
+            SizedBox(height: TossSpacing.space6),
           ],
         ),
       ),
@@ -193,7 +193,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
   Widget _buildEmptyView() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(TossSpacing.space8),
+      padding: EdgeInsets.all(TossSpacing.space8),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -205,22 +205,22 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
             _activeFilter == SalaryFilter.noWarnings
                 ? LucideIcons.partyPopper
                 : LucideIcons.search,
-            size: 48,
+            size: TossSpacing.iconXXL,
             color: _activeFilter == SalaryFilter.noWarnings
-                ? const Color(0xFF10B981)
+                ? TossColors.emerald
                 : TossColors.gray300,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: TossSpacing.space4),
           Text(
             _activeFilter == SalaryFilter.noWarnings
                 ? 'All employees have warnings'
                 : 'No employees found',
             style: TossTextStyles.titleMedium.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray600,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: TossSpacing.space2),
           Text(
             'Tap the filter again to see all employees',
             style: TossTextStyles.bodySmall.copyWith(
@@ -243,8 +243,8 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(LucideIcons.alertCircle, size: 64, color: TossColors.error),
-            const SizedBox(height: 16),
+            Icon(LucideIcons.alertCircle, size: TossSpacing.icon4XL, color: TossColors.error),
+            SizedBox(height: TossSpacing.space4),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: TossSpacing.space8),
               child: Text(
@@ -278,7 +278,7 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
     } catch (_) {}
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2 + 2, vertical: TossSpacing.space1_5),
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -288,14 +288,14 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
         children: [
           const Icon(
             Icons.calendar_month,
-            size: 14,
+            size: TossSpacing.iconXS,
             color: TossColors.gray600,
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: TossSpacing.space1_5),
           Text(
             formattedMonth,
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray700,
             ),
           ),
@@ -313,21 +313,21 @@ class _MonthlySalaryDetailPageState extends State<MonthlySalaryDetailPage> {
         Text(
           title,
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: TossColors.gray700,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: TossSpacing.space2),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.badgePaddingHorizontalXS, vertical: TossSpacing.badgePaddingVerticalXS),
           decoration: BoxDecoration(
             color: TossColors.gray200,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
           ),
           child: Text(
             '$count',
             style: TossTextStyles.labelSmall.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray600,
             ),
           ),

@@ -120,7 +120,7 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
             left: 0,
             right: 0,
             top: 80,
-            height: 40,
+            height: TossSpacing.iconXL,
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
               decoration: BoxDecoration(
@@ -247,7 +247,7 @@ class _TossSimpleWheelDatePickerState extends State<TossSimpleWheelDatePicker> {
 
   Widget _buildPickerItem(String text, bool isSelected) {
     return Container(
-      height: 40,
+      height: TossSpacing.iconXL,
       alignment: Alignment.center,
       child: Text(
         text,
@@ -357,7 +357,7 @@ class TossDatePicker extends StatelessWidget {
               const Icon(
                 Icons.calendar_today,
                 color: TossColors.gray400,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
             ],
           ),

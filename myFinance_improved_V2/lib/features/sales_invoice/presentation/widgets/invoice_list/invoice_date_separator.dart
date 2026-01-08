@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
 /// Invoice date separator widget
@@ -33,7 +34,7 @@ class InvoiceDateSeparator extends StatelessWidget {
     return Text(
       '$dayName, ${date.day} $monthName ${date.year}',
       style: TossTextStyles.caption.copyWith(
-        fontWeight: FontWeight.w400,
+        fontWeight: TossFontWeight.regular,
         color: TossColors.gray600,
       ),
     );

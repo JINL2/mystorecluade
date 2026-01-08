@@ -57,7 +57,7 @@ class TossInfoDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(TossSpacing.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -68,18 +68,18 @@ class TossInfoDialog extends StatelessWidget {
                 color: TossColors.gray900,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: TossSpacing.space5),
             ...bulletPoints.asMap().entries.map((entry) {
               final index = entry.key;
               final text = entry.value;
               return Padding(
                 padding: EdgeInsets.only(
-                  bottom: index < bulletPoints.length - 1 ? 12 : 0,
+                  bottom: index < bulletPoints.length - 1 ? TossSpacing.space3 : 0,
                 ),
                 child: _TossInfoBulletPoint(text: text),
               );
             }),
-            const SizedBox(height: 24),
+            SizedBox(height: TossSpacing.space6),
             SizedBox(
               width: double.infinity,
               child: TossButton.primary(
@@ -107,7 +107,7 @@ class _TossInfoBulletPoint extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 6),
+          padding: const EdgeInsets.only(top: TossSpacing.space1 + 2),
           child: Container(
             width: 5,
             height: 5,
@@ -117,7 +117,7 @@ class _TossInfoBulletPoint extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: TossSpacing.space2 + 2),
         Expanded(
           child: Text(
             text,

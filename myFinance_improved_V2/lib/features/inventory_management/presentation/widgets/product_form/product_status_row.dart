@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
 /// Product status toggle row
@@ -19,8 +21,8 @@ class ProductStatusRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 48),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      constraints: const BoxConstraints(minHeight: TossSpacing.buttonHeightLG),
+      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -28,7 +30,7 @@ class ProductStatusRow extends StatelessWidget {
           Text(
             'Product Status',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray600,
             ),
           ),
@@ -38,13 +40,13 @@ class ProductStatusRow extends StatelessWidget {
               Text(
                 isActive ? 'Active' : 'Inactive',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: isActive ? TossColors.primary : TossColors.gray500,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: TossSpacing.space2),
               SizedBox(
-                height: 24,
+                height: TossSpacing.iconMD2,
                 child: Transform.scale(
                   scale: 0.8,
                   child: Switch(

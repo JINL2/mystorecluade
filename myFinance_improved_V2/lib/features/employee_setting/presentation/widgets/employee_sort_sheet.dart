@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -62,8 +63,8 @@ class EmployeeSortSheet extends ConsumerWidget {
         children: [
           // Handle
           Container(
-            width: 48,
-            height: 4,
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
             margin: const EdgeInsets.only(top: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.gray300,
@@ -116,7 +117,7 @@ class EmployeeSortSheet extends ConsumerWidget {
                     children: [
                       Icon(
                         option['icon']! as IconData,
-                        size: 20,
+                        size: TossSpacing.iconMD,
                         color: isSelected ? TossColors.primary : TossColors.gray600,
                       ),
                       const SizedBox(width: TossSpacing.space3),
@@ -133,14 +134,14 @@ class EmployeeSortSheet extends ConsumerWidget {
                       if (isSelected) ...[
                         Icon(
                           option['directionIcon']! as IconData,
-                          size: 16,
+                          size: TossSpacing.iconSM,
                           color: TossColors.primary,
                         ),
                         const SizedBox(width: TossSpacing.space2),
                         const Icon(
                           Icons.check_rounded,
                           color: TossColors.primary,
-                          size: 20,
+                          size: TossSpacing.iconMD,
                         ),
                       ],
                     ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
@@ -69,7 +70,7 @@ class HistoryItemCard extends StatelessWidget {
                       child: Text(
                         item.productName,
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.textPrimary,
                         ),
                       ),
@@ -88,14 +89,13 @@ class HistoryItemCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.edit, size: 10, color: TossColors.primary),
-                            const SizedBox(width: 2),
+                            const Icon(Icons.edit, size: TossSpacing.iconXXS, color: TossColors.primary),
+                            const SizedBox(width: TossSpacing.space0_5),
                             Text(
                               'Edited',
-                              style: TossTextStyles.caption.copyWith(
+                              style: TossTextStyles.micro.copyWith(
                                 color: TossColors.primary,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 10,
+                                fontWeight: TossFontWeight.medium,
                               ),
                             ),
                           ],
@@ -129,7 +129,7 @@ class HistoryItemCard extends StatelessWidget {
                   Text(
                     '${item.finalQuantity}',
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                       color: wasEdited ? TossColors.primary : TossColors.success,
                     ),
                   ),
@@ -148,7 +148,7 @@ class HistoryItemCard extends StatelessWidget {
                     Text(
                       '${item.scannedQuantity}',
                       style: TossTextStyles.caption.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: TossColors.textSecondary,
                         decoration: TextDecoration.lineThrough,
                       ),
@@ -167,7 +167,7 @@ class HistoryItemCard extends StatelessWidget {
                     Text(
                       '${item.finalRejected}',
                       style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.error,
                       ),
                     ),
@@ -228,14 +228,13 @@ class HistoryItemCard extends StatelessWidget {
       ),
       child: Text(
         'Diff: ${diff >= 0 ? '+' : ''}$diff',
-        style: TossTextStyles.caption.copyWith(
+        style: TossTextStyles.micro.copyWith(
           color: isNegative
               ? TossColors.error
               : isPositive
                   ? TossColors.success
                   : TossColors.textSecondary,
-          fontWeight: FontWeight.w600,
-          fontSize: 10,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );
@@ -258,7 +257,7 @@ class HistoryItemCard extends StatelessWidget {
         'Scanned by',
         style: TossTextStyles.caption.copyWith(
           color: TossColors.textTertiary,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );
@@ -279,8 +278,8 @@ class HistoryItemCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: TossSpacing.iconMD2,
+            height: TossSpacing.iconMD2,
             decoration: const BoxDecoration(
               color: TossColors.gray100,
               shape: BoxShape.circle,
@@ -288,10 +287,9 @@ class HistoryItemCard extends StatelessWidget {
             child: Center(
               child: Text(
                 scanner.userName.isNotEmpty ? scanner.userName[0].toUpperCase() : '?',
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.micro.copyWith(
                   color: TossColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 10,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ),
@@ -308,7 +306,7 @@ class HistoryItemCard extends StatelessWidget {
           Text(
             '${scanner.quantity}',
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.success,
             ),
           ),
@@ -322,7 +320,7 @@ class HistoryItemCard extends StatelessWidget {
             Text(
               '${scanner.quantityRejected}',
               style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.error,
               ),
             ),

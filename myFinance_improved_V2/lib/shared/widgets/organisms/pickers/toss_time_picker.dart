@@ -131,7 +131,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
             bottom: 0,
             child: Center(
               child: Container(
-                height: 40,
+                height: TossSpacing.iconXL,
                 margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
                 decoration: BoxDecoration(
                   color: TossColors.primarySurface,
@@ -278,7 +278,7 @@ class _TossSimpleWheelTimePickerState extends State<TossSimpleWheelTimePicker> {
 
   Widget _buildPickerItem(String text, bool isSelected) {
     return Container(
-      height: 40,
+      height: TossSpacing.iconXL,
       alignment: Alignment.center,
       child: Text(
         text,
@@ -386,7 +386,7 @@ class TossTimePicker extends StatelessWidget {
               const Icon(
                 Icons.access_time,
                 color: TossColors.gray400,
-                size: 20,
+                size: TossSpacing.iconMD,
               ),
             ],
           ),

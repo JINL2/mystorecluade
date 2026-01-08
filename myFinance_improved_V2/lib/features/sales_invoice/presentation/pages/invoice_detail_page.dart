@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai/ai_description_box.dart';
@@ -167,9 +169,9 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline,
-            size: 64,
+            size: TossDimensions.errorIconSize,
             color: TossColors.error,
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -215,7 +217,7 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
       backgroundColor: TossColors.white,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, size: 24),
+        icon: Icon(Icons.arrow_back, size: TossSpacing.iconMD2),
         onPressed: () => Navigator.of(context).pop(),
         color: TossColors.gray900,
       ),
@@ -225,11 +227,11 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
           Text(
             invoiceNumber,
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: TossColors.gray900,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space0_5),
           Text(
             '${dateFormat.format(saleDate)} · ${timeFormat.format(saleDate)} · $storeName',
             style: TossTextStyles.small.copyWith(
@@ -242,7 +244,7 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
       actions: [
         if (widget.onDeletePressed != null && !invoice.isCancelled)
           IconButton(
-            icon: const Icon(Icons.delete_outline, size: 24),
+            icon: Icon(Icons.delete_outline, size: TossSpacing.iconMD2),
             onPressed: () => InvoiceConfirmationDialogs.showDeleteConfirmation(
               context,
               invoice: invoice,
@@ -301,7 +303,7 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
             },
           );
         },
-        leadingIcon: const Icon(Icons.replay, size: 20, color: TossColors.white),
+        leadingIcon: Icon(Icons.replay, size: TossSpacing.iconMD, color: TossColors.white),
         fullWidth: true,
       ),
     );

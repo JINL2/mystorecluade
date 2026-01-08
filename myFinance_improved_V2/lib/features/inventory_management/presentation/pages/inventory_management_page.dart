@@ -10,6 +10,8 @@ import '../../../../app/providers/app_state.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../utils/store_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -23,7 +25,6 @@ import '../widgets/inventory_sort_sheet.dart';
 import '../widgets/move_stock_dialog.dart';
 import 'inventory_history_page.dart';
 import 'inventory_search_page.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Inventory Management Page
 class InventoryManagementPage extends ConsumerStatefulWidget {
@@ -128,7 +129,7 @@ class _InventoryManagementPageState
             ),
           );
         }),
-        const SizedBox(width: 4),
+        const SizedBox(width: TossSpacing.space1),
       ],
     );
   }
@@ -139,9 +140,9 @@ class _InventoryManagementPageState
       icon: Icon(
         icon,
         color: TossColors.gray900,
-        size: 22,
+        size: TossSpacing.iconMD,
       ),
-      splashRadius: 20,
+      splashRadius: TossSpacing.iconMD,
     );
   }
 
@@ -160,7 +161,7 @@ class _InventoryManagementPageState
                 children: [
                   const Icon(
                     Icons.inventory_2,
-                    size: 64,
+                    size: TossSpacing.icon4XL,
                     color: TossColors.gray400,
                   ),
                   const SizedBox(height: TossSpacing.space3),
@@ -287,8 +288,8 @@ class _InventoryManagementPageState
       content: ListView.separated(
         shrinkWrap: true,
         itemCount: options.length,
-        separatorBuilder: (context, index) => const Divider(
-          height: 1,
+        separatorBuilder: (context, index) => Divider(
+          height: TossDimensions.dividerThickness,
           color: TossColors.gray100,
         ),
         itemBuilder: (context, index) {
@@ -300,12 +301,12 @@ class _InventoryManagementPageState
             title: Text(
               option,
               style: TossTextStyles.body.copyWith(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                 color: isSelected ? TossColors.primary : TossColors.gray900,
               ),
             ),
             trailing: isSelected
-                ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                ? const Icon(Icons.check, color: TossColors.primary, size: TossSpacing.iconMD)
                 : null,
             onTap: () {
               setState(() {

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/utils/number_formatter.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/store_shift.dart';
@@ -199,8 +200,8 @@ class _ShiftFormSheet extends StatelessWidget {
       decoration: const BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(TossBorderRadius.bottomSheet),
+          topRight: Radius.circular(TossBorderRadius.bottomSheet),
         ),
       ),
       child: Column(
@@ -222,7 +223,7 @@ class _ShiftFormSheet extends StatelessWidget {
               title,
               style: TossTextStyles.h3.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),

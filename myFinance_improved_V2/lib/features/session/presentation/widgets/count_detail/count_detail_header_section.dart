@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -32,7 +33,7 @@ class CountDetailHeaderSection extends StatelessWidget {
             child: Text(
               sessionName,
               style: TossTextStyles.titleLarge.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
                 color: TossColors.gray900,
               ),
             ),
@@ -42,11 +43,11 @@ class CountDetailHeaderSection extends StatelessWidget {
             GestureDetector(
               onTap: isDeleting ? null : onDelete,
               child: isDeleting
-                  ? TossLoadingView.inline(size: 22, color: TossColors.loss)
+                  ? TossLoadingView.inline(size: TossSpacing.iconMD + 2, color: TossColors.loss)
                   : const Icon(
                       Icons.delete_outline,
                       color: TossColors.loss,
-                      size: 22,
+                      size: TossSpacing.iconMD + 2,
                     ),
             ),
         ],

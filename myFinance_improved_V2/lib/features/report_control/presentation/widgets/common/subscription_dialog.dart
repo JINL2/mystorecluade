@@ -91,7 +91,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TossBorderRadius.xl)),
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space6),
+          padding: EdgeInsets.all(TossSpacing.space6),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,19 +101,19 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                 children: [
                   // Category icon
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: TossDimensions.avatarLG,
+                    height: TossDimensions.avatarLG,
                     decoration: BoxDecoration(
-                      color: _getCategoryColor().withOpacity(0.1),
+                      color: _getCategoryColor().withValues(alpha: TossOpacity.light),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Icon(
                       ReportIcons.getCategoryIcon(widget.template.categoryName),
-                      size: 24,
+                      size: TossSpacing.iconMD2,
                       color: _getCategoryColor(),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: TossSpacing.space3),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,10 +121,10 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                         Text(
                           widget.template.templateName,
                           style: TossTextStyles.h3.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: TossFontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: TossSpacing.space1),
                         Text(
                           _getFrequencyText(frequency),
                           style: TossTextStyles.body.copyWith(
@@ -146,7 +146,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
 
               // Description
               if (widget.template.description != null) ...[
-                const SizedBox(height: 16),
+                SizedBox(height: TossSpacing.space4),
                 Text(
                   widget.template.description!,
                   style: TossTextStyles.body.copyWith(
@@ -155,9 +155,9 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                 ),
               ],
 
-              const SizedBox(height: 24),
+              SizedBox(height: TossSpacing.space6),
               const Divider(),
-              const SizedBox(height: 16),
+              SizedBox(height: TossSpacing.space4),
 
               // Schedule time picker
               ListTile(
@@ -172,14 +172,14 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
 
               // Days picker (for weekly frequency)
               if (frequency == 'weekly') ...[
-                const SizedBox(height: 16),
+                SizedBox(height: TossSpacing.space4),
                 Text(
                   'Delivery days',
                   style: TossTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: TossSpacing.space2),
                 Wrap(
                   spacing: 8,
                   children: List.generate(7, (index) {
@@ -206,7 +206,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                           }
                         });
                       },
-                      selectedColor: TossColors.primary.withOpacity(0.2),
+                      selectedColor: TossColors.primary.withValues(alpha: TossOpacity.strong),
                       checkmarkColor: TossColors.primary,
                     );
                   }),
@@ -215,7 +215,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
 
               // Monthly day picker (for monthly frequency)
               if (frequency == 'monthly') ...[
-                const SizedBox(height: 16),
+                SizedBox(height: TossSpacing.space4),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.calendar_today,
@@ -229,7 +229,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                 ),
               ],
 
-              const SizedBox(height: 24),
+              SizedBox(height: TossSpacing.space6),
 
               // Action buttons - minimal design
               if (isSubscribed) ...[
@@ -245,7 +245,7 @@ class _SubscriptionDialogState extends ConsumerState<SubscriptionDialog> {
                         isLoading: _isLoading,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: TossSpacing.space2),
                     // Unsubscribe button
                     Expanded(
                       flex: 2,

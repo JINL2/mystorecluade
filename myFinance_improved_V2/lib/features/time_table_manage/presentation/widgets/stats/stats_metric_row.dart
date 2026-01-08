@@ -68,8 +68,8 @@ class StatsMetricRow extends StatelessWidget {
 
   Widget _buildVerticalDivider() {
     return Container(
-      width: 1,
-      height: 40,
+      width: TossDimensions.dividerThickness,
+      height: TossDimensions.dividerHeightLG,
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
       color: TossColors.gray200,
     );
@@ -98,27 +98,24 @@ class _MetricItem extends StatelessWidget {
         Text(
           label,
           style: TossTextStyles.small.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
             color: TossColors.gray600,
-            fontSize: 12,
           ),
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: TossSpacing.space1),
         Text(
           value,
           style: TossTextStyles.h4.copyWith(
-            fontWeight: FontWeight.w700,
-            fontSize: 22,
+            fontWeight: TossFontWeight.bold,
           ),
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: TossSpacing.space0_5),
         Text(
           change,
-          style: TossTextStyles.bodySmall.copyWith(
-            fontWeight: FontWeight.w500,
-            fontSize: 12,
+          style: TossTextStyles.small.copyWith(
+            fontWeight: TossFontWeight.medium,
             color: isNegative ? TossColors.error : TossColors.primary,
           ),
         ),

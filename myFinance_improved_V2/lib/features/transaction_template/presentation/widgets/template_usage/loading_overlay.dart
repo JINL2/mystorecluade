@@ -31,13 +31,13 @@ class LoadingOverlay extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const TossLoadingView.inline(size: 40),
+              TossLoadingView.inline(size: TossSpacing.iconXL),
               const SizedBox(height: TossSpacing.space3),
               Text(
                 message,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray700,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ],

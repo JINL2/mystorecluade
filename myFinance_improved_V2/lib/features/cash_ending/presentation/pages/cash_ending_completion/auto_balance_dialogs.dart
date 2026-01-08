@@ -219,13 +219,12 @@ void showAutoBalanceConfirmation({
                             ),
                             // Show percentage below difference in dialog
                             if (balanceSummary != null) ...[
-                              const SizedBox(height: 2),
+                              SizedBox(height: TossSpacing.space1 / 2),
                               Text(
                                 balanceSummary.formattedPercentage,
-                                style: TossTextStyles.caption.copyWith(
+                                style: TossTextStyles.small.copyWith(
                                   color: getPercentageColor(balanceSummary),
                                   fontWeight: FontWeight.w500,
-                                  fontSize: 11,
                                 ),
                               ),
                             ],

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/shift_card.dart';
 import 'shift_info_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -113,12 +110,11 @@ class SnapshotMetricsSection extends StatelessWidget {
             // Label
             Text(
               label,
-              style: TossTextStyles.labelMedium.copyWith(
+              style: TossTextStyles.small.copyWith(
                 color: TossColors.gray600,
-                fontSize: 12,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: TossSpacing.space1),
 
             // Count and avatars
             if (employees.isNotEmpty)
@@ -127,7 +123,7 @@ class SnapshotMetricsSection extends StatelessWidget {
                   users: users,
                   title: label,
                   maxVisibleAvatars: 3,
-                  avatarSize: 20,
+                  avatarSize: TossDimensions.avatarXXS,
                   showCount: true,
                   countTextFormat: '$count',
                 ),
@@ -135,9 +131,8 @@ class SnapshotMetricsSection extends StatelessWidget {
             else
               Text(
                 count.toString(),
-                style: TossTextStyles.h4.copyWith(
+                style: TossTextStyles.titleMedium.copyWith(
                   color: TossColors.gray900,
-                  fontSize: 15,
                 ),
               ),
           ],
@@ -149,8 +144,8 @@ class SnapshotMetricsSection extends StatelessWidget {
   /// Build vertical divider
   Widget _buildDivider() {
     return Container(
-      width: 1,
-      height: 40,
+      width: TossDimensions.dividerThickness,
+      height: TossDimensions.dividerHeightLG,
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
       color: TossColors.gray200,
     );
@@ -188,46 +183,49 @@ class _MetricBottomSheet extends StatelessWidget {
         children: [
           // Drag handle
           Container(
-            width: 36,
-            height: 4,
-            margin: const EdgeInsets.only(top: 12, bottom: 16),
+            width: TossDimensions.dragHandleWidth - 4, // 36px
+            height: TossDimensions.dragHandleHeight,
+            margin: EdgeInsets.only(
+              top: TossSpacing.space3,
+              bottom: TossSpacing.space4,
+            ),
             decoration: BoxDecoration(
               color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
             ),
           ),
 
           // Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             child: Text(
               title,
               textAlign: TextAlign.center,
               style: TossTextStyles.h3.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ),
 
-          const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
+          const SizedBox(height: TossSpacing.space3),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space8),
+            child: Divider(height: TossDimensions.dividerThickness, thickness: TossDimensions.dividerThickness, color: TossColors.gray100),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: TossSpacing.space2),
 
           // User list
           Flexible(
             child: ListView.separated(
               shrinkWrap: true,
-              padding: const EdgeInsets.only(top: 8, bottom: 32),
+              padding: EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space8),
               itemCount: users.length,
-              separatorBuilder: (context, index) => const Divider(
-                height: 1,
-                thickness: 1,
+              separatorBuilder: (context, index) => Divider(
+                height: TossDimensions.dividerThickness,
+                thickness: TossDimensions.dividerThickness,
                 color: TossColors.gray50,
-                indent: 68,
+                indent: TossDimensions.avatarLG + TossSpacing.space4 + TossSpacing.space3, // avatar + padding + gap
               ),
               itemBuilder: (context, index) {
                 final user = users[index];
@@ -240,16 +238,19 @@ class _MetricBottomSheet extends StatelessWidget {
                   child: InkWell(
                     onTap: canTap ? () => onEmployeeTap!(card) : null,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space5,
+                        vertical: TossSpacing.space3,
+                      ),
                       child: Row(
                         children: [
                           // Avatar
                           EmployeeProfileAvatar(
                             imageUrl: user.avatarUrl,
                             name: user.name,
-                            size: 40,
+                            size: TossDimensions.avatarLG,
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: TossSpacing.space3),
 
                           // Name
                           Expanded(
@@ -257,17 +258,17 @@ class _MetricBottomSheet extends StatelessWidget {
                               user.name,
                               style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                               ),
                             ),
                           ),
 
                           // Chevron icon for navigation hint
                           if (canTap)
-                            const Icon(
+                            Icon(
                               Icons.chevron_right,
                               color: TossColors.gray400,
-                              size: 20,
+                              size: TossSpacing.iconMD,
                             ),
                         ],
                       ),

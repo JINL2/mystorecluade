@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../domain/entities/manager_memo.dart';
@@ -120,7 +117,7 @@ class StaffTimelogCard extends StatelessWidget {
               EmployeeProfileAvatar(
                 imageUrl: record.avatarUrl,
                 name: record.staffName,
-                size: 28,
+                size: TossDimensions.avatarSM,
               ),
 
               const SizedBox(width: TossSpacing.space3),
@@ -134,18 +131,18 @@ class StaffTimelogCard extends StatelessWidget {
                       record.staffName,
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     // Time row - show actual → confirmed if different
                     _buildTimeRow(),
                     // Problem tags row (if any)
                     if (problemTags.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: TossSpacing.space1),
                       Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
+                        spacing: TossSpacing.space1,
+                        runSpacing: TossSpacing.space1,
                         children: problemTags,
                       ),
                     ],
@@ -158,7 +155,7 @@ class StaffTimelogCard extends StatelessWidget {
               // Chevron
               Icon(
                 Icons.chevron_right,
-                size: 20,
+                size: TossSpacing.iconMD,
                 color: TossColors.gray400,
               ),
             ],
@@ -186,7 +183,7 @@ class StaffTimelogCard extends StatelessWidget {
         '${record.clockIn} - ${record.clockOut}',
         style: TossTextStyles.caption.copyWith(
           color: TossColors.gray600,
-          fontWeight: FontWeight.w500,
+          fontWeight: TossFontWeight.medium,
         ),
       );
     }
@@ -200,7 +197,7 @@ class StaffTimelogCard extends StatelessWidget {
             _formatTime(actualIn),
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray400,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               decoration: TextDecoration.lineThrough,
             ),
           ),
@@ -208,14 +205,14 @@ class StaffTimelogCard extends StatelessWidget {
             ' → ',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray400,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
           Text(
             _formatTime(confirmedIn),
             style: TossTextStyles.caption.copyWith(
               color: TossColors.primary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         ] else
@@ -223,7 +220,7 @@ class StaffTimelogCard extends StatelessWidget {
             record.clockIn,
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
         // Separator
@@ -231,7 +228,7 @@ class StaffTimelogCard extends StatelessWidget {
           ' - ',
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray600,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
         // Check-out time
@@ -240,7 +237,7 @@ class StaffTimelogCard extends StatelessWidget {
             _formatTime(actualOut),
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray400,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               decoration: TextDecoration.lineThrough,
             ),
           ),
@@ -248,14 +245,14 @@ class StaffTimelogCard extends StatelessWidget {
             ' → ',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray400,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
           Text(
             _formatTime(confirmedOut),
             style: TossTextStyles.caption.copyWith(
               color: TossColors.primary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         ] else
@@ -263,7 +260,7 @@ class StaffTimelogCard extends StatelessWidget {
             record.clockOut,
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
       ],
@@ -433,16 +430,19 @@ class _ProblemTag extends StatelessWidget {
       textColor = TossColors.gray600;
     } else if (isReport) {
       // Unsolved report: Orange background
-      backgroundColor = TossColors.warning.withValues(alpha: 0.15);
+      backgroundColor = TossColors.warning.withValues(alpha: TossOpacity.medium);
       textColor = TossColors.warning;
     } else {
       // Unsolved problem: Red background
-      backgroundColor = TossColors.error.withValues(alpha: 0.15);
+      backgroundColor = TossColors.error.withValues(alpha: TossOpacity.medium);
       textColor = TossColors.error;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.badgePaddingHorizontalXS,
+        vertical: TossSpacing.badgePaddingVerticalXS,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -452,17 +452,16 @@ class _ProblemTag extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.small.copyWith(
               color: textColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           if (isSolved) ...[
-            const SizedBox(width: 2),
+            const SizedBox(width: TossSpacing.space0_5),
             Icon(
               Icons.check,
-              size: 10,
+              size: TossSpacing.iconXXS,
               color: textColor,
             ),
           ],
@@ -493,26 +492,28 @@ class _StatusTag extends StatelessWidget {
 
     if (isPositive) {
       // Positive status: Green background
-      backgroundColor = TossColors.success.withValues(alpha: 0.15);
+      backgroundColor = TossColors.success.withValues(alpha: TossOpacity.medium);
       textColor = TossColors.success;
     } else {
       // Info status: Blue background
-      backgroundColor = TossColors.primary.withValues(alpha: 0.15);
+      backgroundColor = TossColors.primary.withValues(alpha: TossOpacity.medium);
       textColor = TossColors.primary;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: TossSpacing.badgePaddingHorizontalXS,
+        vertical: TossSpacing.badgePaddingVerticalXS,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         label,
-        style: TossTextStyles.caption.copyWith(
+        style: TossTextStyles.small.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 10,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

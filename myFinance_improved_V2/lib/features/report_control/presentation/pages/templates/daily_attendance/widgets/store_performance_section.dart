@@ -3,11 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../../domain/entities/templates/daily_attendance/attendance_report.dart';
 
 /// Store Performance Section - Store summary with issues
@@ -26,7 +22,7 @@ class StorePerformanceSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,12 +84,12 @@ class StorePerformanceSection extends StatelessWidget {
       padding: EdgeInsets.all(TossSpacing.paddingSM),
       decoration: BoxDecoration(
         color: hasIssues
-            ? statusColor.withValues(alpha: 0.03)
+            ? statusColor.withValues(alpha: TossOpacity.subtle)
             : TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
           color: hasIssues
-              ? statusColor.withValues(alpha: 0.2)
+              ? statusColor.withValues(alpha: TossOpacity.strong)
               : TossColors.gray200,
           width: 1,
         ),
@@ -121,7 +117,7 @@ class StorePerformanceSection extends StatelessWidget {
                 vertical: TossSpacing.space1,
               ),
               decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
+                color: statusColor.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
               child: Text(

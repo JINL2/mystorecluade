@@ -35,15 +35,15 @@ class CounterpartyCashLocationSelector extends StatelessWidget {
               'Counterparty Cash Location',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: TossSpacing.space1 / 2),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],

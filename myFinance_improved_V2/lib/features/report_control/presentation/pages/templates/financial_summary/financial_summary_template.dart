@@ -6,6 +6,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../domain/entities/report_notification.dart';
 import '../../../../domain/entities/report_detail.dart';
 import '../../../utils/report_parser.dart';
@@ -63,8 +64,8 @@ class FinancialSummaryTemplate {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: TossColors.error),
-            const SizedBox(height: 16),
+            Icon(Icons.error_outline, size: TossSpacing.icon4XL, color: TossColors.error),
+            SizedBox(height: TossSpacing.space4),
             Text(message),
           ],
         ),

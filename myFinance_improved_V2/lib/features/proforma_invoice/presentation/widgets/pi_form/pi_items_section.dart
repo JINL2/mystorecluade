@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'pi_item_form_card.dart';
@@ -57,7 +58,7 @@ class PIItemsSection extends StatelessWidget {
                     color: TossColors.error,
                   ),
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: TossSpacing.space1),
                 Text(
                   '${items.length}',
                   style: TossTextStyles.caption.copyWith(

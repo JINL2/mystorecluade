@@ -33,18 +33,11 @@ class IssuesHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(TossSpacing.space5),
+      padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        border: Border.all(color: TossColors.gray200),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,19 +46,19 @@ class IssuesHeroCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: TossDimensions.avatarLG,
+                height: TossDimensions.avatarLG,
                 decoration: BoxDecoration(
-                  color: _getStatusColor().withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: _getStatusColor().withValues(alpha: TossOpacity.light),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Icon(
                   _getStatusIcon(),
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: _getStatusColor(),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,14 +67,14 @@ class IssuesHeroCard extends StatelessWidget {
                       'Cash Reconciliation',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space0_5),
                     Text(
                       '${stats.issuesCount} locations need attention',
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -91,12 +84,12 @@ class IssuesHeroCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: TossSpacing.space5),
 
           // Net difference (hero number)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(TossSpacing.space4),
+            padding: EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -108,17 +101,17 @@ class IssuesHeroCard extends StatelessWidget {
                   'Total Discrepancy',
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray500,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: TossSpacing.space2),
                 Text(
                   stats.netDifferenceFormatted,
                   style: TossTextStyles.h2.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: TossFontWeight.bold,
                     color: stats.netDifference < 0
-                        ? const Color(0xFFDC2626)
-                        : const Color(0xFFF59E0B),
+                        ? TossColors.red
+                        : TossColors.amber,
                     height: 1.1,
                   ),
                 ),
@@ -126,7 +119,7 @@ class IssuesHeroCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: TossSpacing.space4),
 
           // Filter hint
           if (onFilterChanged != null)
@@ -148,23 +141,23 @@ class IssuesHeroCard extends StatelessWidget {
               _buildFilterChip(
                 icon: LucideIcons.trendingDown,
                 value: '${stats.shortageCount}',
-                color: const Color(0xFFDC2626),
+                color: TossColors.red,
                 filter: CashLocationFilter.shortage,
                 isActive: activeFilter == CashLocationFilter.shortage,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               _buildFilterChip(
                 icon: LucideIcons.trendingUp,
                 value: '${stats.surplusCount}',
-                color: const Color(0xFFF59E0B),
+                color: TossColors.amber,
                 filter: CashLocationFilter.surplus,
                 isActive: activeFilter == CashLocationFilter.surplus,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               _buildFilterChip(
                 icon: LucideIcons.checkCircle,
                 value: '${stats.balancedCount}',
-                color: const Color(0xFF10B981),
+                color: TossColors.emerald,
                 filter: CashLocationFilter.balanced,
                 isActive: activeFilter == CashLocationFilter.balanced,
               ),
@@ -196,24 +189,24 @@ class IssuesHeroCard extends StatelessWidget {
             : null,
         child: AnimatedContainer(
           duration: TossAnimations.normal,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2_5, vertical: TossSpacing.space2_5),
           decoration: BoxDecoration(
-            color: isActive ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.05),
+            color: isActive ? color.withValues(alpha: TossOpacity.medium) : color.withValues(alpha: TossOpacity.subtle),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: isActive ? color : color.withValues(alpha: 0.2),
+              color: isActive ? color : color.withValues(alpha: TossOpacity.strong),
               width: isActive ? 2 : 1,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 14, color: color),
-              const SizedBox(width: 6),
+              Icon(icon, size: TossSpacing.iconXS, color: color),
+              SizedBox(width: TossSpacing.space1_5),
               Text(
                 value,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                   color: color,
                 ),
               ),
@@ -227,12 +220,12 @@ class IssuesHeroCard extends StatelessWidget {
   Color _getStatusColor() {
     switch (stats.overallStatus) {
       case 'all_balanced':
-        return const Color(0xFF10B981);
+        return TossColors.emerald;
       case 'minor_issues':
-        return const Color(0xFFF59E0B);
+        return TossColors.amber;
       case 'major_issues':
       default:
-        return const Color(0xFFDC2626);
+        return TossColors.red;
     }
   }
 

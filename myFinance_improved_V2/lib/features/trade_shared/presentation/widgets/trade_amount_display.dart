@@ -49,11 +49,11 @@ class TradeAmountDisplay extends StatelessWidget {
           children: [
             if (showCurrencySymbol)
               Padding(
-                padding: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.only(right: TossSpacing.space1),
                 child: Text(
                   currency,
                   style: TossTextStyles.bodyMedium.copyWith(
-                    color: displayColor.withOpacity(0.7),
+                    color: displayColor.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -386,16 +386,16 @@ class TradeCurrencyTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
-        vertical: 4,
+        vertical: TossSpacing.space1,
       ),
       decoration: BoxDecoration(
         color: isActive
-            ? TossColors.primary.withOpacity(0.1)
+            ? TossColors.primary.withValues(alpha: 0.1)
             : TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
         border: isActive
             ? Border.all(
-                color: TossColors.primary.withOpacity(0.3),
+                color: TossColors.primary.withValues(alpha: 0.3),
                 width: 1,
               )
             : null,
@@ -436,7 +436,7 @@ class TradeAmountChange extends StatelessWidget {
           size: 16,
           color: color,
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: TossSpacing.space1),
         Text(
           '${isPositive ? '+' : ''}${changePercent.toStringAsFixed(1)}%',
           style: TossTextStyles.caption.copyWith(
@@ -445,7 +445,7 @@ class TradeAmountChange extends StatelessWidget {
           ),
         ),
         if (label != null) ...[
-          const SizedBox(width: 4),
+          SizedBox(width: TossSpacing.space1),
           Text(
             label!,
             style: TossTextStyles.caption.copyWith(
@@ -589,14 +589,14 @@ class TradeDualCurrencyAmount extends StatelessWidget {
             Text(
               primaryCurrency,
               style: primaryStyle?.copyWith(
-                    color: primaryStyle?.color?.withOpacity(0.7),
+                    color: primaryStyle?.color?.withValues(alpha: 0.7),
                   ) ??
                   TossTextStyles.bodyMedium.copyWith(
                     color: TossColors.gray600,
                     fontWeight: FontWeight.w500,
                   ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: TossSpacing.space1),
             Text(
               _formatAmount(primaryAmount, primaryCurrency),
               style: primaryStyle ??
@@ -610,7 +610,7 @@ class TradeDualCurrencyAmount extends StatelessWidget {
 
         // Secondary Amount (converted)
         if (hasSecondary) ...[
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space1 / 2),
           Text(
             '≈ ${_getCurrencySymbol(secondaryCurrency!)}${_formatAmount(secondaryAmount!, secondaryCurrency!)}',
             style: secondaryStyle ??
@@ -622,7 +622,7 @@ class TradeDualCurrencyAmount extends StatelessWidget {
 
         // Exchange Rate Info
         if (showExchangeRate && exchangeRate != null && hasSecondary) ...[
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space1 / 2),
           Text(
             '(1 $primaryCurrency = ${_getCurrencySymbol(secondaryCurrency!)}${_formatAmount(exchangeRate!, secondaryCurrency!)})',
             style: TossTextStyles.caption.copyWith(
@@ -801,7 +801,7 @@ class TradeDualCurrencyInfoRow extends StatelessWidget {
       ),
       decoration: highlight
           ? BoxDecoration(
-              color: TossColors.primary.withOpacity(0.05),
+              color: TossColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             )
           : null,

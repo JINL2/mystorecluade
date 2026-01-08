@@ -77,7 +77,7 @@ class StoreSelectorCard extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: TossColors.error, size: 20),
+          const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconMD),
           const SizedBox(width: TossSpacing.space2),
           Text(
             message,
@@ -142,8 +142,8 @@ class _StoreCard extends ConsumerWidget {
           children: [
             // Store Icon
             Container(
-              width: 40,
-              height: 40,
+              width: TossSpacing.iconXL,
+              height: TossSpacing.iconXL,
               decoration: BoxDecoration(
                 color: TossColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -153,7 +153,7 @@ class _StoreCard extends ConsumerWidget {
                     ? Icons.business_outlined
                     : Icons.store_outlined,
                 color: TossColors.primary,
-                size: 20,
+                size: TossSpacing.iconSM,
               ),
             ),
             const SizedBox(width: TossSpacing.space3),
@@ -184,7 +184,7 @@ class _StoreCard extends ConsumerWidget {
             const Icon(
               Icons.chevron_right,
               color: TossColors.gray400,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ],
         ),

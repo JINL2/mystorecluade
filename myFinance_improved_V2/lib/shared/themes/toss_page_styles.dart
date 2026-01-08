@@ -47,7 +47,7 @@ class TossPageStyles {
   
   // ==================== ICON CONTAINER STYLES ====================
   static BoxDecoration iconContainerDecoration = BoxDecoration(
-    color: TossColors.primary.withOpacity(0.1),
+    color: TossColors.primary.withValues(alpha: 0.1),
     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
   );
   

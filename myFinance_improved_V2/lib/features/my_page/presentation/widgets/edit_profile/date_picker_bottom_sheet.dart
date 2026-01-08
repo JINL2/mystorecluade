@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shows a date picker bottom sheet
@@ -21,8 +23,8 @@ void showDatePickerBottomSheet({
   showModalBottomSheet(
     context: context,
     backgroundColor: TossColors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
     ),
     builder: (context) {
       return StatefulBuilder(
@@ -33,7 +35,7 @@ void showDatePickerBottomSheet({
           }
 
           return Container(
-            height: 400,
+            height: TossSpacing.space20 * 5, // 400
             padding: const EdgeInsets.all(TossSpacing.space6),
             child: Column(
               children: [
@@ -48,7 +50,7 @@ void showDatePickerBottomSheet({
                     Text(
                       'Select Date',
                       style: TossTextStyles.h3.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TossFontWeight.bold,
                       ),
                     ),
                     TossButton.textButton(
@@ -58,7 +60,7 @@ void showDatePickerBottomSheet({
                         Navigator.pop(context);
                       },
                       textColor: TossColors.primary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ],
                 ),
@@ -136,13 +138,13 @@ class _WheelPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 200,
+      height: TossDimensions.bottomSheetMinHeight,
       decoration: BoxDecoration(
         border: Border.all(color: TossColors.gray200),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: ListWheelScrollView.useDelegate(
-        itemExtent: 40,
+        itemExtent: TossSpacing.space10,
         physics: const FixedExtentScrollPhysics(),
         diameterRatio: 1.5,
         perspective: 0.002,
@@ -159,11 +161,15 @@ class _WheelPicker extends StatelessWidget {
             return Center(
               child: Text(
                 items[index],
-                style: TossTextStyles.body.copyWith(
-                  fontSize: isSelected ? 18 : 16,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? TossColors.gray900 : TossColors.gray500,
-                ),
+                style: isSelected
+                    ? TossTextStyles.bodyLarge.copyWith(
+                        fontWeight: TossFontWeight.semibold,
+                        color: TossColors.gray900,
+                      )
+                    : TossTextStyles.body.copyWith(
+                        fontWeight: TossFontWeight.regular,
+                        color: TossColors.gray500,
+                      ),
               ),
             );
           },

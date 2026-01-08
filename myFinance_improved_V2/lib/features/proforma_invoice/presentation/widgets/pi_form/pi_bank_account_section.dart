@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../cash_location/presentation/providers/cash_location_providers.dart';
@@ -190,12 +191,12 @@ class _BankDetailCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 110,
+                  width: 110, // Label column width for bank details
                   child: Text(
                     entry.key,
                     style: TossTextStyles.label.copyWith(
                       color: TossColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -204,7 +205,7 @@ class _BankDetailCard extends StatelessWidget {
                     entry.value,
                     style: TossTextStyles.bodyLarge.copyWith(
                       color: TossColors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),

@@ -6,6 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
+import '../../../../shared/themes/toss_opacity.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -55,23 +58,11 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
   Widget build(BuildContext context) {
     final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
 
-    return Scaffold(
-      backgroundColor: TossColors.gray100,
-      appBar: AppBar(
-        backgroundColor: TossColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          color: TossColors.textPrimary,
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Notifications',
-          style: TossTextStyles.h3.copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+    return TossScaffold(
+      backgroundColor: TossColors.white,
+      appBar: TossAppBar(
+        title: 'Notifications',
+        backgroundColor: TossColors.white,
         actions: [
           unreadCountAsync.when(
             data: (count) => count > 0
@@ -85,7 +76,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(TossDimensions.tabBarHeight),
           child: TossTabBar.custom(
             tabs: [
               const TossTab.text('All'),
@@ -96,23 +87,21 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
                     children: [
                       const Text('Unread'),
                       if (count > 0) ...[
-                        const SizedBox(width: 6),
+                        const SizedBox(width: TossSpacing.space1_5),
                         Container(
-                          constraints: const BoxConstraints(minWidth: 18),
-                          height: 18,
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          constraints: const BoxConstraints(minWidth: TossDimensions.badgeMinWidth),
+                          height: TossDimensions.badgeHeight,
+                          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
                           decoration: BoxDecoration(
                             color: TossColors.primary,
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius: BorderRadius.circular(TossBorderRadius.full),
                           ),
                           child: Center(
                             child: Text(
                               count > 99 ? '99+' : count.toString(),
-                              style: TossTextStyles.caption.copyWith(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                              style: TossTextStyles.micro.copyWith(
+                                fontWeight: TossFontWeight.bold,
                                 color: TossColors.white,
-                                height: 1,
                               ),
                             ),
                           ),
@@ -161,7 +150,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
                 child: TossButton.outlined(
                   text: 'Mark all as read',
                   onPressed: _markAllAsRead,
-                  leadingIcon: const Icon(Icons.done_all_rounded, size: 18),
+                  leadingIcon: const Icon(Icons.done_all_rounded, size: TossSpacing.iconSM),
                   fullWidth: true,
                 ),
               ),
@@ -197,15 +186,15 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 72,
-                height: 72,
+                width: TossDimensions.errorIconSize,
+                height: TossDimensions.errorIconSize,
                 decoration: BoxDecoration(
-                  color: TossColors.error.withOpacity(0.1),
+                  color: TossColors.error.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xl),
                 ),
                 child: const Icon(
                   Icons.notifications_off_outlined,
-                  size: 36,
+                  size: TossSpacing.iconXL,
                   color: TossColors.error,
                 ),
               ),
@@ -214,7 +203,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
                 'Failed to load notifications',
                 style: TossTextStyles.h4.copyWith(
                   color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
               const SizedBox(height: TossSpacing.space2),
@@ -242,8 +231,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 96,
-              height: 96,
+              width: TossSpacing.space24,
+              height: TossSpacing.space24,
               decoration: BoxDecoration(
                 color: TossColors.gray200,
                 borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -252,7 +241,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
                 isUnreadTab
                   ? Icons.check_circle_outline
                   : Icons.notifications_none_rounded,
-                size: 48,
+                size: TossSpacing.iconXXL,
                 color: TossColors.textTertiary,
               ),
             ),
@@ -263,7 +252,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
                 : 'No notifications yet',
               style: TossTextStyles.h3.copyWith(
                 color: TossColors.textPrimary,
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -300,7 +289,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
             title: Text(
               'Delete notification',
               style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
             ),
             content: Text(
@@ -336,171 +325,145 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
             const Icon(
               Icons.delete_outline,
               color: TossColors.white,
-              size: 24,
+              size: TossSpacing.iconLG,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: TossSpacing.space1),
             Text(
               'Delete',
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.white,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
         ),
       ),
-      child: Material(
-        color: TossColors.transparent,
-        child: InkWell(
-          onTap: () => _handleNotificationTap(notification),
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          child: Container(
-            decoration: BoxDecoration(
-              color: TossColors.surface,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              border: Border.all(
-                color: isRead ? TossColors.borderLight : TossColors.primary.withOpacity(0.3),
-                width: isRead ? 1 : 2,
-              ),
-              boxShadow: isRead
-                ? null
-                : [
-                    BoxShadow(
-                      color: TossColors.primary.withOpacity(0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-            ),
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Category icon with badge
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            _getCategoryColor(notification.category).withOpacity(0.15),
-                            _getCategoryColor(notification.category).withOpacity(0.05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                      ),
-                      child: Icon(
-                        _getCategoryIcon(notification.category),
-                        size: 24,
-                        color: _getCategoryColor(notification.category),
-                      ),
-                    ),
-                    // Unread badge
-                    if (!isRead)
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: TossColors.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: TossColors.surface,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(width: TossSpacing.space3),
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title and time
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              notification.title ?? 'Notification',
-                              style: TossTextStyles.bodyMedium.copyWith(
-                                fontWeight: isRead ? FontWeight.w600 : FontWeight.w700,
-                                color: TossColors.textPrimary,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+      child: GestureDetector(
+        onTap: () => _handleNotificationTap(notification),
+        child: TossWhiteCard(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Category icon with badge
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: TossSpacing.iconXXL,
+                    height: TossSpacing.iconXXL,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _getCategoryColor(notification.category).withValues(alpha: TossOpacity.medium),
+                          _getCategoryColor(notification.category).withValues(alpha: TossOpacity.subtle),
                         ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      const SizedBox(height: 6),
-                      // Body text
-                      Text(
-                        notification.body ?? '',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.textSecondary,
-                          fontSize: 13,
-                          height: 1.4,
+                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+                    ),
+                    child: Icon(
+                      _getCategoryIcon(notification.category),
+                      size: TossSpacing.iconLG,
+                      color: _getCategoryColor(notification.category),
+                    ),
+                  ),
+                  // Unread badge
+                  if (!isRead)
+                    Positioned(
+                      top: -TossSpacing.space1,
+                      right: -TossSpacing.space1,
+                      child: Container(
+                        width: TossDimensions.statusDotMD,
+                        height: TossDimensions.statusDotMD,
+                        decoration: BoxDecoration(
+                          color: TossColors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: TossColors.surface,
+                            width: TossDimensions.dividerThicknessBold,
+                          ),
                         ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      // Time and category badge
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 12,
+                    ),
+                ],
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title and time
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title ?? 'Notification',
+                            style: TossTextStyles.bodyMedium.copyWith(
+                              fontWeight: isRead ? TossFontWeight.semibold : TossFontWeight.bold,
+                              color: TossColors.textPrimary,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: TossSpacing.space1_5),
+                    // Body text
+                    Text(
+                      notification.body ?? '',
+                      style: TossTextStyles.bodySmall.copyWith(
+                        color: TossColors.textSecondary,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: TossSpacing.space2),
+                    // Time and category badge
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          size: TossSpacing.iconXS,
+                          color: TossColors.textTertiary,
+                        ),
+                        const SizedBox(width: TossSpacing.space1),
+                        Text(
+                          timeText,
+                          style: TossTextStyles.small.copyWith(
                             color: TossColors.textTertiary,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            timeText,
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.textTertiary,
-                              fontSize: 11,
+                        ),
+                        if (notification.category != null) ...[
+                          const SizedBox(width: TossSpacing.space2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space1_5,
+                              vertical: TossSpacing.space0_5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getCategoryColor(notification.category).withValues(alpha: TossOpacity.light),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                            ),
+                            child: Text(
+                              _getCategoryLabel(notification.category),
+                              style: TossTextStyles.micro.copyWith(
+                                fontWeight: TossFontWeight.semibold,
+                                color: _getCategoryColor(notification.category),
+                              ),
                             ),
                           ),
-                          if (notification.category != null) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getCategoryColor(notification.category).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                              ),
-                              child: Text(
-                                _getCategoryLabel(notification.category),
-                                style: TossTextStyles.caption.copyWith(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getCategoryColor(notification.category),
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -558,7 +521,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
       case 'system':
         return TossColors.primary;
       case 'announcement':
-        return const Color(0xFF8B5CF6); // Purple
+        return TossColors.violet;
       default:
         return TossColors.textSecondary;
     }
@@ -613,8 +576,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
         SnackBar(
           content: Row(
             children: [
-              TossLoadingView.inline(size: 16, color: TossColors.white),
-              const SizedBox(width: 12),
+              TossLoadingView.inline(size: TossSpacing.iconSM2, color: TossColors.white),
+              const SizedBox(width: TossSpacing.space3),
               const Text('Marking all as read...'),
             ],
           ),

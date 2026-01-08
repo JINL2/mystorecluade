@@ -8,8 +8,11 @@ class TossSpacing {
 
   // ==================== BASE SPACING (4px grid) ====================
   static const double space0 = 0.0;    // No spacing
+  static const double space0_5 = 2.0;  // Half spacing (0.5x base) - for tight padding
   static const double space1 = 4.0;    // Minimum spacing
+  static const double space1_5 = 6.0;  // 1.5x base spacing
   static const double space2 = 8.0;    // Tight spacing (2x base)
+  static const double space2_5 = 10.0; // 2.5x base spacing
   static const double space3 = 12.0;   // Small spacing (3x base)
   static const double space4 = 16.0;   // Default spacing (4x base) ⭐
   static const double space5 = 20.0;   // Medium spacing (5x base)
@@ -18,6 +21,7 @@ class TossSpacing {
   static const double space8 = 32.0;   // Section spacing (8x base)
   static const double space9 = 36.0;   // Content spacing (9x base)
   static const double space10 = 40.0;  // Block spacing (10x base)
+  static const double space11 = 44.0;  // 11x base spacing
   static const double space12 = 48.0;  // Container spacing (12x base)
   static const double space14 = 56.0;  // Large block (14x base)
   static const double space16 = 64.0;  // Page section (16x base)
@@ -61,12 +65,21 @@ class TossSpacing {
   
   // ==================== SPECIAL SPACING ====================
   
-  // Icon sizes (also follow 4px grid)
-  static const double iconXS = 16.0;     // Small icons
-  static const double iconSM = 20.0;     // Default icons
-  static const double iconMD = 24.0;     // Medium icons ⭐
-  static const double iconLG = 32.0;     // Large icons
+  // Icon sizes (extended range for all use cases)
+  static const double iconXXS = 10.0;    // Tiny icons (badges, indicators)
+  static const double iconXS2 = 12.0;    // Extra small icons
+  static const double iconXS = 14.0;     // Small icons (inline)
+  static const double iconSM2 = 16.0;    // Small-medium icons
+  static const double iconSM3 = 18.0;    // Small icons (18px)
+  static const double iconSM = 20.0;     // Small icons (20px)
+  static const double iconMD = 22.0;     // Default icons (22px)
+  static const double iconMD2 = 24.0;    // Medium icons ⭐
+  static const double iconLG = 28.0;     // Large icons
+  static const double iconLG2 = 32.0;    // Large icons
   static const double iconXL = 40.0;     // Extra large
+  static const double iconXXL = 48.0;    // Extra extra large
+  static const double icon3XL = 56.0;    // 3x large
+  static const double icon4XL = 64.0;    // 4x large (hero icons)
   
   // Button heights
   static const double buttonHeightSM = 32.0;   // Small button
@@ -79,4 +92,23 @@ class TossSpacing {
   static const double inputHeightMD = 44.0;    // Medium input
   static const double inputHeightLG = 48.0;    // Large input ⭐
   static const double inputHeightXL = 56.0;    // Extra large
+
+  // ==================== BADGE & TAG SPACING ====================
+  // Common padding patterns for badges, tags, and chips
+
+  /// Badge padding XS: horizontal 6, vertical 2
+  static const double badgePaddingHorizontalXS = 6.0;
+  static const double badgePaddingVerticalXS = 2.0;
+
+  /// Badge padding SM: horizontal 8, vertical 2
+  static const double badgePaddingHorizontalSM = 8.0;
+  static const double badgePaddingVerticalSM = 2.0;
+
+  /// Badge padding MD: horizontal 8, vertical 4
+  static const double badgePaddingHorizontalMD = 8.0;
+  static const double badgePaddingVerticalMD = 4.0;
+
+  /// Badge padding LG: horizontal 12, vertical 6
+  static const double badgePaddingHorizontalLG = 12.0;
+  static const double badgePaddingVerticalLG = 6.0;
 }

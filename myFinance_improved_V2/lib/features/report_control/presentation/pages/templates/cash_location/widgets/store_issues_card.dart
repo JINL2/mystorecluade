@@ -60,26 +60,26 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
           // Store header (tappable)
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(TossBorderRadius.lg)),
             child: Padding(
-              padding: const EdgeInsets.all(TossSpacing.space4),
+              padding: EdgeInsets.all(TossSpacing.space4),
               child: Row(
                 children: [
                   // Store icon - GRAY (no color)
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: TossDimensions.avatarMD,
+                    height: TossDimensions.avatarMD,
                     decoration: BoxDecoration(
                       color: TossColors.gray100,
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                     ),
                     child: Icon(
                       LucideIcons.store,
-                      size: 18,
+                      size: TossSpacing.iconSM,
                       color: TossColors.gray600,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: TossSpacing.space3),
 
                   // Store name and info
                   Expanded(
@@ -89,11 +89,11 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                         Text(
                           widget.storeName,
                           style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.gray900,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: TossSpacing.space0_5),
                         Row(
                           children: [
                             // Issue count - gray badge
@@ -109,17 +109,17 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                               child: Text(
                                 '${widget.issues.length} issue${widget.issues.length > 1 ? 's' : ''}',
                                 style: TossTextStyles.labelSmall.copyWith(
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: TossFontWeight.medium,
                                   color: TossColors.gray600,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: TossSpacing.space2),
                             // Total difference - COLORED (only colored element)
                             Text(
                               _formatAmount(totalDifference),
                               style: TossTextStyles.bodySmall.copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                                 color: totalDifference >= 0
                                     ? TossColors.warning
                                     : TossColors.error,
@@ -137,7 +137,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
                     duration: TossAnimations.normal,
                     child: Icon(
                       LucideIcons.chevronDown,
-                      size: 20,
+                      size: TossSpacing.iconMD,
                       color: TossColors.gray400,
                     ),
                   ),
@@ -153,7 +153,7 @@ class _StoreIssuesCardState extends State<StoreIssuesCard> {
               children: [
                 const Divider(height: 1),
                 Padding(
-                  padding: const EdgeInsets.all(TossSpacing.space3),
+                  padding: EdgeInsets.all(TossSpacing.space3),
                   child: Column(
                     children: widget.issues
                         .map((issue) => IssueLocationCard(issue: issue))

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -27,16 +27,9 @@ class CounterPartyListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: TossColors.transparent,
-      child: Container(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            color: TossColors.surface,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: TossShadows.card,
-          ),
-          child: Row(
+    return TossWhiteCard(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      child: Row(
             children: [
               // Icon/Avatar
               Container(
@@ -49,7 +42,7 @@ class CounterPartyListItem extends StatelessWidget {
                 child: Icon(
                   _getIconForType(counterParty.type),
                   color: TossColors.gray700,
-                  size: 20,
+                  size: TossSpacing.iconSM,
                 ),
               ),
               const SizedBox(width: TossSpacing.space3),
@@ -70,7 +63,7 @@ class CounterPartyListItem extends StatelessWidget {
                                 : counterParty.name,
                             style: TossTextStyles.body.copyWith(
                               color: TossColors.textPrimary,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -80,8 +73,8 @@ class CounterPartyListItem extends StatelessWidget {
                           const SizedBox(width: TossSpacing.space2),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: TossSpacing.space2,
-                              vertical: 2,
+                              horizontal: TossSpacing.badgePaddingHorizontalSM,
+                              vertical: TossSpacing.badgePaddingVerticalXS,
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.gray100,
@@ -91,7 +84,7 @@ class CounterPartyListItem extends StatelessWidget {
                               'Internal',
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.info,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: TossFontWeight.medium,
                               ),
                             ),
                           ),
@@ -108,7 +101,7 @@ class CounterPartyListItem extends StatelessWidget {
                           counterParty.type.displayName,
                           style: TossTextStyles.bodySmall.copyWith(
                             color: TossColors.gray600,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
                         if (counterParty.email != null && counterParty.email!.isNotEmpty) ...[
@@ -158,7 +151,6 @@ class CounterPartyListItem extends StatelessWidget {
               ),
             ],
           ),
-      ),
     );
   }
 

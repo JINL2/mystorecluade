@@ -6,6 +6,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 
 import '../../../auth/di/auth_providers.dart';
 import '../widgets/common_widgets.dart';
@@ -54,7 +56,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             Text(
               'Security Settings',
               style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
@@ -100,7 +102,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             Text(
               'Support',
               style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),
@@ -146,15 +148,15 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: TossSpacing.space10,
+              height: TossSpacing.space10,
               decoration: BoxDecoration(
-                color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: 0.1),
+                color: (isDestructive ? TossColors.error : TossColors.gray500).withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
               ),
               child: Icon(
                 icon,
-                size: 20,
+                size: TossSpacing.iconSM,
                 color: isDestructive ? TossColors.error : TossColors.gray700,
               ),
             ),
@@ -166,7 +168,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                   Text(
                     title,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: isDestructive ? TossColors.error : TossColors.gray900,
                     ),
                   ),
@@ -180,9 +182,9 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
-              size: 16,
+              size: TossSpacing.iconSM2,
               color: TossColors.gray400,
             ),
           ],
@@ -202,7 +204,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             Text(
               'Change Password',
               style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.gray900,
               ),
             ),

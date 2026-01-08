@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
 
 import '../../../domain/entities/attendance_problem.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -86,15 +83,15 @@ class ProblemCard extends StatelessWidget {
               // Avatar or Shift Icon
               if (problem.isShiftProblem)
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: TossDimensions.avatarLG,
+                  height: TossDimensions.avatarLG,
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
                     Icons.access_time,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: TossColors.gray600,
                   ),
                 )
@@ -102,7 +99,7 @@ class ProblemCard extends StatelessWidget {
                 EmployeeProfileAvatar(
                   imageUrl: problem.avatarUrl,
                   name: problem.name,
-                  size: 40,
+                  size: TossDimensions.avatarLG,
                 ),
 
               const SizedBox(width: TossSpacing.space3),
@@ -116,10 +113,10 @@ class ProblemCard extends StatelessWidget {
                       problem.name,
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: TossSpacing.space0_5),
                     Text(
                       '${_formatDate(problem.date)} • ${problem.shiftName}',
                       style: TossTextStyles.caption.copyWith(
@@ -135,8 +132,8 @@ class ProblemCard extends StatelessWidget {
               // Problem Badges (multiple if shift has multiple problems)
               // Use filteredTypes to exclude premature problems for in-progress shifts
               Wrap(
-                spacing: 4,
-                runSpacing: 4,
+                spacing: TossSpacing.space1,
+                runSpacing: TossSpacing.space1,
                 children: [
                   // Show "In Progress" badge if shift is ongoing with checkin
                   if (problem.isInProgress && problem.clockIn != null)
@@ -157,7 +154,7 @@ class ProblemCard extends StatelessWidget {
               // Chevron
               Icon(
                 Icons.chevron_right,
-                size: 20,
+                size: TossSpacing.iconMD,
                 color: TossColors.gray400,
               ),
             ],

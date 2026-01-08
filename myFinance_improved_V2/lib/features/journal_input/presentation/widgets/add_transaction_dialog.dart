@@ -304,7 +304,7 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
       context: context,
       isScrollControlled: true,
       backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black.withOpacity(0.5),
+      barrierColor: TossColors.black.withValues(alpha: 0.5),
       isDismissible: true,
       enableDrag: true,
       builder: (context) => SizedBox(

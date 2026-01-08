@@ -17,6 +17,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../sale_product/presentation/pages/sale_product_page.dart';
@@ -99,12 +101,12 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       scrolledUnderElevation: 0,
       leading: IconButton(
         onPressed: () => context.pop(),
-        icon: const Icon(Icons.arrow_back, color: TossColors.gray900, size: 22),
+        icon: Icon(Icons.arrow_back, color: TossColors.gray900, size: TossSpacing.iconMD),
       ),
       title: Text(
         'Invoice',
         style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),
@@ -115,18 +117,18 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
             HapticFeedback.lightImpact();
             _navigateToSearch();
           },
-          icon: const Icon(Icons.search, color: TossColors.gray900, size: 22),
-          splashRadius: 20,
+          icon: Icon(Icons.search, color: TossColors.gray900, size: TossSpacing.iconMD),
+          splashRadius: TossSpacing.iconMD,
         ),
         IconButton(
           onPressed: () {
             HapticFeedback.lightImpact();
             _showSortOptionsSheet();
           },
-          icon: const Icon(Icons.swap_vert, color: TossColors.gray900, size: 22),
-          splashRadius: 20,
+          icon: Icon(Icons.swap_vert, color: TossColors.gray900, size: TossSpacing.iconMD),
+          splashRadius: TossSpacing.iconMD,
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: TossSpacing.space1),
       ],
     );
   }
@@ -197,7 +199,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
     final entries = groupedInvoices.entries.toList();
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space1, TossSpacing.space3, 100),
+      padding: EdgeInsets.fromLTRB(TossSpacing.space3, TossSpacing.space1, TossSpacing.space3, TossDimensions.listBottomPadding),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) => _buildListItem(index, entries),
@@ -213,7 +215,7 @@ class _SalesInvoicePageState extends ConsumerState<SalesInvoicePage> {
       // Date separator
       if (index == currentIndex) {
         return Padding(
-          padding: EdgeInsets.only(top: currentIndex == 0 ? 0 : 20, bottom: 2),
+          padding: EdgeInsets.only(top: currentIndex == 0 ? 0 : TossSpacing.space5, bottom: TossSpacing.space0_5),
           child: InvoiceDateSeparator(date: entry.key),
         );
       }

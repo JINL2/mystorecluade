@@ -12,6 +12,7 @@ library;
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -44,7 +45,7 @@ class TemplateBasicInfoForm extends StatelessWidget {
             'Step 1: Basic Information',
             style: TossTextStyles.bodyLarge.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
           const SizedBox(height: TossSpacing.space5),

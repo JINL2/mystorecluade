@@ -469,6 +469,9 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Extra spacing above Store
+          const SizedBox(height: TossSpacing.space4),
+
           // ============================================
           // Store Selector (only if more than 1 store)
           // ============================================
@@ -544,7 +547,7 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
                     onNextWeek: () => _navigateWeek(1),
                     onToggleExpanded: _toggleExpanded,
                   ),
-                const SizedBox(height: 12),
+                SizedBox(height: TossSpacing.space3),
 
                 // Week Dates Picker or Month Calendar
                 if (_isExpanded) ...[
@@ -564,17 +567,17 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
                     onDateSelected: _handleDateSelected,
                   ),
                 ],
-                const SizedBox(height: 16),
+                SizedBox(height: TossSpacing.space4),
 
                 // Selected date shifts label
                 Text(
                   'Shifts for ${DateFormat('EEE, d MMM').format(_selectedDate)}',
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: TossSpacing.space3),
 
                 // Shift list for selected date
                 SelectedDateShiftList(

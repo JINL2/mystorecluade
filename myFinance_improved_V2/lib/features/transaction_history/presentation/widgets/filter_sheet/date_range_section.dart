@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 
@@ -35,7 +37,7 @@ class DateRangeSection extends StatelessWidget {
           'Date Range',
           style: TossTextStyles.label.copyWith(
             color: TossColors.textSecondary,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -87,7 +89,7 @@ class _DatePicker extends StatelessWidget {
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
             color: TossColors.border,
-            width: 1,
+            width: TossDimensions.dividerThickness,
           ),
         ),
         child: Row(
@@ -100,7 +102,7 @@ class _DatePicker extends StatelessWidget {
                   label,
                   style: TossTextStyles.small.copyWith(
                     color: TossColors.textSecondary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space1 / 2),
@@ -110,7 +112,7 @@ class _DatePicker extends StatelessWidget {
                       : 'Select date',
                   style: TossTextStyles.body.copyWith(
                     color: value != null ? TossColors.gray900 : TossColors.gray400,
-                    fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
+                    fontWeight: value != null ? TossFontWeight.medium : TossFontWeight.regular,
                   ),
                 ),
               ],

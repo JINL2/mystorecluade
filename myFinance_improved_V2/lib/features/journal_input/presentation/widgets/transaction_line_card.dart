@@ -75,7 +75,7 @@ class TransactionLineCard extends StatelessWidget {
                                         ),
                                         if (line.description != null &&
                                             line.description!.isNotEmpty) ...[
-                                          const SizedBox(height: 2),
+                                          SizedBox(height: TossSpacing.space1 / 2),
                                           Text(
                                             line.description!,
                                             style: TossTextStyles.caption.copyWith(
@@ -169,7 +169,7 @@ class TransactionLineCard extends StatelessWidget {
   Widget _buildCompactTag(String label) {
     return Container(
       margin: const EdgeInsets.only(right: TossSpacing.space1),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1 - 1),
       decoration: BoxDecoration(
         color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),

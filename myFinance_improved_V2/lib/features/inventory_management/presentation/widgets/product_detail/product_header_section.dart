@@ -6,6 +6,8 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../../../shared/widgets/atoms/display/cached_product_image.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/product.dart';
@@ -105,13 +107,12 @@ class _ProductHeaderSectionState extends State<ProductHeaderSection>
                 children: [
                   // SKU with copy button
                   _buildSkuRow(context),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: TossSpacing.space1_5),
                   // Product name
                   Text(
                     widget.product.name,
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
+                    style: TossTextStyles.subtitle.copyWith(
+                      fontWeight: TossFontWeight.bold,
                       color: TossColors.gray900,
                     ),
                   ),
@@ -134,22 +135,22 @@ class _ProductHeaderSectionState extends State<ProductHeaderSection>
         borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
         child: widget.product.images.isEmpty
             ? Container(
-                width: 128,
-                height: 128,
+                width: TossDimensions.productImageLarge,
+                height: TossDimensions.productImageLarge,
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.xxxl),
                 ),
                 child: const Icon(
                   Icons.camera_alt_outlined,
-                  size: 26,
+                  size: TossSpacing.iconMD2,
                   color: TossColors.gray500,
                 ),
               )
             : CachedProductImage(
                 imageUrl: widget.product.images.first,
-                width: 128,
-                height: 128,
+                width: TossDimensions.productImageLarge,
+                height: TossDimensions.productImageLarge,
                 borderRadius: TossBorderRadius.xxxl,
               ),
       ),
@@ -163,13 +164,13 @@ class _ProductHeaderSectionState extends State<ProductHeaderSection>
           child: Text(
             widget.product.sku,
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray600,
             ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: TossSpacing.space1_5),
         _CopyButton(
           text: widget.product.sku,
           onCopied: () {
@@ -246,7 +247,7 @@ class _CopyButtonState extends State<_CopyButton>
             child: Icon(
               _showCheck ? Icons.check : Icons.copy_outlined,
               key: ValueKey(_showCheck),
-              size: 18,
+              size: TossSpacing.iconSM,
               color: _showCheck ? TossColors.success : TossColors.gray500,
             ),
           ),
@@ -310,8 +311,8 @@ class _QuantityBadgeState extends State<_QuantityBadge>
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: TossSpacing.iconLG2,
+            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
             decoration: BoxDecoration(
               color: TossColors.primary,
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -320,7 +321,7 @@ class _QuantityBadgeState extends State<_QuantityBadge>
             child: Text(
               '${widget.quantity}',
               style: TossTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.white,
               ),
             ),

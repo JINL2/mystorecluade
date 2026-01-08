@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../domain/entities/vault_transaction_type.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -36,7 +37,7 @@ class DebitCreditToggle extends StatelessWidget {
             isSelected: selectedType == VaultTransactionType.debit,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: TossSpacing.space2),
 
         // Out (Credit) Button
         Expanded(
@@ -47,7 +48,7 @@ class DebitCreditToggle extends StatelessWidget {
             isSelected: selectedType == VaultTransactionType.credit,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: TossSpacing.space2),
 
         // Recount Button
         Expanded(
@@ -69,7 +70,7 @@ class DebitCreditToggle extends StatelessWidget {
     required bool isSelected,
   }) {
     // Compact size to match dropdown height
-    const buttonPadding = EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+    const buttonPadding = EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2 + 2);
     const iconSize = 18.0;
     const fontSize = 14.0;
 

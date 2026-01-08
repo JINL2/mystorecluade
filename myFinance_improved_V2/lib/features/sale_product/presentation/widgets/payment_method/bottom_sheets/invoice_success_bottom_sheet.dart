@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -121,8 +123,7 @@ class _InvoiceSuccessBottomSheetState
                     'Sale Completed!',
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
                   const Spacer(),
@@ -189,7 +190,7 @@ class _InvoiceSuccessBottomSheetState
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray200,
-          width: 1,
+          width: TossDimensions.dividerThickness,
         ),
       ),
       child: Column(
@@ -217,22 +218,22 @@ class _InvoiceSuccessBottomSheetState
                     children: [
                       const Icon(
                         Icons.camera_alt_outlined,
-                        size: 20,
+                        size: TossSpacing.iconMD,
                         color: TossColors.gray600,
                       ),
                       const SizedBox(width: TossSpacing.space2),
                       Text(
                         'Add Receipt Screenshot',
                         style: TossTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray900,
                         ),
                       ),
                       if (_pendingAttachments.isNotEmpty) ...[
                         const SizedBox(width: TossSpacing.space2),
                         Container(
-                          width: 24,
-                          height: 24,
+                          width: TossSpacing.iconMD2,
+                          height: TossSpacing.iconMD2,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: TossColors.primarySurface,
@@ -241,7 +242,7 @@ class _InvoiceSuccessBottomSheetState
                             child: Text(
                               '${_pendingAttachments.length}',
                               style: TossTextStyles.bodySmall.copyWith(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                                 color: TossColors.primary,
                               ),
                             ),
@@ -254,7 +255,7 @@ class _InvoiceSuccessBottomSheetState
                     _isAttachmentsExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: TossColors.gray400,
                   ),
                 ],
@@ -265,7 +266,7 @@ class _InvoiceSuccessBottomSheetState
           // Attachment content
           if (_isAttachmentsExpanded) ...[
             Container(
-              height: 1,
+              height: TossDimensions.dividerThickness,
               color: TossColors.gray200,
             ),
             Padding(
@@ -307,7 +308,7 @@ class _InvoiceSuccessBottomSheetState
                   if (_pendingAttachments.isNotEmpty) ...[
                     const SizedBox(height: TossSpacing.space3),
                     SizedBox(
-                      height: 80,
+                      height: TossDimensions.productImageLarge,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: _pendingAttachments.length,
@@ -348,13 +349,13 @@ class _InvoiceSuccessBottomSheetState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 24, color: TossColors.primary),
+            Icon(icon, size: TossSpacing.iconMD2, color: TossColors.primary),
             const SizedBox(height: TossSpacing.space1),
             Text(
               label,
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.gray700,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ],
@@ -370,8 +371,8 @@ class _InvoiceSuccessBottomSheetState
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           child: Image.file(
             File(file.path),
-            width: 80,
-            height: 80,
+            width: TossDimensions.productImageLarge,
+            height: TossDimensions.productImageLarge,
             fit: BoxFit.cover,
           ),
         ),
@@ -385,14 +386,14 @@ class _InvoiceSuccessBottomSheetState
               });
             },
             child: Container(
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.all(TossSpacing.space0_5),
               decoration: const BoxDecoration(
                 color: TossColors.error,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.close,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.white,
               ),
             ),
@@ -446,7 +447,7 @@ class _InvoiceSuccessBottomSheetState
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
           color: TossColors.gray200,
-          width: 1,
+          width: TossDimensions.dividerThickness,
         ),
       ),
       child: Column(
@@ -475,27 +476,27 @@ class _InvoiceSuccessBottomSheetState
                       Text(
                         'View items',
                         style: TossTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                           color: TossColors.gray900,
                         ),
                       ),
                       const SizedBox(width: TossSpacing.space2),
                       // Item count badge
                       Container(
-                        width: 28,
-                        height: 28,
+                        width: TossSpacing.iconLG,
+                        height: TossSpacing.iconLG,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: TossColors.primary,
-                            width: 2,
+                            width: TossDimensions.dividerThicknessBold,
                           ),
                         ),
                         child: Center(
                           child: Text(
                             '${widget.products.length}',
                             style: TossTextStyles.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                               color: TossColors.primary,
                             ),
                           ),
@@ -507,7 +508,7 @@ class _InvoiceSuccessBottomSheetState
                     _isItemsExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: TossColors.gray400,
                   ),
                 ],
@@ -518,7 +519,7 @@ class _InvoiceSuccessBottomSheetState
           // Items list
           if (_isItemsExpanded) ...[
             Container(
-              height: 1,
+              height: TossDimensions.dividerThickness,
               color: TossColors.gray200,
             ),
             Padding(
@@ -555,7 +556,7 @@ class _InvoiceSuccessBottomSheetState
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             child: ProductImageWidget(
               imageUrl: product.images.mainImage,
-              size: 48,
+              size: TossSpacing.iconXXL,
               fallbackIcon: Icons.inventory_2,
             ),
           ),
@@ -568,17 +569,17 @@ class _InvoiceSuccessBottomSheetState
                 Text(
                   product.productName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.gray900,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text(
                   product.sku,
                   style: TossTextStyles.caption.copyWith(
-                    fontWeight: FontWeight.w400,
+                    fontWeight: TossFontWeight.regular,
                     color: TossColors.gray500,
                   ),
                 ),
@@ -589,7 +590,7 @@ class _InvoiceSuccessBottomSheetState
           Text(
             '$quantity × ${PaymentHelpers.formatPrice(price)}',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray700,
             ),
           ),

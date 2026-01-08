@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
@@ -33,14 +34,14 @@ class HistoryMembersSection extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.group_outlined,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.textSecondary,
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 Text(
                   'Members',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
                   ),
                 ),
@@ -58,7 +59,7 @@ class HistoryMembersSection extends StatelessWidget {
                     '${members.length}',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -102,8 +103,8 @@ class HistoryMembersSection extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: TossSpacing.iconXL,
+            height: TossSpacing.iconXL,
             decoration: BoxDecoration(
               color: TossColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -113,7 +114,7 @@ class HistoryMembersSection extends StatelessWidget {
                 member.userName.isNotEmpty ? member.userName[0].toUpperCase() : '?',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ),
@@ -127,7 +128,7 @@ class HistoryMembersSection extends StatelessWidget {
                   member.userName,
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
                 Text(
@@ -151,10 +152,9 @@ class HistoryMembersSection extends StatelessWidget {
               ),
               child: Text(
                 'Active',
-                style: TossTextStyles.caption.copyWith(
+                style: TossTextStyles.micro.copyWith(
                   color: TossColors.success,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 10,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ),

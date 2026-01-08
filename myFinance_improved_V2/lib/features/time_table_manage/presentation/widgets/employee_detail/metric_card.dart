@@ -33,24 +33,24 @@ class MetricCard extends StatelessWidget {
               ),
             ),
             if (showInfoIcon) ...[
-              const SizedBox(width: 2),
+              const SizedBox(width: TossSpacing.space0_5),
               const Icon(
                 Icons.info_outline,
-                size: 14,
+                size: TossSpacing.iconXS,
                 color: TossColors.gray400,
               ),
             ],
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: TossSpacing.space1),
         Text(
           value,
           style: TossTextStyles.titleLarge.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
         if (footnote != null) ...[
-          const SizedBox(height: 2),
+          const SizedBox(height: TossSpacing.space0_5),
           Text(
             footnote!,
             style: TossTextStyles.small.copyWith(
@@ -71,8 +71,8 @@ class MetricDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 1,
-      height: 50,
+      width: TossDimensions.dividerThickness,
+      height: TossDimensions.dividerHeightXL,
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
       color: TossColors.gray200,
     );

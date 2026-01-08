@@ -36,7 +36,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
-            if (index < totalSteps - 1) const SizedBox(width: 8),
+            if (index < totalSteps - 1) SizedBox(width: TossSpacing.space2),
           ],
         );
       }),

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Schedule Shift Card
@@ -141,7 +138,7 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
                       // Time icon
                       const Icon(
                         Icons.access_time,
-                        size: 20,
+                        size: TossSpacing.iconMD,
                         color: TossColors.gray700,
                       ),
                       const SizedBox(width: TossSpacing.space2),
@@ -155,10 +152,10 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
                               widget.shiftName,
                               style: TossTextStyles.body.copyWith(
                                 color: TossColors.gray900,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: TossSpacing.space0_5),
                             Text(
                               '${widget.startTime} - ${widget.endTime}',
                               style: TossTextStyles.bodySmall.copyWith(
@@ -231,7 +228,7 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
                     'Applicants (${pendingEmployees.length})',
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray700,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                   const SizedBox(height: TossSpacing.space3),
@@ -259,7 +256,7 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
     );
   }
 
-  Widget _buildAvatar(Map<String, dynamic> employee, {double size = 32}) {
+  Widget _buildAvatar(Map<String, dynamic> employee, {double size = TossDimensions.avatarMD}) {
     final profileImage = employee['profile_image'] as String?;
 
     return Container(
@@ -297,28 +294,28 @@ class _ScheduleShiftCardState extends State<ScheduleShiftCard> {
       padding: const EdgeInsets.only(bottom: TossSpacing.space2),
       child: Row(
         children: [
-          _buildAvatar(employee, size: 32),
+          _buildAvatar(employee, size: TossDimensions.avatarMD),
           const SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Text(
               userName,
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ),
           // Only Approve button - no Assigned button
           TossButton.primary(
             text: 'Approve',
-            leadingIcon: isLoading ? null : const Icon(Icons.check, size: 16),
+            leadingIcon: isLoading ? null : const Icon(Icons.check, size: TossSpacing.iconSM),
             isLoading: isLoading,
             onPressed: isLoading ? null : () => _handleApprove(shiftRequestId),
             padding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space3,
               vertical: TossSpacing.space2,
             ),
-            fontSize: 13,
+            textStyle: TossTextStyles.caption,
           ),
         ],
       ),

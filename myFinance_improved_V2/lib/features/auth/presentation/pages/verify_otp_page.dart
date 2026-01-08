@@ -196,7 +196,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
                       ),
                       child: const Icon(
                         Icons.pin_outlined,
-                        size: 40,
+                        size: TossSpacing.iconXL + TossSpacing.space2,
                         color: TossColors.primary,
                       ),
                     ),
@@ -247,7 +247,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
                             const Icon(
                               Icons.error_outline,
                               color: TossColors.error,
-                              size: 20,
+                              size: TossSpacing.iconMD,
                             ),
                             const SizedBox(width: TossSpacing.space2),
                             Expanded(
@@ -283,7 +283,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
                         text: _isResending ? 'Sending...' : 'Resend code',
                         onPressed: _isResending ? null : _handleResendOtp,
                         isLoading: _isResending,
-                        leadingIcon: _isResending ? null : const Icon(Icons.refresh, size: 18),
+                        leadingIcon: _isResending ? null : const Icon(Icons.refresh, size: TossSpacing.iconSM),
                         fontWeight: FontWeight.w600,
                       ),
                     ],
@@ -309,7 +309,7 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
           icon: const Icon(
             Icons.arrow_back_ios,
             color: TossColors.textPrimary,
-            size: 20,
+            size: TossSpacing.iconMD,
           ),
           onPressed: () => context.pop(),
           padding: EdgeInsets.zero,
@@ -324,8 +324,8 @@ class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(6, (index) {
         return SizedBox(
-          width: 48,
-          height: 56,
+          width: TossSpacing.iconXXL,
+          height: TossSpacing.icon3XL,
           child: TextFormField(
             controller: _controllers[index],
             focusNode: _focusNodes[index],

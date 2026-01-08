@@ -76,7 +76,7 @@ class TossErrorView extends StatelessWidget {
               width: UIConstants.avatarSizeLarge,
               height: UIConstants.avatarSizeLarge,
               decoration: BoxDecoration(
-                color: TossColors.error.withOpacity(0.1),
+                color: TossColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(

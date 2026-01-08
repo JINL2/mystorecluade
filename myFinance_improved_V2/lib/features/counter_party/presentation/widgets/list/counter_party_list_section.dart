@@ -44,7 +44,7 @@ class CounterPartyListSection extends StatelessWidget {
             children: [
               const Icon(
                 Icons.people_outline,
-                size: TossSpacing.iconXL + 24,
+                size: TossSpacing.icon4XL,
                 color: TossColors.textTertiary,
               ),
               const SizedBox(height: TossSpacing.space4),

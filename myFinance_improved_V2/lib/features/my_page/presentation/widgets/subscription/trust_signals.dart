@@ -3,6 +3,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 /// Trust signals section showing security, cancel policy, and no hidden fees
 class TrustSignals extends StatelessWidget {
@@ -17,15 +19,15 @@ class TrustSignals extends StatelessWidget {
         children: [
           _buildTrustItem(LucideIcons.shield, 'Secure'),
           Container(
-            width: 1,
-            height: 16,
+            width: TossDimensions.dividerThickness,
+            height: TossSpacing.space4,
             margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             color: TossColors.gray200,
           ),
           _buildTrustItem(LucideIcons.refreshCcw, 'Cancel anytime'),
           Container(
-            width: 1,
-            height: 16,
+            width: TossDimensions.dividerThickness,
+            height: TossSpacing.space4,
             margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             color: TossColors.gray200,
           ),
@@ -39,13 +41,13 @@ class TrustSignals extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: TossColors.gray400),
-        const SizedBox(width: 4),
+        Icon(icon, size: TossSpacing.iconXS, color: TossColors.gray400),
+        SizedBox(width: TossSpacing.space1),
         Text(
           label,
           style: TossTextStyles.small.copyWith(
             color: TossColors.gray500,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
       ],

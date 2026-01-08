@@ -39,21 +39,17 @@ class CurrencyPillSelector extends StatelessWidget {
           children: [
             Text(
               'Currencies',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.textSecondary, // Consistent with other labels
-                letterSpacing: 0.5,
-              ),
+              style: TossTextStyles.smallSectionTitle,
             ),
             // Only show Add currency button if there are more currencies to add
             if (hasMoreCurrenciesToAdd)
               TossButton.textButton(
                 text: 'Add currency',
                 onPressed: onAddCurrency,
-                leadingIcon: const Icon(Icons.add, size: 16),
+                leadingIcon: const Icon(Icons.add, size: TossSpacing.iconSM),
                 textColor: TossColors.primary,
-                fontSize: 14,
                 fontWeight: FontWeight.w600,
-                padding: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.only(right: TossSpacing.space1),
               ),
           ],
         ),

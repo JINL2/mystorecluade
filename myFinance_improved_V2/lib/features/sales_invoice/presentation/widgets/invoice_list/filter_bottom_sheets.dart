@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../extensions/invoice_period_extension.dart';
@@ -29,12 +30,12 @@ class InvoiceFilterBottomSheets {
               title: Text(
                 period.displayName,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                   color: isSelected ? TossColors.primary : TossColors.gray900,
                 ),
               ),
               trailing: isSelected
-                  ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                  ? Icon(Icons.check, color: TossColors.primary, size: TossSpacing.iconMD)
                   : null,
               onTap: () {
                 ref.read(invoiceListNotifierProvider.notifier).updatePeriod(period);
@@ -104,12 +105,12 @@ class InvoiceFilterBottomSheets {
       title: Text(
         label,
         style: TossTextStyles.body.copyWith(
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
           color: isSelected ? TossColors.primary : TossColors.gray900,
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+          ? Icon(Icons.check, color: TossColors.primary, size: TossSpacing.iconMD)
           : null,
       onTap: () {
         ref.read(invoiceListNotifierProvider.notifier).updateStatus(value);
@@ -140,14 +141,14 @@ class InvoiceFilterBottomSheets {
                 'All Locations',
                 style: TossTextStyles.body.copyWith(
                   fontWeight:
-                      selectedCashLocation == null ? FontWeight.w600 : FontWeight.w400,
+                      selectedCashLocation == null ? TossFontWeight.semibold : TossFontWeight.regular,
                   color: selectedCashLocation == null
                       ? TossColors.primary
                       : TossColors.gray900,
                 ),
               ),
               trailing: selectedCashLocation == null
-                  ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                  ? Icon(Icons.check, color: TossColors.primary, size: TossSpacing.iconMD)
                   : null,
               onTap: () {
                 ref.read(invoiceListNotifierProvider.notifier).clearCashLocationFilter();
@@ -164,7 +165,7 @@ class InvoiceFilterBottomSheets {
                 title: Text(
                   location.name,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
                     color: isSelected ? TossColors.primary : TossColors.gray900,
                   ),
                 ),
@@ -175,7 +176,7 @@ class InvoiceFilterBottomSheets {
                   ),
                 ),
                 trailing: isSelected
-                    ? const Icon(Icons.check, color: TossColors.primary, size: 20)
+                    ? Icon(Icons.check, color: TossColors.primary, size: TossSpacing.iconMD)
                     : null,
                 onTap: () {
                   ref.read(invoiceListNotifierProvider.notifier).updateCashLocation(location);

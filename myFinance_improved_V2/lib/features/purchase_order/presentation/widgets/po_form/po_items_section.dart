@@ -70,7 +70,7 @@ class POItemsSection extends StatelessWidget {
                   'Items',
                   style: TossTextStyles.h4.copyWith(color: TossColors.gray900),
                 ),
-                const SizedBox(width: 2),
+                SizedBox(width: TossSpacing.space1 / 2),
                 Text(
                   '*',
                   style: TossTextStyles.h4.copyWith(color: TossColors.error),
@@ -134,7 +134,7 @@ class POItemsSection extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_circle_outline, color: TossColors.primary, size: 20),
+            Icon(Icons.add_circle_outline, color: TossColors.primary, size: TossSpacing.iconMD),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Add items',
@@ -176,11 +176,11 @@ class POItemCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: TossSpacing.space7,
+                  height: TossSpacing.space7,
                   decoration: BoxDecoration(
                     color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Center(
                     child: Text(
@@ -204,14 +204,14 @@ class POItemCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  icon: const Icon(Icons.edit_outlined, size: TossSpacing.iconMD),
                   onPressed: onEdit,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 IconButton(
-                  icon: Icon(Icons.delete_outline, size: 20, color: TossColors.error),
+                  icon: Icon(Icons.delete_outline, size: TossSpacing.iconMD, color: TossColors.error),
                   onPressed: onDelete,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -250,11 +250,11 @@ class POItemCard extends StatelessWidget {
       margin: const EdgeInsets.only(right: TossSpacing.space2),
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
-        vertical: 2,
+        vertical: TossSpacing.space1 / 2,
       ),
       decoration: BoxDecoration(
         color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(TossBorderRadius.xs),
       ),
       child: Text(
         label,

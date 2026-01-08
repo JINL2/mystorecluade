@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 
 /// Social proof section with ratings and testimonials
 class SocialProof extends StatelessWidget {
@@ -20,17 +21,17 @@ class SocialProof extends StatelessWidget {
             children: [
               ...List.generate(
                 5,
-                (index) => const Icon(
+                (index) => Icon(
                   Icons.star_rounded,
-                  color: Color(0xFFFFB800),
-                  size: 20,
+                  color: TossColors.warning,
+                  size: TossSpacing.iconSM,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               Text(
                 '4.9',
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
@@ -68,19 +69,18 @@ class SocialProof extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: TossSpacing.space8,
+                      height: TossSpacing.space8,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6),
+                        color: TossColors.primary,
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'JK',
-                          style: TextStyle(
+                          style: TossTextStyles.small.copyWith(
                             color: TossColors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontWeight: TossFontWeight.bold,
                           ),
                         ),
                       ),
@@ -92,15 +92,14 @@ class SocialProof extends StatelessWidget {
                         Text(
                           'James Kim',
                           style: TossTextStyles.small.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: TossColors.gray900,
                           ),
                         ),
                         Text(
                           'Owner, Seoul Cafe',
-                          style: TossTextStyles.small.copyWith(
+                          style: TossTextStyles.micro.copyWith(
                             color: TossColors.gray500,
-                            fontSize: 11,
                           ),
                         ),
                       ],

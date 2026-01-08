@@ -33,26 +33,20 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
         Text(
           'Account Changes',
           style: TossTextStyles.titleMedium.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: TossFontWeight.bold,
             color: TossColors.gray900,
           ),
         ),
 
-        const SizedBox(height: 12),
+        SizedBox(height: TossSpacing.space3),
 
         // Company-wide summary
         Container(
-          padding: const EdgeInsets.all(TossSpacing.space4),
+          padding: EdgeInsets.all(TossSpacing.space4),
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-            boxShadow: [
-              BoxShadow(
-                color: TossColors.black.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(color: TossColors.gray100),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,21 +55,21 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
                 children: [
                   const Icon(
                     LucideIcons.building2,
-                    size: 18,
+                    size: TossSpacing.iconSM,
                     color: TossColors.gray600,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: TossSpacing.space2),
                   Text(
                     'Company-Wide Summary',
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: TossSpacing.space4),
 
               // Categories (빈 카테고리는 숨김)
               ...widget.accountChanges.companyWide
@@ -85,7 +79,7 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
           ),
         ),
 
-        const SizedBox(height: 16),
+        SizedBox(height: TossSpacing.space4),
 
         // Store breakdown toggle
         GestureDetector(
@@ -95,31 +89,25 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
             });
           },
           child: Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
+            padding: EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.white,
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-              boxShadow: [
-                BoxShadow(
-                  color: TossColors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: TossColors.gray100),
             ),
             child: Row(
               children: [
                 const Icon(
                   LucideIcons.store,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                   color: TossColors.gray600,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(
                     'Breakdown by Store',
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                   ),
@@ -128,7 +116,7 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
                   _showStoreBreakdown
                       ? LucideIcons.chevronUp
                       : LucideIcons.chevronDown,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.gray600,
                 ),
               ],
@@ -138,7 +126,7 @@ class _AccountChangesSectionState extends State<AccountChangesSection> {
 
         // Store breakdown content
         if (_showStoreBreakdown) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
           ...widget.accountChanges.byStore.map((store) =>
               _StoreAccountCard(store: store),),
         ],
@@ -155,27 +143,27 @@ class _AccountCategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: TossSpacing.space4),
+      padding: EdgeInsets.only(bottom: TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Category title
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
             decoration: BoxDecoration(
-              color: _getCategoryColor(category.category).withOpacity(0.1),
+              color: _getCategoryColor(category.category).withValues(alpha: TossOpacity.light),
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
             ),
             child: Text(
               category.category,
               style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: _getCategoryColor(category.category),
               ),
             ),
           ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: TossSpacing.space2),
 
           // Accounts
           ...category.accounts.map((account) => _AccountItemRow(item: account)),
@@ -211,14 +199,14 @@ class _AccountItemRow extends StatelessWidget {
     final isIncrease = item.isIncrease ?? false;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
+      padding: EdgeInsets.symmetric(vertical: TossSpacing.space1),
       child: Row(
         children: [
           // Dot indicator
           Container(
-            width: 6,
-            height: 6,
-            margin: const EdgeInsets.only(right: TossSpacing.space2),
+            width: TossDimensions.timelineDotSmall,
+            height: TossDimensions.timelineDotSmall,
+            margin: EdgeInsets.only(right: TossSpacing.space2),
             decoration: BoxDecoration(
               color: hasChange
                   ? (isIncrease ? TossColors.success : TossColors.error)
@@ -241,7 +229,7 @@ class _AccountItemRow extends StatelessWidget {
           Text(
             item.formatted,
             style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
               color: hasChange
                   ? (isIncrease ? TossColors.success : TossColors.error)
                   : TossColors.gray900,
@@ -261,8 +249,8 @@ class _StoreAccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      margin: EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
@@ -278,18 +266,18 @@ class _StoreAccountCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(TossSpacing.space2),
+                padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: const Icon(
                   LucideIcons.store,
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: TossColors.primary,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,11 +285,11 @@ class _StoreAccountCard extends StatelessWidget {
                     Text(
                       store.storeName,
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray900,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space0_5),
                     Text(
                       'Revenue: ${_formatCurrency(store.revenue)}',
                       style: TossTextStyles.labelSmall.copyWith(
@@ -314,7 +302,7 @@ class _StoreAccountCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
 
           // Categories (빈 카테고리는 숨김)
           ...store.categories

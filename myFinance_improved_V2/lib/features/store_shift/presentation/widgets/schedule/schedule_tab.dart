@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/work_schedule_template.dart';
@@ -32,7 +33,7 @@ class ScheduleTab extends ConsumerWidget {
         child: TossEmptyView(
           icon: Icon(
             LucideIcons.building2,
-            size: 64,
+            size: TossSpacing.iconXXL,
             color: TossColors.gray400,
           ),
           title: 'No company selected',
@@ -68,7 +69,7 @@ class ScheduleTab extends ConsumerWidget {
               error: (error, stack) => TossEmptyView(
                 icon: const Icon(
                   LucideIcons.alertCircle,
-                  size: 64,
+                  size: TossSpacing.iconXXL,
                   color: TossColors.error,
                 ),
                 title: 'Error loading templates',
@@ -85,10 +86,10 @@ class ScheduleTab extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
-        color: TossColors.primary.withOpacity(0.05),
+        color: TossColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
-          color: TossColors.primary.withOpacity(0.1),
+          color: TossColors.primary.withValues(alpha: 0.1),
         ),
       ),
       child: Row(
@@ -96,13 +97,13 @@ class ScheduleTab extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(TossSpacing.space2),
             decoration: BoxDecoration(
-              color: TossColors.primary.withOpacity(0.1),
+              color: TossColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
             ),
             child: const Icon(
               LucideIcons.building2,
               color: TossColors.primary,
-              size: 20,
+              size: TossSpacing.iconSM,
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -116,12 +117,12 @@ class ScheduleTab extends ConsumerWidget {
                     color: TossColors.gray600,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   companyName.isNotEmpty ? companyName : 'Your Company',
                   style: TossTextStyles.bodyLarge.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ],
@@ -143,7 +144,7 @@ class ScheduleTab extends ConsumerWidget {
           const TossEmptyView(
             icon: Icon(
               LucideIcons.calendarClock,
-              size: 64,
+              size: TossSpacing.iconXXL,
               color: TossColors.gray400,
             ),
             title: 'No schedule templates',
@@ -153,7 +154,7 @@ class ScheduleTab extends ConsumerWidget {
           const SizedBox(height: TossSpacing.space4),
           TossButton.primary(
             onPressed: () => _showAddTemplateDialog(context, ref),
-            leadingIcon: const Icon(LucideIcons.plus, size: 20, color: TossColors.white),
+            leadingIcon: const Icon(LucideIcons.plus, size: TossSpacing.iconSM, color: TossColors.white),
             text: 'Create Template',
           ),
         ],
@@ -171,7 +172,7 @@ class ScheduleTab extends ConsumerWidget {
               'Work Schedule Templates',
               style: TossTextStyles.bodyLarge.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w700,
+                fontWeight: TossFontWeight.bold,
               ),
             ),
             IconButton(

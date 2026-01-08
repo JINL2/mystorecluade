@@ -126,7 +126,7 @@ class TossToast {
             Icon(
               icon,
               color: TossColors.white,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
             const SizedBox(width: TossSpacing.space2),
             Expanded(

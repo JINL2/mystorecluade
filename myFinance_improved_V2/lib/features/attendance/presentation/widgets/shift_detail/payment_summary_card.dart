@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
+import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/widgets/index.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../providers/attendance_providers.dart';
 
@@ -57,45 +56,45 @@ class PaymentSummaryCard extends ConsumerWidget {
           label: 'Total confirmed time',
           value: _formatHours(shift.paidHours),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         _buildInfoRow(
           label: shift.salaryType == 'monthly' ? 'Monthly salary' : 'Hourly salary',
           value: _formatMoney(shift.salaryAmountValue, currencySymbol),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         Container(
           height: 1,
           color: TossColors.gray100,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         _buildInfoRow(
           label: 'Base pay',
           value: _formatMoney(shift.basePayAmount, currencySymbol),
         ),
         if (shift.bonusAmount != 0) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: TossSpacing.space3),
           _buildInfoRow(
             label: 'Bonus pay',
             value: _formatMoney(shift.bonusAmount, currencySymbol),
             valueStyle: shift.bonusAmount < 0
                 ? TossTextStyles.bodyLarge.copyWith(
                     color: TossColors.error,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   )
                 : null,
           ),
         ],
-        const SizedBox(height: 12),
+        const SizedBox(height: TossSpacing.space3),
         _buildInfoRow(
           label: 'Total payment',
           value: _formatMoney(shift.totalPayAmount, currencySymbol),
           labelStyle: TossTextStyles.titleMedium.copyWith(
             color: TossColors.gray900,
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
           ),
           valueStyle: TossTextStyles.titleMedium.copyWith(
             color: TossColors.primary,
-            fontWeight: FontWeight.w700,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
       ],

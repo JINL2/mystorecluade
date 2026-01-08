@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -36,9 +37,7 @@ class AccountDetailDialogs {
                   SizedBox(height: TossSpacing.space4),
                   Text(
                     'Processing...',
-                    style: TossTextStyles.body.copyWith(
-                      fontSize: 14,
-                    ),
+                    style: TossTextStyles.body,
                   ),
                 ],
               ),
@@ -104,7 +103,6 @@ class AccountDetailDialogs {
           'Difference Amount',
           style: TossTextStyles.body.copyWith(
             color: TossColors.gray600,
-            fontSize: 14,
           ),
         ),
 
@@ -115,8 +113,7 @@ class AccountDetailDialogs {
           formatCurrencyWithSign(errorAmount, currencySymbol),
           style: TossTextStyles.h3.copyWith(
             color: TossColors.error,
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
+            fontWeight: TossFontWeight.bold,
           ),
         ),
       ],

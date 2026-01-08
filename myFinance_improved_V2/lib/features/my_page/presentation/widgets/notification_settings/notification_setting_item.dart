@@ -4,6 +4,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 
 import '../../../data/datasources/notification_settings_datasource.dart';
 import '../../pages/notification_store_settings_page.dart';
@@ -54,15 +56,15 @@ class NotificationSettingItem extends StatelessWidget {
 
   Widget _buildIcon(bool isEnabled) {
     return Container(
-      width: 44,
-      height: 44,
+      width: TossSpacing.space11,
+      height: TossSpacing.space11,
       decoration: BoxDecoration(
-        color: TossColors.primary.withValues(alpha: 0.12),
+        color: TossColors.primary.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
       ),
       child: Icon(
         NotificationUtils.getIconFromKey(setting.iconKey),
-        size: 22,
+        size: TossSpacing.iconMD,
         color: TossColors.primary,
       ),
     );
@@ -75,7 +77,7 @@ class NotificationSettingItem extends StatelessWidget {
         Text(
           NotificationUtils.formatName(setting.featureName),
           style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: TossFontWeight.semibold,
             color: isEnabled ? TossColors.gray900 : TossColors.gray400,
           ),
         ),
@@ -97,7 +99,7 @@ class NotificationSettingItem extends StatelessWidget {
     if (hasStoreSettings) {
       return Icon(
         Icons.chevron_right,
-        size: 24,
+        size: TossSpacing.iconMD2,
         color: isEnabled ? TossColors.gray400 : TossColors.gray300,
       );
     }

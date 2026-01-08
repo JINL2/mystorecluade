@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -61,7 +60,7 @@ class TransactionListSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            boxShadow: TossShadows.card,
+            border: Border.all(color: TossColors.gray200),
           ),
           child: Column(
             children: [
@@ -119,7 +118,7 @@ class TransactionListSection extends StatelessWidget {
             ),
             Icon(
               Icons.keyboard_arrow_down,
-              size: 18,
+              size: TossSpacing.iconSM,
               color: TossColors.gray600,
             ),
           ],
@@ -352,7 +351,7 @@ class TransactionListSection extends StatelessWidget {
               SizedBox(width: TossSpacing.space2),
               Icon(
                 Icons.arrow_downward,
-                size: 16,
+                size: TossSpacing.iconXS,
                 color: TossColors.primary,
               ),
             ],

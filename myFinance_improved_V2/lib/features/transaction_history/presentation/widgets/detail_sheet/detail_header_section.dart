@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -43,7 +44,7 @@ class DetailHeaderSection extends StatelessWidget {
                   Text(
                     'JRN-${transaction.journalNumber.substring(0, 8).toUpperCase()}',
                     style: TossTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: TossFontWeight.bold,
                       fontFamily: 'JetBrains Mono',
                     ),
                   ),
@@ -65,9 +66,9 @@ class DetailHeaderSection extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.copy,
-            size: 20,
+            size: TossSpacing.iconSM,
             color: TossColors.gray500,
           ),
           tooltip: 'Copy journal number',
@@ -108,9 +109,9 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: TossSpacing.space2,
-        vertical: 2,
+        vertical: TossSpacing.space1 / 2,
       ),
       decoration: BoxDecoration(
         color: TossColors.gray50,
@@ -118,10 +119,9 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TossTextStyles.caption.copyWith(
+        style: TossTextStyles.small.copyWith(
           color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

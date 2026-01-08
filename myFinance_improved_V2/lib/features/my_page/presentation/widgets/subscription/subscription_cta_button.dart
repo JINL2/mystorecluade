@@ -10,6 +10,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// CTA Button section with subscription info banner and action buttons
@@ -109,7 +111,7 @@ class SubscriptionCtaButton extends ConsumerWidget {
     } else if (_isUpgrade) {
       canPurchase = true;
       buttonText = 'Upgrade to Pro';
-      buttonColor = const Color(0xFF3B82F6);
+      buttonColor = TossColors.primary;
       showGradient = true;
     } else if (_isDowngrade) {
       canPurchase = false;
@@ -119,14 +121,14 @@ class SubscriptionCtaButton extends ConsumerWidget {
     } else {
       canPurchase = true;
       buttonText = 'Start 7-Day Free Trial';
-      buttonColor = selectedPlanIndex == 1 ? const Color(0xFF3B82F6) : const Color(0xFF10B981);
+      buttonColor = selectedPlanIndex == 1 ? TossColors.primary : TossColors.emerald;
       showGradient = true;
     }
 
     // Banner color based on current plan
     final Color bannerColor = isProPlan
-        ? const Color(0xFF3B82F6)
-        : const Color(0xFF10B981);
+        ? TossColors.primary
+        : TossColors.emerald;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
@@ -139,10 +141,10 @@ class SubscriptionCtaButton extends ConsumerWidget {
               padding: const EdgeInsets.all(TossSpacing.space3),
               margin: const EdgeInsets.only(bottom: TossSpacing.space3),
               decoration: BoxDecoration(
-                color: bannerColor.withValues(alpha: 0.1),
+                color: bannerColor.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 border: Border.all(
-                  color: bannerColor.withValues(alpha: 0.3),
+                  color: bannerColor.withValues(alpha: TossOpacity.strong),
                 ),
               ),
               child: Row(
@@ -150,7 +152,7 @@ class SubscriptionCtaButton extends ConsumerWidget {
                   Icon(
                     isProPlan ? LucideIcons.crown : LucideIcons.checkCircle,
                     color: bannerColor,
-                    size: 20,
+                    size: TossSpacing.iconSM,
                   ),
                   const SizedBox(width: TossSpacing.space2),
                   Expanded(
@@ -160,12 +162,12 @@ class SubscriptionCtaButton extends ConsumerWidget {
                         Text(
                           'You\'re a $_currentPlanName subscriber!',
                           style: TossTextStyles.body.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TossFontWeight.semibold,
                             color: bannerColor,
                           ),
                         ),
                         if (expirationDate != null) ...[
-                          const SizedBox(height: 2),
+                          SizedBox(height: TossSpacing.space1 / 2),
                           Text(
                             willRenew
                                 ? 'Renews on ${_formatDate(expirationDate!)}'
@@ -194,23 +196,23 @@ class SubscriptionCtaButton extends ConsumerWidget {
             child: AnimatedContainer(
               duration: TossAnimations.normal,
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 18),
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4 + 2),
               decoration: BoxDecoration(
                 gradient: (showGradient && !isPurchasing)
                     ? LinearGradient(
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: selectedPlanIndex == 1
-                            ? [const Color(0xFF3B82F6), const Color(0xFF8B5CF6)]
-                            : [const Color(0xFF10B981), const Color(0xFF059669)],
+                            ? [TossColors.primary, TossColors.violet]
+                            : [TossColors.emerald, TossColors.emeraldDark],
                       )
                     : null,
                 color: (!showGradient || isPurchasing) ? buttonColor : null,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 boxShadow: (showGradient && !isPurchasing)
                     ? [
                         BoxShadow(
-                          color: buttonColor.withValues(alpha: 0.4),
+                          color: buttonColor.withValues(alpha: TossOpacity.medium),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -220,15 +222,14 @@ class SubscriptionCtaButton extends ConsumerWidget {
               child: Center(
                 child: isPurchasing
                     ? TossLoadingView.inline(
-                        size: 24,
+                        size: TossSpacing.iconMD2,
                         color: TossColors.gray500,
                       )
                     : Text(
                         buttonText,
                         style: TossTextStyles.bodyLarge.copyWith(
                           color: canPurchase ? TossColors.white : TossColors.gray500,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
+                          fontWeight: TossFontWeight.bold,
                         ),
                       ),
               ),
@@ -259,12 +260,12 @@ class SubscriptionCtaButton extends ConsumerWidget {
                     onRestorePurchases();
                   },
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
               child: Text(
                 'Restore previous purchases',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ),
@@ -285,12 +286,12 @@ class SubscriptionCtaButton extends ConsumerWidget {
                           onSyncToDatabase();
                         },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2, horizontal: TossSpacing.space3),
                     decoration: BoxDecoration(
-                      color: TossColors.info.withValues(alpha: 0.1),
+                      color: TossColors.info.withValues(alpha: TossOpacity.light),
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: Border.all(
-                        color: TossColors.info.withValues(alpha: 0.3),
+                        color: TossColors.info.withValues(alpha: TossOpacity.strong),
                       ),
                     ),
                     child: Row(
@@ -298,22 +299,22 @@ class SubscriptionCtaButton extends ConsumerWidget {
                       children: [
                         Icon(
                           LucideIcons.refreshCw,
-                          size: 14,
+                          size: TossSpacing.iconXS,
                           color: TossColors.info,
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: TossSpacing.space1_5),
                         Text(
                           '🔄 Sync DB',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.info,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: TossSpacing.space2),
                 // Cancel Button
                 GestureDetector(
                   onTap: isPurchasing
@@ -323,12 +324,12 @@ class SubscriptionCtaButton extends ConsumerWidget {
                           onManageSubscription();
                         },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2, horizontal: TossSpacing.space3),
                     decoration: BoxDecoration(
-                      color: TossColors.error.withValues(alpha: 0.1),
+                      color: TossColors.error.withValues(alpha: TossOpacity.light),
                       borderRadius: BorderRadius.circular(TossBorderRadius.md),
                       border: Border.all(
-                        color: TossColors.error.withValues(alpha: 0.3),
+                        color: TossColors.error.withValues(alpha: TossOpacity.strong),
                       ),
                     ),
                     child: Row(
@@ -336,15 +337,15 @@ class SubscriptionCtaButton extends ConsumerWidget {
                       children: [
                         Icon(
                           LucideIcons.settings,
-                          size: 14,
+                          size: TossSpacing.iconXS,
                           color: TossColors.error,
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: TossSpacing.space1_5),
                         Text(
                           '⚙️ Manage',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.error,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
                       ],

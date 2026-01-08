@@ -132,7 +132,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
               height: 4,
               decoration: BoxDecoration(
                 color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
               ),
             ),
             const SizedBox(height: TossSpacing.space4),
@@ -207,7 +207,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.transparent,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   border: !_selectingEndDate
                       ? Border.all(color: TossColors.primary, width: 1)
                       : null,
@@ -221,7 +221,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                         color: TossColors.gray500,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       _startDate != null ? _formatDateDisplay(_startDate!) : 'Select',
                       style: TossTextStyles.body.copyWith(
@@ -239,7 +239,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
             padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
             child: Icon(
               Icons.arrow_forward,
-              size: 16,
+              size: TossSpacing.iconSM,
               color: TossColors.gray400,
             ),
           ),
@@ -260,7 +260,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                 ),
                 decoration: BoxDecoration(
                   color: TossColors.transparent,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   border: _selectingEndDate
                       ? Border.all(color: TossColors.primary, width: 1)
                       : null,
@@ -274,7 +274,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                         color: TossColors.gray500,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       _endDate != null ? _formatDateDisplay(_endDate!) : 'Select',
                       style: TossTextStyles.body.copyWith(
@@ -305,12 +305,12 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                 _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
               });
             },
-            child: const SizedBox(
-              width: 32,
-              height: 32,
+            child: SizedBox(
+              width: TossSpacing.iconLG2,
+              height: TossSpacing.iconLG2,
               child: Icon(
                 Icons.chevron_left,
-                size: 24,
+                size: TossSpacing.iconLG,
                 color: TossColors.gray700,
               ),
             ),
@@ -335,11 +335,11 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
               }
             },
             child: SizedBox(
-              width: 32,
-              height: 32,
+              width: TossSpacing.iconLG2,
+              height: TossSpacing.iconLG2,
               child: Icon(
                 Icons.chevron_right,
-                size: 24,
+                size: TossSpacing.iconLG,
                 color: _canGoNextMonth() ? TossColors.gray700 : TossColors.gray300,
               ),
             ),
@@ -426,7 +426,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                                   // Left half - show background if not start date
                                   Expanded(
                                     child: Container(
-                                      margin: const EdgeInsets.symmetric(vertical: 2),
+                                      margin: const EdgeInsets.symmetric(vertical: TossSpacing.space1 / 2),
                                       color: isStartDate && !isEndDate
                                           ? TossColors.transparent
                                           : TossColors.primarySurface,
@@ -435,7 +435,7 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                                   // Right half - show background if not end date
                                   Expanded(
                                     child: Container(
-                                      margin: const EdgeInsets.symmetric(vertical: 2),
+                                      margin: const EdgeInsets.symmetric(vertical: TossSpacing.space1 / 2),
                                       color: isEndDate && !isStartDate
                                           ? TossColors.transparent
                                           : TossColors.primarySurface,
@@ -446,8 +446,8 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
                             ),
                           // Circle for selected dates
                           Container(
-                            width: 40,
-                            height: 40,
+                            width: TossSpacing.iconXL,
+                            height: TossSpacing.iconXL,
                             decoration: BoxDecoration(
                               color: isSelected ? TossColors.primary : TossColors.transparent,
                               shape: BoxShape.circle,
@@ -501,10 +501,10 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Container(
-                height: 48,
+                height: TossSpacing.iconXXL,
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Center(
                   child: Text(
@@ -524,10 +524,10 @@ class _CalendarTimeRangeState extends State<CalendarTimeRange> {
             child: GestureDetector(
               onTap: canApply ? _onApply : null,
               child: Container(
-                height: 48,
+                height: TossSpacing.iconXXL,
                 decoration: BoxDecoration(
                   color: canApply ? TossColors.primary : TossColors.gray300,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 ),
                 child: Center(
                   child: Text(

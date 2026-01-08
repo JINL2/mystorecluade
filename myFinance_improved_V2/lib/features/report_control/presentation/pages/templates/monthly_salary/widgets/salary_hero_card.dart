@@ -31,18 +31,11 @@ class SalaryHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(TossSpacing.space5),
+      padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        border: Border.all(color: TossColors.gray200),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,19 +44,19 @@ class SalaryHeroCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: TossDimensions.avatarLG,
+                height: TossDimensions.avatarLG,
                 decoration: BoxDecoration(
-                  color: _getStatusColor().withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: _getStatusColor().withValues(alpha: TossOpacity.light),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.buttonLarge),
                 ),
                 child: Icon(
                   _getStatusIcon(),
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: _getStatusColor(),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,14 +65,14 @@ class SalaryHeroCard extends StatelessWidget {
                       'Monthly Payroll',
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray500,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space0_5),
                     Text(
                       '${summary.totalEmployees} employees',
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                         color: TossColors.gray900,
                       ),
                     ),
@@ -91,12 +84,12 @@ class SalaryHeroCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: TossSpacing.space5),
 
           // Total payment (hero number)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(TossSpacing.space4),
+            padding: EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.gray50,
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -107,31 +100,31 @@ class SalaryHeroCard extends StatelessWidget {
                   'Total Payroll',
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.gray500,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: TossSpacing.space2),
                 Text(
                   summary.totalPaymentFormatted,
                   style: TossTextStyles.h2.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: TossFontWeight.bold,
                     color: TossColors.gray900,
                     height: 1.1,
                   ),
                 ),
                 if (summary.totalWarningAmount > 0) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: TossSpacing.space2),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: TossSpacing.space1),
+                    padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2_5, vertical: TossSpacing.space1),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEE2E2),
+                      color: TossColors.redLight,
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Text(
                       '⚠️ ${summary.totalWarningAmountFormatted} needs review',
                       style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFDC2626),
+                        fontWeight: TossFontWeight.medium,
+                        color: TossColors.red,
                       ),
                     ),
                   ),
@@ -140,7 +133,7 @@ class SalaryHeroCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: TossSpacing.space4),
 
           // Filter hint
           if (onFilterChanged != null)
@@ -163,16 +156,16 @@ class SalaryHeroCard extends StatelessWidget {
                 icon: LucideIcons.alertTriangle,
                 value: '${summary.employeesWithWarnings}',
                 label: 'Warnings',
-                color: const Color(0xFFDC2626),
+                color: TossColors.red,
                 filter: SalaryFilter.withWarnings,
                 isActive: activeFilter == SalaryFilter.withWarnings,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: TossSpacing.space2),
               _buildFilterChip(
                 icon: LucideIcons.checkCircle,
                 value: '${summary.totalEmployees - summary.employeesWithWarnings}',
                 label: 'Clean',
-                color: const Color(0xFF10B981),
+                color: TossColors.emerald,
                 filter: SalaryFilter.noWarnings,
                 isActive: activeFilter == SalaryFilter.noWarnings,
               ),
@@ -190,13 +183,13 @@ class SalaryHeroCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: TossSpacing.space1),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: TossOpacity.light),
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       ),
       child: Text(
         text,
         style: TossTextStyles.labelSmall.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
           color: color,
         ),
       ),
@@ -224,24 +217,24 @@ class SalaryHeroCard extends StatelessWidget {
             : null,
         child: AnimatedContainer(
           duration: TossAnimations.normal,
-          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2_5),
           decoration: BoxDecoration(
-            color: isActive ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.05),
+            color: isActive ? color.withValues(alpha: TossOpacity.medium) : color.withValues(alpha: TossOpacity.subtle),
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: isActive ? color : color.withValues(alpha: 0.2),
+              color: isActive ? color : color.withValues(alpha: TossOpacity.strong),
               width: isActive ? 2 : 1,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 14, color: color),
-              const SizedBox(width: 6),
+              Icon(icon, size: TossSpacing.iconXS2, color: color),
+              SizedBox(width: TossSpacing.space1_5),
               Text(
                 value,
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                   color: color,
                 ),
               ),
@@ -255,12 +248,12 @@ class SalaryHeroCard extends StatelessWidget {
   Color _getStatusColor() {
     switch (summary.payrollStatus) {
       case 'critical':
-        return const Color(0xFFDC2626);
+        return TossColors.red;
       case 'warning':
-        return const Color(0xFFF59E0B);
+        return TossColors.amber;
       case 'normal':
       default:
-        return const Color(0xFF10B981);
+        return TossColors.emerald;
     }
   }
 

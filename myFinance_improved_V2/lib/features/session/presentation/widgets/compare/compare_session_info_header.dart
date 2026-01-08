@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_compare_result.dart';
@@ -41,18 +42,18 @@ class CompareSessionInfoHeader extends StatelessWidget {
                     color: TossColors.gray500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text(
                   sourceSessionName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (compareResult != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   Text(
                     '${compareResult!.sourceSession.totalProducts} items',
                     style: TossTextStyles.caption.copyWith(
@@ -69,7 +70,7 @@ class CompareSessionInfoHeader extends StatelessWidget {
             child: Icon(
               Icons.compare_arrows,
               color: TossColors.gray400,
-              size: 24,
+              size: TossSpacing.iconMD2,
             ),
           ),
           // Target session
@@ -83,11 +84,11 @@ class CompareSessionInfoHeader extends StatelessWidget {
                     color: TossColors.gray500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: TossSpacing.space0_5),
                 Text(
                   targetSessionName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                   maxLines: 1,
@@ -95,7 +96,7 @@ class CompareSessionInfoHeader extends StatelessWidget {
                   textAlign: TextAlign.end,
                 ),
                 if (compareResult != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   Text(
                     '${compareResult!.targetSession.totalProducts} items',
                     style: TossTextStyles.caption.copyWith(

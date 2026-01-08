@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/shift_card.dart';
 import '../../../domain/entities/shift_info_types.dart';
 import '../../../domain/entities/snapshot_data.dart';
@@ -105,14 +102,14 @@ class ShiftInfoCard extends StatelessWidget {
                   color: TossColors.gray600,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: TossSpacing.space1),
               Text(
                 shiftName,
                 style: TossTextStyles.h4.copyWith(
                   color: TossColors.gray900,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: TossSpacing.space0_5),
               Text(
                 timeRange,
                 style: TossTextStyles.bodyMedium.copyWith(
@@ -137,9 +134,9 @@ class ShiftInfoCard extends StatelessWidget {
         label: statusLabel!,
         backgroundColor: TossColors.gray100,
         textColor: TossColors.gray600,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 10,
-          vertical: 4,
+        padding: EdgeInsets.symmetric(
+          horizontal: TossSpacing.space2 + 2,
+          vertical: TossSpacing.space1,
         ),
       );
     }

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -315,7 +318,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           hintText: 'Enter full name',
           prefixIcon: const Icon(
             Icons.person_outline,
-            size: 20,
+            size: TossSpacing.iconSM,
             color: TossColors.gray500,
           ),
           isRequired: true,
@@ -325,7 +328,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           },
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: TossSpacing.space6),
 
         // Type selector
         TypeSelector(
@@ -348,13 +351,13 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           hintText: 'email@example.com',
           prefixIcon: const Icon(
             Icons.email_outlined,
-            size: 20,
+            size: TossSpacing.iconSM,
             color: TossColors.gray500,
           ),
           keyboardType: TextInputType.emailAddress,
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: TossSpacing.space5),
 
         TossTextField(
           controller: _phoneController,
@@ -362,13 +365,13 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           hintText: '+1 234 567 8900',
           prefixIcon: const Icon(
             Icons.phone_outlined,
-            size: 20,
+            size: TossSpacing.iconSM,
             color: TossColors.gray500,
           ),
           keyboardType: TextInputType.phone,
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: TossSpacing.space5),
 
         TossTextField(
           controller: _addressController,
@@ -376,7 +379,7 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           hintText: 'Enter address',
           prefixIcon: const Icon(
             Icons.location_on_outlined,
-            size: 20,
+            size: TossSpacing.iconSM,
             color: TossColors.gray500,
           ),
         ),
@@ -399,24 +402,24 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           hintText: 'Additional notes or comments',
           prefixIcon: const Icon(
             Icons.note_outlined,
-            size: 20,
+            size: TossSpacing.iconSM,
             color: TossColors.gray500,
           ),
           maxLines: 3,
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: TossSpacing.space6),
 
         // Internal 정보 표시 (수정 모드에서 Internal인 경우만)
         if (isEditingInternal)
           Container(
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
-              color: TossColors.info.withValues(alpha: 0.05),
+              color: TossColors.info.withValues(alpha: TossOpacity.subtle),
               borderRadius: BorderRadius.circular(TossBorderRadius.xl),
               border: Border.all(
-                color: TossColors.info.withValues(alpha: 0.3),
-                width: 1,
+                color: TossColors.info.withValues(alpha: TossOpacity.heavy),
+                width: TossDimensions.dividerThickness,
               ),
             ),
             child: Row(
@@ -424,12 +427,12 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 Container(
                   padding: const EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
-                    color: TossColors.info.withValues(alpha: 0.1),
+                    color: TossColors.info.withValues(alpha: TossOpacity.light),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.link,
-                    size: 20,
+                    size: TossSpacing.iconSM,
                     color: TossColors.info,
                   ),
                 ),
@@ -442,10 +445,10 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                         'Internal Company',
                         style: TossTextStyles.body.copyWith(
                           color: TossColors.gray900,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TossFontWeight.semibold,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: TossSpacing.space0_5),
                       Text(
                         'System managed - cannot be modified',
                         style: TossTextStyles.caption.copyWith(
@@ -458,17 +461,17 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space2,
-                    vertical: 4,
+                    vertical: TossSpacing.space1,
                   ),
                   decoration: BoxDecoration(
-                    color: TossColors.info.withValues(alpha: 0.1),
+                    color: TossColors.info.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
                     'Auto',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.info,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),
@@ -509,8 +512,8 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
         decoration: const BoxDecoration(
           color: TossColors.white,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(TossBorderRadius.bottomSheet),
+            topRight: Radius.circular(TossBorderRadius.bottomSheet),
           ),
         ),
       child: Column(
@@ -520,16 +523,16 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
           Column(
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 16),
-                width: 48,
-                height: 4,
+                margin: EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
+                width: TossDimensions.dragHandleWidth,
+                height: TossDimensions.dragHandleHeight,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -540,16 +543,15 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                           widget.counterParty == null ? 'New Counter Party' : 'Edit Counter Party',
                           style: TossTextStyles.h3.copyWith(
                             color: TossColors.gray900,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TossFontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: TossSpacing.space0_5),
                         Text(
                           _stepTitles[_currentStep],
                           style: TossTextStyles.body.copyWith(
                             color: TossColors.gray600,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
                       ],
@@ -563,7 +565,10 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                             onPressed: _showDeleteConfirmation,
                             icon: const Icon(Icons.delete_outline, color: TossColors.error),
                             padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                            constraints: BoxConstraints(
+                              minWidth: TossDimensions.minTouchTarget,
+                              minHeight: TossDimensions.minTouchTarget,
+                            ),
                             tooltip: 'Delete Counter Party',
                           ),
                           const SizedBox(width: TossSpacing.space2),
@@ -573,7 +578,10 @@ class _CounterPartyFormState extends ConsumerState<CounterPartyForm> with Ticker
                           onPressed: () => context.pop(),
                           icon: const Icon(Icons.close, color: TossColors.gray600),
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                          constraints: BoxConstraints(
+                            minWidth: TossDimensions.minTouchTarget,
+                            minHeight: TossDimensions.minTouchTarget,
+                          ),
                         ),
                       ],
                     ),

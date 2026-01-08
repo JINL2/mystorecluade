@@ -78,7 +78,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-    56.0 + (bottom?.preferredSize.height ?? 0.0),
+    44.0 + (bottom?.preferredSize.height ?? 0.0),
   );
 
   /// Build leading widget using ModalRoute.canPop for stable navigation state

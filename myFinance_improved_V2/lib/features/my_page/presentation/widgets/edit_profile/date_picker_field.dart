@@ -3,6 +3,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 /// Date picker field widget
 class DatePickerField extends StatelessWidget {
@@ -32,7 +34,7 @@ class DatePickerField extends StatelessWidget {
           'Date of Birth',
           style: TossTextStyles.label.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w500,
+            fontWeight: TossFontWeight.medium,
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
@@ -49,7 +51,7 @@ class DatePickerField extends StatelessWidget {
               borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: TossColors.gray100,
-                width: 1,
+                width: TossDimensions.dividerThickness,
               ),
             ),
             child: Row(
@@ -64,13 +66,13 @@ class DatePickerField extends StatelessWidget {
                         ? TossColors.gray900
                         : TossColors.gray500,
                     fontWeight: selectedDate != null
-                        ? FontWeight.w500
-                        : FontWeight.w400,
+                        ? TossFontWeight.medium
+                        : TossFontWeight.regular,
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.calendar_today_outlined,
-                  size: 20,
+                  size: TossSpacing.iconSM,
                   color: TossColors.gray600,
                 ),
               ],

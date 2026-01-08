@@ -20,19 +20,19 @@ class AiInsightsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space5),
+      padding: EdgeInsets.all(TossSpacing.space5),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            TossColors.primary.withOpacity(0.05),
-            TossColors.primary.withOpacity(0.02),
+            TossColors.primary.withValues(alpha: TossOpacity.subtle),
+            TossColors.primary.withValues(alpha: TossOpacity.subtle),
           ],
         ),
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
         border: Border.all(
-          color: TossColors.primary.withOpacity(0.1),
+          color: TossColors.primary.withValues(alpha: TossOpacity.light),
           width: 1,
         ),
       ),
@@ -43,29 +43,29 @@ class AiInsightsSection extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(TossSpacing.space2),
+                padding: EdgeInsets.all(TossSpacing.space2),
                 decoration: BoxDecoration(
-                  color: TossColors.primary.withOpacity(0.1),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.light),
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: const Icon(
                   LucideIcons.sparkles,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.primary,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: TossSpacing.space3),
               Text(
                 'AI Analysis',
                 style: TossTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: TossFontWeight.bold,
                   color: TossColors.gray900,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: TossSpacing.space4),
 
           // Summary
           Text(
@@ -77,9 +77,9 @@ class AiInsightsSection extends StatelessWidget {
           ),
 
           if (insights.trends.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             const Divider(),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
 
             // Trends
             Row(
@@ -87,20 +87,20 @@ class AiInsightsSection extends StatelessWidget {
               children: [
                 const Icon(
                   LucideIcons.trendingUp,
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: TossColors.gray600,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: TossSpacing.space2),
                 Text(
                   'Key Trends',
                   style: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             ...insights.trends.map((trend) => Padding(
                   padding: const EdgeInsets.only(left: TossSpacing.space6, bottom: TossSpacing.space2),
                   child: Row(
@@ -127,9 +127,9 @@ class AiInsightsSection extends StatelessWidget {
           ],
 
           if (insights.recommendations.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
             const Divider(),
-            const SizedBox(height: 16),
+            SizedBox(height: TossSpacing.space4),
 
             // Recommendations
             Row(
@@ -137,20 +137,20 @@ class AiInsightsSection extends StatelessWidget {
               children: [
                 const Icon(
                   LucideIcons.lightbulb,
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: TossColors.warning,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: TossSpacing.space2),
                 Text(
                   'Recommendations',
                   style: TossTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: TossSpacing.space2),
             ...insights.recommendations.map((rec) => Padding(
                   padding: const EdgeInsets.only(left: TossSpacing.space6, bottom: TossSpacing.space2),
                   child: Row(

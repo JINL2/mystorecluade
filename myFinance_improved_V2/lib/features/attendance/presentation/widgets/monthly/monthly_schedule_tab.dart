@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/monthly_attendance.dart';
 import '../../providers/monthly_attendance_providers.dart';
 import 'monthly_calendar.dart';
@@ -121,7 +119,7 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
                   onCurrentMonth: () => _navigateMonth(0),
                   onNextMonth: () => _navigateMonth(1),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: TossSpacing.space4),
 
                 // Calendar
                 MonthlyCalendar(
@@ -130,17 +128,17 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
                   attendanceList: attendanceList,
                   onDateSelected: _handleDateSelected,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: TossSpacing.space4),
 
                 // Selected Date Detail
                 Text(
                   DateFormat('EEE, d MMM').format(_selectedDate),
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: TossSpacing.space3),
                 MonthlyDayDetail(
                   selectedDate: _selectedDate,
                   attendance: selectedAttendance,
@@ -304,13 +302,13 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
-            const SizedBox(height: 16),
+            Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
+            const SizedBox(height: TossSpacing.space4),
             Text(
               'Failed to load data',
               style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: TossSpacing.space2),
             TossButton.textButton(
               text: 'Retry',
               onPressed: () {

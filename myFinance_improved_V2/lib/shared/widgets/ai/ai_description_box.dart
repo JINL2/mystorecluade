@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../themes/toss_border_radius.dart';
-import '../../themes/toss_colors.dart';
-import '../../themes/toss_spacing.dart';
-import '../../themes/toss_text_styles.dart';
+import '../../themes/index.dart';
 
 /// AI description box for detail sheets
 ///
@@ -43,9 +40,9 @@ class AiDescriptionBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+        color: TossColors.warningLight,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        border: Border.all(color: Colors.amber.shade200),
+        border: Border.all(color: TossColors.warning.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,14 +53,14 @@ class AiDescriptionBox extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 14,
-                color: Colors.amber.shade600,
+                size: TossSpacing.iconXS,
+                color: TossColors.warning,
               ),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 displayTitle,
                 style: TossTextStyles.caption.copyWith(
-                  color: Colors.amber.shade700,
+                  color: TossColors.warning,
                   fontWeight: FontWeight.w600,
                   fontSize: 11,
                 ),
@@ -74,7 +71,7 @@ class AiDescriptionBox extends StatelessWidget {
             const SizedBox(height: TossSpacing.space2),
             Container(
               height: 1,
-              color: Colors.amber.shade200,
+              color: TossColors.warning.withValues(alpha: 0.3),
             ),
             const SizedBox(height: TossSpacing.space2),
           ] else ...[
@@ -130,7 +127,7 @@ class AiDescriptionInline extends StatelessWidget {
         Icon(
           Icons.auto_awesome,
           size: iconSize,
-          color: Colors.amber.shade600,
+          color: TossColors.warning,
         ),
         const SizedBox(width: TossSpacing.space2),
         Expanded(

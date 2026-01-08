@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
+import '../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/invoice.dart';
@@ -69,7 +71,7 @@ class PaymentMethodSection extends StatelessWidget {
           Text(
             'Payment method',
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
               color: TossColors.gray900,
             ),
           ),
@@ -80,14 +82,14 @@ class PaymentMethodSection extends StatelessWidget {
               Icon(
                 _getPaymentIcon(),
                 color: TossColors.gray700,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
               const SizedBox(width: TossSpacing.space3),
               // Payment method name
               Text(
                 _getPaymentMethodName(),
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray900,
                 ),
               ),
@@ -109,15 +111,15 @@ class PaymentMethodSection extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isPaid
-                        ? TossColors.success.withValues(alpha: 0.1)
-                        : TossColors.warning.withValues(alpha: 0.1),
+                        ? TossColors.success.withValues(alpha: TossOpacity.light)
+                        : TossColors.warning.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                   ),
                   child: Text(
                     isPaid ? 'Paid' : 'Pending',
                     style: TossTextStyles.small.copyWith(
                       color: isPaid ? TossColors.success : TossColors.warning,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),

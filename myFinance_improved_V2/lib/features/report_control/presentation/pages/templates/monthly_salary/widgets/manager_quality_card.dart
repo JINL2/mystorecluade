@@ -26,7 +26,7 @@ class ManagerQualityCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      padding: EdgeInsets.all(TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -39,24 +39,24 @@ class ManagerQualityCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: TossDimensions.avatarMD,
+                height: TossDimensions.avatarMD,
                 decoration: BoxDecoration(
                   color: colors.background,
                   borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 ),
                 child: Icon(
                   LucideIcons.shield,
-                  size: 16,
+                  size: TossSpacing.iconSM2,
                   color: colors.primary,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: TossSpacing.space2_5),
               Expanded(
                 child: Text(
                   'Manager Quality',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),
@@ -73,14 +73,14 @@ class ManagerQualityCard extends StatelessWidget {
                   children: [
                     Icon(
                       _getStatusIcon(quality.qualityStatus),
-                      size: 14,
+                      size: TossSpacing.iconXS,
                       color: colors.primary,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: TossSpacing.space1),
                     Text(
                       '${quality.qualityScore.toStringAsFixed(0)}%',
                       style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: TossFontWeight.bold,
                         color: colors.primary,
                       ),
                     ),
@@ -90,7 +90,7 @@ class ManagerQualityCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: TossSpacing.space4),
 
           // Stats row
           Row(
@@ -101,33 +101,33 @@ class ManagerQualityCard extends StatelessWidget {
                 value: '${quality.totalManagers}',
                 color: TossColors.gray600,
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: TossSpacing.space4),
               _buildStat(
                 icon: LucideIcons.alertTriangle,
                 label: 'With Issues',
                 value: '${quality.managersWithIssues}',
                 color: quality.managersWithIssues > 0
-                    ? const Color(0xFFDC2626)
-                    : const Color(0xFF10B981),
+                    ? TossColors.red
+                    : TossColors.emerald,
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: TossSpacing.space4),
               _buildStat(
                 icon: LucideIcons.userX,
                 label: 'Self-Approved',
                 value: '${quality.selfApprovalCount}',
                 color: quality.selfApprovalCount > 0
-                    ? const Color(0xFFD97706)
-                    : const Color(0xFF10B981),
+                    ? TossColors.amberDark
+                    : TossColors.emerald,
               ),
             ],
           ),
 
           // Quality message
           if (quality.qualityMessage.isNotEmpty) ...[
-            const SizedBox(height: 14),
+            SizedBox(height: TossSpacing.space4),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(TossSpacing.space3),
+              padding: EdgeInsets.all(TossSpacing.space3),
               decoration: BoxDecoration(
                 color: colors.background,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -137,10 +137,10 @@ class ManagerQualityCard extends StatelessWidget {
                 children: [
                   Icon(
                     LucideIcons.info,
-                    size: 14,
+                    size: TossSpacing.iconXS,
                     color: colors.primary,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: TossSpacing.space2),
                   Expanded(
                     child: Text(
                       quality.qualityMessage,
@@ -172,8 +172,8 @@ class ManagerQualityCard extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 12, color: TossColors.gray500),
-              const SizedBox(width: 4),
+              Icon(icon, size: TossSpacing.iconXS2, color: TossColors.gray500),
+              SizedBox(width: TossSpacing.space1),
               Text(
                 label,
                 style: TossTextStyles.labelSmall.copyWith(
@@ -182,11 +182,11 @@ class ManagerQualityCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: TossSpacing.space1),
           Text(
             value,
             style: TossTextStyles.h4.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: TossFontWeight.bold,
               color: color,
             ),
           ),
@@ -211,25 +211,25 @@ class ManagerQualityCard extends StatelessWidget {
     switch (status) {
       case 'critical':
         return _StatusColors(
-          background: const Color(0xFFFEF2F2),
-          border: const Color(0xFFFECACA),
-          primary: const Color(0xFFDC2626),
-          text: const Color(0xFF991B1B),
+          background: TossColors.redSurface,
+          border: TossColors.redLighter,
+          primary: TossColors.red,
+          text: TossColors.redDarker,
         );
       case 'warning':
         return _StatusColors(
-          background: const Color(0xFFFEFCE8),
-          border: const Color(0xFFFEF08A),
-          primary: const Color(0xFFD97706),
-          text: const Color(0xFF92400E),
+          background: TossColors.amberSurface,
+          border: TossColors.amberBorder,
+          primary: TossColors.amberDark,
+          text: TossColors.amberText,
         );
       case 'good':
       default:
         return _StatusColors(
-          background: const Color(0xFFF0FDF4),
-          border: const Color(0xFFBBF7D0),
-          primary: const Color(0xFF10B981),
-          text: const Color(0xFF166534),
+          background: TossColors.greenSurface,
+          border: TossColors.greenBorder,
+          primary: TossColors.emerald,
+          text: TossColors.greenDark,
         );
     }
   }

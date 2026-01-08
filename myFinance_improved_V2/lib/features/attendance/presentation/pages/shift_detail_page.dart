@@ -62,12 +62,12 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
     if (widget.shift.isLate && !isConfirmedByManager) {
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.error,
-        fontWeight: FontWeight.w600,
+        fontWeight: TossFontWeight.semibold,
       );
     } else if (isConfirmedByManager) {
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.primary,
-        fontWeight: FontWeight.w600,
+        fontWeight: TossFontWeight.semibold,
       );
     }
     return null;
@@ -78,12 +78,12 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
     if (widget.shift.isExtratime && !isConfirmedByManager) {
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.error,
-        fontWeight: FontWeight.w600,
+        fontWeight: TossFontWeight.semibold,
       );
     } else if (isConfirmedByManager) {
       return TossTextStyles.bodyLarge.copyWith(
         color: TossColors.primary,
-        fontWeight: FontWeight.w600,
+        fontWeight: TossFontWeight.semibold,
       );
     }
     return null;
@@ -202,8 +202,8 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
       isScrollControlled: true,
       isDismissible: true,
       backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
       ),
       builder: (BuildContext bottomSheetContext) {
         return StatefulBuilder(
@@ -223,24 +223,24 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                     'Report Issue',
                     style: TossTextStyles.titleMedium.copyWith(
                       color: TossColors.gray900,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: TossSpacing.space2),
                   Text(
                     'Please describe the problem with this shift',
                     style: TossTextStyles.bodyLarge.copyWith(
                       color: TossColors.gray600,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: TossSpacing.space4),
                   TossTextField.filled(
                     controller: reasonController,
                     hintText: 'Enter the reason for reporting this issue...',
                     maxLines: 4,
                     enabled: !isSubmitting,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: TossSpacing.paddingXL),
                   Row(
                     children: [
                       Expanded(
@@ -253,7 +253,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                               : () => Navigator.pop(bottomSheetContext),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: TossSpacing.space3),
                       Expanded(
                         child: TossButton.primary(
                           text: isSubmitting ? 'Submitting...' : 'OK',
@@ -326,7 +326,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ShiftInfoCard(shift: widget.shift),
-                        const SizedBox(height: 16),
+                        SizedBox(height: TossSpacing.space4),
                         TossExpandableCard(
                           title: 'Recorded attendance',
                           isExpanded: _recordedAttendanceExpanded,
@@ -343,7 +343,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                                 value: _formatTime(widget.shift.actualStartTime,
                                     includeSeconds: true),
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: TossSpacing.space3),
                               _buildInfoRow(
                                 label: 'Recorded check-out',
                                 value: _formatTime(widget.shift.actualEndTime,
@@ -352,7 +352,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: TossSpacing.space4),
                         TossExpandableCard(
                           title: 'Confirmed attendance',
                           isExpanded: _confirmedAttendanceExpanded,
@@ -369,7 +369,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                                 value: _formatTime(_getConfirmedStartTime()),
                                 valueStyle: _getCheckInTimeColor(),
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: TossSpacing.space3),
                               _buildInfoRow(
                                 label: 'Confirmed check-out',
                                 value: _formatTime(_getConfirmedEndTime()),
@@ -380,7 +380,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                         ),
                         if (widget.shift.isReported ||
                             widget.shift.managerMemos.isNotEmpty) ...[
-                          const SizedBox(height: 16),
+                          SizedBox(height: TossSpacing.space4),
                           ReportResponseCard(
                             shift: widget.shift,
                             isExpanded: _reportAndResponseExpanded,
@@ -392,7 +392,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                             },
                           ),
                         ],
-                        const SizedBox(height: 16),
+                        SizedBox(height: TossSpacing.space4),
                         ShiftLogsSection(shiftRequestId: widget.shift.shiftRequestId),
                       ],
                     ),
@@ -404,16 +404,15 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         PaymentSummaryCard(shift: widget.shift),
-                        const SizedBox(height: 20),
+                        SizedBox(height: TossSpacing.space5),
                         Text(
                           'Recorded attendance is based on your check-in/out records.\nConfirmed attendance is the manager-approved time used for salary.',
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.gray600,
                             height: 1.6,
-                            fontSize: 12,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: TossSpacing.space4),
                       ],
                     ),
                   ),
@@ -435,7 +434,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
             child: widget.shift.isReported
                 ? TossButton.secondary(
                     text: 'Report an issue with this shift',
-                    leadingIcon: const Icon(Icons.error_outline, size: 18),
+                    leadingIcon: Icon(Icons.error_outline, size: TossSpacing.iconSM),
                     fullWidth: true,
                     textColor: TossColors.gray600,
                     isEnabled: false,
@@ -443,7 +442,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                   )
                 : TossButton.primary(
                     text: 'Report an issue with this shift',
-                    leadingIcon: const Icon(Icons.error_outline, size: 18),
+                    leadingIcon: Icon(Icons.error_outline, size: TossSpacing.iconSM),
                     fullWidth: true,
                     onPressed: () => _showReportBottomSheet(context),
                   ),

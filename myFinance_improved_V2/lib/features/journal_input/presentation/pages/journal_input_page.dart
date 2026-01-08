@@ -9,6 +9,8 @@ import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 // Shared themes
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 // Shared widgets
@@ -288,13 +290,13 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
               const Icon(
                 Icons.check_circle,
                 color: TossColors.success,
-                size: 64,
+                size: TossSpacing.icon4XL,
               ),
               const SizedBox(height: TossSpacing.space3),
               Text(
                 'Success!',
                 style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
               const SizedBox(height: TossSpacing.space2),
@@ -341,13 +343,13 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     final appState = ref.watch(appStateProvider);
 
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       resizeToAvoidBottomInset: false,
       appBar: TossAppBar(
         title: 'Journal Entry',
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: TossColors.gray700, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: TossColors.gray700, size: TossSpacing.iconMD),
           onPressed: () => context.pop(),
         ),
       ),
@@ -369,8 +371,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                         horizontal: TossSpacing.space4,
                         vertical: TossSpacing.space3,
                       ),
-                      showBorder: false,
-                      child: Row(
+                                            child: Row(
                         children: [
                           // Date
                           Text(
@@ -383,8 +384,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: TossSpacing.space2),
                               child: SizedBox(
-                                width: 1,
-                                height: 12,
+                                width: TossDimensions.dividerThickness,
+                                height: TossSpacing.space3,
                                 child: ColoredBox(color: TossColors.gray200),
                               ),
                             ),
@@ -412,8 +413,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                         vertical: TossSpacing.space2,
                       ),
                       padding: const EdgeInsets.all(TossSpacing.space4),
-                      showBorder: false,
-                      child: Row(
+                                            child: Row(
                         children: [
                           Expanded(
                             child: InkWell(
@@ -429,8 +429,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                             ),
                           ),
                           Container(
-                            width: 1,
-                            height: 60,
+                            width: TossDimensions.dividerThickness,
+                            height: TossDimensions.dividerHeightXL,
                             color: TossColors.gray200,
                             margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
                           ),
@@ -448,8 +448,8 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                             ),
                           ),
                           Container(
-                            width: 1,
-                            height: 60,
+                            width: TossDimensions.dividerThickness,
+                            height: TossDimensions.dividerHeightXL,
                             color: TossColors.gray200,
                             margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space3),
                           ),
@@ -472,8 +472,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                         vertical: TossSpacing.space2,
                       ),
                       padding: const EdgeInsets.all(TossSpacing.space4),
-                      showBorder: false,
-                      child: TossEnhancedTextField(
+                                            child: TossEnhancedTextField(
                         controller: _descriptionController,
                         label: 'Description (Optional)',
                         hintText: 'Enter journal description...',
@@ -484,14 +483,13 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                     ),
 
                     // Attachments Section
-                    TossWhiteCard(
-                      margin: const EdgeInsets.symmetric(
+                    const TossWhiteCard(
+                      margin: EdgeInsets.symmetric(
                         horizontal: TossSpacing.space4,
                         vertical: TossSpacing.space2,
                       ),
-                      padding: const EdgeInsets.all(TossSpacing.space4),
-                      showBorder: false,
-                      child: const AttachmentPickerSection(),
+                      padding: EdgeInsets.all(TossSpacing.space4),
+                                            child: AttachmentPickerSection(),
                     ),
 
                     // Transaction Lines Section
@@ -528,16 +526,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
 
             // Bottom Actions
             Container(
-              decoration: BoxDecoration(
-                color: TossColors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: TossColors.black.withValues(alpha: 0.06),
-                    blurRadius: 12,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
+              color: TossColors.white,
               padding: const EdgeInsets.all(TossSpacing.space4),
               child: SafeArea(
                 child: Column(
@@ -546,7 +535,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                     TossButton.secondary(
                       text: 'Add Transaction',
                       onPressed: () => _addTransactionLine(),
-                      leadingIcon: const Icon(Icons.add_circle_outline, size: 20),
+                      leadingIcon: const Icon(Icons.add_circle_outline, size: TossSpacing.iconMD),
                       fullWidth: true,
                     ),
                     const SizedBox(height: TossSpacing.space3),
@@ -579,19 +568,19 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
             label,
             style: TossTextStyles.caption.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: TossSpacing.space1),
           Text(
             _formatCurrency(amount),
             style: TossTextStyles.bodyLarge.copyWith(
               color: color,
-              fontWeight: FontWeight.w700,
+              fontWeight: TossFontWeight.bold,
             ),
           ),
           if (count != null) ...[
-            const SizedBox(height: 2),
+            const SizedBox(height: TossSpacing.space0_5),
             Text(
               '$count items',
               style: TossTextStyles.caption.copyWith(
@@ -610,8 +599,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         vertical: TossSpacing.space4,
       ),
       padding: const EdgeInsets.all(TossSpacing.space6),
-      showBorder: false,
-      child: TossEmptyView(
+            child: TossEmptyView(
         icon: Container(
           padding: const EdgeInsets.all(TossSpacing.space4),
           decoration: const BoxDecoration(
@@ -620,7 +608,7 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
           ),
           child: const Icon(
             Icons.receipt_long_outlined,
-            size: 48,
+            size: TossSpacing.iconXXL,
             color: TossColors.gray400,
           ),
         ),

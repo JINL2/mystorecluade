@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/constants/icon_mapper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -76,7 +77,7 @@ class StoreConfigSection extends StatelessWidget {
                       title,
                       style: TossTextStyles.body.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                     Text(
@@ -103,7 +104,7 @@ class StoreConfigSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossCard(
+    return TossWhiteCard(
       padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,7 +116,7 @@ class StoreConfigSection extends StatelessWidget {
                 'Operational Settings',
                 style: TossTextStyles.bodyLarge.copyWith(
                   color: TossColors.gray900,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
               ),
               IconButton(

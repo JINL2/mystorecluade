@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/features/delegate_role/domain/entities/role.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -56,7 +59,7 @@ class RoleCardWidget extends StatelessWidget {
                           Text(
                             role.roleName,
                             style: TossTextStyles.body.copyWith(
-                              fontWeight: FontWeight.w700,
+                              fontWeight: TossFontWeight.bold,
                               color: TossColors.gray900,
                             ),
                           ),
@@ -66,7 +69,7 @@ class RoleCardWidget extends StatelessWidget {
                               'SYSTEM',
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.primary,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TossFontWeight.semibold,
                               ),
                             ),
                           ],
@@ -98,17 +101,17 @@ class RoleCardWidget extends StatelessWidget {
 
   Widget _buildRoleIcon() {
     return Container(
-      width: 40,
-      height: 40,
+      width: TossSpacing.iconXL,
+      height: TossSpacing.iconXL,
       decoration: BoxDecoration(
-        color: _getRoleColor().withOpacity(0.1),
+        color: _getRoleColor().withValues(alpha: TossOpacity.light),
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Icon(
           _getRoleIcon(),
           color: _getRoleColor(),
-          size: 20,
+          size: TossSpacing.iconMD,
         ),
       ),
     );
@@ -141,16 +144,15 @@ class RoleCardWidget extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: 14,
+          size: TossSpacing.iconXS,
           color: TossColors.gray600,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: TossSpacing.space1),
         Text(
           label,
           style: TossTextStyles.caption.copyWith(
             color: TossColors.gray700,
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],

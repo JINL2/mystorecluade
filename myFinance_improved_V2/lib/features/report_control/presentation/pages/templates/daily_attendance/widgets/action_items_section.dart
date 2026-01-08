@@ -3,11 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../../../shared/themes/toss_shadows.dart';
+import '../../../../../../../shared/themes/index.dart';
 import '../../../../../domain/entities/templates/daily_attendance/attendance_report.dart';
 
 /// Action Items Section
@@ -33,7 +29,7 @@ class _ActionItemsSectionState extends State<ActionItemsSection> {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +46,7 @@ class _ActionItemsSectionState extends State<ActionItemsSection> {
                 Container(
                   padding: EdgeInsets.all(TossSpacing.space2),
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
+                    color: TossColors.primary.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Icon(
@@ -75,7 +71,7 @@ class _ActionItemsSectionState extends State<ActionItemsSection> {
                         '${widget.actions.length} tasks',
                         style: TossTextStyles.bodySmall.copyWith(
                           color: TossColors.gray600,
-                          fontWeight: FontWeight.w400,
+                          fontWeight: TossFontWeight.regular,
                         ),
                       ),
                     ],
@@ -116,11 +112,11 @@ class _ActionItemsSectionState extends State<ActionItemsSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: TossDimensions.avatarXS,
+            height: TossDimensions.avatarXS,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: TossColors.primary.withValues(alpha: 0.1),
+              color: TossColors.primary.withValues(alpha: TossOpacity.light),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -140,24 +136,24 @@ class _ActionItemsSectionState extends State<ActionItemsSection> {
                   children: [
                     Icon(
                       LucideIcons.user,
-                      size: 12,
+                      size: TossSpacing.iconXS2,
                       color: TossColors.gray500,
                     ),
-                    SizedBox(width: 4),
+                    SizedBox(width: TossSpacing.space1),
                     Text(
                       action.employee,
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.gray900,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                     SizedBox(width: TossSpacing.space2),
                     Icon(
                       LucideIcons.store,
-                      size: 12,
+                      size: TossSpacing.iconXS2,
                       color: TossColors.gray500,
                     ),
-                    SizedBox(width: 4),
+                    SizedBox(width: TossSpacing.space1),
                     Expanded(
                       child: Text(
                         action.store,

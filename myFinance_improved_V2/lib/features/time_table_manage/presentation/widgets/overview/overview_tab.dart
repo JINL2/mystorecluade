@@ -189,6 +189,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Extra spacing above Store
+          const SizedBox(height: TossSpacing.space4),
+
           // 1️⃣ Store Selector Dropdown (hide if only 1 store)
           if (stores.length > 1) ...[
             _buildStoreSelector(stores),
@@ -389,9 +392,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
       // If coverage gap provider is still loading, show loading state
       if (state.isLoading) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: TossLoadingView.inline(size: 24),
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+          child: TossLoadingView.inline(size: TossSpacing.iconLG),
         );
       }
       coverageGapState = state;

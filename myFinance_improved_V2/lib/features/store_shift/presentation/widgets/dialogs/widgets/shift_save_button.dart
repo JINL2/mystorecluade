@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
+import '../../../../../../shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Shift Save Button Widget
@@ -22,7 +22,7 @@ class ShiftSaveButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: TossSpacing.buttonHeightXL,
       child: TossButton.primary(
         onPressed: isSubmitting ? null : onPressed,
         text: buttonText,

@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import '../../models/schedule_models.dart';
 import '../../providers/state/coverage_gap_provider.dart';
 import '../../providers/time_table_providers.dart';
@@ -150,6 +148,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Extra spacing above Store
+          const SizedBox(height: TossSpacing.space4),
           // Store selector dropdown
           _buildStoreSelector(stores),
 
@@ -175,7 +175,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
                 icon: Icon(
                   _isExpanded ? Icons.calendar_view_week : Icons.calendar_month,
                   color: _isExpanded ? TossColors.primary : TossColors.gray600,
-                  size: 24,
+                  size: TossSpacing.iconLG,
                 ),
                 tooltip: _isExpanded ? 'Show week view' : 'Show month view',
               ),
@@ -217,7 +217,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
             'Shifts for ${formatSelectedDate(_selectedDate)}',
             style: TossTextStyles.label.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
 
@@ -327,7 +327,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
         children: [
           Icon(
             Icons.calendar_today_outlined,
-            size: 48,
+            size: TossSpacing.icon3XL,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -529,7 +529,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
                   '$monthName $year',
                   style: TossTextStyles.h4.copyWith(
                     color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
               ],

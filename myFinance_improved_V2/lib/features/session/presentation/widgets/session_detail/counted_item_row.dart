@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/states/session_detail_state.dart';
@@ -28,7 +29,7 @@ class CountedItemRow extends StatelessWidget {
             // Product image
             CachedProductImage(
               imageUrl: item.imageUrl,
-              size: 40,
+              size: TossSpacing.iconXL,
               borderRadius: 6,
             ),
             const SizedBox(width: TossSpacing.space3),
@@ -40,7 +41,7 @@ class CountedItemRow extends StatelessWidget {
                   Text(
                     item.productName,
                     style: TossTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                     maxLines: 1,
@@ -60,7 +61,7 @@ class CountedItemRow extends StatelessWidget {
             Text(
               '${item.quantity}',
               style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
                 color: TossColors.primary,
               ),
             ),

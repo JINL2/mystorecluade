@@ -89,14 +89,14 @@ class _ResultDataCardState extends State<ResultDataCard>
                 children: [
                   // Icon
                   Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(TossSpacing.space1),
                     decoration: BoxDecoration(
                       color: TossColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                     ),
                     child: Icon(
                       Icons.dataset_outlined,
-                      size: 12,
+                      size: TossSpacing.iconXS,
                       color: TossColors.primary.withValues(alpha: 0.8),
                     ),
                   ),
@@ -123,13 +123,13 @@ class _ResultDataCardState extends State<ResultDataCard>
                             ),
                             decoration: BoxDecoration(
                               color: TossColors.primary,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.md),
                             ),
                             child: Text(
                               '${widget.data.length}',
                               style: TossTextStyles.caption.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: TossColors.white,
                                 fontSize: 9,
                               ),
                             ),
@@ -157,7 +157,7 @@ class _ResultDataCardState extends State<ResultDataCard>
                       duration: TossAnimations.normal,
                       child: const Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        size: 18,
+                        size: TossSpacing.iconSM,
                         color: TossColors.textSecondary,
                       ),
                     ),
@@ -198,7 +198,7 @@ class _ResultDataCardState extends State<ResultDataCard>
       margin: EdgeInsets.only(top: index > 0 ? TossSpacing.space2 : 0),
       padding: const EdgeInsets.all(TossSpacing.space2),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         border: Border.all(
           color: const Color(0xFFE2E8F0),
@@ -231,7 +231,7 @@ class _ResultDataCardState extends State<ResultDataCard>
     final displayValue = _formatValue(value);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.only(bottom: TossSpacing.space1 / 2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

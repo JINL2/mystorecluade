@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Salary breakdown card showing itemized payment details
@@ -33,7 +32,7 @@ class SalaryBreakdownCard extends StatelessWidget {
             value: totalConfirmedTime,
           ),
 
-          const SizedBox(height: 10),
+          SizedBox(height: TossSpacing.space2 + TossSpacing.space1 / 2),
 
           // Hourly salary
           _BreakdownRow(
@@ -42,8 +41,8 @@ class SalaryBreakdownCard extends StatelessWidget {
           ),
 
           // Divider
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: TossSpacing.space3),
             child: Divider(
               height: 1,
               thickness: 1,
@@ -57,7 +56,7 @@ class SalaryBreakdownCard extends StatelessWidget {
             value: basePay,
           ),
 
-          const SizedBox(height: 10),
+          SizedBox(height: TossSpacing.space2 + TossSpacing.space1 / 2),
 
           // Bonus pay
           _BreakdownRow(
@@ -65,7 +64,7 @@ class SalaryBreakdownCard extends StatelessWidget {
             value: bonusPay,
           ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: TossSpacing.space3),
 
           // Total payment
           _BreakdownRow(
@@ -98,9 +97,8 @@ class _BreakdownRow extends StatelessWidget {
         // Label
         Text(
           label,
-          style: TossTextStyles.body.copyWith(
-            fontSize: isTotal ? 15 : 13,
-            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
+          style: (isTotal ? TossTextStyles.titleMedium : TossTextStyles.bodySmall).copyWith(
+            fontWeight: isTotal ? TossFontWeight.bold : TossFontWeight.medium,
             color: isTotal ? TossColors.gray900 : TossColors.gray600,
             height: 1.4,
           ),
@@ -109,9 +107,8 @@ class _BreakdownRow extends StatelessWidget {
         // Value
         Text(
           value,
-          style: TossTextStyles.bodyMedium.copyWith(
-            fontSize: isTotal ? 15 : 14,
-            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
+          style: (isTotal ? TossTextStyles.titleMedium : TossTextStyles.body).copyWith(
+            fontWeight: isTotal ? TossFontWeight.bold : TossFontWeight.semibold,
             color: isTotal ? TossColors.primary : TossColors.gray900,
             height: 1.4,
           ),

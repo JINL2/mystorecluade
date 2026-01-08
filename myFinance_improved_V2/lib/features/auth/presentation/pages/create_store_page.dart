@@ -245,8 +245,8 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             child: Image.asset(
               'assets/images/app icon.png',
-              width: 40,
-              height: 40,
+              width: TossSpacing.iconXL,
+              height: TossSpacing.iconXL,
               fit: BoxFit.cover,
             ),
           ),
@@ -325,7 +325,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: TossSpacing.space1),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
@@ -668,7 +668,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: TossColors.success.withOpacity(0.1),
+                        color: TossColors.success.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -704,7 +704,7 @@ class _CreateStorePageState extends ConsumerState<CreateStorePage>
                           border: Border.all(color: TossColors.border),
                           boxShadow: [
                             BoxShadow(
-                              color: TossColors.black.withOpacity(0.05),
+                              color: TossColors.black.withValues(alpha: 0.05),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),

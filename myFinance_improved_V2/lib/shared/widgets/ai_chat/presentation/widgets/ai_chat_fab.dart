@@ -90,7 +90,7 @@ class _AiChatFabState extends ConsumerState<AiChatFab>
         showModalBottomSheet<void>(
           context: context,
           isScrollControlled: true,
-          backgroundColor: Colors.transparent,
+          backgroundColor: TossColors.transparent,
           builder: (context) => AiChatBottomSheet(
             featureName: widget.featureName,
             pageContext: widget.pageContext,

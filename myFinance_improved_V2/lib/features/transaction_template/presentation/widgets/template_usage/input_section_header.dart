@@ -27,17 +27,17 @@ class InputSectionHeader extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.edit,
               color: TossColors.primary,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Just enter these:',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.primary,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],

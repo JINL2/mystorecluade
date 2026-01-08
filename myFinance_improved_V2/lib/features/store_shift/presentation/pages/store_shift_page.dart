@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/utils/location_utils.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/store_shift.dart';
@@ -88,7 +89,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
               const TossEmptyView(
                 icon: Icon(
                   LucideIcons.store,
-                  size: 64,
+                  size: TossSpacing.iconXXL,
                   color: TossColors.gray400,
                 ),
                 title: 'Please select a store first',
@@ -102,7 +103,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                         const TossEmptyView(
                           icon: Icon(
                             LucideIcons.clock,
-                            size: 64,
+                            size: TossSpacing.iconXXL,
                             color: TossColors.gray400,
                           ),
                           title: 'No shifts configured',
@@ -113,7 +114,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                           onPressed: () {
                             _showAddShiftBottomSheet(context);
                           },
-                          leadingIcon: const Icon(LucideIcons.plus, size: 20, color: TossColors.white),
+                          leadingIcon: const Icon(LucideIcons.plus, size: TossSpacing.iconSM, color: TossColors.white),
                           text: 'Add Shift',
                         ),
                       ],
@@ -131,7 +132,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                             'Shift Management',
                             style: TossTextStyles.bodyLarge.copyWith(
                               color: TossColors.gray900,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: TossFontWeight.bold,
                             ),
                           ),
                           IconButton(
@@ -173,7 +174,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                 error: (error, stack) => TossEmptyView(
                   icon: const Icon(
                     LucideIcons.alertCircle,
-                    size: 64,
+                    size: TossSpacing.iconXXL,
                     color: TossColors.error,
                   ),
                   title: 'Error loading shifts',
@@ -210,7 +211,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
               const TossEmptyView(
                 icon: Icon(
                   LucideIcons.store,
-                  size: 64,
+                  size: TossSpacing.iconXXL,
                   color: TossColors.gray400,
                 ),
                 title: 'Please select a store first',
@@ -222,7 +223,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                     return const TossEmptyView(
                       icon: Icon(
                         LucideIcons.store,
-                        size: 64,
+                        size: TossSpacing.iconXXL,
                         color: TossColors.gray400,
                       ),
                       title: 'Store not found',
@@ -267,7 +268,7 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
                 error: (error, stack) => TossEmptyView(
                   icon: const Icon(
                     LucideIcons.alertCircle,
-                    size: 64,
+                    size: TossSpacing.iconXXL,
                     color: TossColors.error,
                   ),
                   title: 'Error loading store',
@@ -283,10 +284,10 @@ class _StoreShiftPageState extends ConsumerState<StoreShiftPage>
   @override
   Widget build(BuildContext context) {
     return TossScaffold(
-      backgroundColor: TossColors.gray100,
+      backgroundColor: TossColors.white,
       appBar: const TossAppBar(
         title: 'Staff & Store Settings',
-        backgroundColor: TossColors.gray100,
+        backgroundColor: TossColors.white,
       ),
       body: Column(
         children: [

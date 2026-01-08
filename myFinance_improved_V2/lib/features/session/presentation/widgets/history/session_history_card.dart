@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
@@ -35,8 +36,8 @@ class SessionHistoryCard extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: TossSpacing.iconXXL,
+                  height: TossSpacing.iconXXL,
                   decoration: BoxDecoration(
                     color: typeColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -44,7 +45,7 @@ class SessionHistoryCard extends StatelessWidget {
                   child: Icon(
                     isCounting ? Icons.inventory_2_outlined : Icons.local_shipping_outlined,
                     color: typeColor,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                   ),
                 ),
                 // Merge badge (top-right)
@@ -61,7 +62,7 @@ class SessionHistoryCard extends StatelessWidget {
                       ),
                       child: const Icon(
                         Icons.merge_type,
-                        size: 10,
+                        size: TossSpacing.iconXXS,
                         color: TossColors.white,
                       ),
                     ),
@@ -72,7 +73,7 @@ class SessionHistoryCard extends StatelessWidget {
                     bottom: -4,
                     right: -4,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1, vertical: 1),
                       decoration: BoxDecoration(
                         color: TossColors.warning,
                         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -80,10 +81,9 @@ class SessionHistoryCard extends StatelessWidget {
                       ),
                       child: Text(
                         'NEW ${session.newProductsCount}',
-                        style: TossTextStyles.caption.copyWith(
+                        style: TossTextStyles.micro.copyWith(
                           color: TossColors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TossFontWeight.bold,
                         ),
                       ),
                     ),
@@ -106,7 +106,7 @@ class SessionHistoryCard extends StatelessWidget {
                               child: Text(
                                 session.sessionName,
                                 style: TossTextStyles.body.copyWith(
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TossFontWeight.semibold,
                                   color: TossColors.textPrimary,
                                 ),
                                 maxLines: 1,
@@ -130,16 +130,15 @@ class SessionHistoryCard extends StatelessWidget {
                                   children: [
                                     const Icon(
                                       Icons.merge_type,
-                                      size: 10,
+                                      size: TossSpacing.iconXXS,
                                       color: TossColors.info,
                                     ),
-                                    const SizedBox(width: 2),
+                                    const SizedBox(width: TossSpacing.space0_5),
                                     Text(
                                       'Merged',
-                                      style: TossTextStyles.caption.copyWith(
+                                      style: TossTextStyles.micro.copyWith(
                                         color: TossColors.info,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: TossFontWeight.semibold,
                                       ),
                                     ),
                                   ],
@@ -159,7 +158,7 @@ class SessionHistoryCard extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.store_outlined,
-                        size: 14,
+                        size: TossSpacing.iconXS,
                         color: TossColors.textTertiary,
                       ),
                       const SizedBox(width: TossSpacing.space1),
@@ -182,7 +181,7 @@ class SessionHistoryCard extends StatelessWidget {
                       // Created by
                       const Icon(
                         Icons.person_outline,
-                        size: 14,
+                        size: TossSpacing.iconXS,
                         color: TossColors.textTertiary,
                       ),
                       const SizedBox(width: TossSpacing.space1),
@@ -196,7 +195,7 @@ class SessionHistoryCard extends StatelessWidget {
                       // Member count
                       const Icon(
                         Icons.group_outlined,
-                        size: 14,
+                        size: TossSpacing.iconXS,
                         color: TossColors.textTertiary,
                       ),
                       const SizedBox(width: TossSpacing.space1),
@@ -242,7 +241,7 @@ class SessionHistoryCard extends StatelessWidget {
             const Icon(
               Icons.chevron_right,
               color: TossColors.textTertiary,
-              size: 20,
+              size: TossSpacing.iconMD,
             ),
           ],
         ),
@@ -258,14 +257,13 @@ class SessionHistoryCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12, color: color),
-        const SizedBox(width: 2),
+        Icon(icon, size: TossSpacing.iconXXS, color: color),
+        const SizedBox(width: TossSpacing.space0_5),
         Text(
           '$count',
-          style: TossTextStyles.caption.copyWith(
+          style: TossTextStyles.labelSmall.copyWith(
             color: color,
-            fontWeight: FontWeight.w600,
-            fontSize: 11,
+            fontWeight: TossFontWeight.semibold,
           ),
         ),
       ],
@@ -305,10 +303,9 @@ class SessionHistoryCard extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TossTextStyles.caption.copyWith(
+        style: TossTextStyles.micro.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w500,
-          fontSize: 10,
+          fontWeight: TossFontWeight.medium,
         ),
       ),
     );

@@ -159,8 +159,7 @@ class SalaryCard extends ConsumerWidget {
               // Title
               Text(
                 'My Salary',
-                style: TossTextStyles.h3.copyWith(
-                  fontSize: 15,
+                style: TossTextStyles.titleMedium.copyWith(
                   color: TossColors.textPrimary,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.4,
@@ -220,8 +219,8 @@ class SalaryCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 200,
-          height: 36,
+          width: TossSpacing.space20 * 2.5,
+          height: TossSpacing.space9,
           decoration: BoxDecoration(
             color: TossColors.gray100,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -229,8 +228,8 @@ class SalaryCard extends ConsumerWidget {
         ),
         const SizedBox(height: TossSpacing.space2),
         Container(
-          width: 150,
-          height: 20,
+          width: TossSpacing.space20 * 1.875,
+          height: TossSpacing.space5,
           decoration: BoxDecoration(
             color: TossColors.gray100,
             borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -252,7 +251,7 @@ class SalaryCard extends ConsumerWidget {
           const Icon(
             Icons.error_outline,
             color: TossColors.error,
-            size: 20,
+            size: TossSpacing.iconMD,
           ),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
@@ -312,17 +311,16 @@ class _SalaryTabSelector extends StatelessWidget {
       onTap: () => onTabChanged(tab),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 6,
+          horizontal: TossSpacing.space3 + TossSpacing.space1 / 2,
+          vertical: TossSpacing.space1 + TossSpacing.space1 / 2,
         ),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.primary : TossColors.transparent,
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(TossBorderRadius.full),
         ),
         child: Text(
           label,
           style: TossTextStyles.caption.copyWith(
-            fontSize: 12,
             color: isSelected ? TossColors.white : TossColors.textTertiary,
             fontWeight: FontWeight.w600,
           ),
@@ -469,10 +467,9 @@ class _SalaryContentState extends State<_SalaryContent>
           builder: (context, child) {
             return Text(
               '$currencySymbol${_formatAmountWithComma(_amountAnimation.value)}',
-              style: TossTextStyles.display.copyWith(
+              style: TossTextStyles.h1.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w700,
-                fontSize: 28,
                 height: 1.2,
                 letterSpacing: -1.0,
               ),
@@ -488,20 +485,19 @@ class _SalaryContentState extends State<_SalaryContent>
           child: previousPayment > 0
               ? Padding(
                   key: ValueKey('change_$changePercentage'),
-                  padding: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.only(top: TossSpacing.space1),
                   child: Row(
                     children: [
                       Icon(
                         changePercentage >= 0 ? Icons.trending_up : Icons.trending_down,
                         color: changePercentage >= 0 ? TossColors.primary : TossColors.error,
-                        size: 16,
+                        size: TossSpacing.iconSM2,
                       ),
                       const SizedBox(width: TossSpacing.space1),
                       Text(
                         '${changePercentage.toStringAsFixed(1)}% vs last month',
                         style: TossTextStyles.caption.copyWith(
                           color: changePercentage >= 0 ? TossColors.primary : TossColors.error,
-                          fontSize: 12,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -522,9 +518,8 @@ class _SalaryContentState extends State<_SalaryContent>
                   padding: const EdgeInsets.only(top: TossSpacing.space2),
                   child: Text(
                     '+$currencySymbol${_formatAmountWithComma(bonusPay)} overtime bonus',
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.success,
-                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

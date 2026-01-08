@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../providers/states/session_detail_state.dart';
@@ -43,13 +44,13 @@ class _SessionBottomBarState extends State<SessionBottomBar> {
     return AnimatedContainer(
       duration: TossAnimations.slow,
       curve: TossAnimations.standard,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TossColors.white,
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A1A1A1A),
+            color: TossColors.shadow,
             blurRadius: 8,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -85,7 +86,7 @@ class _SessionBottomBarState extends State<SessionBottomBar> {
                   ? Icons.keyboard_arrow_down
                   : Icons.keyboard_arrow_up,
               color: _hasCountedItems ? TossColors.gray600 : TossColors.gray300,
-              size: 24,
+              size: TossSpacing.iconMD2,
             ),
           ),
           // Expanded items list
@@ -122,7 +123,7 @@ class _SessionBottomBarState extends State<SessionBottomBar> {
               'Item Counted: ${_countedProducts.length} | Total Quantity: ${widget.totalQuantity} | Rejected: ${widget.totalRejected}',
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
               ),
             ),
           ),

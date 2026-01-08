@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Reusable form section container with header
@@ -29,11 +31,11 @@ class ProfileFormSection extends StatelessWidget {
             // Section Header
             Container(
               padding: const EdgeInsets.all(TossSpacing.space4),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
                     color: TossColors.gray100,
-                    width: 1,
+                    width: TossDimensions.dividerThickness,
                   ),
                 ),
               ),
@@ -48,7 +50,7 @@ class ProfileFormSection extends StatelessWidget {
                   Text(
                     title,
                     style: TossTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TossFontWeight.bold,
                       color: TossColors.gray900,
                     ),
                   ),

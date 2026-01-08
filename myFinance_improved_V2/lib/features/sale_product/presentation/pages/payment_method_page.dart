@@ -11,6 +11,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 // Shared imports - widgets
 // 🧮 Exchange rate calculator (Autonomous Selector)
 import 'package:myfinance_improved/shared/widgets/selectors/exchange_rate/index.dart';
@@ -291,7 +292,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             Text(
               'Exchange Rate',
               style: TossTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: TossFontWeight.medium,
                 color: TossColors.gray600,
               ),
             ),
@@ -300,7 +301,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
               _isExchangeRatePanelExpanded
                   ? Icons.keyboard_arrow_up
                   : Icons.keyboard_arrow_down,
-              size: 16,
+              size: TossSpacing.iconSM2,
               color: TossColors.gray600,
             ),
           ],

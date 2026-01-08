@@ -91,7 +91,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
               content: const Row(
                 children: [
                   TossLoadingView.inline(size: 20, color: TossColors.white),
-                  SizedBox(width: 12),
+                  SizedBox(width: TossSpacing.space3),
                   Text('Creating store...'),
                 ],
               ),
@@ -108,7 +108,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
               content: Row(
                 children: [
                   const Icon(Icons.error_outline, color: TossColors.white),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: TossSpacing.space3),
                   Expanded(child: Text(message)),
                 ],
               ),
@@ -150,7 +150,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
               content: Row(
                 children: [
                   const Icon(Icons.check_circle_outline, color: TossColors.white),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: TossSpacing.space3),
                   Expanded(
                     child: Text('Store "${store.name}" created successfully!'),
                   ),
@@ -190,7 +190,7 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
           children: [
             // Handle bar
             Container(
-              width: 40,
+              width: TossSpacing.iconXL,
               height: 4,
               margin: const EdgeInsets.only(
                 top: TossSpacing.space2,

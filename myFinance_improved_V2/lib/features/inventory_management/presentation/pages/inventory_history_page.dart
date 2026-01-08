@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_text_styles.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../utils/store_utils.dart';
@@ -178,15 +181,15 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                   children: [
                     Icon(
                       Icons.date_range,
-                      size: 16,
+                      size: TossSpacing.iconSM2,
                       color: TossColors.primary,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: TossSpacing.space2),
                     Text(
                       _selectedDateRange!.toShortString(),
                       style: TossTextStyles.bodySmall.copyWith(
                         color: TossColors.primary,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                       ),
                     ),
                     const Spacer(),
@@ -198,7 +201,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                       },
                       child: Icon(
                         Icons.close,
-                        size: 18,
+                        size: TossSpacing.iconSM,
                         color: TossColors.gray500,
                       ),
                     ),
@@ -251,7 +254,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
         children: [
           Icon(
             Icons.history,
-            size: 64,
+            size: TossSpacing.icon4XL,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -275,7 +278,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
 
   Widget _buildTopBar(BuildContext context, List<StoreOption> stores) {
     return Container(
-      height: 56,
+      height: TossDimensions.headerHeightLarge,
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -284,12 +287,12 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
             child: Container(
-              width: 32,
-              height: 32,
+              width: TossSpacing.iconLG2,
+              height: TossSpacing.iconLG2,
               alignment: Alignment.center,
               child: const Icon(
                 Icons.arrow_back,
-                size: 22,
+                size: TossSpacing.iconMD,
                 color: TossColors.gray900,
               ),
             ),
@@ -308,10 +311,10 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                     color: TossColors.gray900,
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: TossSpacing.space1),
                 Icon(
                   Icons.keyboard_arrow_down,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.gray600,
                 ),
               ],
@@ -321,14 +324,14 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
           GestureDetector(
             onTap: () => _showDateRangePicker(context),
             child: Container(
-              width: 32,
-              height: 32,
+              width: TossSpacing.iconLG2,
+              height: TossSpacing.iconLG2,
               alignment: Alignment.center,
               child: Stack(
                 children: [
                   Icon(
                     Icons.calendar_today_outlined,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                     color: _selectedDateRange != null
                         ? TossColors.primary
                         : TossColors.gray900,
@@ -339,8 +342,8 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                       right: 0,
                       top: 0,
                       child: Container(
-                        width: 8,
-                        height: 8,
+                        width: TossSpacing.space2,
+                        height: TossSpacing.space2,
                         decoration: BoxDecoration(
                           color: TossColors.primary,
                           shape: BoxShape.circle,
@@ -374,11 +377,11 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
             children: [
               const SizedBox(height: TossSpacing.space2),
               Container(
-                width: 36,
-                height: 4,
+                width: TossDimensions.dragHandleWidth,
+                height: TossDimensions.dragHandleHeight,
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
                 ),
               ),
               const SizedBox(height: TossSpacing.space4),
@@ -405,7 +408,7 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
                       title: Text(
                         store.name,
                         style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                           color: store.id == _selectedStoreId
                               ? TossColors.primary
                               : TossColors.gray900,

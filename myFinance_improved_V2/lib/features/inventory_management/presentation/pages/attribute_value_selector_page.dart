@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/themes/toss_animations.dart';
+import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_dimensions.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../widgets/add_attribute_dialog.dart';
@@ -205,7 +208,7 @@ class _AttributeValueSelectorPageState<T>
         border: Border(
           bottom: BorderSide(
             color: TossColors.gray100,
-            width: 1,
+            width: TossDimensions.dividerThickness,
           ),
         ),
       ),
@@ -219,7 +222,7 @@ class _AttributeValueSelectorPageState<T>
               child: const Icon(
                 Icons.arrow_back,
                 color: TossColors.gray900,
-                size: 24,
+                size: TossSpacing.iconMD2,
               ),
             ),
           ),
@@ -246,7 +249,7 @@ class _AttributeValueSelectorPageState<T>
             icon: const Icon(
               Icons.add,
               color: TossColors.gray900,
-              size: 24,
+              size: TossSpacing.iconMD2,
             ),
           ),
         ],
@@ -277,7 +280,7 @@ class _AttributeValueSelectorPageState<T>
           // Icon - using a custom filter/tag icon similar to the screenshot
           const Icon(
             Icons.filter_alt_outlined,
-            size: 48,
+            size: TossSpacing.iconXXL,
             color: TossColors.gray400,
           ),
           const SizedBox(height: TossSpacing.space3),
@@ -285,7 +288,7 @@ class _AttributeValueSelectorPageState<T>
             'Add a value',
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray500,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
         ],
@@ -306,7 +309,7 @@ class _AttributeValueSelectorPageState<T>
               children: [
                 const Icon(
                   Icons.filter_alt_outlined,
-                  size: 48,
+                  size: TossSpacing.iconXXL,
                   color: TossColors.gray400,
                 ),
                 const SizedBox(height: TossSpacing.space3),
@@ -314,7 +317,7 @@ class _AttributeValueSelectorPageState<T>
                   'Add a value',
                   style: TossTextStyles.body.copyWith(
                     color: TossColors.gray500,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                   ),
                 ),
               ],
@@ -340,21 +343,21 @@ class _AttributeValueSelectorPageState<T>
                 _searchQuery,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray900,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: TossFontWeight.regular,
                 ),
               ),
             ),
             Container(
-              width: 28,
-              height: 28,
+              width: TossSpacing.iconLG,
+              height: TossSpacing.iconLG,
               decoration: BoxDecoration(
                 color: TossColors.primary,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(TossBorderRadius.full),
               ),
               child: const Icon(
                 Icons.add,
                 color: TossColors.white,
-                size: 18,
+                size: TossSpacing.iconSM,
               ),
             ),
           ],
@@ -370,7 +373,7 @@ class _AttributeValueSelectorPageState<T>
         text,
         style: TossTextStyles.body.copyWith(
           color: TossColors.gray900,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
         ),
       );
     }
@@ -384,7 +387,7 @@ class _AttributeValueSelectorPageState<T>
         text,
         style: TossTextStyles.body.copyWith(
           color: TossColors.gray900,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
         ),
       );
     }
@@ -397,7 +400,7 @@ class _AttributeValueSelectorPageState<T>
       text: TextSpan(
         style: TossTextStyles.body.copyWith(
           color: TossColors.gray900,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
         ),
         children: [
           if (beforeMatch.isNotEmpty) TextSpan(text: beforeMatch),
@@ -405,7 +408,7 @@ class _AttributeValueSelectorPageState<T>
             text: match,
             style: TossTextStyles.body.copyWith(
               color: TossColors.primary,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
             ),
           ),
           if (afterMatch.isNotEmpty) TextSpan(text: afterMatch),
@@ -445,7 +448,7 @@ class _AttributeValueSelectorPageState<T>
                   const Icon(
                     Icons.check,
                     color: TossColors.primary,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
               ],
             ),

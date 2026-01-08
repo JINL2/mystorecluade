@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_dimensions.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/invoice.dart';
@@ -50,22 +52,22 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
         children: [
           // Header row
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             child: Row(
               children: [
                 Text(
                   'View items',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray900,
                   ),
                 ),
-                const SizedBox(width: TossSpacing.space2),
+                SizedBox(width: TossSpacing.space2),
                 // Item count badge
                 Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: TossSpacing.space2,
-                    vertical: 2,
+                    vertical: TossSpacing.badgePaddingVerticalSM,
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.primary,
@@ -74,7 +76,7 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
                   child: Text(
                     '$itemCount',
                     style: TossTextStyles.small.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.white,
                     ),
                   ),
@@ -83,10 +85,10 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
                 AnimatedRotation(
                   turns: _isExpanded ? 0.5 : 0,
                   duration: TossAnimations.normal,
-                  child: const Icon(
+                  child: Icon(
                     Icons.keyboard_arrow_down,
                     color: TossColors.gray600,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                   ),
                 ),
               ],
@@ -110,10 +112,10 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
     // Use actual items from detail if available
     if (widget.detail != null && widget.detail!.items.isNotEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         child: Column(
           children: [
-            const SizedBox(height: TossSpacing.space3),
+            SizedBox(height: TossSpacing.space3),
             ...widget.detail!.items.map((item) => _buildItemRow(item)),
           ],
         ),
@@ -125,26 +127,26 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
     final totalQty = widget.invoice.itemsSummary.totalQuantity;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
         children: [
-          const SizedBox(height: TossSpacing.space3),
+          SizedBox(height: TossSpacing.space3),
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: TossSpacing.iconXXL,
+                height: TossSpacing.iconXXL,
                 decoration: BoxDecoration(
                   color: TossColors.gray200,
                   borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.shopping_bag_outlined,
                   color: TossColors.gray500,
-                  size: 24,
+                  size: TossSpacing.iconMD2,
                 ),
               ),
-              const SizedBox(width: TossSpacing.space3),
+              SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,11 +154,11 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
                     Text(
                       '$itemCount product${itemCount > 1 ? 's' : ''}',
                       style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                         color: TossColors.gray900,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: TossSpacing.space0_5),
                     Text(
                       'Total quantity: $totalQty',
                       style: TossTextStyles.caption.copyWith(
@@ -169,7 +171,7 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
               Text(
                 _formatAmount(widget.invoice.amounts.subtotal),
                 style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                   color: TossColors.gray900,
                 ),
               ),
@@ -182,14 +184,14 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
 
   Widget _buildItemRow(InvoiceDetailItem item) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      padding: EdgeInsets.only(bottom: TossSpacing.space3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product image or placeholder
           Container(
-            width: 48,
-            height: 48,
+            width: TossSpacing.iconXXL,
+            height: TossSpacing.iconXXL,
             decoration: BoxDecoration(
               color: TossColors.gray200,
               borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -201,14 +203,14 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
                   : null,
             ),
             child: item.productImage == null
-                ? const Icon(
+                ? Icon(
                     Icons.shopping_bag_outlined,
                     color: TossColors.gray500,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                   )
                 : null,
           ),
-          const SizedBox(width: TossSpacing.space3),
+          SizedBox(width: TossSpacing.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,13 +218,13 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
                 Text(
                   item.productName,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TossFontWeight.medium,
                     color: TossColors.gray900,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: TossSpacing.space0_5),
                 Text(
                   '${_formatAmount(item.unitPrice)} × ${item.quantity}',
                   style: TossTextStyles.caption.copyWith(
@@ -239,11 +241,11 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
               ],
             ),
           ),
-          const SizedBox(width: TossSpacing.space2),
+          SizedBox(width: TossSpacing.space2),
           Text(
             _formatAmount(item.totalPrice),
             style: TossTextStyles.body.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: TossColors.gray900,
             ),
           ),

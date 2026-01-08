@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/domain/entities/selector_entities.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../counter_party/presentation/widgets/counter_party_form.dart';
@@ -113,15 +114,15 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
               'Counterparty',
               style: TossTextStyles.label.copyWith(
                 color: widget.errorText != null ? TossColors.error : TossColors.textSecondary,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: TossSpacing.space0_5),
             Text(
               '*',
               style: TossTextStyles.label.copyWith(
                 color: TossColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: TossFontWeight.semibold,
               ),
             ),
           ],
@@ -131,13 +132,13 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.add, size: 16, color: TossColors.primary),
-              const SizedBox(width: 2),
+              Icon(Icons.add, size: TossSpacing.iconSM2, color: TossColors.primary),
+              const SizedBox(width: TossSpacing.space0_5),
               Text(
                 'Add New',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ],
@@ -163,7 +164,7 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.person_add_outlined, size: 20, color: TossColors.primary),
+            Icon(Icons.person_add_outlined, size: TossSpacing.iconMD, color: TossColors.primary),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Create your first counterparty',
@@ -204,7 +205,7 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
                         : 'Select counterparty',
                     style: TossTextStyles.bodyLarge.copyWith(
                       color: widget.counterpartyId != null ? TossColors.textPrimary : TossColors.textTertiary,
-                      fontWeight: widget.counterpartyId != null ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: widget.counterpartyId != null ? TossFontWeight.semibold : TossFontWeight.regular,
                     ),
                   ),
                 ),
@@ -241,8 +242,8 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
           children: [
             // Handle bar
             Container(
-              width: 36,
-              height: 4,
+              width: TossSpacing.space9,
+              height: TossSpacing.space1,
               margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
               decoration: BoxDecoration(
                 color: TossColors.gray300,
@@ -256,13 +257,13 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
                 'Counterparty',
                 style: TossTextStyles.h3.copyWith(
                   color: TossColors.textPrimary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TossFontWeight.semibold,
                 ),
               ),
             ),
             const SizedBox(height: TossSpacing.space3),
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32),
+              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space8),
               child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
             ),
             const SizedBox(height: TossSpacing.space2),
@@ -280,7 +281,7 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
                   return Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: TossSpacing.space4,
-                      vertical: 2,
+                      vertical: TossSpacing.space0_5,
                     ),
                     child: Material(
                       color: TossColors.transparent,
@@ -314,11 +315,11 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
                                       cp.name,
                                       style: TossTextStyles.body.copyWith(
                                         color: TossColors.textPrimary,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: TossFontWeight.medium,
                                       ),
                                     ),
                                     if (cp.type.isNotEmpty) ...[
-                                      const SizedBox(height: 2),
+                                      const SizedBox(height: TossSpacing.space0_5),
                                       Text(
                                         cp.type,
                                         style: TossTextStyles.caption.copyWith(

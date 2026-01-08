@@ -5,7 +5,6 @@ import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/extensions/string_extensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -149,7 +148,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     
     if (companyId.isEmpty || storeId.isEmpty) {
       return const TossScaffold(
-        backgroundColor: TossColors.gray50,
+        backgroundColor: TossColors.white,
         body: Center(
           child: Text('Please select a company and store first'),
         ),
@@ -167,10 +166,10 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
     ),);
     
     return TossScaffold(
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: _pageTitle,
-        backgroundColor: TossColors.gray50,
+        backgroundColor: TossColors.white,
       ),
       body: SafeArea(
         child: Column(
@@ -252,7 +251,7 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         children: [
@@ -359,9 +358,9 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
                 color: TossColors.gray600,
               ),
             ),
-            const Icon(
+            Icon(
               Icons.keyboard_arrow_down,
-              size: 18,
+              size: TossSpacing.iconSM,
               color: TossColors.gray600,
             ),
           ],

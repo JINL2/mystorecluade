@@ -78,8 +78,8 @@ class _TradeItemSummaryBarState extends State<TradeItemSummaryBar> {
               setState(() => _isExpanded = !_isExpanded);
             },
             child: Container(
-              width: 40,
-              height: 40,
+              width: TossSpacing.iconXL,
+              height: TossSpacing.iconXL,
               decoration: BoxDecoration(
                 color: TossColors.gray50,
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),

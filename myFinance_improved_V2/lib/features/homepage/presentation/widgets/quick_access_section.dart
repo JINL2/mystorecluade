@@ -71,8 +71,8 @@ class _QuickAccessItem extends StatelessWidget {
         children: [
           // Circular icon button
           Container(
-            width: 48,
-            height: 48,
+            width: TossSpacing.iconXXL,
+            height: TossSpacing.iconXXL,
             decoration: const BoxDecoration(
               color: TossColors.primary,
               shape: BoxShape.circle,
@@ -81,7 +81,7 @@ class _QuickAccessItem extends StatelessWidget {
               child: DynamicIcon(
                 iconKey: feature.iconKey,
                 featureName: feature.featureName,
-                size: 24,
+                size: TossSpacing.iconMD2,
                 color: TossColors.white,
                 useDefaultColor: false,
               ),
@@ -93,10 +93,9 @@ class _QuickAccessItem extends StatelessWidget {
             width: 80,
             child: Text(
               feature.featureName.split(' ').join('\n'),
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.small.copyWith(
                 color: TossColors.textPrimary,
                 fontWeight: FontWeight.w600,
-                fontSize: 11,
                 height: 1.2,
                 letterSpacing: -0.2,
               ),
@@ -125,8 +124,8 @@ class _LoadingQuickAccess extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: TossSpacing.iconXL,
+                height: TossSpacing.iconXL,
                 decoration: const BoxDecoration(
                   color: TossColors.gray200,
                   shape: BoxShape.circle,

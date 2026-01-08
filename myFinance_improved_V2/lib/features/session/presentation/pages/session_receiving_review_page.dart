@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../providers/session_review_provider.dart';
@@ -88,7 +89,7 @@ class _SessionReceivingReviewPageState
         'Review Stock In vs Order',
         style: TossTextStyles.h4.copyWith(
           color: TossColors.textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
       centerTitle: true,
@@ -189,10 +190,10 @@ class _SessionReceivingReviewPageState
         decoration: InputDecoration(
           hintText: 'Search by product name or SKU...',
           hintStyle: TossTextStyles.body.copyWith(color: TossColors.textTertiary),
-          prefixIcon: const Icon(Icons.search, color: TossColors.textTertiary, size: 20),
+          prefixIcon: const Icon(Icons.search, color: TossColors.textTertiary, size: TossSpacing.iconMD),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close, color: TossColors.textTertiary, size: 20),
+                  icon: const Icon(Icons.close, color: TossColors.textTertiary, size: TossSpacing.iconMD),
                   onPressed: () {
                     _searchController.clear();
                     setState(() {});
@@ -324,7 +325,7 @@ class _SessionReceivingReviewPageState
             ),
             if (hasEdits) ...[
               _buildVerticalDivider(),
-              const Icon(Icons.edit, size: 14, color: TossColors.primary),
+              const Icon(Icons.edit, size: TossSpacing.iconXS, color: TossColors.primary),
             ],
           ],
         ),
@@ -352,14 +353,14 @@ class _SessionReceivingReviewPageState
             flex: 2,
             child: Text(
               'Product',
-              style: TossTextStyles.bodySmall.copyWith(color: TossColors.textSecondary, fontWeight: FontWeight.w500),
+              style: TossTextStyles.bodySmall.copyWith(color: TossColors.textSecondary, fontWeight: TossFontWeight.medium),
             ),
           ),
           _buildHeaderCell('Shipped'),
           _buildHeaderCell('Received'),
           _buildHeaderCell('Accepted'),
           _buildHeaderCell('Rejected'),
-          const SizedBox(width: 40),
+          const SizedBox(width: TossSpacing.iconXL),
         ],
       ),
     );
@@ -367,10 +368,10 @@ class _SessionReceivingReviewPageState
 
   Widget _buildHeaderCell(String text) {
     return SizedBox(
-      width: 52,
+      width: TossSpacing.inputHeightLG + 4,
       child: Text(
         text,
-        style: TossTextStyles.labelSmall.copyWith(color: TossColors.textSecondary, fontWeight: FontWeight.w500),
+        style: TossTextStyles.labelSmall.copyWith(color: TossColors.textSecondary, fontWeight: TossFontWeight.medium),
         textAlign: TextAlign.center,
       ),
     );

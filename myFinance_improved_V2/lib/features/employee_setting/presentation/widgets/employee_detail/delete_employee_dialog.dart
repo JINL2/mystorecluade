@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -71,7 +72,7 @@ class _DeleteEmployeeDialogState extends ConsumerState<DeleteEmployeeDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: TossColors.error, size: 28),
+          const Icon(Icons.warning_amber_rounded, color: TossColors.error, size: TossSpacing.iconXXL),
           const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Text(
@@ -85,7 +86,7 @@ class _DeleteEmployeeDialogState extends ConsumerState<DeleteEmployeeDialog> {
       ),
       content: _isLoading
           ? const SizedBox(
-              height: 100,
+              height: TossDimensions.cardMinHeight,
               child: TossLoadingView(),
             )
           : _buildContent(),
@@ -120,7 +121,7 @@ class _DeleteEmployeeDialogState extends ConsumerState<DeleteEmployeeDialog> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.error_outline, color: TossColors.error, size: 20),
+                const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconMD),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Text(

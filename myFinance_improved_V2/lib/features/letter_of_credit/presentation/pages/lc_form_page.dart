@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../shared/themes/toss_spacing.dart';
+import '../../../../shared/themes/toss_colors.dart';
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../purchase_order/presentation/providers/po_providers.dart';
 import '../../domain/entities/letter_of_credit.dart';
@@ -251,8 +252,10 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return TossScaffold(
+        backgroundColor: TossColors.white,
         appBar: TossAppBar(
           title: _isEdit ? 'Edit LC' : 'New LC',
+          backgroundColor: TossColors.white,
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => context.pop(),
@@ -263,8 +266,10 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
     }
 
     return TossScaffold(
+      backgroundColor: TossColors.white,
       appBar: TossAppBar(
         title: _isEdit ? 'Edit LC' : 'New Letter of Credit',
+        backgroundColor: TossColors.white,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),

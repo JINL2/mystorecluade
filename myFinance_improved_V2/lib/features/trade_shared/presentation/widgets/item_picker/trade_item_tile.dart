@@ -91,7 +91,7 @@ class _TradeItemTileState extends State<TradeItemTile> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space1 / 2),
                   // SKU and Stock Badge Row
                   Row(
                     children: [
@@ -103,13 +103,13 @@ class _TradeItemTileState extends State<TradeItemTile> {
                             color: TossColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: TossSpacing.space1 + TossSpacing.space1 / 2),
                       ],
                       if (widget.item.stockQuantity != null)
                         _buildStockBadge(stockQuantity, isSelected),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: TossSpacing.space1 / 2),
                   // Price Row with Controls
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -217,7 +217,7 @@ class _TradeItemTileState extends State<TradeItemTile> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1 + TossSpacing.space1 / 2, vertical: TossSpacing.space1 / 2),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -272,7 +272,7 @@ class _TradeItemTileState extends State<TradeItemTile> {
             child: Container(
               width: 52,
               height: 44,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
+              margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
               decoration: BoxDecoration(
                 color: TossColors.white,
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),

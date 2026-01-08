@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/inventory_session.dart';
@@ -119,13 +120,13 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
         icon: const Icon(
           Icons.close,
           color: TossColors.gray900,
-          size: 22,
+          size: TossSpacing.iconMD + 2,
         ),
       ),
       title: Text(
         _pageTitle,
         style: TossTextStyles.titleMedium.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: TossFontWeight.bold,
           color: TossColors.gray900,
         ),
       ),
@@ -136,11 +137,11 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
           icon: Icon(
             Icons.add,
             color: hasData ? TossColors.gray900 : TossColors.gray300,
-            size: 24,
+            size: TossSpacing.iconMD2,
           ),
           splashRadius: 20,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: TossSpacing.space1),
       ],
     );
   }
@@ -183,23 +184,23 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
                     _isCounting
                         ? Icons.inventory_2_outlined
                         : Icons.local_shipping_outlined,
-                    size: 48,
+                    size: TossSpacing.iconXXL,
                     color: TossColors.gray400,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: TossSpacing.space3),
                   // Arrow icon
                   const Icon(
                     Icons.arrow_forward,
-                    size: 24,
+                    size: TossSpacing.iconMD2,
                     color: TossColors.gray400,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: TossSpacing.space3),
                   // Right icon
                   Icon(
                     _isCounting
                         ? Icons.fact_check_outlined
                         : Icons.storefront_outlined,
-                    size: 48,
+                    size: TossSpacing.iconXXL,
                     color: TossColors.gray400,
                   ),
                 ],
@@ -221,7 +222,7 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
               TossButton.primary(
                 text: _isCounting ? 'Start Stock Count' : 'Start Receiving',
                 onPressed: _onCreateSessionTap,
-                leadingIcon: const Icon(Icons.add, size: 20),
+                leadingIcon: const Icon(Icons.add, size: TossSpacing.iconMD),
                 fullWidth: true,
               ),
             ],
@@ -274,12 +275,12 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
           children: [
             // Date column
             SizedBox(
-              width: 48,
+              width: TossSpacing.iconXXL,
               child: Text(
                 dateStr,
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.gray500,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TossFontWeight.medium,
                 ),
               ),
             ),
@@ -292,11 +293,11 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
                   Text(
                     session.sessionName,
                     style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: TossSpacing.space0_5),
                   // Store name
                   Text(
                     session.storeName,
@@ -310,8 +311,8 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
                     children: [
                       // User avatar
                       Container(
-                        width: 20,
-                        height: 20,
+                        width: TossSpacing.iconMD,
+                        height: TossSpacing.iconMD,
                         decoration: const BoxDecoration(
                           color: TossColors.gray200,
                           shape: BoxShape.circle,
@@ -321,15 +322,14 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
                             session.createdByName.isNotEmpty
                                 ? session.createdByName[0].toUpperCase()
                                 : '?',
-                            style: TossTextStyles.caption.copyWith(
+                            style: TossTextStyles.micro.copyWith(
                               color: TossColors.gray600,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 10,
+                              fontWeight: TossFontWeight.semibold,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: TossSpacing.space1_5),
                       // User name
                       Text(
                         session.createdByName,
@@ -341,10 +341,10 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
                       // Member count
                       const Icon(
                         Icons.people_outline,
-                        size: 12,
+                        size: TossSpacing.iconXS2,
                         color: TossColors.gray400,
                       ),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: TossSpacing.space0_5),
                       Text(
                         '${session.memberCount}',
                         style: TossTextStyles.caption.copyWith(
@@ -367,7 +367,7 @@ class _SessionActionPageState extends ConsumerState<SessionActionPage> {
                       ? BadgeStatus.success
                       : BadgeStatus.info,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: TossSpacing.space1),
                 // Session type label
                 Text(
                   _isCounting ? 'Stock Count' : 'Receiving',
@@ -404,7 +404,7 @@ class _ErrorView extends StatelessWidget {
           children: [
             const Icon(
               Icons.error_outline,
-              size: 64,
+              size: TossSpacing.icon4XL,
               color: TossColors.error,
             ),
             const SizedBox(height: TossSpacing.space4),

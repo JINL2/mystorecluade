@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/business_hours.dart';
@@ -137,7 +138,7 @@ class _BusinessHoursContentState extends ConsumerState<_BusinessHoursContent> {
             'Individual Days',
             style: TossTextStyles.body.copyWith(
               color: TossColors.gray700,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           const SizedBox(height: TossSpacing.space3),

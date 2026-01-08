@@ -58,7 +58,7 @@ class ScheduleProblemBadges extends StatelessWidget {
             ' \u00b7 ',
             style: TossTextStyles.labelSmall.copyWith(
               color: TossColors.gray400,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         );
@@ -74,7 +74,7 @@ class ScheduleProblemBadges extends StatelessWidget {
             ' +$hiddenCount',
             style: TossTextStyles.labelSmall.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
       ],
@@ -88,7 +88,7 @@ class ScheduleProblemBadges extends StatelessWidget {
       label,
       style: TossTextStyles.labelSmall.copyWith(
         color: isProblem ? TossColors.error : TossColors.gray600,
-        fontWeight: FontWeight.w600,
+        fontWeight: TossFontWeight.semibold,
       ),
     );
   }

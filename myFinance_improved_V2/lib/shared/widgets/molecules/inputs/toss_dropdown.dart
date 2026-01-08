@@ -47,18 +47,16 @@ class TossDropdown<T> extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TossTextStyles.label.copyWith(
-                  color: hasError ? TossColors.error : TossColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: hasError
+                    ? TossTextStyles.smallSectionTitle.copyWith(color: TossColors.error)
+                    : TossTextStyles.smallSectionTitle,
               ),
               if (isRequired) ...[
-                const SizedBox(width: 2),
+                SizedBox(width: TossSpacing.space1 / 2),
                 Text(
                   '*',
-                  style: TossTextStyles.label.copyWith(
+                  style: TossTextStyles.smallSectionTitle.copyWith(
                     color: TossColors.error,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -138,9 +136,9 @@ class TossDropdown<T> extends StatelessWidget {
   Widget _buildLoadingIndicator(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(
-          width: 16,
-          height: 16,
+        SizedBox(
+          width: TossSpacing.iconSM2,
+          height: TossSpacing.iconSM2,
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
@@ -240,7 +238,7 @@ class _BottomSheetContent<T> extends StatelessWidget {
           _buildHeader(context),
           const SizedBox(height: TossSpacing.space3),
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4 * 2),
             child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
           ),
           const SizedBox(height: TossSpacing.space2),
@@ -385,7 +383,7 @@ class _BottomSheetContent<T> extends StatelessWidget {
           ),
         ),
         if (item.subtitle != null) ...[
-          const SizedBox(height: 2),
+          SizedBox(height: TossSpacing.space1 / 2),
           Text(
             item.subtitle!,
             style: TossTextStyles.caption.copyWith(

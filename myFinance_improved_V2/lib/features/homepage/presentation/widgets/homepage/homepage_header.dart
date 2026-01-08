@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
+import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../notifications/presentation/providers/notification_provider.dart';
 import '../company_store_selector.dart';
@@ -40,7 +42,7 @@ class HomepageHeader extends ConsumerWidget {
     return SliverToBoxAdapter(
       child: Container(
         height: 83,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.surface,
           border: Border(
@@ -64,7 +66,7 @@ class HomepageHeader extends ConsumerWidget {
                       name: '${appState.user['user_first_name'] ?? ''} ${appState.user['user_last_name'] ?? ''}'.trim(),
                       size: 33,
                     ),
-                    const SizedBox(width: 13),
+                    const SizedBox(width: TossSpacing.space3),
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -76,8 +78,7 @@ class HomepageHeader extends ConsumerWidget {
                               children: [
                                 Text(
                                   companyName,
-                                  style: TossTextStyles.bodyLarge.copyWith(
-                                    fontSize: 15,
+                                  style: TossTextStyles.titleMedium.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: TossColors.textPrimary,
                                     height: 1.2,
@@ -87,8 +88,7 @@ class HomepageHeader extends ConsumerWidget {
                                 ),
                                 Text(
                                   storeName,
-                                  style: TossTextStyles.caption.copyWith(
-                                    fontSize: 13,
+                                  style: TossTextStyles.bodySmall.copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: TossColors.textSecondary,
                                     height: 1.2,
@@ -100,7 +100,7 @@ class HomepageHeader extends ConsumerWidget {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 5),
+                            padding: EdgeInsets.only(left: TossSpacing.space1 + 1),
                             child: Icon(
                               Icons.keyboard_arrow_up_rounded,
                               size: 20,
@@ -114,7 +114,7 @@ class HomepageHeader extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 13),
+            const SizedBox(width: TossSpacing.space3),
             // Right: Notification + Menu
             Row(
               children: [
@@ -135,7 +135,7 @@ class HomepageHeader extends ConsumerWidget {
                     );
                   },
                 ),
-                const SizedBox(width: 13),
+                const SizedBox(width: TossSpacing.space3),
                 _IconGhost(
                   icon: Icons.more_horiz_rounded,
                   showBadge: false,
@@ -198,16 +198,15 @@ class _IconGhost extends StatelessWidget {
               child: Container(
                 constraints: const BoxConstraints(minWidth: 15),
                 height: 15,
-                padding: const EdgeInsets.symmetric(horizontal: 3),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.space1 - 1),
                 decoration: BoxDecoration(
                   color: TossColors.primary,
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.full),
                 ),
                 child: Center(
                   child: Text(
                     badgeCount > 99 ? '99+' : badgeCount.toString(),
-                    style: TossTextStyles.caption.copyWith(
-                      fontSize: 9,
+                    style: TossTextStyles.small.copyWith(
                       fontWeight: FontWeight.w600,
                       color: TossColors.white,
                       height: 1,

@@ -30,31 +30,30 @@ class CalendarIconWithBadge extends StatelessWidget {
           icon: Icon(
             icon,
             color: iconColor,
-            size: 24,
+            size: TossSpacing.iconLG,
           ),
           tooltip: tooltip,
         ),
         // Badge with problem count
         if (badgeCount > 0)
           Positioned(
-            right: 4,
-            top: 4,
+            right: TossSpacing.space1,
+            top: TossSpacing.space1,
             child: Container(
               padding: const EdgeInsets.all(TossSpacing.space1),
               decoration: const BoxDecoration(
                 color: TossColors.error,
                 shape: BoxShape.circle,
               ),
-              constraints: const BoxConstraints(
-                minWidth: 18,
-                minHeight: 18,
+              constraints: BoxConstraints(
+                minWidth: TossSpacing.iconSM,
+                minHeight: TossSpacing.iconSM,
               ),
               child: Text(
                 badgeCount > 99 ? '99+' : '$badgeCount',
-                style: TossTextStyles.labelSmall.copyWith(
+                style: TossTextStyles.small.copyWith(
                   color: TossColors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TossFontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),

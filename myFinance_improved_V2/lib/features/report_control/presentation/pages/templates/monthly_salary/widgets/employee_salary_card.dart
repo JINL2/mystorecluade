@@ -47,15 +47,8 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         border: Border.all(
-          color: hasWarnings ? const Color(0xFFFECACA) : TossColors.gray200,
+          color: hasWarnings ? TossColors.redLighter : TossColors.gray100,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: TossColors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -66,7 +59,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                 : null,
             borderRadius: BorderRadius.circular(TossBorderRadius.lg),
             child: Padding(
-              padding: const EdgeInsets.all(TossSpacing.space4),
+              padding: EdgeInsets.all(TossSpacing.space4),
               child: Column(
                 children: [
                   // Employee name row
@@ -74,11 +67,11 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                     children: [
                       // Avatar
                       Container(
-                        width: 40,
-                        height: 40,
+                        width: TossDimensions.avatarLG,
+                        height: TossDimensions.avatarLG,
                         decoration: BoxDecoration(
                           color: hasWarnings
-                              ? const Color(0xFFFEE2E2)
+                              ? TossColors.redLight
                               : TossColors.gray100,
                           shape: BoxShape.circle,
                         ),
@@ -88,15 +81,15 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                                 ? employee.employeeName[0].toUpperCase()
                                 : '?',
                             style: TossTextStyles.titleMedium.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: TossFontWeight.semibold,
                               color: hasWarnings
-                                  ? const Color(0xFFDC2626)
+                                  ? TossColors.red
                                   : TossColors.gray600,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: TossSpacing.space3),
                       // Name and bank
                       Expanded(
                         child: Column(
@@ -108,35 +101,35 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                                   child: Text(
                                     employee.employeeName,
                                     style: TossTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: TossFontWeight.semibold,
                                       color: TossColors.gray900,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 if (employee.isManager) ...[
-                                  const SizedBox(width: 6),
+                                  SizedBox(width: TossSpacing.space1_5),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: TossSpacing.badgePaddingHorizontalXS,
+                                      vertical: TossSpacing.badgePaddingVerticalXS,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFEDE9FE),
+                                      color: TossColors.purpleLight,
                                       borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                                     ),
                                     child: Text(
                                       'Manager',
                                       style: TossTextStyles.labelSmall.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF7C3AED),
+                                        fontWeight: TossFontWeight.semibold,
+                                        color: TossColors.purple,
                                       ),
                                     ),
                                   ),
                                 ],
                               ],
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: TossSpacing.space0_5),
                             _buildBankInfo(),
                           ],
                         ),
@@ -148,26 +141,26 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                           Text(
                             employee.salary.totalPaymentFormatted,
                             style: TossTextStyles.body.copyWith(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: TossFontWeight.bold,
                               color: TossColors.gray900,
                             ),
                           ),
                           if (hasWarnings) ...[
-                            const SizedBox(height: 2),
+                            SizedBox(height: TossSpacing.space0_5),
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   LucideIcons.alertTriangle,
-                                  size: 12,
-                                  color: Color(0xFFDC2626),
+                                  size: TossSpacing.iconXS2,
+                                  color: TossColors.red,
                                 ),
-                                const SizedBox(width: 4),
+                                SizedBox(width: TossSpacing.space1),
                                 Text(
                                   '${employee.warningCount}',
                                   style: TossTextStyles.bodySmall.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFFDC2626),
+                                    fontWeight: TossFontWeight.semibold,
+                                    color: TossColors.red,
                                   ),
                                 ),
                               ],
@@ -176,12 +169,12 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                         ],
                       ),
                       if (hasWarnings) ...[
-                        const SizedBox(width: 8),
+                        SizedBox(width: TossSpacing.space2),
                         Icon(
                           _isExpanded
                               ? LucideIcons.chevronUp
                               : LucideIcons.chevronDown,
-                          size: 20,
+                          size: TossSpacing.iconMD,
                           color: TossColors.gray400,
                         ),
                       ],
@@ -189,24 +182,24 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                   ),
 
                   // Hours and shifts info
-                  const SizedBox(height: 12),
+                  SizedBox(height: TossSpacing.space3),
                   Row(
                     children: [
                       _buildInfoChip(
                         icon: LucideIcons.clock,
                         value: '${employee.salary.totalHours.toStringAsFixed(1)}h',
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: TossSpacing.space2),
                       _buildInfoChip(
                         icon: LucideIcons.calendarDays,
                         value: '${employee.salary.shiftCount} shifts',
                       ),
                       if (employee.salary.bonus > 0) ...[
-                        const SizedBox(width: 8),
+                        SizedBox(width: TossSpacing.space2),
                         _buildInfoChip(
                           icon: LucideIcons.gift,
                           value: '+${_formatAmount(employee.salary.bonus)}',
-                          color: const Color(0xFF10B981),
+                          color: TossColors.emerald,
                         ),
                       ],
                     ],
@@ -239,15 +232,15 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
         children: [
           Icon(
             LucideIcons.alertCircle,
-            size: 12,
-            color: const Color(0xFFF59E0B),
+            size: TossSpacing.iconXS2,
+            color: TossColors.amber,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: TossSpacing.space1),
           Text(
             'No bank info',
             style: TossTextStyles.bodySmall.copyWith(
-              color: const Color(0xFFF59E0B),
-              fontWeight: FontWeight.w500,
+              color: TossColors.amber,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
         ],
@@ -277,12 +270,12 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: chipColor),
-          const SizedBox(width: 4),
+          Icon(icon, size: TossSpacing.iconXS2, color: chipColor),
+          SizedBox(width: TossSpacing.space1),
           Text(
             value,
             style: TossTextStyles.labelSmall.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
               color: chipColor,
             ),
           ),
@@ -297,17 +290,17 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFFFEF2F2),
+        color: TossColors.redSurface,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(12),
-          bottomRight: Radius.circular(12),
+          bottomLeft: Radius.circular(TossBorderRadius.lg),
+          bottomRight: Radius.circular(TossBorderRadius.lg),
         ),
       ),
       child: Column(
         children: [
-          const Divider(height: 1, color: Color(0xFFFECACA)),
+          const Divider(height: 1, color: TossColors.redLighter),
           Padding(
-            padding: const EdgeInsets.all(TossSpacing.space3),
+            padding: EdgeInsets.all(TossSpacing.space3),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -316,15 +309,15 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                   children: [
                     const Icon(
                       LucideIcons.alertTriangle,
-                      size: 14,
-                      color: Color(0xFFDC2626),
+                      size: TossSpacing.iconXS,
+                      color: TossColors.red,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: TossSpacing.space1_5),
                     Text(
                       '${employee.warningCount} warnings • ${employee.warningTotalFormatted}',
                       style: TossTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFDC2626),
+                        fontWeight: TossFontWeight.semibold,
+                        color: TossColors.red,
                       ),
                     ),
                     if (hasSelfApproved) ...[
@@ -335,14 +328,14 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF3C7),
+                          color: TossColors.amberLight,
                           borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                         ),
                         child: Text(
                           'Self-approved',
                           style: TossTextStyles.labelSmall.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFD97706),
+                            fontWeight: TossFontWeight.semibold,
+                            color: TossColors.amberDark,
                           ),
                         ),
                       ),
@@ -350,7 +343,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                   ],
                 ),
 
-                const SizedBox(height: 10),
+                SizedBox(height: TossSpacing.space2_5),
 
                 // Warning list
                 ...employee.warnings.map((warning) => _buildWarningItem(warning)),
@@ -365,14 +358,14 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
   Widget _buildWarningItem(SalaryWarning warning) {
     return Container(
       margin: EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
+      padding: EdgeInsets.all(TossSpacing.space3),
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         border: Border.all(
           color: warning.selfApproved
-              ? const Color(0xFFFDE68A)
-              : const Color(0xFFFECACA),
+              ? TossColors.yellowLight
+              : TossColors.redLighter,
         ),
       ),
       child: Column(
@@ -382,7 +375,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: TossSpacing.badgePaddingHorizontalXS, vertical: TossSpacing.badgePaddingVerticalXS),
                 decoration: BoxDecoration(
                   color: TossColors.gray100,
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -390,7 +383,7 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
                 child: Text(
                   warning.date,
                   style: TossTextStyles.labelSmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray700,
                   ),
                 ),
@@ -399,14 +392,14 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
               Text(
                 warning.amountFormatted,
                 style: TossTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFDC2626),
+                  fontWeight: TossFontWeight.semibold,
+                  color: TossColors.red,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 6),
+          SizedBox(height: TossSpacing.space1_5),
 
           // Message
           Text(
@@ -416,26 +409,26 @@ class _EmployeeSalaryCardState extends State<EmployeeSalaryCard> {
             ),
           ),
 
-          const SizedBox(height: 4),
+          SizedBox(height: TossSpacing.space1),
 
           // Approved by
           Row(
             children: [
               Icon(
                 warning.selfApproved ? LucideIcons.alertCircle : LucideIcons.user,
-                size: 12,
+                size: TossSpacing.iconXS2,
                 color: warning.selfApproved
-                    ? const Color(0xFFD97706)
+                    ? TossColors.amberDark
                     : TossColors.gray500,
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: TossSpacing.space1),
               Text(
                 warning.approvedBy,
                 style: TossTextStyles.labelSmall.copyWith(
                   color: warning.selfApproved
-                      ? const Color(0xFFD97706)
+                      ? TossColors.amberDark
                       : TossColors.gray500,
-                  fontWeight: warning.selfApproved ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: warning.selfApproved ? TossFontWeight.semibold : TossFontWeight.regular,
                 ),
               ),
             ],

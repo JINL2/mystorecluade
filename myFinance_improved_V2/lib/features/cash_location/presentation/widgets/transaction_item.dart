@@ -39,7 +39,7 @@ class TransactionItem extends StatelessWidget {
           children: [
             // Date section
             Container(
-              width: 42,
+              width: TossSpacing.space10,
               padding: const EdgeInsets.only(left: TossSpacing.space1),
               child: showDate
                   ? Text(
@@ -64,7 +64,7 @@ class TransactionItem extends StatelessWidget {
                       color: TossColors.gray900,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: TossSpacing.space1),
                   Row(
                     children: [
                       Flexible(

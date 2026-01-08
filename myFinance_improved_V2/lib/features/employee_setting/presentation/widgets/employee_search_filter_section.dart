@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -46,13 +48,10 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
           decoration: BoxDecoration(
             color: TossColors.surface,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            boxShadow: [
-              BoxShadow(
-                color: TossColors.black.withValues(alpha: 0.02),
-                blurRadius: 2,
-                offset: const Offset(0, 1),
-              ),
-            ],
+            border: Border.all(
+              color: TossColors.gray200,
+              width: TossDimensions.dividerThickness,
+            ),
           ),
           child: Row(
             children: [
@@ -77,7 +76,7 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                           children: [
                             Icon(
                               Icons.filter_list_rounded,
-                              size: 22,
+                              size: TossSpacing.iconMD2,
                               color: hasActiveFilters ? TossColors.primary : TossColors.gray600,
                             ),
                             if (hasActiveFilters)
@@ -85,8 +84,8 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                                 right: -4,
                                 top: -4,
                                 child: Container(
-                                  width: 16,
-                                  height: 16,
+                                  width: TossDimensions.badgeCircle,
+                                  height: TossDimensions.badgeCircle,
                                   decoration: const BoxDecoration(
                                     color: TossColors.primary,
                                     shape: BoxShape.circle,
@@ -94,10 +93,9 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                                   child: Center(
                                     child: Text(
                                       '$activeFilterCount',
-                                      style: TossTextStyles.body.copyWith(
+                                      style: TossTextStyles.micro.copyWith(
                                         color: TossColors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: TossFontWeight.bold,
                                       ),
                                     ),
                                   ),
@@ -117,7 +115,7 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                         ),
                         const Icon(
                           Icons.keyboard_arrow_down_rounded,
-                          size: 20,
+                          size: TossSpacing.iconMD,
                           color: TossColors.gray500,
                         ),
                       ],
@@ -127,8 +125,8 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
               ),
 
               Container(
-                width: 1,
-                height: 20,
+                width: TossDimensions.dividerThickness,
+                height: TossSpacing.iconMD,
                 color: TossColors.gray200,
               ),
 
@@ -150,7 +148,7 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                       children: [
                         Icon(
                           Icons.sort_rounded,
-                          size: 22,
+                          size: TossSpacing.iconMD2,
                           color: sortOption.isNotEmpty ? TossColors.primary : TossColors.gray600,
                         ),
                         const SizedBox(width: TossSpacing.space2),
@@ -169,13 +167,13 @@ class EmployeeSearchFilterSection extends ConsumerWidget {
                             ref.watch(employeeSortDirectionProvider)
                                 ? Icons.arrow_upward_rounded
                                 : Icons.arrow_downward_rounded,
-                            size: 16,
+                            size: TossSpacing.iconSM2,
                             color: TossColors.primary,
                           ),
                         const SizedBox(width: TossSpacing.space1),
                         const Icon(
                           Icons.keyboard_arrow_down_rounded,
-                          size: 20,
+                          size: TossSpacing.iconMD,
                           color: TossColors.gray500,
                         ),
                       ],

@@ -101,7 +101,7 @@ class TossKeyboardToolbar extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(
           icon,
-          size: 20,
+          size: TossSpacing.iconMD,
           color: onPressed != null ? TossColors.gray600 : TossColors.gray300,
         ),
         tooltip: tooltip,

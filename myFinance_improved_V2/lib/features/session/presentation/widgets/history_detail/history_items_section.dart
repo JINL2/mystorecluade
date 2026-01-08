@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
+import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
@@ -36,14 +37,14 @@ class HistoryItemsSection extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.inventory_2_outlined,
-                  size: 20,
+                  size: TossSpacing.iconMD,
                   color: TossColors.textSecondary,
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 Text(
                   'Items',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
                   ),
                 ),
@@ -61,7 +62,7 @@ class HistoryItemsSection extends StatelessWidget {
                     '${items.length}',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TossFontWeight.semibold,
                     ),
                   ),
                 ),

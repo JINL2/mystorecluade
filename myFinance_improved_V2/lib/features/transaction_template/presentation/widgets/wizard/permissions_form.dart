@@ -13,6 +13,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -47,7 +48,7 @@ class PermissionsForm extends StatelessWidget {
             'Step 3: Permissions & Tags',
             style: TossTextStyles.bodyLarge.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
           const SizedBox(height: TossSpacing.space5),
@@ -122,9 +123,9 @@ class PermissionsForm extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.attach_file,
-            size: 20,
+            size: TossSpacing.iconMD,
             color: TossColors.gray700,
           ),
           const SizedBox(width: TossSpacing.space3),
@@ -135,7 +136,7 @@ class PermissionsForm extends StatelessWidget {
                 Text(
                   'Require Attachment',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
                   ),
                 ),
@@ -175,9 +176,9 @@ class PermissionsForm extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline,
-            size: 16,
+            size: TossSpacing.iconSM2,
             color: TossColors.primary,
           ),
           const SizedBox(width: TossSpacing.space2),

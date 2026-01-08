@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
+import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -66,12 +67,9 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
         children: [
           // Drag Handle
           Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.only(
-              top: TossSpacing.space3,
-              bottom: TossSpacing.space4,
-            ),
+            width: TossDimensions.dragHandleWidth,
+            height: TossDimensions.dragHandleHeight,
+            margin: TossDimensions.dragHandleMargin,
             decoration: BoxDecoration(
               color: TossColors.gray300,
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -122,7 +120,7 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
           // Large Avatar
           // Note: Hero removed to avoid duplicate tag error with BottomSheet
           // (BottomSheet doesn't support Hero animation anyway)
-          _buildAvatar(employee, size: 80),
+          _buildAvatar(employee, size: TossDimensions.avatar4XL),
           
           const SizedBox(height: TossSpacing.space4),
           
@@ -164,14 +162,14 @@ class _EmployeeDetailSheetV2State extends ConsumerState<EmployeeDetailSheetV2>
                 employee.isActiveToday
                     ? Icons.circle
                     : Icons.access_time_rounded,
-                size: 10,
+                size: TossSpacing.iconXXS,
                 color: employee.isActiveToday
                     ? TossColors.success
                     : (employee.isInactive
                         ? TossColors.gray300
                         : TossColors.gray400),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: TossSpacing.space1),
               Text(
                 employee.lastActivityAt != null
                     ? 'Last active ${employee.lastActivityText}'

@@ -115,7 +115,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
       backgroundColor: TossColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4 * 2),
           child: SlideTransition(
             position: _slideAnimation,
             child: FadeTransition(
@@ -249,12 +249,12 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
             children: [
               // Handle bar
               Container(
-                width: 40,
+                width: TossSpacing.iconXL,
                 height: 4,
                 margin: const EdgeInsets.only(bottom: TossSpacing.space4),
                 decoration: BoxDecoration(
                   color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
                 ),
               ),
 
@@ -276,7 +276,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: TossColors.primary.withOpacity(0.1),
+                    color: TossColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Icon(
@@ -302,7 +302,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: TossColors.success.withOpacity(0.1),
+                    color: TossColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                   ),
                   child: Icon(
@@ -329,7 +329,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: TossColors.error.withOpacity(0.1),
+                      color: TossColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                     ),
                     child: Icon(
@@ -443,7 +443,7 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
       onPressed: canContinue ? _handleContinue : null,
       isLoading: _isLoading,
       fullWidth: true,
-      height: 56,
+      height: TossSpacing.icon3XL,
     );
   }
 

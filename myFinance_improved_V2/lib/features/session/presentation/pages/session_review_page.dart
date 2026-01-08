@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
+import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../providers/session_review_provider.dart';
@@ -76,7 +77,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
         'Review Inventory Changes',
         style: TossTextStyles.h4.copyWith(
           color: TossColors.textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: TossFontWeight.semibold,
         ),
       ),
       centerTitle: true,
@@ -165,14 +166,14 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
           prefixIcon: const Icon(
             Icons.search,
             color: TossColors.textTertiary,
-            size: 20,
+            size: TossSpacing.iconMD,
           ),
           suffixIcon: state.searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(
                     Icons.close,
                     color: TossColors.textTertiary,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
                   onPressed: () {
                     _searchController.clear();
@@ -267,7 +268,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
             '${summary.totalProducts}',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.textPrimary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           _buildDivider(),
@@ -281,7 +282,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
             '${summary.totalQuantity}',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.textPrimary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
           _buildDivider(),
@@ -295,7 +296,7 @@ class _SessionReviewPageState extends ConsumerState<SessionReviewPage> {
             '${state.itemsChangedCount}',
             style: TossTextStyles.caption.copyWith(
               color: TossColors.primary,
-              fontWeight: FontWeight.w600,
+              fontWeight: TossFontWeight.semibold,
             ),
           ),
         ],

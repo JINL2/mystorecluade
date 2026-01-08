@@ -4,6 +4,7 @@ import 'package:myfinance_improved/app/providers/app_state.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/core/monitoring/sentry_config.dart';
 import 'package:myfinance_improved/core/utils/number_formatter.dart';
+import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
@@ -366,7 +367,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
 
       result.when(
         success: (journalId, message, additionalData) async {
-          await Future.delayed(const Duration(milliseconds: 500));
+          await Future.delayed(TossAnimations.serverProcessingDelay);
           await _onRefresh();
           _dialogs.showSuccessDialog(isError: true);
         },
@@ -412,7 +413,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
 
       result.when(
         success: (journalId, message, additionalData) async {
-          await Future.delayed(const Duration(milliseconds: 500));
+          await Future.delayed(TossAnimations.serverProcessingDelay);
           await _onRefresh();
           _dialogs.showSuccessDialog(isError: false);
         },
@@ -593,7 +594,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
 
     return TossScaffold(
       appBar: _buildAppBar(),
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -613,7 +614,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   TossAppBar _buildAppBar() {
     return TossAppBar(
       title: widget.accountName,
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       secondaryActionIcon: Icons.settings_outlined,
       onSecondaryAction: () async {
         await Navigator.push(
@@ -634,7 +635,7 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   Widget _buildEmptyState() {
     return TossScaffold(
       appBar: _buildAppBar(),
-      backgroundColor: TossColors.gray50,
+      backgroundColor: TossColors.white,
       body: SafeArea(
         child: Center(
           child: Text(

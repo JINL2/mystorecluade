@@ -45,7 +45,7 @@ class TradeSummaryCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: TossColors.black.withOpacity(0.03),
+              color: TossColors.black.withValues(alpha: 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -59,16 +59,16 @@ class TradeSummaryCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        width: 40,
-                        height: 40,
+                        width: TossSpacing.iconXL,
+                        height: TossSpacing.iconXL,
                         decoration: BoxDecoration(
-                          color: cardColor.withOpacity(0.1),
+                          color: cardColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(TossBorderRadius.md),
                         ),
                         child: Icon(
                           icon,
                           color: cardColor,
-                          size: 20,
+                          size: TossSpacing.iconSM,
                         ),
                       ),
                       const Spacer(),
@@ -111,8 +111,8 @@ class TradeSummaryCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: TossSpacing.iconXL,
+          height: TossSpacing.iconXL,
           decoration: BoxDecoration(
             color: TossColors.gray200,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -130,7 +130,7 @@ class TradeSummaryCard extends StatelessWidget {
         const SizedBox(height: TossSpacing.space2),
         Container(
           width: 80,
-          height: 16,
+          height: TossSpacing.iconSM2,
           decoration: BoxDecoration(
             color: TossColors.gray100,
             borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -169,7 +169,7 @@ class TradeCompactSummaryCard extends StatelessWidget {
           vertical: TossSpacing.space3,
         ),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(TossBorderRadius.md),
         ),
         child: Column(
@@ -181,7 +181,7 @@ class TradeCompactSummaryCard extends StatelessWidget {
                 Icon(
                   icon,
                   color: color,
-                  size: 18,
+                  size: TossSpacing.iconSM,
                 ),
                 const Spacer(),
                 Text(
@@ -197,7 +197,7 @@ class TradeCompactSummaryCard extends StatelessWidget {
             Text(
               title,
               style: TossTextStyles.caption.copyWith(
-                color: color.withOpacity(0.8),
+                color: color.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w500,
               ),
               maxLines: 1,
@@ -245,15 +245,15 @@ class TradeAmountCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              cardColor.withOpacity(0.08),
-              cardColor.withOpacity(0.02),
+              cardColor.withValues(alpha: 0.08),
+              cardColor.withValues(alpha: 0.02),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           border: Border.all(
-            color: cardColor.withOpacity(0.15),
+            color: cardColor.withValues(alpha: 0.15),
             width: 1,
           ),
         ),
@@ -266,13 +266,13 @@ class TradeAmountCard extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: cardColor.withOpacity(0.15),
+                    color: cardColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Icon(
                     icon,
                     color: cardColor,
-                    size: 18,
+                    size: TossSpacing.iconSM,
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space2),
@@ -298,7 +298,7 @@ class TradeAmountCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: TossSpacing.space1),
                 Expanded(
                   child: Text(
                     amount,

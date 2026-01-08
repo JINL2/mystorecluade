@@ -127,7 +127,7 @@ class Step2Content extends ConsumerWidget {
             'Step 2: Transaction Details',
             style: TossTextStyles.bodyLarge.copyWith(
               color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
+              fontWeight: TossFontWeight.medium,
             ),
           ),
           const SizedBox(height: TossSpacing.space5),
@@ -225,9 +225,9 @@ class Step2Content extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline,
-            size: 16,
+            size: TossSpacing.iconSM2,
             color: TossColors.gray600,
           ),
           const SizedBox(width: TossSpacing.space2),

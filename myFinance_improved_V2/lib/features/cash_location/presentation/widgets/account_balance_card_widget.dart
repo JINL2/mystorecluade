@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_shadows.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
@@ -34,7 +35,7 @@ class AccountBalanceCardWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: TossColors.white,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        boxShadow: TossShadows.card,
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,10 +46,8 @@ class AccountBalanceCardWidget extends StatelessWidget {
             children: [
               Text(
                 'Balance',
-                style: TossTextStyles.body.copyWith(
+                style: TossTextStyles.subtitle.copyWith(
                   color: TossColors.gray900,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
               GestureDetector(
@@ -59,15 +58,13 @@ class AccountBalanceCardWidget extends StatelessWidget {
                     vertical: TossSpacing.space2,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: TossOpacity.light),
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
                   ),
                   child: Text(
                     'Auto Mapping',
-                    style: TossTextStyles.body.copyWith(
+                    style: TossTextStyles.bodyMedium.copyWith(
                       color: Theme.of(context).colorScheme.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -103,17 +100,15 @@ class AccountBalanceCardWidget extends StatelessWidget {
             children: [
               Text(
                 'Error',
-                style: TossTextStyles.body.copyWith(
+                style: TossTextStyles.subtitle.copyWith(
                   color: TossColors.gray900,
-                  fontSize: 16,
+                  fontWeight: TossFontWeight.regular,
                 ),
               ),
               Text(
                 formatCurrencyWithSign(error.toDouble(), currencySymbol),
-                style: TossTextStyles.body.copyWith(
+                style: TossTextStyles.subtitle.copyWith(
                   color: TossColors.error,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -129,16 +124,16 @@ class AccountBalanceCardWidget extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TossTextStyles.body.copyWith(
+          style: TossTextStyles.subtitle.copyWith(
             color: TossColors.gray700,
-            fontSize: 16,
+            fontWeight: TossFontWeight.regular,
           ),
         ),
         Text(
           amount,
-          style: TossTextStyles.body.copyWith(
+          style: TossTextStyles.subtitle.copyWith(
             color: TossColors.gray900,
-            fontSize: 16,
+            fontWeight: TossFontWeight.regular,
           ),
         ),
       ],

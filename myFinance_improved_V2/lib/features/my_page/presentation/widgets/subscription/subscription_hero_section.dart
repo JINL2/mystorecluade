@@ -3,6 +3,8 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
+import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 
 import 'current_plan_badge.dart';
 
@@ -42,13 +44,13 @@ class SubscriptionHeroSection extends StatelessWidget {
 
           // App icon with shadow
           Container(
-            width: 80,
-            height: 80,
+            width: TossSpacing.space20,
+            height: TossSpacing.space20,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(TossBorderRadius.xxl),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                  color: TossColors.primary.withValues(alpha: TossOpacity.strong),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
@@ -70,8 +72,7 @@ class SubscriptionHeroSection extends StatelessWidget {
             'Unlock Your Full\nBusiness Potential',
             textAlign: TextAlign.center,
             style: TossTextStyles.h1.copyWith(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
+              fontWeight: TossFontWeight.extraBold,
               color: TossColors.gray900,
               height: 1.2,
             ),

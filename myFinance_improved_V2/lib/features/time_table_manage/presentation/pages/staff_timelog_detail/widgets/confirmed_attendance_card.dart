@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/themes/index.dart';
 
 /// Confirmed attendance card with expandable content and edit capability
 ///
@@ -109,12 +106,12 @@ class ConfirmedAttendanceCard extends StatelessWidget {
                   ),
                   // Only show status when shift has ended
                   if (!isShiftInProgress) ...[
-                    const SizedBox(width: 8),
+                    SizedBox(width: TossSpacing.space2),
                     Text(
                       _getHeaderStatus(),
                       style: TossTextStyles.caption.copyWith(
                         color: _getHeaderStatusColor(),
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TossFontWeight.medium,
                       ),
                     ),
                   ],
@@ -122,7 +119,7 @@ class ConfirmedAttendanceCard extends StatelessWidget {
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
                     color: TossColors.gray600,
-                    size: 20,
+                    size: TossSpacing.iconMD,
                   ),
                 ],
               ),
@@ -132,7 +129,7 @@ class ConfirmedAttendanceCard extends StatelessWidget {
           // Content
           if (isExpanded) ...[
             Container(
-              height: 1,
+              height: TossDimensions.dividerThickness,
               color: TossColors.gray100,
             ),
             Padding(
@@ -147,7 +144,7 @@ class ConfirmedAttendanceCard extends StatelessWidget {
                     isConfirmed: isCheckInConfirmed,
                     onEdit: onEditCheckIn,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: TossSpacing.space3),
                   _EditableTimeRow(
                     label: 'Confirmed check-out',
                     value: confirmedCheckOut,
@@ -155,7 +152,7 @@ class ConfirmedAttendanceCard extends StatelessWidget {
                     isConfirmed: isCheckOutConfirmed,
                     onEdit: onEditCheckOut,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: TossSpacing.space3),
                   Text(
                     'These times are used for salary calculations.',
                     style: TossTextStyles.caption.copyWith(
@@ -229,27 +226,27 @@ class _EditableTimeRow extends StatelessWidget {
                       value,
                       style: TossTextStyles.bodyLarge.copyWith(
                         color: timeColor,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TossFontWeight.semibold,
                       ),
                     ),
                     if (isConfirmed) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: TossSpacing.space0_5),
                       Text(
                         'Confirmed',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray500,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TossFontWeight.medium,
                         ),
                       ),
                     ],
                   ],
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: TossSpacing.space2),
                 const Padding(
                   padding: EdgeInsets.all(TossSpacing.space1),
                   child: Icon(
                     Icons.edit_outlined,
-                    size: 16,
+                    size: TossSpacing.iconSM,
                     color: TossColors.gray600,
                   ),
                 ),
