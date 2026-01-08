@@ -5,6 +5,7 @@ import '../../domain/entities/analytics_entities.dart';
 import '../../domain/exceptions/analytics_exceptions.dart';
 import '../../domain/repositories/inventory_analytics_repository.dart';
 import '../datasources/inventory_analytics_datasource.dart';
+import '../models/analytics_models.dart';
 
 /// Inventory Analytics Repository Implementation
 ///
@@ -164,26 +165,32 @@ class InventoryAnalyticsRepositoryImpl implements InventoryAnalyticsRepository {
   }) async {
     try {
       // 4개의 RPC를 병렬로 호출
+      final salesFuture = _safeFetch(() => _datasource.getSalesDashboard(
+            companyId: companyId,
+            storeId: storeId,
+          ));
+      final optimizationFuture =
+          _safeFetch(() => _datasource.getInventoryOptimizationDashboard(
+                companyId: companyId,
+              ));
+      final supplyChainFuture = _safeFetch(() => _datasource.getSupplyChainStatus(
+            companyId: companyId,
+          ));
+      final discrepancyFuture = _safeFetch(() => _datasource.getDiscrepancyOverview(
+            companyId: companyId,
+          ));
+
       final results = await Future.wait([
-        _safeFetch(() => _datasource.getSalesDashboard(
-              companyId: companyId,
-              storeId: storeId,
-            )),
-        _safeFetch(() => _datasource.getInventoryOptimizationDashboard(
-              companyId: companyId,
-            )),
-        _safeFetch(() => _datasource.getSupplyChainStatus(
-              companyId: companyId,
-            )),
-        _safeFetch(() => _datasource.getDiscrepancyOverview(
-              companyId: companyId,
-            )),
+        salesFuture,
+        optimizationFuture,
+        supplyChainFuture,
+        discrepancyFuture,
       ]);
 
-      final salesDashboard = results[0] as dynamic;
-      final optimization = results[1] as dynamic;
-      final supplyChain = results[2] as dynamic;
-      final discrepancy = results[3] as dynamic;
+      final salesDashboard = results[0] as SalesDashboardModel?;
+      final optimization = results[1] as InventoryOptimizationModel?;
+      final supplyChain = results[2] as SupplyChainStatusModel?;
+      final discrepancy = results[3] as DiscrepancyOverviewModel?;
 
       return Right(AnalyticsHubData(
         salesDashboard: salesDashboard?.toEntity(),

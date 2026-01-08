@@ -11,6 +11,7 @@ analyzer:
     - "**/*.mocks.dart"
     - "build/**"
     - "test/**.mocks.dart"
+    - "lib/widgetbook/**"
 
   errors:
     # ✅ Ignore JsonKey warnings in Freezed entities (known Dart analyzer issue)
