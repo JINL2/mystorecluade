@@ -78,7 +78,7 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-    56.0 + (bottom?.preferredSize.height ?? 0.0),
+    44.0 + (bottom?.preferredSize.height ?? 0.0),
   );
 
   @override
@@ -164,11 +164,21 @@ class TossAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: backgroundColor ?? TossColors.background,
       elevation: elevation,
       leading: leading ?? (automaticallyImplyLeading && Navigator.canPop(context)
-        ? IconButton(
-            icon: Icon(Icons.arrow_back, size: TossSpacing.iconMD),
-            onPressed: () => Navigator.of(context).pop(),
+        ? GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.only(left: TossSpacing.space4),
+              alignment: Alignment.centerLeft,
+              child: Icon(
+                Icons.arrow_back_ios_new,
+                size: 18,
+                color: TossColors.textPrimary,
+              ),
+            ),
           )
         : null),
+      leadingWidth: 48,
       actions: finalActions.isNotEmpty ? finalActions : null,
       bottom: bottom,
       iconTheme: iconTheme ?? const IconThemeData(

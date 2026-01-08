@@ -307,7 +307,12 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.only(
+        top: TossSpacing.space4 * 2,
+        left: TossSpacing.space4,
+        right: TossSpacing.space4,
+        bottom: TossSpacing.space4,
+      ),
       itemCount: templates.length,
       separatorBuilder: (context, index) => const SizedBox(height: TossSpacing.space3),
       itemBuilder: (context, index) {

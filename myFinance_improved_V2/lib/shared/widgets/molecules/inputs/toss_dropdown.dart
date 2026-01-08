@@ -47,18 +47,16 @@ class TossDropdown<T> extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TossTextStyles.label.copyWith(
-                  color: hasError ? TossColors.error : TossColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: hasError
+                    ? TossTextStyles.smallSectionTitle.copyWith(color: TossColors.error)
+                    : TossTextStyles.smallSectionTitle,
               ),
               if (isRequired) ...[
                 SizedBox(width: TossSpacing.space1 / 2),
                 Text(
                   '*',
-                  style: TossTextStyles.label.copyWith(
+                  style: TossTextStyles.smallSectionTitle.copyWith(
                     color: TossColors.error,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],

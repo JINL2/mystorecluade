@@ -214,7 +214,8 @@ class _TimesheetsTabState extends ConsumerState<TimesheetsTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: TossSpacing.space2),
+          // Extra spacing above Store
+          const SizedBox(height: TossSpacing.space4),
 
           // Store selector (with padding)
           Padding(

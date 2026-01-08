@@ -32,38 +32,40 @@ class CurrencyOverviewCard extends ConsumerWidget {
     final isExpanded = expandedCurrencies.contains(currency.id);
     final denominationsAsync = ref.watch(effectiveDenominationListProvider(currency.id));
 
-    return TossCard(
+    return GestureDetector(
       onTap: () => _toggleExpansion(ref),
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header section
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space5),
-            child: CurrencyHeader(
-              currency: currency,
-              isExpanded: isExpanded,
-            ),
-          ),
-
-          // Expandable content
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: denominationsAsync.when(
-              data: (denominations) => _buildExpandedContent(context, denominations),
-              loading: () => const Padding(
-                padding: EdgeInsets.all(TossSpacing.space5),
-                child: Center(child: TossLoadingView()),
+      child: TossWhiteCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header section
+            Padding(
+              padding: const EdgeInsets.all(TossSpacing.space5),
+              child: CurrencyHeader(
+                currency: currency,
+                isExpanded: isExpanded,
               ),
-              error: (error, _) => _buildErrorState(),
             ),
-            crossFadeState: isExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: TossAnimations.slow,
-          ),
-        ],
+
+            // Expandable content
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: denominationsAsync.when(
+                data: (denominations) => _buildExpandedContent(context, denominations),
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(TossSpacing.space5),
+                  child: Center(child: TossLoadingView()),
+                ),
+                error: (error, _) => _buildErrorState(),
+              ),
+              crossFadeState: isExpanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: TossAnimations.slow,
+            ),
+          ],
+        ),
       ),
     );
   }

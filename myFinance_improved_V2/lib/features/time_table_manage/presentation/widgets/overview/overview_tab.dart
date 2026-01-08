@@ -189,6 +189,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Extra spacing above Store
+          const SizedBox(height: TossSpacing.space4),
+
           // 1️⃣ Store Selector Dropdown (hide if only 1 store)
           if (stores.length > 1) ...[
             _buildStoreSelector(stores),

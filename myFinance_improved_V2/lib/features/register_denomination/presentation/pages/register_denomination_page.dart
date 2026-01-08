@@ -26,11 +26,11 @@ class RegisterDenominationPage extends ConsumerWidget {
     final searchQuery = ref.watch(currencySearchQueryProvider);
     
     return TossScaffold(
-      backgroundColor: TossColors.background,
+      backgroundColor: TossColors.white,
       appBar: const TossAppBar(
         title: 'Denomination',
         centerTitle: true,
-        backgroundColor: TossColors.background,
+        backgroundColor: TossColors.white,
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -121,7 +121,7 @@ class RegisterDenominationPage extends ConsumerWidget {
         onPressed: () => _showAddCurrencySheet(context),
         backgroundColor: TossColors.primary,
         foregroundColor: TossColors.white,
-        elevation: 4,
+        elevation: 0,
         icon: const Icon(Icons.add),
         label: Text(
           'Add New',

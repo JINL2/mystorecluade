@@ -133,12 +133,19 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
         title: 'Cash Ending',
         backgroundColor: TossColors.white,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(72),
           child: Container(
             color: TossColors.white,
-            child: TossTabBar(
-              tabs: const ['Cash', 'Bank', 'Vault'],
-              controller: _tabController,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TossTabBar(
+                  tabs: const ['Cash', 'Bank', 'Vault'],
+                  controller: _tabController,
+                  showDivider: false,
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
           ),
         ),

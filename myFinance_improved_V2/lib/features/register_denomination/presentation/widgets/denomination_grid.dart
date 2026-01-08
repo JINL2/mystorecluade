@@ -394,16 +394,9 @@ class DenominationItem extends StatelessWidget {
             color: TossColors.white,
             borderRadius: BorderRadius.circular(TossBorderRadius.md),
             border: Border.all(
-              color: TossColors.gray300, // Slightly more visible border
-              width: 0.8,
+              color: TossColors.gray300,
+              width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: TossColors.black.withValues(alpha: 0.04),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

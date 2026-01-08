@@ -264,45 +264,60 @@ class _TossTabBarState extends State<TossTabBar> with SingleTickerProviderStateM
         fontWeight: FontWeight.w500,
       );
 
-    return Container(
-      padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      decoration: widget.showDivider
-        ? const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: TossColors.gray200,
-                width: 1,
-              ),
-            ),
-          )
-        : null,
-      child: Theme(
-        data: ThemeData(
-          splashColor: TossColors.transparent,
-          highlightColor: TossColors.transparent,
-        ),
-        child: TabBar(
-          controller: _tabController,
-          isScrollable: widget.isScrollable,
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicator: UnderlineTabIndicator(
-            borderSide: BorderSide(
-              width: widget.indicatorHeight,
-              color: selectedColor,
-            ),
-            insets: EdgeInsets.zero,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: widget.padding ?? const EdgeInsets.only(
+            top: TossSpacing.space4,
+            left: TossSpacing.space4,
+            right: TossSpacing.space4,
+            bottom: 0,
           ),
-          indicatorColor: selectedColor,
-          labelColor: selectedLabelColor,
-          unselectedLabelColor: unselectedLabelColor,
-          labelStyle: selectedTextStyle,
-          unselectedLabelStyle: unselectedTextStyle,
-          dividerColor: TossColors.transparent,
-          overlayColor: WidgetStateProperty.all(TossColors.transparent),
-          labelPadding: EdgeInsets.zero,
-          tabs: _buildTabs(),
+          decoration: widget.showDivider
+            ? const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: TossColors.gray200,
+                    width: 1,
+                  ),
+                ),
+              )
+            : null,
+          child: Theme(
+            data: ThemeData(
+              splashColor: TossColors.transparent,
+              highlightColor: TossColors.transparent,
+            ),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: widget.isScrollable,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicator: UnderlineTabIndicator(
+                borderSide: BorderSide(
+                  width: widget.indicatorHeight,
+                  color: selectedColor,
+                ),
+                insets: EdgeInsets.zero,
+              ),
+              indicatorColor: selectedColor,
+              labelColor: selectedLabelColor,
+              unselectedLabelColor: unselectedLabelColor,
+              labelStyle: selectedTextStyle,
+              unselectedLabelStyle: unselectedTextStyle,
+              dividerColor: TossColors.transparent,
+              overlayColor: WidgetStateProperty.all(TossColors.transparent),
+              labelPadding: EdgeInsets.zero,
+              tabs: _buildTabs(),
+            ),
+          ),
         ),
-      ),
+        // Full-width gray line at the bottom
+        Container(
+          height: 1,
+          color: TossColors.gray100,
+        ),
+      ],
     );
   }
 }

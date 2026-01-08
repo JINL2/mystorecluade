@@ -39,10 +39,7 @@ class CurrencyPillSelector extends StatelessWidget {
           children: [
             Text(
               'Currencies',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.textSecondary, // Consistent with other labels
-                letterSpacing: 0.5,
-              ),
+              style: TossTextStyles.smallSectionTitle,
             ),
             // Only show Add currency button if there are more currencies to add
             if (hasMoreCurrenciesToAdd)

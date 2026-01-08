@@ -148,6 +148,8 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Extra spacing above Store
+          const SizedBox(height: TossSpacing.space4),
           // Store selector dropdown
           _buildStoreSelector(stores),
 

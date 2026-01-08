@@ -254,6 +254,9 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Extra spacing above Balance section
+                          const SizedBox(height: TossSpacing.space4),
+
                           // Balance Section
                           _buildBalanceSection(filteredLocations),
                           
@@ -380,6 +383,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     return TossTabBar(
       tabs: const ['Cash', 'Bank', 'Vault'],
       controller: _tabController,
+      showDivider: false,
       onTabChanged: (index) {
         setState(() {
           _selectedTab = index;

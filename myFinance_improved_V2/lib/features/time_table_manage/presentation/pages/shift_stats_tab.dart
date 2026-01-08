@@ -89,11 +89,13 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Extra spacing above Store
+          const SizedBox(height: TossSpacing.space4),
           // Store selector (same as Timesheets tab)
           Padding(
             padding: const EdgeInsets.fromLTRB(
               TossSpacing.space3,
-              TossSpacing.space2,
+              0,
               TossSpacing.space3,
               TossSpacing.space4,
             ),
