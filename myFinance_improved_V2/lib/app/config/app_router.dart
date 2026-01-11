@@ -716,10 +716,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'productDetail',
             builder: (context, state) {
               final productId = state.pathParameters['productId']!;
+              final variantId = state.uri.queryParameters['variantId'];
               final extra = state.extra;
               final product = extra is Product ? extra : null;
               return ProductDetailPage(
+                key: ValueKey('$productId-$variantId'), // Force rebuild for different variants
                 productId: productId,
+                variantId: variantId,
                 initialProduct: product,
               );
             },

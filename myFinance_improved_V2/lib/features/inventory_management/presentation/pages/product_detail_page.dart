@@ -22,11 +22,13 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 /// Product Detail Page - New design with compact header and location list
 class ProductDetailPage extends ConsumerStatefulWidget {
   final String productId;
+  final String? variantId;
   final Product? initialProduct;
 
   const ProductDetailPage({
     super.key,
     required this.productId,
+    this.variantId,
     this.initialProduct,
   });
 
@@ -145,12 +147,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
       if (mounted && result?.products.isNotEmpty == true) {
         final productStock = result!.products.first;
 
-        // Get current product to check if it's a variant
-        final productsState = ref.read(inventoryPageNotifierProvider);
-        final product = productsState.products.cast<Product?>().firstWhere(
-          (p) => p?.id == widget.productId,
-          orElse: () => null,
-        ) ?? _localProduct ?? widget.initialProduct;
+        // Get current product - prioritize initialProduct/localProduct which have correct variantId
+        // Do NOT use firstWhere on provider list as all variants share same product ID
+        final product = widget.initialProduct ?? _localProduct;
 
         setState(() {
           // For variant products, get stores for specific variantId
@@ -180,14 +179,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
     final productsState = ref.watch(inventoryPageNotifierProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
-    // Try to find product in provider first
-    var product = productsState.products.cast<Product?>().firstWhere(
+    // For variant products, use initialProduct/localProduct which have correct variantId
+    // Don't search provider by productId as all variants share the same productId
+    // Only fallback to provider search if we don't have initialProduct/localProduct
+    Product? product = widget.initialProduct ?? _localProduct;
+    product ??= productsState.products.cast<Product?>().firstWhere(
       (p) => p?.id == widget.productId,
       orElse: () => null,
     );
-
-    // Use local product if not found in provider
-    product ??= _localProduct;
 
     if (product == null) {
       // Trigger API load if not already loading

@@ -106,9 +106,9 @@ class _ProductHeaderSectionState extends State<ProductHeaderSection>
                   // SKU with copy button
                   _buildSkuRow(context),
                   const SizedBox(height: 6),
-                  // Product name
+                  // Product name (use displayName for variants, fallback to name)
                   Text(
-                    widget.product.name,
+                    widget.product.displayName ?? widget.product.name,
                     style: TossTextStyles.bodyMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
@@ -157,11 +157,13 @@ class _ProductHeaderSectionState extends State<ProductHeaderSection>
   }
 
   Widget _buildSkuRow(BuildContext context) {
+    // Use displaySku for variants, fallback to sku
+    final skuText = widget.product.displaySku ?? widget.product.sku;
     return Row(
       children: [
         Flexible(
           child: Text(
-            widget.product.sku,
+            skuText,
             style: TossTextStyles.body.copyWith(
               fontWeight: FontWeight.w500,
               color: TossColors.gray600,
@@ -171,7 +173,7 @@ class _ProductHeaderSectionState extends State<ProductHeaderSection>
         ),
         const SizedBox(width: 6),
         _CopyButton(
-          text: widget.product.sku,
+          text: skuText,
           onCopied: () {
             TossToast.success(context, 'SKU copied to clipboard');
           },

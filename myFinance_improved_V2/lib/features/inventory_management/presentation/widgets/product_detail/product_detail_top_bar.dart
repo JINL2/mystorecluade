@@ -37,10 +37,10 @@ class ProductDetailTopBar extends StatelessWidget {
             },
           ),
           const SizedBox(width: TossSpacing.space2),
-          // SKU title - expandable
+          // SKU title - expandable (use displaySku for variants)
           Expanded(
             child: Text(
-              product.sku,
+              product.displaySku ?? product.sku,
               style: TossTextStyles.titleLarge.copyWith(
                 color: TossColors.gray900,
               ),

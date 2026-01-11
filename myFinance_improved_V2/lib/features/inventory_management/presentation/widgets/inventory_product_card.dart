@@ -32,7 +32,9 @@ class InventoryProductCard extends StatelessWidget {
       color: TossColors.transparent,
       child: InkWell(
         onTap: onTap ?? () {
-          context.push('/inventoryManagement/product/${product.id}');
+          // Include variantId as query param for variant products to ensure correct page rebuild
+          final variantQuery = product.variantId != null ? '?variantId=${product.variantId}' : '';
+          context.push('/inventoryManagement/product/${product.id}$variantQuery', extra: product);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
