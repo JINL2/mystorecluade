@@ -533,27 +533,35 @@ class InventoryRemoteDataSource {
   }
 
   /// Move product between stores
-  /// Calls inventory_move_product_v3 RPC
+  /// Calls inventory_move_product_v4 RPC (with variant support)
+  /// For variant products, variantId is REQUIRED
+  /// For non-variant products, variantId must be NULL
   Future<MoveProductResult> moveProduct({
     required String companyId,
     required String fromStoreId,
     required String toStoreId,
     required String productId,
+    String? variantId,
     required int quantity,
     required String updatedBy,
     required String notes,
   }) async {
     try {
+      // Build item with optional variant_id
+      final Map<String, dynamic> item = {
+        'product_id': productId,
+        'quantity': quantity,
+      };
+      // Only include variant_id if it's not null (required for variant products)
+      if (variantId != null) {
+        item['variant_id'] = variantId;
+      }
+
       final params = {
         'p_company_id': companyId,
         'p_from_store_id': fromStoreId,
         'p_to_store_id': toStoreId,
-        'p_items': [
-          {
-            'product_id': productId,
-            'quantity': quantity,
-          },
-        ],
+        'p_items': [item],
         'p_updated_by': updatedBy,
         'p_time': DateTimeUtils.formatLocalTimestamp(),
         'p_timezone': DateTimeUtils.getLocalTimezone(),
@@ -561,7 +569,7 @@ class InventoryRemoteDataSource {
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_move_product_v3', params: params)
+          .rpc<Map<String, dynamic>>('inventory_move_product_v4', params: params)
           .single();
 
       if (response['success'] == true) {

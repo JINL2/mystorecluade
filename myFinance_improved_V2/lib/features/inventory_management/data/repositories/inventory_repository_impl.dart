@@ -391,6 +391,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     required String fromStoreId,
     required String toStoreId,
     required String productId,
+    String? variantId,
     required int quantity,
     required String updatedBy,
     required String notes,
@@ -401,17 +402,14 @@ class InventoryRepositoryImpl implements InventoryRepository {
         fromStoreId: fromStoreId,
         toStoreId: toStoreId,
         productId: productId,
+        variantId: variantId,
         quantity: quantity,
         updatedBy: updatedBy,
         notes: notes,
       );
 
-      return MoveProductResult(
-        transferId: result.transferId,
-        transferNumber: result.transferNumber,
-        itemsCount: result.itemsCount,
-        totalQuantity: result.totalQuantity,
-      );
+      // Return the result directly (datasource already returns domain model)
+      return result;
     } catch (e) {
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(

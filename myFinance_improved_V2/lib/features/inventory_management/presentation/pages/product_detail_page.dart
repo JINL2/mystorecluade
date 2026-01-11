@@ -386,6 +386,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
         fromStoreId: fromStore.id,
         toStoreId: toStore.id,
         productId: product.id,
+        variantId: product.variantId,
         quantity: quantity,
         updatedBy: appState.userId,
         notes: 'Transfer from ${fromStore.name} to ${toStore.name}',

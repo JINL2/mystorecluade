@@ -114,11 +114,14 @@ abstract class InventoryRepository {
   });
 
   /// Move product between stores
+  /// For variant products, variantId is REQUIRED
+  /// For non-variant products, variantId must be NULL
   Future<MoveProductResult?> moveProduct({
     required String companyId,
     required String fromStoreId,
     required String toStoreId,
     required String productId,
+    String? variantId,
     required int quantity,
     required String updatedBy,
     required String notes,
@@ -217,26 +220,107 @@ class CreateCheckResult {
   });
 }
 
-/// Move Product Result - result from inventory_move_product_v3 RPC
+/// Move Product Result - result from inventory_move_product_v4 RPC
 class MoveProductResult {
   final String transferId;
   final String transferNumber;
+  final MoveStoreInfo fromStore;
+  final MoveStoreInfo toStore;
   final int itemsCount;
   final int totalQuantity;
+  final int logsCreated;
+  final List<MoveProductItemResult> items;
+  final String timestampLocal;
+  final String timestampUtc;
 
   const MoveProductResult({
     required this.transferId,
     required this.transferNumber,
+    required this.fromStore,
+    required this.toStore,
     required this.itemsCount,
     required this.totalQuantity,
+    required this.logsCreated,
+    required this.items,
+    required this.timestampLocal,
+    required this.timestampUtc,
   });
 
   factory MoveProductResult.fromJson(Map<String, dynamic> json) {
+    final itemsJson = json['items'] as List<dynamic>? ?? [];
     return MoveProductResult(
       transferId: json['transfer_id'] as String? ?? '',
       transferNumber: json['transfer_number'] as String? ?? '',
-      itemsCount: json['items_count'] as int? ?? 0,
-      totalQuantity: json['total_quantity'] as int? ?? 0,
+      fromStore: MoveStoreInfo.fromJson(json['from_store'] as Map<String, dynamic>? ?? {}),
+      toStore: MoveStoreInfo.fromJson(json['to_store'] as Map<String, dynamic>? ?? {}),
+      itemsCount: (json['items_count'] as num?)?.toInt() ?? 0,
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      logsCreated: (json['logs_created'] as num?)?.toInt() ?? 0,
+      items: itemsJson
+          .map((i) => MoveProductItemResult.fromJson(i as Map<String, dynamic>))
+          .toList(),
+      timestampLocal: json['timestamp_local']?.toString() ?? '',
+      timestampUtc: json['timestamp_utc']?.toString() ?? '',
+    );
+  }
+}
+
+/// Store info in move product result
+class MoveStoreInfo {
+  final String storeId;
+  final String storeName;
+
+  const MoveStoreInfo({
+    required this.storeId,
+    required this.storeName,
+  });
+
+  factory MoveStoreInfo.fromJson(Map<String, dynamic> json) {
+    return MoveStoreInfo(
+      storeId: json['store_id'] as String? ?? '',
+      storeName: json['store_name'] as String? ?? '',
+    );
+  }
+}
+
+/// Individual item result in move product response
+class MoveProductItemResult {
+  final String productId;
+  final String productName;
+  final String? variantId;
+  final String? variantName;
+  final int quantity;
+  final double unitCost;
+  final int fromStockBefore;
+  final int fromStockAfter;
+  final int toStockBefore;
+  final int toStockAfter;
+
+  const MoveProductItemResult({
+    required this.productId,
+    required this.productName,
+    this.variantId,
+    this.variantName,
+    required this.quantity,
+    required this.unitCost,
+    required this.fromStockBefore,
+    required this.fromStockAfter,
+    required this.toStockBefore,
+    required this.toStockAfter,
+  });
+
+  factory MoveProductItemResult.fromJson(Map<String, dynamic> json) {
+    return MoveProductItemResult(
+      productId: json['product_id'] as String? ?? '',
+      productName: json['product_name'] as String? ?? '',
+      variantId: json['variant_id'] as String?,
+      variantName: json['variant_name'] as String?,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      unitCost: (json['unit_cost'] as num?)?.toDouble() ?? 0.0,
+      fromStockBefore: (json['from_stock_before'] as num?)?.toInt() ?? 0,
+      fromStockAfter: (json['from_stock_after'] as num?)?.toInt() ?? 0,
+      toStockBefore: (json['to_stock_before'] as num?)?.toInt() ?? 0,
+      toStockAfter: (json['to_stock_after'] as num?)?.toInt() ?? 0,
     );
   }
 }
