@@ -54,9 +54,9 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
   Product _convertToInventoryProduct(SalesProduct salesProduct) {
     return Product(
       id: salesProduct.productId,
-      sku: salesProduct.sku,
-      barcode: salesProduct.barcode.isNotEmpty ? salesProduct.barcode : null,
-      name: salesProduct.productName,
+      sku: salesProduct.effectiveSku, // Use effectiveSku for variant support
+      barcode: salesProduct.effectiveBarcode.isNotEmpty ? salesProduct.effectiveBarcode : null,
+      name: salesProduct.effectiveName, // Use effectiveName for variant support
       images: [
         if (salesProduct.images.mainImage != null) salesProduct.images.mainImage!,
         ...salesProduct.images.additionalImages,
@@ -112,7 +112,22 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
     return Material(
       color: TossColors.transparent,
       child: InkWell(
-        onTap: () => _navigateToProductDetail(context),
+        // Tap to add/increase quantity (main action for sales)
+        onTap: () {
+          HapticFeedback.lightImpact();
+          if (isSelected) {
+            // Already in cart - increase quantity
+            ref.read(cartNotifierProvider.notifier).updateQuantity(
+                  widget.cartItem.id,
+                  widget.cartItem.quantity + 1,
+                );
+          } else {
+            // Not in cart - add item
+            ref.read(cartNotifierProvider.notifier).addItem(widget.product);
+          }
+        },
+        // Long press to navigate to product detail
+        onLongPress: () => _navigateToProductDetail(context),
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
@@ -131,9 +146,9 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Product Name
+                    // Product Name (uses effectiveName for variant support)
                     Text(
-                      widget.product.productName,
+                      widget.product.effectiveName,
                       style: TossTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.textPrimary,
@@ -142,11 +157,11 @@ class _SelectableProductTileState extends ConsumerState<SelectableProductTile> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    // SKU and Stock Badge Row
+                    // SKU and Stock Badge Row (uses effectiveSku for variant support)
                     Row(
                       children: [
                         Text(
-                          widget.product.sku,
+                          widget.product.effectiveSku,
                           style: TossTextStyles.bodySmall.copyWith(
                             fontWeight: FontWeight.w500,
                             color: TossColors.textSecondary,

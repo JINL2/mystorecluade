@@ -12,9 +12,10 @@ part 'cart_provider.g.dart';
 ///
 /// Uses @Riverpod(keepAlive: true) to persist cart data across navigation.
 /// State is List<CartItem> for synchronous updates.
+/// Supports variant products from get_inventory_page_v6.
 @Riverpod(keepAlive: true)
 class CartNotifier extends _$CartNotifier {
-  /// Map to store SalesProduct by productId for later retrieval
+  /// Map to store SalesProduct by unique ID (variantId or productId) for later retrieval
   final Map<String, SalesProduct> _productsMap = {};
 
   @override
@@ -28,17 +29,23 @@ class CartNotifier extends _$CartNotifier {
   UpdateCartQuantityUseCase get _updateQuantityUseCase =>
       ref.read(updateCartQuantityUseCaseProvider);
 
+  /// Get unique key for a product (variantId if exists, otherwise productId)
+  String _getUniqueKey(SalesProduct product) => product.variantId ?? product.productId;
+
   /// Get list of SalesProducts in cart
   List<SalesProduct> get cartProducts =>
-      state.map((item) => _productsMap[item.productId]).whereType<SalesProduct>().toList();
+      state.map((item) => _productsMap[item.uniqueId]).whereType<SalesProduct>().toList();
 
   /// Add product to cart
+  /// Uses uniqueId (variantId or productId) to distinguish items
   void addItem(SalesProduct product) {
     try {
-      // Store the SalesProduct for later retrieval
-      _productsMap[product.productId] = product;
+      // Store the SalesProduct for later retrieval using unique key
+      final uniqueKey = _getUniqueKey(product);
+      _productsMap[uniqueKey] = product;
 
-      final existingIndex = state.indexWhere((item) => item.productId == product.productId);
+      // Find existing item by uniqueId (supports variants)
+      final existingIndex = state.indexWhere((item) => item.uniqueId == uniqueKey);
 
       if (existingIndex >= 0) {
         // Increase quantity if item already exists

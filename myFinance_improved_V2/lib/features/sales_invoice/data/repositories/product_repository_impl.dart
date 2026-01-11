@@ -60,42 +60,4 @@ class ProductRepositoryImpl implements ProductRepository {
     return ExchangeRateDataModel(response).toEntity();
   }
 
-  @override
-  Future<CreateInvoiceResult> createInvoice({
-    required String companyId,
-    required String storeId,
-    required String userId,
-    required DateTime saleDate,
-    required List<InvoiceItem> items,
-    required String paymentMethod,
-    double? discountAmount,
-    double? taxRate,
-    String? notes,
-    String? cashLocationId,
-    String? customerId,
-  }) async {
-    final response = await _remoteDataSource.createInvoice(
-      companyId: companyId,
-      storeId: storeId,
-      userId: userId,
-      saleDate: saleDate,
-      items: items,
-      paymentMethod: paymentMethod,
-      discountAmount: discountAmount,
-      taxRate: taxRate,
-      notes: notes,
-      cashLocationId: cashLocationId,
-      customerId: customerId,
-    );
-
-    return CreateInvoiceResult(
-      success: response['success'] as bool? ?? false,
-      invoiceNumber: response['invoice_number']?.toString(),
-      totalAmount: (response['total_amount'] as num?)?.toDouble(),
-      warnings: response['warnings'] != null
-          ? (response['warnings'] as List).map((e) => e.toString()).toList()
-          : null,
-      message: response['message']?.toString(),
-    );
-  }
 }

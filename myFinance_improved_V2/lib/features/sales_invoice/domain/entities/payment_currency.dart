@@ -20,7 +20,8 @@ class PaymentCurrency extends Equatable {
     this.rateDate,
   });
 
-  String get displayName => '$flagEmoji $currencyCode';
+  // NOTE: displayName moved to presentation/extensions/payment_currency_display_extension.dart
+  // UI formatting is a Presentation concern, not Domain
 
   @override
   List<Object?> get props => [

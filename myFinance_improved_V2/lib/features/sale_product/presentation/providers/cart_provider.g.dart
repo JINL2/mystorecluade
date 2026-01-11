@@ -6,12 +6,13 @@ part of 'cart_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cartNotifierHash() => r'de9648587bab3a9873488070e72aff0c758c3a30';
+String _$cartNotifierHash() => r'286eae22cd6722adc56df746c348f76af64bafa4';
 
 /// Cart notifier - manages shopping cart state
 ///
 /// Uses @Riverpod(keepAlive: true) to persist cart data across navigation.
 /// State is List<CartItem> for synchronous updates.
+/// Supports variant products from get_inventory_page_v6.
 ///
 /// Copied from [CartNotifier].
 @ProviderFor(CartNotifier)

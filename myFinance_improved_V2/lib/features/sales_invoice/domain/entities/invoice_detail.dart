@@ -43,6 +43,15 @@ class InvoiceDetailItem extends Equatable {
   final double discountAmount;
   final double totalPrice;
   final double totalCost;
+  // Variant fields (v2)
+  final String? variantId;
+  final String? variantName;
+  final String? variantSku;
+  final String? variantBarcode;
+  final String displayName;
+  final String displaySku;
+  final String? displayBarcode;
+  final bool hasVariants;
 
   const InvoiceDetailItem({
     required this.invoiceItemId,
@@ -59,6 +68,15 @@ class InvoiceDetailItem extends Equatable {
     required this.discountAmount,
     required this.totalPrice,
     required this.totalCost,
+    // Variant fields (v2)
+    this.variantId,
+    this.variantName,
+    this.variantSku,
+    this.variantBarcode,
+    required this.displayName,
+    required this.displaySku,
+    this.displayBarcode,
+    this.hasVariants = false,
   });
 
   /// Calculate profit for this item
@@ -80,6 +98,14 @@ class InvoiceDetailItem extends Equatable {
         discountAmount,
         totalPrice,
         totalCost,
+        variantId,
+        variantName,
+        variantSku,
+        variantBarcode,
+        displayName,
+        displaySku,
+        displayBarcode,
+        hasVariants,
       ];
 }
 

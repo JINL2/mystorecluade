@@ -170,12 +170,16 @@ class UnitMetadata {
   }
 }
 
+/// Stats metadata from get_inventory_metadata_v2
 class StatsMetadata {
   final int totalProducts;
   final int activeProducts;
   final int inactiveProducts;
   final int totalCategories;
   final int totalBrands;
+  // v2: attribute stats
+  final int totalAttributes;
+  final int totalOptions;
 
   const StatsMetadata({
     required this.totalProducts,
@@ -183,6 +187,8 @@ class StatsMetadata {
     required this.inactiveProducts,
     required this.totalCategories,
     required this.totalBrands,
+    this.totalAttributes = 0,
+    this.totalOptions = 0,
   });
 
   factory StatsMetadata.fromJson(Map<String, dynamic> json) {
@@ -192,6 +198,9 @@ class StatsMetadata {
       inactiveProducts: (json['inactive_products'] as num?)?.toInt() ?? 0,
       totalCategories: (json['total_categories'] as num?)?.toInt() ?? 0,
       totalBrands: (json['total_brands'] as num?)?.toInt() ?? 0,
+      // v2: parse attribute stats
+      totalAttributes: (json['total_attributes'] as num?)?.toInt() ?? 0,
+      totalOptions: (json['total_options'] as num?)?.toInt() ?? 0,
     );
   }
 }

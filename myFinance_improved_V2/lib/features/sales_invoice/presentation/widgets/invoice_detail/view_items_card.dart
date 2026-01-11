@@ -214,7 +214,7 @@ class _ViewItemsCardState extends State<ViewItemsCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName,
+                  item.displayName,
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w500,
                     color: TossColors.gray900,

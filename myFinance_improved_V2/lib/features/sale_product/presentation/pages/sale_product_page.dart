@@ -435,8 +435,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         }
 
         final product = displayProducts[index];
+        // Use uniqueId for cart lookup (variantId if exists, otherwise productId)
+        final productUniqueId = product.variantId ?? product.productId;
         final cartItem = cart.firstWhere(
-          (item) => item.productId == product.productId,
+          (item) => item.uniqueId == productUniqueId,
           orElse: () => const CartItem(
             id: '',
             productId: '',
@@ -449,7 +451,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         );
 
         return SelectableProductTile(
-          key: ValueKey(product.productId),
+          // Use uniqueId as key to distinguish variants
+          key: ValueKey(productUniqueId),
           product: product,
           cartItem: cartItem,
           currencySymbol: currencySymbol,
@@ -461,9 +464,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   Future<void> _navigateToPayment(List<CartItem> cartItems) async {
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
     final selectedProductsList = cartNotifier.cartProducts;
+    // Use uniqueId (variantId or productId) for quantity mapping
     final productQuantities = <String, int>{};
     for (var item in cartItems) {
-      productQuantities[item.productId] = item.quantity;
+      productQuantities[item.uniqueId] = item.quantity;
     }
 
     // Get preloaded data (exchange rates + cash locations)

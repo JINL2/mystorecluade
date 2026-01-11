@@ -6,8 +6,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/constants/account_ids.dart';
 import '../../../../core/monitoring/sentry_config.dart';
-import '../../../cash_location/domain/constants/account_ids.dart';
 import '../../di/sales_invoice_providers.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';

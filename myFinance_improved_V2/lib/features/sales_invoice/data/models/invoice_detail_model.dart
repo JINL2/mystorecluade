@@ -151,13 +151,16 @@ class InvoiceDetailModel {
     }
   }
 
-  /// Convert item JSON to entity
+  /// Convert item JSON to entity (v2 with variant support)
   InvoiceDetailItem _itemToEntity(Map<String, dynamic> json) {
+    final productName = json['product_name']?.toString() ?? '';
+    final sku = json['sku']?.toString();
+
     return InvoiceDetailItem(
       invoiceItemId: json['invoice_item_id']?.toString() ?? '',
       productId: json['product_id']?.toString() ?? '',
-      productName: json['product_name']?.toString() ?? '',
-      sku: json['sku']?.toString(),
+      productName: productName,
+      sku: sku,
       barcode: json['barcode']?.toString(),
       productImage: json['product_image']?.toString(),
       brandName: json['brand_name']?.toString(),
@@ -168,6 +171,15 @@ class InvoiceDetailModel {
       discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
       totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
       totalCost: (json['total_cost'] as num?)?.toDouble() ?? 0.0,
+      // Variant fields (v2)
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      variantSku: json['variant_sku']?.toString(),
+      variantBarcode: json['variant_barcode']?.toString(),
+      displayName: json['display_name']?.toString() ?? productName,
+      displaySku: json['display_sku']?.toString() ?? sku ?? '',
+      displayBarcode: json['display_barcode']?.toString(),
+      hasVariants: json['has_variants'] as bool? ?? false,
     );
   }
 }

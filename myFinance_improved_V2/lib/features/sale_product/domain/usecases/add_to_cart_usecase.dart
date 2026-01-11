@@ -6,6 +6,7 @@ import '../exceptions/sales_exceptions.dart';
 ///
 /// Business logic for adding products to shopping cart.
 /// Allows adding products regardless of stock status (validation at checkout).
+/// Supports variant products from get_inventory_page_v6.
 class AddToCartUseCase {
   const AddToCartUseCase();
 
@@ -13,6 +14,7 @@ class AddToCartUseCase {
   ///
   /// Allows adding products to cart regardless of stock status.
   /// Stock validation will be performed at checkout.
+  /// Uses variantId as unique identifier for variant products.
   CartItem execute({
     required SalesProduct product,
     int quantity = 1,
@@ -25,12 +27,17 @@ class AddToCartUseCase {
     // Get available stock for display purposes
     final availableStock = product.availableQuantity;
 
-    // Create cart item (allow zero stock products like lib_old)
+    // Generate unique ID: use variantId if exists, otherwise productId
+    final uniqueId = product.variantId ?? product.productId;
+
+    // Create cart item with variant support
+    // Use effectiveName/effectiveSku for display (includes variant info)
     return CartItem(
-      id: product.productId,
+      id: uniqueId,
       productId: product.productId,
-      sku: product.sku,
-      name: product.productName,
+      variantId: product.variantId,
+      sku: product.effectiveSku,
+      name: product.effectiveName,
       image: product.images.mainImage,
       price: product.pricing.sellingPrice ?? 0,
       quantity: quantity,

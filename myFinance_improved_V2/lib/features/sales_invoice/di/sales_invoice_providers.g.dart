@@ -227,26 +227,5 @@ final getInvoiceListUseCaseProvider =
 // ignore: unused_element
 typedef GetInvoiceListUseCaseRef
     = AutoDisposeProviderRef<GetInvoiceListUseCase>;
-String _$createInvoiceUseCaseHash() =>
-    r'f467041dfc48188c5462fa02a303bea5c6b0e901';
-
-/// Create Invoice UseCase
-///
-/// Copied from [createInvoiceUseCase].
-@ProviderFor(createInvoiceUseCase)
-final createInvoiceUseCaseProvider =
-    AutoDisposeProvider<CreateInvoiceUseCase>.internal(
-  createInvoiceUseCase,
-  name: r'createInvoiceUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$createInvoiceUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CreateInvoiceUseCaseRef = AutoDisposeProviderRef<CreateInvoiceUseCase>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

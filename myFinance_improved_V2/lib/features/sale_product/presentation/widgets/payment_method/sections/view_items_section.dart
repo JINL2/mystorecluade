@@ -119,7 +119,9 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
       padding: const EdgeInsets.all(TossSpacing.space3),
       child: Column(
         children: widget.selectedProducts.map((product) {
-          final quantity = widget.productQuantities[product.productId] ?? 0;
+          // Use uniqueId (variantId or productId) for quantity lookup
+          final uniqueId = product.variantId ?? product.productId;
+          final quantity = widget.productQuantities[uniqueId] ?? 0;
           final price = product.pricing.sellingPrice ?? 0;
 
           return _buildItemRow(product, quantity, price);
@@ -143,13 +145,13 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
             ),
           ),
           const SizedBox(width: TossSpacing.space3),
-          // Product info
+          // Product info (uses effectiveName/effectiveSku for variant support)
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.productName,
+                  product.effectiveName,
                   style: TossTextStyles.body.copyWith(
                     fontWeight: FontWeight.w700,
                     color: TossColors.gray900,
@@ -159,7 +161,7 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  product.sku,
+                  product.effectiveSku,
                   style: TossTextStyles.caption.copyWith(
                     fontWeight: FontWeight.w400,
                     color: TossColors.gray500,

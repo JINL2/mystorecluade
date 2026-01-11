@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import '../../../cash_location/domain/constants/account_ids.dart';
+import '../../../../core/constants/account_ids.dart';
 import '../repositories/journal_repository.dart';
 
 /// Parameters for creating an error adjustment journal entry

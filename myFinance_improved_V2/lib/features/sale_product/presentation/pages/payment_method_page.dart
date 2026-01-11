@@ -153,7 +153,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   double get _cartTotal {
     double total = 0;
     for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
+      // Use uniqueId (variantId or productId) for quantity lookup
+      final uniqueId = product.variantId ?? product.productId;
+      final quantity = widget.productQuantities[uniqueId] ?? 0;
       final price = product.pricing.sellingPrice ?? 0;
       total += price * quantity;
     }
@@ -354,15 +356,22 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       return;
     }
 
-    // Format items array for the RPC
+    // Format items array for the RPC (supports variants via v5)
     final items = <Map<String, dynamic>>[];
     for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
+      // Use uniqueId (variantId or productId) for quantity lookup
+      final uniqueId = product.variantId ?? product.productId;
+      final quantity = widget.productQuantities[uniqueId] ?? 0;
       if (quantity > 0) {
         final itemData = <String, dynamic>{
           'product_id': product.productId,
           'quantity': quantity,
         };
+
+        // v5: include variant_id if present
+        if (product.variantId != null) {
+          itemData['variant_id'] = product.variantId;
+        }
 
         final sellingPrice = product.pricing.sellingPrice;
         if (sellingPrice != null && sellingPrice > 0) {
@@ -370,7 +379,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
         }
 
         items.add(itemData);
-        print('📦 [INVOICE] Item: productId=${product.productId}, quantity=$quantity, unitPrice=$sellingPrice');
+        print('📦 [INVOICE] Item: productId=${product.productId}, variantId=${product.variantId}, quantity=$quantity, unitPrice=$sellingPrice');
       }
     }
 
@@ -399,7 +408,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       }
       print('💳 [INVOICE] paymentMethod=$paymentMethod');
 
-      // Prepare invoice items
+      // Prepare invoice items (v5: include variantId for variant products)
       final invoiceItems = <InvoiceItem>[];
       for (final item in items) {
         invoiceItems.add(
@@ -407,6 +416,7 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
             productId: item['product_id'] as String,
             quantity: item['quantity'] as int,
             unitPrice: item['unit_price'] as double?,
+            variantId: item['variant_id'] as String?, // v5: pass variant_id
           ),
         );
       }
@@ -607,7 +617,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
   double _getTotalCost() {
     double totalCost = 0;
     for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
+      // Use uniqueId (variantId or productId) for quantity lookup
+      final uniqueId = product.variantId ?? product.productId;
+      final quantity = widget.productQuantities[uniqueId] ?? 0;
       final cost = product.pricing.costPrice ?? 0;
       totalCost += cost * quantity;
     }
@@ -624,11 +636,13 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
     String journalDescription = '';
 
     if (widget.selectedProducts.length == 1) {
-      journalDescription = widget.selectedProducts.first.productName;
+      // Use effectiveName for variant support
+      journalDescription = widget.selectedProducts.first.effectiveName;
     } else if (widget.selectedProducts.isNotEmpty) {
       final additionalCount = widget.selectedProducts.length - 1;
+      // Use effectiveName for variant support
       journalDescription =
-          '${widget.selectedProducts.first.productName} +$additionalCount products';
+          '${widget.selectedProducts.first.effectiveName} +$additionalCount products';
     }
 
     if (paymentState.discountAmount > 0) {

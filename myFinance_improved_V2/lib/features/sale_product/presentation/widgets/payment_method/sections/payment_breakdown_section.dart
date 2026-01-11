@@ -300,7 +300,9 @@ class PaymentBreakdownSectionState
   double get _cartTotal {
     double total = 0;
     for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
+      // Use uniqueId (variantId or productId) for quantity lookup
+      final uniqueId = product.variantId ?? product.productId;
+      final quantity = widget.productQuantities[uniqueId] ?? 0;
       final price = product.pricing.sellingPrice ?? 0;
       total += price * quantity;
     }

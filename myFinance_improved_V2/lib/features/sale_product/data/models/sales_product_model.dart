@@ -1,6 +1,7 @@
 import '../../domain/entities/sales_product.dart';
 
 /// Data model for SalesProduct with JSON serialization
+/// Supports get_inventory_page_v6 response format with variant support
 class SalesProductModel extends SalesProduct {
   const SalesProductModel({
     required super.productId,
@@ -13,11 +14,22 @@ class SalesProductModel extends SalesProduct {
     required super.images,
     required super.status,
     super.category,
+    super.categoryId,
     super.brand,
+    super.brandId,
     super.unit,
     required super.attributes,
     required super.storeStocks,
     required super.stockSettings,
+    // Variant fields (v6)
+    super.variantId,
+    super.variantName,
+    super.variantSku,
+    super.variantBarcode,
+    super.displayName,
+    super.displaySku,
+    super.displayBarcode,
+    super.hasVariants,
   });
 
   /// Parse images from various RPC response formats
@@ -27,7 +39,7 @@ class SalesProductModel extends SalesProduct {
       return ProductImagesModel.fromJson(json['images'] as Map<String, dynamic>);
     }
 
-    // Format 2: 'image_urls' array from get_inventory_page_v3
+    // Format 2: 'image_urls' array from get_inventory_page_v6
     if (json['image_urls'] is List) {
       final urls = (json['image_urls'] as List).map((e) => e.toString()).toList();
       return ProductImagesModel(
@@ -57,11 +69,12 @@ class SalesProductModel extends SalesProduct {
 
   factory SalesProductModel.fromJson(Map<String, dynamic> json) {
     // Handle both 'pricing' and 'price' fields from RPC response
+    // v6 uses 'price' object with 'cost', 'selling', 'source'
     Map<String, dynamic> pricingData;
     if (json.containsKey('pricing') && json['pricing'] is Map) {
       pricingData = json['pricing'] as Map<String, dynamic>;
     } else if (json.containsKey('price')) {
-      // Convert lib_old format: price can be Map or double
+      // v6 format: price object with selling, cost, source
       if (json['price'] is Map) {
         pricingData = json['price'] as Map<String, dynamic>;
       } else {
@@ -74,8 +87,9 @@ class SalesProductModel extends SalesProduct {
     return SalesProductModel(
       productId: json['product_id']?.toString() ?? json['id']?.toString() ?? '',
       productName: json['product_name']?.toString() ?? json['name']?.toString() ?? '',
-      sku: json['sku']?.toString() ?? '',
-      barcode: json['barcode']?.toString() ?? '',
+      // v6 uses product_sku/product_barcode for original product values
+      sku: json['product_sku']?.toString() ?? json['sku']?.toString() ?? '',
+      barcode: json['product_barcode']?.toString() ?? json['barcode']?.toString() ?? '',
       productType: json['product_type']?.toString() ?? 'commodity',
       pricing: ProductPricingModel.fromJson(pricingData),
       totalStockSummary: TotalStockSummaryModel.fromJson(
@@ -86,15 +100,17 @@ class SalesProductModel extends SalesProduct {
       status: ProductStatusModel.fromJson(
         json['status'] as Map<String, dynamic>? ?? {},
       ),
-      // v3 returns brand_name/category_name directly as strings
+      // v6 returns brand_name/category_name directly as strings
       category: json['category_name']?.toString() ??
           (json['category'] is Map<String, dynamic>
               ? (json['category'] as Map<String, dynamic>)['category_name']?.toString()
               : json['category']?.toString()),
+      categoryId: json['category_id']?.toString(),
       brand: json['brand_name']?.toString() ??
           (json['brand'] is Map<String, dynamic>
               ? (json['brand'] as Map<String, dynamic>)['brand_name']?.toString()
               : json['brand']?.toString()),
+      brandId: json['brand_id']?.toString(),
       unit: json['unit']?.toString(),
       attributes: ProductAttributesModel.fromJson(
         json['attributes'] as Map<String, dynamic>? ?? {},
@@ -107,6 +123,17 @@ class SalesProductModel extends SalesProduct {
       stockSettings: StockSettingsModel.fromJson(
         json['stock_settings'] as Map<String, dynamic>? ?? {},
       ),
+      // Variant fields (v6)
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      variantSku: json['variant_sku']?.toString(),
+      variantBarcode: json['variant_barcode']?.toString(),
+      // Display fields (v6) - combined product + variant info
+      displayName: json['display_name']?.toString(),
+      displaySku: json['display_sku']?.toString(),
+      displayBarcode: json['display_barcode']?.toString(),
+      // Variant flag (v6)
+      hasVariants: json['has_variants'] as bool? ?? false,
     );
   }
 
@@ -114,19 +141,30 @@ class SalesProductModel extends SalesProduct {
     return {
       'product_id': productId,
       'product_name': productName,
-      'sku': sku,
-      'barcode': barcode,
+      'product_sku': sku,
+      'product_barcode': barcode,
       'product_type': productType,
       'pricing': (pricing as ProductPricingModel).toJson(),
       'total_stock_summary': (totalStockSummary as TotalStockSummaryModel).toJson(),
       'images': (images as ProductImagesModel).toJson(),
       'status': (status as ProductStatusModel).toJson(),
-      'category': category,
-      'brand': brand,
+      'category_name': category,
+      'category_id': categoryId,
+      'brand_name': brand,
+      'brand_id': brandId,
       'unit': unit,
       'attributes': (attributes as ProductAttributesModel).toJson(),
       'store_stocks': storeStocks.map((e) => (e as StoreStockModel).toJson()).toList(),
       'stock_settings': (stockSettings as StockSettingsModel).toJson(),
+      // Variant fields (v6)
+      'variant_id': variantId,
+      'variant_name': variantName,
+      'variant_sku': variantSku,
+      'variant_barcode': variantBarcode,
+      'display_name': displayName,
+      'display_sku': displaySku,
+      'display_barcode': displayBarcode,
+      'has_variants': hasVariants,
     };
   }
 

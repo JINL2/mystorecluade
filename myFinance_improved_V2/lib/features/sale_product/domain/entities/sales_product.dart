@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Sales product entity - represents a product available for sale
+/// Supports both regular products and variant products from get_inventory_page_v6
 class SalesProduct extends Equatable {
   final String productId;
   final String productName;
@@ -12,11 +13,27 @@ class SalesProduct extends Equatable {
   final ProductImages images;
   final ProductStatus status;
   final String? category;
+  final String? categoryId;
   final String? brand;
+  final String? brandId;
   final String? unit;
   final ProductAttributes attributes;
   final List<StoreStock> storeStocks;
   final StockSettings stockSettings;
+
+  // Variant fields (from get_inventory_page_v6)
+  final String? variantId;
+  final String? variantName;
+  final String? variantSku;
+  final String? variantBarcode;
+
+  // Display fields (combined product + variant info)
+  final String? displayName;
+  final String? displaySku;
+  final String? displayBarcode;
+
+  // Variant flag
+  final bool hasVariants;
 
   const SalesProduct({
     required this.productId,
@@ -29,17 +46,40 @@ class SalesProduct extends Equatable {
     required this.images,
     required this.status,
     this.category,
+    this.categoryId,
     this.brand,
+    this.brandId,
     this.unit,
     required this.attributes,
     required this.storeStocks,
     required this.stockSettings,
+    // Variant fields
+    this.variantId,
+    this.variantName,
+    this.variantSku,
+    this.variantBarcode,
+    this.displayName,
+    this.displaySku,
+    this.displayBarcode,
+    this.hasVariants = false,
   });
 
   bool get hasAvailableStock => totalStockSummary.totalQuantityAvailable > 0;
   StoreStock? get firstStoreStock => storeStocks.isNotEmpty ? storeStocks.first : null;
   int get availableQuantity => totalStockSummary.totalQuantityAvailable;
   double? get sellingPrice => pricing.sellingPrice;
+
+  /// Get the effective name to display (variant name if exists, otherwise product name)
+  String get effectiveName => displayName ?? productName;
+
+  /// Get the effective SKU to display (variant SKU if exists, otherwise product SKU)
+  String get effectiveSku => displaySku ?? sku;
+
+  /// Get the effective barcode to display (variant barcode if exists, otherwise product barcode)
+  String get effectiveBarcode => displayBarcode ?? barcode;
+
+  /// Returns true if this is a variant product
+  bool get isVariant => variantId != null;
 
   @override
   List<Object?> get props => [
@@ -53,11 +93,21 @@ class SalesProduct extends Equatable {
         images,
         status,
         category,
+        categoryId,
         brand,
+        brandId,
         unit,
         attributes,
         storeStocks,
         stockSettings,
+        variantId,
+        variantName,
+        variantSku,
+        variantBarcode,
+        displayName,
+        displaySku,
+        displayBarcode,
+        hasVariants,
       ];
 }
 

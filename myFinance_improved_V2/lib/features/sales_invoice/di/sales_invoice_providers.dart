@@ -19,7 +19,6 @@ import '../data/repositories/sales_journal_repository_impl.dart';
 import '../domain/repositories/invoice_repository.dart';
 import '../domain/repositories/product_repository.dart';
 import '../domain/repositories/sales_journal_repository.dart';
-import '../domain/usecases/create_invoice_usecase.dart';
 import '../domain/usecases/create_sales_journal_usecase.dart';
 import '../domain/usecases/get_cash_locations_usecase.dart';
 import '../domain/usecases/get_currency_data_usecase.dart';
@@ -116,11 +115,4 @@ CreateSalesJournalUseCase createSalesJournalUseCase(Ref ref) {
 GetInvoiceListUseCase getInvoiceListUseCase(Ref ref) {
   final repository = ref.watch(invoiceRepositoryProvider);
   return GetInvoiceListUseCase(invoiceRepository: repository);
-}
-
-/// Create Invoice UseCase
-@riverpod
-CreateInvoiceUseCase createInvoiceUseCase(Ref ref) {
-  final repository = ref.watch(productRepositoryProvider);
-  return CreateInvoiceUseCase(productRepository: repository);
 }
