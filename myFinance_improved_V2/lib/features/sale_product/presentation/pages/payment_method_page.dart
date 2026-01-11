@@ -484,9 +484,9 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
           storeId,
           userId,
         );
+        // Note: _handleInvoiceSuccess calls clearSelections() which resets isSubmitting
       } else {
         print('❌ [INVOICE] Invoice FAILED: ${result.message}');
-        notifier.endSubmitting();
         _showErrorDialog(
           'Invoice Creation Failed',
           result.message ?? 'Failed to create invoice',
@@ -496,15 +496,16 @@ class _PaymentMethodPageState extends ConsumerState<PaymentMethodPage> {
       print('💥 [INVOICE] EXCEPTION: $e');
       print('📚 [INVOICE] StackTrace: $stackTrace');
 
-      // Release submission lock on error
-      notifier.endSubmitting();
-
       // Close loading dialog if still open
       if (mounted) {
         context.pop();
       }
 
       _showErrorDialog('Error', 'Error creating invoice: ${e.toString()}');
+    } finally {
+      // Always release submission lock to ensure button is re-enabled
+      // Safe to call even if clearSelections() was already called (idempotent)
+      notifier.endSubmitting();
     }
   }
 

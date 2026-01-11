@@ -33,7 +33,9 @@ class InventoryProductCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap ?? () {
           // Include variantId as query param for variant products to ensure correct page rebuild
-          final variantQuery = product.variantId != null ? '?variantId=${product.variantId}' : '';
+          // Check both null and empty string to handle edge cases
+          final hasVariant = product.variantId != null && product.variantId!.isNotEmpty;
+          final variantQuery = hasVariant ? '?variantId=${product.variantId}' : '';
           context.push('/inventoryManagement/product/${product.id}$variantQuery', extra: product);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),

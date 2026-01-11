@@ -501,7 +501,8 @@ class PaymentBreakdownSectionState
       percentage = inputValue.clamp(0, 100).toDouble();
       discountAmt = (_cartTotal * percentage) / 100;
     } else {
-      discountAmt = inputValue;
+      // Clamp discount to max of cart total to prevent negative amounts
+      discountAmt = inputValue.clamp(0, _cartTotal).toDouble();
       percentage = _cartTotal > 0 ? (discountAmt / _cartTotal) * 100 : 0;
 
       // Format with commas for amount mode

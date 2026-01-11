@@ -552,8 +552,8 @@ class InventoryRemoteDataSource {
         'product_id': productId,
         'quantity': quantity,
       };
-      // Only include variant_id if it's not null (required for variant products)
-      if (variantId != null) {
+      // Only include variant_id if it's not null and not empty (required for variant products)
+      if (variantId != null && variantId.isNotEmpty) {
         item['variant_id'] = variantId;
       }
 

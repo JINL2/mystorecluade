@@ -154,8 +154,8 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
                       ),
                     ),
 
-                    // Refund Button (only for completed invoices)
-                    if (invoice.isCompleted && widget.onRefundPressed != null)
+                    // Refund Button (only for completed invoices that aren't cancelled)
+                    if (invoice.isCompleted && !invoice.isCancelled && widget.onRefundPressed != null)
                       _buildRefundButton(context),
                   ],
                 ),

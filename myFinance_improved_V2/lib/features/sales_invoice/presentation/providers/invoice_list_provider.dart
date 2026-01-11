@@ -273,6 +273,11 @@ class InvoiceListNotifier extends _$InvoiceListNotifier {
     required Invoice invoice,
     String? notes,
   }) async {
+    // Prevent refunding cancelled invoices
+    if (invoice.isCancelled) {
+      throw Exception('Cannot refund a cancelled invoice');
+    }
+
     final appState = ref.read(appStateProvider);
     final userId = appState.userId;
     final companyId = appState.companyChoosen;

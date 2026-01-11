@@ -24,6 +24,12 @@ class AddToCartUseCase {
       throw const ValidationException('Quantity must be greater than 0');
     }
 
+    // Price validation - prevent 0원 sales from null prices
+    final sellingPrice = product.pricing.sellingPrice;
+    if (sellingPrice == null || sellingPrice <= 0) {
+      throw const ValidationException('Product price is not set or invalid');
+    }
+
     // Get available stock for display purposes
     final availableStock = product.availableQuantity;
 
@@ -39,7 +45,7 @@ class AddToCartUseCase {
       sku: product.effectiveSku,
       name: product.effectiveName,
       image: product.images.mainImage,
-      price: product.pricing.sellingPrice ?? 0,
+      price: sellingPrice,
       quantity: quantity,
       available: availableStock,
       customerOrdered: 0, // Will be updated when order is placed

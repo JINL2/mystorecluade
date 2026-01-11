@@ -183,8 +183,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
     // Don't search provider by productId as all variants share the same productId
     // Only fallback to provider search if we don't have initialProduct/localProduct
     Product? product = widget.initialProduct ?? _localProduct;
+    // For variant products, also match variantId to find the correct variant
     product ??= productsState.products.cast<Product?>().firstWhere(
-      (p) => p?.id == widget.productId,
+      (p) => p?.id == widget.productId &&
+             (widget.variantId == null || p?.variantId == widget.variantId),
       orElse: () => null,
     );
 
