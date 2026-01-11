@@ -50,3 +50,8 @@ export 'navigation/toss_app_bar.dart';
 // KEYBOARD - Custom keyboard modals and utilities
 // ═══════════════════════════════════════════════════════════════
 export 'keyboard/index.dart';
+
+// ═══════════════════════════════════════════════════════════════
+// SKELETON - Skeleton loading components (Skeletonizer)
+// ═══════════════════════════════════════════════════════════════
+export 'skeleton/index.dart';

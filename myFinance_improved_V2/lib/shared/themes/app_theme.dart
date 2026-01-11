@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import 'toss_border_radius.dart';
 import 'toss_colors.dart';
+import 'toss_skeleton_theme.dart';
 import 'toss_spacing.dart';
 import 'toss_text_styles.dart';
 
@@ -20,7 +22,12 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    
+
+    // Skeleton theme extension (Skeletonizer)
+    extensions: [
+      TossSkeletonTheme.light,
+    ],
+
     // Color scheme
     colorScheme: const ColorScheme.light(
       primary: TossColors.primary,

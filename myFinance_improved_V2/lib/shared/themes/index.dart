@@ -15,5 +15,6 @@ export 'toss_icons.dart';
 export 'toss_opacity.dart';
 export 'toss_page_styles.dart';
 export 'toss_shadows.dart';
+export 'toss_skeleton_theme.dart';
 export 'toss_spacing.dart';
 export 'toss_text_styles.dart';

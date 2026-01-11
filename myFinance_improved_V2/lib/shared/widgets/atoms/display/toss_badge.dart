@@ -182,3 +182,170 @@ class SubscriptionBadge extends StatelessWidget {
     return TossColors.white;
   }
 }
+
+/// Growth Indicator Badge
+///
+/// Displays growth/change percentage with directional arrow.
+/// Green for positive, Red for negative.
+///
+/// Usage:
+/// ```dart
+/// TossGrowthBadge(growthValue: 12.5)  // Shows ↑12.5% in green
+/// TossGrowthBadge(growthValue: -3.2)  // Shows ↓3.2% in red
+/// TossGrowthBadge.compact(growthValue: 5.0)  // Smaller version
+/// ```
+class TossGrowthBadge extends StatelessWidget {
+  final double growthValue;
+  final bool compact;
+  final int decimalPlaces;
+
+  const TossGrowthBadge({
+    super.key,
+    required this.growthValue,
+    this.compact = false,
+    this.decimalPlaces = 1,
+  });
+
+  /// Compact version for tight spaces
+  factory TossGrowthBadge.compact({
+    Key? key,
+    required double growthValue,
+    int decimalPlaces = 1,
+  }) {
+    return TossGrowthBadge(
+      key: key,
+      growthValue: growthValue,
+      compact: true,
+      decimalPlaces: decimalPlaces,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPositive = growthValue >= 0;
+    final color = isPositive ? TossColors.success : TossColors.error;
+    final bgColor = isPositive ? TossColors.successLight : TossColors.errorLight;
+    final icon = isPositive ? Icons.arrow_upward : Icons.arrow_downward;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? TossSpacing.space1 + 2 : TossSpacing.space2,
+        vertical: compact ? 2 : TossSpacing.space0_5,
+      ),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(TossSpacing.space2 + 2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: compact ? 8 : 10,
+            color: color,
+          ),
+          SizedBox(width: compact ? 1 : 2),
+          Text(
+            '${growthValue.abs().toStringAsFixed(decimalPlaces)}%',
+            style: TossTextStyles.caption.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: compact ? 9 : 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Rank Badge for leaderboard/ranking display
+///
+/// Gold for #1, Silver for #2, Bronze for #3, Gray for others.
+///
+/// Usage:
+/// ```dart
+/// TossRankBadge(rank: 1)  // Gold badge
+/// TossRankBadge(rank: 2)  // Silver badge
+/// TossRankBadge(rank: 3)  // Bronze badge
+/// TossRankBadge(rank: 5)  // Gray badge with "5"
+/// ```
+class TossRankBadge extends StatelessWidget {
+  final int rank;
+  final double size;
+
+  const TossRankBadge({
+    super.key,
+    required this.rank,
+    this.size = 20,
+  });
+
+  /// Standard medal colors
+  static const Color gold = Color(0xFFFFD700);
+  static const Color silver = Color(0xFFC0C0C0);
+  static const Color bronze = Color(0xFFCD7F32);
+
+  @override
+  Widget build(BuildContext context) {
+    if (rank <= 3) {
+      return _buildMedalBadge();
+    }
+    return _buildNumberBadge();
+  }
+
+  Widget _buildMedalBadge() {
+    final color = switch (rank) {
+      1 => gold,
+      2 => silver,
+      3 => bronze,
+      _ => TossColors.gray400,
+    };
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          '$rank',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: size * 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNumberBadge() {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: TossColors.gray100,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          '$rank',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray600,
+            fontWeight: FontWeight.w600,
+            fontSize: size * 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+}

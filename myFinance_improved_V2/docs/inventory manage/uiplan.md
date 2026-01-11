@@ -547,215 +547,741 @@ ORDER BY month, type;
 3. **"왜 그렇게 생각해?"** → 근거 제시
 
 ---
+# 시스템 3: 재고 불일치 통계 분석 - 완전 명세서
 
-### 📱 화면 3-1: 도난 진단 (첫 화면)
-```
-┌─────────────────────────────────────────────────┐
-│  🔍 도난 진단 결과                              │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│  🎯 결론: 도난 가능성 높음 ⚠️                   │
-│                                                 │
-│  📊 통계 분석                                   │
-│  ┌─────────────────────────────────────────┐  │
-│  │ Chi-square 검정 결과                    │  │
-│  │                                         │  │
-│  │ χ² = 18.42                             │  │
-│  │ p-value = 0.0003 (0.03%)               │  │
-│  │                                         │  │
-│  │ 해석: 재고 감소가 랜덤이 아님          │  │
-│  │       99.97% 확률로 의도적 감소        │  │
-│  └─────────────────────────────────────────┘  │
-│                                                 │
-│  💰 재무 영향                                   │
-│  • 순 손실: 3.5M원                              │
-│  • 증가: +12M원 (조사 후 발견)                  │
-│  • 감소: -8.5M원 (분실/도난)                    │
-│  • 순 손실: -3.5M원 (목표: 0원 근처 ❌)        │
-│                                                 │
-│  🚨 의심 매장                                   │
-│  1. 강남점: Z-score -3.24 (99.9% 의심)  🔴     │
-│  2. 홍대점: Z-score -2.15 (98.4% 의심)  🟡     │
-│                                                 │
-│  💡 추천 조치                                   │
-│  • 강남점: 즉시 재고 조사 + CCTV 점검          │
-│  • 홍대점: 모니터링 강화                       │
-│  • 전체: 재고 관리 프로세스 개선               │
-│                                                 │
-│  [매장별 상세 분석 →]                          │
-│  [제품별 분실 분석 →]                          │
-│  [시간 패턴 분석 →]                            │
-└─────────────────────────────────────────────────┘
+## 📊 데이터베이스 현황
+
+### 사용 가능한 데이터
+```sql
+inventory_logs (event_type = 'counting')
+├── product_id (UUID)
+├── store_id (UUID)
+├── quantity_before (NUMERIC)
+├── quantity_after (NUMERIC)
+├── quantity_change (NUMERIC) ⭐ 핵심
+├── cost_after (NUMERIC) - 대부분 NULL
+├── created_at_utc (TIMESTAMPTZ)
+└── reason (VARCHAR)
+
+inventory_products
+├── product_id (UUID)
+├── product_name (VARCHAR)
+├── cost_price (NUMERIC) ⭐ 원가 (사용 가능!)
+├── category_id (UUID)
+└── brand_id (UUID)
+
+stores
+├── store_id (UUID)
+└── store_name (VARCHAR)
 ```
 
-**Chi-square 검정 설명:**
-```
-귀무가설 (H0): 재고 증감은 랜덤하게 발생 (자연발생)
-대립가설 (H1): 재고 감소가 유의미하게 많음 (도난)
-
-p-value < 0.05: 귀무가설 기각 → 도난 가능성
-p-value ≥ 0.05: 귀무가설 채택 → 자연발생
+### 금액 계산 로직
+```sql
+adjustment_value = quantity_change × COALESCE(cost_after, product.cost_price, 0)
 
 예시:
-- p = 0.45 (45%): 안전 ✅
-- p = 0.08 (8%): 주의 🟡
-- p = 0.001 (0.1%): 도난 가능성 높음 🔴
+quantity_change: +5
+cost_price: 123원
+→ adjustment_value = +615원 (이득)
+
+quantity_change: -6
+cost_price: 780,600원
+→ adjustment_value = -4,683,600원 (손실)
 ```
 
-**필요한 데이터:**
-```sql
--- Chi-square 검정용 데이터
-SELECT 
-    store_id,
-    COUNT(*) FILTER (WHERE quantity_change > 0) as increase_count,
-    COUNT(*) FILTER (WHERE quantity_change < 0) as decrease_count,
-    SUM(CASE WHEN quantity_change > 0 THEN quantity_change * cost_after ELSE 0 END) as increase_value,
-    SUM(CASE WHEN quantity_change < 0 THEN ABS(quantity_change) * cost_after ELSE 0 END) as decrease_value
-FROM inventory_logs
-WHERE event_type IN ('stock_adjustment_increase', 'stock_adjustment_decrease', 'counting')
-  AND created_at_utc >= DATE_TRUNC('month', CURRENT_DATE)
-GROUP BY store_id;
+### 현재 데이터 상황
+- counting 이벤트: 12건
+- 기간: 2025-12-19 ~ 2025-12-22 (3일)
+- 매장: 1개만 (테스트 데이터)
+- 금액 데이터: product.cost_price 사용 가능 ✅
 
--- Python에서 계산:
-from scipy.stats import chi2_contingency
+---
 
-observed = [[increase_count, decrease_count] for each store]
-chi2, p_value, dof, expected = chi2_contingency(observed)
+## 🎯 핵심 컨셉
+
+### 1. 정규분포 원리
+```
+정상 (자연 발생):
++615 -200 +427,800 -1,812,600 +604,200 ...
+→ 표본이 많아지면 평균이 0 근처로 수렴
+
+비정상 (인위적):
+-800K -1.2M -850K -620K -380K ... (계속 -)
+→ 0으로 수렴 안 함, 계속 마이너스
+```
+
+### 2. 기간별 누적 손실/이득
+```
+1주일: +2M - 5M = -3M (순 손실)
+1개월: +8M - 12M = -4M (순 손실)
+3개월: +25M - 27M = -2M (순 손실)
+
+표본이 많아지면:
+정상: 0 근처로 수렴
+비정상: 계속 마이너스 (또는 플러스)
+```
+
+### 3. Chi-square 검정
+```
+매장별 +/- 분포가 균등한가?
+→ p < 0.05 이면 특정 매장 비정상
+```
+
+### 4. 목적
+```
+통계적으로 "이상하다" 판정 → 사용자가 원인 조사
+CCTV "언제" 볼지는 우리가 모름 (판단 안 함)
 ```
 
 ---
 
-### 📱 화면 3-2: 매장별 상세 분석
-```
-┌──────────────────────────────────────────────────────────┐
-│  🏪 매장별 도난 위험도                                   │
-├────────┬────────┬────────┬────────┬────────┬────────────┤
-│ 매장   │ 순손실 │Z-score │의심확률│ 상태   │ 조치       │
-├────────┼────────┼────────┼────────┼────────┼────────────┤
-│ 강남점 │-2.5M원 │ -3.24  │ 99.9%  │ 🔴긴급 │[조사 시작]│
-│        │        │        │        │        │            │
-│        │ 📊 증거:                                       │
-│        │ • 감소 53회 vs 증가 12회 (4.4:1 비율)         │
-│        │ • 토요일 밤 10시 집중 발생 (26회)             │
-│        │ • "샤넬 가방" 분실 빈도 높음 (8회)            │
-│        │                                                │
-│        │ 💡 의심 시나리오:                              │
-│        │ 1. 내부 직원 관여 가능성 (특정 시간대)        │
-│        │ 2. 특정 제품 타겟 (고가 브랜드)               │
-├────────┼────────┼────────┼────────┼────────┼────────────┤
-│ 홍대점 │-1.2M원 │ -2.15  │ 98.4%  │ 🟡주의 │[모니터링] │
-├────────┼────────┼────────┼────────┼────────┼────────────┤
-│압구정점│+0.8M원 │ -0.85  │ 80.3%  │ 🟢정상 │[유지]     │
-└────────┴────────┴────────┴────────┴────────┴────────────┘
+## 📱 UI 설계
 
-Z-score 해석:
-• < -3: 매우 의심 (상위 0.1%)
-• -3 ~ -2: 의심 (상위 2.5%)
-• -2 ~ 2: 정상
-```
+### 화면 3-1: 통계 대시보드 (첫 화면)
 
-**필요한 데이터:**
-```sql
--- 매장별 Z-score 계산
-WITH store_losses AS (
-    SELECT 
-        store_id,
-        SUM(quantity_change * cost_after) as net_loss_value,
-        COUNT(*) as adjustment_count
-    FROM inventory_logs
-    WHERE event_type IN ('stock_adjustment_increase', 'stock_adjustment_decrease', 'counting')
-      AND created_at_utc >= DATE_TRUNC('month', CURRENT_DATE)
-    GROUP BY store_id
-),
-stats AS (
-    SELECT 
-        AVG(net_loss_value) as mean_loss,
-        STDDEV(net_loss_value) as std_loss
-    FROM store_losses
-)
-SELECT 
-    s.store_id,
-    st.store_name,
-    sl.net_loss_value,
-    sl.adjustment_count,
-    (sl.net_loss_value - stats.mean_loss) / NULLIF(stats.std_loss, 0) as z_score,
-    
-    -- 의심 확률 (정규분포 CDF)
-    -- Python으로 계산: norm.cdf(z_score) * 100
-    
-    CASE 
-        WHEN (sl.net_loss_value - stats.mean_loss) / NULLIF(stats.std_loss, 0) < -3 THEN 'Critical'
-        WHEN (sl.net_loss_value - stats.mean_loss) / NULLIF(stats.std_loss, 0) < -2 THEN 'Warning'
-        ELSE 'Normal'
-    END as risk_level
-FROM store_losses sl
-CROSS JOIN stats
-JOIN stores st ON sl.store_id = st.store_id
-ORDER BY z_score ASC;
-
--- 강남점 상세 증거
-SELECT 
-    DATE_TRUNC('hour', created_at_utc) as hour,
-    COUNT(*) as adjustment_count,
-    SUM(ABS(quantity_change)) as total_qty
-FROM inventory_logs
-WHERE store_id = :gangnam_store_id
-  AND event_type IN ('stock_adjustment_decrease', 'counting')
-  AND quantity_change < 0
-  AND created_at_utc >= DATE_TRUNC('month', CURRENT_DATE)
-GROUP BY DATE_TRUNC('hour', created_at_utc)
-ORDER BY adjustment_count DESC
-LIMIT 3;
-```
-
----
-
-### 📱 화면 3-3: 제품별 분실 순위
-```
-┌──────────────────────────────────────────────────────────┐
-│  📦 분실 빈도 높은 제품 Top 10                           │
-├────┬──────────┬────────┬────────┬────────┬──────────────┤
-│순위│ 제품     │ 분실횟수│ 분실액 │ 매장   │ 패턴         │
-├────┼──────────┼────────┼────────┼────────┼──────────────┤
-│ 1  │샤넬 가방 │  8회   │ 18M원  │ 강남점 │ 토요일 밤    │
-│    │          │        │        │        │ [CCTV 확인]  │
-├────┼──────────┼────────┼────────┼────────┼──────────────┤
-│ 2  │에르메스  │  6회   │ 12M원  │ 홍대점 │ 평일 저녁    │
-│    │ 벨트     │        │        │        │ [직원조사]   │
-└────┴──────────┴────────┴────────┴────────┴──────────────┘
-```
-
-**이건 mv_lost_products_monthly 사용**
-
----
-
-### 📱 화면 3-4: 시간 패턴 (상세 클릭 시만)
 ```
 ┌─────────────────────────────────────────────────┐
-│  ⏰ 강남점 - 시간 패턴 분석                     │
+│  📊 재고 불일치 통계 분석                       │
 ├─────────────────────────────────────────────────┤
 │                                                 │
-│  가장 의심스러운 시간대                         │
-│  🚨 토요일 22:00 - 23:00                        │
-│     총 26회 조정 (전체의 49%)                   │
-│     ████████████████████████████████  26회     │
+│  🔍 분석 기간                                   │
+│  • 전체: 2024-01-01 ~ 현재 (12개월)            │
+│  • 최근 30일                                    │
+│  • 최근 7일                                     │
+│  [기간 선택 ▼]                                  │
 │                                                 │
-│  정상 시간대 (비교)                             │
-│  🟢 평일 14:00 - 15:00                          │
-│     총 3회 조정 (전체의 6%)                     │
-│     ███  3회                                   │
+│  💰 기간 누적 손익                              │
+│  ┌─────────────────────────────────────────┐  │
+│  │ 전체 (12개월)                           │  │
+│  │ ─────────────────────────────────────   │  │
+│  │ 증가: +45.2M원 (발견)                   │  │
+│  │ 감소: -48.7M원 (미발견)                 │  │
+│  │ ═══════════════════════════════════════ │  │
+│  │ 순 손실: -3.5M원 (-7.2%)                │  │
+│  │                                         │  │
+│  │ 📈 추세: 0으로 수렴 중 ✅                │  │
+│  │    (표본 증가 → 정상 신호)              │  │
+│  └─────────────────────────────────────────┘  │
 │                                                 │
-│  💡 분석                                        │
-│  • 특정 시간에 비정상적 집중 (정상의 8.7배)    │
-│  • 마감 시간 직후 발생                         │
-│  • 특정 직원 근무 시간과 일치 가능성           │
+│  📊 통계 검정 결과 (전체 기간)                  │
+│  ┌─────────────────────────────────────────┐  │
+│  │ Chi-square Test                         │  │
+│  │ χ² = 24.82, p = 0.0002                 │  │
+│  │                                         │  │
+│  │ 🎯 판정: 자연 발생 어려움                │  │
+│  │         (99.98% 확률로 패턴 존재)       │  │
+│  └─────────────────────────────────────────┘  │
 │                                                 │
-│  ✅ 추천 조치                                   │
-│  • 해당 시간대 CCTV 영상 확인                  │
-│  • 재고 조사 강화 (주말 마감 시)               │
-│  • 2인 입회 원칙 도입                          │
+│  🏪 매장별 현황                                 │
+│  ┌─────────────────────────────────────────┐  │
+│  │ 강남점: -8.2M원   🔴 통계적 이상       │  │
+│  │ 홍대점: +1.5M원   🟢 정상 범위         │  │
+│  │ 압구정: -0.3M원   🟢 정상 범위         │  │
+│  │ 신사점: +2.1M원   🟢 정상 범위         │  │
+│  │ 청담점: +1.4M원   🟢 정상 범위         │  │
+│  │ 명동점: +0.0M원   🟢 정상 범위         │  │
+│  └─────────────────────────────────────────┘  │
+│                                                 │
+│  [매장별 상세 →] [기간별 추이 →]               │
 └─────────────────────────────────────────────────┘
 ```
+
+**핵심 지표:**
+1. **누적 손익** - 기간 동안 총 얼마 손해/이득
+2. **0 수렴 여부** - 정상이면 0 가까이
+3. **Chi-square** - 매장별 균등 분포 검증
+
+---
+
+### 화면 3-2: 매장별 상세
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  🏪 강남점 - 통계 분석 (전체 기간)                       │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  💰 누적 손익                                            │
+│  ┌────────────────────────────────────────────────────┐│
+│  │ 전체 기간 (12개월)                                 ││
+│  │ ────────────────────────────────────────────────   ││
+│  │ 증가: +12.8M원 (발견, 42건)                        ││
+│  │ 감소: -21.0M원 (미발견, 125건)                     ││
+│  │ ══════════════════════════════════════════════════ ││
+│  │ 순 손실: -8.2M원 (-39.0%)                          ││
+│  │                                                    ││
+│  │ 📈 추세: 0으로 수렴 안 함 ⚠️                       ││
+│  │    (계속 마이너스 → 비정상 신호)                  ││
+│  └────────────────────────────────────────────────────┘│
+│                                                          │
+│  📊 수량 기준                                            │
+│  • 증가: +178개 (평균 +4.2/회)                          │
+│  • 감소: -542개 (평균 -4.3/회)                          │
+│  • 순: -364개                                            │
+│  • 증감 비율: 42건 / 125건 (25%)                        │
+│                                                          │
+│  🎯 통계 검정                                            │
+│  ┌────────────────────────────────────────────────────┐│
+│  │ Chi-square 기여도: 51% (전체 중 가장 높음)         ││
+│  │ Z-score: -3.82                                     ││
+│  │ p-value: 0.00014 (개별 매장 검정)                  ││
+│  │                                                    ││
+│  │ 🎯 판정: 자연 발생 매우 어려움                     ││
+│  │         (99.99% 확률로 비정상 패턴)                ││
+│  └────────────────────────────────────────────────────┘│
+│                                                          │
+│  💡 데이터 해석                                          │
+│  • 감소가 증가보다 3배 많음 (정상: 1:1 비율)            │
+│  • 누적 손실이 0으로 수렴 안 하고 계속 증가 중          │
+│  • 다른 매장과 비교해 통계적으로 유의미한 차이          │
+│                                                          │
+│  ✅ 권장 조치                                            │
+│  • 재고 관리 프로세스 전수 점검                         │
+│  • 리카운트 영상 검토 (사용자 판단)                     │
+│  • 직원 재교육 또는 시스템 개선                         │
+│                                                          │
+│  [기간별 추이 →] [리카운트 내역 →]                     │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 화면 3-3: 기간별 추이
+
+```
+┌─────────────────────────────────────────────────┐
+│  📈 기간별 누적 손익 추이                       │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  💰 월별 누적 손익 (강남점)                     │
+│  ┌─────────────────────────────────────────┐  │
+│  │ 손익                                    │  │
+│  │  +5M┤                                   │  │
+│  │     │                                   │  │
+│  │   0M┼─────●─────●─────●               │  │
+│  │     │      ╲    ╲    ╲                 │  │
+│  │  -5M┤       ●────●────●───●           │  │
+│  │     │                  ╲   ╲          │  │
+│  │ -10M┤                   ●───●─────●   │  │
+│  │     └─────────────────────────────    │  │
+│  │     1월 2월 3월 4월 5월 6월 ... 12월  │  │
+│  │                                         │  │
+│  │ 🎯 추세: 지속적 하락 (0 수렴 안 함)     │  │
+│  └─────────────────────────────────────────┘  │
+│                                                 │
+│  📊 월별 Chi-square 추세                        │
+│  ┌─────────────────────────────────────────┐  │
+│  │ χ²                                      │  │
+│  │  30┤                          ●         │  │
+│  │    │                    ●               │  │
+│  │  20┤              ●                     │  │
+│  │    │        ●                           │  │
+│  │  10┤  ●                                 │  │
+│  │    └─────────────────────────────────   │  │
+│  │    1월  3월  5월  7월  9월  11월       │  │
+│  │                                         │  │
+│  │ 임계값 (p=0.05): 11.07                 │  │
+│  │ 🎯 7월부터 임계값 초과 (문제 시작)      │  │
+│  └─────────────────────────────────────────┘  │
+│                                                 │
+│  💡 패턴 분석                                   │
+│  • 7월 이전: 정상 범위 (χ² < 11.07)            │
+│  • 7월: 문제 시작 (χ² = 15.3)                  │
+│  • 이후: 지속적 악화 (χ² 증가)                 │
+│                                                 │
+│  가능한 원인 (사용자 판단 필요):                │
+│  • 7월에 새 직원 입사?                          │
+│  • 7월에 프로세스 변경?                         │
+│  • 7월에 시스템 업데이트?                       │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+### 화면 3-4: 전체 매장 비교
+
+```
+┌─────────────────────────────────────────────────┐
+│  🏪 전체 매장 통계 비교                         │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  💰 누적 손익 비교 (12개월)                     │
+│  ┌─────────────────────────────────────────┐  │
+│  │          순 손익                        │  │
+│  │ 강남점   ▓▓▓▓▓▓▓▓  -8.2M 🔴            │  │
+│  │ 홍대점   ░░  +1.5M 🟢                   │  │
+│  │ 압구정   ░ -0.3M 🟢                     │  │
+│  │ 신사점   ░░░  +2.1M 🟢                  │  │
+│  │ 청담점   ░░  +1.4M 🟢                   │  │
+│  │ 명동점   (±0) 🟢                        │  │
+│  │                                         │  │
+│  │ 전체: -3.5M (평균: -0.6M/매장)         │  │
+│  └─────────────────────────────────────────┘  │
+│                                                 │
+│  📊 Z-score 분포                                │
+│  ┌─────────────────────────────────────────┐  │
+│  │          Z-score                        │  │
+│  │  -4  -3  -2  -1   0  +1  +2  +3        │  │
+│  │   │───│───│───│───│───│───│───│        │  │
+│  │   ●강남(비정상)                         │  │
+│  │              ●홍 ●압 ●신 ●청 ●명      │  │
+│  │             (정상 범위)                 │  │
+│  └─────────────────────────────────────────┘  │
+│                                                 │
+│  🎯 Chi-square 기여도                           │
+│  강남점: 51% ████████████████████████████      │  │
+│  홍대점: 18% ██████████                         │  │
+│  압구정: 12% ███████                            │  │
+│  신사점:  8% █████                              │  │
+│  청담점:  6% ████                               │  │
+│  명동점:  5% ███                                │  │
+│                                                 │
+│  💡 결론                                        │
+│  • 강남점이 전체 비정상성의 절반 이상 차지      │  │
+│  • 다른 매장은 정상 범위 (±2σ 이내)            │  │
+│  • 강남점 문제 해결 시 전체 통계 개선 예상      │  │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+### 화면 3-5: 0 수렴 분석
+
+```
+┌─────────────────────────────────────────────────┐
+│  📊 0 수렴 분석 (정규분포 검증)                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  🎯 개념                                        │
+│  자연적인 재고 불일치는 +와 -가 균등하게        │
+│  발생하므로 표본이 많아질수록 평균이 0으로      │
+│  수렴해야 합니다.                               │
+│                                                 │
+│  📈 전체 매장 평균 추세                         │
+│  ┌─────────────────────────────────────────┐  │
+│  │ 평균 손익                               │  │
+│  │  +1M┤                                   │  │
+│  │     │ ●                                 │  │
+│  │   0M┼───●─────●───●─────●───●───●──●  │  │
+│  │     │       ╲           ╱             │  │
+│  │  -1M┤                                   │  │
+│  │     └─────────────────────────────────  │  │
+│  │     1월  3월  5월  7월  9월  11월      │  │
+│  │                                         │  │
+│  │ ✅ 수렴 중 (정상 신호)                  │  │
+│  │    표준오차: ±0.2M (감소 추세)          │  │
+│  └─────────────────────────────────────────┘  │
+│                                                 │
+│  🏪 강남점 추세 (문제 매장)                     │
+│  ┌─────────────────────────────────────────┐  │
+│  │ 평균 손익                               │  │
+│  │  +1M┤                                   │  │
+│  │     │                                   │  │
+│  │   0M┼●                                  │  │
+│  │     │ ╲                                 │  │
+│  │  -1M┤  ●                                │  │
+│  │     │   ╲                               │  │
+│  │  -2M┤    ●                              │  │
+│  │     │     ╲___                          │  │
+│  │  -3M┤         ●───●───●───●───●       │  │
+│  │     └─────────────────────────────────  │  │
+│  │     1월  3월  5월  7월  9월  11월      │  │
+│  │                                         │  │
+│  │ ⚠️ 수렴 안 함 (비정상 신호)             │  │
+│  │    계속 마이너스 유지 (평균 -0.68M/월)  │  │
+│  └─────────────────────────────────────────┘  │
+│                                                 │
+│  📊 통계적 검증                                 │
+│  ┌─────────────────────────────────────────┐  │
+│  │ One-sample t-test (H0: μ = 0)           │  │
+│  │                                         │  │
+│  │ 전체: t = -1.24, p = 0.22               │  │
+│  │ → 0과 유의미한 차이 없음 (정상) ✅       │  │
+│  │                                         │  │
+│  │ 강남: t = -5.82, p = 0.0001             │  │
+│  │ → 0과 유의미한 차이 있음 (비정상) ⚠️     │  │
+│  └─────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 🗄️ 데이터베이스 구성
+
+### Materialized View 1: 월별 매장별 집계
+```sql
+CREATE MATERIALIZED VIEW mv_discrepancy_monthly AS
+SELECT 
+    DATE_TRUNC('month', il.created_at_utc) as month,
+    il.store_id,
+    s.store_name,
+    
+    -- 건수
+    COUNT(*) as total_adjustments,
+    COUNT(*) FILTER (WHERE il.quantity_change > 0) as increase_count,
+    COUNT(*) FILTER (WHERE il.quantity_change < 0) as decrease_count,
+    
+    -- 수량
+    SUM(CASE WHEN il.quantity_change > 0 THEN il.quantity_change ELSE 0 END) as increase_qty,
+    SUM(CASE WHEN il.quantity_change < 0 THEN ABS(il.quantity_change) ELSE 0 END) as decrease_qty,
+    SUM(il.quantity_change) as net_qty,
+    
+    -- 금액
+    SUM(CASE 
+        WHEN il.quantity_change > 0 
+        THEN il.quantity_change * COALESCE(il.cost_after, p.cost_price, 0)
+        ELSE 0 
+    END) as increase_value,
+    
+    SUM(CASE 
+        WHEN il.quantity_change < 0 
+        THEN ABS(il.quantity_change * COALESCE(il.cost_after, p.cost_price, 0))
+        ELSE 0 
+    END) as decrease_value,
+    
+    SUM(il.quantity_change * COALESCE(il.cost_after, p.cost_price, 0)) as net_value
+    
+FROM inventory_logs il
+JOIN stores s ON il.store_id = s.store_id
+LEFT JOIN inventory_products p ON il.product_id = p.product_id
+WHERE il.event_type = 'counting'
+GROUP BY DATE_TRUNC('month', il.created_at_utc), il.store_id, s.store_name;
+
+CREATE INDEX idx_discrepancy_monthly ON mv_discrepancy_monthly(month, store_id);
+```
+
+### Materialized View 2: 누적 합계
+```sql
+CREATE MATERIALIZED VIEW mv_discrepancy_cumulative AS
+SELECT 
+    il.store_id,
+    s.store_name,
+    
+    -- 전체 기간 누적
+    COUNT(*) as total_adjustments,
+    COUNT(*) FILTER (WHERE il.quantity_change > 0) as increase_count,
+    COUNT(*) FILTER (WHERE il.quantity_change < 0) as decrease_count,
+    
+    -- 금액
+    SUM(CASE 
+        WHEN il.quantity_change > 0 
+        THEN il.quantity_change * COALESCE(il.cost_after, p.cost_price, 0)
+        ELSE 0 
+    END) as total_increase_value,
+    
+    SUM(CASE 
+        WHEN il.quantity_change < 0 
+        THEN ABS(il.quantity_change * COALESCE(il.cost_after, p.cost_price, 0))
+        ELSE 0 
+    END) as total_decrease_value,
+    
+    SUM(il.quantity_change * COALESCE(il.cost_after, p.cost_price, 0)) as net_cumulative_value,
+    
+    -- 비율
+    CASE 
+        WHEN COUNT(*) > 0 
+        THEN COUNT(*) FILTER (WHERE il.quantity_change > 0) * 100.0 / COUNT(*)
+        ELSE 0 
+    END as increase_pct,
+    
+    -- 평균
+    AVG(il.quantity_change * COALESCE(il.cost_after, p.cost_price, 0)) as avg_adjustment_value
+    
+FROM inventory_logs il
+JOIN stores s ON il.store_id = s.store_id
+LEFT JOIN inventory_products p ON il.product_id = p.product_id
+WHERE il.event_type = 'counting'
+GROUP BY il.store_id, s.store_name;
+
+CREATE INDEX idx_discrepancy_cumulative ON mv_discrepancy_cumulative(store_id);
+```
+
+---
+
+## 🐍 Python 통계 계산
+
+### Chi-square 검정
+```python
+from scipy.stats import chi2_contingency, norm, ttest_1samp
+import pandas as pd
+import numpy as np
+
+# 데이터 로드
+df = pd.read_sql("""
+    SELECT * FROM mv_discrepancy_monthly
+    WHERE month >= CURRENT_DATE - INTERVAL '12 months'
+""", conn)
+
+# 1. Chi-square 검정 (전체 기간)
+observed_qty = df.groupby('store_id')[['increase_count', 'decrease_count']].sum()
+chi2_qty, p_qty, dof, expected_qty = chi2_contingency(observed_qty.values)
+
+print(f"수량 Chi-square: χ² = {chi2_qty:.2f}, p = {p_qty:.4f}")
+
+# 금액 기준
+observed_val = df.groupby('store_id')[['increase_value', 'decrease_value']].sum()
+chi2_val, p_val, _, _ = chi2_contingency(observed_val.values)
+
+print(f"금액 Chi-square: χ² = {chi2_val:.2f}, p = {p_val:.4f}")
+
+# 2. 각 매장의 Chi-square 기여도
+contributions = []
+for i in range(len(observed_qty)):
+    contrib = 0
+    for j in range(2):
+        contrib += ((observed_qty.values[i][j] - expected_qty[i][j])**2 / 
+                    expected_qty[i][j])
+    contributions.append(contrib)
+
+observed_qty['chi2_contribution'] = contributions
+observed_qty['chi2_contribution_pct'] = (
+    observed_qty['chi2_contribution'] / chi2_qty * 100
+)
+
+# 3. Z-score (매장별 누적 손익)
+cumulative = pd.read_sql("SELECT * FROM mv_discrepancy_cumulative", conn)
+cumulative['z_score'] = (
+    (cumulative['net_cumulative_value'] - cumulative['net_cumulative_value'].mean()) / 
+    cumulative['net_cumulative_value'].std()
+)
+
+# 4. 0 수렴 검증 (t-test)
+# 전체 평균이 0과 유의미한 차이가 있는가?
+monthly_avg = df.groupby('month')['net_value'].sum()
+t_stat, p_value = ttest_1samp(monthly_avg, 0)
+
+print(f"\n0 수렴 검정: t = {t_stat:.2f}, p = {p_value:.4f}")
+if p_value > 0.05:
+    print("✅ 0으로 수렴 중 (정상)")
+else:
+    print("⚠️ 0으로 수렴 안 함 (비정상)")
+
+# 5. 매장별 0 수렴 검정
+for store_id in df['store_id'].unique():
+    store_data = df[df['store_id'] == store_id]['net_value']
+    if len(store_data) >= 3:  # 최소 3개월 데이터
+        t_stat, p_value = ttest_1samp(store_data, 0)
+        store_name = df[df['store_id'] == store_id]['store_name'].iloc[0]
+        
+        if p_value < 0.001:
+            status = "🔴 비정상"
+        elif p_value < 0.05:
+            status = "🟡 주의"
+        else:
+            status = "🟢 정상"
+        
+        print(f"{store_name}: t = {t_stat:.2f}, p = {p_value:.4f} {status}")
+
+# 6. 판정 함수
+def classify_store(row):
+    """매장 상태 판정"""
+    z_score = row['z_score']
+    chi2_contrib = row['chi2_contribution_pct']
+    
+    # 개별 매장 Chi-square (이항분포 검정)
+    from scipy.stats import binom_test
+    p_individual = binom_test(
+        row['decrease_count'],
+        row['increase_count'] + row['decrease_count'],
+        0.5,
+        alternative='two-sided'
+    )
+    
+    if abs(z_score) >= 3 and p_individual < 0.001:
+        return '🔴 비정상 (통계적 이상)'
+    elif abs(z_score) >= 2 and p_individual < 0.05:
+        return '🟡 주의 (모니터링)'
+    else:
+        return '🟢 정상'
+
+cumulative = cumulative.merge(
+    observed_qty[['chi2_contribution_pct']], 
+    left_on='store_id', 
+    right_index=True
+)
+cumulative['status'] = cumulative.apply(classify_store, axis=1)
+
+# 결과 저장 (API에서 사용)
+result = {
+    'overall': {
+        'chi2_qty': chi2_qty,
+        'p_qty': p_qty,
+        'chi2_val': chi2_val,
+        'p_val': p_val,
+        't_stat': t_stat,
+        'p_convergence': p_value,
+        'converging_to_zero': p_value > 0.05
+    },
+    'stores': cumulative.to_dict('records')
+}
+
+import json
+print(json.dumps(result, indent=2, default=str))
+```
+
+---
+
+## 🚀 API 엔드포인트
+
+### GET /api/discrepancy/overview
+```python
+@app.get("/api/discrepancy/overview")
+async def get_overview(period: str = "all"):
+    """
+    통계 대시보드 데이터
+    period: "7d", "30d", "all"
+    """
+    # Python에서 계산한 통계 반환
+    return {
+        "period": period,
+        "cumulative": {
+            "increase_value": 45200000,
+            "decrease_value": 48700000,
+            "net_value": -3500000,
+            "net_pct": -7.2,
+            "converging_to_zero": True
+        },
+        "chi_square": {
+            "chi2": 24.82,
+            "p_value": 0.0002,
+            "interpretation": "자연 발생 어려움"
+        },
+        "stores": [
+            {
+                "store_id": "...",
+                "store_name": "강남점",
+                "net_value": -8200000,
+                "status": "🔴 비정상",
+                "z_score": -3.82,
+                "chi2_contribution_pct": 51
+            },
+            ...
+        ]
+    }
+```
+
+### GET /api/discrepancy/store/{store_id}
+```python
+@app.get("/api/discrepancy/store/{store_id}")
+async def get_store_detail(store_id: str, period: str = "all"):
+    """
+    매장별 상세 데이터
+    """
+    return {
+        "store_id": store_id,
+        "store_name": "강남점",
+        "cumulative": {
+            "increase_value": 12800000,
+            "decrease_value": 21000000,
+            "net_value": -8200000,
+            "increase_count": 42,
+            "decrease_count": 125,
+            "increase_pct": 25.1
+        },
+        "statistics": {
+            "z_score": -3.82,
+            "chi2_contribution": 51,
+            "p_value": 0.00014,
+            "converging_to_zero": False
+        },
+        "monthly_trend": [
+            {"month": "2025-01", "net_value": -200000},
+            {"month": "2025-02", "net_value": -450000},
+            ...
+        ]
+    }
+```
+
+### GET /api/discrepancy/trend
+```python
+@app.get("/api/discrepancy/trend")
+async def get_trend(store_id: str = None):
+    """
+    기간별 추이 데이터
+    """
+    return {
+        "monthly_chi_square": [
+            {"month": "2025-01", "chi2": 8.2, "p_value": 0.15},
+            {"month": "2025-02", "chi2": 10.5, "p_value": 0.06},
+            {"month": "2025-07", "chi2": 15.3, "p_value": 0.009},
+            ...
+        ],
+        "cumulative_net_value": [
+            {"month": "2025-01", "value": -200000, "std_error": 150000},
+            {"month": "2025-02", "value": -650000, "std_error": 220000},
+            ...
+        ]
+    }
+```
+
+---
+
+## 📋 구현 체크리스트
+
+### Phase 1: 데이터베이스 (1일)
+- [ ] mv_discrepancy_monthly 생성
+- [ ] mv_discrepancy_cumulative 생성
+- [ ] 인덱스 추가
+- [ ] 자동 리프레시 설정 (pg_cron)
+
+### Phase 2: Python 통계 (2일)
+- [ ] Chi-square 계산 함수
+- [ ] Z-score 계산
+- [ ] t-test (0 수렴 검증)
+- [ ] 판정 로직
+- [ ] 단위 테스트
+
+### Phase 3: API (2일)
+- [ ] GET /overview
+- [ ] GET /store/{id}
+- [ ] GET /trend
+- [ ] 캐싱 (Redis)
+- [ ] API 테스트
+
+### Phase 4: Frontend (5일)
+- [ ] 대시보드 화면
+- [ ] 매장별 상세
+- [ ] 기간별 추이 차트
+- [ ] 0 수렴 분석
+- [ ] 전체 매장 비교
+
+### Phase 5: 테스트 & 최적화 (2일)
+- [ ] 성능 테스트
+- [ ] 데이터 검증
+- [ ] 통계 검증 (전문가 리뷰)
+- [ ] UI/UX 테스트
+
+---
+
+## ⚠️ 주의사항
+
+### 1. 통계는 판정만, 원인은 사용자
+```
+❌ "CCTV 15:30 확인하세요"
+✅ "통계적으로 이상합니다. 조사하세요"
+```
+
+### 2. 표본이 적으면 신뢰도 낮음
+```
+10건 미만: 통계 의미 없음
+30건 이상: 신뢰 가능
+100건 이상: 높은 신뢰도
+```
+
+### 3. 0 수렴은 시간 필요
+```
+1개월: 수렴 판단 어려움
+3개월: 추세 확인 가능
+6개월+: 명확한 판단
+```
+
+### 4. 금액 vs 수량 둘 다 확인
+```
+수량만: 고가/저가 무시
+금액만: 수량 무시
+→ 둘 다 이상해야 확실!
+```
+
+이제 완벽합니까?
 
 ---
 

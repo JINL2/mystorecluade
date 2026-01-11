@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
+
+import '../../../widgets/shift/index.dart';
 
 /// Status badge for shift cards
 /// Uses TossStatusBadge from shared widgets with shift-specific status mappings

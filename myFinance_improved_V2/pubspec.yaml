@@ -32,6 +32,7 @@ dependencies:
   flutter_screenutil: ^5.9.0
   cached_network_image: ^3.3.0
   shimmer: ^3.0.0
+  skeletonizer: ^1.4.3  # skeleton loading (compatible with Flutter 3.29)
   google_fonts: ^6.1.0
   flutter_slidable: ^3.0.1
   flutter_markdown: ^0.6.18
@@ -129,6 +130,7 @@ dev_dependencies:
   # Development Scripts
   path: ^1.8.0
   args: ^2.4.0
+  widgetbook: ^3.19.0
 
 # NOTE: build_runner has version conflicts with analyzer packages.
 # Run build_runner with specific commands if needed

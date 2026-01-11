@@ -21,9 +21,9 @@ import '../providers/sale_preload_provider.dart';
 import '../providers/inventory_metadata_provider.dart';
 import '../providers/sales_product_provider.dart';
 import '../widgets/cart/cart_summary_bar.dart';
-import '../widgets/list/product_skeleton_loading.dart';
 import '../widgets/list/selectable_product_tile.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 
 class SaleProductPage extends ConsumerStatefulWidget {
   const SaleProductPage({super.key});
@@ -388,7 +388,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   }) {
     // Show skeleton loading if still loading and no products at all
     if (isLoading && allProducts.isEmpty) {
-      return const ProductSkeletonLoading();
+      return const TossListSkeleton(
+        itemCount: 8,
+        style: ListSkeletonStyle.product,
+      );
     }
 
     if (errorMessage != null && displayProducts.isEmpty) {

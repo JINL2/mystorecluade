@@ -34,7 +34,10 @@ export 'calendars/week_dates_picker.dart';
 export 'calendars/calendar_time_range.dart';
 
 // ═══════════════════════════════════════════════════════════════
-// SHIFT - Re-exported from features/attendance
+// SKELETON - Full page skeleton loading templates
 // ═══════════════════════════════════════════════════════════════
-export 'package:myfinance_improved/features/attendance/presentation/widgets/shift/today_shift_card.dart';
-export 'package:myfinance_improved/features/attendance/presentation/widgets/shift/week_shift_card.dart';
+export 'skeleton/index.dart';
+
+// NOTE: SHIFT widgets (TodayShiftCard, WeekShiftCard) should be imported directly from
+// 'package:myfinance_improved/features/attendance/presentation/widgets/shift/index.dart'
+// as they are feature-specific components, not shared organisms.

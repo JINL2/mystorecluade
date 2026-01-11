@@ -45,10 +45,10 @@ final organismsDirectory = WidgetbookCategory(
       ],
     ),
     WidgetbookFolder(
-      name: 'Sheets (2)',
+      name: 'Sheets (2) - 11 UseCases',
       children: [
-        tossBottomSheetComponent,
-        tossSelectionBottomSheetComponent,
+        tossBottomSheetComponent,        // 5 use cases
+        tossSelectionBottomSheetComponent, // 6 use cases
       ],
     ),
   ],

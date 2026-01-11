@@ -36,7 +36,7 @@ import '../../features/inventory_management/presentation/pages/add_product_page.
 import '../../features/inventory_management/presentation/pages/edit_product_page.dart';
 import '../../features/inventory_management/presentation/pages/inventory_management_page.dart';
 import '../../features/inventory_management/presentation/pages/product_detail_page.dart';
-import '../../features/inventory_analysis/presentation/pages/analytics_pages.dart';
+import '../../features/inventory_analysis/inventory_analysis.dart';
 import '../../core/domain/entities/feature.dart';
 import '../../features/journal_input/presentation/pages/journal_input_page.dart';
 import '../../features/my_page/presentation/pages/edit_profile_page.dart';
@@ -773,7 +773,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               final extra = state.extra as Map<String, dynamic>?;
               final companyId = extra?['companyId'] as String? ?? '';
               final storeId = extra?['storeId'] as String?;
-              return SalesDashboardPage(
+              return SalesAnalyticsV2Page(
                 companyId: companyId,
                 storeId: storeId,
               );

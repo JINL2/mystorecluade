@@ -1,0 +1,522 @@
+# 📊 인벤토리 분석 시스템 - 완성된 RPC & 테이블 목록
+
+## ✅ 완성된 RPC Functions (7개)
+
+### 시스템 1: Sales Analysis (3개)
+
+#### 1. `get_sales_dashboard`
+```sql
+Parameters:
+  - p_company_id UUID (required)
+  - p_store_id UUID (optional)
+
+Returns: JSON
+{
+  "this_month": {
+    "revenue": number,
+    "cost": number,
+    "margin": number,
+    "margin_rate": number,
+    "quantity": number
+  },
+  "last_month": { ... },
+  "growth": {
+    "revenue_pct": number,
+    "margin_pct": number,
+    "quantity_pct": number
+  }
+}
+
+Usage:
+SELECT get_sales_dashboard(
+  '7a2545e0-e112-4b0c-9c59-221a530c4602'::UUID,
+  NULL  -- all stores
+);
+```
+
+#### 2. `get_bcg_matrix`
+```sql
+Parameters:
+  - p_company_id UUID (required)
+  - p_month DATE (default: CURRENT_DATE)
+  - p_store_id UUID (optional)
+
+Returns: JSON
+{
+  "star": [{category_id, category_name, total_revenue, margin_rate_pct, ...}],
+  "cash_cow": [...],
+  "problem_child": [...],
+  "dog": [...]
+}
+
+Usage:
+SELECT get_bcg_matrix(
+  '7a2545e0-e112-4b0c-9c59-221a530c4602'::UUID,
+  CURRENT_DATE,
+  NULL
+);
+```
+
+#### 3. `get_category_detail`
+```sql
+Parameters:
+  - p_company_id UUID (required)
+  - p_category_id UUID (required)
+  - p_month DATE (default: CURRENT_DATE)
+
+Returns: JSON
+{
+  "category": {
+    "category_name": string,
+    "total_revenue": number,
+    "total_margin": number,
+    "avg_margin_rate": number,
+    "total_quantity": number
+  },
+  "top_brands": [
+    {
+      "brand_name": string,
+      "revenue": number,
+      "avg_margin_rate": number,
+      "quantity": number
+    }
+  ],
+  "problem_products": [
+    {
+      "product_name": string,
+      "current_stock": number,
+      "reorder_point_95": number,
+      "days_of_inventory": number,
+      "issue_type": string
+    }
+  ]
+}
+
+Usage:
+SELECT get_category_detail(
+  '7a2545e0-e112-4b0c-9c59-221a530c4602'::UUID,
+  '3a566126-eadc-4a7c-b990-029403b4ae4d'::UUID,  -- wallet
+  CURRENT_DATE
+);
+```
+
+---
+
+### 시스템 2: Supply Chain (1개)
+
+#### 4. `get_supply_chain_status`
+```sql
+Parameters:
+  - p_company_id UUID (required)
+
+Returns: JSON
+{
+  "urgent_products": [
+    {
+      "product_name": string,
+      "delay_days": number,
+      "avg_shortage": number,
+      "total_shortage": number,
+      "error_integral": number,
+      "risk_level": "Critical" | "Warning"
+    }
+  ]
+}
+
+Usage:
+SELECT get_supply_chain_status(
+  '7a2545e0-e112-4b0c-9c59-221a530c4602'::UUID
+);
+```
+
+---
+
+### 시스템 3: Stock Accuracy (1개)
+
+#### 5. `get_discrepancy_overview`
+```sql
+Parameters:
+  - p_company_id UUID (required)
+  - p_period TEXT (default: 'all')  -- 'all', '30d', '7d'
+
+Returns: JSON
+{
+  "status": "success" | "insufficient_data",
+  "message": string (if insufficient),
+  "min_required": string (if insufficient),
+  "period": string,
+  "cumulative": {
+    "increase_value": number,
+    "decrease_value": number,
+    "net_value": number,
+    "net_pct": number
+  },
+  "stores": [
+    {
+      "store_name": string,
+      "net_value": number,
+      "increase_value": number,
+      "decrease_value": number,
+      "increase_count": number,
+      "decrease_count": number
+    }
+  ]
+}
+
+Usage:
+SELECT get_discrepancy_overview(
+  '7a2545e0-e112-4b0c-9c59-221a530c4602'::UUID,
+  'all'
+);
+```
+
+---
+
+### 시스템 4: Order Management (2개)
+
+#### 6. `get_inventory_optimization_dashboard`
+```sql
+Parameters:
+  - p_company_id UUID (required)
+
+Returns: JSON
+{
+  "overall_score": number (0-100),
+  "metrics": {
+    "stockout_rate": number,
+    "overstock_rate": number,
+    "avg_turnover": number,
+    "reorder_needed": number
+  },
+  "urgent_orders": [
+    {
+      "product_name": string,
+      "current_stock": number,
+      "reorder_point": number,
+      "order_qty": number,
+      "avg_daily_demand": number,
+      "days_left": number
+    }
+  ]
+}
+
+Usage:
+SELECT get_inventory_optimization_dashboard(
+  '7a2545e0-e112-4b0c-9c59-221a530c4602'::UUID
+);
+```
+
+#### 7. `get_inventory_reorder_list`
+```sql
+Parameters:
+  - p_company_id UUID (required)
+  - p_priority TEXT (default: 'all')  -- 'critical', 'warning', 'all'
+  - p_limit INT (default: 100)
+
+Returns: JSON
+[
+  {
+    "product_id": uuid,
+    "product_name": string,
+    "category_name": string,
+    "current_stock": number,
+    "reorder_point": number,
+    "suggested_order_qty": number,
+    "avg_daily_demand": number,
+    "days_of_inventory": number,
+    "priority": "Critical" | "Warning" | "Normal"
+  }
+]
+
+Usage:
+SELECT get_inventory_reorder_list(
+  '7a2545e0-e112-4b0c-9c59-221a530c4602'::UUID,
+  'critical',
+  10
+);
+```
+
+---
+
+## 📊 Materialized Views (4개)
+
+### 1. `inventory_statistic_sales_by_category_monthly`
+**크기:** 80 KB  
+**목적:** 카테고리별 월별 매출 분석
+
+**주요 컬럼:**
+- company_id (UUID)
+- month (TIMESTAMP)
+- store_id (UUID)
+- store_name (VARCHAR)
+- category_id (UUID)
+- category_name (VARCHAR)
+- parent_category_id (UUID)
+- parent_category_name (VARCHAR)
+- total_revenue (NUMERIC)
+- total_cost (NUMERIC)
+- total_margin (NUMERIC)
+- margin_rate_pct (NUMERIC)
+- total_quantity (NUMERIC)
+- invoice_count (INTEGER)
+
+**인덱스:**
+- idx_inv_stat_sales_category_company_month (company_id, month)
+- idx_inv_stat_sales_category_store (store_id, month)
+- idx_inv_stat_sales_category_category (category_id, month)
+
+**데이터:**
+- 현재 62 rows
+- 카테고리 × 매장 × 월별 집계
+
+---
+
+### 2. `inventory_statistic_inventory_optimization`
+**크기:** 3.6 MB  
+**목적:** 재고 최적화 및 주문 추천
+
+**주요 컬럼:**
+- company_id (UUID)
+- product_id (UUID)
+- product_name (VARCHAR)
+- category_id (UUID)
+- category_name (VARCHAR)
+- current_stock (NUMERIC)
+- total_sold_90d (NUMERIC)
+- days_with_sales_90d (INTEGER)
+- avg_daily_demand (NUMERIC)
+- demand_stddev (NUMERIC)
+- demand_cv (NUMERIC) -- 변동계수
+- safety_stock_95 (NUMERIC)
+- reorder_point_95 (NUMERIC)
+- inventory_turnover (NUMERIC)
+- days_of_inventory (NUMERIC)
+
+**인덱스:**
+- idx_inv_stat_inventory_opt_company (company_id)
+- idx_inv_stat_inventory_opt_reorder (company_id, days_of_inventory) WHERE current_stock < reorder_point_95
+
+**데이터:**
+- 현재 1,245 제품
+- 34개 제품 주문 필요
+
+---
+
+### 3. `inventory_statistic_discrepancy_monthly`
+**크기:** 48 KB  
+**목적:** 재고 불일치 통계 분석
+
+**주요 컬럼:**
+- company_id (UUID)
+- month (TIMESTAMP)
+- store_id (UUID)
+- store_name (VARCHAR)
+- total_adjustments (INTEGER)
+- increase_count (INTEGER)
+- decrease_count (INTEGER)
+- increase_qty (NUMERIC)
+- decrease_qty (NUMERIC)
+- net_qty (NUMERIC)
+- increase_value (NUMERIC)
+- decrease_value (NUMERIC)
+- net_value (NUMERIC)
+
+**인덱스:**
+- idx_inv_stat_discrepancy_monthly_company_month (company_id, month)
+- idx_inv_stat_discrepancy_monthly_store (store_id, month)
+
+**데이터:**
+- 현재 1 row (test1 매장, 12건)
+- 통계 분석 불가 (최소 30건, 3개 매장 필요)
+
+---
+
+### 4. `inventory_statistic_supply_chain_product_errors`
+**크기:** 72 KB  
+**목적:** 공급망 병목 분석 (적분값 기반)
+
+**주요 컬럼:**
+- product_id (UUID)
+- product_name (VARCHAR)
+- company_id (UUID)
+- shortage_days (INTEGER) -- 부족 일수
+- avg_shortage_per_day (NUMERIC) -- 일평균 부족량
+- total_shortage (NUMERIC) -- 총 부족량
+- error_integral (NUMERIC) -- 적분값 (부족량 × 일수)
+- risk_level (TEXT) -- 'Critical', 'Warning', 'Normal'
+
+**인덱스:**
+- idx_inv_stat_supply_errors_company (company_id, error_integral DESC)
+
+**데이터:**
+- 현재 225개 문제 제품
+- Top 3: 브랜드 모자 (160), 스카프 (125), 악세사리 (112)
+
+---
+
+## 📋 원본 테이블 (사용 중인 주요 테이블)
+
+### 1. `inventory_logs`
+**목적:** 모든 재고 이동 기록
+**주요 컬럼:**
+- log_id (UUID)
+- company_id (UUID)
+- store_id (UUID)
+- product_id (UUID)
+- event_type (VARCHAR) -- 'stock_sale', 'receiving', 'counting', etc.
+- quantity_before (NUMERIC)
+- quantity_after (NUMERIC)
+- quantity_change (NUMERIC)
+- cost_after (NUMERIC)
+- created_at_utc (TIMESTAMP)
+- invoice_id (UUID)
+
+**사용처:** 모든 View의 기본 데이터 소스
+
+---
+
+### 2. `inventory_products`
+**목적:** 제품 마스터
+**주요 컬럼:**
+- product_id (UUID)
+- company_id (UUID)
+- product_name (VARCHAR)
+- category_id (UUID)
+- brand_id (UUID)
+- cost_price (NUMERIC)
+- selling_price (NUMERIC)
+- is_active (BOOLEAN)
+- is_deleted (BOOLEAN)
+
+---
+
+### 3. `inventory_product_categories`
+**목적:** 카테고리 계층 구조
+**주요 컬럼:**
+- category_id (UUID)
+- category_name (VARCHAR)
+- parent_category_id (UUID)
+
+---
+
+### 4. `inventory_current_stock`
+**목적:** 현재 재고 스냅샷
+**주요 컬럼:**
+- product_id (UUID)
+- store_id (UUID)
+- quantity_on_hand (NUMERIC)
+
+---
+
+### 5. `inventory_brands`
+**목적:** 브랜드 정보
+**주요 컬럼:**
+- brand_id (UUID)
+- brand_name (VARCHAR)
+
+---
+
+### 6. `stores`
+**목적:** 매장 정보
+**주요 컬럼:**
+- store_id (UUID)
+- store_name (VARCHAR)
+- company_id (UUID)
+- is_deleted (BOOLEAN)
+
+---
+
+## 🔄 데이터 흐름
+
+```
+원본 데이터 (Tables)
+  │
+  ├─ inventory_logs
+  ├─ inventory_products
+  ├─ inventory_current_stock
+  ├─ inventory_product_categories
+  ├─ inventory_brands
+  └─ stores
+  │
+  ↓ (집계 & 계산)
+  │
+Materialized Views (4개)
+  │
+  ├─ inventory_statistic_sales_by_category_monthly
+  ├─ inventory_statistic_inventory_optimization
+  ├─ inventory_statistic_discrepancy_monthly
+  └─ inventory_statistic_supply_chain_product_errors
+  │
+  ↓ (비즈니스 로직 & 필터링)
+  │
+RPC Functions (7개)
+  │
+  ├─ get_sales_dashboard
+  ├─ get_bcg_matrix
+  ├─ get_category_detail
+  ├─ get_supply_chain_status
+  ├─ get_discrepancy_overview
+  ├─ get_inventory_optimization_dashboard
+  └─ get_inventory_reorder_list
+  │
+  ↓ (JSON 응답)
+  │
+Frontend (React)
+```
+
+---
+
+## 📊 총 데이터 크기
+
+| View | 크기 | 행 수 | 상태 |
+|------|------|-------|------|
+| sales_by_category_monthly | 80 KB | ~62 | ✅ |
+| inventory_optimization | 3.6 MB | 1,245 | ✅ |
+| discrepancy_monthly | 48 KB | 1 | ⚠️ |
+| supply_chain_errors | 72 KB | 225 | ✅ |
+| **TOTAL** | **~3.8 MB** | **1,533** | |
+
+---
+
+## 🎯 API 엔드포인트 매핑
+
+### Frontend Routes → RPC Mapping
+
+```typescript
+// Dashboard Overview
+/inventory/dashboard
+  → get_sales_dashboard()
+  → get_inventory_optimization_dashboard()
+  → get_supply_chain_status()
+  → get_discrepancy_overview()
+
+// Sales Analysis
+/inventory/sales-analysis
+  → get_bcg_matrix()
+  → get_category_detail()
+
+// Order Management
+/inventory/order-management
+  → get_inventory_optimization_dashboard()
+  → get_inventory_reorder_list()
+
+// Supply Chain
+/inventory/supply-chain
+  → get_supply_chain_status()
+
+// Stock Accuracy
+/inventory/stock-accuracy
+  → get_discrepancy_overview()
+```
+
+---
+
+## ✅ 완성도
+
+- **RPC Functions:** 7/7 ✅
+- **Materialized Views:** 4/4 ✅
+- **Indexes:** 10/10 ✅
+- **Test Data:** ✅
+- **Documentation:** ✅
+
+**준비 완료! Frontend 개발 시작 가능** 🚀
