@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
+import '../../../../../shared/widgets/organisms/skeleton/toss_homepage_skeleton.dart';
 
-/// Loading view for homepage states
+/// Loading view for homepage states - Uses skeleton instead of spinner
 class HomepageLoadingView extends StatelessWidget {
   final String message;
 
@@ -14,41 +13,30 @@ class HomepageLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: TossColors.surface,
-      body: TossLoadingView(
-        message: message,
-      ),
+    return TossHomepageSkeleton(
+      message: message,
     );
   }
 }
 
-/// Logout loading view
+/// Logout loading view - Shows spinner with message (quick action)
 class LogoutLoadingView extends StatelessWidget {
   const LogoutLoadingView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: TossColors.surface,
-      body: TossLoadingView(
-        message: 'Logging out...',
-      ),
+    return const HomepageActionSkeleton(
+      message: 'Logging out...',
     );
   }
 }
 
-/// Refresh loading view
+/// Refresh loading view - Shows skeleton (data refresh)
 class RefreshLoadingView extends StatelessWidget {
   const RefreshLoadingView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: TossColors.surface,
-      body: TossLoadingView(
-        message: 'Refreshing...',
-      ),
-    );
+    return const TossHomepageSkeleton();
   }
 }

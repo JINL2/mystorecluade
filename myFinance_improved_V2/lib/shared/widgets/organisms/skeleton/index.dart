@@ -18,9 +18,11 @@
 ///
 /// ## 기능별 스켈레톤
 /// - [TossScheduleSkeleton] - Attendance My Schedule 탭 전용
+/// - [TossHomepageSkeleton] - Homepage 전용
 library;
 
 export 'toss_detail_skeleton.dart';
 export 'toss_grid_skeleton.dart';
+export 'toss_homepage_skeleton.dart';
 export 'toss_list_skeleton.dart';
 export 'toss_schedule_skeleton.dart';

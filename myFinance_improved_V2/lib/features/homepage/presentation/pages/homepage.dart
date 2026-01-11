@@ -61,36 +61,24 @@ class _HomepageState extends ConsumerState<Homepage> {
       data: (userData) {
         // Check if userData is null or has no companies
         if (userData == null) {
-          // Show loading - router will redirect to /onboarding/choose-role
-          return const Scaffold(
-            backgroundColor: TossColors.surface,
-            body: TossLoadingView(message: 'Loading...'),
-          );
+          // Show skeleton - router will redirect to /onboarding/choose-role
+          return const TossHomepageSkeleton();
         }
 
         // Check if user has any companies
         final companies = (userData['companies'] as List<dynamic>?) ?? [];
         if (companies.isEmpty) {
-          // Show loading - router will redirect to /onboarding/choose-role
-          return const Scaffold(
-            backgroundColor: TossColors.surface,
-            body: TossLoadingView(message: 'Loading...'),
-          );
+          // Show skeleton - router will redirect to /onboarding/choose-role
+          return const TossHomepageSkeleton();
         }
 
         // 🔒 Wait for ALL essential data to load before showing homepage
         return _buildHomepageWithDataCheck();
       },
-      loading: () => const Scaffold(
-        backgroundColor: TossColors.surface,
-        body: TossLoadingView(message: 'Loading...'),
-      ),
+      loading: () => const TossHomepageSkeleton(),
       error: (error, stack) {
-        // Show loading - router will redirect appropriately
-        return const Scaffold(
-          backgroundColor: TossColors.surface,
-          body: TossLoadingView(message: 'Loading...'),
-        );
+        // Show skeleton - router will redirect appropriately
+        return const TossHomepageSkeleton();
       },
     );
   }
@@ -112,12 +100,9 @@ class _HomepageState extends ConsumerState<Homepage> {
     final isQuickAccessLoaded = quickAccessAsync.hasValue || quickAccessAsync.hasError;
     final isCategoriesLoaded = categoriesAsync.hasValue || categoriesAsync.hasError;
 
-    // Show loading only for essential layout data (not revenue/salary)
+    // Show skeleton only for essential layout data (not revenue/salary)
     if (!isQuickAccessLoaded || !isCategoriesLoaded) {
-      return const Scaffold(
-        backgroundColor: TossColors.surface,
-        body: TossLoadingView(message: 'Loading...'),
-      );
+      return const TossHomepageSkeleton();
     }
 
     // All layout data loaded - check and show homepage alert
