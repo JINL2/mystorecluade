@@ -52,6 +52,11 @@ export 'navigation/toss_app_bar.dart';
 export 'keyboard/index.dart';
 
 // ═══════════════════════════════════════════════════════════════
+// SHEETS - Bottom sheet molecules
+// ═══════════════════════════════════════════════════════════════
+export 'sheets/index.dart';
+
+// ═══════════════════════════════════════════════════════════════
 // SKELETON - Skeleton loading components (Skeletonizer)
 // ═══════════════════════════════════════════════════════════════
 export 'skeleton/index.dart';

@@ -183,16 +183,12 @@ class _BankTabState extends ConsumerState<BankTab> {
                       children: [
                         Text(
                           'Bank Account',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
+                          style: TossTextStyles.smallSectionTitle,
                         ),
                         SizedBox(height: TossSpacing.space1 / 2),
                         Text(
                           'No bank accounts available',
-                          style: TossTextStyles.bodyMedium.copyWith(
-                            color: TossColors.gray500,
-                          ),
+                          style: TossTextStyles.emptyState,
                         ),
                       ],
                     ),
@@ -316,16 +312,10 @@ class _BankTabState extends ConsumerState<BankTab> {
               }),
             ],
             textAlign: TextAlign.center,
-            style: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TossTextStyles.inputValue,
             decoration: InputDecoration(
               hintText: 'Enter amount',
-              hintStyle: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray400,
-                fontWeight: FontWeight.w400,
-              ),
+              hintStyle: TossTextStyles.inputHint,
               contentPadding: const EdgeInsets.all(TossSpacing.space3), // Match dropdown padding
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -363,21 +353,12 @@ class _BankTabState extends ConsumerState<BankTab> {
           isLoading: tabState.isSaving,
           isEnabled: isEnabled,
           fullWidth: true,
-            onPressed: isEnabled
-                ? () async {
-                    final currencyId = state.selectedBankCurrencyId!;
-                    await widget.onSave(context, state, currencyId);
-                  }
-                : null,
-            textStyle: TossTextStyles.bodyLarge.copyWith(
-              color: TossColors.white,
-              fontWeight: FontWeight.w600,
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space3,
-            ),
-            borderRadius: 12,
+          onPressed: isEnabled
+              ? () async {
+                  final currencyId = state.selectedBankCurrencyId!;
+                  await widget.onSave(context, state, currencyId);
+                }
+              : null,
         );
       },
     );

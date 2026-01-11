@@ -68,16 +68,12 @@ class VaultLocationSelector extends StatelessWidget {
               children: [
                 Text(
                   'Vault Location',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                  ),
+                  style: TossTextStyles.smallSectionTitle,
                 ),
                 SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   'No vault locations available',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.gray500,
-                  ),
+                  style: TossTextStyles.emptyState,
                 ),
               ],
             ),

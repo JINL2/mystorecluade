@@ -16,6 +16,7 @@ export 'dialogs/toss_success_error_dialog.dart';
 // ═══════════════════════════════════════════════════════════════
 export 'sheets/toss_bottom_sheet.dart';
 export 'sheets/toss_selection_bottom_sheet.dart';
+export 'sheets/modal_bottom_sheet.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // PICKERS - Date/time picker components

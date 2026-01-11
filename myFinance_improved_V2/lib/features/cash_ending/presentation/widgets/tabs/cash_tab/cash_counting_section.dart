@@ -76,8 +76,11 @@ class _CashCountingSectionState extends ConsumerState<CashCountingSection> {
 
             const SizedBox(height: TossSpacing.space5),
 
-            // Grand Total
-            _buildGrandTotal(),
+            // Grand Total (add vertical padding in layout)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+              child: _buildGrandTotal(),
+            ),
 
             const SizedBox(height: TossSpacing.space2),
           ],
@@ -106,7 +109,7 @@ class _CashCountingSectionState extends ConsumerState<CashCountingSection> {
             const SizedBox(height: TossSpacing.space4),
             Text(
               'No currencies available',
-              style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
+              style: TossTextStyles.emptyState,
             ),
           ],
         ),

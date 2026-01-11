@@ -8,6 +8,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/widgets/atoms/buttons/toggle_button.dart';
 import '../../constants/report_strings.dart';
 import '../../../domain/entities/report_notification.dart';
 import '../../../domain/entities/report_detail.dart';
@@ -68,24 +69,23 @@ class ReceivedReportsTab extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Category chips
-              TossChipGroup(
+              ToggleButtonGroup(
                 items: [
-                  TossChipItem(
-                    value: '',
+                  ToggleButtonItem(
+                    id: '',
                     label: ReportStrings.filterAll,
                     count: state.receivedReports.length,
                   ),
-                  ...state.categories.map((category) => TossChipItem(
-                        value: category.categoryId,
+                  ...state.categories.map((category) => ToggleButtonItem(
+                        id: category.categoryId,
                         label: category.categoryName,
                         count: category.reportCount,
                       )),
                 ],
-                selectedValue: state.categoryFilter ?? '',
-                onChanged: (value) =>
+                selectedId: state.categoryFilter ?? '',
+                onToggle: (value) =>
                     notifier.setCategoryFilter(value == '' ? null : value),
-                spacing: TossSpacing.space2,
-                runSpacing: TossSpacing.space2,
+                layout: ToggleButtonLayout.expanded,
               ),
               SizedBox(height: TossSpacing.space3),
               // Compact filter row

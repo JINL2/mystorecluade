@@ -5,7 +5,20 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 
 import 'package:myfinance_improved/core/constants/icon_mapper.dart';
 
+// ═══════════════════════════════════════════════════════════════
+// DEPRECATED - Use the new Atomic Design components instead:
+//
+// For new code, use:
+// - SelectionItem (from shared/models/)
+// - SelectionBottomSheet (from shared/widgets/organisms/sheets/)
+// - SimpleStoreSelector, SimpleCompanySelector (from shared/widgets/selectors/simple/)
+//
+// This file is kept for backward compatibility with existing code.
+// ═══════════════════════════════════════════════════════════════
+
 /// A generic selection item model for the bottom sheet
+///
+/// @deprecated Use [SelectionItem] from `shared/models/` instead for new code.
 class TossSelectionItem {
   final String id;
   final String title;
@@ -72,7 +85,9 @@ class TossSelectionItem {
 }
 
 /// A reusable bottom sheet for selecting items following Toss design system
-/// 
+///
+/// @deprecated Use [SelectionBottomSheet] from `shared/widgets/organisms/sheets/` instead.
+///
 /// Example usage:
 /// ```dart
 /// TossSelectionBottomSheet.show(
@@ -496,6 +511,8 @@ class _TossSelectionBottomSheetState extends State<TossSelectionBottomSheet> {
 }
 
 /// Specialized store selector bottom sheet
+///
+/// @deprecated Use [SimpleStoreSelector] from `shared/widgets/selectors/simple/` instead.
 class TossStoreSelector {
   /// Show store selection bottom sheet
   static Future<Map<String, dynamic>?> show({
@@ -525,6 +542,8 @@ class TossStoreSelector {
 }
 
 /// Specialized company selector bottom sheet
+///
+/// @deprecated Use [SimpleCompanySelector] from `shared/widgets/selectors/simple/` instead.
 class TossCompanySelector {
   /// Show company selection bottom sheet
   static Future<Map<String, dynamic>?> show({
@@ -554,6 +573,8 @@ class TossCompanySelector {
 }
 
 /// Specialized account selector bottom sheet for journal input
+///
+/// @deprecated Use [SimpleAccountSelector] from `shared/widgets/selectors/simple/` instead.
 class TossAccountSelector {
   /// Show account selection bottom sheet
   static Future<Map<String, dynamic>?> show({

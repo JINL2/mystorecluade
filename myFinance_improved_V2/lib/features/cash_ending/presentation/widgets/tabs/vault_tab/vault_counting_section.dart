@@ -120,7 +120,7 @@ class _VaultCountingSectionState extends ConsumerState<VaultCountingSection> {
             const SizedBox(height: TossSpacing.space4),
             Text(
               'No currencies available',
-              style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
+              style: TossTextStyles.emptyState,
             ),
           ],
         ),

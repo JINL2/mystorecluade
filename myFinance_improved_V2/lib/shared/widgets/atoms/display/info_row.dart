@@ -194,8 +194,8 @@ class InfoRow extends StatelessWidget {
   Widget _buildLabel() {
     final style = labelStyle ??
         (isTotal
-            ? TossTextStyles.bodyMedium.copyWith(color: TossColors.gray900)
-            : TossTextStyles.body.copyWith(color: TossColors.gray600));
+            ? TossTextStyles.bodyMedium
+            : TossTextStyles.bodySecondary);
 
     return Text(label, style: style);
   }
@@ -205,10 +205,7 @@ class InfoRow extends StatelessWidget {
     if (showEmptyStyle && _isEmpty) {
       return Text(
         value.isEmpty ? '-' : value,
-        style: TossTextStyles.body.copyWith(
-          color: TossColors.gray400,
-          fontStyle: FontStyle.italic,
-        ),
+        style: TossTextStyles.emptyState,
       );
     }
 
@@ -220,8 +217,7 @@ class InfoRow extends StatelessWidget {
           // Original value (strikethrough)
           Text(
             originalValue!,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray400,
+            style: TossTextStyles.secondaryText.copyWith(
               decoration: TextDecoration.lineThrough,
             ),
           ),
@@ -229,9 +225,7 @@ class InfoRow extends StatelessWidget {
           // New value (primary color)
           Text(
             value,
-            style: _getValueStyle().copyWith(
-              color: valueColor ?? TossColors.primary,
-            ),
+            style: _getValueStyle(),
           ),
         ],
       );
@@ -247,13 +241,16 @@ class InfoRow extends StatelessWidget {
   TextStyle _getValueStyle() {
     if (valueStyle != null) return valueStyle!;
 
-    final baseStyle = isTotal
-        ? TossTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700)
-        : TossTextStyles.body.copyWith(fontWeight: FontWeight.w600);
+    // Use semantic styles based on context
+    TextStyle baseStyle = isTotal
+        ? TossTextStyles.totalValue
+        : TossTextStyles.bodyMedium;
 
-    return baseStyle.copyWith(
-      color: valueColor ??
-          (isTotal ? TossColors.primary : TossColors.gray900),
-    );
+    // Apply valueColor if provided
+    if (valueColor != null) {
+      return baseStyle.copyWith(color: valueColor);
+    }
+
+    return baseStyle;
   }
 }

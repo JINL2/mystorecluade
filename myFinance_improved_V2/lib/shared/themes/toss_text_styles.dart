@@ -1,240 +1,244 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Toss Typography System - Simplified & Optimized
-///
-/// Based on actual usage analysis:
-/// - 14 core styles (down from 20)
-/// - Clear hierarchy: display → h1-h4 → body variants → labels → caption
-/// - 4px vertical rhythm maintained
-///
-/// Font: Inter (primary), JetBrains Mono (numbers)
+/// Toss Typography System - Centralized Size Buckets
+/// 
+/// STRATEGY: 
+/// All FontSizes are defined ONCE in the "New Core".
+/// The public getters simply point to these core styles.
+/// No `copyWith(fontSize: ...)` is allowed in the public layer.
 class TossTextStyles {
   TossTextStyles._();
 
-  // Font families
-  static const String fontFamily = 'Inter';
-  static const String fontFamilyKR = 'Pretendard';  // Korean font
-  static const String fontFamilyMono = 'JetBrains Mono';  // Numbers
+  // ==================== 1. THE NEW CORE (Single Source of Truth) ====================
+  // If you change these, the entire app updates.
 
-  // ==================== DISPLAY & HEADINGS ====================
-  // Hierarchy: display (32) → h1 (28) → h2 (24) → h3 (20) → h4 (18)
-
-  /// Display - Hero sections, splash screens (32px)
-  /// Usage: 17 places
-  static TextStyle get display => GoogleFonts.inter(
+  /// The 32px Bucket
+  static TextStyle get _heading32 => GoogleFonts.inter(
     fontSize: 32,
     fontWeight: FontWeight.w800,
     letterSpacing: -0.02,
-    height: 1.25,  // 40px line height
+    height: 1.25,
   );
 
-  /// H1 - Page titles, main headers (28px)
-  /// Usage: 39 places
-  static TextStyle get h1 => GoogleFonts.inter(
+  /// The 28px Bucket (H1)
+  /// CHANGE THIS ONE PLACE -> Updates all H1s and 28px text
+  static TextStyle get _heading28 => GoogleFonts.inter(
     fontSize: 28,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.01,
-    height: 1.286,  // 36px line height
+    height: 1.28,
   );
 
-  /// H2 - Section headers (24px)
-  /// Usage: 78 places
-  static TextStyle get h2 => GoogleFonts.inter(
+  /// The 24px Bucket (H2)
+  static TextStyle get _heading24 => GoogleFonts.inter(
     fontSize: 24,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.01,
-    height: 1.333,  // 32px line height
+    height: 1.33,
   );
 
-  /// H3 - Subsection headers, card group titles (20px)
-  /// Usage: 210 places - most used heading
-  static TextStyle get h3 => GoogleFonts.inter(
+  /// The 20px Bucket (H3, Amount)
+  static TextStyle get _heading20 => GoogleFonts.inter(
     fontSize: 20,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w600, // Slightly bolder for small headers
     letterSpacing: 0,
-    height: 1.4,  // 28px line height
+    height: 1.4,
   );
 
-  /// H4 - Card titles, list item headers (18px)
-  /// Usage: 104 places
-  static TextStyle get h4 => GoogleFonts.inter(
+  /// The 18px Bucket (H4)
+  static TextStyle get _heading18 => GoogleFonts.inter(
     fontSize: 18,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
-    height: 1.333,  // 24px line height
+    height: 1.33,
   );
 
-  // ==================== TITLE STYLES ====================
-  // For specific UI patterns between h4 and body
-
-  /// Title Large - Navigation headers, tab labels (17px)
-  /// Usage: 25 places
-  static TextStyle get titleLarge => GoogleFonts.inter(
-    fontSize: 17,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.01,
-    height: 1.412,  // 24px line height
-  );
-
-  /// Title Medium - Emphasized labels, "Today Revenue" style (15px)
-  /// Usage: 47 places
-  static TextStyle get titleMedium => GoogleFonts.inter(
-    fontSize: 15,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 0,
-    height: 1.333,  // 20px line height
-  );
-
-  /// Subtitle - List item titles, transaction names (16px, semibold)
-  /// Usage: For 16px text that needs emphasis
-  static TextStyle get subtitle => GoogleFonts.inter(
+  /// The 16px Bucket (Subtitle, Titles)
+  static TextStyle get _text16 => GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
-    height: 1.375,  // 22px line height
+    height: 1.4, // Generous height for reading
   );
 
-  // ==================== BODY TEXT ====================
-  // Primary content text styles
-
-  /// Body - Default text for all content (14px, regular)
-  /// Usage: 1,233 places - most used style
-  static TextStyle get body => GoogleFonts.inter(
+  /// The 14px Bucket (Body, Buttons)
+  static TextStyle get _text14 => GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     letterSpacing: 0,
-    height: 1.429,  // 20px line height
+    height: 1.43,
   );
 
-  /// Body Large - Emphasized body text (14px, same as body)
-  /// Usage: 169 places
-  /// Note: Same size as body, use when semantic distinction needed
-  static TextStyle get bodyLarge => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0,
-    height: 1.429,  // 20px line height
-  );
-
-  /// Body Medium - Semibold body for emphasis (14px, semibold)
-  /// Usage: 111 places
-  static TextStyle get bodyMedium => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0,
-    height: 1.429,  // 20px line height
-  );
-
-  /// Body Small - Secondary text, comparisons (13px)
-  /// Usage: 276 places
-  static TextStyle get bodySmall => GoogleFonts.inter(
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0,
-    height: 1.385,  // 18px line height
-  );
-
-  // ==================== LABELS & CAPTIONS ====================
-  // UI elements, form labels, helper text
-
-  /// Label - Form labels, UI element text (12px, medium)
-  /// Usage: 75 places
-  static TextStyle get label => GoogleFonts.inter(
+  /// The 12px Bucket (Captions, Labels)
+  static TextStyle get _text12 => GoogleFonts.inter(
     fontSize: 12,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.01,
+    height: 1.33,
+  );
+
+  // ==================== 2. THE LEGACY ADAPTER (Pointer Layer) ====================
+  // These just point to the buckets above. NO font sizes defined here.
+
+  // --- Headings ---
+  
+  static TextStyle get display => _heading32;
+
+  /// Points to the 28px bucket
+  static TextStyle get h1 => _heading28;
+
+  /// Points to the 24px bucket
+  static TextStyle get h2 => _heading24;
+
+  /// Points to the 20px bucket
+  static TextStyle get h3 => _heading20;
+
+  /// Points to the 18px bucket
+  static TextStyle get h4 => _heading18;
+
+  // --- Titles ---
+
+  // All these old confusing sizes now point to the clean 16px bucket
+  static TextStyle get titleLarge => _text16;  // Was 17px
+  static TextStyle get titleMedium => _text16; // Was 15px
+  static TextStyle get subtitle => _text16;    // Was 16px
+
+  // --- Body ---
+
+  static TextStyle get body => _text14;
+  static TextStyle get bodyLarge => _text14;   // Was 14px duplicate
+  
+  // Example of using the bucket but adding a small tweak (weight)
+  static TextStyle get bodyMedium => _text14.copyWith(fontWeight: FontWeight.w600);
+
+  static TextStyle get bodySmall => _text12;   // Was 13px, snapped to 12
+
+  // --- Labels ---
+
+  static TextStyle get label => _text12.copyWith(fontWeight: FontWeight.w500);
+  static TextStyle get labelSmall => _text12.copyWith(fontWeight: FontWeight.w500);
+  static TextStyle get caption => _text12;
+  static TextStyle get small => _text12;
+  static TextStyle get micro => _text12;
+
+  // --- Special ---
+
+  static TextStyle get smallSectionTitle => _text12.copyWith(
     fontWeight: FontWeight.w500,
-    letterSpacing: 0.01,
-    height: 1.333,  // 16px line height
+    color: const Color(0xFF6B7280),
   );
 
-  /// Label Small - Chips, badges, small UI (11px)
-  /// Usage: 44 places
-  static TextStyle get labelSmall => GoogleFonts.inter(
-    fontSize: 11,
+  static TextStyle get button => _text14.copyWith(fontWeight: FontWeight.w600);
+
+  // --- Semantic Text Styles (for specific UI contexts) ---
+
+  /// Title text - 14px, w600, gray900 (for card headers, section titles)
+  static TextStyle get cardTitle => bodyMedium;
+
+  /// Secondary text - 12px, gray500 (for hints, subtitles, exchange rates)
+  static TextStyle get secondaryText => _text12.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Body gray - 14px, gray600 (for secondary body text)
+  static TextStyle get bodySecondary => _text14.copyWith(
+    color: const Color(0xFF4B5563),
+  );
+
+  /// Body gray500 - 14px, gray500 (for placeholder/hint text)
+  static TextStyle get bodyTertiary => _text14.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Total label - 16px, w600, gray900 (for total/subtotal labels)
+  static TextStyle get totalLabel => _text16.copyWith(
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.02,
-    height: 1.455,  // 16px line height
+    color: const Color(0xFF111827),
   );
 
-  /// Caption - Helper text, metadata, timestamps (12px, regular)
-  /// Usage: 941 places - 2nd most used
-  static TextStyle get caption => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.01,
-    height: 1.333,  // 16px line height
+  /// Total value - 16px, w600, gray900 (for total/subtotal values)
+  static TextStyle get totalValue => _text16.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF111827),
   );
 
-  /// Small - Tiny text, legal, footnotes (11px)
-  /// Usage: 87 places
-  static TextStyle get small => GoogleFonts.inter(
-    fontSize: 11,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.02,
-    height: 1.455,  // 16px line height
+  /// Denomination value - 14px, w600, gray900 (for denomination amounts)
+  static TextStyle get denominationValue => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF111827),
   );
 
-  /// Micro - Smallest text, badges, timestamps (10px)
-  /// Usage: Chip labels, micro badges
-  static TextStyle get micro => GoogleFonts.inter(
-    fontSize: 10,
+  /// Denomination label - 14px, gray700 (for denomination labels)
+  static TextStyle get denominationLabel => _text14.copyWith(
+    color: const Color(0xFF374151),
+  );
+
+  /// Amount zero - 14px, gray400 (for zero/empty amounts)
+  static TextStyle get amountZero => _text14.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  /// Sheet title - 20px, w600, gray900 (for bottom sheet headers)
+  static TextStyle get sheetTitle => _heading20.copyWith(
+    color: const Color(0xFF111827),
+  );
+
+  /// List item title - 14px, w500, gray900 (for selectable list items)
+  static TextStyle get listItemTitle => _text14.copyWith(
     fontWeight: FontWeight.w500,
-    letterSpacing: 0.02,
-    height: 1.4,  // 14px line height
+    color: const Color(0xFF111827),
   );
 
-  /// Small Section Title - Section labels like "Cash Location" (12px, gray)
-  /// Usage: Form section headers, card section labels
-  static TextStyle get smallSectionTitle => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.01,
-    height: 1.333,  // 16px line height
-    color: const Color(0xFF6B7280),  // gray600
+  /// List item subtitle - 12px, gray600 (for list item descriptions)
+  static TextStyle get listItemSubtitle => _text12.copyWith(
+    color: const Color(0xFF4B5563),
   );
 
-  // ==================== SPECIAL STYLES ====================
+  /// Empty state - 14px, gray500 (for empty state messages)
+  static TextStyle get emptyState => _text14.copyWith(
+    color: const Color(0xFF6B7280),
+  );
 
-  /// Amount - Financial numbers with monospace font (20px)
-  /// Usage: 3 places (special purpose)
+  /// Link text - 14px, w600, primary (for clickable links)
+  static TextStyle get linkText => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF3B82F6),
+  );
+
+  /// Input text - 14px, w600, gray900 (for input field values)
+  static TextStyle get inputValue => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF111827),
+  );
+
+  /// Input hint - 14px, gray400 (for input placeholders)
+  static TextStyle get inputHint => _text14.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  /// Grid header - 12px, gray500 (for table/grid headers)
+  static TextStyle get gridHeader => _text12.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  // For amount, we swap the Font Family but keep the size logic if we wanted,
+  // but usually Amount is unique enough to define on its own.
   static TextStyle get amount => GoogleFonts.jetBrainsMono(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.01,
-    height: 1.2,  // 24px line height
+    fontSize: 20, 
+    fontWeight: FontWeight.w600, 
+    letterSpacing: -0.5, 
+    height: 1.2,
   );
 
-  /// Button - CTA text, button labels (14px, semibold)
-  /// Usage: 22 places
-  static TextStyle get button => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.02,
-    height: 1.429,  // 20px line height
-  );
+  // --- Deprecated ---
 
-  // ==================== DEPRECATED ALIASES ====================
-  // These will be removed in future versions
+  @Deprecated('Use h1')
+  static TextStyle get headlineLarge => h1; // Also points to _heading28 indirectly
+  
+  @Deprecated('Use label')
+  static TextStyle get labelLarge => body;
 
-  /// @deprecated Use [h1] instead - identical style
-  @Deprecated('Use h1 instead. Will be removed in next major version.')
-  static TextStyle get headlineLarge => h1;
-
-  /// @deprecated Use [label] instead
-  @Deprecated('Use label instead. Will be removed in next major version.')
-  static TextStyle get labelLarge => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0,
-    height: 1.429,
-  );
-
-  /// @deprecated Use [caption] with fontWeight: FontWeight.w600 instead
-  @Deprecated('Use caption.copyWith(fontWeight: FontWeight.w600) instead.')
-  static TextStyle get labelMedium => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.01,
-    height: 1.333,
-  );
+  @Deprecated('Use caption')
+  static TextStyle get labelMedium => caption;
 }

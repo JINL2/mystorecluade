@@ -121,8 +121,8 @@ dev_dependencies:
   mocktail: ^1.0.0
 
   # Widgetbook - Widget Catalog & Testing
-  # widgetbook: ^3.10.0  # Temporarily disabled due to analyzer conflict
-  # widgetbook_annotation: ^3.2.0
+  widgetbook: ^3.10.0
+  widgetbook_annotation: ^3.2.0
 
   # Custom Lint for Design System Enforcement
   # custom_lint: ^0.7.0  # Temporarily disabled due to analyzer version conflict

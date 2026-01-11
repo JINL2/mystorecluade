@@ -105,10 +105,7 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
             padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
             child: Text(
               'Choose currency',
-              style: TossTextStyles.h3.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TossTextStyles.sheetTitle,
             ),
           ),
 
@@ -200,17 +197,12 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
                                       children: [
                                         Text(
                                           currency.currencyCode,
-                                          style: TossTextStyles.bodyLarge.copyWith(
-                                            color: TossColors.textPrimary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                          style: TossTextStyles.listItemTitle,
                                         ),
                                         SizedBox(height: TossSpacing.space1 / 2),
                                         Text(
                                           currency.currencyName,
-                                          style: TossTextStyles.bodySmall.copyWith(
-                                            color: TossColors.gray600,
-                                          ),
+                                          style: TossTextStyles.listItemSubtitle,
                                         ),
                                       ],
                                     ),
@@ -249,9 +241,7 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
           const SizedBox(height: TossSpacing.space4),
           Text(
             'No currencies found',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-            ),
+            style: TossTextStyles.emptyState,
             textAlign: TextAlign.center,
           ),
         ],

@@ -32,7 +32,7 @@ class StoreSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     if (stores.isEmpty && !isLoading) {
       return Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
         decoration: BoxDecoration(
           color: TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -40,9 +40,7 @@ class StoreSelector extends StatelessWidget {
         child: Center(
           child: Text(
             'No stores available',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray500,
-            ),
+            style: TossTextStyles.emptyState,
             textAlign: TextAlign.center,
           ),
         ),

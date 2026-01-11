@@ -178,7 +178,7 @@ class _CategorySection extends StatelessWidget {
             category.categoryName,
             style: TossTextStyles.h3.copyWith(
               color: TossColors.textPrimary,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w400,
               letterSpacing: -0.4,
             ),
           ),

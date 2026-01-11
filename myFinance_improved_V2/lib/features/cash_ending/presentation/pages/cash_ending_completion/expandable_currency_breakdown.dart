@@ -7,11 +7,16 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/molecules/cards/toss_expandable_card.dart';
 import '../../../domain/entities/currency.dart';
 
 /// Expandable Currency Breakdown Widget
 ///
-/// Displays denomination details for a specific currency with expand/collapse
+/// Uses TossExpandableCard as base for consistency
+/// with other expandable cards in the app.
+///
+/// Displays denomination details for a specific currency with expand/collapse.
+/// Used in the cash ending completion page to show a read-only summary.
 class ExpandableCurrencyBreakdown extends StatelessWidget {
   final Currency currency;
   final Map<String, Map<String, int>>? denominationQuantities;
@@ -28,7 +33,46 @@ class ExpandableCurrencyBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate subtotal for this currency from denominationQuantities
+    // Calculate subtotal and get denominations for this currency
+    final (subtotal, currencyDenominations) = _calculateSubtotal();
+    final hasDenominations = currencyDenominations.isNotEmpty;
+
+    return TossExpandableCard(
+      // Custom header with currency name
+      headerWidget: _buildCurrencyHeader(hasDenominations),
+      isExpanded: isExpanded,
+      onToggle: onToggle,
+      // Conditional toggle - only if has denominations
+      canToggle: hasDenominations,
+      showToggleIcon: hasDenominations,
+      // Styling to match original
+      backgroundColor: TossColors.white,
+      borderColor: TossColors.gray200,
+      borderRadius: TossBorderRadius.lg,
+      dividerColor: TossColors.gray200,
+      alwaysShowDivider: true,
+      iconColor: TossColors.gray400,
+      // Header padding
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      // Content padding
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
+      ),
+      // Denomination breakdown content
+      content: _buildDenominationContent(currencyDenominations),
+      // Footer padding
+      footerPadding: const EdgeInsets.all(TossSpacing.space4),
+      // Always-visible subtotal footer
+      footer: _buildSubtotalFooter(subtotal),
+    );
+  }
+
+  /// Calculates subtotal and returns denomination map
+  (double, Map<String, int>) _calculateSubtotal() {
     double subtotal = 0.0;
     final Map<String, int> currencyDenominations = {};
 
@@ -42,124 +86,86 @@ class ExpandableCurrencyBreakdown extends StatelessWidget {
       });
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray200,
-          width: 1.0,
+    return (subtotal, currencyDenominations);
+  }
+
+  /// Builds the currency header
+  Widget _buildCurrencyHeader(bool hasDenominations) {
+    return Row(
+      children: [
+        Text(
+          '${currency.currencyCode} • ${currency.currencyName}',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          // Currency header (clickable to expand/collapse)
-          InkWell(
-            onTap: currencyDenominations.isNotEmpty ? onToggle : null,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space3,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    '${currency.currencyCode} • ${currency.currencyName}',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (currencyDenominations.isNotEmpty)
-                    Icon(
-                      isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                      size: 20,
-                      color: TossColors.gray400,
-                    ),
-                ],
-              ),
-            ),
-          ),
+        const Spacer(),
+      ],
+    );
+  }
 
-          // Divider
-          Container(
-            height: 1,
-            color: TossColors.gray200,
-          ),
+  /// Builds the denomination breakdown rows
+  Widget _buildDenominationContent(Map<String, int> currencyDenominations) {
+    if (currencyDenominations.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-          // Denomination details (expandable)
-          if (isExpanded && currencyDenominations.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space2,
-              ),
-              child: Column(
-                children: currencyDenominations.entries.map((entry) {
-                  final denomination = double.parse(entry.key);
-                  final quantity = entry.value;
-                  final lineTotal = denomination * quantity;
+    return Column(
+      children: currencyDenominations.entries.map((entry) {
+        final denomination = double.parse(entry.key);
+        final quantity = entry.value;
+        final lineTotal = denomination * quantity;
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${currency.symbol}${NumberFormat('#,##0').format(denomination)} × $quantity',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                        Text(
-                          NumberFormat.currency(
-                            symbol: currency.symbol,
-                            decimalDigits: 0,
-                          ).format(lineTotal),
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            Container(
-              height: 1,
-              color: TossColors.gray200,
-            ),
-          ],
-
-          // Subtotal
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Subtotal (${currency.currencyCode})',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray900,
-                  ),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space1),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${currency.symbol}${NumberFormat('#,##0').format(denomination)} × $quantity',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray600,
                 ),
-                Text(
-                  NumberFormat.currency(
-                    symbol: currency.symbol,
-                    decimalDigits: 0,
-                  ).format(subtotal),
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              Text(
+                NumberFormat.currency(
+                  symbol: currency.symbol,
+                  decimalDigits: 0,
+                ).format(lineTotal),
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray600,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Builds the always-visible subtotal footer
+  Widget _buildSubtotalFooter(double subtotal) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Subtotal (${currency.currencyCode})',
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray900,
+          ),
+        ),
+        Text(
+          NumberFormat.currency(
+            symbol: currency.symbol,
+            decimalDigits: 0,
+          ).format(subtotal),
+          style: TossTextStyles.body.copyWith(
+            color: TossColors.gray900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

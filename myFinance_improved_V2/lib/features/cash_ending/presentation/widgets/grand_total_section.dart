@@ -104,9 +104,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
     final hasJournalData = (widget.journalAmount != null || widget.isLoadingJournal) &&
         (widget.isBaseCurrency || isForeignCurrency);
 
-    return Padding(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      child: Column(
+    return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -117,29 +115,21 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
             children: [
               Text(
                 'Total',
-                style: TossTextStyles.titleMedium.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TossTextStyles.totalLabel,
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     formattedAmount,
-                    style: TossTextStyles.titleMedium.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TossTextStyles.totalValue,
                   ),
                   // Show converted base currency amount for foreign currencies
                   if (isForeignCurrency) ...[
                     SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       '${widget.baseCurrencySymbol}${formatter.format(convertedAmountToBase.toInt())}',
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray500,
-                      ),
+                      style: TossTextStyles.secondaryText,
                     ),
                   ],
                 ],
@@ -173,9 +163,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                   SizedBox(width: TossSpacing.space1),
                   Text(
                     'Compare with Journal',
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.gray500,
-                    ),
+                    style: TossTextStyles.secondaryText,
                   ),
                 ],
               ),
@@ -212,9 +200,7 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
                 children: [
                   Text(
                     'View History',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray600,
-                    ),
+                    style: TossTextStyles.bodySecondary,
                   ),
                   const Icon(
                     Icons.chevron_right,
@@ -226,7 +212,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
             ),
           ],
         ],
-      ),
     );
   }
 
@@ -362,10 +347,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               label: widget.isDebit ? 'Vault In' : 'Vault Out',
               value: formattedFlow,
               valueColor: widget.isDebit ? TossColors.success : TossColors.error,
-              valueStyle: TossTextStyles.body.copyWith(
-                color: widget.isDebit ? TossColors.success : TossColors.error,
-                fontWeight: FontWeight.w600,
-              ),
             ),
             const SizedBox(height: TossSpacing.space2),
             // Expected (Real ± Flow)
@@ -373,10 +354,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               label: 'Expected',
               value: formattedExpected,
               valueColor: TossColors.gray900,
-              valueStyle: TossTextStyles.body.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
             ),
             const SizedBox(height: TossSpacing.space3),
             // Divider
@@ -394,10 +371,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
               label: 'Difference',
               value: formattedFlowDifference,
               valueColor: flowDifferenceColor,
-              valueStyle: TossTextStyles.body.copyWith(
-                color: flowDifferenceColor,
-                fontWeight: !isFlowBalanced ? FontWeight.w600 : FontWeight.normal,
-              ),
             ),
           ],
         ),
@@ -430,10 +403,6 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
             label: 'Difference',
             value: formattedDifference,
             valueColor: differenceColor,
-            valueStyle: TossTextStyles.body.copyWith(
-              color: differenceColor,
-              fontWeight: !isBalanced ? FontWeight.w600 : FontWeight.normal,
-            ),
           ),
         ],
       ),

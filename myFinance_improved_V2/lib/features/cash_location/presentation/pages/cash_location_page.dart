@@ -121,46 +121,18 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
     super.dispose();
   }
   
-  Future<void> _refreshData({bool showFeedback = false}) async {
-    try {
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
-      final storeId = appState.storeChoosen;
-      
-      if (companyId.isNotEmpty && storeId.isNotEmpty) {
-        // Invalidate the provider to force a refresh
-        ref.invalidate(allCashLocationsProvider);
-        
-        // Force rebuild to show loading state
-        if (mounted) {
-          setState(() {});
-        }
-        
-        // Only show success feedback if explicitly requested (manual refresh)
-        if (showFeedback && mounted) {
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => TossDialog.success(
-              title: 'Data Refreshed',
-              message: 'Data refreshed successfully',
-              primaryButtonText: 'OK',
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Only show error feedback if explicitly requested or if it's a real error
-      if (showFeedback && mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => TossDialog.error(
-            title: 'Refresh Failed',
-            message: 'Failed to refresh: ${e.toString()}',
-            primaryButtonText: 'OK',
-          ),
-        );
+  Future<void> _refreshData() async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final storeId = appState.storeChoosen;
+
+    if (companyId.isNotEmpty && storeId.isNotEmpty) {
+      // Invalidate the provider to force a refresh
+      ref.invalidate(allCashLocationsProvider);
+
+      // Force rebuild to show loading state
+      if (mounted) {
+        setState(() {});
       }
     }
   }
@@ -246,7 +218,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                       .toList();
                   
                   return RefreshIndicator(
-                    onRefresh: () => _refreshData(showFeedback: true),
+                    onRefresh: () => _refreshData(),
                     color: TossColors.primary,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -271,7 +243,7 @@ class _CashLocationPageState extends ConsumerState<CashLocationPage>
                 },
                 loading: () => const Center(child: TossLoadingView()),
                 error: (error, stack) => RefreshIndicator(
-                  onRefresh: () => _refreshData(showFeedback: true),
+                  onRefresh: () => _refreshData(),
                   color: TossColors.primary,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),

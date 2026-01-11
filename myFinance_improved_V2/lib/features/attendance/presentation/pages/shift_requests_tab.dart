@@ -287,6 +287,10 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
       color: TossColors.background,
       child: CustomScrollView(
         slivers: [
+          // Extra spacing above Store (matching MyScheduleTab)
+          const SliverToBoxAdapter(
+            child: SizedBox(height: TossSpacing.space4),
+          ),
           // Store Selector (only if more than 1 store)
           if (widget.stores.length > 1)
             SliverToBoxAdapter(

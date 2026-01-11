@@ -67,7 +67,7 @@ class LocationSelectionCard extends ConsumerWidget {
 
   Widget _buildEmptyLocationState() {
     return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -83,16 +83,12 @@ class LocationSelectionCard extends ConsumerWidget {
               children: [
                 Text(
                   'Cash Location',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray600,
-                  ),
+                  style: TossTextStyles.smallSectionTitle,
                 ),
                 SizedBox(height: TossSpacing.space1 / 2),
                 Text(
                   'No cash locations available',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.gray500,
-                  ),
+                  style: TossTextStyles.emptyState,
                 ),
               ],
             ),

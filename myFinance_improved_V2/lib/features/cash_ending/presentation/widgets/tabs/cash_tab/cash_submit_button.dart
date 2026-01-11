@@ -2,9 +2,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../providers/cash_ending_state.dart';
 import '../../../providers/cash_tab_state.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -40,15 +37,6 @@ class CashSubmitButton extends StatelessWidget {
         isEnabled: false,
         fullWidth: true,
         onPressed: null,
-        textStyle: TossTextStyles.bodyLarge.copyWith(
-          color: TossColors.white,
-          fontWeight: FontWeight.w600,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
-        ),
-        borderRadius: 12,
       );
     }
 
@@ -65,15 +53,6 @@ class CashSubmitButton extends StatelessWidget {
               await onSave(context, state, currencyId);
             }
           : null,
-      textStyle: TossTextStyles.bodyLarge.copyWith(
-        color: TossColors.white,
-        fontWeight: FontWeight.w600,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space4,
-        vertical: TossSpacing.space3,
-      ),
-      borderRadius: 12,
     );
   }
 }

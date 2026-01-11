@@ -61,7 +61,7 @@ import '../../features/session/presentation/pages/receiving_result_page.dart';
 import '../../features/session/domain/entities/session_history_item.dart';
 import '../../features/session/domain/entities/session_review_item.dart';
 import '../../features/store_shift/presentation/pages/store_shift_page.dart';
-import '../../features/test/test_template_mapping_page.dart';
+import '../../features/test/test_page.dart';
 import '../../features/time_table_manage/presentation/pages/time_table_manage_page.dart';
 import '../../features/transaction_history/presentation/pages/transaction_history_page.dart';
 import '../../features/transaction_template/presentation/pages/transaction_template_page.dart';
@@ -984,11 +984,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Test Route - Template Mapping Test
+      // Test Route - Template Mapping Test & Design Showcase
       GoRoute(
         path: '/test',
         name: 'test',
-        builder: (context, state) => const TestTemplateMapppingPage(),
+        builder: (context, state) => const TestPage(),
       ),
 
       // ===== Trade Management Routes =====

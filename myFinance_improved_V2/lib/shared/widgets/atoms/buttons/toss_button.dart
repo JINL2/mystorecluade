@@ -523,11 +523,12 @@ class _TossButtonState extends State<TossButton>
   }
 
   /// Get adjusted padding to compensate for border (inset border effect)
+  /// Default: 16px horizontal, 16px vertical (consistent button height)
   EdgeInsets _getAdjustedPadding() {
     final basePadding = widget.padding ??
         const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
-          vertical: TossSpacing.space3,
+          vertical: TossSpacing.space4,
         );
 
     // Check if button has a visible border
@@ -612,14 +613,14 @@ class _TossButtonState extends State<TossButton>
               ? _handleTap
               : null,
           borderRadius: BorderRadius.circular(
-            widget.borderRadius ?? TossBorderRadius.md,
+            widget.borderRadius ?? TossBorderRadius.xl,
           ),
           child: Container(
             padding: _getAdjustedPadding(),
             decoration: BoxDecoration(
               color: _getBackgroundColor(),
               borderRadius: BorderRadius.circular(
-                widget.borderRadius ?? TossBorderRadius.md,
+                widget.borderRadius ?? TossBorderRadius.xl,
               ),
               border: Border.all(
                 color: _getBorderColor(),

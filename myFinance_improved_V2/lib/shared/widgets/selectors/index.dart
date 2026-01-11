@@ -93,3 +93,8 @@ export 'account/index.dart';
 export 'cash_location/index.dart';
 export 'counterparty/index.dart';
 export 'exchange_rate/index.dart';
+
+// ═══════════════════════════════════════════════════════════════
+// SIMPLE SELECTORS (Static - work with raw data)
+// ═══════════════════════════════════════════════════════════════
+export 'simple/index.dart';
