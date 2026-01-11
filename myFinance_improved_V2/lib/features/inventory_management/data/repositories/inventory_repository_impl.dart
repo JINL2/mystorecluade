@@ -472,6 +472,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     required String companyId,
     required String storeId,
     required String productId,
+    String? variantId,
     required int page,
     required int pageSize,
   }) async {
@@ -480,6 +481,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
         companyId: companyId,
         storeId: storeId,
         productId: productId,
+        variantId: variantId,
         page: page,
         pageSize: pageSize,
       );
@@ -489,6 +491,11 @@ class InventoryRepositoryImpl implements InventoryRepository {
         logId: item.logId,
         eventCategory: item.eventCategory,
         eventType: item.eventType,
+        // Variant info (v2)
+        variantId: item.variantId,
+        variantName: item.variantName,
+        displayName: item.displayName,
+        // Stock changes
         quantityBefore: item.quantityBefore,
         quantityAfter: item.quantityAfter,
         quantityChange: item.quantityChange,

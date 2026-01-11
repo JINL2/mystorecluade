@@ -636,12 +636,13 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Get product history
-  /// Calls inventory_product_history RPC
+  /// Get product history (v2 with variant support)
+  /// Calls inventory_product_history_v2 RPC
   Future<ProductHistoryResult> getProductHistory({
     required String companyId,
     required String storeId,
     required String productId,
+    String? variantId,
     required int page,
     required int pageSize,
   }) async {
@@ -650,13 +651,14 @@ class InventoryRemoteDataSource {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_product_id': productId,
+        'p_variant_id': variantId,
         'p_timezone': DateTimeUtils.getLocalTimezone(),
         'p_page': page,
         'p_page_size': pageSize,
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_product_history', params: params)
+          .rpc<Map<String, dynamic>>('inventory_product_history_v2', params: params)
           .single();
 
       if (response['success'] == true) {

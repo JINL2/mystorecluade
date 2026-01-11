@@ -76,6 +76,23 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
     super.dispose();
   }
 
+  /// Navigate to edit page and handle result
+  Future<void> _navigateToEdit(Product product) async {
+    final result = await context.push<Product>(
+      '/inventoryManagement/editProduct/${product.id}',
+      extra: product,
+    );
+
+    // If edit page returned an updated product, update local state
+    if (result != null && mounted) {
+      setState(() {
+        _localProduct = result;
+      });
+      // Refresh store stocks with updated data
+      _loadStoreStocks();
+    }
+  }
+
   /// Load product from API if not found in provider
   Future<void> _loadProductFromApi() async {
     if (_isLoadingProduct) return;
@@ -236,6 +253,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
               ProductDetailTopBar(
                 product: currentProduct,
                 onMoreOptions: () => _showMoreOptions(context, ref, currentProduct),
+                onEditPressed: () => _navigateToEdit(currentProduct),
               ),
               Expanded(
                 child: SingleChildScrollView(

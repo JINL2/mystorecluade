@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -14,11 +13,13 @@ import '../../pages/product_transactions_page.dart';
 class ProductDetailTopBar extends StatelessWidget {
   final Product product;
   final VoidCallback onMoreOptions;
+  final VoidCallback onEditPressed;
 
   const ProductDetailTopBar({
     super.key,
     required this.product,
     required this.onMoreOptions,
+    required this.onEditPressed,
   });
 
   @override
@@ -56,10 +57,7 @@ class ProductDetailTopBar extends StatelessWidget {
                 icon: Icons.edit_outlined,
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  context.push(
-                    '/inventoryManagement/editProduct/${product.id}',
-                    extra: product,
-                  );
+                  onEditPressed();
                 },
               ),
               _AnimatedIconButton(

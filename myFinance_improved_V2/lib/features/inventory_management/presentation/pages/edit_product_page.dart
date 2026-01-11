@@ -597,14 +597,10 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           ),
         );
 
-        // Navigate to Product Detail page with updated product data
-        // Use pushReplacement to replace edit page with detail page
+        // Pop back to Product Detail page with updated product data
+        // This prevents duplicate product detail pages in the navigation stack
         if (mounted) {
-          context.pushReplacementNamed(
-            'productDetail',
-            pathParameters: {'productId': product.id},
-            extra: product,
-          );
+          context.pop(product);
         }
       } else if (mounted) {
         await showDialog<bool>(
@@ -1056,6 +1052,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             controller: _quantityController,
             focusNode: _quantityFocusNode,
             placeholder: 'e.g. 50',
+            onChanged: (_) => setState(() {}),
           ),
           FormListRow(
             label: 'Unit',

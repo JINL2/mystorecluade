@@ -133,11 +133,12 @@ abstract class InventoryRepository {
     required List<String> productIds,
   });
 
-  /// Get product history
+  /// Get product history (v2 with variant support)
   Future<ProductHistoryPageResult?> getProductHistory({
     required String companyId,
     required String storeId,
     required String productId,
+    String? variantId,
     required int page,
     required int pageSize,
   });
@@ -416,6 +417,11 @@ class ProductHistoryEntry {
   final String logId;
   final String eventCategory;
   final String eventType;
+  // Variant info (v2)
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  // Stock changes
   final int? quantityBefore;
   final int? quantityAfter;
   final int? quantityChange;
@@ -463,6 +469,9 @@ class ProductHistoryEntry {
     required this.logId,
     required this.eventCategory,
     required this.eventType,
+    this.variantId,
+    this.variantName,
+    this.displayName,
     this.quantityBefore,
     this.quantityAfter,
     this.quantityChange,

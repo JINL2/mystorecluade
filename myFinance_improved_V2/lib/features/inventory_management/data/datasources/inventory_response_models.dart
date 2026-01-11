@@ -357,11 +357,16 @@ class ProductHistoryResult {
   }
 }
 
-/// Individual history item from product history
+/// Individual history item from product history (v2 with variant support)
 class ProductHistoryItem {
   final String logId;
   final String eventCategory;
   final String eventType;
+  // Variant info (v2)
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  // Stock changes
   final int? quantityBefore;
   final int? quantityAfter;
   final int? quantityChange;
@@ -409,6 +414,9 @@ class ProductHistoryItem {
     required this.logId,
     required this.eventCategory,
     required this.eventType,
+    this.variantId,
+    this.variantName,
+    this.displayName,
     this.quantityBefore,
     this.quantityAfter,
     this.quantityChange,
@@ -454,6 +462,9 @@ class ProductHistoryItem {
       logId: json['log_id'] as String? ?? '',
       eventCategory: json['event_category'] as String? ?? '',
       eventType: json['event_type'] as String? ?? '',
+      variantId: json['variant_id'] as String?,
+      variantName: json['variant_name'] as String?,
+      displayName: json['display_name'] as String?,
       quantityBefore: (json['quantity_before'] as num?)?.toInt(),
       quantityAfter: (json['quantity_after'] as num?)?.toInt(),
       quantityChange: (json['quantity_change'] as num?)?.toInt(),

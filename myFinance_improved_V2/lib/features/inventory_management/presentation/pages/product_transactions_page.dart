@@ -70,6 +70,7 @@ class _ProductTransactionsPageState
         companyId: appState.companyChoosen,
         storeId: _selectedStoreId.isNotEmpty ? _selectedStoreId : appState.storeChoosen,
         productId: widget.product.id,
+        variantId: widget.product.variantId,
         page: _currentPage,
         pageSize: _pageSize,
       );

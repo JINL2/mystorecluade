@@ -13,6 +13,7 @@ class FormNumberInputRow extends StatelessWidget {
   final FocusNode focusNode;
   final String placeholder;
   final bool allowDecimal;
+  final ValueChanged<String>? onChanged;
 
   const FormNumberInputRow({
     super.key,
@@ -21,6 +22,7 @@ class FormNumberInputRow extends StatelessWidget {
     required this.focusNode,
     required this.placeholder,
     this.allowDecimal = false,
+    this.onChanged,
   });
 
   @override
@@ -80,6 +82,7 @@ class FormNumberInputRow extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           isDense: true,
                         ),
+                        onChanged: onChanged,
                       ),
                     ),
                     const SizedBox(width: 6),
