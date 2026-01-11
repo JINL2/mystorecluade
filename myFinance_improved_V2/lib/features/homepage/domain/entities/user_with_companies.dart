@@ -53,4 +53,16 @@ class UserWithCompanies {
     return 'UserWithCompanies(userId: $userId, name: $fullName, '
         'companies: ${companies.length})';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static UserWithCompanies mock() => UserWithCompanies(
+        userId: 'mock-user-id',
+        userFirstName: 'Mock',
+        userLastName: 'User',
+        companies: Company.mockList(2),
+        profileImage: '',
+      );
 }

@@ -9,6 +9,7 @@ import '../widgets/stats/performance_kpi_card.dart';
 import '../widgets/stats/salary_breakdown_card.dart';
 import '../widgets/stats/salary_trend_section.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_detail_skeleton.dart';
 
 /// StatsTab - Attendance statistics and salary overview
 /// Shows company-wide salary data (not store-specific)
@@ -106,7 +107,11 @@ class _StatsTabState extends ConsumerState<StatsTab> {
     final statsAsync = ref.watch(userShiftStatsProvider);
 
     return statsAsync.when(
-      loading: () => const TossLoadingView(),
+      loading: () => const TossDetailSkeleton(
+        showHeader: false,
+        showChart: true,
+        sectionCount: 2,
+      ),
       error: (error, stack) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

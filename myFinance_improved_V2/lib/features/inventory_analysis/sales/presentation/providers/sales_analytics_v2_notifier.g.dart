@@ -7,7 +7,7 @@ part of 'sales_analytics_v2_notifier.dart';
 // **************************************************************************
 
 String _$salesAnalyticsV2NotifierHash() =>
-    r'70e55270819553ee20e64c32861b8d0859a8b757';
+    r'b7232958bc0a9e65f09a0cbde9e827e52d5f7f07';
 
 /// Sales Analytics V2 Notifier (2025 @riverpod)
 ///

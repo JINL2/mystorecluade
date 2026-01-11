@@ -11,6 +11,7 @@ import 'mixins/schedule_approval_handler.dart';
 import 'mixins/schedule_date_helpers.dart';
 import 'schedule_shift_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 
 /// Schedule Tab Content - Redesigned
 ///
@@ -251,9 +252,9 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
 
     if (isInitialLoading || isMetadataLoading) {
       return [
-        const Padding(
-          padding: EdgeInsets.all(TossSpacing.space8),
-          child: TossLoadingView(),
+        const TossListSkeleton(
+          itemCount: 3,
+          style: ListSkeletonStyle.standard,
         ),
       ];
     }

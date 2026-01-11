@@ -169,6 +169,35 @@ class Company {
       currencySymbol != null && currencyCode != null
           ? '$currencySymbol $currencyCode'
           : currencyCode ?? '';
+
+  // ============================================================================
+  // Mock Factory (for skeleton loading)
+  // ============================================================================
+
+  static Company mock() => Company(
+        id: 'mock-company-id',
+        companyName: 'Mock Company',
+        companyCode: 'COMP12345',
+        role: UserRole.mock(),
+        stores: Store.mockList(2),
+        subscription: Subscription.mock(),
+        salaryType: 'monthly',
+        currencyCode: 'USD',
+        currencySymbol: '\$',
+      );
+
+  static List<Company> mockList([int count = 2]) =>
+      List.generate(count, (i) => Company(
+            id: 'mock-company-id-$i',
+            companyName: 'Company $i',
+            companyCode: 'COMP1234$i',
+            role: UserRole.mock(),
+            stores: Store.mockList(2),
+            subscription: Subscription.mock(),
+            salaryType: 'monthly',
+            currencyCode: 'USD',
+            currencySymbol: '\$',
+          ));
 }
 
 class UserRole {
@@ -189,4 +218,13 @@ class UserRole {
           .toList(),
     );
   }
+
+  // ============================================================================
+  // Mock Factory (for skeleton loading)
+  // ============================================================================
+
+  static UserRole mock() => const UserRole(
+        roleName: 'Owner',
+        permissions: ['manage_stores', 'invite_members', 'view_reports'],
+      );
 }

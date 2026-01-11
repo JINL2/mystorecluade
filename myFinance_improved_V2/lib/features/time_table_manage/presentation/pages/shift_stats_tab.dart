@@ -18,6 +18,7 @@ import '../widgets/stats/stats_metric_row.dart';
 import 'employee_detail_page.dart';
 import 'reliability_rankings_page.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 
 /// Period options for Store Health section
 enum StatsPeriod {
@@ -212,9 +213,9 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
                   },
                 );
               },
-              loading: () => const Padding(
-                padding: EdgeInsets.all(TossSpacing.space4),
-                child: TossLoadingView(),
+              loading: () => const TossListSkeleton(
+                itemCount: 5,
+                style: ListSkeletonStyle.compact,
               ),
               error: (error, stack) => Center(
                 child: Text(
@@ -365,12 +366,10 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
 
   /// Build loading section
   Widget _buildLoadingSection() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: TossSpacing.space3,
-        vertical: TossSpacing.space6,
-      ),
-      child: TossLoadingView(),
+    return const TossListSkeleton(
+      itemCount: 3,
+      style: ListSkeletonStyle.standard,
+      shrinkWrap: true,
     );
   }
 

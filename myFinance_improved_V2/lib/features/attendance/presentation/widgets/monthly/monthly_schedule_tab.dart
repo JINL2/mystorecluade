@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../shared/themes/index.dart';
 import '../../../../../shared/widgets/index.dart';
+import '../../../../../shared/widgets/organisms/skeleton/toss_schedule_skeleton.dart';
 import '../../../domain/entities/monthly_attendance.dart';
 import '../../providers/monthly_attendance_providers.dart';
 import '../shift/index.dart';
@@ -71,10 +72,10 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
     return todayAsync.when(
       data: (todayAttendance) => listAsync.when(
         data: (attendanceList) => _buildContent(todayAttendance, attendanceList),
-        loading: () => const TossLoadingView(),
+        loading: () => const TossScheduleSkeleton(),
         error: (e, _) => _buildErrorView(e.toString()),
       ),
-      loading: () => const TossLoadingView(),
+      loading: () => const TossScheduleSkeleton(),
       error: (e, _) => _buildErrorView(e.toString()),
     );
   }

@@ -310,4 +310,30 @@ class ShiftCard {
   String toString() {
     return 'ShiftCard(id: $shiftRequestId, employee: ${employee.userName}, date: $shiftDate, approved: $isApproved)';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ShiftCard mock() => ShiftCard(
+        shiftRequestId: 'mock-request-id',
+        employee: EmployeeInfo.mock(),
+        shift: Shift.mock(),
+        shiftDate: '2025-01-01',
+        isApproved: true,
+        paidHour: 8.0,
+        salaryType: 'hourly',
+        salaryAmount: '10,000',
+        basePay: '80,000',
+        totalPayWithBonus: '80,000',
+        shiftStartTime: '2025-01-01 09:00',
+        shiftEndTime: '2025-01-01 17:00',
+        createdAt: DateTime(2025, 1, 1),
+        tags: const [],
+        managerMemos: const [],
+        problemDetails: ProblemDetails.mock(),
+      );
+
+  static List<ShiftCard> mockList([int count = 3]) =>
+      List.generate(count, (_) => mock());
 }

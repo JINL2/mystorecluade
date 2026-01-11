@@ -3,6 +3,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/cards/toss_card.dart';
 
 import '../../domain/entities/bcg_category.dart';
+import '../../domain/entities/sales_analytics.dart';
 import 'bcg_matrix/index.dart';
 
 /// BCG Matrix Chart Widget for Sales Analytics V2 Page
@@ -11,12 +12,14 @@ class BcgMatrixChart extends StatefulWidget {
   final BcgMatrix? bcgMatrix;
   final bool isLoading;
   final String currencySymbol;
+  final Metric selectedMetric;
 
   const BcgMatrixChart({
     super.key,
     this.bcgMatrix,
     this.isLoading = false,
     this.currencySymbol = '₫',
+    this.selectedMetric = Metric.revenue,
   });
 
   @override
@@ -25,7 +28,25 @@ class BcgMatrixChart extends StatefulWidget {
 
 class _BcgMatrixChartState extends State<BcgMatrixChart> {
   bool _useMean = false;
-  bool _useRevenue = true; // Default to Revenue
+  bool? _useRevenueOverride; // null = follow selectedMetric, non-null = user override
+
+  /// Compute X-axis mode based on selectedMetric and user override
+  bool get _useRevenue {
+    if (_useRevenueOverride != null) {
+      return _useRevenueOverride!;
+    }
+    // Follow global metric: quantity -> quantity, otherwise revenue
+    return widget.selectedMetric != Metric.quantity;
+  }
+
+  @override
+  void didUpdateWidget(BcgMatrixChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset user override when global metric changes
+    if (oldWidget.selectedMetric != widget.selectedMetric) {
+      _useRevenueOverride = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +100,7 @@ class _BcgMatrixChartState extends State<BcgMatrixChart> {
                           children: [
                             BcgXAxisToggle(
                               useRevenue: _useRevenue,
-                              onChanged: (value) => setState(() => _useRevenue = value),
+                              onChanged: (value) => setState(() => _useRevenueOverride = value),
                             ),
                             const SizedBox(width: TossSpacing.space2),
                             BcgMeanMedianToggle(

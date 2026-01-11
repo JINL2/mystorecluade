@@ -13,6 +13,7 @@ import '../../domain/repositories/inventory_repository.dart';
 import '../utils/store_utils.dart';
 import '../widgets/inventory_history/history_item.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 
 /// Inventory History Page - Shows history of all stock movements in the store
 class InventoryHistoryPage extends ConsumerStatefulWidget {
@@ -211,7 +212,10 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
             // History list
             Expanded(
               child: _isLoading
-                  ? const TossLoadingView()
+                  ? const TossListSkeleton(
+                      itemCount: 8,
+                      style: ListSkeletonStyle.transaction,
+                    )
                   : filteredEntries.isEmpty
                       ? _buildEmptyState()
                       : NotificationListener<ScrollNotification>(

@@ -27,4 +27,29 @@ class Feature {
 
   @override
   int get hashCode => featureId.hashCode;
+
+  // ============================================================================
+  // Mock Factory (for skeleton loading)
+  // ============================================================================
+
+  static Feature mock() => const Feature(
+        featureId: 'mock-feature-id',
+        featureName: 'Mock Feature',
+        featureDescription: 'Mock feature description',
+        featureRoute: '/mock-route',
+        featureIcon: 'star',
+        iconKey: 'star',
+        isShowMain: true,
+      );
+
+  static List<Feature> mockList([int count = 4]) =>
+      List.generate(count, (i) => Feature(
+            featureId: 'mock-feature-id-$i',
+            featureName: 'Feature $i',
+            featureDescription: 'Feature $i description',
+            featureRoute: '/feature-$i',
+            featureIcon: 'star',
+            iconKey: 'star',
+            isShowMain: true,
+          ));
 }

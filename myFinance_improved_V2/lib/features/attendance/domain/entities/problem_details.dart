@@ -91,6 +91,23 @@ class ProblemDetails with _$ProblemDetails {
     }
     return null;
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ProblemDetails mock() => const ProblemDetails(
+        hasLate: false,
+        hasAbsence: false,
+        hasOvertime: false,
+        hasEarlyLeave: false,
+        hasNoCheckout: false,
+        hasLocationIssue: false,
+        hasReported: false,
+        isSolved: false,
+        problemCount: 0,
+        problems: [],
+      );
 }
 
 /// Problem 베이스 클래스 (Sealed class)

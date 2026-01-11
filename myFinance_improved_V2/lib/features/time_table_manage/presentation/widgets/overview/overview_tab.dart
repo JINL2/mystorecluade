@@ -21,6 +21,7 @@ import 'attention_timeline.dart';
 import 'overview_helpers.dart';
 import 'shift_info_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_detail_skeleton.dart';
 
 /// Overview Tab
 ///
@@ -146,7 +147,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
     final isInitialLoading = (isMonthlyStatusLoading || isManagerCardsLoading || isMetadataLoading) && !hasCachedData;
 
-    // Show loading view ONLY for initial load (no cached data yet)
+    // Show skeleton ONLY for initial load (no cached data yet)
     if (isInitialLoading) {
       return Padding(
         padding: const EdgeInsets.symmetric(
@@ -158,8 +159,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
           children: [
             _buildStoreSelector(stores),
             const Expanded(
-              child: TossLoadingView(
-                message: 'Loading shift data...',
+              child: TossDetailSkeleton(
+                showHeader: false,
+                showChart: false,
+                sectionCount: 3,
               ),
             ),
           ],

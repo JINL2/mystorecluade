@@ -7,12 +7,14 @@ import '../../domain/entities/sales_analytics.dart';
 
 /// Summary Cards Widget
 /// Horizontal scrollable cards showing Revenue, Margin, Quantity
+/// Phase 1: Added selectedMetric to highlight the currently selected metric card
 class SummaryCards extends StatelessWidget {
   final AnalyticsSummary? summary;
   final double? revenueGrowth;
   final double? marginGrowth;
   final double? quantityGrowth;
   final bool isLoading;
+  final Metric? selectedMetric;
 
   const SummaryCards({
     super.key,
@@ -21,6 +23,7 @@ class SummaryCards extends StatelessWidget {
     this.marginGrowth,
     this.quantityGrowth,
     this.isLoading = false,
+    this.selectedMetric,
   });
 
   @override
@@ -36,6 +39,7 @@ class SummaryCards extends StatelessWidget {
             growth: revenueGrowth,
             isLoading: isLoading,
             isCurrency: true,
+            isHighlighted: selectedMetric == Metric.revenue,
           ),
           const SizedBox(width: TossSpacing.space3),
           _SummaryCard(
@@ -47,6 +51,7 @@ class SummaryCards extends StatelessWidget {
             subtitle: summary != null
                 ? '${summary!.avgMarginRate.toStringAsFixed(1)}%'
                 : null,
+            isHighlighted: selectedMetric == Metric.margin,
           ),
           const SizedBox(width: TossSpacing.space3),
           _SummaryCard(
@@ -55,6 +60,7 @@ class SummaryCards extends StatelessWidget {
             growth: quantityGrowth,
             isLoading: isLoading,
             isCurrency: false,
+            isHighlighted: selectedMetric == Metric.quantity,
           ),
         ],
       ),
@@ -69,6 +75,7 @@ class _SummaryCard extends StatelessWidget {
   final bool isLoading;
   final bool isCurrency;
   final String? subtitle;
+  final bool isHighlighted;
 
   const _SummaryCard({
     required this.title,
@@ -77,15 +84,24 @@ class _SummaryCard extends StatelessWidget {
     this.isLoading = false,
     this.isCurrency = true,
     this.subtitle,
+    this.isHighlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 140,
-      child: TossCard(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: isLoading
+      child: AnimatedContainer(
+        duration: TossAnimations.fast,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: isHighlighted
+              ? Border.all(color: TossColors.primary, width: 2)
+              : null,
+        ),
+        child: TossCard(
+          padding: const EdgeInsets.all(TossSpacing.space4),
+          child: isLoading
             ? _buildShimmer()
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,6 +132,7 @@ class _SummaryCard extends StatelessWidget {
                     ),
                 ],
               ),
+        ),
       ),
     );
   }

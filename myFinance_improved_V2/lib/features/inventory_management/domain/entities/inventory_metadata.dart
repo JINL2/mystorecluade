@@ -154,4 +154,13 @@ class StockStatusLevel {
     required this.label,
     required this.level,
   });
+
+  static StockStatusLevel mock() => StockStatusLevel(
+        icon: 'info',
+        color: 'blue',
+        label: 'Normal',
+        level: 'normal',
+      );
 }
+
+

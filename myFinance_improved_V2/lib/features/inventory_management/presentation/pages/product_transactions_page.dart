@@ -14,6 +14,7 @@ import '../../domain/repositories/inventory_repository.dart';
 import '../utils/store_utils.dart';
 import '../widgets/product_transactions/transaction_item.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 
 /// Product Transactions Page - Shows history of stock movements
 class ProductTransactionsPage extends ConsumerStatefulWidget {
@@ -221,7 +222,10 @@ class _ProductTransactionsPageState
             // Transactions list
             Expanded(
               child: _isLoading
-                  ? const TossLoadingView()
+                  ? const TossListSkeleton(
+                      itemCount: 8,
+                      style: ListSkeletonStyle.transaction,
+                    )
                   : filteredTransactions.isEmpty
                       ? _buildEmptyState()
                       : NotificationListener<ScrollNotification>(

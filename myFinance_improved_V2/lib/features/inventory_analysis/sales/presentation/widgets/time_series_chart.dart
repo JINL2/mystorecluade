@@ -1,5 +1,4 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
@@ -9,11 +8,11 @@ import '../../domain/entities/sales_analytics.dart';
 import '../providers/states/sales_analytics_state.dart';
 
 /// Time Series Chart Widget
-/// Line chart showing trends over time with metric toggle and category filter
+/// Line chart showing trends over time with category filter
+/// Note: Metric toggle has been moved to GlobalFilterBar (Phase 1 refactoring)
 class TimeSeriesChart extends StatefulWidget {
   final List<AnalyticsDataPoint> data;
   final Metric selectedMetric;
-  final ValueChanged<Metric> onMetricChanged;
   final bool isLoading;
   // Category filter
   final List<CategoryInfo> availableCategories;
@@ -27,7 +26,6 @@ class TimeSeriesChart extends StatefulWidget {
     super.key,
     required this.data,
     required this.selectedMetric,
-    required this.onMetricChanged,
     this.isLoading = false,
     this.availableCategories = const [],
     this.selectedCategoryId,
@@ -55,29 +53,24 @@ class _TimeSeriesChartState extends State<TimeSeriesChart> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Row 1: Title + Metric Toggle
+            // Header Row: Title only (Metric toggle moved to GlobalFilterBar)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.trending_up,
-                      size: 20,
-                      color: TossColors.primary,
-                    ),
-                    const SizedBox(width: TossSpacing.space2),
-                    Text(
-                      title,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                const Icon(
+                  Icons.trending_up,
+                  size: 20,
+                  color: TossColors.primary,
                 ),
-                // Metric Toggle
-                Flexible(child: _buildMetricToggle()),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
 
@@ -171,33 +164,6 @@ class _TimeSeriesChartState extends State<TimeSeriesChart> {
       return '${name.substring(0, 10)}...';
     }
     return name;
-  }
-
-  Widget _buildMetricToggle() {
-    return CupertinoSlidingSegmentedControl<Metric>(
-      groupValue: widget.selectedMetric,
-      backgroundColor: TossColors.gray100,
-      thumbColor: TossColors.white,
-      children: const {
-        Metric.revenue: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text('Revenue', style: TextStyle(fontSize: 12)),
-        ),
-        Metric.margin: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text('Margin', style: TextStyle(fontSize: 12)),
-        ),
-        Metric.quantity: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text('Qty', style: TextStyle(fontSize: 12)),
-        ),
-      },
-      onValueChanged: (value) {
-        if (value != null) {
-          widget.onMetricChanged(value);
-        }
-      },
-    );
   }
 
   Widget _buildChart() {

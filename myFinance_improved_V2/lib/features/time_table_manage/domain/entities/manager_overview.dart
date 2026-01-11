@@ -71,4 +71,18 @@ class ManagerOverview {
 
   @override
   String toString() => 'ManagerOverview(month: $month, shifts: $totalShifts, approved: $totalApprovedRequests, pending: $totalPendingRequests, problems: $totalProblems)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ManagerOverview mock() => const ManagerOverview(
+        month: '2025-01',
+        totalShifts: 90,
+        totalApprovedRequests: 150,
+        totalPendingRequests: 10,
+        totalProblems: 5,
+        totalEmployees: 20,
+        totalEstimatedCost: 5000000,
+      );
 }

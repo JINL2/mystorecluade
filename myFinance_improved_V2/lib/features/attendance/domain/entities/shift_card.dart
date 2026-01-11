@@ -143,4 +143,33 @@ class ShiftCard with _$ShiftCard {
       return 0.0;
     }
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  /// Mock data for skeleton loading
+  ///
+  /// Used with Skeletonizer to show loading state with actual UI layout.
+  /// Values are placeholder strings that will be replaced by Bone widgets.
+  static ShiftCard mock() => const ShiftCard(
+        requestDate: '2025-01-01',
+        shiftRequestId: 'mock-id',
+        shiftName: 'Morning Shift',
+        shiftStartTime: '2025-01-01T09:00:00',
+        shiftEndTime: '2025-01-01T17:00:00',
+        storeName: 'Store Name',
+        scheduledHours: 8.0,
+        isApproved: true,
+        paidHours: 8.0,
+        basePay: '80,000',
+        bonusAmount: 0,
+        totalPayWithBonus: '80,000',
+        salaryType: 'hourly',
+        salaryAmount: '10,000',
+      );
+
+  /// Generate list of mock ShiftCards for skeleton loading
+  static List<ShiftCard> mockList([int count = 3]) =>
+      List.generate(count, (_) => mock());
 }

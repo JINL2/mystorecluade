@@ -47,6 +47,20 @@ class MonthlyShiftStatus with _$MonthlyShiftStatus {
       return null;
     }
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static MonthlyShiftStatus mock() => MonthlyShiftStatus(
+        requestDate: '2025-01-01',
+        totalPending: 2,
+        totalApproved: 5,
+        shifts: DailyShift.mockList(2),
+      );
+
+  static List<MonthlyShiftStatus> mockList([int count = 3]) =>
+      List.generate(count, (_) => mock());
 }
 
 /// Daily Shift Entity - Represents a single shift within a day
@@ -79,6 +93,26 @@ class DailyShift with _$DailyShift {
   /// Available slots count
   int get availableSlots =>
       requiredEmployees > approvedCount ? requiredEmployees - approvedCount : 0;
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static DailyShift mock() => DailyShift(
+        shiftId: 'mock-shift-id',
+        shiftName: 'Morning Shift',
+        shiftType: 'regular',
+        startTime: '09:00',
+        endTime: '17:00',
+        requiredEmployees: 3,
+        pendingCount: 1,
+        approvedCount: 2,
+        pendingEmployees: EmployeeStatus.mockList(1),
+        approvedEmployees: EmployeeStatus.mockList(2),
+      );
+
+  static List<DailyShift> mockList([int count = 2]) =>
+      List.generate(count, (_) => mock());
 }
 
 /// Employee Status Entity
@@ -86,6 +120,8 @@ class DailyShift with _$DailyShift {
 /// Represents employee status within monthly shift
 @freezed
 class EmployeeStatus with _$EmployeeStatus {
+  const EmployeeStatus._();
+
   const factory EmployeeStatus({
     required String userId,
     required String userName,
@@ -97,4 +133,18 @@ class EmployeeStatus with _$EmployeeStatus {
     bool? isApproved,
     String? approvedBy,
   }) = _EmployeeStatus;
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static EmployeeStatus mock() => const EmployeeStatus(
+        userId: 'mock-user-id',
+        userName: 'Employee Name',
+        userEmail: 'employee@example.com',
+        isApproved: true,
+      );
+
+  static List<EmployeeStatus> mockList([int count = 2]) =>
+      List.generate(count, (_) => mock());
 }

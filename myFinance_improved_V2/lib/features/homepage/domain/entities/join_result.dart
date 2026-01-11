@@ -53,4 +53,17 @@ class JoinResult extends Equatable {
   @override
   String toString() => 'JoinResult(success: $success, companyId: $companyId, '
       'storeId: $storeId, roleAssigned: $roleAssigned)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static JoinResult mock() => const JoinResult(
+        success: true,
+        companyId: 'mock-company-id',
+        companyName: 'Mock Company',
+        storeId: 'mock-store-id',
+        storeName: 'Mock Store',
+        roleAssigned: 'Member',
+      );
 }

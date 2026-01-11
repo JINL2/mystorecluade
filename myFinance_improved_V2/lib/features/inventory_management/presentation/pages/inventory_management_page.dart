@@ -15,6 +15,7 @@ import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/product.dart';
 import '../providers/inventory_providers.dart';
@@ -184,7 +185,10 @@ class _InventoryManagementPageState
         children: [
           _buildFilterSection(pageState),
           const Expanded(
-            child: TossLoadingView(),
+            child: TossListSkeleton(
+              itemCount: 8,
+              style: ListSkeletonStyle.product,
+            ),
           ),
         ],
       );

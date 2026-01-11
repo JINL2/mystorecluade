@@ -46,4 +46,18 @@ class EmployeeInfo {
 
   @override
   String toString() => 'EmployeeInfo(id: $userId, name: $userName)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static EmployeeInfo mock() => const EmployeeInfo(
+        userId: 'mock-user-id',
+        userName: 'Employee Name',
+        position: 'Staff',
+        hourlyWage: 10000,
+      );
+
+  static List<EmployeeInfo> mockList([int count = 3]) =>
+      List.generate(count, (_) => mock());
 }

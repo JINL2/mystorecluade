@@ -9,11 +9,13 @@ import '../../../../../../app/providers/app_state_provider.dart';
 import '../providers/sales_analytics_v2_notifier.dart';
 import '../providers/states/sales_analytics_state.dart';
 import '../widgets/bcg_matrix_chart.dart';
-import '../widgets/drill_down_section.dart';
+import '../widgets/category_preview.dart';
+import '../widgets/global_filter_bar.dart';
 import '../widgets/summary_cards.dart';
-import '../widgets/time_range_selector.dart';
 import '../widgets/time_series_chart.dart';
-import '../widgets/top_products_list.dart';
+import '../widgets/top_products_preview.dart';
+import 'category_analysis_page.dart';
+import 'top_products_page.dart';
 
 /// Sales Analytics V2 Page
 /// Complete sales analysis with time range, charts, and drill-down
@@ -109,6 +111,21 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
         children: [
           // Store Selector
           _buildStoreSelector(),
+          // Global Filter Bar (TimeRange + Metric)
+          GlobalFilterBar(
+            selectedTimeRange: state.selectedTimeRange,
+            selectedMetric: state.selectedMetric,
+            onTimeRangeChanged: (range) {
+              ref.read(salesAnalyticsV2NotifierProvider.notifier).setTimeRange(
+                    range,
+                    companyId: _companyId,
+                    storeId: _selectedStoreId,
+                  );
+            },
+            onMetricChanged: (metric) {
+              ref.read(salesAnalyticsV2NotifierProvider.notifier).setMetric(metric);
+            },
+          ),
           // Main Content
           Expanded(child: _buildBody(state)),
         ],
@@ -253,20 +270,7 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
           children: [
             const SizedBox(height: TossSpacing.space4),
 
-            // Time Range Selector
-            TimeRangeSelector(
-              selectedRange: state.selectedTimeRange,
-              onChanged: (range) {
-                ref.read(salesAnalyticsV2NotifierProvider.notifier).setTimeRange(
-                      range,
-                      companyId: _companyId,
-                      storeId: _selectedStoreId,
-                    );
-              },
-            ),
-            const SizedBox(height: TossSpacing.space4),
-
-            // Summary Cards
+            // Summary Cards (with selected metric highlight)
             SummaryCards(
               summary: state.summary,
               revenueGrowth: state.timeSeries?.data.isNotEmpty == true
@@ -279,6 +283,7 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
                   ? state.timeSeries!.data.first.quantityGrowth
                   : null,
               isLoading: state.isLoading,
+              selectedMetric: state.selectedMetric,
             ),
             const SizedBox(height: TossSpacing.space4),
 
@@ -286,13 +291,6 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
             TimeSeriesChart(
               data: state.trendData,
               selectedMetric: state.selectedMetric,
-              onMetricChanged: (metric) {
-                ref.read(salesAnalyticsV2NotifierProvider.notifier).setMetric(
-                      metric,
-                      companyId: _companyId,
-                      storeId: _selectedStoreId,
-                    );
-              },
               isLoading: state.isLoading || state.isCategoryTrendLoading,
               // Category filter
               availableCategories: state.availableCategories,
@@ -315,22 +313,35 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
               bcgMatrix: state.bcgMatrix,
               isLoading: state.isLoading,
               currencySymbol: state.currencySymbol,
+              selectedMetric: state.selectedMetric,
             ),
             const SizedBox(height: TossSpacing.space4),
 
-            // Top Products
-            TopProductsList(
+            // Top Products Preview (Phase 2: replaced Expand/Collapse with View All)
+            TopProductsPreview(
               products: state.topProducts?.data ?? [],
               isLoading: state.isLoading,
+              selectedMetric: state.selectedMetric,
+              onViewAll: () {
+                Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => TopProductsPage(
+                      products: state.topProducts?.data ?? [],
+                      selectedMetric: state.selectedMetric,
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: TossSpacing.space4),
 
-            // Drill-down Section
-            DrillDownSection(
+            // Category Preview (Phase 3: replaced Expand/Collapse with View All)
+            CategoryPreview(
               drillDownState: state.drillDownState,
               items: state.drillDownData?.data ?? [],
               isLoading: state.isDrillDownLoading,
-              canDrillDown: state.drillDownState.canDrillDown,
+              selectedMetric: state.selectedMetric,
               onBreadcrumbTap: (index) {
                 ref.read(salesAnalyticsV2NotifierProvider.notifier).navigateToBreadcrumb(
                       index: index,
@@ -338,13 +349,18 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
                       storeId: _selectedStoreId,
                     );
               },
-              onItemTap: (item) {
-                ref.read(salesAnalyticsV2NotifierProvider.notifier).drillDown(
-                      id: item.id,
-                      name: item.name,
+              onViewAll: () {
+                Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => CategoryAnalysisPage(
                       companyId: _companyId,
                       storeId: _selectedStoreId,
-                    );
+                      initialDrillDownState: state.drillDownState,
+                      initialItems: state.drillDownData?.data ?? [],
+                    ),
+                  ),
+                );
               },
             ),
             const SizedBox(height: TossSpacing.space6),

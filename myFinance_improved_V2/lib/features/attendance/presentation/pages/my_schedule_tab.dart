@@ -18,6 +18,7 @@ import '../../domain/entities/problem_details.dart';
 import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_schedule_skeleton.dart';
 import 'widgets/my_schedule/index.dart';
 
 /// MyScheduleTab - Main tab with Week view and expandable Month calendar
@@ -431,7 +432,9 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
               shiftCards: primaryShiftCards,
             );
           },
-          loading: () => const TossLoadingView(),
+          loading: () => TossScheduleSkeleton(
+            showStoreSelector: widget.stores.length > 1,
+          ),
           error: (_, __) => ScheduleEmptyState(
             stores: widget.stores,
             selectedStoreId: widget.selectedStoreId,
@@ -440,7 +443,9 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
           ),
         );
       },
-      loading: () => const TossLoadingView(),
+      loading: () => TossScheduleSkeleton(
+        showStoreSelector: widget.stores.length > 1,
+      ),
       error: (_, __) => ScheduleEmptyState(
         stores: widget.stores,
         selectedStoreId: widget.selectedStoreId,

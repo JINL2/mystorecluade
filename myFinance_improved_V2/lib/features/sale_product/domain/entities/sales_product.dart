@@ -236,4 +236,96 @@ class StockSettings extends Equatable {
 
   @override
   List<Object?> get props => [maxStock, minStock, reorderPoint, reorderQuantity];
+
+  // Mock Factory
+  static StockSettings mock() => const StockSettings(minStock: 10);
+}
+
+// ============================================
+// Mock Factories (for skeleton loading)
+// ============================================
+
+extension ProductPricingMock on ProductPricing {
+  static ProductPricing mock() => const ProductPricing(
+        sellingPrice: 10000,
+        costPrice: 8000,
+        profitAmount: 2000,
+        profitMargin: 20.0,
+      );
+}
+
+extension TotalStockSummaryMock on TotalStockSummary {
+  static TotalStockSummary mock() => const TotalStockSummary(
+        storeCount: 1,
+        totalValue: 100000,
+        totalQuantityOnHand: 50,
+        totalQuantityReserved: 5,
+        totalQuantityAvailable: 45,
+      );
+}
+
+extension ProductImagesMock on ProductImages {
+  static ProductImages mock() => const ProductImages(additionalImages: []);
+}
+
+extension ProductStatusMock on ProductStatus {
+  static ProductStatus mock() => ProductStatus(
+        isActive: true,
+        createdAt: DateTime(2025, 1, 1),
+        isDeleted: false,
+        updatedAt: DateTime(2025, 1, 1),
+      );
+}
+
+extension ProductAttributesMock on ProductAttributes {
+  static ProductAttributes mock() => const ProductAttributes();
+}
+
+extension StockMock on Stock {
+  static Stock mock() => const Stock(
+        quantityOnHand: 50,
+        quantityReserved: 5,
+        quantityAvailable: 45,
+      );
+}
+
+extension ValuationMock on Valuation {
+  static Valuation mock() => const Valuation(
+        totalValue: 100000,
+        averageCost: 8000,
+      );
+}
+
+extension StoreStockMock on StoreStock {
+  static StoreStock mock() => StoreStock(
+        stock: StockMock.mock(),
+        storeId: 'mock-store-id',
+        valuation: ValuationMock.mock(),
+        storeCode: 'STORE01',
+        storeName: 'Store Name',
+        stockStatus: 'normal',
+      );
+
+  static List<StoreStock> mockList([int count = 1]) =>
+      List.generate(count, (_) => mock());
+}
+
+extension SalesProductMock on SalesProduct {
+  static SalesProduct mock() => SalesProduct(
+        productId: 'mock-product-id',
+        productName: 'Product Name',
+        sku: 'SKU-001',
+        barcode: '1234567890123',
+        productType: 'simple',
+        pricing: ProductPricingMock.mock(),
+        totalStockSummary: TotalStockSummaryMock.mock(),
+        images: ProductImagesMock.mock(),
+        status: ProductStatusMock.mock(),
+        attributes: ProductAttributesMock.mock(),
+        storeStocks: StoreStockMock.mockList(1),
+        stockSettings: StockSettings.mock(),
+      );
+
+  static List<SalesProduct> mockList([int count = 5]) =>
+      List.generate(count, (_) => mock());
 }

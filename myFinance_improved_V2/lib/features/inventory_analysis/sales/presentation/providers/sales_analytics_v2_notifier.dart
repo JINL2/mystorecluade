@@ -121,15 +121,11 @@ class SalesAnalyticsV2Notifier extends _$SalesAnalyticsV2Notifier {
     await loadData(companyId: companyId, storeId: storeId);
   }
 
-  /// Change metric
-  Future<void> setMetric(
-    Metric metric, {
-    required String companyId,
-    String? storeId,
-  }) async {
-    _log('setMetric()', {'metric': metric.name});
+  /// Change metric (Phase 1 optimization: No API reload needed)
+  /// The metric only affects how we display existing data, not what data we fetch
+  void setMetric(Metric metric) {
+    _log('setMetric()', {'metric': metric.name, 'note': 'UI-only update, no API call'});
     state = state.copyWith(selectedMetric: metric);
-    await loadData(companyId: companyId, storeId: storeId);
   }
 
   /// Set selected category for trend chart

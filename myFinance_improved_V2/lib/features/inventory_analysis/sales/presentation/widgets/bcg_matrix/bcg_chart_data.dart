@@ -51,20 +51,27 @@ class BcgChartData {
   String get xAxisLabel => xAxisMode == BcgXAxisMode.revenue ? 'Revenue' : 'Sales Volume';
 
   /// Calculate BCG chart data from BcgMatrix
+  /// Phase 4 Optimization: Limit to top 50 categories for performance
   factory BcgChartData.calculate(
     BcgMatrix bcgMatrix, {
     bool useMean = false,
     BcgXAxisMode xAxisMode = BcgXAxisMode.revenue,
+    int maxCategories = 50,
   }) {
     if (bcgMatrix.categories.isEmpty) {
       return BcgChartData.empty();
     }
 
-    final margins =
-        bcgMatrix.categories.map((c) => c.marginPercentile.toDouble()).toList();
+    // Phase 4: Limit categories to top N by revenue for performance
+    final sortedCategories = List<BcgCategory>.from(bcgMatrix.categories)
+      ..sort((a, b) => b.totalRevenue.compareTo(a.totalRevenue));
+    final limitedCategories = sortedCategories.take(maxCategories).toList();
 
-    // X-axis values based on mode
-    final xValues = bcgMatrix.categories.map((c) {
+    final margins =
+        limitedCategories.map((c) => c.marginPercentile.toDouble()).toList();
+
+    // X-axis values based on mode (using limited categories)
+    final xValues = limitedCategories.map((c) {
       return xAxisMode == BcgXAxisMode.revenue
           ? c.revenuePct.toDouble()
           : c.salesVolumePercentile.toDouble();
@@ -101,8 +108,8 @@ class BcgChartData {
         ((dividerMargin - minMargin) / marginRange * 100).clamp(0.0, 100.0);
     final dividerXPos = (dividerX / maxX * 100).clamp(0.0, 100.0);
 
-    // Create spot data
-    final spotData = bcgMatrix.categories.map((cat) {
+    // Create spot data (using limited categories)
+    final spotData = limitedCategories.map((cat) {
       final xDataValue = xAxisMode == BcgXAxisMode.revenue
           ? cat.revenuePct.toDouble()
           : cat.salesVolumePercentile.toDouble();

@@ -19,4 +19,19 @@ class CompanyType extends Equatable {
 
   @override
   String toString() => 'CompanyType(id: $id, typeName: $typeName)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static CompanyType mock() => const CompanyType(
+        id: 'mock-type-id',
+        typeName: 'Retail',
+      );
+
+  static List<CompanyType> mockList([int count = 3]) => [
+        const CompanyType(id: 'retail', typeName: 'Retail'),
+        const CompanyType(id: 'restaurant', typeName: 'Restaurant'),
+        const CompanyType(id: 'service', typeName: 'Service'),
+      ].take(count).toList();
 }

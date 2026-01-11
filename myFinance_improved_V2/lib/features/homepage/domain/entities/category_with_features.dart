@@ -31,4 +31,21 @@ class CategoryWithFeatures extends Equatable {
     return 'CategoryWithFeatures(id: $categoryId, name: $categoryName, '
         'features: ${features.length})';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static CategoryWithFeatures mock() => CategoryWithFeatures(
+        categoryId: 'mock-category-id',
+        categoryName: 'Mock Category',
+        features: Feature.mockList(4),
+      );
+
+  static List<CategoryWithFeatures> mockList([int count = 3]) =>
+      List.generate(count, (i) => CategoryWithFeatures(
+            categoryId: 'mock-category-id-$i',
+            categoryName: 'Category $i',
+            features: Feature.mockList(4),
+          ));
 }

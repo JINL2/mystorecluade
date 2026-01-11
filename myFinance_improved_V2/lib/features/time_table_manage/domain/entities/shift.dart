@@ -73,4 +73,24 @@ class Shift {
 
   @override
   String toString() => 'Shift(id: $shiftId, date: $shiftDate, $currentCount/$targetCount)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static Shift mock() => Shift(
+        shiftId: 'mock-shift-id',
+        storeId: 'mock-store-id',
+        storeName: 'Store Name',
+        shiftDate: '2025-01-01',
+        planStartTime: DateTime(2025, 1, 1, 9, 0),
+        planEndTime: DateTime(2025, 1, 1, 17, 0),
+        targetCount: 3,
+        currentCount: 2,
+        tags: const [],
+        shiftName: 'Morning Shift',
+      );
+
+  static List<Shift> mockList([int count = 3]) =>
+      List.generate(count, (_) => mock());
 }

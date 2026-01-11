@@ -50,4 +50,20 @@ class ShiftMetadataItem {
   @override
   String toString() =>
       'ShiftMetadataItem(id: $shiftId, name: $shiftName, active: $isActive)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ShiftMetadataItem mock() => const ShiftMetadataItem(
+        shiftId: 'mock-shift-id',
+        shiftName: 'Morning Shift',
+        startTime: '09:00',
+        endTime: '17:00',
+        targetCount: 3,
+        isActive: true,
+      );
+
+  static List<ShiftMetadataItem> mockList([int count = 3]) =>
+      List.generate(count, (_) => mock());
 }

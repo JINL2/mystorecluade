@@ -15,8 +15,12 @@
 /// - [TossDetailSkeleton] - 일반 상세 페이지
 /// - [TossProfileDetailSkeleton] - 프로필/계정 상세
 /// - [TossFormDetailSkeleton] - 폼/입력 페이지
+///
+/// ## 기능별 스켈레톤
+/// - [TossScheduleSkeleton] - Attendance My Schedule 탭 전용
 library;
 
 export 'toss_detail_skeleton.dart';
 export 'toss_grid_skeleton.dart';
 export 'toss_list_skeleton.dart';
+export 'toss_schedule_skeleton.dart';

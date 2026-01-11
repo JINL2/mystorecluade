@@ -50,4 +50,33 @@ class TopFeature extends Equatable {
   String toString() {
     return 'TopFeature(id: $featureId, name: $featureName, clicks: $clickCount)';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static TopFeature mock() => TopFeature(
+        featureId: 'mock-feature-id',
+        featureName: 'Mock Feature',
+        featureDescription: 'Mock feature description',
+        clickCount: 10,
+        lastClicked: DateTime.now(),
+        icon: 'star',
+        route: '/mock-route',
+        categoryId: 'mock-category-id',
+        iconKey: 'star',
+      );
+
+  static List<TopFeature> mockList([int count = 4]) =>
+      List.generate(count, (i) => TopFeature(
+            featureId: 'mock-feature-id-$i',
+            featureName: 'Feature $i',
+            featureDescription: 'Feature $i description',
+            clickCount: 10 - i,
+            lastClicked: DateTime.now(),
+            icon: 'star',
+            route: '/feature-$i',
+            categoryId: 'mock-category-id',
+            iconKey: 'star',
+          ));
 }

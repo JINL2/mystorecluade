@@ -32,4 +32,18 @@ class Revenue with _$Revenue {
 
   /// Get absolute growth amount
   double get growthAmount => amount - previousAmount;
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static Revenue mock() => Revenue(
+        amount: 1250000,
+        currencyCode: 'USD',
+        period: RevenuePeriod.today,
+        previousAmount: 1100000,
+        lastUpdated: DateTime.now(),
+        storeId: 'mock-store-id',
+        companyId: 'mock-company-id',
+      );
 }

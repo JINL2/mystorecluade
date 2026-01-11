@@ -26,4 +26,18 @@ class ManagerMemo {
   String toString() {
     return 'ManagerMemo(type: $type, content: $content, createdAt: $createdAt)';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ManagerMemo mock() => const ManagerMemo(
+        type: 'note',
+        content: 'Manager memo content',
+        createdAt: '2025-01-01T10:00:00',
+        createdBy: 'mock-manager-id',
+      );
+
+  static List<ManagerMemo> mockList([int count = 2]) =>
+      List.generate(count, (_) => mock());
 }

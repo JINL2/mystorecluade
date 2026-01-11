@@ -18,4 +18,14 @@ class HomepageAlert with _$HomepageAlert {
 
   /// Check if alert should be displayed (show if not checked by user)
   bool get shouldDisplay => isShow && !isChecked && content != null && content!.isNotEmpty;
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static HomepageAlert mock() => const HomepageAlert(
+        isShow: true,
+        isChecked: false,
+        content: 'Mock alert content for skeleton loading',
+      );
 }

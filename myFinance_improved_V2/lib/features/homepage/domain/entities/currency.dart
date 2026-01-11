@@ -27,4 +27,21 @@ class Currency extends Equatable {
 
   @override
   String toString() => 'Currency(id: $id, code: $code, name: $name, symbol: $symbol)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static Currency mock() => const Currency(
+        id: 'mock-currency-id',
+        code: 'USD',
+        name: 'US Dollar',
+        symbol: '\$',
+      );
+
+  static List<Currency> mockList([int count = 3]) => [
+        const Currency(id: 'usd', code: 'USD', name: 'US Dollar', symbol: '\$'),
+        const Currency(id: 'krw', code: 'KRW', name: 'Korean Won', symbol: '₩'),
+        const Currency(id: 'thb', code: 'THB', name: 'Thai Baht', symbol: '฿'),
+      ].take(count).toList();
 }

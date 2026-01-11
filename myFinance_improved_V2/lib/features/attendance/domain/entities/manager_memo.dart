@@ -17,4 +17,18 @@ class ManagerMemo with _$ManagerMemo {
     String? createdAt,
     String? createdBy,
   }) = _ManagerMemo;
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ManagerMemo mock() => const ManagerMemo(
+        id: 'mock-memo-id',
+        content: 'Manager memo content',
+        createdAt: '2025-01-01T10:00:00',
+        createdBy: 'Manager Name',
+      );
+
+  static List<ManagerMemo> mockList([int count = 2]) =>
+      List.generate(count, (_) => mock());
 }

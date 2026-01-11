@@ -235,3 +235,31 @@ enum StockStatus {
   normal,      // 31-80% of reorder point
   excess,      // 81%+ of reorder point
 }
+
+// ============================================
+// Mock Factory (for skeleton loading)
+// ============================================
+
+extension ProductMock on Product {
+  static Product mock() => Product(
+        id: 'mock-product-id',
+        sku: 'SKU-001',
+        barcode: '1234567890123',
+        name: 'Product Name',
+        productType: 'simple',
+        costPrice: 8000,
+        salePrice: 10000,
+        onHand: 50,
+        available: 45,
+        reserved: 5,
+        categoryName: 'Category',
+        brandName: 'Brand',
+        unit: 'piece',
+        currency: 'KRW',
+        reorderPoint: 10,
+        isActive: true,
+      );
+
+  static List<Product> mockList([int count = 5]) =>
+      List.generate(count, (_) => mock());
+}

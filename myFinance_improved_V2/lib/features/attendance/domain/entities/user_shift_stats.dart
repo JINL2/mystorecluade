@@ -17,6 +17,21 @@ class UserShiftStats with _$UserShiftStats {
     required WeeklyPayments weeklyPayments,
     required ReliabilityScore reliabilityScore,
   }) = _UserShiftStats;
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static UserShiftStats mock() => UserShiftStats(
+        salaryInfo: SalaryInfo.mock(),
+        today: PeriodStats.mock(),
+        thisWeek: PeriodStats.mock(),
+        thisMonth: PeriodStats.mock(),
+        lastMonth: PeriodStats.mock(),
+        thisYear: PeriodStats.mock(),
+        weeklyPayments: WeeklyPayments.mock(),
+        reliabilityScore: ReliabilityScore.mock(),
+      );
 }
 
 /// Salary information
@@ -65,6 +80,17 @@ class SalaryInfo with _$SalaryInfo {
     );
     return '$currencySymbol$formattedAmount';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static SalaryInfo mock() => const SalaryInfo(
+        salaryType: 'hourly',
+        salaryAmount: 10000,
+        currencyCode: 'KRW',
+        currencySymbol: '₩',
+      );
 }
 
 /// Period statistics (today, this_week, this_month, etc.)
@@ -99,6 +125,21 @@ class PeriodStats with _$PeriodStats {
     final sign = changePercentage >= 0 ? '+' : '';
     return '$sign${changePercentage.toStringAsFixed(1)}%';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static PeriodStats mock() => const PeriodStats(
+        onTimeRate: 0.95,
+        completeShifts: 5,
+        totalConfirmedHours: 40.5,
+        basePay: 400000,
+        bonusPay: 50000,
+        totalPayment: 450000,
+        previousTotalPayment: 420000,
+        changePercentage: 7.1,
+      );
 }
 
 /// Weekly payments for trend chart
@@ -116,6 +157,18 @@ class WeeklyPayments with _$WeeklyPayments {
 
   /// Convert to list for chart (oldest to newest: w5, w4, w3, w2, w1)
   List<double> toChartList() => [w5, w4, w3, w2, w1];
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static WeeklyPayments mock() => const WeeklyPayments(
+        w1: 150000,
+        w2: 145000,
+        w3: 160000,
+        w4: 155000,
+        w5: 148000,
+      );
 }
 
 /// Reliability score from v_employee_statistics_score
@@ -129,4 +182,14 @@ class ReliabilityScore with _$ReliabilityScore {
     required double finalScore,
     Map<String, dynamic>? scoreBreakdown,
   }) = _ReliabilityScore;
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ReliabilityScore mock() => const ReliabilityScore(
+        completedShifts: 25,
+        onTimeRate: 0.95,
+        finalScore: 92.5,
+      );
 }

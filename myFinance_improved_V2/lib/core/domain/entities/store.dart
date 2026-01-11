@@ -64,4 +64,23 @@ class Store {
         ? '${storeName.substring(0, 12)}...'
         : storeName;
   }
+
+  // ============================================================================
+  // Mock Factory (for skeleton loading)
+  // ============================================================================
+
+  static Store mock() => const Store(
+        id: 'mock-store-id',
+        storeName: 'Mock Store',
+        storeCode: 'STORE12345',
+        companyId: 'mock-company-id',
+      );
+
+  static List<Store> mockList([int count = 2]) =>
+      List.generate(count, (i) => Store(
+            id: 'mock-store-id-$i',
+            storeName: 'Mock Store $i',
+            storeCode: 'STORE1234$i',
+            companyId: 'mock-company-id',
+          ));
 }

@@ -11,6 +11,7 @@ import '../widgets/shift_requests/shift_requests_controller.dart';
 import '../widgets/shift_requests/shift_status_helper.dart';
 import '../widgets/shift_signup/shift_signup_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 
 /// ShiftRequestsTab - Shift requests page with new UI design
 ///
@@ -254,7 +255,10 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
     super.build(context);
 
     if (isLoadingMetadata) {
-      return const Center(child: TossLoadingView());
+      return const TossListSkeleton(
+        itemCount: 5,
+        style: ListSkeletonStyle.product,
+      );
     }
 
     final currentUserId = _controller.getCurrentUserId();

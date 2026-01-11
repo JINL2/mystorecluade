@@ -109,6 +109,23 @@ class ProblemDetails {
     );
     return locationProblem.actualMinutes; // actualMinutes stores distance for location issues
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ProblemDetails mock() => const ProblemDetails(
+        hasLate: false,
+        hasOvertime: false,
+        hasReported: false,
+        hasNoCheckout: false,
+        hasAbsence: false,
+        hasEarlyLeave: false,
+        hasLocationIssue: false,
+        problemCount: 0,
+        isSolved: true,
+        problems: [],
+      );
 }
 
 /// Individual Problem Item

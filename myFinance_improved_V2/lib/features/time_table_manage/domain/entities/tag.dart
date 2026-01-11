@@ -85,4 +85,20 @@ class Tag {
   String toString() {
     return 'Tag(id: $tagId, type: $tagType, content: $tagContent)';
   }
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static Tag mock() => Tag(
+        tagId: 'mock-tag-id',
+        cardId: 'mock-card-id',
+        tagType: 'info',
+        tagContent: 'Tag content',
+        createdAt: DateTime(2025, 1, 1),
+        createdBy: 'mock-user-id',
+      );
+
+  static List<Tag> mockList([int count = 2]) =>
+      List.generate(count, (_) => mock());
 }

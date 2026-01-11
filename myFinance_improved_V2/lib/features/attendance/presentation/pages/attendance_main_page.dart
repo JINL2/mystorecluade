@@ -10,6 +10,7 @@ import 'shift_requests_tab.dart';
 import 'my_schedule_tab.dart';
 import 'stats_tab.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_schedule_skeleton.dart';
 
 /// AttendanceMainPage - Main page with tabs
 ///
@@ -173,7 +174,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
           }
         });
 
-        // TabController가 아직 없으면 로딩 표시
+        // TabController가 아직 없으면 스켈레톤 표시
         if (_tabController == null) {
           return TossScaffold(
             backgroundColor: TossColors.background,
@@ -181,7 +182,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
               title: 'Attendance',
               backgroundColor: TossColors.background,
             ),
-            body: const TossLoadingView(),
+            body: const TossScheduleSkeleton(),
           );
         }
 
@@ -200,12 +201,10 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
                       : const ['My Schedule', 'Shift Sign Up', 'Stats'],
                   controller: _tabController!,
                 ),
-                // Show loading view when changing store
+                // Show skeleton when changing store
                 if (isLoading)
                   const Expanded(
-                    child: TossLoadingView(
-                      message: 'Loading store data...',
-                    ),
+                    child: TossScheduleSkeleton(),
                   )
                 else
                   Expanded(
@@ -245,7 +244,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
           title: 'Attendance',
           backgroundColor: TossColors.background,
         ),
-        body: const TossLoadingView(),
+        body: const TossScheduleSkeleton(),
       ),
       error: (e, _) {
         // 에러 시 기본값 Hourly로 처리
@@ -263,7 +262,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
               title: 'Attendance',
               backgroundColor: TossColors.background,
             ),
-            body: const TossLoadingView(),
+            body: const TossScheduleSkeleton(),
           );
         }
 
@@ -282,9 +281,7 @@ class _AttendanceMainPageState extends ConsumerState<AttendanceMainPage>
                 ),
                 if (isLoading)
                   const Expanded(
-                    child: TossLoadingView(
-                      message: 'Loading store data...',
-                    ),
+                    child: TossScheduleSkeleton(),
                   )
                 else
                   Expanded(

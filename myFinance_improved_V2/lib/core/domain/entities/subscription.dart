@@ -166,4 +166,21 @@ class Subscription {
       'features': features,
     };
   }
+
+  // ============================================================================
+  // Mock Factory (for skeleton loading)
+  // ============================================================================
+
+  static Subscription mock() => const Subscription(
+        planId: 'mock-plan-id',
+        planName: 'basic',
+        displayName: 'Basic Plan',
+        planType: 'basic',
+        maxCompanies: 3,
+        maxStores: 5,
+        maxEmployees: 50,
+        aiDailyLimit: 100,
+        priceMonthly: 9.99,
+        features: ['basic_reports', 'employee_management', 'inventory_basic'],
+      );
 }

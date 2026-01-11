@@ -15,6 +15,7 @@ import '../widgets/employee_detail/month_picker_sheet.dart';
 import '../widgets/employee_detail/salary_row.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_detail_skeleton.dart';
 
 /// Employee Detail Page
 class EmployeeDetailPage extends ConsumerStatefulWidget {
@@ -96,7 +97,11 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
       backgroundColor: TossColors.white,
       appBar: _buildAppBar(),
       body: state.isLoading && monthlyData == null
-          ? const TossLoadingView()
+          ? const TossDetailSkeleton(
+              showHeader: true,
+              showChart: false,
+              sectionCount: 3,
+            )
           : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

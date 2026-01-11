@@ -56,4 +56,13 @@ class ShiftMetadata {
   @override
   String toString() =>
       'ShiftMetadata(shifts: $shiftCount, active: $activeShiftCount, lastUpdated: $lastUpdated)';
+
+  // ============================================
+  // Mock Factory (for skeleton loading)
+  // ============================================
+
+  static ShiftMetadata mock() => ShiftMetadata(
+        shifts: ShiftMetadataItem.mockList(3),
+        lastUpdated: DateTime(2025, 1, 1),
+      );
 }
