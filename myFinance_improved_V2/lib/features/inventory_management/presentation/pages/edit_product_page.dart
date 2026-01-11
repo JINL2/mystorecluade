@@ -561,6 +561,8 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       // If product already has variants, pass the variantId for stock changes
       final existingVariantId = _product?.variantId;
 
+      final imageUrlsToSend = allImageUrls.isNotEmpty ? allImageUrls : null;
+
       final product = await repository.updateProduct(
         productId: widget.productId,
         companyId: companyId,
@@ -575,7 +577,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         salePrice: salePrice,
         // Don't send onHand if we're creating variants (stock is in addVariants)
         onHand: addVariants != null ? null : onHand,
-        imageUrls: allImageUrls.isNotEmpty ? allImageUrls : null,
+        imageUrls: imageUrlsToSend,
         // Pass existing variantId for products with variants, or new attributeId for variant creation
         variantId: existingVariantId,
         attributeId: attributeId,

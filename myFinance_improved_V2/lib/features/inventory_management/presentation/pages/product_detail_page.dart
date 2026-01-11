@@ -164,9 +164,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
       if (mounted && result?.products.isNotEmpty == true) {
         final productStock = result!.products.first;
 
-        // Get current product - prioritize initialProduct/localProduct which have correct variantId
+        // Get current product - prioritize localProduct (updated after edit) or initialProduct which have correct variantId
         // Do NOT use firstWhere on provider list as all variants share same product ID
-        final product = widget.initialProduct ?? _localProduct;
+        final product = _localProduct ?? widget.initialProduct;
 
         setState(() {
           // For variant products, get stores for specific variantId
@@ -196,10 +196,11 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
     final productsState = ref.watch(inventoryPageNotifierProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
-    // For variant products, use initialProduct/localProduct which have correct variantId
+    // For variant products, use localProduct (updated after edit) or initialProduct which have correct variantId
     // Don't search provider by productId as all variants share the same productId
-    // Only fallback to provider search if we don't have initialProduct/localProduct
-    Product? product = widget.initialProduct ?? _localProduct;
+    // Only fallback to provider search if we don't have localProduct/initialProduct
+    // Priority: _localProduct (updated after edit) > initialProduct (from navigation)
+    Product? product = _localProduct ?? widget.initialProduct;
     // For variant products, also match variantId to find the correct variant
     product ??= productsState.products.cast<Product?>().firstWhere(
       (p) => p?.id == widget.productId &&
@@ -260,7 +261,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                   child: Column(
                     children: [
                       // Header section - starts at 0ms
+                      // Key ensures widget rebuilds when product images change
                       ProductHeaderSection(
+                        key: ValueKey('product_header_${currentProduct.id}_${currentProduct.images.hashCode}'),
                         product: currentProduct,
                         animationDelay: 0,
                       ),
