@@ -26,10 +26,7 @@ class SectionLabel extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: TossTextStyles.caption.copyWith(
-          color: TossColors.textSecondary, // Consistent with TossDropdown label
-          letterSpacing: 0.5,
-        ),
+        style: TossTextStyles.smallSectionTitle,
       ),
     );
   }

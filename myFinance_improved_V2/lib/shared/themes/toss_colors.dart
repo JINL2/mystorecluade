@@ -1,135 +1,171 @@
 import 'package:flutter/material.dart';
-/// Toss Design System - Official Color Palette
-/// Based on Toss (토스) Korean fintech app's actual design patterns
+
+/// Toss Design System - Refactored 2026
 /// 
-/// Core Philosophy:
-/// - Minimalist white-dominant interface
-/// - Strategic use of Toss Blue (#0064FF)
-/// - High contrast for financial clarity
-/// - Trust through consistency
+/// STRATEGY: 
+/// - Replaced the complex 10-step gray scale with your "Simple 4" system.
+/// - Integrated CSS variable logic (Foreground/Background) into Flutter.
+/// - All legacy getters are preserved but mapped to the new simplified core.
 class TossColors {
   TossColors._();
 
-  // ==================== BRAND COLORS ====================
-  // Toss's signature blue - used strategically for CTAs
-  static const Color primary = Color(0xFF0064FF);        // Toss Blue (436 uses)
-  static const Color primarySurface = Color(0xFFF0F6FF); // Blue tinted bg
+  // ==================== 1. THE NEW CORE (Your Simple CSS Theme) ====================
+  // These are the "Source of Truth" based on your provided CSS.
   
-  // ==================== GRAYSCALE (MAIN UI) ====================
-  // Refined grayscale for hierarchy and clarity
-  static const Color white = Color(0xFFFFFFFF);          // Pure white
-  static const Color gray50 = Color(0xFFF8F9FA);         // Lightest gray
-  static const Color gray100 = Color(0xFFF1F3F5);        // Background
-  static const Color gray200 = Color(0xFFE9ECEF);        // Border light
-  static const Color gray300 = Color(0xFFDEE2E6);        // Border default
-  static const Color gray400 = Color(0xFFCED4DA);        // Disabled
-  static const Color gray500 = Color(0xFFADB5BD);        // Placeholder
-  static const Color gray600 = Color(0xFF6C757D);        // Secondary text
-  static const Color gray700 = Color(0xFF495057);        // Body text
-  static const Color gray800 = Color(0xFF343A40);        // Heading
-  static const Color gray900 = Color(0xFF212529);        // Primary text
-  static const Color black = Color(0xFF000000);          // Pure black
-  static const Color black87 = Color(0xDD000000);         // 87% opacity black
-  static const Color black54 = Color(0x8A000000);         // 54% opacity black
+  // --- The 4 Core Grays ---
+  static const Color _lightGrey = Color(0xFFF5F6F7);   // Secondary BG
+  static const Color _borderGrey = Color(0xFFF1F3F5);  // Borders
+  static const Color _coolGrey = Color(0xFF6B7785);    // Secondary Text
+  static const Color _charcoal = Color(0xFF212529);    // Main Text
+
+  // --- Brand Colors (Converted hex alpha to ARGB) ---
+  // #0a66ffe8 -> 0xE80A66FF (Primary)
+  static const Color _brandBlue = Color(0xE80A66FF); 
+  static const Color _accentBlue = Color(0xFFD1E8FF); // Accent
+
+  // --- Semantic Colors ---å
+  static const Color _successBase = Color(0xFF7DD3AE); // Pastel Green
+  static const Color _successDark = Color(0xFF064E3B); // Dark Green (Foreground)
   
+  // #d6453ae5 -> 0xE5D6453A
+  static const Color _dangerBase = Color(0xE5D6453A);  // Red
   
-  // ==================== SEMANTIC COLORS ====================
-  // Financial state indicators
-  static const Color success = Color(0xFF00C896);        // Toss Green
-  static const Color successLight = Color(0xFFE3FFF4);   // Success bg
+  static const Color _white = Color(0xFFFFFFFF);
+  static const Color _muted = Color(0xFFFAFBFC);       // Muted BG
+
+  // ==================== 2. LEGACY ADAPTER (The Bridge) ====================
+  // Mapping old complex names to the new simple core.
+
+  // --- BRAND ---
+  static const Color primary = _brandBlue;
+  static const Color primarySurface = _accentBlue; // Mapped to new accent
+
+  // --- GRAYSCALE (The Great Simplification) ---
   
-  static const Color error = Color(0xFFFF5847);          // Toss Red
-  static const Color errorLight = Color(0xFFFFEFED);     // Error bg
+  // Backgrounds map to White or Light Grey
+  static const Color white = _white;
+  static const Color gray50 = _muted;       // Was F8F9FA -> Now FAFBFC
+  static const Color gray100 = _lightGrey;  // Was F1F3F5 -> Now F5F6F7
+
+  // Borders map to your single "Border Grey"
+  static const Color gray200 = _borderGrey;
+  static const Color gray300 = _borderGrey; // Consolidated
+
+  // Secondary Text maps to "Cool Grey"
+  static const Color gray400 = _coolGrey;   // Consolidated
+  static const Color gray500 = _coolGrey;
+  static const Color gray600 = _coolGrey;
+
+  // Primary Text maps to "Dark Charcoal"
+  static const Color gray700 = _charcoal;
+  static const Color gray800 = _charcoal;
+  static const Color gray900 = _charcoal;   // Consolidated
   
-  static const Color warning = Color(0xFFFF9500);        // Toss Orange
-  static const Color warningLight = Color(0xFFFFF4E6);   // Warning bg
+  static const Color black = Color(0xFF000000);
+  static const Color black87 = Color(0xDD000000);
+  static const Color black54 = Color(0x5C000000); // 36% opacity black for overlays
+
+  // --- SEMANTIC COLORS ---
   
-  static const Color info = Color(0xFF0064FF);           // Same as primary
-  static const Color infoLight = Color(0xFFF0F6FF);      // Info bg
+  // Success
+  static const Color success = _successBase;
+  static const Color successLight = Color(0xFFE6F7F1); // Generated light var from _successBase
   
-  // ==================== FINANCIAL COLORS ====================
-  static const Color profit = Color(0xFF00C896);         // Positive (green) - same as success
-  static const Color loss = Color(0xFFFF5847);           // Negative (red) - same as error
+  // Error (Destructive)
+  static const Color error = _dangerBase;
+  static const Color errorLight = Color(0xFFFDEDEC);   // Generated light var from _dangerBase
+
+  // Warning (Mapped to Danger as per your CSS)
+  // Your CSS says: --warning: #d6453a (Same as destructive)
+  static const Color warning = _dangerBase; 
+  static const Color warningLight = errorLight; 
+
+  // Info (Keep as Primary)
+  static const Color info = _brandBlue;
+  static const Color infoLight = _accentBlue;
+
+  // --- FINANCIAL COLORS ---
+  // Critical: For text (Profit/Loss), we use the darker "Foreground" variants 
+  // to ensure readability against white backgrounds.
   
-  // ==================== SURFACE COLORS ====================
-  static const Color background = Color(0xFFFFFFFF);     // Main bg (white)
-  static const Color surface = Color(0xFFFFFFFF);        // Card surface (white)
-  static const Color overlay = Color(0x80000000);        // Modal overlay
+  static const Color profit = _successDark; // #064e3b (Readable Green)
+  static const Color loss = _dangerBase;    // #d6453a (Readable Red)
+
+  // --- SURFACE COLORS ---
+  static const Color background = _white;
+  static const Color surface = _white;
+  static const Color overlay = Color(0x80000000);
+
+  // --- BORDER & DIVIDER ---
+  static const Color border = _borderGrey;
+  static const Color borderLight = _muted;
+
+  // --- TEXT COLORS ---
+  static const Color textPrimary = _charcoal;   // #212529
+  static const Color textSecondary = _coolGrey; // #6b7785
+  static const Color textTertiary = _coolGrey;  // Consolidated
+  static const Color textInverse = _white;
+
+  // --- SPECIAL PURPOSE ---
+  static const Color shimmer = _lightGrey;
+  static const Color shadow = Color(0x0A000000);
+  static const Color transparent = Color(0x00000000);
+
+  // --- EXTENDED COLORS (Simplified Mappings) ---
+  // We map these to the closest new logic or keep distinct if necessary.
+  // Since your new theme is strict, we will try to route them to brand colors where possible,
+  // but keep the specific hues for charts.
+
+  // Purple (Kept for charts/AI)
+  static const Color purple = Color(0xFF7C3AED);
+  static const Color purpleLight = Color(0xFFEDE9FE);
+  static const Color purpleSurface = Color(0xFFF5F3FF);
+  static const Color purpleDark = Color(0xFF6366F1);
+  static const Color violet = Color(0xFF8B5CF6);
+
+  // Emerald/Teal (Mapped to Success)
+  static const Color emerald = _successBase;
+  static const Color emeraldLight = successLight;
+  static const Color emeraldDark = _successDark;
+  static const Color teal = Color(0xFF00BCD4);
+
+  // Amber/Orange (Kept for charts)
+  static const Color amber = Color(0xFFF59E0B);
+  static const Color amberLight = Color(0xFFFEF3C7);
+  static const Color amberDark = Color(0xFFD97706);
+
+  // Red variants (Mapped to Danger)
+  static const Color red = _dangerBase;
+  static const Color redLight = errorLight;
+  static const Color redLighter = errorLight;
+  static const Color redDark = _dangerBase;
+  static const Color redDarker = _dangerBase;
+
+  // Categories (Kept distinct for charts)
+  static const Color categoryPurple = purple;
+  static const Color categoryOrange = amber;
+  static const Color categoryGray = _coolGrey;
+  static const Color categoryCyan = teal;
+
+  // --- EXTENDED SEMANTIC SURFACES ---
+  // Mapped to your "Muted" or "Accent" concepts
   
-  // ==================== BORDER & DIVIDER ====================
-  static const Color border = Color(0xFFE9ECEF);         // Default border
-  static const Color borderLight = Color(0xFFF1F3F5);    // Subtle border
-  
-  // ==================== TEXT COLORS ====================
-  static const Color textPrimary = Color(0xFF212529);    // Main text
-  static const Color textSecondary = Color(0xFF6C757D);  // Secondary
-  static const Color textTertiary = Color(0xFFADB5BD);   // Hint text
-  static const Color textInverse = Color(0xFFFFFFFF);    // On dark bg (white)
-  
-  // ==================== SPECIAL PURPOSE ====================
-  static const Color shimmer = Color(0xFFF1F3F5);        // Loading
-  static const Color shadow = Color(0x0A000000);         // 4% black
-  static const Color transparent = Color(0x00000000);    // Fully transparent
+  static const Color yellowSurface = amberLight;
+  static const Color yellowBorder = amber;
+  static const Color yellowLight = amberLight;
 
-  // ==================== EXTENDED COLORS ====================
-  // Additional colors for reports, charts, and special UI elements
+  static const Color greenSurface = successLight;
+  static const Color greenBorder = _successBase;
+  static const Color greenDark = _successDark;
 
-  // Purple palette (AI insights, special features)
-  static const Color purple = Color(0xFF7C3AED);         // Primary purple
-  static const Color purpleLight = Color(0xFFEDE9FE);    // Purple background
-  static const Color purpleSurface = Color(0xFFF5F3FF);  // Purple surface
-  static const Color purpleDark = Color(0xFF6366F1);     // Indigo variant
-  static const Color violet = Color(0xFF8B5CF6);         // Violet variant
+  static const Color blueSurface = _accentBlue;
+  static const Color blueBorder = _accentBlue;
+  static const Color blueText = _brandBlue;
 
-  // Emerald/Teal palette (Success variant)
-  static const Color emerald = Color(0xFF10B981);        // Emerald green
-  static const Color emeraldLight = Color(0xFFD1FAE5);   // Emerald background
-  static const Color emeraldDark = Color(0xFF059669);    // Dark emerald
-  static const Color teal = Color(0xFF00BCD4);           // Teal/Cyan
+  static const Color redSurface = errorLight;
+  static const Color redBorder = _dangerBase;
 
-  // Amber/Orange palette (Warning variants)
-  static const Color amber = Color(0xFFF59E0B);          // Amber
-  static const Color amberLight = Color(0xFFFEF3C7);     // Amber background
-  static const Color amberDark = Color(0xFFD97706);      // Dark amber
-
-  // Red palette (Error variants)
-  static const Color red = Color(0xFFDC2626);            // Standard red
-  static const Color redLight = Color(0xFFFEE2E2);       // Red background
-  static const Color redLighter = Color(0xFFFECACA);     // Lighter red bg
-  static const Color redDark = Color(0xFFB91C1C);        // Dark red
-  static const Color redDarker = Color(0xFF991B1B);      // Darker red text
-
-  // Category colors (for charts, reports)
-  static const Color categoryPurple = Color(0xFF9C27B0); // Purple category
-  static const Color categoryOrange = Color(0xFFFF5722); // Orange category
-  static const Color categoryGray = Color(0xFF607D8B);   // Gray category
-  static const Color categoryCyan = Color(0xFF00BCD4);   // Cyan category
-
-  // ==================== EXTENDED SEMANTIC SURFACES ====================
-  // Additional surface/background colors for status states
-
-  // Yellow/Warning extended palette
-  static const Color yellowSurface = Color(0xFFFEFCE8);  // Light yellow surface
-  static const Color yellowBorder = Color(0xFFFEF08A);   // Yellow border
-  static const Color yellowLight = Color(0xFFFDE68A);    // Light yellow
-
-  // Green/Success extended palette
-  static const Color greenSurface = Color(0xFFF0FDF4);   // Light green surface
-  static const Color greenBorder = Color(0xFFBBF7D0);    // Green border
-  static const Color greenDark = Color(0xFF166534);      // Dark green text
-
-  // Blue/Info extended palette
-  static const Color blueSurface = Color(0xFFF0F9FF);    // Light blue surface
-  static const Color blueBorder = Color(0xFFBAE6FD);     // Blue border
-  static const Color blueText = Color(0xFF0284C7);       // Blue text
-
-  // Red/Error extended palette (additional)
-  static const Color redSurface = Color(0xFFFEF2F2);     // Light red surface
-  static const Color redBorder = Color(0xFFFECACA);      // Red border (same as redLighter)
-
-  // Amber extended palette (additional)
-  static const Color amberSurface = Color(0xFFFEFCE8);   // Amber surface (same as yellowSurface)
-  static const Color amberBorder = Color(0xFFFEF08A);    // Amber border (same as yellowBorder)
-  static const Color amberText = Color(0xFF92400E);      // Amber dark text
-
+  static const Color amberSurface = amberLight;
+  static const Color amberBorder = amber;
+  static const Color amberText = amberDark;
 }

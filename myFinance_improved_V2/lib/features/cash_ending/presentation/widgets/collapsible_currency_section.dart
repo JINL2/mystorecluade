@@ -3,11 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/themes/toss_animations.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/molecules/cards/toss_expandable_card.dart';
 import '../../domain/entities/currency.dart';
 import 'denomination_grid_header.dart';
 import 'denomination_input.dart';
@@ -15,8 +15,12 @@ import 'total_display.dart';
 
 /// Collapsible currency section with accordion behavior
 ///
-/// Shows currency header with expand/collapse arrow
-class CollapsibleCurrencySection extends StatefulWidget {
+/// Uses TossExpandableCardAnimated as base for consistency
+/// with other expandable cards in the app.
+///
+/// Shows currency header with expand/collapse arrow, denomination inputs,
+/// and always-visible subtotal footer.
+class CollapsibleCurrencySection extends StatelessWidget {
   final Currency currency;
   final Map<String, TextEditingController> controllers;
   final Map<String, FocusNode> focusNodes;
@@ -24,7 +28,7 @@ class CollapsibleCurrencySection extends StatefulWidget {
   final VoidCallback onChanged;
   final bool isExpanded;
   final VoidCallback? onToggle;
-  final String? baseCurrencySymbol; // For exchange rate display
+  final String? baseCurrencySymbol;
 
   const CollapsibleCurrencySection({
     super.key,
@@ -39,161 +43,110 @@ class CollapsibleCurrencySection extends StatefulWidget {
   });
 
   @override
-  State<CollapsibleCurrencySection> createState() => _CollapsibleCurrencySectionState();
-}
-
-class _CollapsibleCurrencySectionState extends State<CollapsibleCurrencySection> {
-  void _toggle() {
-    widget.onToggle?.call();
+  Widget build(BuildContext context) {
+    return TossExpandableCardAnimated(
+      // Custom header with currency name and exchange rate
+      headerWidget: _buildCurrencyHeader(),
+      isExpanded: isExpanded,
+      onToggle: onToggle ?? () {},
+      // Styling to match original
+      backgroundColor: TossColors.white,
+      borderColor: TossColors.gray100,
+      borderRadius: TossBorderRadius.lg,
+      dividerColor: TossColors.gray200,
+      alwaysShowDivider: true,
+      iconColor: TossColors.gray700,
+      // Header padding
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      // Content padding
+      contentPadding: const EdgeInsets.only(
+        left: TossSpacing.space4,
+        right: TossSpacing.space4,
+        top: TossSpacing.space4,
+      ),
+      // Denomination inputs content
+      content: _buildDenominationContent(),
+      // Footer padding
+      footerPadding: const EdgeInsets.all(TossSpacing.space4),
+      // Always-visible subtotal footer
+      footer: _buildSubtotalFooter(),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(
-          color: TossColors.gray100,
-          width: 1,
+  /// Builds the currency header with name and optional exchange rate
+  Widget _buildCurrencyHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          '${currency.currencyCode} • ${currency.currencyName}',
+          style: TossTextStyles.cardTitle,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Currency header (clickable)
-          GestureDetector(
-            onTap: _toggle,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.space4,
-                vertical: TossSpacing.space3,
-              ),
-              child: Row(
-                children: [
-                  // Currency name with exchange rate on same line for non-base currencies
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          '${widget.currency.currencyCode} • ${widget.currency.currencyName}',
-                          style: TossTextStyles.titleMedium.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        // Show exchange rate on same line for non-base currencies
-                        if (!widget.currency.isBaseCurrency && widget.currency.exchangeRateToBase != 1.0) ...[
-                          SizedBox(width: TossSpacing.space2),
-                          Text(
-                            '1 ${widget.currency.currencyCode} = ${widget.baseCurrencySymbol ?? ''}${NumberFormat('#,##0.00').format(widget.currency.exchangeRateToBase)}',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray500,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  AnimatedRotation(
-                    turns: widget.isExpanded ? 0.5 : 0.0,
-                    duration: TossAnimations.fast,
-                    curve: TossAnimations.standard,
-                    child: const Icon(
-                      Icons.keyboard_arrow_down,
-                      color: TossColors.gray700,
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Divider (full width - no padding)
-          Container(
-            height: 1,
-            color: TossColors.gray200,
-          ),
-
-          // Expanded content with smooth bottom-to-top animation
-          ClipRect(
-            child: AnimatedAlign(
-              duration: TossAnimations.fast,
-              curve: TossAnimations.standard,
-              heightFactor: widget.isExpanded ? 1.0 : 0.0,
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: TossSpacing.space4,
-                  right: TossSpacing.space4,
-                  top: TossSpacing.space4,
-                ),
-                child: Column(
-                  children: [
-                    // Grid header
-                    DenominationGridHeader(currencyCode: widget.currency.currencyCode),
-
-                    SizedBox(height: TossSpacing.space1),
-
-                    // Denomination inputs
-                    ...widget.currency.denominations.map((denom) {
-                      final controller = widget.controllers[denom.denominationId];
-                      final focusNode = widget.focusNodes[denom.denominationId];
-
-                      if (controller == null || focusNode == null) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return DenominationInput(
-                        denomination: denom,
-                        controller: controller,
-                        focusNode: focusNode,
-                        currencySymbol: widget.currency.symbol,
-                        onChanged: widget.onChanged,
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Subtotal (always visible)
-          // Use ListenableBuilder to update when any denomination quantity changes
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              TossSpacing.space4,  // left = 16px
-              TossSpacing.space4,  // top = 16px (reduced from 28px)
-              TossSpacing.space4,  // right = 16px
-              TossSpacing.space4,  // bottom = 16px (reduced from 28px)
-            ),
-            child: ListenableBuilder(
-              listenable: Listenable.merge(widget.controllers.values.toList()),
-              builder: (context, _) {
-                // Calculate subtotal from controller values
-                double subtotal = 0.0;
-                for (final denomination in widget.currency.denominations) {
-                  final controller = widget.controllers[denomination.denominationId];
-                  if (controller != null) {
-                    final quantity = int.tryParse(controller.text.trim()) ?? 0;
-                    subtotal += denomination.value * quantity;
-                  }
-                }
-
-                // Subtotal label (exchange rate is now shown in header)
-                return TotalDisplay(
-                  totalAmount: subtotal,
-                  currencySymbol: widget.currency.symbol,
-                  label: 'Subtotal ${widget.currency.currencyCode}',
-                );
-              },
-            ),
+        // Show exchange rate for non-base currencies
+        if (!currency.isBaseCurrency && currency.exchangeRateToBase != 1.0) ...[
+          const SizedBox(width: TossSpacing.space2),
+          Text(
+            '1 ${currency.currencyCode} = ${baseCurrencySymbol ?? ''}${NumberFormat('#,##0.00').format(currency.exchangeRateToBase)}',
+            style: TossTextStyles.secondaryText,
           ),
         ],
-      ),
+      ],
+    );
+  }
+
+  /// Builds the denomination inputs section
+  Widget _buildDenominationContent() {
+    return Column(
+      children: [
+        // Grid header
+        DenominationGridHeader(currencyCode: currency.currencyCode),
+        const SizedBox(height: TossSpacing.space1),
+        // Denomination inputs
+        ...currency.denominations.map((denom) {
+          final controller = controllers[denom.denominationId];
+          final focusNode = focusNodes[denom.denominationId];
+
+          if (controller == null || focusNode == null) {
+            return const SizedBox.shrink();
+          }
+
+          return DenominationInput(
+            denomination: denom,
+            controller: controller,
+            focusNode: focusNode,
+            currencySymbol: currency.symbol,
+            onChanged: onChanged,
+          );
+        }),
+      ],
+    );
+  }
+
+  /// Builds the always-visible subtotal footer with reactive updates
+  Widget _buildSubtotalFooter() {
+    return ListenableBuilder(
+      listenable: Listenable.merge(controllers.values.toList()),
+      builder: (context, _) {
+        // Calculate subtotal from controller values
+        double subtotal = 0.0;
+        for (final denomination in currency.denominations) {
+          final controller = controllers[denomination.denominationId];
+          if (controller != null) {
+            final quantity = int.tryParse(controller.text.trim()) ?? 0;
+            subtotal += denomination.value * quantity;
+          }
+        }
+
+        return TotalDisplay(
+          totalAmount: subtotal,
+          currencySymbol: currency.symbol,
+          label: 'Subtotal ${currency.currencyCode}',
+        );
+      },
     );
   }
 }

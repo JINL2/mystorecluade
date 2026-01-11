@@ -1,11 +1,12 @@
 /// Atoms - Basic UI building blocks
 ///
 /// The smallest, indivisible UI components:
-/// - buttons/  : TossButton (primary/secondary/outlined/text variants), ToggleButton
+/// - buttons/  : TossButton, TossIconButton, ToggleButton
 /// - inputs/   : TossTextField, TossSearchField
 /// - display/  : TossBadge, TossChip, InfoRow, Avatars, Images
 /// - feedback/ : TossLoadingView, TossEmptyView, TossErrorView, TossRefreshIndicator
 /// - layout/   : GrayDividerSpace, TossSectionHeader
+/// - sheets/   : DragHandle, CheckIndicator, IconContainer, AvatarCircle
 ///
 /// NOTE: TossCard is a Molecule (has animations) - uses molecules/cards/
 /// NOTE: TossEnhancedTextField is a Molecule (not Atom) - uses molecules/inputs/
@@ -14,6 +15,7 @@ library;
 // ═══════════════════════════════════════════════════════════════
 // BUTTONS
 export 'buttons/toss_button.dart';
+export 'buttons/toss_icon_button.dart';
 export 'buttons/toggle_button.dart';
 // INPUTS
 export 'inputs/toss_text_field.dart';
@@ -34,3 +36,5 @@ export 'feedback/toss_toast.dart';
 // LAYOUT
 export 'layout/gray_divider_space.dart';
 export 'layout/toss_section_header.dart';
+// SHEETS
+export 'sheets/index.dart';

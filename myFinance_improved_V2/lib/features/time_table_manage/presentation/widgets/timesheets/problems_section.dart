@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toggle_button.dart';
 import 'staff_timelog_card.dart' show StaffTimeRecord;
 import '../../pages/staff_timelog_detail_page.dart';
 import 'problem_card.dart';
@@ -51,26 +52,27 @@ class ProblemsSection extends StatelessWidget {
         const SizedBox(height: TossSpacing.space3),
 
         // Filter Chips
-        TossChipGroup(
+        ToggleButtonGroup(
           items: [
-            TossChipItem(
-              value: 'today',
+            ToggleButtonItem(
+              id: 'today',
               label: 'Today',
               count: todayCount,
             ),
-            TossChipItem(
-              value: 'this_week',
+            ToggleButtonItem(
+              id: 'this_week',
               label: 'This week',
               count: thisWeekCount,
             ),
-            TossChipItem(
-              value: 'this_month',
+            ToggleButtonItem(
+              id: 'this_month',
               label: 'This month',
               count: thisMonthCount,
             ),
           ],
-          selectedValue: selectedFilter,
-          onChanged: onFilterChanged,
+          selectedId: selectedFilter ?? 'today',
+          onToggle: (value) => onFilterChanged(value),
+          layout: ToggleButtonLayout.expanded,
         ),
 
         const SizedBox(height: TossSpacing.space3),

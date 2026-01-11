@@ -285,6 +285,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                       currencySymbol: currencySymbol,
                       cartItems: cart,
                       onCreateInvoice: () => _navigateToPayment(cart),
+                      onReset: () => ref.read(cartNotifierProvider.notifier).clearCart(),
                       onItemTap: _searchAndScrollToProduct,
                     ),
                   ),

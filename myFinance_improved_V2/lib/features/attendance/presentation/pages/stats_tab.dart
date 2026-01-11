@@ -152,6 +152,8 @@ class _StatsTabState extends ConsumerState<StatsTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Extra spacing above content (matching MyScheduleTab)
+              const SizedBox(height: TossSpacing.space4),
               // Hero Salary Display (company-wide data)
               Padding(
                 padding: EdgeInsets.all(TossSpacing.paddingMD),

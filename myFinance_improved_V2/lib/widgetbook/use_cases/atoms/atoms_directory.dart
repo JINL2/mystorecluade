@@ -27,8 +27,14 @@ import 'inputs/toss_search_field_use_case.dart';
 import 'layout/toss_section_header_use_case.dart';
 import 'layout/gray_divider_space_use_case.dart';
 
+// Sheets
+import 'sheets/avatar_circle_use_case.dart';
+import 'sheets/check_indicator_use_case.dart';
+import 'sheets/drag_handle_use_case.dart';
+import 'sheets/icon_container_use_case.dart';
+
 final atomsDirectory = WidgetbookCategory(
-  name: 'Atoms (17)',
+  name: 'Atoms (21)',
   children: [
     WidgetbookFolder(
       name: 'Buttons (2)',
@@ -71,6 +77,15 @@ final atomsDirectory = WidgetbookCategory(
       children: [
         tossSectionHeaderComponent,
         grayDividerSpaceComponent,
+      ],
+    ),
+    WidgetbookFolder(
+      name: 'Sheets (4)',
+      children: [
+        avatarCircleComponent,
+        checkIndicatorComponent,
+        dragHandleComponent,
+        iconContainerComponent,
       ],
     ),
   ],

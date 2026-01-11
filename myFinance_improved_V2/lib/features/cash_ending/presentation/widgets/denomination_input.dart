@@ -56,10 +56,7 @@ class DenominationInput extends StatelessWidget {
           Expanded(
             child: Text(
               '$currencySymbol$formattedAmount',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: TossColors.gray900,
-              ),
+              style: TossTextStyles.denominationValue,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               textAlign: TextAlign.left,
@@ -96,10 +93,9 @@ class DenominationInput extends StatelessWidget {
 
                 return Text(
                   subtotalText,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: isZero ? TossColors.gray400 : TossColors.gray900,
-                  ),
+                  style: isZero
+                      ? TossTextStyles.amountZero
+                      : TossTextStyles.denominationValue,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   textAlign: TextAlign.right,

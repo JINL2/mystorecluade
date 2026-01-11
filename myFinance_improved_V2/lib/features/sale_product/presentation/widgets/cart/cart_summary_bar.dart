@@ -17,6 +17,7 @@ class CartSummaryBar extends StatefulWidget {
   final int itemCount;
   final double subtotal;
   final VoidCallback onCreateInvoice;
+  final VoidCallback? onReset;
   final String currencySymbol;
   final List<CartItem> cartItems;
   /// Callback when cart item is tapped
@@ -28,6 +29,7 @@ class CartSummaryBar extends StatefulWidget {
     required this.itemCount,
     required this.subtotal,
     required this.onCreateInvoice,
+    this.onReset,
     this.currencySymbol = '\$',
     this.cartItems = const [],
     this.onItemTap,
@@ -172,19 +174,35 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
               ),
             ],
             const SizedBox(height: TossSpacing.space3),
-            // Create invoice button
+            // Create invoice button (with optional reset button)
             Padding(
               padding: const EdgeInsets.only(
                 left: TossSpacing.paddingMD,
                 right: TossSpacing.paddingMD,
                 bottom: TossSpacing.paddingMD,
               ),
-              child: SizedBox(
-                width: double.infinity,
-                child: TossButton.primary(
-                  text: 'Create invoice',
-                  onPressed: widget.onCreateInvoice,
-                ),
+              child: Row(
+                children: [
+                  // Reset button (1/3 width) - only show when items are selected
+                  if (widget.itemCount > 0 && widget.onReset != null) ...[
+                    Expanded(
+                      flex: 1,
+                      child: TossButton.outlined(
+                        text: 'Reset',
+                        onPressed: widget.onReset,
+                      ),
+                    ),
+                    const SizedBox(width: TossSpacing.space2),
+                  ],
+                  // Create invoice button (2/3 width when reset visible, full width otherwise)
+                  Expanded(
+                    flex: widget.itemCount > 0 && widget.onReset != null ? 2 : 1,
+                    child: TossButton.primary(
+                      text: 'Create invoice',
+                      onPressed: widget.onCreateInvoice,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

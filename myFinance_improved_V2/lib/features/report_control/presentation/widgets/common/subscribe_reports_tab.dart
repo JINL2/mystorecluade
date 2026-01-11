@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/themes/index.dart';
+import '../../../../../shared/widgets/atoms/buttons/toggle_button.dart';
 import '../../../domain/entities/template_with_subscription.dart';
 import '../../constants/report_strings.dart';
 import '../../providers/report_provider.dart';
@@ -69,28 +70,27 @@ class _SubscribeReportsTabState extends ConsumerState<SubscribeReportsTab> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Category chips
-              TossChipGroup(
+              ToggleButtonGroup(
                 items: [
-                  TossChipItem(
-                    value: '',
+                  ToggleButtonItem(
+                    id: '',
                     label: ReportStrings.filterAll,
                     count: state.availableTemplates.length,
                   ),
-                  ...state.categories.map((category) => TossChipItem(
-                        value: category.categoryId,
+                  ...state.categories.map((category) => ToggleButtonItem(
+                        id: category.categoryId,
                         label: category.categoryName,
                         count: _getCategoryTemplateCount(
                             state, category.categoryId),
                       )),
                 ],
-                selectedValue: _selectedCategoryFilter ?? '',
-                onChanged: (value) {
+                selectedId: _selectedCategoryFilter ?? '',
+                onToggle: (value) {
                   setState(() {
                     _selectedCategoryFilter = value == '' ? null : value;
                   });
                 },
-                spacing: TossSpacing.space2,
-                runSpacing: TossSpacing.space2,
+                layout: ToggleButtonLayout.expanded,
               ),
               SizedBox(height: TossSpacing.space2),
               // Stats row

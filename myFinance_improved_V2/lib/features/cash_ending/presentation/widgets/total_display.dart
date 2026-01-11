@@ -3,8 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 
 /// Total display widget
@@ -32,17 +30,11 @@ class TotalDisplay extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray600,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TossTextStyles.bodySecondary,
           ),
           Text(
             formattedAmount,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TossTextStyles.bodyMedium,
           ),
         ],
     );

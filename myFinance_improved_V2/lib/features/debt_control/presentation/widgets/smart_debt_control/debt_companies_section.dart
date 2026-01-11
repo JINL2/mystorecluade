@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/atoms/buttons/toggle_button.dart';
 import '../../providers/states/debt_control_state.dart';
 import 'debt_company_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -54,20 +55,15 @@ class DebtCompaniesSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
               horizontal: TossSpacing.space4,
             ),
-            child: TossChipGroup(
+            child: ToggleButtonGroup(
               items: const [
-                TossChipItem(value: 'all', label: 'All'),
-                TossChipItem(
-                    value: 'my_group', label: 'My Group', icon: Icons.people_outline),
-                TossChipItem(
-                    value: 'external', label: 'External', icon: Icons.public),
+                ToggleButtonItem(id: 'all', label: 'All'),
+                ToggleButtonItem(id: 'my_group', label: 'My Group', icon: Icons.people_outline),
+                ToggleButtonItem(id: 'external', label: 'External', icon: Icons.public),
               ],
-              selectedValue: selectedCompaniesTab,
-              onChanged: (value) {
-                if (value != null) {
-                  onFilterChanged(value);
-                }
-              },
+              selectedId: selectedCompaniesTab,
+              onToggle: onFilterChanged,
+              layout: ToggleButtonLayout.expanded,
             ),
           ),
         ),
