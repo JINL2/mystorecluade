@@ -7,7 +7,7 @@ part of 'account_settings_notifier.dart';
 // **************************************************************************
 
 String _$accountSettingsNotifierHash() =>
-    r'f663c7d6866699162cc54c541fc82457dc7cbe12';
+    r'eab5cb54baa9b436172cd3e16f9922b2030b92f0';
 
 /// Copied from Dart SDK
 class _SystemHash {

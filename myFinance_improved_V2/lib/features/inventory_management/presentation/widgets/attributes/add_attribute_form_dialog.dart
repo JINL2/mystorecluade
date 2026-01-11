@@ -11,7 +11,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 // Re-export for backward compatibility (prevents DCM false positive)
 export '../../../domain/entities/attribute_types.dart';
 
-/// Dialog for adding a new attribute
+/// Dialog for adding a new attribute with options
 class AddAttributeFormDialog extends StatefulWidget {
   const AddAttributeFormDialog({super.key});
 
@@ -29,53 +29,66 @@ class AddAttributeFormDialog extends StatefulWidget {
 
 class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
   final TextEditingController _nameController = TextEditingController();
-  AttributeType _selectedType = AttributeType.text;
+  final List<TextEditingController> _optionControllers = [];
+  final FocusNode _nameFocusNode = FocusNode();
 
   @override
   void dispose() {
     _nameController.dispose();
+    _nameFocusNode.dispose();
+    for (final controller in _optionControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
-  Future<void> _showTypeSelector() async {
-    final items = AttributeType.values.map((type) {
-      return TossSelectionItem(
-        id: type.name,
-        title: type.label,
-      );
-    }).toList();
+  void _addOption() {
+    setState(() {
+      _optionControllers.add(TextEditingController());
+    });
+    // Focus the new option field after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_optionControllers.isNotEmpty) {
+        FocusScope.of(context).nextFocus();
+      }
+    });
+  }
 
-    final result = await TossSelectionBottomSheet.show<TossSelectionItem>(
-      context: context,
-      title: 'Select Type',
-      items: items,
-      selectedId: _selectedType.name,
-      maxHeightFraction: 0.4,
-      showSubtitle: false,
-      showIcon: false,
-      checkIcon: LucideIcons.check,
-      borderBottomWidth: 0,
-      showSelectedBackground: false,
-    );
-
-    if (result != null) {
-      setState(() {
-        _selectedType =
-            AttributeType.values.firstWhere((t) => t.name == result.id);
-      });
-    }
+  void _removeOption(int index) {
+    setState(() {
+      _optionControllers[index].dispose();
+      _optionControllers.removeAt(index);
+    });
   }
 
   void _onAdd() {
-    if (_nameController.text.trim().isNotEmpty) {
-      Navigator.pop(
-        context,
-        AddAttributeResult(
-          name: _nameController.text.trim(),
-          type: _selectedType,
-        ),
-      );
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      TossToast.warning(context, 'Please enter attribute name');
+      return;
     }
+
+    // Build options list from non-empty option values
+    final options = <AttributeOptionItem>[];
+    for (int i = 0; i < _optionControllers.length; i++) {
+      final value = _optionControllers[i].text.trim();
+      if (value.isNotEmpty) {
+        options.add(
+          AttributeOptionItem(
+            value: value,
+            sortOrder: i + 1,
+          ),
+        );
+      }
+    }
+
+    Navigator.pop(
+      context,
+      AddAttributeResult(
+        name: name,
+        options: options,
+      ),
+    );
   }
 
   @override
@@ -85,95 +98,198 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TossBorderRadius.xl),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Center(
-              child: Text(
-                'Add Attribute',
-                style: TossTextStyles.h3.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: TossColors.gray900,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: 400,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(TossSpacing.space6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Center(
+                child: Text(
+                  'Add Attribute',
+                  style: TossTextStyles.h3.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: TossColors.gray900,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Name input
-            TossTextField(
-              label: 'Name',
-              controller: _nameController,
-              hintText: 'Enter attribute name',
-            ),
-            const SizedBox(height: 20),
+              // Scrollable content area
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name input
+                      TossTextField(
+                        label: 'Name',
+                        controller: _nameController,
+                        hintText: 'Enter attribute name',
+                        focusNode: _nameFocusNode,
+                        autofocus: true,
+                      ),
+                      const SizedBox(height: 20),
 
-            // Type selector
+                      // Options section
+                      _buildOptionsSection(),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Action buttons (fixed at bottom)
+              Row(
+                children: [
+                  Expanded(
+                    child: TossButton.textButton(
+                      text: 'Cancel',
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TossButton.primary(
+                      text: 'Add',
+                      onPressed: _onAdd,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
             Text(
-              'Type',
+              'Options',
               style: TossTextStyles.caption.copyWith(
                 fontWeight: FontWeight.w500,
                 color: TossColors.gray600,
               ),
             ),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: _showTypeSelector,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: TossColors.gray200),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _selectedType.label,
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray900,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      LucideIcons.chevronDown,
-                      size: 18,
-                      color: TossColors.gray400,
-                    ),
-                  ],
-                ),
+            Text(
+              'Optional',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.gray400,
               ),
             ),
-            const SizedBox(height: 24),
+          ],
+        ),
+        const SizedBox(height: 12),
 
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: TossButton.textButton(
-                    text: 'Cancel',
-                    onPressed: () => Navigator.pop(context),
-                  ),
+        // Options list
+        ..._optionControllers.asMap().entries.map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < _optionControllers.length - 1 ? 8 : 0,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TossButton.primary(
-                    text: 'Add',
-                    onPressed: _onAdd,
+                child: _buildOptionRow(entry.key),
+              ),
+            ),
+
+        // Add option button
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: _addOption,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: TossColors.gray200,
+                style: BorderStyle.solid,
+              ),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  LucideIcons.plus,
+                  size: 16,
+                  color: TossColors.gray500,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Add Option',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray500,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildOptionRow(int index) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _optionControllers[index],
+            decoration: InputDecoration(
+              hintText: 'Option ${index + 1}',
+              hintStyle: TossTextStyles.body.copyWith(
+                color: TossColors.gray400,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                borderSide: const BorderSide(color: TossColors.gray200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                borderSide: const BorderSide(color: TossColors.gray200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                borderSide: const BorderSide(color: TossColors.primary),
+              ),
+            ),
+            style: TossTextStyles.body.copyWith(
+              color: TossColors.gray900,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => _removeOption(index),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: const Icon(
+              LucideIcons.x,
+              size: 18,
+              color: TossColors.gray400,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

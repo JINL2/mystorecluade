@@ -82,6 +82,7 @@ mixin _$ShiftAuditLogDto {
   Map<String, dynamic>? get profiles => throw _privateConstructorUsedError;
 
   /// Event-specific data (contains employee_name, store_name, etc.)
+  /// Structure varies by event type
   @JsonKey(name: 'event_data')
   Map<String, dynamic>? get eventData => throw _privateConstructorUsedError;
 
@@ -501,9 +502,11 @@ class _$ShiftAuditLogDtoImpl implements _ShiftAuditLogDto {
   }
 
   /// Event-specific data (contains employee_name, store_name, etc.)
+  /// Structure varies by event type
   final Map<String, dynamic>? _eventData;
 
   /// Event-specific data (contains employee_name, store_name, etc.)
+  /// Structure varies by event type
   @override
   @JsonKey(name: 'event_data')
   Map<String, dynamic>? get eventData {
@@ -549,7 +552,8 @@ class _$ShiftAuditLogDtoImpl implements _ShiftAuditLogDto {
             const DeepCollectionEquality().equals(other._newData, _newData) &&
             const DeepCollectionEquality().equals(other._oldData, _oldData) &&
             const DeepCollectionEquality().equals(other._profiles, _profiles) &&
-            const DeepCollectionEquality().equals(other._eventData, _eventData));
+            const DeepCollectionEquality()
+                .equals(other._eventData, _eventData));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -602,7 +606,8 @@ abstract class _ShiftAuditLogDto implements ShiftAuditLogDto {
           final Map<String, dynamic>? changeDetails,
           @JsonKey(name: 'changed_by') final String? changedBy,
           @JsonKey(name: 'changed_by_name') final String? changedByName,
-          @JsonKey(name: 'changed_by_profile_image') final String? changedByProfileImage,
+          @JsonKey(name: 'changed_by_profile_image')
+          final String? changedByProfileImage,
           @JsonKey(name: 'changed_at') final String? changedAt,
           @JsonKey(name: 'reason') final String? reason,
           @JsonKey(name: 'new_data') final Map<String, dynamic>? newData,
@@ -691,6 +696,7 @@ abstract class _ShiftAuditLogDto implements ShiftAuditLogDto {
   Map<String, dynamic>? get profiles;
 
   /// Event-specific data (contains employee_name, store_name, etc.)
+  /// Structure varies by event type
   @override
   @JsonKey(name: 'event_data')
   Map<String, dynamic>? get eventData;

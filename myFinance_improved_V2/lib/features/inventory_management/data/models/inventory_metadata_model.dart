@@ -21,6 +21,7 @@ class InventoryMetadataModel extends InventoryMetadataDto {
     required super.validationRules,
     required super.allowCustomValues,
     required super.stockStatusLevels,
+    required super.attributes,
   });
 
   factory InventoryMetadataModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +38,7 @@ class InventoryMetadataModel extends InventoryMetadataDto {
       validationRules: dto.validationRules,
       allowCustomValues: dto.allowCustomValues,
       stockStatusLevels: dto.stockStatusLevels,
+      attributes: dto.attributes,
     );
   }
 

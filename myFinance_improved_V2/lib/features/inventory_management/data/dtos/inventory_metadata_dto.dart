@@ -14,6 +14,7 @@ class InventoryMetadataDto {
   final ValidationRulesDto validationRules;
   final AllowCustomValuesDto allowCustomValues;
   final List<StockStatusLevelDto> stockStatusLevels;
+  final List<AttributeDto> attributes;
 
   const InventoryMetadataDto({
     required this.stats,
@@ -27,6 +28,7 @@ class InventoryMetadataDto {
     required this.validationRules,
     required this.allowCustomValues,
     required this.stockStatusLevels,
+    required this.attributes,
   });
 
   factory InventoryMetadataDto.fromJson(Map<String, dynamic> json) {
@@ -88,6 +90,10 @@ class InventoryMetadataDto {
         .map((ssl) => StockStatusLevelDto.fromJson(ssl as Map<String, dynamic>))
         .toList();
 
+    final attributes = (json['attributes'] as List? ?? [])
+        .map((a) => AttributeDto.fromJson(a as Map<String, dynamic>))
+        .toList();
+
     return InventoryMetadataDto(
       stats: stats,
       units: units,
@@ -100,6 +106,7 @@ class InventoryMetadataDto {
       validationRules: validationRules,
       allowCustomValues: allowCustomValues,
       stockStatusLevels: stockStatusLevels,
+      attributes: attributes,
     );
   }
 }
@@ -305,6 +312,60 @@ class StockStatusLevelDto {
       color: (json['color'] ?? '') as String,
       label: (json['label'] ?? '') as String,
       level: (json['level'] ?? '') as String,
+    );
+  }
+}
+
+class AttributeDto {
+  final String id;
+  final String name;
+  final int sortOrder;
+  final bool isActive;
+  final int optionCount;
+  final List<AttributeOptionDto> options;
+
+  const AttributeDto({
+    required this.id,
+    required this.name,
+    required this.sortOrder,
+    required this.isActive,
+    required this.optionCount,
+    required this.options,
+  });
+
+  factory AttributeDto.fromJson(Map<String, dynamic> json) {
+    return AttributeDto(
+      id: (json['attribute_id'] ?? '') as String,
+      name: (json['attribute_name'] ?? '') as String,
+      sortOrder: (json['sort_order'] ?? 0) as int,
+      isActive: (json['is_active'] ?? true) as bool,
+      optionCount: (json['option_count'] ?? 0) as int,
+      options: (json['options'] as List? ?? [])
+          .map((o) => AttributeOptionDto.fromJson(o as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class AttributeOptionDto {
+  final String id;
+  final String value;
+  final int sortOrder;
+  final bool isActive;
+
+  const AttributeOptionDto({
+    required this.id,
+    required this.value,
+    required this.sortOrder,
+    required this.isActive,
+  });
+
+  factory AttributeOptionDto.fromJson(Map<String, dynamic> json) {
+    return AttributeOptionDto(
+      id: (json['option_id'] ?? '') as String,
+      value: (json['option_value'] ?? '') as String,
+      sortOrder: (json['sort_order'] ?? 0) as int,
+      isActive: (json['is_active'] ?? true) as bool,
     );
   }
 }

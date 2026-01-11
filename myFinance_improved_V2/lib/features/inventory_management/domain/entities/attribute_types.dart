@@ -11,13 +11,29 @@ enum AttributeType {
   const AttributeType(this.label);
 }
 
+/// Option item for attribute
+class AttributeOptionItem {
+  final String value;
+  final int sortOrder;
+
+  const AttributeOptionItem({
+    required this.value,
+    required this.sortOrder,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'option_value': value,
+        'sort_order': sortOrder,
+      };
+}
+
 /// Result from add attribute dialog
 class AddAttributeResult {
   final String name;
-  final AttributeType type;
+  final List<AttributeOptionItem> options;
 
   const AddAttributeResult({
     required this.name,
-    required this.type,
+    this.options = const [],
   });
 }

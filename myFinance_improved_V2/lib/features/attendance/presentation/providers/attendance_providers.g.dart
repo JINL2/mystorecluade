@@ -210,7 +210,7 @@ final getUserShiftStatsUseCaseProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef GetUserShiftStatsUseCaseRef = AutoDisposeProviderRef<GetUserShiftStats>;
-String _$currentShiftHash() => r'989625e62396f9cd85bd2a83d7455cca268e8242';
+String _$currentShiftHash() => r'a8beb272e402d429f9737bf7d89b9b538141292e';
 
 /// Provider for current shift status
 /// Uses Either pattern - throws exception on Left for AsyncValue.error handling

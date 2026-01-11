@@ -63,6 +63,7 @@ abstract class InventoryRepository {
   });
 
   /// Update existing product
+  /// Supports adding variants via attributeId and addVariants parameters
   Future<Product?> updateProduct({
     required String productId,
     required String companyId,
@@ -80,6 +81,9 @@ abstract class InventoryRepository {
     String? flowType,
     List<String>? imageUrls,
     bool defaultPrice = false,
+    String? variantId,
+    String? attributeId,
+    List<Map<String, dynamic>>? addVariants,
   });
 
   /// Delete products
@@ -146,6 +150,13 @@ abstract class InventoryRepository {
     required String storeId,
     required int page,
     required int pageSize,
+  });
+
+  /// Create new attribute with optional options
+  Future<CreateAttributeResult> createAttributeAndOption({
+    required String companyId,
+    required String attributeName,
+    List<Map<String, dynamic>>? options,
   });
 }
 
@@ -230,7 +241,7 @@ class MoveProductResult {
   }
 }
 
-/// Product Stock By Stores Result - result from inventory_product_stock_stores RPC
+/// Product Stock By Stores Result - result from inventory_product_stock_stores_v2 RPC
 class ProductStockByStoresResult {
   final List<ProductStoreStock> products;
 
@@ -239,18 +250,48 @@ class ProductStockByStoresResult {
   });
 }
 
-/// Product with store-specific stock information
+/// Product with store-specific stock information (v2 supports variants)
 class ProductStoreStock {
   final String productId;
   final String productName;
   final String sku;
+  final bool hasVariants;
   final int totalQuantity;
-  final List<StoreStock> stores;
+  final List<VariantStoreStock> variants; // For products WITH variants
+  final List<StoreStock> stores; // For products WITHOUT variants
 
   const ProductStoreStock({
     required this.productId,
     required this.productName,
     required this.sku,
+    required this.hasVariants,
+    required this.totalQuantity,
+    required this.variants,
+    required this.stores,
+  });
+
+  /// Get stores for a specific variant (by variantId)
+  List<StoreStock> getStoresForVariant(String variantId) {
+    final variant = variants.cast<VariantStoreStock?>().firstWhere(
+      (v) => v?.variantId == variantId,
+      orElse: () => null,
+    );
+    return variant?.stores ?? [];
+  }
+}
+
+/// Variant with store-specific stock information
+class VariantStoreStock {
+  final String variantId;
+  final String variantName;
+  final String variantSku;
+  final int totalQuantity;
+  final List<StoreStock> stores;
+
+  const VariantStoreStock({
+    required this.variantId,
+    required this.variantName,
+    required this.variantSku,
     required this.totalQuantity,
     required this.stores,
   });
@@ -552,5 +593,33 @@ class InventoryHistoryEntry {
     this.createdUser,
     this.createdUserProfileImage,
     required this.createdAt,
+  });
+}
+
+/// Result from inventory_create_attribute_and_option RPC
+class CreateAttributeResult {
+  final String attributeId;
+  final String attributeName;
+  final int optionsCreated;
+  final List<CreatedAttributeOption> options;
+
+  const CreateAttributeResult({
+    required this.attributeId,
+    required this.attributeName,
+    required this.optionsCreated,
+    required this.options,
+  });
+}
+
+/// Created option data
+class CreatedAttributeOption {
+  final String optionId;
+  final String optionValue;
+  final int sortOrder;
+
+  const CreatedAttributeOption({
+    required this.optionId,
+    required this.optionValue,
+    required this.sortOrder,
   });
 }

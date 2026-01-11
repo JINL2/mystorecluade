@@ -920,7 +920,7 @@ class _CompanyCurrencyProviderElement
 }
 
 String _$financialStatementsPageNotifierHash() =>
-    r'7eeae1157faba419d44d22916d738ad5577cb126';
+    r'd1618f601a7d32e02550117832a90a1b68f584e9';
 
 /// See also [FinancialStatementsPageNotifier].
 @ProviderFor(FinancialStatementsPageNotifier)

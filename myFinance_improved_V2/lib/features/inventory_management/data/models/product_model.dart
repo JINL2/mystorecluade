@@ -33,6 +33,15 @@ class ProductModel extends ProductDto {
     super.quantityReserved,
     super.createdAt,
     super.updatedAt,
+    // v6 variant fields
+    super.variantId,
+    super.variantName,
+    super.variantSku,
+    super.variantBarcode,
+    super.displayName,
+    super.displaySku,
+    super.displayBarcode,
+    super.hasVariants = false,
   });
 
   // From JSON - delegates to ProductDto
@@ -62,6 +71,15 @@ class ProductModel extends ProductDto {
       quantityReserved: dto.quantityReserved,
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt,
+      // v6 variant fields
+      variantId: dto.variantId,
+      variantName: dto.variantName,
+      variantSku: dto.variantSku,
+      variantBarcode: dto.variantBarcode,
+      displayName: dto.displayName,
+      displaySku: dto.displaySku,
+      displayBarcode: dto.displayBarcode,
+      hasVariants: dto.hasVariants,
     );
   }
 
@@ -97,6 +115,15 @@ class ProductModel extends ProductDto {
       quantityReserved: dto.quantityReserved,
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt,
+      // v6 variant fields
+      variantId: dto.variantId,
+      variantName: dto.variantName,
+      variantSku: dto.variantSku,
+      variantBarcode: dto.variantBarcode,
+      displayName: dto.displayName,
+      displaySku: dto.displaySku,
+      displayBarcode: dto.displayBarcode,
+      hasVariants: dto.hasVariants,
     );
   }
 }

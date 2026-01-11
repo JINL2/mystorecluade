@@ -84,20 +84,20 @@ class InventoryProductCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Product name
+                      // Product name (use displayName for variants, fallback to name)
                       Text(
-                        product.name,
+                        product.displayName ?? product.name,
                         style: TossTextStyles.bodyMedium.copyWith(
                           fontWeight: FontWeight.w600,
                           color: TossColors.gray900,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      // SKU row with quantity pill
+                      // SKU row with quantity pill (use displaySku for variants)
                       Row(
                         children: [
                           Text(
-                            product.sku,
+                            product.displaySku ?? product.sku,
                             style: TossTextStyles.bodySmall.copyWith(
                               fontWeight: FontWeight.w500,
                               color: TossColors.gray600,

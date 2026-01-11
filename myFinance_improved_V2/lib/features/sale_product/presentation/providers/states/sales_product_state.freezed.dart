@@ -16,7 +16,9 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$SalesProductState {
-  List<SalesProduct> get products => throw _privateConstructorUsedError;
+  List<SalesProduct> get products =>
+      throw _privateConstructorUsedError; // 2025 Best Practice: Start with isLoading=true to show loading on first frame
+// This prevents flash of empty content before data loads
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isLoadingMore => throw _privateConstructorUsedError;
   bool get isRefreshing => throw _privateConstructorUsedError;
@@ -254,6 +256,8 @@ class _$SalesProductStateImpl extends _SalesProductState {
     return EqualUnmodifiableListView(_products);
   }
 
+// 2025 Best Practice: Start with isLoading=true to show loading on first frame
+// This prevents flash of empty content before data loads
   @override
   @JsonKey()
   final bool isLoading;
@@ -358,7 +362,9 @@ abstract class _SalesProductState extends SalesProductState {
   const _SalesProductState._() : super._();
 
   @override
-  List<SalesProduct> get products;
+  List<SalesProduct>
+      get products; // 2025 Best Practice: Start with isLoading=true to show loading on first frame
+// This prevents flash of empty content before data loads
   @override
   bool get isLoading;
   @override

@@ -256,6 +256,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? flowType,
     List<String>? imageUrls,
     bool defaultPrice = false,
+    String? variantId,
+    String? attributeId,
+    List<Map<String, dynamic>>? addVariants,
   }) async {
     try {
       final model = await _remoteDataSource.updateProduct(
@@ -275,6 +278,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
         flowType: flowType,
         imageUrls: imageUrls,
         defaultPrice: defaultPrice,
+        variantId: variantId,
+        attributeId: attributeId,
+        addVariants: addVariants,
       );
       return model.toEntity();
     } catch (e) {
@@ -426,12 +432,26 @@ class InventoryRepositoryImpl implements InventoryRepository {
         productIds: productIds,
       );
 
-      // Convert datasource model to domain entity
+      // Convert datasource model to domain entity (v2 supports variants)
       final products = result.products.map((p) => ProductStoreStock(
         productId: p.productId,
         productName: p.productName,
         sku: p.sku,
+        hasVariants: p.hasVariants,
         totalQuantity: p.totalQuantity,
+        // Convert variants for products WITH variants
+        variants: p.variants.map((v) => VariantStoreStock(
+          variantId: v.variantId,
+          variantName: v.variantName,
+          variantSku: v.variantSku,
+          totalQuantity: v.totalQuantity,
+          stores: v.stores.map((s) => StoreStock(
+            storeId: s.storeId,
+            storeName: s.storeName,
+            quantityOnHand: s.quantityOnHand,
+          )).toList(),
+        )).toList(),
+        // Convert stores for products WITHOUT variants
         stores: p.stores.map((s) => StoreStock(
           storeId: s.storeId,
           storeName: s.storeName,
@@ -648,5 +668,33 @@ class InventoryRepositoryImpl implements InventoryRepository {
         details: e,
       );
     }
+  }
+
+  /// Create new attribute with optional options
+  Future<CreateAttributeResult> createAttributeAndOption({
+    required String companyId,
+    required String attributeName,
+    List<Map<String, dynamic>>? options,
+  }) async {
+    final response = await _remoteDataSource.createAttributeAndOption(
+      companyId: companyId,
+      attributeName: attributeName,
+      options: options,
+    );
+
+    return CreateAttributeResult(
+      attributeId: response.attributeId,
+      attributeName: response.attributeName,
+      optionsCreated: response.optionsCreated,
+      options: response.options
+          .map(
+            (o) => CreatedAttributeOption(
+              optionId: o.optionId,
+              optionValue: o.optionValue,
+              sortOrder: o.sortOrder,
+            ),
+          )
+          .toList(),
+    );
   }
 }

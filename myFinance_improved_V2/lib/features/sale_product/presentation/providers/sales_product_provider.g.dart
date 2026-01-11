@@ -7,7 +7,7 @@ part of 'sales_product_provider.dart';
 // **************************************************************************
 
 String _$salesProductNotifierHash() =>
-    r'2134b69ed9348d51ce0959fb8815cdf651e7d804';
+    r'acc6081b413fbe66499c7b07979562567833167b';
 
 /// Sales product notifier - manages product loading and state
 ///

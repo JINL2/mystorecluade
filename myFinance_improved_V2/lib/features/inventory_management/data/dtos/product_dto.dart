@@ -26,6 +26,16 @@ class ProductDto {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  // v6 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? variantSku;
+  final String? variantBarcode;
+  final String? displayName;
+  final String? displaySku;
+  final String? displayBarcode;
+  final bool hasVariants;
+
   const ProductDto({
     required this.id,
     required this.name,
@@ -50,6 +60,15 @@ class ProductDto {
     this.quantityReserved,
     this.createdAt,
     this.updatedAt,
+    // v6 variant fields
+    this.variantId,
+    this.variantName,
+    this.variantSku,
+    this.variantBarcode,
+    this.displayName,
+    this.displaySku,
+    this.displayBarcode,
+    this.hasVariants = false,
   });
 
   // From JSON (RPC response parsing)
@@ -100,13 +119,13 @@ class ProductDto {
     return ProductDto(
       id: (json['id'] ?? json['product_id'] ?? '') as String,
       name: (json['name'] ?? json['product_name'] ?? '') as String,
-      sku: json['sku'] as String?,
-      barcode: json['barcode'] as String?,
+      sku: (json['sku'] ?? json['product_sku']) as String?,
+      barcode: (json['barcode'] ?? json['product_barcode']) as String?,
       price: parsedPrice,
       cost: parsedCost,
       stock: parsedStock,
-      minStock: json['min_stock'] as int?,
-      maxStock: json['max_stock'] as int?,
+      minStock: json['min_stock'] != null ? (json['min_stock'] as num).toInt() : null,
+      maxStock: json['max_stock'] != null ? (json['max_stock'] as num).toInt() : null,
       unit: json['unit'] as String?,
       categoryId: json['category_id'] as String?,
       categoryName: json['category_name'] as String?,
@@ -121,6 +140,15 @@ class ProductDto {
       quantityReserved: parsedQuantityReserved,
       createdAt: _parseDateTime(json['created_at']),
       updatedAt: _parseDateTime(json['updated_at']),
+      // v6 variant fields
+      variantId: json['variant_id'] as String?,
+      variantName: json['variant_name'] as String?,
+      variantSku: json['variant_sku'] as String?,
+      variantBarcode: json['variant_barcode'] as String?,
+      displayName: json['display_name'] as String?,
+      displaySku: json['display_sku'] as String?,
+      displayBarcode: json['display_barcode'] as String?,
+      hasVariants: (json['has_variants'] ?? false) as bool,
     );
   }
 
@@ -166,6 +194,15 @@ class ProductDto {
       'quantity_reserved': quantityReserved,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      // v6 variant fields
+      'variant_id': variantId,
+      'variant_name': variantName,
+      'variant_sku': variantSku,
+      'variant_barcode': variantBarcode,
+      'display_name': displayName,
+      'display_sku': displaySku,
+      'display_barcode': displayBarcode,
+      'has_variants': hasVariants,
     };
   }
 

@@ -913,8 +913,7 @@ class _$CashEndingStateImpl extends _CashEndingState {
                 other.vaultLocationJournalAmount ==
                     vaultLocationJournalAmount) &&
             (identical(other.vaultLocationRealAmount, vaultLocationRealAmount) ||
-                other.vaultLocationRealAmount ==
-                    vaultLocationRealAmount) &&
+                other.vaultLocationRealAmount == vaultLocationRealAmount) &&
             (identical(other.isLoadingVaultJournalAmount, isLoadingVaultJournalAmount) ||
                 other.isLoadingVaultJournalAmount ==
                     isLoadingVaultJournalAmount) &&
@@ -933,10 +932,8 @@ class _$CashEndingStateImpl extends _CashEndingState {
                 .equals(other._vaultLocations, _vaultLocations) &&
             const DeepCollectionEquality()
                 .equals(other._currencies, _currencies) &&
-            (identical(other.baseCurrency, baseCurrency) ||
-                other.baseCurrency == baseCurrency) &&
-            const DeepCollectionEquality()
-                .equals(other._recentCashEndings, _recentCashEndings) &&
+            (identical(other.baseCurrency, baseCurrency) || other.baseCurrency == baseCurrency) &&
+            const DeepCollectionEquality().equals(other._recentCashEndings, _recentCashEndings) &&
             (identical(other.isLoadingStores, isLoadingStores) || other.isLoadingStores == isLoadingStores) &&
             (identical(other.isLoadingCashLocations, isLoadingCashLocations) || other.isLoadingCashLocations == isLoadingCashLocations) &&
             (identical(other.isLoadingBankLocations, isLoadingBankLocations) || other.isLoadingBankLocations == isLoadingBankLocations) &&

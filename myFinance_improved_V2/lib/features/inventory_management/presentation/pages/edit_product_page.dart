@@ -62,6 +62,9 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   bool _isSaving = false;
   bool _isActive = true;
 
+  // Custom attributes: Map of attributeId -> selected optionId
+  final Map<String, String?> _selectedAttributeValues = {};
+
   Product? _product;
   bool _isLoadingProduct = false;
   bool _productNotFound = false;
@@ -79,6 +82,7 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   String? _originalCategoryId;
   String? _originalBrandId;
   List<String> _originalImageUrls = [];
+  Map<String, String?> _originalAttributeValues = {};
 
   /// Check if any field has been modified from original values
   bool get _hasChanges {
@@ -96,6 +100,9 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     if (_isActive != _originalIsActive) return true;
     if (_selectedCategory?.id != _originalCategoryId) return true;
     if (_selectedBrand?.id != _originalBrandId) return true;
+
+    // Attribute changes - compare with original values
+    if (!_mapEquals(_selectedAttributeValues, _originalAttributeValues)) return true;
 
     // Image changes
     if (_selectedImages.isNotEmpty) return true;
@@ -115,6 +122,15 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
       if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  /// Helper to compare two maps
+  bool _mapEquals(Map<String, String?> a, Map<String, String?> b) {
+    if (a.length != b.length) return false;
+    for (final key in a.keys) {
+      if (!b.containsKey(key) || a[key] != b[key]) return false;
     }
     return true;
   }
@@ -307,21 +323,39 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     _originalBrandId = _product!.brandId;
     _originalImageUrls = List.from(_product!.images);
 
-    // Load metadata to find category and brand
+    // Load metadata to find category, brand, and attribute for variants
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final metadataState = ref.read(inventoryMetadataNotifierProvider);
       if (metadataState.metadata != null) {
         setState(() {
+          // Find category
           for (final c in metadataState.metadata!.categories) {
             if (c.id == _product!.categoryId) {
               _selectedCategory = c;
               break;
             }
           }
+          // Find brand
           for (final b in metadataState.metadata!.brands) {
             if (b.id == _product!.brandId) {
               _selectedBrand = b;
               break;
+            }
+          }
+          // For variant products, find and set the attribute option based on variantName
+          if (_product!.variantId != null && _product!.variantName != null) {
+            final variantName = _product!.variantName!;
+            // Search through all attributes to find matching option
+            for (final attribute in metadataState.metadata!.attributes) {
+              for (final option in attribute.options) {
+                if (option.value == variantName) {
+                  _selectedAttributeValues[attribute.id] = option.id;
+                  // Store as original value so _hasChanges doesn't trigger
+                  _originalAttributeValues = Map.from(_selectedAttributeValues);
+                  break;
+                }
+              }
+              if (_selectedAttributeValues.containsKey(attribute.id)) break;
             }
           }
         });
@@ -487,7 +521,46 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           ? parsedOnHand
           : null;
 
-      // Step 4: Proceed with actual update (inventory_edit_product_v4)
+      // Step 4: Build variant data if attribute was selected for a non-variant product
+      String? attributeId;
+      List<Map<String, dynamic>>? addVariants;
+
+      // Check if product doesn't have variants and user selected an attribute option
+      if (_product?.hasVariants != true && _selectedAttributeValues.isNotEmpty) {
+        final metadataState = ref.read(inventoryMetadataNotifierProvider);
+        if (metadataState.metadata != null) {
+          // Get the first selected attribute (currently supporting single attribute)
+          final selectedEntry = _selectedAttributeValues.entries.first;
+          final selectedAttributeId = selectedEntry.key;
+          final selectedOptionId = selectedEntry.value;
+
+          // Find the attribute in metadata
+          final attribute = metadataState.metadata!.attributes.cast<Attribute?>().firstWhere(
+            (a) => a?.id == selectedAttributeId,
+            orElse: () => null,
+          );
+
+          if (attribute != null && selectedOptionId != null) {
+            attributeId = selectedAttributeId;
+
+            // Create variants for ALL options of this attribute
+            // The selected option gets the current quantity, others get 0
+            addVariants = attribute.options.map((option) {
+              final isSelectedOption = option.id == selectedOptionId;
+              return {
+                'variant_name': option.value,
+                'option_id': option.id,
+                'initial_quantity': isSelectedOption ? (parsedOnHand ?? 0) : 0,
+              };
+            }).toList();
+          }
+        }
+      }
+
+      // Step 5: Proceed with actual update (inventory_edit_product_v5)
+      // If product already has variants, pass the variantId for stock changes
+      final existingVariantId = _product?.variantId;
+
       final product = await repository.updateProduct(
         productId: widget.productId,
         companyId: companyId,
@@ -500,8 +573,13 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         unit: _unit,
         costPrice: costPrice,
         salePrice: salePrice,
-        onHand: onHand,
+        // Don't send onHand if we're creating variants (stock is in addVariants)
+        onHand: addVariants != null ? null : onHand,
         imageUrls: allImageUrls.isNotEmpty ? allImageUrls : null,
+        // Pass existing variantId for products with variants, or new attributeId for variant creation
+        variantId: existingVariantId,
+        attributeId: attributeId,
+        addVariants: addVariants,
       );
 
       if (product != null && mounted) {
@@ -519,15 +597,14 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
           ),
         );
 
-        // Navigate back to inventory page
-        // Pop twice: edit page -> product detail -> inventory page
+        // Navigate to Product Detail page with updated product data
+        // Use pushReplacement to replace edit page with detail page
         if (mounted) {
-          // First pop: close edit page
-          context.pop();
-          // Second pop: close product detail page (if came from there)
-          if (context.canPop()) {
-            context.pop();
-          }
+          context.pushReplacementNamed(
+            'productDetail',
+            pathParameters: {'productId': product.id},
+            extra: product,
+          );
         }
       } else if (mounted) {
         await showDialog<bool>(
@@ -883,8 +960,50 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             showChevron: true,
             onTap: metadata != null ? () => _showBrandSelector(metadata) : null,
           ),
+          // Custom attributes from metadata
+          if (metadata != null)
+            ...metadata.attributes.map((attribute) {
+              final selectedOptionId = _selectedAttributeValues[attribute.id];
+              final selectedOption = attribute.options.cast<AttributeOption?>().firstWhere(
+                (o) => o?.id == selectedOptionId,
+                orElse: () => null,
+              );
+              return FormListRow(
+                label: attribute.name,
+                value: selectedOption?.value,
+                placeholder: 'Select ${attribute.name.toLowerCase()}',
+                showChevron: true,
+                onTap: () => _showAttributeOptionSelector(attribute),
+              );
+            }),
         ],
       ),
+    );
+  }
+
+  void _showAttributeOptionSelector(Attribute attribute) {
+    final items = attribute.options
+        .map((option) => TossSelectionItem(
+              id: option.id,
+              title: option.value,
+            ))
+        .toList();
+
+    TossSelectionBottomSheet.show<void>(
+      context: context,
+      title: attribute.name,
+      items: items,
+      selectedId: _selectedAttributeValues[attribute.id],
+      showSubtitle: false,
+      selectedFontWeight: FontWeight.w700,
+      unselectedFontWeight: FontWeight.w500,
+      checkIcon: TossIcons.check,
+      enableHapticFeedback: true,
+      onItemSelected: (item) {
+        setState(() {
+          _selectedAttributeValues[attribute.id] = item.id;
+        });
+      },
     );
   }
 

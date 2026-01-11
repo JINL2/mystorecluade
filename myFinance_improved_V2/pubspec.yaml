@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # State Management 
-  flutter_riverpod: ^2.5.0
-  riverpod_annotation: ^2.3.0
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
   
   # Navigation
   go_router: ^13.0.0
@@ -111,24 +111,27 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  build_runner: ^2.4.0
-  freezed: ^2.4.0
-  json_serializable: ^6.7.0
-  riverpod_generator: ^2.3.0
-  flutter_lints: ^3.0.0
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.6.3
+  flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1
   mocktail: ^1.0.0
 
   # Widgetbook - Widget Catalog & Testing
-  widgetbook: ^3.10.0
-  widgetbook_annotation: ^3.2.0
+  # widgetbook: ^3.10.0  # Temporarily disabled due to analyzer_plugin conflict
+  # widgetbook_annotation: ^3.2.0  # Temporarily disabled due to analyzer_plugin conflict
 
   # Custom Lint for Design System Enforcement
-  custom_lint: ^0.7.0
+  # custom_lint: ^0.7.0  # Temporarily disabled due to analyzer_plugin conflict
 
   # Development Scripts
   path: ^1.8.0
   args: ^2.4.0
+
+dependency_overrides:
+  analyzer_plugin: ^0.13.0
 
 flutter:
   uses-material-design: true

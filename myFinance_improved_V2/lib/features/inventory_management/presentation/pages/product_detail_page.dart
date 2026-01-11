@@ -142,11 +142,29 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
         productIds: [widget.productId],
       );
 
-      if (mounted) {
+      if (mounted && result?.products.isNotEmpty == true) {
+        final productStock = result!.products.first;
+
+        // Get current product to check if it's a variant
+        final productsState = ref.read(inventoryPageNotifierProvider);
+        final product = productsState.products.cast<Product?>().firstWhere(
+          (p) => p?.id == widget.productId,
+          orElse: () => null,
+        ) ?? _localProduct ?? widget.initialProduct;
+
         setState(() {
-          _storeStocks = result?.products.isNotEmpty == true
-              ? result!.products.first.stores
-              : [];
+          // For variant products, get stores for specific variantId
+          // For non-variant products, use stores directly
+          if (productStock.hasVariants && product?.variantId != null) {
+            _storeStocks = productStock.getStoresForVariant(product!.variantId!);
+          } else {
+            _storeStocks = productStock.stores;
+          }
+          _isLoadingStocks = false;
+        });
+      } else if (mounted) {
+        setState(() {
+          _storeStocks = [];
           _isLoadingStocks = false;
         });
       }

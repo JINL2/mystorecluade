@@ -50,6 +50,15 @@ class ProductMapper {
       sellInStore: true,
       sellOnline: false,
       attributes: null,
+      // v6 variant fields
+      variantId: dto.variantId,
+      variantName: dto.variantName,
+      variantSku: dto.variantSku,
+      variantBarcode: dto.variantBarcode,
+      displayName: dto.displayName,
+      displaySku: dto.displaySku,
+      displayBarcode: dto.displayBarcode,
+      hasVariants: dto.hasVariants,
     );
   }
 
@@ -79,6 +88,15 @@ class ProductMapper {
       quantityReserved: entity.reserved,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      // v6 variant fields
+      variantId: entity.variantId,
+      variantName: entity.variantName,
+      variantSku: entity.variantSku,
+      variantBarcode: entity.variantBarcode,
+      displayName: entity.displayName,
+      displaySku: entity.displaySku,
+      displayBarcode: entity.displayBarcode,
+      hasVariants: entity.hasVariants,
     );
   }
 }
