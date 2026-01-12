@@ -766,7 +766,7 @@ class __$$EmployeeStatusImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$EmployeeStatusImpl implements _EmployeeStatus {
+class _$EmployeeStatusImpl extends _EmployeeStatus {
   const _$EmployeeStatusImpl(
       {required this.userId,
       required this.userName,
@@ -776,7 +776,8 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
       this.shiftRequestId,
       this.requestTime,
       this.isApproved,
-      this.approvedBy});
+      this.approvedBy})
+      : super._();
 
   @override
   final String userId;
@@ -849,7 +850,7 @@ class _$EmployeeStatusImpl implements _EmployeeStatus {
           this, _$identity);
 }
 
-abstract class _EmployeeStatus implements EmployeeStatus {
+abstract class _EmployeeStatus extends EmployeeStatus {
   const factory _EmployeeStatus(
       {required final String userId,
       required final String userName,
@@ -860,6 +861,7 @@ abstract class _EmployeeStatus implements EmployeeStatus {
       final DateTime? requestTime,
       final bool? isApproved,
       final String? approvedBy}) = _$EmployeeStatusImpl;
+  const _EmployeeStatus._() : super._();
 
   @override
   String get userId;

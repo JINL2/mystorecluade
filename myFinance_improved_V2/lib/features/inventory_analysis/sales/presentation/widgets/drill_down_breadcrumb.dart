@@ -37,7 +37,7 @@ class DrillDownBreadcrumb extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isLast ? TossColors.primary : TossColors.gray100,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.dialog),
                   ),
                   child: Text(
                     item.name,
@@ -50,7 +50,7 @@ class DrillDownBreadcrumb extends StatelessWidget {
               ),
               if (!isLast)
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  padding: EdgeInsets.symmetric(horizontal: TossSpacing.space1),
                   child: Icon(
                     Icons.chevron_right,
                     size: 16,

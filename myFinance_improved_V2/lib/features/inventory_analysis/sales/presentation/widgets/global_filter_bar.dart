@@ -50,7 +50,7 @@ class GlobalFilterBar extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: TimeRange.values.where((r) => r != TimeRange.custom).map((range) {
+        children: TimeRange.values.map((range) {
           final isSelected = selectedTimeRange == range;
           return Padding(
             padding: const EdgeInsets.only(right: TossSpacing.space2),
@@ -96,18 +96,18 @@ class GlobalFilterBar extends StatelessWidget {
             groupValue: selectedMetric,
             backgroundColor: TossColors.gray100,
             thumbColor: TossColors.white,
-            children: const {
+            children: {
               Metric.revenue: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Text('Revenue', style: TextStyle(fontSize: 13)),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1_5),
+                child: Text('Revenue', style: TossTextStyles.bodySmall),
               ),
               Metric.margin: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Text('Margin', style: TextStyle(fontSize: 13)),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1_5),
+                child: Text('Margin', style: TossTextStyles.bodySmall),
               ),
               Metric.quantity: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Text('Quantity', style: TextStyle(fontSize: 13)),
+                padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1_5),
+                child: Text('Quantity', style: TossTextStyles.bodySmall),
               ),
             },
             onValueChanged: (value) {

@@ -2,7 +2,7 @@ import '../../domain/entities/bcg_category.dart';
 
 /// BCG Matrix category Model
 /// RPC response fields: category_id, category_name, total_revenue, margin_rate_pct,
-/// total_quantity, revenue_pct, quadrant
+/// total_quantity, revenue_pct, sales_volume_percentile, margin_percentile, quadrant
 class BcgCategoryModel {
   final String categoryId;
   final String categoryName;
@@ -10,6 +10,8 @@ class BcgCategoryModel {
   final num marginRatePct;
   final int totalQuantity;
   final num revenuePct;
+  final num salesVolumePercentile;
+  final num marginPercentile;
   final String quadrant;
 
   BcgCategoryModel({
@@ -19,6 +21,8 @@ class BcgCategoryModel {
     required this.marginRatePct,
     required this.totalQuantity,
     required this.revenuePct,
+    required this.salesVolumePercentile,
+    required this.marginPercentile,
     required this.quadrant,
   });
 
@@ -30,6 +34,8 @@ class BcgCategoryModel {
       marginRatePct: json['margin_rate_pct'] as num? ?? 0,
       totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
       revenuePct: json['revenue_pct'] as num? ?? 0,
+      salesVolumePercentile: json['sales_volume_percentile'] as num? ?? 0,
+      marginPercentile: json['margin_percentile'] as num? ?? 0,
       quadrant: json['quadrant'] as String? ?? 'dog',
     );
   }
@@ -42,9 +48,8 @@ class BcgCategoryModel {
       marginRatePct: marginRatePct,
       totalQuantity: totalQuantity,
       revenuePct: revenuePct,
-      // Use revenuePct for percentile (approximate, RPC doesn't return raw percentiles)
-      salesVolumePercentile: revenuePct,
-      marginPercentile: marginRatePct,
+      salesVolumePercentile: salesVolumePercentile,
+      marginPercentile: marginPercentile,
       // Keep quadrant as lowercase (matches RPC response: 'star', 'cash_cow', etc.)
       quadrant: quadrant.toLowerCase(),
     );

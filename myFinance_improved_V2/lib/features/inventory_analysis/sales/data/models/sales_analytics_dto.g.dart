@@ -77,8 +77,8 @@ Map<String, dynamic> _$SalesAnalyticsResponseDtoToJson(
 
 DrillDownItemDto _$DrillDownItemDtoFromJson(Map<String, dynamic> json) =>
     DrillDownItemDto(
-      id: json['id'] as String?,
-      name: json['name'] as String?,
+      id: json['item_id'] as String?,
+      name: json['item_name'] as String?,
       totalQuantity: json['total_quantity'] as num?,
       totalRevenue: json['total_revenue'] as num?,
       totalMargin: json['total_margin'] as num?,
@@ -93,8 +93,8 @@ DrillDownItemDto _$DrillDownItemDtoFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$DrillDownItemDtoToJson(DrillDownItemDto instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
+      'item_id': instance.id,
+      'item_name': instance.name,
       'total_quantity': instance.totalQuantity,
       'total_revenue': instance.totalRevenue,
       'total_margin': instance.totalMargin,

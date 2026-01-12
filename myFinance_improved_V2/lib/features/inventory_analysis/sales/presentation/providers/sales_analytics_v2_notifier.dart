@@ -99,12 +99,8 @@ class SalesAnalyticsV2Notifier extends _$SalesAnalyticsV2Notifier {
     TimeRange range, {
     required String companyId,
     String? storeId,
-    DateTime? customStart,
-    DateTime? customEnd,
   }) async {
-    final (startDate, endDate) = range == TimeRange.custom
-        ? (customStart ?? state.startDate, customEnd ?? state.endDate)
-        : range.getDateRange();
+    final (startDate, endDate) = range.getDateRange();
 
     _log('setTimeRange()', {
       'range': range.name,

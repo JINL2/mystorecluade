@@ -4,6 +4,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_error_view.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/navigation/toss_app_bar.dart';
+import 'package:myfinance_improved/shared/widgets/templates/toss_scaffold.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
 import '../providers/sales_analytics_v2_notifier.dart';
@@ -102,7 +103,7 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
   Widget build(BuildContext context) {
     final state = ref.watch(salesAnalyticsV2NotifierProvider);
 
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.gray50,
       appBar: const TossAppBar(
         title: 'Sales Analytics',
@@ -165,7 +166,7 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(TossBorderRadius.button),
                 border: Border.all(color: TossColors.gray200),
               ),
               child: DropdownButtonHideUnderline(
@@ -192,7 +193,7 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
                             size: 16,
                             color: TossColors.primary,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: TossSpacing.space2),
                           Text(
                             'All Stores (Company-wide)',
                             style: TossTextStyles.body.copyWith(
@@ -216,7 +217,7 @@ class _SalesAnalyticsV2PageState extends ConsumerState<SalesAnalyticsV2Page> {
                               size: 16,
                               color: TossColors.gray500,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: TossSpacing.space2),
                             Expanded(
                               child: Text(
                                 storeName,

@@ -81,50 +81,53 @@ class TimelineDate extends StatelessWidget {
 
         // Dots row - Fixed height container for consistent alignment
         SizedBox(
-          height: TossDimensions.timelineDateCircle, // Fixed height: dots(8) + spacing(4) + text(~18) + padding
+          height: TossDimensions.timelineDateCircle,
           child: hasItems
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Orange dots (schedule issues: empty/understaffed)
-                        if (summary!.scheduleCount > 0)
-                          GestureDetector(
-                            onTap: onScheduleTap,
-                            child: DotIndicator(
-                              color: TossColors.warning,
-                              count: summary!.scheduleCount,
+              ? FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Orange dots (schedule issues: empty/understaffed)
+                          if (summary!.scheduleCount > 0)
+                            GestureDetector(
+                              onTap: onScheduleTap,
+                              child: DotIndicator(
+                                color: TossColors.warning,
+                                count: summary!.scheduleCount,
+                              ),
                             ),
-                          ),
 
-                        if (summary!.scheduleCount > 0 &&
-                            summary!.problemCount > 0)
-                          const SizedBox(width: TossSpacing.space1),
+                          if (summary!.scheduleCount > 0 &&
+                              summary!.problemCount > 0)
+                            const SizedBox(width: TossSpacing.space1),
 
-                        // Red dots (problems)
-                        if (summary!.problemCount > 0)
-                          GestureDetector(
-                            onTap: onProblemTap,
-                            child: DotIndicator(
-                              color: TossColors.error,
-                              count: summary!.problemCount,
+                          // Red dots (problems)
+                          if (summary!.problemCount > 0)
+                            GestureDetector(
+                              onTap: onProblemTap,
+                              child: DotIndicator(
+                                color: TossColors.error,
+                                count: summary!.problemCount,
+                              ),
                             ),
-                          ),
-                      ],
-                    ),
-
-                    const SizedBox(height: TossSpacing.space1),
-
-                    // Total count
-                    Text(
-                      '(${summary!.totalCount})',
-                      style: TossTextStyles.small.copyWith(
-                        color: TossColors.gray500,
+                        ],
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: TossSpacing.space1),
+
+                      // Total count
+                      Text(
+                        '(${summary!.totalCount})',
+                        style: TossTextStyles.small.copyWith(
+                          color: TossColors.gray500,
+                        ),
+                      ),
+                    ],
+                  ),
                 )
               : null, // Empty - just takes up fixed height
         ),

@@ -24,7 +24,6 @@ class TimeRangeSelector extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Row(
         children: TimeRange.values
-            .where((r) => r != TimeRange.custom)
             .map((range) => Padding(
                   padding: const EdgeInsets.only(right: TossSpacing.space2),
                   child: _TimeRangeChip(

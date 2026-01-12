@@ -5,12 +5,12 @@ part 'sales_analytics.freezed.dart';
 /// Time range for analytics queries
 enum TimeRange {
   today,
-  thisWeek,
+  past7Days,
   thisMonth,
-  last30Days,
-  last90Days,
+  lastMonth,
+  past90Days,
   thisYear,
-  custom,
+  lastYear,
 }
 
 /// Grouping granularity
@@ -41,18 +41,18 @@ extension TimeRangeExtension on TimeRange {
     switch (this) {
       case TimeRange.today:
         return 'Today';
-      case TimeRange.thisWeek:
-        return 'This Week';
+      case TimeRange.past7Days:
+        return 'Past 7 Days';
       case TimeRange.thisMonth:
         return 'This Month';
-      case TimeRange.last30Days:
-        return 'Last 30 Days';
-      case TimeRange.last90Days:
-        return 'Last 90 Days';
+      case TimeRange.lastMonth:
+        return 'Last Month';
+      case TimeRange.past90Days:
+        return 'Past 90 Days';
       case TimeRange.thisYear:
         return 'This Year';
-      case TimeRange.custom:
-        return 'Custom';
+      case TimeRange.lastYear:
+        return 'Last Year';
     }
   }
 
@@ -63,34 +63,35 @@ extension TimeRangeExtension on TimeRange {
     switch (this) {
       case TimeRange.today:
         return (today, today);
-      case TimeRange.thisWeek:
-        final weekStart = today.subtract(Duration(days: today.weekday - 1));
-        return (weekStart, today);
+      case TimeRange.past7Days:
+        return (today.subtract(const Duration(days: 6)), today);
       case TimeRange.thisMonth:
         return (DateTime(now.year, now.month, 1), today);
-      case TimeRange.last30Days:
-        return (today.subtract(const Duration(days: 30)), today);
-      case TimeRange.last90Days:
-        return (today.subtract(const Duration(days: 90)), today);
+      case TimeRange.lastMonth:
+        final lastMonthEnd = DateTime(now.year, now.month, 0); // 지난달 말일
+        final lastMonthStart = DateTime(lastMonthEnd.year, lastMonthEnd.month, 1);
+        return (lastMonthStart, lastMonthEnd);
+      case TimeRange.past90Days:
+        return (today.subtract(const Duration(days: 89)), today);
       case TimeRange.thisYear:
         return (DateTime(now.year, 1, 1), today);
-      case TimeRange.custom:
-        return (today.subtract(const Duration(days: 30)), today);
+      case TimeRange.lastYear:
+        return (DateTime(now.year - 1, 1, 1), DateTime(now.year - 1, 12, 31));
     }
   }
 
   GroupBy get recommendedGroupBy {
     switch (this) {
       case TimeRange.today:
-      case TimeRange.thisWeek:
+      case TimeRange.past7Days:
         return GroupBy.daily;
       case TimeRange.thisMonth:
-      case TimeRange.last30Days:
+      case TimeRange.lastMonth:
         return GroupBy.daily;
-      case TimeRange.last90Days:
+      case TimeRange.past90Days:
         return GroupBy.weekly;
       case TimeRange.thisYear:
-      case TimeRange.custom:
+      case TimeRange.lastYear:
         return GroupBy.monthly;
     }
   }

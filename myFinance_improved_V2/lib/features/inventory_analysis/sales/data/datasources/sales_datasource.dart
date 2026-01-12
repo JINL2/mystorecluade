@@ -110,6 +110,8 @@ class SalesDatasource {
 
   /// Sales Analytics 조회 (V2)
   /// RPC: get_sales_analytics
+  ///
+  /// Timezone is automatically read from companies table in RPC.
   Future<SalesAnalyticsResponseDto> getSalesAnalytics(
     SalesAnalyticsParams params,
   ) async {
@@ -136,6 +138,8 @@ class SalesDatasource {
 
   /// Drill-down 조회 (V2)
   /// RPC: get_drill_down_analytics
+  ///
+  /// Timezone is automatically read from companies table in RPC.
   Future<DrillDownResponseDto> getDrillDownAnalytics(
     DrillDownParams params,
   ) async {
@@ -158,6 +162,8 @@ class SalesDatasource {
 
   /// BCG Matrix V2 조회
   /// RPC: get_bcg_matrix_v2
+  ///
+  /// Timezone is automatically read from companies table in RPC.
   Future<BcgMatrix> getBcgMatrixV2({
     required String companyId,
     required DateTime startDate,

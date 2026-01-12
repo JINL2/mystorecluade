@@ -100,7 +100,7 @@ class CategoryPreview extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 2),
+                        const SizedBox(width: TossSpacing.space0_5),
                         const Icon(
                           Icons.chevron_right,
                           size: 16,
@@ -158,7 +158,7 @@ class CategoryPreview extends StatelessWidget {
         (index) => Padding(
           padding: const EdgeInsets.only(bottom: TossSpacing.space3),
           child: Container(
-            height: 72,
+            height: 88,
             decoration: BoxDecoration(
               color: TossColors.gray100,
               borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -295,6 +295,57 @@ class _CategoryListItem extends StatelessWidget {
                   ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          // Stats row (product count, margin rate, quantity)
+          Row(
+            children: [
+              if (item.productCount != null) ...[
+                const Icon(
+                  Icons.inventory_2_outlined,
+                  size: 12,
+                  color: TossColors.gray500,
+                ),
+                const SizedBox(width: TossSpacing.space1),
+                Text(
+                  '${item.productCount} products',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+              ],
+              if (item.marginRate > 0) ...[
+                const Icon(
+                  Icons.trending_up,
+                  size: 12,
+                  color: TossColors.success,
+                ),
+                const SizedBox(width: TossSpacing.space1),
+                Text(
+                  'Margin ${item.marginRate.toStringAsFixed(1)}%',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.success,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+              if (item.totalQuantity > 0) ...[
+                const SizedBox(width: TossSpacing.space3),
+                const Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 12,
+                  color: TossColors.gray500,
+                ),
+                const SizedBox(width: TossSpacing.space1),
+                Text(
+                  '${item.totalQuantity.toInt()} sold',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              ],
             ],
           ),
         ],

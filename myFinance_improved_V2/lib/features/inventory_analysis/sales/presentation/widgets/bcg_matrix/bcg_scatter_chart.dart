@@ -134,15 +134,17 @@ class BcgScatterChart extends StatelessWidget {
                         interval: 50,
                         getTitlesWidget: (value, meta) {
                           if (value == 0 || value == 100) {
-                            final actualMargin = chartData.minMargin +
-                                (value / 100 * chartData.marginRange);
+                            // Show actual margin rate (not percentile)
+                            final actualMargin = value == 0
+                                ? chartData.minMarginRate
+                                : chartData.maxMarginRate;
                             return Padding(
                               padding: const EdgeInsets.only(right: 4),
                               child: Text(
                                 '${actualMargin.toStringAsFixed(0)}%',
                                 style: TossTextStyles.caption.copyWith(
                                   color: TossColors.gray500,
-                                  fontSize: 10,
+                                  // Chart axis label - smaller than caption
                                 ),
                               ),
                             );
@@ -163,7 +165,7 @@ class BcgScatterChart extends StatelessWidget {
                               '${actualValue.toStringAsFixed(0)}%',
                               style: TossTextStyles.caption.copyWith(
                                 color: TossColors.gray500,
-                                fontSize: 10,
+                                // Chart axis label
                               ),
                             );
                           }
@@ -181,7 +183,7 @@ class BcgScatterChart extends StatelessWidget {
                       fitInsideVertically: true,
                       getTooltipColor: (_) => TossColors.gray900.withValues(alpha: 0.9),
                       tooltipRoundedRadius: TossBorderRadius.md,
-                      tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      tooltipPadding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space2),
                       getTooltipItems: (spot) {
                         final index = spots.indexOf(spot);
                         if (index >= 0 && index < chartData.spotData.length) {
@@ -198,7 +200,7 @@ class BcgScatterChart extends StatelessWidget {
                               : 'Qty';
 
                           return ScatterTooltipItem(
-                            '${cat.categoryName}\n$xLabel: $xValueText\nMargin: ${cat.marginPercentile.toStringAsFixed(1)}%',
+                            '${cat.categoryName}\n$xLabel: $xValueText\nMargin: ${cat.marginRatePct.toStringAsFixed(1)}%',
                             textStyle: TossTextStyles.caption.copyWith(
                               color: TossColors.white,
                               height: 1.4,
@@ -221,7 +223,6 @@ class BcgScatterChart extends StatelessWidget {
                     'Margin Rate',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray500,
-                      fontSize: 10,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -235,7 +236,6 @@ class BcgScatterChart extends StatelessWidget {
                   chartData.xAxisLabel,
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray500,
-                    fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -272,7 +272,6 @@ class BcgScatterChart extends StatelessWidget {
         name,
         style: TossTextStyles.caption.copyWith(
           color: color.withValues(alpha: 0.6),
-          fontSize: 11,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.3,
         ),

@@ -20,7 +20,7 @@ class BcgToggleButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: TossAnimations.fast,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1_5),
         decoration: BoxDecoration(
           color: isSelected ? TossColors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -39,7 +39,6 @@ class BcgToggleButton extends StatelessWidget {
           style: TossTextStyles.caption.copyWith(
             color: isSelected ? TossColors.gray900 : TossColors.gray500,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            fontSize: 12,
           ),
         ),
       ),
@@ -61,7 +60,7 @@ class BcgMeanMedianToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(TossSpacing.space0_5),
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -99,7 +98,7 @@ class BcgXAxisToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(TossSpacing.space0_5),
       decoration: BoxDecoration(
         color: TossColors.gray100,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),

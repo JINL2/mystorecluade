@@ -60,12 +60,20 @@ class TopProductsPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sort products by selected metric
+    // Sort products by selected metric, filter out items with empty names
     final sortedProducts = List<AnalyticsDataPoint>.from(products)
+      ..removeWhere((p) => p.dimensionName.isEmpty)
       ..sort((a, b) => _getMetricValue(b).compareTo(_getMetricValue(a)));
 
     final displayProducts = sortedProducts.take(3).toList();
     final maxValue = sortedProducts.isNotEmpty ? _getMetricValue(sortedProducts.first) : 1.0;
+
+    // Debug: Log top 3 products
+    for (var i = 0; i < displayProducts.length; i++) {
+      final p = displayProducts[i];
+      // ignore: avoid_print
+      print('🏆 TopProducts[$i]: id=${p.dimensionId}, name="${p.dimensionName}", revenue=${p.totalRevenue}');
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
@@ -107,7 +115,7 @@ class TopProductsPreview extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 2),
+                        const SizedBox(width: TossSpacing.space0_5),
                         const Icon(
                           Icons.chevron_right,
                           size: 16,

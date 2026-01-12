@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/display/toss_badge.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/navigation/toss_app_bar.dart';
+import 'package:myfinance_improved/shared/widgets/templates/toss_scaffold.dart';
 
 import '../../domain/entities/sales_analytics.dart';
 
@@ -47,7 +48,7 @@ class _TopProductsPageState extends State<TopProductsPage> {
         ? widget.products.first.totalRevenue
         : 1.0;
 
-    return Scaffold(
+    return TossScaffold(
       backgroundColor: TossColors.gray50,
       appBar: const TossAppBar(
         title: 'Top Products',

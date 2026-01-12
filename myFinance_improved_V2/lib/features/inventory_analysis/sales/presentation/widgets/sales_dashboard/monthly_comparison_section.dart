@@ -71,7 +71,7 @@ class MonthlyComparisonSection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space1_5,
-                    vertical: 2,
+                    vertical: TossSpacing.space0_5,
                   ),
                   decoration: BoxDecoration(
                     color: TossColors.gray100,
@@ -81,7 +81,6 @@ class MonthlyComparisonSection extends StatelessWidget {
                     '$thisMonthDays vs $lastMonthDays days',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray500,
-                      fontSize: 10,
                     ),
                   ),
                 ),
@@ -166,7 +165,6 @@ class _ComparisonRow extends StatelessWidget {
                 'This Month',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray500,
-                  fontSize: 10,
                 ),
               ),
               Text(
@@ -188,7 +186,6 @@ class _ComparisonRow extends StatelessWidget {
                 'Last Month',
                 style: TossTextStyles.caption.copyWith(
                   color: TossColors.gray500,
-                  fontSize: 10,
                 ),
               ),
               Text(
@@ -204,7 +201,7 @@ class _ComparisonRow extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: TossSpacing.space1_5,
-            vertical: 3,
+            vertical: TossSpacing.space0_5 + 1,
           ),
           decoration: BoxDecoration(
             color:
@@ -216,7 +213,6 @@ class _ComparisonRow extends StatelessWidget {
             style: TossTextStyles.caption.copyWith(
               color: growth >= 0 ? TossColors.success : TossColors.error,
               fontWeight: FontWeight.w600,
-              fontSize: 11,
             ),
           ),
         ),

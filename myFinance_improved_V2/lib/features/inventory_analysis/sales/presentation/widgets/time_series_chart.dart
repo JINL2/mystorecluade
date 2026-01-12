@@ -201,7 +201,7 @@ class _TimeSeriesChartState extends State<TimeSeriesChart> {
                   isPercentageMode ? '${value.toInt()}%' : _formatCompact(value),
                   style: TossTextStyles.caption.copyWith(
                     color: TossColors.gray500,
-                    fontSize: 10,
+                    // Chart axis label
                   ),
                 );
               },
@@ -224,12 +224,12 @@ class _TimeSeriesChartState extends State<TimeSeriesChart> {
                   return const SizedBox();
                 }
                 return Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: TossSpacing.space2),
                   child: Text(
                     _formatPeriodLabel(widget.data[index].period),
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray500,
-                      fontSize: 10,
+                      // Chart axis label
                     ),
                   ),
                 );

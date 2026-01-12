@@ -19,6 +19,9 @@ class BcgChartData {
   final Map<String, int> quadrantCounts;
   final List<BcgSpotData> spotData;
   final BcgXAxisMode xAxisMode;
+  // Actual margin rate range for Y-axis labels
+  final double minMarginRate;
+  final double maxMarginRate;
 
   const BcgChartData({
     required this.minMargin,
@@ -32,6 +35,8 @@ class BcgChartData {
     required this.quadrantCounts,
     required this.spotData,
     this.xAxisMode = BcgXAxisMode.revenue,
+    this.minMarginRate = 0,
+    this.maxMarginRate = 100,
   });
 
   factory BcgChartData.empty() => const BcgChartData(
@@ -45,6 +50,8 @@ class BcgChartData {
         medianY: 50,
         quadrantCounts: {'star': 0, 'cash_cow': 0, 'problem_child': 0, 'dog': 0},
         spotData: [],
+        minMarginRate: 0,
+        maxMarginRate: 100,
       );
 
   /// X-axis label based on mode
@@ -70,6 +77,10 @@ class BcgChartData {
     final margins =
         limitedCategories.map((c) => c.marginPercentile.toDouble()).toList();
 
+    // Actual margin rates for Y-axis labels (not percentiles)
+    final marginRates =
+        limitedCategories.map((c) => c.marginRatePct.toDouble()).toList();
+
     // X-axis values based on mode (using limited categories)
     final xValues = limitedCategories.map((c) {
       return xAxisMode == BcgXAxisMode.revenue
@@ -77,7 +88,7 @@ class BcgChartData {
           : c.salesVolumePercentile.toDouble();
     }).toList();
 
-    // Y-axis: Margin range with padding
+    // Y-axis: Margin percentile range with padding
     final minMarginData = margins.reduce((a, b) => a < b ? a : b);
     final maxMarginData = margins.reduce((a, b) => a > b ? a : b);
     final marginPadding =
@@ -85,6 +96,10 @@ class BcgChartData {
     final minMargin = (minMarginData - marginPadding).clamp(0.0, 100.0);
     final maxMargin = (maxMarginData + marginPadding).clamp(0.0, 100.0);
     final marginRange = maxMargin - minMargin;
+
+    // Actual margin rate range for Y-axis labels
+    final minMarginRateData = marginRates.reduce((a, b) => a < b ? a : b);
+    final maxMarginRateData = marginRates.reduce((a, b) => a > b ? a : b);
 
     // X-axis: Range
     final maxXValue = xValues.reduce((a, b) => a > b ? a : b);
@@ -159,6 +174,8 @@ class BcgChartData {
       quadrantCounts: quadrantCounts,
       spotData: spotData,
       xAxisMode: xAxisMode,
+      minMarginRate: minMarginRateData,
+      maxMarginRate: maxMarginRateData,
     );
   }
 }

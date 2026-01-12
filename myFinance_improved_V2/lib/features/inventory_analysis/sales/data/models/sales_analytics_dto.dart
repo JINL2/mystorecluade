@@ -164,7 +164,9 @@ class SalesAnalyticsResponseDto {
 /// Drill-down item DTO
 @JsonSerializable()
 class DrillDownItemDto {
+  @JsonKey(name: 'item_id')
   final String? id;
+  @JsonKey(name: 'item_name')
   final String? name;
   @JsonKey(name: 'total_quantity')
   final num? totalQuantity;
