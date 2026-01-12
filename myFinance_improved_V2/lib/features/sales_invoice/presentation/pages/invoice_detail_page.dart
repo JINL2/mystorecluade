@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_dimensions.dart';
@@ -12,6 +13,7 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/widgets/ai/ai_description_box.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_detail.dart';
+import '../providers/invoice_attachment_provider.dart';
 import '../providers/invoice_detail_provider.dart';
 import '../widgets/invoice_attachment_section.dart';
 import '../widgets/invoice_detail/created_by_section.dart';
@@ -156,9 +158,8 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
                       ),
                     ),
 
-                    // Refund Button (only for completed invoices that aren't cancelled)
-                    if (invoice.isCompleted && !invoice.isCancelled && widget.onRefundPressed != null)
-                      _buildRefundButton(context),
+                    // Bottom buttons area
+                    _buildBottomButtons(context),
                   ],
                 ),
     );
@@ -273,6 +274,90 @@ class _InvoiceDetailPageState extends ConsumerState<InvoiceDetailPage> {
         existingAttachments: detail?.validAttachments ?? [],
       ),
     );
+  }
+
+  /// Build bottom buttons area based on state
+  Widget _buildBottomButtons(BuildContext context) {
+    final attachmentState = ref.watch(invoiceAttachmentNotifierProvider);
+    final hasPendingAttachments = attachmentState.hasPendingAttachments;
+    final isUploading = attachmentState.isUploading;
+
+    // If has pending attachments, show confirm button
+    if (hasPendingAttachments) {
+      return _buildConfirmAttachmentsButton(context, isUploading);
+    }
+
+    // Otherwise show refund button (if applicable)
+    if (invoice.isCompleted && !invoice.isCancelled && widget.onRefundPressed != null) {
+      return _buildRefundButton(context);
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  /// Build confirm button for saving pending attachments
+  Widget _buildConfirmAttachmentsButton(BuildContext context, bool isUploading) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        TossSpacing.space4,
+        TossSpacing.space3,
+        TossSpacing.space4,
+        TossSpacing.space3 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        border: Border(
+          top: BorderSide(color: TossColors.gray100),
+        ),
+      ),
+      child: TossButton.primary(
+        text: isUploading ? 'Saving...' : 'Confirm',
+        onPressed: isUploading ? null : () => _saveAttachments(context),
+        leadingIcon: isUploading
+            ? TossLoadingView.inline(size: TossSpacing.iconMD, color: TossColors.white)
+            : Icon(Icons.check, size: TossSpacing.iconMD, color: TossColors.white),
+        fullWidth: true,
+      ),
+    );
+  }
+
+  /// Save pending attachments
+  Future<void> _saveAttachments(BuildContext context) async {
+    HapticFeedback.mediumImpact();
+
+    final detailState = ref.read(invoiceDetailNotifierProvider);
+    final detail = detailState.detail;
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (detail == null || detail.journalId == null) {
+      TossToast.error(context, 'Invoice detail not loaded');
+      return;
+    }
+
+    if (companyId.isEmpty) {
+      TossToast.error(context, 'Company not selected');
+      return;
+    }
+
+    final success = await ref
+        .read(invoiceAttachmentNotifierProvider.notifier)
+        .uploadAttachments(
+          companyId: companyId,
+          journalId: detail.journalId!,
+          userId: detail.createdById ?? '',
+        );
+
+    if (!mounted) return;
+
+    if (success) {
+      TossToast.success(context, 'Images saved successfully');
+      // Reload invoice detail to show saved attachments
+      ref.read(invoiceDetailNotifierProvider.notifier).loadDetail(invoice.invoiceId);
+    } else {
+      final errorMessage = ref.read(invoiceAttachmentNotifierProvider).errorMessage;
+      TossToast.error(context, errorMessage ?? 'Failed to save images');
+    }
   }
 
   Widget _buildRefundButton(BuildContext context) {
