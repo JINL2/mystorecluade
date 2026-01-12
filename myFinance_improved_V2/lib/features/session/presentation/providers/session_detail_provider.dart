@@ -53,6 +53,7 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
 
       if (response.hasItems) {
         // Convert aggregated items to SelectedProduct list
+        // v6: Groups by productId + variantId combination
         final aggregated = response.aggregatedByProduct;
         final selectedProducts = aggregated.values.map((item) {
           return SelectedProduct(
@@ -62,6 +63,9 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
             imageUrl: item.imageUrl,
             quantity: item.totalQuantity,
             quantityRejected: item.totalRejected,
+            // v6 variant fields
+            variantId: item.variantId,
+            displayName: item.displayName,
           );
         }).toList();
 
@@ -110,7 +114,14 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ),)
+                // v6 variant fields
+                variantId: p.variantId,
+                variantName: p.variantName,
+                displayName: p.displayName,
+                displaySku: p.displaySku,
+                displayBarcode: p.displayBarcode,
+                hasVariants: p.hasVariants,
+              ))
           .toList();
 
       state = state.copyWith(
@@ -157,7 +168,14 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ),)
+                // v6 variant fields
+                variantId: p.variantId,
+                variantName: p.variantName,
+                displayName: p.displayName,
+                displaySku: p.displaySku,
+                displayBarcode: p.displayBarcode,
+                hasVariants: p.hasVariants,
+              ))
           .toList();
 
       state = state.copyWith(
@@ -174,7 +192,7 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
     }
   }
 
-  /// Search products by query (uses get_inventory_page_v3 with search param)
+  /// Search products by query (uses get_inventory_page_v6 with search param)
   Future<void> searchProducts(String query) async {
     if (query.isEmpty) {
       // Clear search and show inventory list
@@ -217,7 +235,14 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ),)
+                // v6 variant fields
+                variantId: p.variantId,
+                variantName: p.variantName,
+                displayName: p.displayName,
+                displaySku: p.displaySku,
+                displayBarcode: p.displayBarcode,
+                hasVariants: p.hasVariants,
+              ))
           .toList();
 
       state = state.copyWith(
@@ -268,7 +293,14 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
                 imageUrl: p.imageUrl,
                 sellingPrice: p.sellingPrice,
                 stockQuantity: p.currentStock,
-              ),)
+                // v6 variant fields
+                variantId: p.variantId,
+                variantName: p.variantName,
+                displayName: p.displayName,
+                displaySku: p.displaySku,
+                displayBarcode: p.displayBarcode,
+                hasVariants: p.hasVariants,
+              ))
           .toList();
 
       state = state.copyWith(
@@ -313,19 +345,23 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
   }
 
   /// Add product from search result
+  /// For variants, uses productId + variantId combination
   void addProduct(SearchProductResult product) {
-    if (state.isProductSelected(product.productId)) {
+    if (state.isProductSelected(product.productId, variantId: product.variantId)) {
       return;
     }
 
     final selected = SelectedProduct(
       productId: product.productId,
       productName: product.productName,
-      sku: product.sku,
-      barcode: product.barcode,
+      sku: product.effectiveSku,
+      barcode: product.effectiveBarcode,
       imageUrl: product.imageUrl,
       quantity: 1,
       unitPrice: product.sellingPrice,
+      // v6 variant fields
+      variantId: product.variantId,
+      displayName: product.displayName,
     );
 
     state = state.copyWith(
@@ -335,13 +371,14 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
 
   /// Add product and exit search mode atomically
   /// If product already selected, increment quantity
+  /// For variants, uses productId + variantId combination
   void addProductAndExitSearch(SearchProductResult product) {
     List<SelectedProduct> updatedProducts;
 
-    if (state.isProductSelected(product.productId)) {
+    if (state.isProductSelected(product.productId, variantId: product.variantId)) {
       // Increment quantity if already selected
       updatedProducts = state.selectedProducts.map((p) {
-        if (p.productId == product.productId) {
+        if (p.productId == product.productId && p.variantId == product.variantId) {
           return p.copyWith(quantity: p.quantity + 1);
         }
         return p;
@@ -351,11 +388,14 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
       final selected = SelectedProduct(
         productId: product.productId,
         productName: product.productName,
-        sku: product.sku,
-        barcode: product.barcode,
+        sku: product.effectiveSku,
+        barcode: product.effectiveBarcode,
         imageUrl: product.imageUrl,
         quantity: 1,
         unitPrice: product.sellingPrice,
+        // v6 variant fields
+        variantId: product.variantId,
+        displayName: product.displayName,
       );
       updatedProducts = [...state.selectedProducts, selected];
     }
@@ -370,29 +410,31 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
     );
   }
 
-  /// Remove a selected product
-  void removeProduct(String productId) {
+  /// Remove a selected product/variant
+  /// For variants, uses productId + variantId combination
+  void removeProduct(String productId, {String? variantId}) {
     state = state.copyWith(
       selectedProducts: state.selectedProducts
-          .where((p) => p.productId != productId)
+          .where((p) => !(p.productId == productId && p.variantId == variantId))
           .toList(),
     );
   }
 
   /// Update product quantity (good condition)
-  void updateQuantity(String productId, int quantity) {
-    final product = state.getSelectedProduct(productId);
+  /// For variants, uses productId + variantId combination
+  void updateQuantity(String productId, int quantity, {String? variantId}) {
+    final product = state.getSelectedProduct(productId, variantId: variantId);
     if (product == null) return;
 
     // Remove if both quantities are zero
     if (quantity <= 0 && product.quantityRejected <= 0) {
-      removeProduct(productId);
+      removeProduct(productId, variantId: variantId);
       return;
     }
 
     state = state.copyWith(
       selectedProducts: state.selectedProducts.map((p) {
-        if (p.productId == productId) {
+        if (p.productId == productId && p.variantId == variantId) {
           return p.copyWith(quantity: quantity < 0 ? 0 : quantity);
         }
         return p;
@@ -401,19 +443,20 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
   }
 
   /// Update rejected quantity
-  void updateQuantityRejected(String productId, int quantityRejected) {
-    final product = state.getSelectedProduct(productId);
+  /// For variants, uses productId + variantId combination
+  void updateQuantityRejected(String productId, int quantityRejected, {String? variantId}) {
+    final product = state.getSelectedProduct(productId, variantId: variantId);
     if (product == null) return;
 
     // Remove if both quantities are zero
     if (quantityRejected <= 0 && product.quantity <= 0) {
-      removeProduct(productId);
+      removeProduct(productId, variantId: variantId);
       return;
     }
 
     state = state.copyWith(
       selectedProducts: state.selectedProducts.map((p) {
-        if (p.productId == productId) {
+        if (p.productId == productId && p.variantId == variantId) {
           return p.copyWith(
             quantityRejected: quantityRejected < 0 ? 0 : quantityRejected,
           );
@@ -424,34 +467,38 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
   }
 
   /// Increment product quantity (good condition)
-  void incrementQuantity(String productId) {
-    final product = state.getSelectedProduct(productId);
+  /// For variants, uses productId + variantId combination
+  void incrementQuantity(String productId, {String? variantId}) {
+    final product = state.getSelectedProduct(productId, variantId: variantId);
     if (product != null) {
-      updateQuantity(productId, product.quantity + 1);
+      updateQuantity(productId, product.quantity + 1, variantId: variantId);
     }
   }
 
   /// Decrement product quantity (good condition)
-  void decrementQuantity(String productId) {
-    final product = state.getSelectedProduct(productId);
+  /// For variants, uses productId + variantId combination
+  void decrementQuantity(String productId, {String? variantId}) {
+    final product = state.getSelectedProduct(productId, variantId: variantId);
     if (product != null) {
-      updateQuantity(productId, product.quantity - 1);
+      updateQuantity(productId, product.quantity - 1, variantId: variantId);
     }
   }
 
   /// Increment rejected quantity
-  void incrementQuantityRejected(String productId) {
-    final product = state.getSelectedProduct(productId);
+  /// For variants, uses productId + variantId combination
+  void incrementQuantityRejected(String productId, {String? variantId}) {
+    final product = state.getSelectedProduct(productId, variantId: variantId);
     if (product != null) {
-      updateQuantityRejected(productId, product.quantityRejected + 1);
+      updateQuantityRejected(productId, product.quantityRejected + 1, variantId: variantId);
     }
   }
 
   /// Decrement rejected quantity
-  void decrementQuantityRejected(String productId) {
-    final product = state.getSelectedProduct(productId);
+  /// For variants, uses productId + variantId combination
+  void decrementQuantityRejected(String productId, {String? variantId}) {
+    final product = state.getSelectedProduct(productId, variantId: variantId);
     if (product != null) {
-      updateQuantityRejected(productId, product.quantityRejected - 1);
+      updateQuantityRejected(productId, product.quantityRejected - 1, variantId: variantId);
     }
   }
 
@@ -472,13 +519,14 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
     try {
       final updateSessionItems = ref.read(updateSessionItemsUseCaseProvider);
 
-      // Build items for UseCase
+      // Build items for UseCase (includes variantId for v6 support)
       final items = state.selectedProducts
           .map((p) => SessionItemInput(
                 productId: p.productId,
                 quantity: p.quantity,
                 quantityRejected: p.quantityRejected,
-              ),)
+                variantId: p.variantId,
+              ))
           .toList();
 
       final response = await updateSessionItems(

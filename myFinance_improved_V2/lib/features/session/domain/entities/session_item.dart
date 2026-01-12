@@ -25,12 +25,14 @@ class SessionItem with _$SessionItem {
 }
 
 /// Input for adding items to a session
+/// Supports v6 variants with variantId
 @freezed
 class SessionItemInput with _$SessionItemInput {
   const factory SessionItemInput({
     required String productId,
     required int quantity,
     @Default(0) int quantityRejected,
+    String? variantId,
   }) = _SessionItemInput;
 }
 
@@ -45,8 +47,11 @@ class AddSessionItemsResponse with _$AddSessionItemsResponse {
 }
 
 /// Product search result for session
+/// Supports v6 variant expansion - each variant is a separate row
 @freezed
 class ProductSearchResult with _$ProductSearchResult {
+  const ProductSearchResult._();
+
   const factory ProductSearchResult({
     required String productId,
     required String productName,
@@ -57,7 +62,25 @@ class ProductSearchResult with _$ProductSearchResult {
     String? categoryName,
     @Default(0) double sellingPrice,
     @Default(0) int currentStock,
+    // v6 variant fields
+    String? variantId,
+    String? variantName,
+    String? variantSku,
+    String? variantBarcode,
+    String? displayName,
+    String? displaySku,
+    String? displayBarcode,
+    @Default(false) bool hasVariants,
   }) = _ProductSearchResult;
+
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
+
+  /// Display SKU for UI - uses displaySku if available, otherwise sku
+  String? get effectiveSku => displaySku ?? sku;
+
+  /// Display barcode for UI - uses displayBarcode if available, otherwise barcode
+  String? get effectiveBarcode => displayBarcode ?? barcode;
 }
 
 /// Response for product search with pagination

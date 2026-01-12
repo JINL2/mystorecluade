@@ -360,6 +360,7 @@ mixin _$SessionItemInput {
   String get productId => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   int get quantityRejected => throw _privateConstructorUsedError;
+  String? get variantId => throw _privateConstructorUsedError;
 
   /// Create a copy of SessionItemInput
   /// with the given fields replaced by the non-null parameter values.
@@ -374,7 +375,11 @@ abstract class $SessionItemInputCopyWith<$Res> {
           SessionItemInput value, $Res Function(SessionItemInput) then) =
       _$SessionItemInputCopyWithImpl<$Res, SessionItemInput>;
   @useResult
-  $Res call({String productId, int quantity, int quantityRejected});
+  $Res call(
+      {String productId,
+      int quantity,
+      int quantityRejected,
+      String? variantId});
 }
 
 /// @nodoc
@@ -395,6 +400,7 @@ class _$SessionItemInputCopyWithImpl<$Res, $Val extends SessionItemInput>
     Object? productId = null,
     Object? quantity = null,
     Object? quantityRejected = null,
+    Object? variantId = freezed,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -409,6 +415,10 @@ class _$SessionItemInputCopyWithImpl<$Res, $Val extends SessionItemInput>
           ? _value.quantityRejected
           : quantityRejected // ignore: cast_nullable_to_non_nullable
               as int,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -421,7 +431,11 @@ abstract class _$$SessionItemInputImplCopyWith<$Res>
       __$$SessionItemInputImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String productId, int quantity, int quantityRejected});
+  $Res call(
+      {String productId,
+      int quantity,
+      int quantityRejected,
+      String? variantId});
 }
 
 /// @nodoc
@@ -440,6 +454,7 @@ class __$$SessionItemInputImplCopyWithImpl<$Res>
     Object? productId = null,
     Object? quantity = null,
     Object? quantityRejected = null,
+    Object? variantId = freezed,
   }) {
     return _then(_$SessionItemInputImpl(
       productId: null == productId
@@ -454,6 +469,10 @@ class __$$SessionItemInputImplCopyWithImpl<$Res>
           ? _value.quantityRejected
           : quantityRejected // ignore: cast_nullable_to_non_nullable
               as int,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -464,7 +483,8 @@ class _$SessionItemInputImpl implements _SessionItemInput {
   const _$SessionItemInputImpl(
       {required this.productId,
       required this.quantity,
-      this.quantityRejected = 0});
+      this.quantityRejected = 0,
+      this.variantId});
 
   @override
   final String productId;
@@ -473,10 +493,12 @@ class _$SessionItemInputImpl implements _SessionItemInput {
   @override
   @JsonKey()
   final int quantityRejected;
+  @override
+  final String? variantId;
 
   @override
   String toString() {
-    return 'SessionItemInput(productId: $productId, quantity: $quantity, quantityRejected: $quantityRejected)';
+    return 'SessionItemInput(productId: $productId, quantity: $quantity, quantityRejected: $quantityRejected, variantId: $variantId)';
   }
 
   @override
@@ -489,12 +511,14 @@ class _$SessionItemInputImpl implements _SessionItemInput {
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.quantityRejected, quantityRejected) ||
-                other.quantityRejected == quantityRejected));
+                other.quantityRejected == quantityRejected) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, productId, quantity, quantityRejected);
+  int get hashCode => Object.hash(
+      runtimeType, productId, quantity, quantityRejected, variantId);
 
   /// Create a copy of SessionItemInput
   /// with the given fields replaced by the non-null parameter values.
@@ -510,7 +534,8 @@ abstract class _SessionItemInput implements SessionItemInput {
   const factory _SessionItemInput(
       {required final String productId,
       required final int quantity,
-      final int quantityRejected}) = _$SessionItemInputImpl;
+      final int quantityRejected,
+      final String? variantId}) = _$SessionItemInputImpl;
 
   @override
   String get productId;
@@ -518,6 +543,8 @@ abstract class _SessionItemInput implements SessionItemInput {
   int get quantity;
   @override
   int get quantityRejected;
+  @override
+  String? get variantId;
 
   /// Create a copy of SessionItemInput
   /// with the given fields replaced by the non-null parameter values.
@@ -708,7 +735,16 @@ mixin _$ProductSearchResult {
   String? get brandName => throw _privateConstructorUsedError;
   String? get categoryName => throw _privateConstructorUsedError;
   double get sellingPrice => throw _privateConstructorUsedError;
-  int get currentStock => throw _privateConstructorUsedError;
+  int get currentStock =>
+      throw _privateConstructorUsedError; // v6 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get variantSku => throw _privateConstructorUsedError;
+  String? get variantBarcode => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  String? get displaySku => throw _privateConstructorUsedError;
+  String? get displayBarcode => throw _privateConstructorUsedError;
+  bool get hasVariants => throw _privateConstructorUsedError;
 
   /// Create a copy of ProductSearchResult
   /// with the given fields replaced by the non-null parameter values.
@@ -732,7 +768,15 @@ abstract class $ProductSearchResultCopyWith<$Res> {
       String? brandName,
       String? categoryName,
       double sellingPrice,
-      int currentStock});
+      int currentStock,
+      String? variantId,
+      String? variantName,
+      String? variantSku,
+      String? variantBarcode,
+      String? displayName,
+      String? displaySku,
+      String? displayBarcode,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -759,6 +803,14 @@ class _$ProductSearchResultCopyWithImpl<$Res, $Val extends ProductSearchResult>
     Object? categoryName = freezed,
     Object? sellingPrice = null,
     Object? currentStock = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? variantSku = freezed,
+    Object? variantBarcode = freezed,
+    Object? displayName = freezed,
+    Object? displaySku = freezed,
+    Object? displayBarcode = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -797,6 +849,38 @@ class _$ProductSearchResultCopyWithImpl<$Res, $Val extends ProductSearchResult>
           ? _value.currentStock
           : currentStock // ignore: cast_nullable_to_non_nullable
               as int,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantSku: freezed == variantSku
+          ? _value.variantSku
+          : variantSku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantBarcode: freezed == variantBarcode
+          ? _value.variantBarcode
+          : variantBarcode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayBarcode: freezed == displayBarcode
+          ? _value.displayBarcode
+          : displayBarcode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -818,7 +902,15 @@ abstract class _$$ProductSearchResultImplCopyWith<$Res>
       String? brandName,
       String? categoryName,
       double sellingPrice,
-      int currentStock});
+      int currentStock,
+      String? variantId,
+      String? variantName,
+      String? variantSku,
+      String? variantBarcode,
+      String? displayName,
+      String? displaySku,
+      String? displayBarcode,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -843,6 +935,14 @@ class __$$ProductSearchResultImplCopyWithImpl<$Res>
     Object? categoryName = freezed,
     Object? sellingPrice = null,
     Object? currentStock = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? variantSku = freezed,
+    Object? variantBarcode = freezed,
+    Object? displayName = freezed,
+    Object? displaySku = freezed,
+    Object? displayBarcode = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_$ProductSearchResultImpl(
       productId: null == productId
@@ -881,13 +981,45 @@ class __$$ProductSearchResultImplCopyWithImpl<$Res>
           ? _value.currentStock
           : currentStock // ignore: cast_nullable_to_non_nullable
               as int,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantSku: freezed == variantSku
+          ? _value.variantSku
+          : variantSku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantBarcode: freezed == variantBarcode
+          ? _value.variantBarcode
+          : variantBarcode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayBarcode: freezed == displayBarcode
+          ? _value.displayBarcode
+          : displayBarcode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
 
-class _$ProductSearchResultImpl implements _ProductSearchResult {
+class _$ProductSearchResultImpl extends _ProductSearchResult {
   const _$ProductSearchResultImpl(
       {required this.productId,
       required this.productName,
@@ -897,7 +1029,16 @@ class _$ProductSearchResultImpl implements _ProductSearchResult {
       this.brandName,
       this.categoryName,
       this.sellingPrice = 0,
-      this.currentStock = 0});
+      this.currentStock = 0,
+      this.variantId,
+      this.variantName,
+      this.variantSku,
+      this.variantBarcode,
+      this.displayName,
+      this.displaySku,
+      this.displayBarcode,
+      this.hasVariants = false})
+      : super._();
 
   @override
   final String productId;
@@ -919,10 +1060,28 @@ class _$ProductSearchResultImpl implements _ProductSearchResult {
   @override
   @JsonKey()
   final int currentStock;
+// v6 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? variantName;
+  @override
+  final String? variantSku;
+  @override
+  final String? variantBarcode;
+  @override
+  final String? displayName;
+  @override
+  final String? displaySku;
+  @override
+  final String? displayBarcode;
+  @override
+  @JsonKey()
+  final bool hasVariants;
 
   @override
   String toString() {
-    return 'ProductSearchResult(productId: $productId, productName: $productName, sku: $sku, barcode: $barcode, imageUrl: $imageUrl, brandName: $brandName, categoryName: $categoryName, sellingPrice: $sellingPrice, currentStock: $currentStock)';
+    return 'ProductSearchResult(productId: $productId, productName: $productName, sku: $sku, barcode: $barcode, imageUrl: $imageUrl, brandName: $brandName, categoryName: $categoryName, sellingPrice: $sellingPrice, currentStock: $currentStock, variantId: $variantId, variantName: $variantName, variantSku: $variantSku, variantBarcode: $variantBarcode, displayName: $displayName, displaySku: $displaySku, displayBarcode: $displayBarcode, hasVariants: $hasVariants)';
   }
 
   @override
@@ -945,12 +1104,45 @@ class _$ProductSearchResultImpl implements _ProductSearchResult {
             (identical(other.sellingPrice, sellingPrice) ||
                 other.sellingPrice == sellingPrice) &&
             (identical(other.currentStock, currentStock) ||
-                other.currentStock == currentStock));
+                other.currentStock == currentStock) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.variantSku, variantSku) ||
+                other.variantSku == variantSku) &&
+            (identical(other.variantBarcode, variantBarcode) ||
+                other.variantBarcode == variantBarcode) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.displaySku, displaySku) ||
+                other.displaySku == displaySku) &&
+            (identical(other.displayBarcode, displayBarcode) ||
+                other.displayBarcode == displayBarcode) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, productId, productName, sku,
-      barcode, imageUrl, brandName, categoryName, sellingPrice, currentStock);
+  int get hashCode => Object.hash(
+      runtimeType,
+      productId,
+      productName,
+      sku,
+      barcode,
+      imageUrl,
+      brandName,
+      categoryName,
+      sellingPrice,
+      currentStock,
+      variantId,
+      variantName,
+      variantSku,
+      variantBarcode,
+      displayName,
+      displaySku,
+      displayBarcode,
+      hasVariants);
 
   /// Create a copy of ProductSearchResult
   /// with the given fields replaced by the non-null parameter values.
@@ -962,7 +1154,7 @@ class _$ProductSearchResultImpl implements _ProductSearchResult {
           this, _$identity);
 }
 
-abstract class _ProductSearchResult implements ProductSearchResult {
+abstract class _ProductSearchResult extends ProductSearchResult {
   const factory _ProductSearchResult(
       {required final String productId,
       required final String productName,
@@ -972,7 +1164,16 @@ abstract class _ProductSearchResult implements ProductSearchResult {
       final String? brandName,
       final String? categoryName,
       final double sellingPrice,
-      final int currentStock}) = _$ProductSearchResultImpl;
+      final int currentStock,
+      final String? variantId,
+      final String? variantName,
+      final String? variantSku,
+      final String? variantBarcode,
+      final String? displayName,
+      final String? displaySku,
+      final String? displayBarcode,
+      final bool hasVariants}) = _$ProductSearchResultImpl;
+  const _ProductSearchResult._() : super._();
 
   @override
   String get productId;
@@ -991,7 +1192,23 @@ abstract class _ProductSearchResult implements ProductSearchResult {
   @override
   double get sellingPrice;
   @override
-  int get currentStock;
+  int get currentStock; // v6 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get variantName;
+  @override
+  String? get variantSku;
+  @override
+  String? get variantBarcode;
+  @override
+  String? get displayName;
+  @override
+  String? get displaySku;
+  @override
+  String? get displayBarcode;
+  @override
+  bool get hasVariants;
 
   /// Create a copy of ProductSearchResult
   /// with the given fields replaced by the non-null parameter values.

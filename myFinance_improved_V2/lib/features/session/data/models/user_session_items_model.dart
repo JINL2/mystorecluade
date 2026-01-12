@@ -4,6 +4,7 @@ import '../../domain/entities/user_session_items.dart';
 /// Returns individual item records (no grouping by product_id)
 
 /// Individual item added by user in a session
+/// Supports v6 variants with variantId and displayName
 class UserSessionItemModel {
   final String itemId;
   final String productId;
@@ -14,6 +15,9 @@ class UserSessionItemModel {
   final int quantityRejected;
   final String? notes;
   final String createdAt;
+  // v6 variant fields
+  final String? variantId;
+  final String? displayName;
 
   const UserSessionItemModel({
     required this.itemId,
@@ -25,6 +29,8 @@ class UserSessionItemModel {
     required this.quantityRejected,
     this.notes,
     required this.createdAt,
+    this.variantId,
+    this.displayName,
   });
 
   factory UserSessionItemModel.fromJson(Map<String, dynamic> json) {
@@ -45,6 +51,9 @@ class UserSessionItemModel {
       quantityRejected: (json['quantity_rejected'] as num?)?.toInt() ?? 0,
       notes: json['notes']?.toString(),
       createdAt: json['created_at']?.toString() ?? '',
+      // v6 variant fields
+      variantId: json['variant_id']?.toString(),
+      displayName: json['display_name']?.toString(),
     );
   }
 
@@ -63,6 +72,9 @@ class UserSessionItemModel {
       quantityRejected: quantityRejected,
       notes: notes,
       createdAt: createdAt,
+      // v6 variant fields
+      variantId: variantId,
+      displayName: displayName,
     );
   }
 }
@@ -144,15 +156,21 @@ class UserSessionItemsResponseModel {
     );
   }
 
-  /// Get aggregated items by product_id (Model version)
-  /// Groups multiple item records for same product into one with summed quantities
+  /// Get aggregated items by product_id + variant_id (Model version)
+  /// Groups multiple item records for same product/variant into one with summed quantities
+  /// For v6 variants, uses productId:variantId as key
   Map<String, AggregatedUserSessionItemModel> get aggregatedByProduct {
     final result = <String, AggregatedUserSessionItemModel>{};
 
     for (final item in items) {
-      if (result.containsKey(item.productId)) {
-        final existing = result[item.productId]!;
-        result[item.productId] = AggregatedUserSessionItemModel(
+      // Use productId:variantId as key for variants, productId for non-variants
+      final key = item.variantId != null
+          ? '${item.productId}:${item.variantId}'
+          : item.productId;
+
+      if (result.containsKey(key)) {
+        final existing = result[key]!;
+        result[key] = AggregatedUserSessionItemModel(
           productId: item.productId,
           productName: item.productName,
           sku: item.sku,
@@ -160,9 +178,11 @@ class UserSessionItemsResponseModel {
           totalQuantity: existing.totalQuantity + item.quantity,
           totalRejected: existing.totalRejected + item.quantityRejected,
           itemIds: [...existing.itemIds, item.itemId],
+          variantId: item.variantId,
+          displayName: item.displayName,
         );
       } else {
-        result[item.productId] = AggregatedUserSessionItemModel(
+        result[key] = AggregatedUserSessionItemModel(
           productId: item.productId,
           productName: item.productName,
           sku: item.sku,
@@ -170,6 +190,8 @@ class UserSessionItemsResponseModel {
           totalQuantity: item.quantity,
           totalRejected: item.quantityRejected,
           itemIds: [item.itemId],
+          variantId: item.variantId,
+          displayName: item.displayName,
         );
       }
     }
@@ -178,7 +200,8 @@ class UserSessionItemsResponseModel {
   }
 }
 
-/// Aggregated item (grouped by product_id) - Model version
+/// Aggregated item (grouped by product_id + variant_id) - Model version
+/// Supports v6 variants with variantId and displayName
 class AggregatedUserSessionItemModel {
   final String productId;
   final String productName;
@@ -187,6 +210,9 @@ class AggregatedUserSessionItemModel {
   final int totalQuantity;
   final int totalRejected;
   final List<String> itemIds;
+  // v6 variant fields
+  final String? variantId;
+  final String? displayName;
 
   const AggregatedUserSessionItemModel({
     required this.productId,
@@ -196,7 +222,12 @@ class AggregatedUserSessionItemModel {
     required this.totalQuantity,
     required this.totalRejected,
     required this.itemIds,
+    this.variantId,
+    this.displayName,
   });
+
+  /// Unique key for grouping (productId + variantId)
+  String get uniqueKey => variantId != null ? '$productId:$variantId' : productId;
 
   /// Convert to domain entity
   AggregatedUserSessionItem toEntity() {
@@ -208,6 +239,9 @@ class AggregatedUserSessionItemModel {
       totalQuantity: totalQuantity,
       totalRejected: totalRejected,
       itemIds: itemIds,
+      // v6 variant fields
+      variantId: variantId,
+      displayName: displayName,
     );
   }
 }

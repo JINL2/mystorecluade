@@ -214,7 +214,10 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
         }
 
         final product = state.inventoryProducts[index];
-        final selectedProduct = state.getSelectedProduct(product.productId);
+        final selectedProduct = state.getSelectedProduct(
+          product.productId,
+          variantId: product.variantId,
+        );
         final quantity = selectedProduct?.quantity ?? 0;
 
         return InventoryProductItem(
@@ -264,7 +267,10 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
         }
 
         final product = state.searchResults[index];
-        final selectedProduct = state.getSelectedProduct(product.productId);
+        final selectedProduct = state.getSelectedProduct(
+          product.productId,
+          variantId: product.variantId,
+        );
         final quantity = selectedProduct?.quantity ?? 0;
 
         return InventoryProductItem(
@@ -278,17 +284,22 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
 
   void _showQuantityInputDialogForProduct(SearchProductResult product) {
     final state = ref.read(sessionDetailNotifierProvider(_params));
-    final existingProduct = state.getSelectedProduct(product.productId);
+    final existingProduct = state.getSelectedProduct(
+      product.productId,
+      variantId: product.variantId,
+    );
 
     final item = existingProduct ?? SelectedProduct(
       productId: product.productId,
       productName: product.productName,
-      sku: product.sku,
-      barcode: product.barcode,
+      sku: product.effectiveSku,
+      barcode: product.effectiveBarcode,
       imageUrl: product.imageUrl,
       quantity: 0,
       quantityRejected: 0,
       unitPrice: product.sellingPrice,
+      variantId: product.variantId,
+      displayName: product.displayName,
     );
 
     showDialog<void>(
@@ -300,8 +311,16 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
           if (existingProduct == null && (counted > 0 || rejected > 0)) {
             notifier.addProduct(product);
           }
-          notifier.updateQuantity(product.productId, counted);
-          notifier.updateQuantityRejected(product.productId, rejected);
+          notifier.updateQuantity(
+            product.productId,
+            counted,
+            variantId: product.variantId,
+          );
+          notifier.updateQuantityRejected(
+            product.productId,
+            rejected,
+            variantId: product.variantId,
+          );
         },
       ),
     );
@@ -314,8 +333,16 @@ class _SessionDetailPageState extends ConsumerState<SessionDetailPage> {
         item: item,
         onSubmit: (counted, rejected) {
           final notifier = ref.read(sessionDetailNotifierProvider(_params).notifier);
-          notifier.updateQuantity(item.productId, counted);
-          notifier.updateQuantityRejected(item.productId, rejected);
+          notifier.updateQuantity(
+            item.productId,
+            counted,
+            variantId: item.variantId,
+          );
+          notifier.updateQuantityRejected(
+            item.productId,
+            rejected,
+            variantId: item.variantId,
+          );
         },
       ),
     );

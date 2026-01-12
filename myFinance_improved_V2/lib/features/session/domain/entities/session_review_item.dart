@@ -14,6 +14,7 @@ class ScannedByUser with _$ScannedByUser {
 }
 
 /// Individual item in session review
+/// Supports v2 variants with variantId and displayName
 @freezed
 class SessionReviewItem with _$SessionReviewItem {
   const SessionReviewItem._();
@@ -32,7 +33,20 @@ class SessionReviewItem with _$SessionReviewItem {
     /// Session type: 'counting' or 'receiving'
     /// Used to calculate newStock and stockChange differently
     @Default('receiving') String sessionType,
+    // v2 variant fields
+    String? variantId,
+    String? variantName,
+    String? displayName,
+    String? variantSku,
+    String? displaySku,
+    @Default(false) bool hasVariants,
   }) = _SessionReviewItem;
+
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
+
+  /// Display SKU for UI - uses displaySku if available, otherwise sku
+  String? get effectiveSku => displaySku ?? sku;
 
   /// Get net quantity (total - rejected)
   int get netQuantity => totalQuantity - totalRejected;
@@ -87,10 +101,13 @@ class SessionReviewResponse with _$SessionReviewResponse {
 }
 
 /// Item to submit in session
+/// v3 supports variantId for variant products
 @freezed
 class SessionSubmitItem with _$SessionSubmitItem {
   const factory SessionSubmitItem({
     required String productId,
+    /// Variant ID for variant products, null for simple products
+    String? variantId,
     required int quantity,
     @Default(0) int quantityRejected,
   }) = _SessionSubmitItem;

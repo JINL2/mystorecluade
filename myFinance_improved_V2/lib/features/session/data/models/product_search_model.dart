@@ -1,6 +1,7 @@
 import '../../domain/entities/session_item.dart';
 
 /// Model for ProductSearchResult with JSON parsing
+/// Supports get_inventory_page_v6 which returns variants expanded
 class ProductSearchResultModel {
   final String productId;
   final String productName;
@@ -12,6 +13,16 @@ class ProductSearchResultModel {
   final double sellingPrice;
   final int currentStock;
 
+  // v6 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? variantSku;
+  final String? variantBarcode;
+  final String? displayName;
+  final String? displaySku;
+  final String? displayBarcode;
+  final bool hasVariants;
+
   const ProductSearchResultModel({
     required this.productId,
     required this.productName,
@@ -22,9 +33,18 @@ class ProductSearchResultModel {
     this.categoryName,
     this.sellingPrice = 0,
     this.currentStock = 0,
+    this.variantId,
+    this.variantName,
+    this.variantSku,
+    this.variantBarcode,
+    this.displayName,
+    this.displaySku,
+    this.displayBarcode,
+    this.hasVariants = false,
   });
 
-  /// Parse from get_inventory_page_v3 RPC response format
+  /// Parse from get_inventory_page_v6 RPC response format
+  /// v6 returns variants expanded - each variant is a separate row
   factory ProductSearchResultModel.fromJson(Map<String, dynamic> json) {
     // Parse image URL from image_urls array
     String? imageUrl;
@@ -66,6 +86,15 @@ class ProductSearchResultModel {
       categoryName: json['category_name']?.toString(),
       sellingPrice: sellingPrice,
       currentStock: currentStock,
+      // v6 variant fields
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      variantSku: json['variant_sku']?.toString(),
+      variantBarcode: json['variant_barcode']?.toString(),
+      displayName: json['display_name']?.toString(),
+      displaySku: json['display_sku']?.toString(),
+      displayBarcode: json['display_barcode']?.toString(),
+      hasVariants: json['has_variants'] as bool? ?? false,
     );
   }
 
@@ -80,6 +109,14 @@ class ProductSearchResultModel {
       'category_name': categoryName,
       'selling_price': sellingPrice,
       'current_stock': currentStock,
+      'variant_id': variantId,
+      'variant_name': variantName,
+      'variant_sku': variantSku,
+      'variant_barcode': variantBarcode,
+      'display_name': displayName,
+      'display_sku': displaySku,
+      'display_barcode': displayBarcode,
+      'has_variants': hasVariants,
     };
   }
 
@@ -94,6 +131,14 @@ class ProductSearchResultModel {
       categoryName: categoryName,
       sellingPrice: sellingPrice,
       currentStock: currentStock,
+      variantId: variantId,
+      variantName: variantName,
+      variantSku: variantSku,
+      variantBarcode: variantBarcode,
+      displayName: displayName,
+      displaySku: displaySku,
+      displayBarcode: displayBarcode,
+      hasVariants: hasVariants,
     );
   }
 }
@@ -116,10 +161,14 @@ class ProductSearchResponseModel {
     this.hasNext = false,
   });
 
-  /// Parse from get_inventory_page_v3 RPC response format
+  /// Parse from get_inventory_page_v6 RPC response format
+  /// v6 returns 'items' array (not 'products') with variants expanded
   factory ProductSearchResponseModel.fromJson(Map<String, dynamic> json) {
-    final productsJson = json['products'] as List<dynamic>? ?? [];
-    final products = productsJson
+    // v6 uses 'items' key, fallback to 'products' for compatibility
+    final itemsJson = json['items'] as List<dynamic>? ??
+        json['products'] as List<dynamic>? ??
+        [];
+    final products = itemsJson
         .map((e) => ProductSearchResultModel.fromJson(e as Map<String, dynamic>))
         .toList();
 

@@ -7,7 +7,7 @@ part of 'session_detail_provider.dart';
 // **************************************************************************
 
 String _$sessionDetailNotifierHash() =>
-    r'3fd232bc1396392d52795f660ba0ab19e7249098';
+    r'97552a3f6dc398849d31444b5d6fa7d3f6600e38';
 
 /// Copied from Dart SDK
 class _SystemHash {

@@ -24,7 +24,10 @@ mixin _$UserSessionItem {
   int get quantity => throw _privateConstructorUsedError;
   int get quantityRejected => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
-  String get createdAt => throw _privateConstructorUsedError;
+  String get createdAt =>
+      throw _privateConstructorUsedError; // v6 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
 
   /// Create a copy of UserSessionItem
   /// with the given fields replaced by the non-null parameter values.
@@ -48,7 +51,9 @@ abstract class $UserSessionItemCopyWith<$Res> {
       int quantity,
       int quantityRejected,
       String? notes,
-      String createdAt});
+      String createdAt,
+      String? variantId,
+      String? displayName});
 }
 
 /// @nodoc
@@ -75,6 +80,8 @@ class _$UserSessionItemCopyWithImpl<$Res, $Val extends UserSessionItem>
     Object? quantityRejected = null,
     Object? notes = freezed,
     Object? createdAt = null,
+    Object? variantId = freezed,
+    Object? displayName = freezed,
   }) {
     return _then(_value.copyWith(
       itemId: null == itemId
@@ -113,6 +120,14 @@ class _$UserSessionItemCopyWithImpl<$Res, $Val extends UserSessionItem>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -134,7 +149,9 @@ abstract class _$$UserSessionItemImplCopyWith<$Res>
       int quantity,
       int quantityRejected,
       String? notes,
-      String createdAt});
+      String createdAt,
+      String? variantId,
+      String? displayName});
 }
 
 /// @nodoc
@@ -159,6 +176,8 @@ class __$$UserSessionItemImplCopyWithImpl<$Res>
     Object? quantityRejected = null,
     Object? notes = freezed,
     Object? createdAt = null,
+    Object? variantId = freezed,
+    Object? displayName = freezed,
   }) {
     return _then(_$UserSessionItemImpl(
       itemId: null == itemId
@@ -197,6 +216,14 @@ class __$$UserSessionItemImplCopyWithImpl<$Res>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -213,7 +240,9 @@ class _$UserSessionItemImpl extends _UserSessionItem {
       required this.quantity,
       required this.quantityRejected,
       this.notes,
-      required this.createdAt})
+      required this.createdAt,
+      this.variantId,
+      this.displayName})
       : _imageUrls = imageUrls,
         super._();
 
@@ -243,10 +272,15 @@ class _$UserSessionItemImpl extends _UserSessionItem {
   final String? notes;
   @override
   final String createdAt;
+// v6 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? displayName;
 
   @override
   String toString() {
-    return 'UserSessionItem(itemId: $itemId, productId: $productId, productName: $productName, sku: $sku, imageUrls: $imageUrls, quantity: $quantity, quantityRejected: $quantityRejected, notes: $notes, createdAt: $createdAt)';
+    return 'UserSessionItem(itemId: $itemId, productId: $productId, productName: $productName, sku: $sku, imageUrls: $imageUrls, quantity: $quantity, quantityRejected: $quantityRejected, notes: $notes, createdAt: $createdAt, variantId: $variantId, displayName: $displayName)';
   }
 
   @override
@@ -268,7 +302,11 @@ class _$UserSessionItemImpl extends _UserSessionItem {
                 other.quantityRejected == quantityRejected) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName));
   }
 
   @override
@@ -282,7 +320,9 @@ class _$UserSessionItemImpl extends _UserSessionItem {
       quantity,
       quantityRejected,
       notes,
-      createdAt);
+      createdAt,
+      variantId,
+      displayName);
 
   /// Create a copy of UserSessionItem
   /// with the given fields replaced by the non-null parameter values.
@@ -304,7 +344,9 @@ abstract class _UserSessionItem extends UserSessionItem {
       required final int quantity,
       required final int quantityRejected,
       final String? notes,
-      required final String createdAt}) = _$UserSessionItemImpl;
+      required final String createdAt,
+      final String? variantId,
+      final String? displayName}) = _$UserSessionItemImpl;
   const _UserSessionItem._() : super._();
 
   @override
@@ -324,7 +366,11 @@ abstract class _UserSessionItem extends UserSessionItem {
   @override
   String? get notes;
   @override
-  String get createdAt;
+  String get createdAt; // v6 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get displayName;
 
   /// Create a copy of UserSessionItem
   /// with the given fields replaced by the non-null parameter values.
@@ -544,7 +590,10 @@ mixin _$AggregatedUserSessionItem {
   String? get imageUrl => throw _privateConstructorUsedError;
   int get totalQuantity => throw _privateConstructorUsedError;
   int get totalRejected => throw _privateConstructorUsedError;
-  List<String> get itemIds => throw _privateConstructorUsedError;
+  List<String> get itemIds =>
+      throw _privateConstructorUsedError; // v6 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
 
   /// Create a copy of AggregatedUserSessionItem
   /// with the given fields replaced by the non-null parameter values.
@@ -566,7 +615,9 @@ abstract class $AggregatedUserSessionItemCopyWith<$Res> {
       String? imageUrl,
       int totalQuantity,
       int totalRejected,
-      List<String> itemIds});
+      List<String> itemIds,
+      String? variantId,
+      String? displayName});
 }
 
 /// @nodoc
@@ -592,6 +643,8 @@ class _$AggregatedUserSessionItemCopyWithImpl<$Res,
     Object? totalQuantity = null,
     Object? totalRejected = null,
     Object? itemIds = null,
+    Object? variantId = freezed,
+    Object? displayName = freezed,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -622,6 +675,14 @@ class _$AggregatedUserSessionItemCopyWithImpl<$Res,
           ? _value.itemIds
           : itemIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -642,7 +703,9 @@ abstract class _$$AggregatedUserSessionItemImplCopyWith<$Res>
       String? imageUrl,
       int totalQuantity,
       int totalRejected,
-      List<String> itemIds});
+      List<String> itemIds,
+      String? variantId,
+      String? displayName});
 }
 
 /// @nodoc
@@ -667,6 +730,8 @@ class __$$AggregatedUserSessionItemImplCopyWithImpl<$Res>
     Object? totalQuantity = null,
     Object? totalRejected = null,
     Object? itemIds = null,
+    Object? variantId = freezed,
+    Object? displayName = freezed,
   }) {
     return _then(_$AggregatedUserSessionItemImpl(
       productId: null == productId
@@ -697,6 +762,14 @@ class __$$AggregatedUserSessionItemImplCopyWithImpl<$Res>
           ? _value._itemIds
           : itemIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -711,7 +784,9 @@ class _$AggregatedUserSessionItemImpl implements _AggregatedUserSessionItem {
       this.imageUrl,
       required this.totalQuantity,
       required this.totalRejected,
-      required final List<String> itemIds})
+      required final List<String> itemIds,
+      this.variantId,
+      this.displayName})
       : _itemIds = itemIds;
 
   @override
@@ -734,9 +809,15 @@ class _$AggregatedUserSessionItemImpl implements _AggregatedUserSessionItem {
     return EqualUnmodifiableListView(_itemIds);
   }
 
+// v6 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? displayName;
+
   @override
   String toString() {
-    return 'AggregatedUserSessionItem(productId: $productId, productName: $productName, sku: $sku, imageUrl: $imageUrl, totalQuantity: $totalQuantity, totalRejected: $totalRejected, itemIds: $itemIds)';
+    return 'AggregatedUserSessionItem(productId: $productId, productName: $productName, sku: $sku, imageUrl: $imageUrl, totalQuantity: $totalQuantity, totalRejected: $totalRejected, itemIds: $itemIds, variantId: $variantId, displayName: $displayName)';
   }
 
   @override
@@ -755,7 +836,11 @@ class _$AggregatedUserSessionItemImpl implements _AggregatedUserSessionItem {
                 other.totalQuantity == totalQuantity) &&
             (identical(other.totalRejected, totalRejected) ||
                 other.totalRejected == totalRejected) &&
-            const DeepCollectionEquality().equals(other._itemIds, _itemIds));
+            const DeepCollectionEquality().equals(other._itemIds, _itemIds) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName));
   }
 
   @override
@@ -767,7 +852,9 @@ class _$AggregatedUserSessionItemImpl implements _AggregatedUserSessionItem {
       imageUrl,
       totalQuantity,
       totalRejected,
-      const DeepCollectionEquality().hash(_itemIds));
+      const DeepCollectionEquality().hash(_itemIds),
+      variantId,
+      displayName);
 
   /// Create a copy of AggregatedUserSessionItem
   /// with the given fields replaced by the non-null parameter values.
@@ -787,7 +874,9 @@ abstract class _AggregatedUserSessionItem implements AggregatedUserSessionItem {
       final String? imageUrl,
       required final int totalQuantity,
       required final int totalRejected,
-      required final List<String> itemIds}) = _$AggregatedUserSessionItemImpl;
+      required final List<String> itemIds,
+      final String? variantId,
+      final String? displayName}) = _$AggregatedUserSessionItemImpl;
 
   @override
   String get productId;
@@ -802,7 +891,11 @@ abstract class _AggregatedUserSessionItem implements AggregatedUserSessionItem {
   @override
   int get totalRejected;
   @override
-  List<String> get itemIds;
+  List<String> get itemIds; // v6 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get displayName;
 
   /// Create a copy of AggregatedUserSessionItem
   /// with the given fields replaced by the non-null parameter values.

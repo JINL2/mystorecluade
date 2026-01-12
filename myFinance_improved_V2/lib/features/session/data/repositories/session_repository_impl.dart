@@ -288,13 +288,14 @@ class SessionRepositoryImpl implements SessionRepository {
     required String userId,
     required List<SessionItemInput> items,
   }) async {
-    // Convert Domain Entity to Data Model
+    // Convert Domain Entity to Data Model (includes variantId for v6 support)
     final modelItems = items
         .map((e) => SessionItemInputModel(
               productId: e.productId,
               quantity: e.quantity,
               quantityRejected: e.quantityRejected,
-            ),)
+              variantId: e.variantId,
+            ))
         .toList();
     final model = await _datasource.addSessionItems(
       sessionId: sessionId,
@@ -385,13 +386,14 @@ class SessionRepositoryImpl implements SessionRepository {
     required String userId,
     required List<SessionItemInput> items,
   }) async {
-    // Convert Domain Entity to Data Model
+    // Convert Domain Entity to Data Model (includes variantId for v6 support)
     final modelItems = items
         .map((e) => SessionItemInputModel(
               productId: e.productId,
               quantity: e.quantity,
               quantityRejected: e.quantityRejected,
-            ),)
+              variantId: e.variantId,
+            ))
         .toList();
     final model = await _datasource.updateSessionItems(
       sessionId: sessionId,
