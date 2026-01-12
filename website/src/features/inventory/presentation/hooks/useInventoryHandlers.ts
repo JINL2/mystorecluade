@@ -35,7 +35,7 @@ interface UseInventoryHandlersReturn {
   formatCurrency: (amount: number) => string;
   handleSelectAll: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCheckboxChange: (productId: string) => void;
-  handleEditProduct: (productId: string) => void;
+  handleEditProduct: (uniqueId: string) => void;
   handleDeleteProducts: () => void;
   handleAddProduct: () => void;
   getStatusInfo: (item: any) => { class: string; text: string };
@@ -91,10 +91,10 @@ export const useInventoryHandlers = ({
     [toggleProductSelection]
   );
 
-  // Handle edit product
+  // Handle edit product - uses uniqueId (variantId || productId) for lookup
   const handleEditProduct = useCallback(
-    (productId: string) => {
-      const product = inventory.find((item) => item.productId === productId);
+    (uniqueId: string) => {
+      const product = inventory.find((item) => item.uniqueId === uniqueId);
       if (product) {
         openModal(product);
       }

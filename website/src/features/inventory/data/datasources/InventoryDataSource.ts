@@ -7,7 +7,7 @@ import { supabaseService } from '@/core/services/supabase_service';
 import type { InventoryMetadataResponse } from '../../domain/entities/InventoryMetadata';
 
 interface InventoryResponse {
-  products: any[];
+  items: any[];  // v6 uses 'items' instead of 'products'
   currency?: {
     symbol?: string;
     code?: string;
@@ -85,33 +85,36 @@ export interface ProductHistoryResponse {
 
 export class InventoryDataSource {
   /**
-   * Transform v3 product response to flat structure for frontend compatibility
+   * Transform v6 item response - keeps nested structure for InventoryItemModel
+   * v6 returns items with variant fields expanded
    */
-  private transformV3Product(product: any): any {
+  private transformV6Item(item: any): any {
     return {
-      product_id: product.product_id,
-      sku: product.sku,
-      barcode: product.barcode,
-      product_name: product.product_name,
-      product_type: product.product_type,
-      brand_name: product.brand_name,
-      category_name: product.category_name,
-      unit: product.unit,
-      image_urls: product.image_urls || [],
-      created_at: product.created_at,
-      // Flatten stock object
-      quantity_on_hand: product.stock?.quantity_on_hand ?? 0,
-      quantity_available: product.stock?.quantity_available ?? 0,
-      quantity_reserved: product.stock?.quantity_reserved ?? 0,
-      // Flatten price object
-      cost_price: product.price?.cost ?? 0,
-      selling_price: product.price?.selling ?? 0,
-      price_source: product.price?.source ?? 'default',
-      // Flatten status object
-      stock_level: product.status?.stock_level ?? 'normal',
-      is_active: product.status?.is_active ?? true,
-      // Recent changes (keep as-is for potential future use)
-      recent_changes: product.recent_changes || [],
+      product_id: item.product_id,
+      product_name: item.product_name,
+      product_sku: item.product_sku,
+      product_barcode: item.product_barcode,
+      product_type: item.product_type,
+      brand_id: item.brand_id,
+      brand_name: item.brand_name,
+      category_id: item.category_id,
+      category_name: item.category_name,
+      unit: item.unit,
+      image_urls: item.image_urls || [],
+      created_at: item.created_at,
+      // v6 variant fields
+      variant_id: item.variant_id,
+      variant_name: item.variant_name,
+      variant_sku: item.variant_sku,
+      variant_barcode: item.variant_barcode,
+      display_name: item.display_name,
+      display_sku: item.display_sku,
+      display_barcode: item.display_barcode,
+      has_variants: item.has_variants ?? false,
+      // Keep nested structures for InventoryItemModel
+      stock: item.stock,
+      price: item.price,
+      status: item.status,
     };
   }
 
@@ -126,12 +129,12 @@ export class InventoryDataSource {
 
     // If no company ID, return empty result
     if (!companyId) {
-      return { products: [] };
+      return { items: [] };
     }
 
-    // v3 requires store_id - if null, return empty
+    // v6 requires store_id - if null, return empty
     if (!storeId) {
-      return { products: [] };
+      return { items: [] };
     }
 
     // Get user's timezone
@@ -149,28 +152,28 @@ export class InventoryDataSource {
       p_timezone: userTimezone,
     };
 
-    // RPC 'get_inventory_page_v4' returns products with nested stock/price/status objects
-    const { data, error } = await supabase.rpc('get_inventory_page_v4', rpcParams);
+    // RPC 'get_inventory_page_v6' returns items with variant fields expanded
+    const { data, error } = await supabase.rpc('get_inventory_page_v6', rpcParams);
 
     if (error) {
       throw new Error(error.message);
     }
 
-    // Handle success wrapper format: { success: true, data: { products: [], pagination: {}, summary: {}, currency: {} } }
+    // Handle success wrapper format: { success: true, data: { items: [], pagination: {}, summary: {}, currency: {} } }
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
-      const rawProducts = data.data?.products || [];
-      // Transform v4 nested structure to flat structure
-      const products = rawProducts.map((p: any) => this.transformV3Product(p));
+      const rawItems = data.data?.items || [];
+      // Transform v6 items
+      const items = rawItems.map((item: any) => this.transformV6Item(item));
 
       return {
-        products: products,
+        items: items,
         currency: data.data?.currency,
         pagination: data.data?.pagination,
       };
     }
 
     // Fallback
-    throw new Error('Invalid response format from get_inventory_page_v4');
+    throw new Error('Invalid response format from get_inventory_page_v6');
   }
 
   async updateProduct(
@@ -186,15 +189,17 @@ export class InventoryDataSource {
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    // Build params for v4 - p_created_by is required
+    // Build params for v5 - supports variant products
     const params: any = {
       p_product_id: productId,
       p_company_id: companyId,
       p_store_id: storeId,
-      p_created_by: userId || productData.userId, // Required for v4
+      p_created_by: userId || productData.userId,
       p_updated_at: new Date().toISOString(),
       p_timezone: userTimezone,
       p_default_price: productData.defaultPrice ?? false, // false = store price, true = default price
+      // v5: variant support - p_variant_id is required for products with variants
+      p_variant_id: productData.variantId || null,
     };
 
     // Only include product name if it changed
@@ -242,7 +247,7 @@ export class InventoryDataSource {
       params.p_image_urls = productData.imageUrls || null;
     }
 
-    const { data, error } = await supabase.rpc('inventory_edit_product_v4', params);
+    const { data, error } = await supabase.rpc('inventory_edit_product_v5', params);
 
     if (error) {
       return {
@@ -277,13 +282,27 @@ export class InventoryDataSource {
   ): Promise<InventoryMetadataResponse> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('get_inventory_metadata', {
+    // v2: Added attributes with options for variant support
+    const { data, error } = await supabase.rpc('get_inventory_metadata_v2', {
       p_company_id: companyId,
       p_store_id: storeId || null,
     });
 
     if (error) {
       throw new Error(error.message);
+    }
+
+    // v2 returns { success: true, data: {...} } wrapper format
+    if (data && typeof data === 'object' && 'success' in data && data.success === true) {
+      return {
+        success: true,
+        data: data.data,
+      };
+    }
+
+    // Handle error response from RPC
+    if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+      throw new Error(data.error?.message || 'Failed to fetch metadata');
     }
 
     return data as InventoryMetadataResponse;
@@ -404,30 +423,37 @@ export class InventoryDataSource {
     quantity: number,
     notes: string,
     _time: string, // Unused - we use current time with timezone
-    updatedBy: string
+    updatedBy: string,
+    variantId?: string | null // v4: variant support
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     const supabase = supabaseService.getClient();
 
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    // v4: Build item with optional variant_id
+    const item: { product_id: string; quantity: number; variant_id?: string } = {
+      product_id: productId,
+      quantity: quantity,
+    };
+
+    // Only include variant_id if it's provided (for variant products)
+    if (variantId) {
+      item.variant_id = variantId;
+    }
+
     const rpcParams = {
       p_company_id: companyId,
       p_from_store_id: fromStoreId,
       p_to_store_id: toStoreId,
-      p_items: [
-        {
-          product_id: productId,
-          quantity: quantity,
-        },
-      ],
+      p_items: [item],
       p_updated_by: updatedBy,
       p_time: new Date().toISOString(),
       p_notes: notes || null,
       p_timezone: userTimezone,
     };
 
-    const { data, error } = await supabase.rpc('inventory_move_product_v3', rpcParams);
+    const { data, error } = await supabase.rpc('inventory_move_product_v4', rpcParams);
 
     if (error) {
       return {
@@ -455,7 +481,7 @@ export class InventoryDataSource {
 
     return {
       success: false,
-      error: 'Invalid response format from inventory_move_product_v3',
+      error: 'Invalid response format from inventory_move_product_v4',
     };
   }
 
@@ -490,7 +516,7 @@ export class InventoryDataSource {
 
   /**
    * Get all inventory for Excel export
-   * Uses same RPC as getInventory but with high limit to fetch all products
+   * Uses same RPC as getInventory but with high limit to fetch all items
    */
   async getAllInventoryForExport(
     companyId: string,
@@ -501,12 +527,12 @@ export class InventoryDataSource {
 
     // If no company ID, return empty result
     if (!companyId) {
-      return { products: [] };
+      return { items: [] };
     }
 
-    // v3 requires store_id - if null, return empty
+    // v6 requires store_id - if null, return empty
     if (!storeId) {
-      return { products: [] };
+      return { items: [] };
     }
 
     // Get user's timezone
@@ -516,7 +542,7 @@ export class InventoryDataSource {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: 1,
-      p_limit: 10000, // High limit to get all products
+      p_limit: 10000, // High limit to get all items
       p_search: search?.trim() || null,
       p_availability: null,
       p_brand_id: null,
@@ -524,7 +550,7 @@ export class InventoryDataSource {
       p_timezone: userTimezone,
     };
 
-    const { data, error } = await supabase.rpc('get_inventory_page_v4', rpcParams);
+    const { data, error } = await supabase.rpc('get_inventory_page_v6', rpcParams);
 
     if (error) {
       throw new Error(error.message);
@@ -532,19 +558,19 @@ export class InventoryDataSource {
 
     // Handle success wrapper format
     if (data && typeof data === 'object' && 'success' in data && data.success === true) {
-      const rawProducts = data.data?.products || [];
-      // Transform v4 nested structure to flat structure
-      const products = rawProducts.map((p: any) => this.transformV3Product(p));
+      const rawItems = data.data?.items || [];
+      // Transform v6 items
+      const items = rawItems.map((item: any) => this.transformV6Item(item));
 
       return {
-        products: products,
+        items: items,
         currency: data.data?.currency,
         pagination: data.data?.pagination,
       };
     }
 
     // Fallback
-    throw new Error('Invalid response format from get_inventory_page_v4');
+    throw new Error('Invalid response format from get_inventory_page_v6');
   }
 
   /**
@@ -613,24 +639,26 @@ export class InventoryDataSource {
 
   /**
    * Get product history (inventory logs)
-   * Uses inventory_product_history RPC
+   * Uses inventory_product_history_v2 RPC (supports variants)
    */
   async getProductHistory(
     companyId: string,
     storeId: string,
     productId: string,
     page: number = 1,
-    pageSize: number = 5
+    pageSize: number = 5,
+    variantId?: string | null // v2: variant support
   ): Promise<ProductHistoryResponse> {
     const supabase = supabaseService.getClient();
 
     // Get user's timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('inventory_product_history', {
+    const { data, error } = await supabase.rpc('inventory_product_history_v2', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_product_id: productId,
+      p_variant_id: variantId || null, // v2: filter by variant
       p_timezone: userTimezone,
       p_page: page,
       p_page_size: pageSize,
@@ -655,7 +683,7 @@ export class InventoryDataSource {
 
     return {
       success: false,
-      message: 'Invalid response format from inventory_product_history',
+      message: 'Invalid response format from inventory_product_history_v2',
       data: [],
       total_count: 0,
       page: 1,

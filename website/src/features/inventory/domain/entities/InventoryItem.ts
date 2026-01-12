@@ -25,8 +25,46 @@ export class InventoryItem {
     public readonly productType: string = 'commodity',
     public readonly costPrice: number = 0,
     public readonly createdAt?: Date,  // Date 객체로 변경 (Local 시간)
-    public readonly imageUrls: string[] = []  // 제품 이미지 URL 배열
+    public readonly imageUrls: string[] = [],  // 제품 이미지 URL 배열
+    // v6 variant fields
+    public readonly variantId: string | null = null,
+    public readonly variantName: string | null = null,
+    public readonly variantSku: string | null = null,
+    public readonly variantBarcode: string | null = null,
+    public readonly displayName: string | null = null,
+    public readonly displaySku: string | null = null,
+    public readonly displayBarcode: string | null = null,
+    public readonly hasVariants: boolean = false
   ) {}
+
+  /**
+   * Get unique identifier for this item (variant_id if exists, otherwise product_id)
+   * Used for lookups and selection tracking
+   */
+  get uniqueId(): string {
+    return this.variantId ?? this.productId;
+  }
+
+  /**
+   * Get display name for UI - uses displayName if available, otherwise productName
+   */
+  get name(): string {
+    return this.displayName ?? this.productName;
+  }
+
+  /**
+   * Get effective SKU for UI - uses displaySku if available, otherwise sku
+   */
+  get effectiveSku(): string {
+    return this.displaySku ?? this.sku;
+  }
+
+  /**
+   * Get effective barcode for UI - uses displayBarcode if available, otherwise barcode
+   */
+  get effectiveBarcode(): string {
+    return this.displayBarcode ?? this.barcode;
+  }
 
   /**
    * Check if stock is below minimum

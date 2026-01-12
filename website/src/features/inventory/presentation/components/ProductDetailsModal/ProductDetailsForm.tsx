@@ -1,6 +1,6 @@
 /**
  * ProductDetailsForm Component
- * Product information form with three sections: Product Info, Stock Info, Price Info
+ * Product information form with four sections: Product Info, Attributes, Stock Info, Price Info
  */
 
 import React from 'react';
@@ -28,9 +28,23 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
   formData,
   metadata,
   onInputChange,
+  onAttributeChange,
   onAddBrand,
   onAddCategory,
+  onAddAttribute,
+  hasVariants,
+  variantName,
 }) => {
+  // Get attributes from metadata (v2)
+  // Only 1 attribute per product is allowed - show only the attribute that this variant belongs to
+  const allAttributes = metadata?.attributes || [];
+  const selectedAttributeIds = Object.keys(formData.selectedAttributes || {});
+
+  // If product has a selected attribute, show only that one; otherwise show all for selection
+  const attributes = selectedAttributeIds.length > 0
+    ? allAttributes.filter(attr => selectedAttributeIds.includes(attr.attribute_id))
+    : allAttributes;
+
   return (
     <>
       {/* Product Information Section */}
@@ -132,6 +146,63 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Variant Attributes Section - Only show if product has variants or attributes exist */}
+      {(hasVariants || attributes.length > 0) && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>
+            Variant Attributes
+            {variantName && (
+              <span className={styles.variantBadge}>{variantName}</span>
+            )}
+            {onAddAttribute && (
+              <button
+                type="button"
+                className={styles.addAttributeButton}
+                onClick={onAddAttribute}
+                title="Add new attribute"
+              >
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+              </button>
+            )}
+          </h3>
+          <div className={styles.formGrid}>
+            {attributes.map((attribute) => {
+              const selectedOptionId = formData.selectedAttributes?.[attribute.attribute_id];
+              const options = attribute.options || [];
+
+              return (
+                <div key={attribute.attribute_id} className={styles.formGroup}>
+                  <TossSelector
+                    label={attribute.attribute_name}
+                    placeholder={`Select ${attribute.attribute_name.toLowerCase()}`}
+                    value={selectedOptionId || ''}
+                    options={options.map((option) => ({
+                      value: option.option_id,
+                      label: option.option_value,
+                    }))}
+                    onChange={(value) => {
+                      if (onAttributeChange) {
+                        onAttributeChange(attribute.attribute_id, value);
+                      }
+                    }}
+                    fullWidth={true}
+                  />
+                </div>
+              );
+            })}
+            {attributes.length === 0 && (
+              <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
+                <p className={styles.emptyAttributesText}>
+                  No variant attributes configured. Add attributes in Settings to create product variants.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Stock Information Section */}
       <div className={styles.section}>

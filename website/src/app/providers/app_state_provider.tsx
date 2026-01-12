@@ -91,11 +91,6 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) 
 
       // Store full response in localStorage like backup does
       if (data) {
-        console.log('📦 loadUserData RPC 응답:', {
-          companies: data.companies?.length,
-          firstCompanyPermissions: data.companies?.[0]?.role?.permissions?.length,
-          rawData: data
-        });
         localStorage.setItem('user', JSON.stringify(data));
 
         // Set current user from RPC response

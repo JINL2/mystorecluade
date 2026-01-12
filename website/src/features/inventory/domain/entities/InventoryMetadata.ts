@@ -1,6 +1,6 @@
 /**
  * Inventory Metadata Entities
- * Types for inventory dropdown data from get_inventory_metadata RPC
+ * Types for inventory dropdown data from get_inventory_metadata_v2 RPC
  */
 
 export interface Category {
@@ -66,12 +66,37 @@ export interface StoreInfo {
   store_name: string | null;
 }
 
+/**
+ * Attribute option for variant attributes (v2)
+ */
+export interface AttributeOption {
+  option_id: string;
+  option_value: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+/**
+ * Attribute with options for multi-attribute variant support (v2)
+ */
+export interface Attribute {
+  attribute_id: string;
+  attribute_name: string;
+  sort_order: number;
+  is_active: boolean;
+  option_count: number;
+  options: AttributeOption[];
+}
+
 export interface Stats {
   total_categories: number;
   total_brands: number;
   total_products: number;
   active_products: number;
   inactive_products: number;
+  // v2 fields
+  total_attributes: number;
+  total_options: number;
 }
 
 export interface InventoryMetadata {
@@ -80,6 +105,7 @@ export interface InventoryMetadata {
   brands: Brand[];
   product_types: ProductType[];
   units: Unit[];
+  attributes: Attribute[];  // v2: Attributes with options for variant support
   currency: Currency;
   stock_status_levels: StockStatusLevel[];
   validation_rules: ValidationRules;

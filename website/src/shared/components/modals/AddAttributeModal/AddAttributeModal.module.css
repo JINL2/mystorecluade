@@ -1,6 +1,6 @@
 /**
- * AddProductModal Component Styles
- * Modal for creating new products
+ * AddAttributeModal Component Styles
+ * Modal for creating new attributes with options
  */
 
 .modalOverlay {
@@ -29,16 +29,12 @@
   border-radius: var(--radius-lg, 12px);
   box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.1));
   width: 90%;
-  max-width: 600px;
+  max-width: 520px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   transform: scale(0.95);
   transition: transform 0.2s ease;
-}
-
-.modalContainer.modalLg {
-  max-width: 800px;
 }
 
 .modalOverlay.show .modalContainer {
@@ -102,19 +98,12 @@
   flex: 1;
 }
 
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4, 16px);
-}
-
 .formGroup {
-  display: flex;
-  flex-direction: column;
+  margin-bottom: var(--space-5, 20px);
 }
 
-.formGroupFull {
-  grid-column: 1 / -1;
+.formGroup:last-child {
+  margin-bottom: 0;
 }
 
 .label {
@@ -166,26 +155,6 @@
   box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.08);
 }
 
-/* Input with Prefix */
-.inputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.inputPrefix {
-  position: absolute;
-  left: var(--space-4, 16px);
-  font-size: var(--font-body, 14px);
-  color: var(--text-secondary, #6C757D);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.input.withPrefix {
-  padding-left: var(--space-8, 32px);
-}
-
 .helperText {
   display: block;
   font-size: var(--font-small, 13px);
@@ -202,98 +171,123 @@
   line-height: 1.4;
 }
 
-/* Image Upload */
-.imageUploadSection {
-  grid-column: 1 / -1;
-  margin-bottom: var(--space-2, 8px);
+/* Options Section */
+.optionsSection {
+  margin-top: var(--space-4, 16px);
 }
 
-.imageUploadContainer {
+.optionsHeader {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3, 12px);
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3, 12px);
 }
 
-.imagePreviewWrapper {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-md, 8px);
-  border: 2px dashed var(--border-secondary, #E9ECEF);
-  background: var(--bg-secondary, #F8F9FA);
+.optionsLabel {
+  font-size: var(--font-small, 13px);
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+}
+
+.addOptionButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.addOptionButton:hover {
+  background: var(--toss-primary-dark, #0052CC);
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.optionInput {
+  flex: 1;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: var(--input-bg, #FFFFFF);
+  border: 1px solid var(--input-border, #E9ECEF);
+  border-radius: var(--radius-input, 8px);
+  font-family: var(--font-family, 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
+  font-size: var(--font-body, 14px);
+  color: var(--text-primary, #212529);
+  transition: all var(--transition-fast, 0.15s ease);
+  outline: none;
+}
+
+.optionInput::placeholder {
+  color: var(--input-placeholder, #ADB5BD);
+}
+
+.optionInput:hover {
+  border-color: var(--toss-primary, #0064FF);
+}
+
+.optionInput:focus {
+  border-color: var(--input-border-focus, #0064FF);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+}
+
+.optionNumber {
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  background: var(--bg-secondary, #F8F9FA);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #6C757D);
+  flex-shrink: 0;
+}
+
+.removeOptionButton {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-secondary, #E9ECEF);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-tertiary, #ADB5BD);
   cursor: pointer;
   transition: all var(--transition-fast, 0.15s ease);
   flex-shrink: 0;
 }
 
-.imagePreviewWrapper:hover {
-  border-color: var(--toss-primary, #0064FF);
-  background: var(--bg-hover, #F0F6FF);
+.removeOptionButton:hover {
+  background: var(--toss-error-light, #FFEBEE);
+  border-color: var(--toss-error, #FF3B30);
+  color: var(--toss-error, #FF3B30);
 }
 
-.imagePreview {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.uploadPlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2, 8px);
+.emptyOptions {
   padding: var(--space-4, 16px);
   text-align: center;
-}
-
-.uploadIcon {
-  width: 32px;
-  height: 32px;
+  background: var(--bg-secondary, #F8F9FA);
+  border-radius: var(--radius-md, 8px);
   color: var(--text-tertiary, #ADB5BD);
-}
-
-.uploadText {
   font-size: var(--font-small, 13px);
-  color: var(--text-secondary, #6C757D);
-  font-weight: 500;
-}
-
-.uploadHint {
-  font-size: var(--font-xs, 12px);
-  color: var(--text-tertiary, #ADB5BD);
-}
-
-.removeImageButton {
-  position: absolute;
-  top: var(--space-2, 8px);
-  right: var(--space-2, 8px);
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-full, 50%);
-  background: rgba(0, 0, 0, 0.6);
-  border: none;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast, 0.15s ease);
-  z-index: 1;
-}
-
-.removeImageButton:hover {
-  background: rgba(0, 0, 0, 0.8);
-  transform: scale(1.1);
-}
-
-.hiddenFileInput {
-  display: none;
 }
 
 /* Modal Footer */
@@ -306,53 +300,11 @@
   flex-shrink: 0;
 }
 
-/* Attribute Options Grid */
-.optionsGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2, 8px);
-}
-
-.optionButton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2, 8px);
-  padding: var(--space-2, 8px) var(--space-4, 16px);
-  border: 1px solid var(--border-secondary, #E9ECEF);
-  border-radius: var(--radius-full, 20px);
-  background: var(--bg-primary, #FFFFFF);
-  color: var(--text-primary, #212529);
-  font-size: var(--font-body, 14px);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast, 0.15s ease);
-}
-
-.optionButton:hover {
-  border-color: var(--toss-primary, #0064FF);
-  background: var(--bg-hover, #F0F6FF);
-}
-
-.optionButton.optionSelected {
-  border-color: var(--toss-primary, #0064FF);
-  background: var(--toss-primary, #0064FF);
-  color: white;
-}
-
-.optionButton .checkIcon {
-  width: 16px;
-  height: 16px;
-}
-
 /* Responsive */
 @media (max-width: 767px) {
   .modalContainer {
     width: 95%;
     max-height: 95vh;
-  }
-
-  .formGrid {
-    grid-template-columns: 1fr;
   }
 
   .modalHeader,
@@ -367,15 +319,5 @@
 
   .modalFooter button {
     width: 100%;
-  }
-
-  /* Image Upload Mobile */
-  .imageUploadContainer {
-    gap: var(--space-2, 8px);
-  }
-
-  .imagePreviewWrapper {
-    width: 100px;
-    height: 100px;
   }
 }

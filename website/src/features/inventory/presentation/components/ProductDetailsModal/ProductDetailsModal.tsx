@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { AddBrandModal } from '@/shared/components/modals/AddBrandModal';
 import { AddCategoryModal } from '@/shared/components/modals/AddCategoryModal';
+import { AddAttributeModal } from '@/shared/components/modals/AddAttributeModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { storageService } from '@/core/services/supabase_service';
 import { compressImage, formatFileSize, validateImageFile } from '@/core/utils/image-utils';
@@ -43,10 +44,12 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     unit: '',
     costPrice: '',
     sellingPrice: '',
+    selectedAttributes: {},
   });
 
   const [isAddBrandModalOpen, setIsAddBrandModalOpen] = useState(false);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [isAddAttributeModalOpen, setIsAddAttributeModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [compressionInfos, setCompressionInfos] = useState<CompressedImageResult[]>([]);
@@ -65,6 +68,22 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
   useEffect(() => {
     if (productData) {
+      // Initialize selectedAttributes from variant info
+      let initialAttributes: Record<string, string> = {};
+
+      // If product has variant, find matching attribute option from metadata
+      if (productData.variantId && productData.variantName && metadata?.attributes) {
+        for (const attribute of metadata.attributes) {
+          for (const option of attribute.options) {
+            if (option.option_value === productData.variantName) {
+              initialAttributes[attribute.attribute_id] = option.option_id;
+              break;
+            }
+          }
+          if (Object.keys(initialAttributes).length > 0) break;
+        }
+      }
+
       setFormData({
         productName: productData.productName || '',
         category: productData.categoryId || '',
@@ -76,6 +95,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         unit: productData.unit || '',
         costPrice: productData.costPrice?.toString() || '',
         sellingPrice: productData.unitPrice?.toString() || '',
+        selectedAttributes: initialAttributes,
       });
 
       if (productData.imageUrls && Array.isArray(productData.imageUrls)) {
@@ -85,12 +105,22 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       }
       setCompressionInfos([]);
     }
-  }, [productData]);
+  }, [productData, metadata]);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleAttributeChange = (attributeId: string, optionId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedAttributes: {
+        ...prev.selectedAttributes,
+        [attributeId]: optionId,
+      },
     }));
   };
 
@@ -177,6 +207,9 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         unit: formData.unit,
         costPrice: parseFloat(formData.costPrice.toString()) || 0,
         sellingPrice: parseFloat(formData.sellingPrice.toString()) || 0,
+        // v6 variant attributes
+        selectedAttributes: formData.selectedAttributes,
+        variantId: productData.variantId,
       };
 
       const imageUrls: string[] = [];
@@ -281,8 +314,12 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
             formData={formData}
             metadata={metadata}
             onInputChange={handleInputChange}
+            onAttributeChange={handleAttributeChange}
             onAddBrand={() => setIsAddBrandModalOpen(true)}
             onAddCategory={() => setIsAddCategoryModalOpen(true)}
+            onAddAttribute={() => setIsAddAttributeModalOpen(true)}
+            hasVariants={productData?.hasVariants}
+            variantName={productData?.variantName}
           />
         </div>
 
@@ -322,6 +359,14 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         onClose={() => setIsAddCategoryModalOpen(false)}
         companyId={companyId}
         onCategoryAdded={onMetadataRefresh}
+      />
+
+      {/* Add Attribute Modal */}
+      <AddAttributeModal
+        isOpen={isAddAttributeModalOpen}
+        onClose={() => setIsAddAttributeModalOpen(false)}
+        companyId={companyId}
+        onAttributeAdded={onMetadataRefresh}
       />
 
       {/* Notification */}
