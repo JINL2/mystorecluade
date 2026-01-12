@@ -1,7 +1,9 @@
 /// Cart item entity - represents a product in the shopping cart
+/// Supports variant products from get_inventory_page_v6
 class CartItem {
   final String id;
   final String productId;
+  final String? variantId;
   final String sku;
   final String name;
   final String? image;
@@ -13,6 +15,7 @@ class CartItem {
   const CartItem({
     required this.id,
     required this.productId,
+    this.variantId,
     required this.sku,
     required this.name,
     this.image,
@@ -22,11 +25,16 @@ class CartItem {
     this.customerOrdered = 0,
   });
 
+  /// Unique identifier for cart comparison
+  /// Uses variantId if exists, otherwise productId
+  String get uniqueId => variantId ?? productId;
+
   double get subtotal => price * quantity;
 
   CartItem copyWith({
     String? id,
     String? productId,
+    String? variantId,
     String? sku,
     String? name,
     String? image,
@@ -38,6 +46,7 @@ class CartItem {
     return CartItem(
       id: id ?? this.id,
       productId: productId ?? this.productId,
+      variantId: variantId ?? this.variantId,
       sku: sku ?? this.sku,
       name: name ?? this.name,
       image: image ?? this.image,

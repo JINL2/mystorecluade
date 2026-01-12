@@ -7,7 +7,7 @@ part of 'invoice_list_provider.dart';
 // **************************************************************************
 
 String _$invoiceListNotifierHash() =>
-    r'adae57caf3e66f77cc87e4ea75fd03fe5f80c552';
+    r'2befe510fc29c697e884f447391372512fb130f9';
 
 /// Invoice list state notifier using @riverpod
 ///

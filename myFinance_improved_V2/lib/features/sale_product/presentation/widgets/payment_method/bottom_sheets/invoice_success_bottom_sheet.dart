@@ -528,7 +528,9 @@ class _InvoiceSuccessBottomSheetState
                 children: widget.products.asMap().entries.map((entry) {
                   final index = entry.key;
                   final product = entry.value;
-                  final quantity = widget.quantities[product.productId] ?? 0;
+                  // Use uniqueId (variantId ?? productId) for variant support
+                  final uniqueId = product.variantId ?? product.productId;
+                  final quantity = widget.quantities[uniqueId] ?? 0;
                   final price = product.pricing.sellingPrice ?? 0;
                   final isLast = index == widget.products.length - 1;
                   return _buildItemRow(product, quantity, price, isLast);
@@ -567,7 +569,7 @@ class _InvoiceSuccessBottomSheetState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.productName,
+                  product.effectiveName, // Use effectiveName for variant support
                   style: TossTextStyles.body.copyWith(
                     fontWeight: TossFontWeight.bold,
                     color: TossColors.gray900,
@@ -577,7 +579,7 @@ class _InvoiceSuccessBottomSheetState
                 ),
                 const SizedBox(height: TossSpacing.space0_5),
                 Text(
-                  product.sku,
+                  product.effectiveSku, // Use effectiveSku for variant support
                   style: TossTextStyles.caption.copyWith(
                     fontWeight: TossFontWeight.regular,
                     color: TossColors.gray500,

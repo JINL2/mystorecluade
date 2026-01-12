@@ -11,5 +11,4 @@ export '../../di/sales_invoice_providers.dart'
         getCurrencyDataUseCaseProvider,
         getCashLocationsUseCaseProvider,
         createSalesJournalUseCaseProvider,
-        getInvoiceListUseCaseProvider,
-        createInvoiceUseCaseProvider;
+        getInvoiceListUseCaseProvider;

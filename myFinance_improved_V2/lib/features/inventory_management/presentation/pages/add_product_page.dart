@@ -50,6 +50,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   String _unit = 'piece';
   bool _isSaving = false;
 
+  // Custom attributes: Map of attributeId -> selected optionId
+  final Map<String, String?> _selectedAttributeValues = {};
+
   /// Check if required fields are filled for save button
   bool get _canSave {
     final hasProductName = _productNameController.text.trim().isNotEmpty;
@@ -571,8 +574,50 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             showChevron: true,
             onTap: metadata != null ? () => _showBrandSelector(metadata) : null,
           ),
+          // Custom attributes from metadata
+          if (metadata != null)
+            ...metadata.attributes.map((attribute) {
+              final selectedOptionId = _selectedAttributeValues[attribute.id];
+              final selectedOption = attribute.options.cast<AttributeOption?>().firstWhere(
+                (o) => o?.id == selectedOptionId,
+                orElse: () => null,
+              );
+              return FormListRow(
+                label: attribute.name,
+                value: selectedOption?.value,
+                placeholder: 'Select ${attribute.name.toLowerCase()}',
+                showChevron: true,
+                onTap: () => _showAttributeOptionSelector(attribute),
+              );
+            }),
         ],
       ),
+    );
+  }
+
+  void _showAttributeOptionSelector(Attribute attribute) {
+    final items = attribute.options
+        .map((option) => TossSelectionItem(
+              id: option.id,
+              title: option.value,
+            ))
+        .toList();
+
+    TossSelectionBottomSheet.show<void>(
+      context: context,
+      title: attribute.name,
+      items: items,
+      selectedId: _selectedAttributeValues[attribute.id],
+      showSubtitle: false,
+      selectedFontWeight: FontWeight.w700,
+      unselectedFontWeight: FontWeight.w500,
+      checkIcon: TossIcons.check,
+      enableHapticFeedback: true,
+      onItemSelected: (item) {
+        setState(() {
+          _selectedAttributeValues[attribute.id] = item.id;
+        });
+      },
     );
   }
 

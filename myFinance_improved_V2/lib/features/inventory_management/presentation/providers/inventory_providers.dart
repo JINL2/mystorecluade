@@ -373,3 +373,4 @@ class InventoryPageNotifier extends _$InventoryPageNotifier {
     return direction == 'desc' ? SortDirection.desc : SortDirection.asc;
   }
 }
+

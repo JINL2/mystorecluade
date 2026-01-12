@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_font_weight.dart';
-import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../di/inventory_providers.dart';
+import '../../domain/entities/inventory_metadata.dart' show Attribute;
+import '../../domain/exceptions/inventory_exceptions.dart';
+import '../providers/inventory_providers.dart';
 import '../widgets/attributes/add_attribute_form_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -14,27 +17,27 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 class AttributeItem {
   final String id;
   final String name;
-  AttributeType type;
   final bool isBuiltIn;
+  final int optionCount;
 
   AttributeItem({
     required this.id,
     required this.name,
-    required this.type,
     this.isBuiltIn = false,
+    this.optionCount = 0,
   });
 
   AttributeItem copyWith({
     String? id,
     String? name,
-    AttributeType? type,
     bool? isBuiltIn,
+    int? optionCount,
   }) {
     return AttributeItem(
       id: id ?? this.id,
       name: name ?? this.name,
-      type: type ?? this.type,
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+      optionCount: optionCount ?? this.optionCount,
     );
   }
 }
@@ -48,72 +51,134 @@ class AttributesEditPage extends ConsumerStatefulWidget {
 }
 
 class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
-  // Default built-in attributes
-  final List<AttributeItem> _attributes = [
-    AttributeItem(
-      id: '1',
-      name: 'Category',
-      type: AttributeType.text,
-      isBuiltIn: true,
-    ),
-    AttributeItem(
-      id: '2',
-      name: 'Brand',
-      type: AttributeType.text,
-      isBuiltIn: true,
-    ),
-  ];
+  List<AttributeItem> _attributes = [];
+  bool _isLoading = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load attributes after widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAttributes();
+    });
+  }
+
+  void _loadAttributes() {
+    final metadataState = ref.read(inventoryMetadataNotifierProvider);
+    final metadata = metadataState.metadata;
+
+    if (metadata != null) {
+      setState(() {
+        // Built-in attributes (Category, Brand)
+        _attributes = [
+          AttributeItem(
+            id: 'builtin_category',
+            name: 'Category',
+            isBuiltIn: true,
+            optionCount: metadata.categories.length,
+          ),
+          AttributeItem(
+            id: 'builtin_brand',
+            name: 'Brand',
+            isBuiltIn: true,
+            optionCount: metadata.brands.length,
+          ),
+          // Custom attributes from metadata
+          ...metadata.attributes.map((Attribute attr) => AttributeItem(
+                id: attr.id,
+                name: attr.name,
+                isBuiltIn: false,
+                optionCount: attr.optionCount,
+              )),
+        ];
+        _isInitialized = true;
+      });
+    } else {
+      // If metadata not loaded yet, set default built-in attributes
+      setState(() {
+        _attributes = [
+          AttributeItem(
+            id: 'builtin_category',
+            name: 'Category',
+            isBuiltIn: true,
+          ),
+          AttributeItem(
+            id: 'builtin_brand',
+            name: 'Brand',
+            isBuiltIn: true,
+          ),
+        ];
+        _isInitialized = true;
+      });
+    }
+  }
 
   Future<void> _addAttribute() async {
     final result = await AddAttributeFormDialog.show(context);
-    if (result != null) {
-      setState(() {
-        _attributes.add(
-          AttributeItem(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            name: result.name,
-            type: result.type,
-            isBuiltIn: false,
-          ),
-        );
-      });
-    }
-  }
+    if (result == null) return;
 
-  Future<AttributeType?> _showTypeSelector(AttributeType currentType) async {
-    final items = AttributeType.values.map((type) {
-      return TossSelectionItem(
-        id: type.name,
-        title: type.label,
+    // Get companyId
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      if (mounted) {
+        TossToast.error(context, 'Company not selected');
+      }
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final repository = ref.read(inventoryRepositoryProvider);
+
+      // Convert options to RPC format
+      final optionsJson = result.options.isNotEmpty
+          ? result.options.map((o) => o.toJson()).toList()
+          : null;
+
+      final response = await repository.createAttributeAndOption(
+        companyId: companyId,
+        attributeName: result.name,
+        options: optionsJson,
       );
-    }).toList();
 
-    final result = await TossSelectionBottomSheet.show<TossSelectionItem>(
-      context: context,
-      title: 'Select Type',
-      items: items,
-      selectedId: currentType.name,
-      maxHeightFraction: 0.4,
-      showSubtitle: false,
-      showIcon: false,
-      checkIcon: LucideIcons.check,
-      borderBottomWidth: 0,
-      showSelectedBackground: false,
-    );
+      if (mounted) {
+        setState(() {
+          _attributes.add(
+            AttributeItem(
+              id: response.attributeId,
+              name: response.attributeName,
+              optionCount: result.options.length,
+              isBuiltIn: false,
+            ),
+          );
+          _isLoading = false;
+        });
 
-    if (result != null) {
-      return AttributeType.values.firstWhere((t) => t.name == result.id);
-    }
-    return null;
-  }
+        // Refresh metadata to update cache
+        ref.read(inventoryMetadataNotifierProvider.notifier).refresh();
 
-  void _changeAttributeType(int index) async {
-    final attribute = _attributes[index];
-    final result = await _showTypeSelector(attribute.type);
-    if (result != null) {
-      setState(() {
-        _attributes[index] = attribute.copyWith(type: result);
-      });
+        TossToast.success(context, 'Attribute created successfully');
+      }
+    } on InventoryAttributeException catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (e.isDuplicateName) {
+          TossToast.error(context, 'Attribute name already exists');
+        } else if (e.isDuplicateOptionValue) {
+          TossToast.error(context, 'Duplicate option value');
+        } else {
+          TossToast.error(context, e.message);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        TossToast.error(context, 'Failed to create attribute');
+      }
     }
   }
 
@@ -134,7 +199,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
         title: Text(
           'Delete Attribute',
           style: TossTextStyles.h3.copyWith(
-            fontWeight: TossFontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: TossColors.gray900,
           ),
         ),
@@ -164,10 +229,34 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch metadata state to update when it changes
+    final metadataState = ref.watch(inventoryMetadataNotifierProvider);
+
+    // Reload attributes if metadata is updated and we haven't initialized yet
+    if (!_isInitialized && metadataState.metadata != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadAttributes();
+      });
+    }
+
     return TossScaffold(
       backgroundColor: TossColors.white,
       appBar: _buildAppBar(),
-      body: _buildBody(),
+      body: Stack(
+        children: [
+          if (metadataState.isLoading && !_isInitialized)
+            const Center(child: CircularProgressIndicator())
+          else
+            _buildBody(),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -178,7 +267,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
       actions: [
         IconButton(
           icon: const Icon(LucideIcons.plus, color: TossColors.gray900),
-          onPressed: _addAttribute,
+          onPressed: _isLoading ? null : _addAttribute,
         ),
       ],
     );
@@ -186,7 +275,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
 
   Widget _buildBody() {
     return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space4),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       itemCount: _attributes.length,
       proxyDecorator: (child, index, animation) {
         return AnimatedBuilder(
@@ -238,12 +327,12 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
             : DismissDirection.endToStart,
         background: Container(
           alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: TossSpacing.space5),
+          padding: const EdgeInsets.only(right: 20),
           color: TossColors.error,
           child: const Icon(
             LucideIcons.trash2,
             color: TossColors.white,
-            size: TossSpacing.iconMD + TossSpacing.space0_5,
+            size: 22,
           ),
         ),
         confirmDismiss: (direction) async {
@@ -251,7 +340,7 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
           return false;
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space5),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Row(
             children: [
               // Attribute name
@@ -259,31 +348,29 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
                 child: Text(
                   attribute.name,
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: TossFontWeight.medium,
+                    fontWeight: FontWeight.w500,
                     color: TossColors.gray900,
                   ),
                 ),
               ),
 
-              // Attribute type (tappable plain text)
-              GestureDetector(
-                onTap: () => _changeAttributeType(index),
-                child: Text(
-                  attribute.type.label,
+              // Options count
+              if (attribute.optionCount > 0)
+                Text(
+                  '${attribute.optionCount} options',
                   style: TossTextStyles.body.copyWith(
-                    fontWeight: TossFontWeight.regular,
+                    fontWeight: FontWeight.w400,
                     color: TossColors.gray500,
                   ),
                 ),
-              ),
-              const SizedBox(width: TossSpacing.space4),
+              const SizedBox(width: 16),
 
               // Reorder handle
               ReorderableDragStartListener(
                 index: index,
                 child: const Icon(
                   Icons.menu,
-                  size: TossSpacing.iconMD,
+                  size: 20,
                   color: TossColors.gray400,
                 ),
               ),

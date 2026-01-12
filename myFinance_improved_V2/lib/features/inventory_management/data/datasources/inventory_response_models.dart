@@ -41,7 +41,7 @@ class ProductPageResponse {
   }
 }
 
-/// Summary data from get_inventory_page_v5
+/// Summary data from get_inventory_page_v6
 class InventorySummaryData {
   final double totalValue;
   final int filteredCount;
@@ -198,30 +198,72 @@ class ProductStockStoresResult {
   }
 }
 
-/// Product stock info with stores
+/// Product stock info with stores (v2 supports variants)
 class ProductStockInfo {
   final String productId;
   final String productName;
   final String sku;
+  final bool hasVariants;
   final int totalQuantity;
   final int storesWithStock;
-  final List<StoreStockInfo> stores;
+  final List<VariantStockInfo> variants; // For products WITH variants
+  final List<StoreStockInfo> stores; // For products WITHOUT variants
 
   ProductStockInfo({
     required this.productId,
     required this.productName,
     required this.sku,
+    required this.hasVariants,
     required this.totalQuantity,
     required this.storesWithStock,
+    required this.variants,
     required this.stores,
   });
 
   factory ProductStockInfo.fromJson(Map<String, dynamic> json) {
     final storesJson = json['stores'] as List<dynamic>? ?? [];
+    final variantsJson = json['variants'] as List<dynamic>? ?? [];
     return ProductStockInfo(
       productId: json['product_id'] as String? ?? '',
       productName: json['product_name'] as String? ?? '',
-      sku: json['sku'] as String? ?? '',
+      sku: json['product_sku'] as String? ?? json['sku'] as String? ?? '',
+      hasVariants: json['has_variants'] as bool? ?? false,
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      storesWithStock: (json['stores_with_stock'] as num?)?.toInt() ?? 0,
+      variants: variantsJson
+          .map((v) => VariantStockInfo.fromJson(v as Map<String, dynamic>))
+          .toList(),
+      stores: storesJson
+          .map((s) => StoreStockInfo.fromJson(s as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+/// Variant stock info with stores (for products with variants)
+class VariantStockInfo {
+  final String variantId;
+  final String variantName;
+  final String variantSku;
+  final int totalQuantity;
+  final int storesWithStock;
+  final List<StoreStockInfo> stores;
+
+  VariantStockInfo({
+    required this.variantId,
+    required this.variantName,
+    required this.variantSku,
+    required this.totalQuantity,
+    required this.storesWithStock,
+    required this.stores,
+  });
+
+  factory VariantStockInfo.fromJson(Map<String, dynamic> json) {
+    final storesJson = json['stores'] as List<dynamic>? ?? [];
+    return VariantStockInfo(
+      variantId: json['variant_id'] as String? ?? '',
+      variantName: json['variant_name'] as String? ?? '',
+      variantSku: json['variant_sku'] as String? ?? '',
       totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
       storesWithStock: (json['stores_with_stock'] as num?)?.toInt() ?? 0,
       stores: storesJson
@@ -315,11 +357,16 @@ class ProductHistoryResult {
   }
 }
 
-/// Individual history item from product history
+/// Individual history item from product history (v2 with variant support)
 class ProductHistoryItem {
   final String logId;
   final String eventCategory;
   final String eventType;
+  // Variant info (v2)
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  // Stock changes
   final int? quantityBefore;
   final int? quantityAfter;
   final int? quantityChange;
@@ -367,6 +414,9 @@ class ProductHistoryItem {
     required this.logId,
     required this.eventCategory,
     required this.eventType,
+    this.variantId,
+    this.variantName,
+    this.displayName,
     this.quantityBefore,
     this.quantityAfter,
     this.quantityChange,
@@ -412,6 +462,9 @@ class ProductHistoryItem {
       logId: json['log_id'] as String? ?? '',
       eventCategory: json['event_category'] as String? ?? '',
       eventType: json['event_type'] as String? ?? '',
+      variantId: json['variant_id'] as String?,
+      variantName: json['variant_name'] as String?,
+      displayName: json['display_name'] as String?,
       quantityBefore: (json['quantity_before'] as num?)?.toInt(),
       quantityAfter: (json['quantity_after'] as num?)?.toInt(),
       quantityChange: (json['quantity_change'] as num?)?.toInt(),
@@ -659,6 +712,57 @@ class InventoryHistoryResult {
       page: (json['page'] as num?)?.toInt() ?? 1,
       pageSize: (json['page_size'] as num?)?.toInt() ?? 20,
       totalPages: (json['total_pages'] as num?)?.toInt() ?? 1,
+    );
+  }
+}
+
+/// Response from inventory_create_attribute_and_option RPC
+class CreateAttributeResponse {
+  final bool success;
+  final String attributeId;
+  final String attributeName;
+  final int optionsCreated;
+  final List<CreatedOptionData> options;
+
+  CreateAttributeResponse({
+    required this.success,
+    required this.attributeId,
+    required this.attributeName,
+    required this.optionsCreated,
+    required this.options,
+  });
+
+  factory CreateAttributeResponse.fromJson(Map<String, dynamic> json) {
+    final optionsJson = json['options'] as List<dynamic>? ?? [];
+    return CreateAttributeResponse(
+      success: json['success'] as bool? ?? false,
+      attributeId: json['attribute_id'] as String? ?? '',
+      attributeName: json['attribute_name'] as String? ?? '',
+      optionsCreated: (json['options_created'] as num?)?.toInt() ?? 0,
+      options: optionsJson
+          .map((o) => CreatedOptionData.fromJson(o as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+/// Option data from create attribute response
+class CreatedOptionData {
+  final String optionId;
+  final String optionValue;
+  final int sortOrder;
+
+  CreatedOptionData({
+    required this.optionId,
+    required this.optionValue,
+    required this.sortOrder,
+  });
+
+  factory CreatedOptionData.fromJson(Map<String, dynamic> json) {
+    return CreatedOptionData(
+      optionId: json['option_id'] as String? ?? '',
+      optionValue: json['option_value'] as String? ?? '',
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
     );
   }
 }

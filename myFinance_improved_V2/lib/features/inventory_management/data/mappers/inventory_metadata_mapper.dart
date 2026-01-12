@@ -20,6 +20,7 @@ class InventoryMetadataMapper {
       validationRules: ValidationRulesMapper.toEntity(dto.validationRules),
       allowCustomValues: AllowCustomValuesMapper.toEntity(dto.allowCustomValues),
       stockStatusLevels: dto.stockStatusLevels.map((ssl) => StockStatusLevelMapper.toEntity(ssl)).toList(),
+      attributes: dto.attributes.map((a) => AttributeMapper.toEntity(a)).toList(),
     );
   }
 }
@@ -119,6 +120,30 @@ class StockStatusLevelMapper {
       color: dto.color,
       label: dto.label,
       level: dto.level,
+    );
+  }
+}
+
+class AttributeMapper {
+  static Attribute toEntity(AttributeDto dto) {
+    return Attribute(
+      id: dto.id,
+      name: dto.name,
+      sortOrder: dto.sortOrder,
+      isActive: dto.isActive,
+      optionCount: dto.optionCount,
+      options: dto.options.map((o) => AttributeOptionMapper.toEntity(o)).toList(),
+    );
+  }
+}
+
+class AttributeOptionMapper {
+  static AttributeOption toEntity(AttributeOptionDto dto) {
+    return AttributeOption(
+      id: dto.id,
+      value: dto.value,
+      sortOrder: dto.sortOrder,
+      isActive: dto.isActive,
     );
   }
 }

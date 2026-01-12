@@ -13,6 +13,7 @@ class InventoryMetadata {
   final ValidationRules validationRules;
   final AllowCustomValues allowCustomValues;
   final List<StockStatusLevel> stockStatusLevels;
+  final List<Attribute> attributes;
 
   InventoryMetadata({
     required this.stats,
@@ -26,6 +27,7 @@ class InventoryMetadata {
     required this.validationRules,
     required this.allowCustomValues,
     required this.stockStatusLevels,
+    required this.attributes,
   });
 }
 
@@ -154,13 +156,36 @@ class StockStatusLevel {
     required this.label,
     required this.level,
   });
-
-  static StockStatusLevel mock() => StockStatusLevel(
-        icon: 'info',
-        color: 'blue',
-        label: 'Normal',
-        level: 'normal',
-      );
 }
 
+class Attribute {
+  final String id;
+  final String name;
+  final int sortOrder;
+  final bool isActive;
+  final int optionCount;
+  final List<AttributeOption> options;
 
+  Attribute({
+    required this.id,
+    required this.name,
+    required this.sortOrder,
+    required this.isActive,
+    required this.optionCount,
+    required this.options,
+  });
+}
+
+class AttributeOption {
+  final String id;
+  final String value;
+  final int sortOrder;
+  final bool isActive;
+
+  AttributeOption({
+    required this.id,
+    required this.value,
+    required this.sortOrder,
+    required this.isActive,
+  });
+}

@@ -212,7 +212,9 @@ class _InventorySearchPageState extends ConsumerState<InventorySearchPage> {
           onTap: () {
             // Add product to provider so ProductDetailPage can find it
             ref.read(inventoryPageNotifierProvider.notifier).addProductIfNotExists(product);
-            context.push('/inventoryManagement/product/${product.id}');
+            // Include variantId as query param for variant products to ensure correct page rebuild
+            final variantQuery = product.variantId != null ? '?variantId=${product.variantId}' : '';
+            context.push('/inventoryManagement/product/${product.id}$variantQuery', extra: product);
           },
           onTransferTap: () => _showMoveStockDialog(product),
         );

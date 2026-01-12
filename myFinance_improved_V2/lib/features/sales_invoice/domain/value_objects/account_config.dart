@@ -1,4 +1,4 @@
-import '../../../cash_location/domain/constants/account_ids.dart';
+import '../../../../core/constants/account_ids.dart';
 
 /// Account configuration for sales journal entries
 ///

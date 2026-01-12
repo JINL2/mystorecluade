@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Inventory metadata from get_inventory_metadata RPC
+/// Inventory metadata from get_inventory_metadata_v2 RPC
 class InventoryMetadata {
   final List<BrandMetadata> brands;
   final List<CategoryMetadata> categories;
@@ -9,6 +9,7 @@ class InventoryMetadata {
   final StatsMetadata stats;
   final CurrencyMetadata? currency;
   final StoreInfoMetadata? storeInfo;
+  final List<AttributeMetadata> attributes;
 
   const InventoryMetadata({
     required this.brands,
@@ -18,6 +19,7 @@ class InventoryMetadata {
     required this.stats,
     this.currency,
     this.storeInfo,
+    required this.attributes,
   });
 
   factory InventoryMetadata.empty() => const InventoryMetadata(
@@ -32,6 +34,7 @@ class InventoryMetadata {
           totalCategories: 0,
           totalBrands: 0,
         ),
+        attributes: [],
       );
 
   factory InventoryMetadata.fromJson(Map<String, dynamic> json) {
@@ -59,6 +62,9 @@ class InventoryMetadata {
           ? StoreInfoMetadata.fromJson(
               data['store_info'] as Map<String, dynamic>)
           : null,
+      attributes: (data['attributes'] as List<dynamic>? ?? [])
+          .map((e) => AttributeMetadata.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -164,12 +170,16 @@ class UnitMetadata {
   }
 }
 
+/// Stats metadata from get_inventory_metadata_v2
 class StatsMetadata {
   final int totalProducts;
   final int activeProducts;
   final int inactiveProducts;
   final int totalCategories;
   final int totalBrands;
+  // v2: attribute stats
+  final int totalAttributes;
+  final int totalOptions;
 
   const StatsMetadata({
     required this.totalProducts,
@@ -177,6 +187,8 @@ class StatsMetadata {
     required this.inactiveProducts,
     required this.totalCategories,
     required this.totalBrands,
+    this.totalAttributes = 0,
+    this.totalOptions = 0,
   });
 
   factory StatsMetadata.fromJson(Map<String, dynamic> json) {
@@ -186,6 +198,9 @@ class StatsMetadata {
       inactiveProducts: (json['inactive_products'] as num?)?.toInt() ?? 0,
       totalCategories: (json['total_categories'] as num?)?.toInt() ?? 0,
       totalBrands: (json['total_brands'] as num?)?.toInt() ?? 0,
+      // v2: parse attribute stats
+      totalAttributes: (json['total_attributes'] as num?)?.toInt() ?? 0,
+      totalOptions: (json['total_options'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -230,6 +245,60 @@ class StoreInfoMetadata {
   }
 }
 
+class AttributeMetadata {
+  final String attributeId;
+  final String attributeName;
+  final int sortOrder;
+  final bool isActive;
+  final int optionCount;
+  final List<AttributeOptionMetadata> options;
+
+  const AttributeMetadata({
+    required this.attributeId,
+    required this.attributeName,
+    required this.sortOrder,
+    required this.isActive,
+    required this.optionCount,
+    required this.options,
+  });
+
+  factory AttributeMetadata.fromJson(Map<String, dynamic> json) {
+    return AttributeMetadata(
+      attributeId: json['attribute_id']?.toString() ?? '',
+      attributeName: json['attribute_name']?.toString() ?? '',
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      isActive: json['is_active'] as bool? ?? true,
+      optionCount: (json['option_count'] as num?)?.toInt() ?? 0,
+      options: (json['options'] as List<dynamic>? ?? [])
+          .map((e) => AttributeOptionMetadata.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class AttributeOptionMetadata {
+  final String optionId;
+  final String optionValue;
+  final int sortOrder;
+  final bool isActive;
+
+  const AttributeOptionMetadata({
+    required this.optionId,
+    required this.optionValue,
+    required this.sortOrder,
+    required this.isActive,
+  });
+
+  factory AttributeOptionMetadata.fromJson(Map<String, dynamic> json) {
+    return AttributeOptionMetadata(
+      optionId: json['option_id']?.toString() ?? '',
+      optionValue: json['option_value']?.toString() ?? '',
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      isActive: json['is_active'] as bool? ?? true,
+    );
+  }
+}
+
 /// Remote data source for inventory metadata
 class InventoryMetadataDataSource {
   final SupabaseClient _client;
@@ -242,7 +311,7 @@ class InventoryMetadataDataSource {
     required String storeId,
   }) async {
     final response = await _client.rpc<Map<String, dynamic>>(
-      'get_inventory_metadata',
+      'get_inventory_metadata_v2',
       params: {
         'p_company_id': companyId,
         'p_store_id': storeId,

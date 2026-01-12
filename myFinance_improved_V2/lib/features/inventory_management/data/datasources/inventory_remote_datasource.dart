@@ -29,7 +29,7 @@ class InventoryRemoteDataSource {
       };
 
       final response = await _client
-          .rpc('get_inventory_metadata', params: params)
+          .rpc('get_inventory_metadata_v2', params: params)
           .single();
 
       // Handle success wrapper if present
@@ -62,8 +62,9 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Get paginated list of products
-  /// Uses get_inventory_page_v5 with server-side filtering and sorting support
+  /// Get paginated list of products (with variant expansion)
+  /// Uses get_inventory_page_v6 with server-side filtering
+  /// v6 expands products with variants into separate rows per variant
   Future<ProductPageResponse> getProducts({
     required String companyId,
     required String storeId,
@@ -77,23 +78,22 @@ class InventoryRemoteDataSource {
     String? sortDirection,
   }) async {
     try {
-      // Build params - use get_inventory_page_v5 with server-side filtering & sorting
+      // Build params - use get_inventory_page_v6 with server-side filtering
+      // Note: v6 does not support sortBy/sortDirection (fixed sort: product_name, variant_name)
       final Map<String, dynamic> params = {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_page': page,
         'p_limit': limit,
-        'p_search': search ?? '',
+        'p_search': search,
         'p_timezone': DateTimeUtils.getLocalTimezone(),
         'p_availability': availability,
         'p_brand_id': brandId,
         'p_category_id': categoryId,
-        'p_sort_by': sortBy,
-        'p_sort_direction': sortDirection,
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('get_inventory_page_v5', params: params)
+          .rpc<Map<String, dynamic>>('get_inventory_page_v6', params: params)
           .single();
 
       // Handle success wrapper if present
@@ -111,8 +111,8 @@ class InventoryRemoteDataSource {
         dataToProcess = response;
       }
 
-      // Ensure required fields exist
-      dataToProcess['products'] = dataToProcess['products'] ?? [];
+      // v6 returns 'items' instead of 'products' - normalize for compatibility
+      dataToProcess['products'] = dataToProcess['items'] ?? dataToProcess['products'] ?? <dynamic>[];
       dataToProcess['pagination'] = dataToProcess['pagination'] ??
           {
             'page': page,
@@ -270,6 +270,8 @@ class InventoryRemoteDataSource {
   }
 
   /// Update existing product
+  /// Supports adding variants via attributeId and addVariants parameters
+  /// Uses inventory_edit_product_v5.5 which returns complete product info
   Future<ProductModel> updateProduct({
     required String productId,
     required String companyId,
@@ -287,6 +289,9 @@ class InventoryRemoteDataSource {
     String? flowType,
     List<String>? imageUrls,
     bool defaultPrice = false,
+    String? variantId,
+    String? attributeId,
+    List<Map<String, dynamic>>? addVariants,
   }) async {
     try {
       final params = {
@@ -306,16 +311,28 @@ class InventoryRemoteDataSource {
         'p_flow_type': flowType,
         'p_image_urls': imageUrls,
         'p_default_price': defaultPrice,
+        'p_variant_id': variantId,
+        'p_attribute_id': attributeId,
+        'p_add_variants': addVariants,
         'p_updated_at': DateTimeUtils.formatLocalTimestamp(),
         'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_edit_product_v4', params: params)
+          .rpc<Map<String, dynamic>>('inventory_edit_product_v5', params: params)
           .single();
 
       if (response['success'] == true) {
-        return ProductModel.fromJson(response['data'] as Map<String, dynamic>);
+        // v5.5 returns complete product info in 'product' field
+        // Falls back to 'data' for backward compatibility
+        final productData = response['product'] as Map<String, dynamic>? ??
+            response['data'] as Map<String, dynamic>?;
+        if (productData == null) {
+          throw InventoryRepositoryException(
+            message: 'No product data in response',
+          );
+        }
+        return ProductModel.fromJson(productData);
       } else {
         final error = response['error'] as Map<String, dynamic>?;
         throw InventoryRepositoryException(
@@ -516,27 +533,35 @@ class InventoryRemoteDataSource {
   }
 
   /// Move product between stores
-  /// Calls inventory_move_product_v3 RPC
+  /// Calls inventory_move_product_v4 RPC (with variant support)
+  /// For variant products, variantId is REQUIRED
+  /// For non-variant products, variantId must be NULL
   Future<MoveProductResult> moveProduct({
     required String companyId,
     required String fromStoreId,
     required String toStoreId,
     required String productId,
+    String? variantId,
     required int quantity,
     required String updatedBy,
     required String notes,
   }) async {
     try {
+      // Build item with optional variant_id
+      final Map<String, dynamic> item = {
+        'product_id': productId,
+        'quantity': quantity,
+      };
+      // Only include variant_id if it's not null and not empty (required for variant products)
+      if (variantId != null && variantId.isNotEmpty) {
+        item['variant_id'] = variantId;
+      }
+
       final params = {
         'p_company_id': companyId,
         'p_from_store_id': fromStoreId,
         'p_to_store_id': toStoreId,
-        'p_items': [
-          {
-            'product_id': productId,
-            'quantity': quantity,
-          },
-        ],
+        'p_items': [item],
         'p_updated_by': updatedBy,
         'p_time': DateTimeUtils.formatLocalTimestamp(),
         'p_timezone': DateTimeUtils.getLocalTimezone(),
@@ -544,7 +569,7 @@ class InventoryRemoteDataSource {
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_move_product_v3', params: params)
+          .rpc<Map<String, dynamic>>('inventory_move_product_v4', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -572,7 +597,7 @@ class InventoryRemoteDataSource {
   }
 
   /// Get product stock by stores
-  /// Calls inventory_product_stock_stores RPC
+  /// Calls inventory_product_stock_stores_v2 RPC (supports variants)
   Future<ProductStockStoresResult> getProductStockByStores({
     required String companyId,
     required List<String> productIds,
@@ -584,7 +609,7 @@ class InventoryRemoteDataSource {
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_product_stock_stores', params: params)
+          .rpc<Map<String, dynamic>>('inventory_product_stock_stores_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -611,12 +636,13 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Get product history
-  /// Calls inventory_product_history RPC
+  /// Get product history (v2 with variant support)
+  /// Calls inventory_product_history_v2 RPC
   Future<ProductHistoryResult> getProductHistory({
     required String companyId,
     required String storeId,
     required String productId,
+    String? variantId,
     required int page,
     required int pageSize,
   }) async {
@@ -625,13 +651,14 @@ class InventoryRemoteDataSource {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_product_id': productId,
+        'p_variant_id': variantId,
         'p_timezone': DateTimeUtils.getLocalTimezone(),
         'p_page': page,
         'p_page_size': pageSize,
       };
 
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_product_history', params: params)
+          .rpc<Map<String, dynamic>>('inventory_product_history_v2', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -801,6 +828,52 @@ class InventoryRemoteDataSource {
       if (e is InventoryException) rethrow;
       throw InventoryRepositoryException(
         message: 'Failed to get base currency: $e',
+        details: e,
+      );
+    }
+  }
+
+  /// Create new attribute with optional options
+  /// Calls inventory_create_attribute_and_option RPC
+  Future<CreateAttributeResponse> createAttributeAndOption({
+    required String companyId,
+    required String attributeName,
+    List<Map<String, dynamic>>? options,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_attribute_name': attributeName,
+        'p_options': options,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>(
+            'inventory_create_attribute_and_option',
+            params: params,
+          )
+          .single();
+
+      if (response['success'] == true) {
+        return CreateAttributeResponse.fromJson(response);
+      } else {
+        final error = response['error']?.toString() ?? 'UNKNOWN_ERROR';
+        final message =
+            response['message']?.toString() ?? 'Failed to create attribute';
+        throw InventoryAttributeException(
+          message: message,
+          errorCode: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to create attribute: $e',
         details: e,
       );
     }

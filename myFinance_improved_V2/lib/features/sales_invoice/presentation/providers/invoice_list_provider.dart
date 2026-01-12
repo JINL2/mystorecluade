@@ -6,8 +6,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/constants/account_ids.dart';
 import '../../../../core/monitoring/sentry_config.dart';
-import '../../../cash_location/domain/constants/account_ids.dart';
 import '../../di/sales_invoice_providers.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/invoice.dart';
@@ -273,6 +273,11 @@ class InvoiceListNotifier extends _$InvoiceListNotifier {
     required Invoice invoice,
     String? notes,
   }) async {
+    // Prevent refunding cancelled invoices
+    if (invoice.isCancelled) {
+      throw Exception('Cannot refund a cancelled invoice');
+    }
+
     final appState = ref.read(appStateProvider);
     final userId = appState.userId;
     final companyId = appState.companyChoosen;

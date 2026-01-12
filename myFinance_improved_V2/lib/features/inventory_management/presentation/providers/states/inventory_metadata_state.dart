@@ -28,4 +28,5 @@ class InventoryMetadataState with _$InventoryMetadataState {
   Currency? get currency => metadata?.currency;
   InventoryStats? get stats => metadata?.stats;
   List<String> get units => metadata?.units ?? [];
+  List<Attribute> get attributes => metadata?.attributes ?? [];
 }

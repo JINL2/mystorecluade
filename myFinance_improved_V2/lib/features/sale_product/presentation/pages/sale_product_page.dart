@@ -7,9 +7,6 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../../shared/themes/toss_font_weight.dart';
-import '../../../../shared/themes/toss_opacity.dart';
-import '../../../../shared/themes/toss_dimensions.dart';
 
 import '../../../debt_control/presentation/providers/currency_provider.dart';
 import 'payment_method_page.dart';
@@ -21,9 +18,9 @@ import '../providers/sale_preload_provider.dart';
 import '../providers/inventory_metadata_provider.dart';
 import '../providers/sales_product_provider.dart';
 import '../widgets/cart/cart_summary_bar.dart';
+import '../widgets/list/product_skeleton_loading.dart';
 import '../widgets/list/selectable_product_tile.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
 
 class SaleProductPage extends ConsumerStatefulWidget {
   const SaleProductPage({super.key});
@@ -285,7 +282,6 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                       currencySymbol: currencySymbol,
                       cartItems: cart,
                       onCreateInvoice: () => _navigateToPayment(cart),
-                      onReset: () => ref.read(cartNotifierProvider.notifier).clearCart(),
                       onItemTap: _searchAndScrollToProduct,
                     ),
                   ),
@@ -302,7 +298,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
       title: 'Sale',
       backgroundColor: TossColors.white,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, size: TossSpacing.iconMD2),
+        icon: const Icon(Icons.arrow_back, size: 24),
         onPressed: () async {
           final shouldPop = await _onWillPop();
           if (shouldPop && context.mounted) {
@@ -324,7 +320,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
           const SizedBox(height: TossSpacing.space2),
           _buildBrandChips(brands),
           const SizedBox(height: TossSpacing.space2),
-          Container(height: TossDimensions.dividerThickness, color: TossColors.border),
+          Container(height: 1, color: TossColors.border),
         ],
       ),
     );
@@ -340,11 +336,11 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
 
   Widget _buildBrandChips(List<String> brands) {
     return SizedBox(
-      height: TossSpacing.buttonHeightMD,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: brands.length,
-        separatorBuilder: (_, __) => const SizedBox(width: TossSpacing.space4),
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           final brand = brands[index];
           final isSelected = _selectedBrand == brand;
@@ -355,10 +351,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
               child: AnimatedContainer(
                 duration: TossAnimations.normal,
                 curve: TossAnimations.standard,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.badgePaddingHorizontalLG,
-                  vertical: TossSpacing.badgePaddingVerticalLG,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected ? TossColors.gray100 : TossColors.transparent,
                   borderRadius: BorderRadius.circular(TossBorderRadius.lg),
@@ -366,7 +359,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
                 child: Text(
                   brand,
                   style: TossTextStyles.label.copyWith(
-                    fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected ? TossColors.textPrimary : TossColors.textSecondary,
                   ),
                 ),
@@ -389,10 +382,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   }) {
     // Show skeleton loading if still loading and no products at all
     if (isLoading && allProducts.isEmpty) {
-      return const TossListSkeleton(
-        itemCount: 8,
-        style: ListSkeletonStyle.product,
-      );
+      return const ProductSkeletonLoading();
     }
 
     if (errorMessage != null && displayProducts.isEmpty) {
@@ -400,7 +390,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
+            const Icon(Icons.error_outline, size: 48, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(errorMessage, style: TossTextStyles.body),
             const SizedBox(height: TossSpacing.space3),
@@ -418,7 +408,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.shopping_cart_outlined, size: TossSpacing.icon4XL, color: TossColors.gray400),
+            const Icon(Icons.shopping_cart_outlined, size: 64, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text('No products found',
                 style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600)),
@@ -445,8 +435,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         }
 
         final product = displayProducts[index];
+        // Use uniqueId for cart lookup (variantId if exists, otherwise productId)
+        final productUniqueId = product.variantId ?? product.productId;
         final cartItem = cart.firstWhere(
-          (item) => item.productId == product.productId,
+          (item) => item.uniqueId == productUniqueId,
           orElse: () => const CartItem(
             id: '',
             productId: '',
@@ -459,7 +451,8 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
         );
 
         return SelectableProductTile(
-          key: ValueKey(product.productId),
+          // Use uniqueId as key to distinguish variants
+          key: ValueKey(productUniqueId),
           product: product,
           cartItem: cartItem,
           currencySymbol: currencySymbol,
@@ -471,9 +464,10 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
   Future<void> _navigateToPayment(List<CartItem> cartItems) async {
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
     final selectedProductsList = cartNotifier.cartProducts;
+    // Use uniqueId (variantId or productId) for quantity mapping
     final productQuantities = <String, int>{};
     for (var item in cartItems) {
-      productQuantities[item.productId] = item.quantity;
+      productQuantities[item.uniqueId] = item.quantity;
     }
 
     // Get preloaded data (exchange rates + cash locations)
@@ -526,7 +520,7 @@ class _SaleProductPageState extends ConsumerState<SaleProductPage>
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: TossColors.black.withValues(alpha: TossOpacity.heavy),
+      barrierColor: Colors.black26,
       builder: (context) => const Center(
         child: CircularProgressIndicator(
           color: TossColors.primary,

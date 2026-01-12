@@ -202,7 +202,11 @@ class PaymentRemoteDataSource {
     }
   }
 
-  /// Create invoice using inventory_create_invoice_v4
+  /// Create invoice using inventory_create_invoice_v5
+  /// v5 changes:
+  /// - p_items now supports variant_id field for variant products
+  /// - inventory_flow table INSERT removed (deprecated)
+  /// - Response includes warnings array
   Future<Map<String, dynamic>> createInvoice({
     required String companyId,
     required String storeId,
@@ -228,7 +232,7 @@ class PaymentRemoteDataSource {
       final saleDateWithOffset = DateTimeUtils.toLocalWithOffset(saleDate);
       print('📅 [RPC] saleDateWithOffset=$saleDateWithOffset');
 
-      // Prepare items for logging
+      // Prepare items for logging (v5: includes variant_id if present)
       final itemsList = items.map((item) => item.toJson()).toList();
       print('📦 [RPC] items JSON: ${jsonEncode(itemsList)}');
 
@@ -250,14 +254,20 @@ class PaymentRemoteDataSource {
       if (customerId != null) params['p_customer_id'] = customerId;
 
       print('📤 [RPC] Full params: ${jsonEncode(params)}');
-      print('🔄 [RPC] Calling inventory_create_invoice_v4...');
+      print('🔄 [RPC] Calling inventory_create_invoice_v5...');
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_create_invoice_v4',
+        'inventory_create_invoice_v5',
         params: params,
       );
 
       print('📥 [RPC] Response: ${jsonEncode(response)}');
+
+      // v5: Log warnings if present
+      if (response['warnings'] != null && (response['warnings'] as List).isNotEmpty) {
+        print('⚠️ [RPC] Warnings: ${response['warnings']}');
+      }
+
       print('✅ [RPC] createInvoice() SUCCESS');
 
       return response;

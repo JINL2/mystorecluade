@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # State Management 
-  flutter_riverpod: ^2.5.0
-  riverpod_annotation: ^2.3.0
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
   
   # Navigation
   go_router: ^13.0.0
@@ -112,11 +112,11 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  build_runner: ^2.4.0
-  freezed: ^2.4.0
-  json_serializable: ^6.7.0
-  riverpod_generator: ^2.3.0
-  flutter_lints: ^3.0.0
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.6.3
+  flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1
   mocktail: ^1.0.0
 
@@ -131,8 +131,8 @@ dev_dependencies:
   path: ^1.8.0
   args: ^2.4.0
 
-# NOTE: build_runner has version conflicts with analyzer packages.
-# Run build_runner with specific commands if needed
+dependency_overrides:
+  analyzer_plugin: ^0.13.0
 
 flutter:
   uses-material-design: true

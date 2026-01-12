@@ -4,9 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_dimensions.dart';
-import '../../../../../../shared/themes/toss_font_weight.dart';
-import '../../../../../../shared/themes/toss_opacity.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/exchange_rate_data.dart';
@@ -223,7 +220,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const TossLoadingView.inline(size: TossSpacing.iconSM2),
+            const TossLoadingView.inline(size: 16),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Loading real-time rates...',
@@ -239,7 +236,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: TossSpacing.iconSM2, color: TossColors.error),
+            Icon(Icons.error_outline, size: 16, color: TossColors.error),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Failed to load rates',
@@ -278,14 +275,14 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
               Text(
                 currencyCode,
                 style: TossTextStyles.bodyMedium.copyWith(
-                  fontWeight: TossFontWeight.semibold,
+                  fontWeight: FontWeight.w600,
                   color: TossColors.gray900,
                 ),
               ),
               const SizedBox(width: TossSpacing.space1),
               const Icon(
                 Icons.keyboard_arrow_down,
-                size: TossSpacing.iconSM,
+                size: 18,
                 color: TossColors.gray900,
               ),
             ],
@@ -295,10 +292,10 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         GestureDetector(
           onTap: () => focusNode.requestFocus(),
           child: Container(
-            padding: const EdgeInsets.only(bottom: TossSpacing.space0_5),
+            padding: const EdgeInsets.only(bottom: 2),
             decoration: const BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: TossColors.gray200, width: TossDimensions.dividerThickness),
+                bottom: BorderSide(color: TossColors.gray200, width: 1),
               ),
             ),
             child: IntrinsicWidth(
@@ -311,19 +308,19 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                   _ThousandsSeparatorInputFormatter(),
                 ],
                 style: TossTextStyles.bodyMedium.copyWith(
-                  fontWeight: TossFontWeight.medium,
+                  fontWeight: FontWeight.w500,
                   color: TossColors.gray600,
                 ),
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
                   hintText: showHint ? displayHint : null,
                   hintStyle: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: TossFontWeight.medium,
+                    fontWeight: FontWeight.w500,
                     color: TossColors.gray600,
                   ),
                   suffixText: symbol,
                   suffixStyle: TossTextStyles.bodyMedium.copyWith(
-                    fontWeight: TossFontWeight.medium,
+                    fontWeight: FontWeight.w500,
                     color: TossColors.gray600,
                   ),
                   border: InputBorder.none,
@@ -331,7 +328,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                   focusedBorder: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: TossDimensions.profileImageWidth),
+                  constraints: const BoxConstraints(minWidth: 60),
                 ),
                 onChanged: onChanged,
               ),
@@ -377,14 +374,14 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
           children: [
             Icon(
               Icons.check_circle_outline,
-              size: TossSpacing.iconSM,
+              size: 18,
               color: isValid ? TossColors.white : TossColors.gray400,
             ),
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Apply as Total',
               style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: TossFontWeight.semibold,
+                fontWeight: FontWeight.w600,
                 color: isValid ? TossColors.white : TossColors.gray400,
               ),
             ),
@@ -392,11 +389,11 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
               const SizedBox(width: TossSpacing.space2),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space1 + TossSpacing.space0_5,
-                  vertical: TossSpacing.space0_5,
+                  horizontal: TossSpacing.space1 + 2,
+                  vertical: 2,
                 ),
                 decoration: BoxDecoration(
-                  color: TossColors.white.withValues(alpha: TossOpacity.strong),
+                  color: TossColors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(TossBorderRadius.xs),
                 ),
                 child: Text(
@@ -404,7 +401,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                       ? '+${PaymentHelpers.formatNumber(displayAmount.round())}'
                       : '-${PaymentHelpers.formatNumber(displayAmount.round())}',
                   style: TossTextStyles.caption.copyWith(
-                    fontWeight: TossFontWeight.semibold,
+                    fontWeight: FontWeight.w600,
                     color: TossColors.white,
                   ),
                 ),
@@ -429,7 +426,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.lg),
+          top: Radius.circular(12),
         ),
       ),
       builder: (context) => DraggableScrollableSheet(
@@ -445,7 +442,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
               Text(
                 'Select Currency',
                 style: TossTextStyles.h4.copyWith(
-                  fontWeight: TossFontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: TossColors.gray900,
                 ),
               ),
@@ -471,7 +468,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                         '${currency.symbol} ${currency.currencyCode}',
                         style: TossTextStyles.body.copyWith(
                           fontWeight:
-                              isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
                           color: isSelected
                               ? TossColors.primary
                               : TossColors.gray900,
@@ -481,7 +478,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
                           ? const Icon(
                               Icons.check,
                               color: TossColors.primary,
-                              size: TossSpacing.iconMD2,
+                              size: 24,
                             )
                           : null,
                       onTap: () {

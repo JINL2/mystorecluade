@@ -440,7 +440,9 @@ class TemplateLinesBuilder {
         'credit': isDebit ? '0' : amount.toString(),
       };
 
-      // Add cash object if cash account - user selection takes priority
+      // Add cash object if cash_location_id exists (regardless of categoryTag)
+      // Cash can be on debit or credit side
+      // User selection takes priority over template default
       final entryCashLocationId = _extractCashLocationId(entry);
       if (cashLocationId != null && categoryTag == 'cash') {
         // User selection takes priority for cash accounts
@@ -448,7 +450,7 @@ class TemplateLinesBuilder {
           'cash_location_id': cashLocationId,
         };
       } else if (entryCashLocationId != null) {
-        // Fall back to template default
+        // Template has cash_location_id
         lineData['cash'] = {
           'cash_location_id': entryCashLocationId,
         };

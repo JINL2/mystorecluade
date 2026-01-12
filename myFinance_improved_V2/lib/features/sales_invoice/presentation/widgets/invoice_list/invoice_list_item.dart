@@ -9,6 +9,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/ai/ai_description_row.dart';
 import '../../../domain/entities/invoice.dart';
+import '../../extensions/invoice_display_extension.dart';
 import '../../pages/invoice_detail_page.dart';
 import '../../providers/invoice_list_provider.dart';
 

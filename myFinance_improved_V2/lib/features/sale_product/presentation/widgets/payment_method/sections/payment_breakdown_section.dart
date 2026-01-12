@@ -4,8 +4,6 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../../shared/themes/toss_animations.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_dimensions.dart';
-import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../domain/entities/sales_product.dart';
@@ -302,7 +300,9 @@ class PaymentBreakdownSectionState
   double get _cartTotal {
     double total = 0;
     for (final product in widget.selectedProducts) {
-      final quantity = widget.productQuantities[product.productId] ?? 0;
+      // Use uniqueId (variantId or productId) for quantity lookup
+      final uniqueId = product.variantId ?? product.productId;
+      final quantity = widget.productQuantities[uniqueId] ?? 0;
       final price = product.pricing.sellingPrice ?? 0;
       total += price * quantity;
     }
@@ -360,7 +360,7 @@ class PaymentBreakdownSectionState
         Text(
           'Payment breakdown',
           style: TossTextStyles.h4.copyWith(
-            fontWeight: TossFontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: TossColors.gray900,
           ),
         ),
@@ -400,7 +400,7 @@ class PaymentBreakdownSectionState
 
         // Divider before Net total
         Container(
-          height: TossDimensions.dividerThickness,
+          height: 1,
           color: TossColors.gray100,
           margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
         ),
@@ -501,7 +501,8 @@ class PaymentBreakdownSectionState
       percentage = inputValue.clamp(0, 100).toDouble();
       discountAmt = (_cartTotal * percentage) / 100;
     } else {
-      discountAmt = inputValue;
+      // Clamp discount to max of cart total to prevent negative amounts
+      discountAmt = inputValue.clamp(0, _cartTotal).toDouble();
       percentage = _cartTotal > 0 ? (discountAmt / _cartTotal) * 100 : 0;
 
       // Format with commas for amount mode
@@ -696,8 +697,8 @@ class PaymentBreakdownSectionState
         Text(
           label,
           style: TossTextStyles.body.copyWith(
-            fontWeight: TossFontWeight.medium,
-            color: TossColors.gray600,
+            fontWeight: FontWeight.w600,
+            color: TossColors.gray700,
           ),
         ),
         const SizedBox(width: 4),
@@ -716,7 +717,7 @@ class PaymentBreakdownSectionState
         Text(
           '${PaymentHelpers.formatNumber(amount.round())}${widget.currencySymbol}',
           style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: TossFontWeight.semibold,
+            fontWeight: FontWeight.w600,
             color: TossColors.gray900,
           ),
         ),
@@ -747,18 +748,19 @@ class PaymentBreakdownSectionState
         Text(
           'Total',
           style: TossTextStyles.body.copyWith(
-            fontWeight: TossFontWeight.semibold,
+            fontWeight: FontWeight.w600,
             color: TossColors.gray700,
           ),
         ),
         Text(
           '${PaymentHelpers.formatNumber(grandTotal.round())}${widget.currencySymbol}',
           style: TossTextStyles.bodyLarge.copyWith(
-            fontWeight: TossFontWeight.semibold,
+            fontWeight: FontWeight.w600,
             color: TossColors.primary,
           ),
         ),
       ],
     );
   }
+
 }

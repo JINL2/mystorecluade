@@ -23,11 +23,13 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 /// Product Detail Page - New design with compact header and location list
 class ProductDetailPage extends ConsumerStatefulWidget {
   final String productId;
+  final String? variantId;
   final Product? initialProduct;
 
   const ProductDetailPage({
     super.key,
     required this.productId,
+    this.variantId,
     this.initialProduct,
   });
 
@@ -73,6 +75,23 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// Navigate to edit page and handle result
+  Future<void> _navigateToEdit(Product product) async {
+    final result = await context.push<Product>(
+      '/inventoryManagement/editProduct/${product.id}',
+      extra: product,
+    );
+
+    // If edit page returned an updated product, update local state
+    if (result != null && mounted) {
+      setState(() {
+        _localProduct = result;
+      });
+      // Refresh store stocks with updated data
+      _loadStoreStocks();
+    }
   }
 
   /// Load product from API if not found in provider
@@ -143,11 +162,26 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
         productIds: [widget.productId],
       );
 
-      if (mounted) {
+      if (mounted && result?.products.isNotEmpty == true) {
+        final productStock = result!.products.first;
+
+        // Get current product - prioritize localProduct (updated after edit) or initialProduct which have correct variantId
+        // Do NOT use firstWhere on provider list as all variants share same product ID
+        final product = _localProduct ?? widget.initialProduct;
+
         setState(() {
-          _storeStocks = result?.products.isNotEmpty == true
-              ? result!.products.first.stores
-              : [];
+          // For variant products, get stores for specific variantId
+          // For non-variant products, use stores directly
+          if (productStock.hasVariants && product?.variantId != null) {
+            _storeStocks = productStock.getStoresForVariant(product!.variantId!);
+          } else {
+            _storeStocks = productStock.stores;
+          }
+          _isLoadingStocks = false;
+        });
+      } else if (mounted) {
+        setState(() {
+          _storeStocks = [];
           _isLoadingStocks = false;
         });
       }
@@ -163,14 +197,17 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
     final productsState = ref.watch(inventoryPageNotifierProvider);
     final currencySymbol = productsState.currency?.symbol ?? '';
 
-    // Try to find product in provider first
-    var product = productsState.products.cast<Product?>().firstWhere(
-      (p) => p?.id == widget.productId,
+    // For variant products, use localProduct (updated after edit) or initialProduct which have correct variantId
+    // Don't search provider by productId as all variants share the same productId
+    // Only fallback to provider search if we don't have localProduct/initialProduct
+    // Priority: _localProduct (updated after edit) > initialProduct (from navigation)
+    Product? product = _localProduct ?? widget.initialProduct;
+    // For variant products, also match variantId to find the correct variant
+    product ??= productsState.products.cast<Product?>().firstWhere(
+      (p) => p?.id == widget.productId &&
+             (widget.variantId == null || p?.variantId == widget.variantId),
       orElse: () => null,
     );
-
-    // Use local product if not found in provider
-    product ??= _localProduct;
 
     if (product == null) {
       // Trigger API load if not already loading
@@ -218,13 +255,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
               ProductDetailTopBar(
                 product: currentProduct,
                 onMoreOptions: () => _showMoreOptions(context, ref, currentProduct),
+                onEditPressed: () => _navigateToEdit(currentProduct),
               ),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
                       // Header section - starts at 0ms
+                      // Key ensures widget rebuilds when product images change
                       ProductHeaderSection(
+                        key: ValueKey('product_header_${currentProduct.id}_${currentProduct.images.hashCode}'),
                         product: currentProduct,
                         animationDelay: 0,
                       ),
@@ -370,6 +410,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
         fromStoreId: fromStore.id,
         toStoreId: toStore.id,
         productId: product.id,
+        variantId: product.variantId,
         quantity: quantity,
         updatedBy: appState.userId,
         notes: 'Transfer from ${fromStore.name} to ${toStore.name}',

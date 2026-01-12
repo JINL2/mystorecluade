@@ -47,3 +47,18 @@ class InventoryRepositoryException extends InventoryException {
   });
 }
 
+/// Attribute exception for attribute creation/update errors
+class InventoryAttributeException extends InventoryException {
+  final String errorCode;
+
+  InventoryAttributeException({
+    required super.message,
+    required this.errorCode,
+    super.details,
+  }) : super(code: errorCode);
+
+  bool get isDuplicateName => errorCode == 'DUPLICATE_ATTRIBUTE_NAME';
+  bool get isDuplicateOptionValue => errorCode == 'DUPLICATE_OPTION_VALUE';
+  bool get isInvalidOptionsFormat => errorCode == 'INVALID_OPTIONS_FORMAT';
+}
+

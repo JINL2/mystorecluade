@@ -55,20 +55,20 @@ class InvoiceRemoteDataSource {
 
   /// Refund invoice(s)
   ///
-  /// Calls the `inventory_refund_invoice_v3` RPC function
-  /// v3 uses timestamptz and supports inventory_logs
+  /// Calls the `inventory_refund_invoice_v4` RPC function
+  /// v4 uses timestamptz, supports inventory_logs, and full variant support
   Future<Map<String, dynamic>> refundInvoice({
     required List<String> invoiceIds,
     required String userId,
     String? notes,
   }) async {
     try {
-      // v3 uses timestamptz - send ISO 8601 format with timezone
+      // v4 uses timestamptz - send ISO 8601 format with timezone
       final refundDate = DateTime.now().toIso8601String();
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_refund_invoice_v3',
+        'inventory_refund_invoice_v4',
         params: {
           'p_invoice_ids': invoiceIds,
           'p_refund_date': refundDate,
@@ -131,7 +131,7 @@ class InvoiceRemoteDataSource {
 
   /// Get invoice detail by ID
   ///
-  /// Calls the `get_invoice_detail` RPC function
+  /// Calls the `get_invoice_detail_v2` RPC function (with variant support)
   Future<InvoiceDetail> getInvoiceDetail({
     required String invoiceId,
     String? timezone,
@@ -140,7 +140,7 @@ class InvoiceRemoteDataSource {
       final tz = timezone ?? DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'get_invoice_detail',
+        'get_invoice_detail_v2',
         params: {
           'p_invoice_id': invoiceId,
           'p_timezone': tz,

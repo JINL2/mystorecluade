@@ -70,34 +70,8 @@ class Invoice extends Equatable {
   bool get isPaid => paymentStatus == 'paid';
   bool get isPending => paymentStatus == 'pending';
 
-  /// Get formatted time string (HH:mm)
-  String get timeString {
-    return '${saleDate.hour.toString().padLeft(2, '0')}:${saleDate.minute.toString().padLeft(2, '0')}';
-  }
-
-  /// Get formatted date string with relative dates
-  String get dateString {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final invoiceDay = DateTime(saleDate.year, saleDate.month, saleDate.day);
-
-    if (invoiceDay == today) {
-      return 'Today, ${_formatDate(saleDate)}';
-    } else if (invoiceDay == today.subtract(const Duration(days: 1))) {
-      return 'Yesterday, ${_formatDate(saleDate)}';
-    } else {
-      return '${_getDayName(saleDate)}, ${_formatDate(saleDate)}';
-    }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  String _getDayName(DateTime date) {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    return days[date.weekday - 1];
-  }
+  // NOTE: timeString and dateString moved to presentation/extensions/invoice_display_extension.dart
+  // UI formatting is a Presentation concern, not Domain
 
   @override
   List<Object?> get props => [

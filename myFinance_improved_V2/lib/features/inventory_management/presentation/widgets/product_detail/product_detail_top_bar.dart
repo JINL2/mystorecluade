@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../../shared/themes/toss_animations.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
-import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../domain/entities/product.dart';
 import '../../pages/product_transactions_page.dart';
 
@@ -15,17 +13,19 @@ import '../../pages/product_transactions_page.dart';
 class ProductDetailTopBar extends StatelessWidget {
   final Product product;
   final VoidCallback onMoreOptions;
+  final VoidCallback onEditPressed;
 
   const ProductDetailTopBar({
     super.key,
     required this.product,
     required this.onMoreOptions,
+    required this.onEditPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: TossDimensions.topBarHeight,
+      height: 56,
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Row(
         children: [
@@ -38,10 +38,10 @@ class ProductDetailTopBar extends StatelessWidget {
             },
           ),
           const SizedBox(width: TossSpacing.space2),
-          // SKU title - expandable
+          // SKU title - expandable (use displaySku for variants)
           Expanded(
             child: Text(
-              product.sku,
+              product.displaySku ?? product.sku,
               style: TossTextStyles.titleLarge.copyWith(
                 color: TossColors.gray900,
               ),
@@ -57,10 +57,7 @@ class ProductDetailTopBar extends StatelessWidget {
                 icon: Icons.edit_outlined,
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  context.push(
-                    '/inventoryManagement/editProduct/${product.id}',
-                    extra: product,
-                  );
+                  onEditPressed();
                 },
               ),
               _AnimatedIconButton(
@@ -98,7 +95,7 @@ class _AnimatedIconButton extends StatefulWidget {
   const _AnimatedIconButton({
     required this.icon,
     required this.onTap,
-    this.size = TossSpacing.iconMD2,
+    this.size = 22,
   });
 
   @override
@@ -142,8 +139,8 @@ class _AnimatedIconButtonState extends State<_AnimatedIconButton>
         builder: (context, child) => Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
-            width: TossSpacing.iconXL,
-            height: TossSpacing.iconXL,
+            width: 40,
+            height: 40,
             alignment: Alignment.center,
             child: Icon(
               widget.icon,

@@ -53,6 +53,16 @@ class Product {
   final bool sellOnline;
   final Map<String, dynamic>? attributes;
 
+  // v6 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? variantSku;
+  final String? variantBarcode;
+  final String? displayName;
+  final String? displaySku;
+  final String? displayBarcode;
+  final bool hasVariants;
+
   Product({
     required this.id,
     required this.sku,
@@ -96,6 +106,15 @@ class Product {
     this.sellInStore = true,
     this.sellOnline = false,
     this.attributes,
+    // v6 variant fields
+    this.variantId,
+    this.variantName,
+    this.variantSku,
+    this.variantBarcode,
+    this.displayName,
+    this.displaySku,
+    this.displayBarcode,
+    this.hasVariants = false,
   })  : images = images ?? [],
         tags = tags ?? [],
         available = available ?? (onHand - reserved),
@@ -178,6 +197,15 @@ class Product {
     bool? sellInStore,
     bool? sellOnline,
     Map<String, dynamic>? attributes,
+    // v6 variant fields
+    String? variantId,
+    String? variantName,
+    String? variantSku,
+    String? variantBarcode,
+    String? displayName,
+    String? displaySku,
+    String? displayBarcode,
+    bool? hasVariants,
   }) {
     return Product(
       id: id ?? this.id,
@@ -222,6 +250,15 @@ class Product {
       sellInStore: sellInStore ?? this.sellInStore,
       sellOnline: sellOnline ?? this.sellOnline,
       attributes: attributes ?? this.attributes,
+      // v6 variant fields
+      variantId: variantId ?? this.variantId,
+      variantName: variantName ?? this.variantName,
+      variantSku: variantSku ?? this.variantSku,
+      variantBarcode: variantBarcode ?? this.variantBarcode,
+      displayName: displayName ?? this.displayName,
+      displaySku: displaySku ?? this.displaySku,
+      displayBarcode: displayBarcode ?? this.displayBarcode,
+      hasVariants: hasVariants ?? this.hasVariants,
     );
   }
 }

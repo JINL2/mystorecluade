@@ -6,9 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_dimensions.dart';
-import '../../../../shared/themes/toss_font_weight.dart';
-import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../sale_product/presentation/utils/currency_formatter.dart';
 import '../../domain/entities/product.dart';
@@ -35,11 +32,15 @@ class InventoryProductCard extends StatelessWidget {
       color: TossColors.transparent,
       child: InkWell(
         onTap: onTap ?? () {
-          context.push('/inventoryManagement/product/${product.id}');
+          // Include variantId as query param for variant products to ensure correct page rebuild
+          // Check both null and empty string to handle edge cases
+          final hasVariant = product.variantId != null && product.variantId!.isNotEmpty;
+          final variantQuery = hasVariant ? '?variantId=${product.variantId}' : '';
+          context.push('/inventoryManagement/product/${product.id}$variantQuery', extra: product);
         },
         borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2, horizontal: TossSpacing.space1),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -47,8 +48,8 @@ class InventoryProductCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(TossBorderRadius.md),
                 child: Container(
-                  width: TossDimensions.minTouchTarget,
-                  height: TossDimensions.minTouchTarget,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: TossColors.gray50,
                     borderRadius: BorderRadius.circular(TossBorderRadius.md),
@@ -56,17 +57,17 @@ class InventoryProductCard extends StatelessWidget {
                   child: product.images.isNotEmpty
                       ? Image.network(
                           product.images.first,
-                          width: TossDimensions.minTouchTarget,
-                          height: TossDimensions.minTouchTarget,
+                          width: 44,
+                          height: 44,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              width: TossDimensions.minTouchTarget,
-                              height: TossDimensions.minTouchTarget,
+                              width: 44,
+                              height: 44,
                               color: TossColors.gray50,
                               child: const Icon(
                                 Icons.image,
-                                size: TossSpacing.iconMD,
+                                size: 20,
                                 color: TossColors.gray500,
                               ),
                             );
@@ -74,43 +75,43 @@ class InventoryProductCard extends StatelessWidget {
                         )
                       : const Icon(
                           Icons.inventory_2,
-                          size: TossSpacing.iconMD,
+                          size: 20,
                           color: TossColors.gray500,
                         ),
                 ),
               ),
-              const SizedBox(width: TossSpacing.space2),
+              const SizedBox(width: 10),
               // Product info
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: TossSpacing.space2, top: TossSpacing.space0_5),
+                  padding: const EdgeInsets.only(left: 8, top: 2),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Product name
+                      // Product name (use displayName for variants, fallback to name)
                       Text(
-                        product.name,
+                        product.displayName ?? product.name,
                         style: TossTextStyles.bodyMedium.copyWith(
-                          fontWeight: TossFontWeight.semibold,
+                          fontWeight: FontWeight.w600,
                           color: TossColors.gray900,
                         ),
                       ),
-                      const SizedBox(height: TossSpacing.space0_5),
-                      // SKU row with quantity pill
+                      const SizedBox(height: 2),
+                      // SKU row with quantity pill (use displaySku for variants)
                       Row(
                         children: [
                           Text(
-                            product.sku,
+                            product.displaySku ?? product.sku,
                             style: TossTextStyles.bodySmall.copyWith(
-                              fontWeight: TossFontWeight.medium,
+                              fontWeight: FontWeight.w500,
                               color: TossColors.gray600,
                             ),
                           ),
-                          const SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
+                          const SizedBox(width: 6),
                           _buildQuantityPill(product.onHand, hasQuantity),
                         ],
                       ),
-                      const SizedBox(height: TossSpacing.space0_5),
+                      const SizedBox(height: 2),
                       // Price row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -118,7 +119,7 @@ class InventoryProductCard extends StatelessWidget {
                           Text(
                             '$currencySymbol${CurrencyFormatter.formatPrice(product.salePrice)}',
                             style: TossTextStyles.titleMedium.copyWith(
-                              fontWeight: TossFontWeight.semibold,
+                              fontWeight: FontWeight.w600,
                               color: TossColors.primary,
                             ),
                           ),
@@ -138,7 +139,7 @@ class InventoryProductCard extends StatelessWidget {
 
   Widget _buildQuantityPill(int quantity, bool isActive) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.badgePaddingHorizontalXS, vertical: TossSpacing.badgePaddingVerticalXS),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: isActive ? TossColors.primarySurface : TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.xs),
@@ -146,7 +147,7 @@ class InventoryProductCard extends StatelessWidget {
       child: Text(
         '$quantity',
         style: TossTextStyles.bodySmall.copyWith(
-          fontWeight: TossFontWeight.semibold,
+          fontWeight: FontWeight.w600,
           color: isActive ? TossColors.primary : TossColors.gray900,
         ),
       ),
@@ -157,8 +158,8 @@ class InventoryProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTransferTap,
       child: Container(
-        width: TossDimensions.minTouchTarget,
-        height: TossDimensions.minTouchTarget,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: TossColors.gray50,
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -166,7 +167,7 @@ class InventoryProductCard extends StatelessWidget {
         child: const Center(
           child: Icon(
             Icons.swap_horiz,
-            size: TossSpacing.iconSM,
+            size: 18,
             color: TossColors.gray900,
           ),
         ),

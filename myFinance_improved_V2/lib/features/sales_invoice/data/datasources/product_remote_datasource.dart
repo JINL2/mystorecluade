@@ -1,8 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/exceptions/invoice_exceptions.dart';
-import '../../domain/repositories/product_repository.dart';
 import '../models/cash_location_model.dart';
 
 /// Product remote data source for sales invoice
@@ -172,62 +170,6 @@ class ProductRemoteDataSource {
       if (e is InvoiceException) rethrow;
       throw InvoiceDataException(
         'Failed to parse exchange rate data: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  /// Create invoice using inventory_create_invoice_v3
-  Future<Map<String, dynamic>> createInvoice({
-    required String companyId,
-    required String storeId,
-    required String userId,
-    required DateTime saleDate,
-    required List<InvoiceItem> items,
-    required String paymentMethod,
-    double? discountAmount,
-    double? taxRate,
-    String? notes,
-    String? cashLocationId,
-    String? customerId,
-  }) async {
-    try {
-      // Get user's local timezone (IANA format)
-      final timezone = DateTimeUtils.getLocalTimezone();
-
-      // Format sale_date as timestamptz with local timezone offset
-      // e.g., "2025-12-03T18:47:56+07:00"
-      final saleDateWithOffset = DateTimeUtils.toLocalWithOffset(saleDate);
-
-      final response = await _client.rpc<Map<String, dynamic>>(
-        'inventory_create_invoice_v3',
-        params: {
-          'p_company_id': companyId,
-          'p_store_id': storeId,
-          'p_created_by': userId,
-          'p_sale_date': saleDateWithOffset,
-          'p_items': items.map((item) => item.toJson()).toList(),
-          'p_payment_method': paymentMethod,
-          'p_timezone': timezone,
-          if (discountAmount != null) 'p_discount_amount': discountAmount,
-          if (taxRate != null) 'p_tax_rate': taxRate,
-          if (notes != null) 'p_notes': notes,
-          if (cashLocationId != null) 'p_cash_location_id': cashLocationId,
-          if (customerId != null) 'p_customer_id': customerId,
-        },
-      );
-
-      return response;
-    } on PostgrestException catch (e) {
-      throw InvoiceNetworkException(
-        'Failed to create invoice: ${e.message}',
-        code: e.code,
-        originalError: e,
-      );
-    } catch (e) {
-      if (e is InvoiceException) rethrow;
-      throw InvoiceDataException(
-        'Failed to process invoice creation: $e',
         originalError: e,
       );
     }

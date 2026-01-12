@@ -148,7 +148,7 @@ class _InventoryManagementPageState
   }
 
   Widget _buildBody(InventoryPageState pageState) {
-    // Server-side filtering and sorting is handled by RPC (get_inventory_page_v5)
+    // Server-side filtering is handled by RPC (get_inventory_page_v6)
     final displayProducts = pageState.products;
 
     if (displayProducts.isEmpty && !pageState.isLoading) {

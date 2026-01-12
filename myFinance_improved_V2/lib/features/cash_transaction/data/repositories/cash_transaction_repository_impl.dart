@@ -1,5 +1,5 @@
+import '../../../../core/constants/account_ids.dart';
 import '../../../../core/utils/datetime_utils.dart';
-import '../../../cash_location/domain/constants/account_ids.dart';
 import '../../domain/entities/cash_location.dart';
 import '../../domain/entities/cash_transaction_enums.dart';
 import '../../domain/entities/counterparty.dart';

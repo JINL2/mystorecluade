@@ -5,6 +5,7 @@ import '../../../domain/entities/invoice.dart';
 import '../../../domain/repositories/invoice_repository.dart';
 import '../../../domain/value_objects/invoice_period.dart';
 import '../../../domain/value_objects/invoice_sort_option.dart';
+import '../../extensions/invoice_display_extension.dart';
 
 part 'invoice_list_state.freezed.dart';
 

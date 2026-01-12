@@ -16,10 +16,10 @@ final filteredProductsProvider = Provider<List<SalesProduct>>((ref) {
     return products;
   }
 
-  // Apply local search filter only
+  // Apply local search filter only - use effectiveName/effectiveSku for variant support
   final searchLower = searchQuery.toLowerCase();
   return products.where((product) {
-    return product.productName.toLowerCase().contains(searchLower) ||
-        product.sku.toLowerCase().contains(searchLower);
+    return product.effectiveName.toLowerCase().contains(searchLower) ||
+        product.effectiveSku.toLowerCase().contains(searchLower);
   }).toList();
 });
