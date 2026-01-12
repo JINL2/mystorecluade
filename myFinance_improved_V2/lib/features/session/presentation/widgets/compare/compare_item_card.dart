@@ -56,7 +56,7 @@ class CompareItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName,
+                  item.name, // Uses displayName for variants, productName for non-variants
                   style: TossTextStyles.body.copyWith(
                     fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,
@@ -64,10 +64,10 @@ class CompareItemCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (item.sku != null && item.sku!.isNotEmpty) ...[
+                if (item.effectiveSku != null && item.effectiveSku!.isNotEmpty) ...[
                   const SizedBox(height: TossSpacing.space0_5),
                   Text(
-                    'SKU: ${item.sku}',
+                    'SKU: ${item.effectiveSku}',
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray500,
                     ),

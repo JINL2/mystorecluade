@@ -44,6 +44,7 @@ class ScannedByInfo with _$ScannedByInfo {
 }
 
 /// Item info in session history
+/// v3: Supports variant fields for variant-level grouping
 @freezed
 class SessionHistoryItemDetail with _$SessionHistoryItemDetail {
   const SessionHistoryItemDetail._();
@@ -52,6 +53,14 @@ class SessionHistoryItemDetail with _$SessionHistoryItemDetail {
     required String productId,
     required String productName,
     String? sku,
+
+    // v3 variant fields
+    String? variantId,
+    String? variantName,
+    String? displayName,
+    @Default(false) bool hasVariants,
+    String? variantSku,
+    String? displaySku,
 
     /// Scanned by employees (from inventory_session_items)
     required int scannedQuantity,
@@ -68,6 +77,12 @@ class SessionHistoryItemDetail with _$SessionHistoryItemDetail {
     int? quantityDifference,
   }) = _SessionHistoryItemDetail;
 
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
+
+  /// Display SKU for UI - uses displaySku if available, otherwise sku
+  String? get effectiveSku => displaySku ?? sku;
+
   /// Check if manager has confirmed this item
   bool get hasConfirmed => confirmedQuantity != null;
 
@@ -82,6 +97,7 @@ class SessionHistoryItemDetail with _$SessionHistoryItemDetail {
 }
 
 /// Stock snapshot item for receiving sessions (V2)
+/// v3: Supports variant fields
 @freezed
 class StockSnapshotItem with _$StockSnapshotItem {
   const StockSnapshotItem._();
@@ -95,6 +111,10 @@ class StockSnapshotItem with _$StockSnapshotItem {
     required int quantityAfter,
     /// true = new product (needs display), false = restock
     required bool needsDisplay,
+    // v3 variant fields
+    String? variantId,
+    String? variantName,
+    String? displayName,
   }) = _StockSnapshotItem;
 
   /// Check if this is a new product (was 0 stock before)
@@ -128,8 +148,11 @@ class ReceivingInfo with _$ReceivingInfo {
 }
 
 /// Merged item info (items from merged sessions)
+/// v3: Supports variant fields
 @freezed
 class MergedSessionItem with _$MergedSessionItem {
+  const MergedSessionItem._();
+
   const factory MergedSessionItem({
     required String productId,
     required String sku,
@@ -137,7 +160,15 @@ class MergedSessionItem with _$MergedSessionItem {
     required int quantity,
     required int quantityRejected,
     required SessionHistoryUser scannedBy,
+    // v3 variant fields
+    String? variantId,
+    String? variantName,
+    String? displayName,
+    @Default(false) bool hasVariants,
   }) = _MergedSessionItem;
+
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
 }
 
 /// Merged session info

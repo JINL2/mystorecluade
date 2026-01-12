@@ -516,7 +516,8 @@ class SessionDatasource {
     );
   }
 
-  /// Add multiple items to a session via RPC (inventory_add_session_items)
+  /// Add multiple items to a session via RPC (inventory_add_session_items_v2)
+  /// v2: variant_id support - items include variant_id (null for non-variant products)
   Future<AddSessionItemsResponseModel> addSessionItems({
     required String sessionId,
     required String userId,
@@ -525,7 +526,7 @@ class SessionDatasource {
     final itemsJson = items.map((item) => item.toJson()).toList();
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_add_session_items',
+      'inventory_add_session_items_v2',
       params: {
         'p_session_id': sessionId,
         'p_user_id': userId,
@@ -652,13 +653,15 @@ class SessionDatasource {
     }
   }
 
-  /// Get session history via RPC (inventory_get_session_history_v2)
+  /// Get session history via RPC (inventory_get_session_history_v3)
   /// Returns detailed session history including members, items, merge info, and receiving info
-  /// V2 includes:
+  /// V3 includes:
+  /// - Full variant support: items grouped by (product_id, variant_id)
+  /// - variant_id, variant_name, display_name, has_variants in items
+  /// - confirmed_quantity matches by variant_id
+  /// - merge_info items include variant information
   /// - is_merged_session: boolean flag for merged sessions
-  /// - merge_info: original_session and merged_sessions with items
-  /// - receiving_info: stock_snapshot with quantity_before/received/after and needs_display
-  /// - profile_image: included in all user objects
+  /// - receiving_info: stock_snapshot with variant info
   Future<SessionHistoryResponseModel> getSessionHistory({
     required String companyId,
     String? storeId,
@@ -687,7 +690,7 @@ class SessionDatasource {
     }
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_get_session_history_v2',
+      'inventory_get_session_history_v3',
       params: params,
     ).single();
 
@@ -698,15 +701,16 @@ class SessionDatasource {
     return SessionHistoryResponseModel.fromJson(response);
   }
 
-  /// Compare two sessions via RPC (inventory_compare_sessions)
+  /// Compare two sessions via RPC (inventory_compare_sessions_v2)
   /// Returns items that exist in target session but not in source session
+  /// v2: Supports variant comparison - each (product_id, variant_id) pair compared separately
   Future<SessionCompareResponseModel> compareSessions({
     required String sourceSessionId,
     required String targetSessionId,
     required String userId,
   }) async {
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_compare_sessions',
+      'inventory_compare_sessions_v2',
       params: {
         'p_session_id_a': sourceSessionId,
         'p_session_id_b': targetSessionId,
@@ -730,17 +734,18 @@ class SessionDatasource {
     return SessionCompareResponseModel.fromJson(response);
   }
 
-  /// Merge source session into target session via RPC (inventory_merge_sessions)
+  /// Merge source session into target session via RPC (inventory_merge_sessions_v2)
   /// - Copies all items from source to target with source_session_id tracking
   /// - Adds source's members to target (skips duplicates)
   /// - Deactivates source session
+  /// v2: Supports variant_id - copies variant info and includes in response
   Future<Map<String, dynamic>> mergeSessions({
     required String targetSessionId,
     required String sourceSessionId,
     required String userId,
   }) async {
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_merge_sessions',
+      'inventory_merge_sessions_v2',
       params: {
         'p_target_session_id': targetSessionId,
         'p_source_session_id': sourceSessionId,
