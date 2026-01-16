@@ -24,7 +24,7 @@ class ProfileFormSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: TossWhiteCard(
+      child: TossCard(
         padding: EdgeInsets.zero,
         child: Column(
           children: [

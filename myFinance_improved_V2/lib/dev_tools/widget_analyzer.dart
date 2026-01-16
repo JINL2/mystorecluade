@@ -26,7 +26,6 @@ class WidgetAnalyzer {
     'toss_time_picker.dart',
     'toss_app_bar.dart',
     'toss_date_picker.dart',
-    'toss_white_card.dart',
   ];
   
   // Widget patterns to analyze
@@ -35,7 +34,6 @@ class WidgetAnalyzer {
     'TossPrimaryButton': r'TossPrimaryButton\s*\(',
     'TossSecondaryButton': r'TossSecondaryButton\s*\(',
     'TossCard': r'TossCard\s*\(',
-    'TossWhiteCard': r'TossWhiteCard\s*\(',
     'TossListTile': r'TossListTile\s*\(',
     'TossModal': r'TossModal\s*\(',
     'TossBottomSheet': r'TossBottomSheet\s*\(',
@@ -47,7 +45,7 @@ class WidgetAnalyzer {
     'TossKeyboardToolbar': r'TossKeyboardToolbar\s*\(',
     'TossRefreshIndicator': r'TossRefreshIndicator\s*\(',
     'TossTimePicker': r'TossTimePicker\s*\(',
-    'TossSelectionBottomSheet': r'TossSelectionBottomSheet\s*\(',
+    'SelectionBottomSheetCommon': r'SelectionBottomSheetCommon\s*\(',
   };
   
   // Patterns indicating potential widget duplication

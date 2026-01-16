@@ -339,24 +339,16 @@ class _TossDialogState extends State<TossDialog>
       children: [
         Text(
           widget.title,
-          style: (widget.type == TossDialogType.success 
-              ? TossTextStyles.h2 
-              : TossTextStyles.h3).copyWith(
-            color: TossColors.textPrimary,
-            fontWeight: widget.type == TossDialogType.success 
-                ? FontWeight.w800 
-                : FontWeight.w700,
-          ),
+          style: widget.type == TossDialogType.success
+              ? TossTextStyles.dialogTitleXL
+              : TossTextStyles.dialogTitleLarge,
           textAlign: TextAlign.center,
         ),
         if (widget.subtitle != null) ...[
           const SizedBox(height: TossSpacing.space2),
           Text(
             widget.subtitle!,
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TossTextStyles.dialogSubtitle,
             textAlign: TextAlign.center,
           ),
         ],
@@ -364,10 +356,7 @@ class _TossDialogState extends State<TossDialog>
           const SizedBox(height: TossSpacing.space3),
           Text(
             widget.message!,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.textSecondary,
-              height: 1.5,
-            ),
+            style: TossTextStyles.dialogMessageSecondary,
             textAlign: TextAlign.center,
           ),
         ],
@@ -406,18 +395,14 @@ class _TossDialogState extends State<TossDialog>
                       const SizedBox(width: TossSpacing.space3),
                       Text(
                         '${item.label}: ',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: TossTextStyles.dialogInfoLabel,
                       ),
                       Expanded(
                         child: Text(
                           item.value,
-                          style: TossTextStyles.body.copyWith(
-                            color: item.valueColor ?? TossColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: item.valueColor != null
+                              ? TossTextStyles.dialogInfoValue.copyWith(color: item.valueColor)
+                              : TossTextStyles.dialogInfoValue,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -476,12 +461,9 @@ class _TossDialogState extends State<TossDialog>
             ),
             child: Text(
               widget.secondaryButtonText!,
-              style: TossTextStyles.body.copyWith(
-                color: widget.type == TossDialogType.success
-                    ? TossColors.primary
-                    : TossColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
+              style: widget.type == TossDialogType.success
+                  ? TossTextStyles.dialogButtonPrimary
+                  : TossTextStyles.dialogButtonSecondary,
             ),
           ),
         ],
@@ -563,9 +545,7 @@ class TossDialogs {
               Expanded(
                 child: Text(
                   'Share this code with employees to join your business',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.info,
-                  ),
+                  style: TossTextStyles.captionInfo,
                 ),
               ),
             ],

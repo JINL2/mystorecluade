@@ -1,21 +1,17 @@
 /// Organisms Showcase
 ///
 /// Displays all organism components from shared/widgets/organisms folder.
+/// Components are loaded from showcase_registry.dart
+///
+/// To add a new organism component:
+/// 1. Create the component in organisms/<category>/your_component.dart
+/// 2. Add import and DemoItem in showcase_registry.dart → getOrganismsDemos()
+/// 3. Done! It will automatically appear here.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/calendars/toss_month_calendar.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/calendars/toss_month_navigation.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/calendars/toss_week_navigation.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/dialogs/toss_confirm_cancel_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/dialogs/toss_info_dialog.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_time_picker.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_selection_bottom_sheet.dart' show TossSelectionBottomSheet, TossSelectionItem;
-import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
-import 'package:intl/intl.dart';
+import 'package:myfinance_improved/shared/widgets/showcase_registry.dart';
 
 class OrganismsShowcase extends StatefulWidget {
   const OrganismsShowcase({super.key});
@@ -27,18 +23,15 @@ class OrganismsShowcase extends StatefulWidget {
 class _OrganismsShowcaseState extends State<OrganismsShowcase>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  final List<String> _tabs = [
-    'Calendars',
-    'Dialogs',
-    'Pickers',
-    'Sheets',
-  ];
+  late Map<String, List<DemoItem>> _demos;
+  late List<String> _categories;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _demos = getOrganismsDemos();
+    _categories = _demos.keys.toList();
+    _tabController = TabController(length: _categories.length, vsync: this);
   }
 
   @override
@@ -59,18 +52,16 @@ class _OrganismsShowcaseState extends State<OrganismsShowcase>
             labelColor: TossColors.primary,
             unselectedLabelColor: TossColors.gray600,
             indicatorColor: TossColors.primary,
-            tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+            tabs: _categories.map((cat) => Tab(text: cat)).toList(),
           ),
         ),
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [
-              _CalendarsTab(),
-              _DialogsTab(),
-              _PickersTab(),
-              _SheetsTab(),
-            ],
+            children: _categories.map((cat) {
+              final items = _demos[cat] ?? [];
+              return _DemoList(items: items);
+            }).toList(),
           ),
         ),
       ],
@@ -78,335 +69,81 @@ class _OrganismsShowcaseState extends State<OrganismsShowcase>
   }
 }
 
-// ==================== Calendars Tab ====================
-class _CalendarsTab extends StatefulWidget {
-  const _CalendarsTab();
-
-  @override
-  State<_CalendarsTab> createState() => _CalendarsTabState();
-}
-
-class _CalendarsTabState extends State<_CalendarsTab> {
-  DateTime _currentMonth = DateTime.now();
-  DateTime _currentWeek = DateTime.now();
-  DateTime _selectedDate = DateTime.now();
-
-  String _getMonthName(DateTime date) {
-    return DateFormat('MMMM').format(date);
-  }
-
-  String _getWeekDateRange(DateTime date) {
-    final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
-    final endOfWeek = startOfWeek.add(const Duration(days: 6));
-    return '${DateFormat('d').format(startOfWeek)} - ${DateFormat('d MMM').format(endOfWeek)}';
-  }
+class _DemoList extends StatelessWidget {
+  final List<DemoItem> items;
+  const _DemoList({required this.items});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    if (items.isEmpty) {
+      return Center(
+        child: Text('No components yet', style: TossTextStyles.body.copyWith(color: TossColors.gray600)),
+      );
+    }
+
+    return ListView.separated(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      children: [
-        _buildComponentCard(
-          'TossMonthNavigation',
-          'Navigation control for month selection',
-          TossMonthNavigation(
-            currentMonth: _getMonthName(_currentMonth),
-            year: _currentMonth.year,
-            onPrevMonth: () => setState(() {
-              _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
-            }),
-            onCurrentMonth: () => setState(() {
-              _currentMonth = DateTime.now();
-            }),
-            onNextMonth: () => setState(() {
-              _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
-            }),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space4),
-        _buildComponentCard(
-          'TossWeekNavigation',
-          'Navigation control for week selection',
-          TossWeekNavigation(
-            weekLabel: 'This week',
-            dateRange: _getWeekDateRange(_currentWeek),
-            onPrevWeek: () => setState(() {
-              _currentWeek = _currentWeek.subtract(const Duration(days: 7));
-            }),
-            onCurrentWeek: () => setState(() {
-              _currentWeek = DateTime.now();
-            }),
-            onNextWeek: () => setState(() {
-              _currentWeek = _currentWeek.add(const Duration(days: 7));
-            }),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space4),
-        _buildComponentCard(
-          'TossMonthCalendar',
-          'Full month calendar view',
-          Container(
-            decoration: BoxDecoration(
-              color: TossColors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            ),
-            child: TossMonthCalendar(
-              currentMonth: _currentMonth,
-              selectedDate: _selectedDate,
-              shiftsInMonth: const {}, // Empty map for demo
-              onDateSelected: (date) => setState(() => _selectedDate = date),
-            ),
-          ),
-        ),
-      ],
+      itemCount: items.length,
+      separatorBuilder: (_, __) => const SizedBox(height: TossSpacing.space2),
+      itemBuilder: (context, index) => _DemoCard(item: items[index]),
     );
   }
 }
 
-// ==================== Dialogs Tab ====================
-class _DialogsTab extends StatelessWidget {
-  const _DialogsTab();
+class _DemoCard extends StatelessWidget {
+  final DemoItem item;
+  const _DemoCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      children: [
-        _buildComponentCard(
-          'TossConfirmCancelDialog',
-          'Dialog for confirmation with cancel option',
-          Center(
-            child: TossButton.primary(
-              text: 'Show Confirm Dialog',
-              onPressed: () {
-                TossConfirmCancelDialog.show(
-                  context: context,
-                  title: 'Delete Transaction',
-                  message: 'Are you sure you want to delete this transaction? This action cannot be undone.',
-                  confirmButtonText: 'Delete',
-                  cancelButtonText: 'Cancel',
-                  isDangerousAction: true,
-                );
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space4),
-        _buildComponentCard(
-          'TossInfoDialog',
-          'Dialog for displaying information with bullet points',
-          Center(
-            child: TossButton.primary(
-              text: 'Show Info Dialog',
-              onPressed: () {
-                TossInfoDialog.show(
-                  context: context,
-                  title: 'About This Feature',
-                  bulletPoints: [
-                    'Track your expenses and income across multiple accounts.',
-                    'View detailed analytics and reports.',
-                    'Set budgets and receive alerts.',
-                  ],
-                  buttonText: 'Got it',
-                );
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space4),
-        _buildComponentCard(
-          'TossConfirmCancelDialog.delete',
-          'Delete confirmation dialog',
-          Center(
-            child: TossButton.destructive(
-              text: 'Show Delete Dialog',
-              onPressed: () {
-                TossConfirmCancelDialog.showDelete(
-                  context: context,
-                  title: 'Delete Transaction',
-                  message: 'This action cannot be undone.',
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ==================== Pickers Tab ====================
-class _PickersTab extends StatefulWidget {
-  const _PickersTab();
-
-  @override
-  State<_PickersTab> createState() => _PickersTabState();
-}
-
-class _PickersTabState extends State<_PickersTab> {
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      children: [
-        _buildComponentCard(
-          'TossDatePicker',
-          'Date picker with wheel selection',
-          Column(
-            children: [
-              TossDatePicker(
-                date: _selectedDate,
-                placeholder: 'Select date',
-                onDateChanged: (date) => setState(() => _selectedDate = date),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space4),
-        _buildComponentCard(
-          'TossTimePicker',
-          'Time picker with wheel selection',
-          Column(
-            children: [
-              TossTimePicker(
-                time: _selectedTime,
-                placeholder: 'Select time',
-                onTimeChanged: (time) => setState(() => _selectedTime = time),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ==================== Sheets Tab ====================
-class _SheetsTab extends StatelessWidget {
-  const _SheetsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      children: [
-        _buildComponentCard(
-          'TossBottomSheet',
-          'Standard bottom sheet with header',
-          Center(
-            child: TossButton.primary(
-              text: 'Show Bottom Sheet',
-              onPressed: () {
-                TossBottomSheet.show(
-                  context: context,
-                  title: 'Transaction Details',
-                  content: Padding(
-                    padding: const EdgeInsets.all(TossSpacing.space4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _infoRow('Date', 'Jan 15, 2026'),
-                        _infoRow('Amount', '\$250.00'),
-                        _infoRow('Category', 'Shopping'),
-                        _infoRow('Account', 'Checking'),
-                        _infoRow('Status', 'Completed'),
-                        const SizedBox(height: TossSpacing.space4),
-                        TossButton.primary(
-                          text: 'Edit Transaction',
-                          fullWidth: true,
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: TossSpacing.space4),
-        _buildComponentCard(
-          'TossSelectionBottomSheet',
-          'Bottom sheet for item selection',
-          Center(
-            child: TossButton.primary(
-              text: 'Show Selection Sheet',
-              onPressed: () {
-                TossSelectionBottomSheet.show(
-                  context: context,
-                  title: 'Select Account',
-                  items: const [
-                    TossSelectionItem(id: 'checking', title: 'Checking Account', subtitle: '\$5,250.00'),
-                    TossSelectionItem(id: 'savings', title: 'Savings Account', subtitle: '\$12,000.00'),
-                    TossSelectionItem(id: 'business', title: 'Business Account', subtitle: '\$45,000.00'),
-                  ],
-                  selectedId: 'checking',
-                  onItemSelected: (item) {},
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        border: Border.all(color: TossColors.gray200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TossTextStyles.caption.copyWith(color: TossColors.gray600)),
-          Text(value, style: TossTextStyles.bodyMedium),
+          Padding(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.name, style: TossTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: TossSpacing.space1),
+                Text(item.description, style: TossTextStyles.caption.copyWith(color: TossColors.gray600)),
+                // Show "Uses:" for organisms
+                if (item.uses.isNotEmpty) ...[
+                  const SizedBox(height: TossSpacing.space2),
+                  Wrap(
+                    spacing: TossSpacing.space1,
+                    runSpacing: TossSpacing.space1,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Icon(Icons.auto_awesome, size: 12, color: TossColors.primary),
+                      Text('Uses: ', style: TossTextStyles.caption.copyWith(color: TossColors.primary, fontWeight: FontWeight.w500)),
+                      ...item.uses.map((atom) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: TossColors.primarySurface,
+                          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                        ),
+                        child: Text(atom, style: TossTextStyles.caption.copyWith(color: TossColors.primary, fontSize: 10)),
+                      )),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            child: item.builder(),
+          ),
         ],
       ),
     );
   }
-}
-
-// ==================== Helper ====================
-Widget _buildComponentCard(String title, String description, Widget child) {
-  return Container(
-    decoration: BoxDecoration(
-      color: TossColors.white,
-      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-      border: Border.all(color: TossColors.gray200),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TossTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space1),
-              Text(
-                description,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: child,
-        ),
-      ],
-    ),
-  );
 }

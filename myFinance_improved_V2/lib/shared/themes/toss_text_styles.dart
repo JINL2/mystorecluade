@@ -222,6 +222,313 @@ class TossTextStyles {
     color: const Color(0xFF6B7280),
   );
 
+  // ==================== 3. EXTENDED SEMANTIC STYLES ====================
+  // These cover common UI patterns to PREVENT copyWith abuse
+  // If you find yourself writing copyWith, ADD A STYLE HERE INSTEAD!
+
+  // --- Status Colors ---
+  /// Success text - 14px, success green
+  static TextStyle get bodySuccess => _text14.copyWith(
+    color: const Color(0xFF10B981),
+  );
+
+  /// Error text - 14px, error red
+  static TextStyle get bodyError => _text14.copyWith(
+    color: const Color(0xFFEF4444),
+  );
+
+  /// Warning text - 14px, warning orange
+  static TextStyle get bodyWarning => _text14.copyWith(
+    color: const Color(0xFFF59E0B),
+  );
+
+  /// Info text - 14px, info blue
+  static TextStyle get bodyInfo => _text14.copyWith(
+    color: const Color(0xFF3B82F6),
+  );
+
+  /// Caption success - 12px, success green
+  static TextStyle get captionSuccess => _text12.copyWith(
+    color: const Color(0xFF10B981),
+  );
+
+  /// Caption error - 12px, error red
+  static TextStyle get captionError => _text12.copyWith(
+    color: const Color(0xFFEF4444),
+  );
+
+  /// Caption warning - 12px, warning orange
+  static TextStyle get captionWarning => _text12.copyWith(
+    color: const Color(0xFFF59E0B),
+  );
+
+  // --- Bold Variants ---
+  /// Body bold - 14px, w700
+  static TextStyle get bodyBold => _text14.copyWith(
+    fontWeight: FontWeight.w700,
+  );
+
+  /// Caption bold - 12px, w600
+  static TextStyle get captionBold => _text12.copyWith(
+    fontWeight: FontWeight.w600,
+  );
+
+  /// Label bold - 12px, w700
+  static TextStyle get labelBold => _text12.copyWith(
+    fontWeight: FontWeight.w700,
+  );
+
+  // --- Gray Variants (by shade) ---
+  /// Body gray400 - 14px, gray400 (for disabled/placeholder)
+  static TextStyle get bodyGray400 => _text14.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  /// Body gray600 - 14px, gray600
+  static TextStyle get bodyGray600 => _text14.copyWith(
+    color: const Color(0xFF4B5563),
+  );
+
+  /// Body gray700 - 14px, gray700
+  static TextStyle get bodyGray700 => _text14.copyWith(
+    color: const Color(0xFF374151),
+  );
+
+  /// Caption gray400 - 12px, gray400
+  static TextStyle get captionGray400 => _text12.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  /// Caption gray500 - 12px, gray500
+  static TextStyle get captionGray500 => _text12.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Caption gray600 - 12px, gray600 (alias for secondaryText)
+  static TextStyle get captionGray600 => secondaryText;
+
+  /// Caption gray700 - 12px, gray700
+  static TextStyle get captionGray700 => _text12.copyWith(
+    color: const Color(0xFF374151),
+  );
+
+  // --- White Variants (for dark backgrounds) ---
+  /// Body white - 14px, white
+  static TextStyle get bodyWhite => _text14.copyWith(
+    color: const Color(0xFFFFFFFF),
+  );
+
+  /// Body white bold - 14px, w600, white
+  static TextStyle get bodyWhiteBold => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFFFFFFFF),
+  );
+
+  /// Caption white - 12px, white
+  static TextStyle get captionWhite => _text12.copyWith(
+    color: const Color(0xFFFFFFFF),
+  );
+
+  /// H3 white - 20px, white
+  static TextStyle get h3White => _heading20.copyWith(
+    color: const Color(0xFFFFFFFF),
+  );
+
+  // --- Primary Color Variants ---
+  /// Body primary - 14px, primary blue
+  static TextStyle get bodyPrimary => _text14.copyWith(
+    color: const Color(0xFF3182F6),
+  );
+
+  /// Body primary bold - 14px, w600, primary blue
+  static TextStyle get bodyPrimaryBold => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF3182F6),
+  );
+
+  /// Caption primary - 12px, primary blue
+  static TextStyle get captionPrimary => _text12.copyWith(
+    color: const Color(0xFF3182F6),
+  );
+
+  // --- Numeric/Monospace Variants ---
+  /// Amount small - 16px, monospace
+  static TextStyle get amountSmall => GoogleFonts.jetBrainsMono(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+
+  /// Amount large - 24px, monospace
+  static TextStyle get amountLarge => GoogleFonts.jetBrainsMono(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+
+  /// Amount XL - 32px, monospace (for hero numbers)
+  static TextStyle get amountXL => GoogleFonts.jetBrainsMono(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+
+  /// Code text - 12px, monospace, gray700
+  static TextStyle get code => GoogleFonts.jetBrainsMono(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: const Color(0xFF374151),
+  );
+
+  /// Code small - 10px, monospace, gray600
+  static TextStyle get codeSmall => GoogleFonts.jetBrainsMono(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: const Color(0xFF4B5563),
+  );
+
+  // --- Form-related Styles ---
+  /// Field label - 12px, w500, gray700 (for form field labels)
+  static TextStyle get fieldLabel => _text12.copyWith(
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFF374151),
+  );
+
+  /// Field helper - 12px, gray500 (for form field helper text)
+  static TextStyle get fieldHelper => _text12.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Field error - 12px, error red (for form field errors)
+  static TextStyle get fieldError => _text12.copyWith(
+    color: const Color(0xFFEF4444),
+  );
+
+  // --- Navigation/Menu Styles ---
+  /// Menu item - 14px, w500
+  static TextStyle get menuItem => _text14.copyWith(
+    fontWeight: FontWeight.w500,
+  );
+
+  /// Menu item active - 14px, w600, primary
+  static TextStyle get menuItemActive => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF3182F6),
+  );
+
+  /// Tab label - 14px, w500, gray600
+  static TextStyle get tabLabel => _text14.copyWith(
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFF4B5563),
+  );
+
+  /// Tab label active - 14px, w600, gray900
+  static TextStyle get tabLabelActive => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF111827),
+  );
+
+  // --- Badge/Tag Styles ---
+  /// Badge text - 10px, w600
+  static TextStyle get badge => GoogleFonts.inter(
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.02,
+    height: 1.2,
+  );
+
+  /// Tag text - 12px, w500
+  static TextStyle get tag => _text12.copyWith(
+    fontWeight: FontWeight.w500,
+  );
+
+  // ==================== 4. DIALOG STYLES ====================
+  // Semantic styles for dialog components to prevent copyWith abuse
+
+  /// Dialog title - 18px, w600, gray900 (for confirm/cancel dialogs)
+  static TextStyle get dialogTitle => _heading18.copyWith(
+    color: const Color(0xFF111827),
+  );
+
+  /// Dialog title large - 20px, w700, textPrimary (for success/error dialogs)
+  static TextStyle get dialogTitleLarge => _heading20.copyWith(
+    fontWeight: FontWeight.w700,
+    color: const Color(0xFF111827),
+  );
+
+  /// Dialog title extra bold - 24px, w800, textPrimary (for success dialogs)
+  static TextStyle get dialogTitleXL => _heading24.copyWith(
+    fontWeight: FontWeight.w800,
+    color: const Color(0xFF111827),
+  );
+
+  /// Dialog subtitle - 20px, w600, primary (for success dialog subtitles)
+  static TextStyle get dialogSubtitle => _heading20.copyWith(
+    color: const Color(0xFF3182F6),
+  );
+
+  /// Dialog message - 14px, h1.5, gray700 (for dialog body text)
+  static TextStyle get dialogMessage => _text14.copyWith(
+    height: 1.5,
+    color: const Color(0xFF374151),
+  );
+
+  /// Dialog message secondary - 14px, h1.5, textSecondary (for secondary messages)
+  static TextStyle get dialogMessageSecondary => _text14.copyWith(
+    height: 1.5,
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Dialog button - 14px, w500, gray700 (for secondary/cancel buttons)
+  static TextStyle get dialogButton => _text14.copyWith(
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFF374151),
+  );
+
+  /// Dialog button white - 14px, w500, white (for primary buttons)
+  static TextStyle get dialogButtonWhite => _text14.copyWith(
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFFFFFFFF),
+  );
+
+  /// Dialog button primary - 14px, w600, primary (for text action buttons)
+  static TextStyle get dialogButtonPrimary => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF3182F6),
+  );
+
+  /// Dialog button secondary - 14px, w600, textSecondary (for secondary text actions)
+  static TextStyle get dialogButtonSecondary => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Dialog info label - 14px, w500, textSecondary (for info item labels)
+  static TextStyle get dialogInfoLabel => _text14.copyWith(
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Dialog info value - 14px, w600, textPrimary (for info item values)
+  static TextStyle get dialogInfoValue => _text14.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF111827),
+  );
+
+  /// Caption info - 12px, info blue (for info hints in dialogs)
+  static TextStyle get captionInfo => _text12.copyWith(
+    color: const Color(0xFF3B82F6),
+  );
+
+  /// Caption with line height - 12px, h1.5, gray700 (for bullet points)
+  static TextStyle get captionReadable => _text12.copyWith(
+    height: 1.5,
+    color: const Color(0xFF374151),
+  );
+
   // For amount, we swap the Font Family but keep the size logic if we wanted,
   // but usually Amount is unique enough to define on its own.
   static TextStyle get amount => GoogleFonts.jetBrainsMono(

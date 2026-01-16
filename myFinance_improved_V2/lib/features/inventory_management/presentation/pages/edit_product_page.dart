@@ -654,30 +654,34 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     final stores = StoreUtils.getCompanyStores(appState);
 
     final items = stores
-        .map((store) => TossSelectionItem(
+        .map((store) => SelectionItem(
               id: store.id,
               title: store.name,
               icon: TossIcons.store,
             ))
         .toList();
 
-    TossSelectionBottomSheet.show<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Store',
-      items: items,
-      selectedId: _selectedLocation,
-      showSubtitle: false,
-      selectedFontWeight: TossFontWeight.bold,
-      unselectedFontWeight: TossFontWeight.medium,
-      unselectedIconColor: TossColors.gray500,
-      borderBottomWidth: 0.5,
-      checkIcon: TossIcons.check,
-      enableHapticFeedback: true,
-      onItemSelected: (item) {
-        setState(() {
-          _selectedLocation = item.id;
-          _selectedLocationName = item.title;
-        });
+      showDividers: true,
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        final isSelected = item.id == _selectedLocation;
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.standard,
+          enableHaptic: true,
+          onTap: () {
+            setState(() {
+              _selectedLocation = item.id;
+              _selectedLocationName = item.title;
+            });
+            Navigator.pop(ctx);
+          },
+        );
       },
     );
   }
@@ -687,19 +691,27 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
     const units = ['piece', 'box', 'kg', 'g', 'l', 'ml', 'pack', 'set', 'dozen'];
 
     final items = units
-        .map((unit) => TossSelectionItem.fromGeneric(id: unit, title: unit))
+        .map((unit) => SelectionItem(id: unit, title: unit))
         .toList();
 
-    await TossSelectionBottomSheet.show<String>(
+    await SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Unit',
-      items: items,
-      selectedId: _unit,
-      showSubtitle: false,
-      onItemSelected: (item) {
-        setState(() {
-          _unit = item.id;
-        });
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        final isSelected = item.id == _unit;
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.minimal,
+          onTap: () {
+            setState(() {
+              _unit = item.id;
+            });
+            Navigator.pop(ctx);
+          },
+        );
       },
     );
   }

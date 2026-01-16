@@ -9,6 +9,9 @@
 /// - ai_chat/    : AI Chat feature (mini-feature)
 library;
 
+// Models - Shared data models for widgets
+export '../models/selection_item.dart';
+
 // Atomic Design - Atoms (smallest components)
 export 'atoms/index.dart';
 

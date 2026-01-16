@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../../../shared/models/selection_item.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
@@ -40,29 +41,37 @@ class _AddAttributeFormDialogState extends State<AddAttributeFormDialog> {
 
   Future<void> _showTypeSelector() async {
     final items = AttributeType.values.map((type) {
-      return TossSelectionItem(
+      return SelectionItem(
         id: type.name,
         title: type.label,
       );
     }).toList();
 
-    final result = await TossSelectionBottomSheet.show<TossSelectionItem>(
+    SelectionItem? result;
+    await SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Select Type',
-      items: items,
-      selectedId: _selectedType.name,
-      maxHeightFraction: 0.4,
-      showSubtitle: false,
-      showIcon: false,
-      checkIcon: LucideIcons.check,
-      borderBottomWidth: 0,
-      showSelectedBackground: false,
+      maxHeightRatio: 0.4,
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        final isSelected = item.id == _selectedType.name;
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.minimal,
+          onTap: () {
+            result = item;
+            Navigator.pop(ctx);
+          },
+        );
+      },
     );
 
     if (result != null) {
       setState(() {
         _selectedType =
-            AttributeType.values.firstWhere((t) => t.name == result.id);
+            AttributeType.values.firstWhere((t) => t.name == result!.id);
       });
     }
   }

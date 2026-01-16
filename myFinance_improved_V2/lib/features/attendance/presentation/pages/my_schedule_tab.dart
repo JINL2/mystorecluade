@@ -18,7 +18,9 @@ import '../../domain/entities/problem_details.dart';
 import 'dialogs/shift_detail_dialog.dart';
 import 'widgets/schedule_header.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/trigger_bottom_sheet_common.dart';
 import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_schedule_skeleton.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 import 'widgets/my_schedule/index.dart';
 
 /// MyScheduleTab - Main tab with Week view and expandable Month calendar
@@ -484,18 +486,16 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
             Container(
               color: TossColors.white,
               padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, 0),
-              child: TossDropdown<String>(
+              child: TriggerBottomSheetCommon<String>(
                 label: 'Store',
                 value: widget.selectedStoreId,
-                items: widget.stores.map((store) {
-                  return TossDropdownItem<String>(
-                    value: store['store_id']?.toString() ?? '',
-                    label: store['store_name']?.toString() ?? 'Unknown',
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  if (newValue != null) {
-                    widget.onStoreChanged?.call(newValue);
+                items: widget.stores.map((store) => SelectionItem(
+                  id: store['store_id']?.toString() ?? '',
+                  title: store['store_name']?.toString() ?? 'Unknown',
+                )).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    widget.onStoreChanged?.call(value);
                   }
                 },
               ),

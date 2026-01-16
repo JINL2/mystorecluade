@@ -28,7 +28,7 @@ class TransactionListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () => _showTransactionDetail(context),
-      child: TossWhiteCard(
+      child: TossCard(
         padding: const EdgeInsets.all(TossSpacing.space4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

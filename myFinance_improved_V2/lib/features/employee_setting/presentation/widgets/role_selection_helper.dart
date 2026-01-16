@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../shared/models/selection_item.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/role.dart';
 import '../providers/employee_providers.dart';
@@ -10,7 +11,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Employee Setting feature role selection helper
 ///
-/// Provides a standardized role selection UI using TossSelectionBottomSheet
+/// Provides a standardized role selection UI using SelectionBottomSheetCommon
 class RoleSelectionHelper {
   /// Show role selector bottom sheet
   static Future<bool?> showRoleSelector({
@@ -92,8 +93,8 @@ class RoleSelectionHelper {
       return false;
     }
 
-    // Convert roles to TossSelectionItem
-    final items = availableRoles.map((role) => TossSelectionItem(
+    // Convert roles to SelectionItem
+    final items = availableRoles.map((role) => SelectionItem(
       id: role.roleId,
       title: role.roleName,
       subtitle: role.description,
@@ -101,14 +102,26 @@ class RoleSelectionHelper {
     ),).toList();
 
     // Show selection bottom sheet
-    final selectedItem = await TossSelectionBottomSheet.show<TossSelectionItem>(
+    SelectionItem? selectedItem;
+    await SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Manage Role',
-      items: items,
-      selectedId: null, // No pre-selection since we filtered out current role
       showSearch: true,
-      enableHapticFeedback: true,
-      maxHeightFraction: 0.8,
+      maxHeightRatio: 0.8,
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        return SelectionListItem(
+          item: item,
+          isSelected: false, // No pre-selection since we filtered out current role
+          variant: SelectionItemVariant.standard,
+          enableHaptic: true,
+          onTap: () {
+            selectedItem = item;
+            Navigator.pop(ctx);
+          },
+        );
+      },
     );
 
     if (selectedItem == null) {
@@ -118,7 +131,7 @@ class RoleSelectionHelper {
 
     // Find the selected role name
     final selectedRole = roles.firstWhere(
-      (role) => role.roleId == selectedItem.id,
+      (role) => role.roleId == selectedItem!.id,
     );
 
     // Perform role update
@@ -137,7 +150,7 @@ class RoleSelectionHelper {
 
       // Update role in database
       final roleRepository = ref.read(roleRepositoryProvider);
-      await roleRepository.updateUserRole(userId, selectedItem.id).timeout(
+      await roleRepository.updateUserRole(userId, selectedItem!.id).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
           throw Exception('Request timed out. Please check your connection and try again.');

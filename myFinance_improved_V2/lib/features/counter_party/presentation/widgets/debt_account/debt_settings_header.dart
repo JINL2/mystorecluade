@@ -21,10 +21,11 @@ class DebtSettingsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
-      margin: const EdgeInsets.all(TossSpacing.space4),
+    return Padding(
       padding: const EdgeInsets.all(TossSpacing.space4),
-      child: Column(
+      child: TossCard(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeaderInfo(),
@@ -33,6 +34,7 @@ class DebtSettingsHeader extends StatelessWidget {
           const SizedBox(height: TossSpacing.space3),
           _buildBenefits(),
         ],
+      ),
       ),
     );
   }

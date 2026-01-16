@@ -188,7 +188,7 @@ class SortOptionsHelper {
     final filter = ref.read(counterPartyFilterNotifierProvider);
 
     final sortOptions = [
-      TossSelectionItem(
+      SelectionItem(
         id: 'name',
         title: 'Name',
         subtitle: filter.sortBy == CounterPartySortOption.name
@@ -196,7 +196,7 @@ class SortOptionsHelper {
             : null,
         icon: Icons.sort_by_alpha,
       ),
-      TossSelectionItem(
+      SelectionItem(
         id: 'type',
         title: 'Type',
         subtitle: filter.sortBy == CounterPartySortOption.type
@@ -204,7 +204,7 @@ class SortOptionsHelper {
             : null,
         icon: Icons.category,
       ),
-      TossSelectionItem(
+      SelectionItem(
         id: 'created',
         title: 'Created Date',
         subtitle: filter.sortBy == CounterPartySortOption.createdAt
@@ -212,7 +212,7 @@ class SortOptionsHelper {
             : null,
         icon: Icons.calendar_today,
       ),
-      TossSelectionItem(
+      SelectionItem(
         id: 'internal',
         title: 'Internal/External',
         subtitle: filter.sortBy == CounterPartySortOption.isInternal
@@ -238,37 +238,46 @@ class SortOptionsHelper {
         break;
     }
 
-    TossSelectionBottomSheet.show<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Sort by',
-      items: sortOptions,
-      selectedId: currentSelectedId,
-      onItemSelected: (item) {
-        final currentFilter = ref.read(counterPartyFilterNotifierProvider);
-        CounterPartySortOption sortBy;
+      itemCount: sortOptions.length,
+      itemBuilder: (ctx, index) {
+        final item = sortOptions[index];
+        final isSelected = item.id == currentSelectedId;
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.standard,
+          onTap: () {
+            final currentFilter = ref.read(counterPartyFilterNotifierProvider);
+            CounterPartySortOption sortBy;
 
-        switch (item.id) {
-          case 'name':
-            sortBy = CounterPartySortOption.name;
-            break;
-          case 'type':
-            sortBy = CounterPartySortOption.type;
-            break;
-          case 'created':
-            sortBy = CounterPartySortOption.createdAt;
-            break;
-          case 'internal':
-            sortBy = CounterPartySortOption.isInternal;
-            break;
-          default:
-            return;
-        }
+            switch (item.id) {
+              case 'name':
+                sortBy = CounterPartySortOption.name;
+                break;
+              case 'type':
+                sortBy = CounterPartySortOption.type;
+                break;
+              case 'created':
+                sortBy = CounterPartySortOption.createdAt;
+                break;
+              case 'internal':
+                sortBy = CounterPartySortOption.isInternal;
+                break;
+              default:
+                return;
+            }
 
-        // Toggle direction if same sort option is selected
-        final ascending = currentFilter.sortBy == sortBy ? !currentFilter.ascending : true;
+            // Toggle direction if same sort option is selected
+            final ascending = currentFilter.sortBy == sortBy ? !currentFilter.ascending : true;
 
-        ref.read(counterPartyFilterNotifierProvider.notifier).setFilter(
-            currentFilter.copyWith(sortBy: sortBy, ascending: ascending));
+            ref.read(counterPartyFilterNotifierProvider.notifier).setFilter(
+                currentFilter.copyWith(sortBy: sortBy, ascending: ascending));
+            Navigator.pop(ctx);
+          },
+        );
       },
     );
   }

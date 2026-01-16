@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 /// Important Dates section for LC form
 class LCDatesSection extends StatelessWidget {
@@ -87,11 +88,12 @@ class LCDatesSection extends StatelessWidget {
 
     return InkWell(
       onTap: () async {
-        final date = await showDatePicker(
+        final date = await showTossDatePicker(
           context: context,
           initialDate: value ?? DateTime.now(),
           firstDate: DateTime(2020),
           lastDate: DateTime(2030),
+          title: label.replaceAll(' *', ''),
         );
         if (date != null) {
           onChanged(date);

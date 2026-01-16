@@ -13,10 +13,10 @@ class TossColors {
   // These are the "Source of Truth" based on your provided CSS.
   
   // --- The 4 Core Grays ---
-  static const Color _lightGrey = Color(0xFFF5F6F7);   // Secondary BG
-  static const Color _borderGrey = Color(0xFFF1F3F5);  // Borders
-  static const Color _coolGrey = Color(0xFF6B7785);    // Secondary Text
-  static const Color _charcoal = Color(0xFF212529);    // Main Text
+  static const Color borderGray = Color(0xFFF5F6F7);  // #F5F6F7 - BORDER GRAY (card borders, dividers ONLY)
+  static const Color lightGray = Color(0xFFF1F3F5);   // #F1F3F5 - LIGHT GRAY (backgrounds, fills, disabled)
+  static const Color darkGray = Color(0xFF6B7785);    // #6B7785 - DARK GRAY (secondary text, icons)
+  static const Color charcoal = Color(0xFF212529);    // #212529 - CHARCOAL (main text)
 
   // --- Brand Colors (Converted hex alpha to ARGB) ---
   // #0a66ffe8 -> 0xE80A66FF (Primary)
@@ -41,25 +41,27 @@ class TossColors {
   static const Color primarySurface = _accentBlue; // Mapped to new accent
 
   // --- GRAYSCALE (The Great Simplification) ---
-  
+
   // Backgrounds map to White or Light Grey
   static const Color white = _white;
   static const Color gray50 = _muted;       // Was F8F9FA -> Now FAFBFC
-  static const Color gray100 = _lightGrey;  // Was F1F3F5 -> Now F5F6F7
 
-  // Borders map to your single "Border Grey"
-  static const Color gray200 = _borderGrey;
-  static const Color gray300 = _borderGrey; // Consolidated
+  // ⚠️ BORDER ONLY - Use ONLY for card/container borders, NOT for backgrounds
+  static const Color gray100 = borderGray;  // #F5F6F7 - BORDER GRAY (card borders, dividers)
 
-  // Secondary Text maps to "Cool Grey"
-  static const Color gray400 = _coolGrey;   // Consolidated
-  static const Color gray500 = _coolGrey;
-  static const Color gray600 = _coolGrey;
+  // ✅ LIGHT GRAY - Use for light backgrounds, disabled states, subtle fills
+  static const Color gray200 = lightGray;   // #F1F3F5 - LIGHT GRAY (backgrounds, fills)
+  static const Color gray300 = lightGray;   // #F1F3F5 - LIGHT GRAY (alias)
+
+  // ✅ DARK GRAY - Use for secondary text, icons, placeholders
+  static const Color gray400 = darkGray;    // #6B7785 - DARK GRAY (alias)
+  static const Color gray500 = darkGray;    // #6B7785 - DARK GRAY (alias)
+  static const Color gray600 = darkGray;    // #6B7785 - DARK GRAY (secondary text, icons)
 
   // Primary Text maps to "Dark Charcoal"
-  static const Color gray700 = _charcoal;
-  static const Color gray800 = _charcoal;
-  static const Color gray900 = _charcoal;   // Consolidated
+  static const Color gray700 = charcoal;    // #212529 - PRIMARY TEXT
+  static const Color gray800 = charcoal;    // #212529 - PRIMARY TEXT (alias)
+  static const Color gray900 = charcoal;    // #212529 - PRIMARY TEXT (alias)
   
   static const Color black = Color(0xFF000000);
   static const Color black87 = Color(0xDD000000);
@@ -97,17 +99,17 @@ class TossColors {
   static const Color overlay = Color(0x80000000);
 
   // --- BORDER & DIVIDER ---
-  static const Color border = _borderGrey;
+  static const Color border = borderGray;
   static const Color borderLight = _muted;
 
   // --- TEXT COLORS ---
-  static const Color textPrimary = _charcoal;   // #212529
-  static const Color textSecondary = _coolGrey; // #6b7785
-  static const Color textTertiary = _coolGrey;  // Consolidated
+  static const Color textPrimary = charcoal;    // #212529
+  static const Color textSecondary = darkGray;  // #6b7785
+  static const Color textTertiary = darkGray;   // Consolidated
   static const Color textInverse = _white;
 
   // --- SPECIAL PURPOSE ---
-  static const Color shimmer = _lightGrey;
+  static const Color shimmer = lightGray;
   static const Color shadow = Color(0x0A000000);
   static const Color transparent = Color(0x00000000);
 
@@ -144,7 +146,7 @@ class TossColors {
   // Categories (Kept distinct for charts)
   static const Color categoryPurple = purple;
   static const Color categoryOrange = amber;
-  static const Color categoryGray = _coolGrey;
+  static const Color categoryGray = darkGray;
   static const Color categoryCyan = teal;
 
   // --- EXTENDED SEMANTIC SURFACES ---

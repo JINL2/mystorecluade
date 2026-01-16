@@ -33,24 +33,31 @@ class _StatsTabState extends ConsumerState<StatsTab> {
 
   void _showPeriodSelector() {
     final items = _periods.map((period) {
-      return TossSelectionItem.fromGeneric(
+      return SelectionItem(
         id: period,
         title: period,
         icon: LucideIcons.calendar,
       );
     }).toList();
 
-    TossSelectionBottomSheet.show<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Select Period',
-      items: items,
-      selectedId: _selectedPeriod,
-      showSubtitle: false,
-      checkIcon: Icons.check,
-      onItemSelected: (item) {
-        setState(() {
-          _selectedPeriod = item.id;
-        });
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final isSelected = item.id == _selectedPeriod;
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.standard,
+          onTap: () {
+            setState(() {
+              _selectedPeriod = item.id;
+            });
+            Navigator.pop(context);
+          },
+        );
       },
     );
   }

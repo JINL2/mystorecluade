@@ -12,6 +12,7 @@ import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 /// Date range section with From/To pickers
 class DateRangeSection extends StatelessWidget {
@@ -129,24 +130,12 @@ class _DatePicker extends StatelessWidget {
   }
 
   Future<void> _showDatePicker(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showTossDatePicker(
       context: context,
       initialDate: value ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: TossColors.primary,
-              onPrimary: TossColors.white,
-              surface: TossColors.white,
-              onSurface: TossColors.gray900,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      title: label,
     );
 
     if (!context.mounted) return;

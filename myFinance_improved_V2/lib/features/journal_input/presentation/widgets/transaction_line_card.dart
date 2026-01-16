@@ -30,11 +30,11 @@ class TransactionLineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      padding: EdgeInsets.zero,
-      showBorder: false,
-      child: ClipRRect(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: TossCard(
+        padding: EdgeInsets.zero,
+        child: ClipRRect(
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: InkWell(
           onTap: onEdit,
@@ -153,6 +153,7 @@ class TransactionLineCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

@@ -193,10 +193,7 @@ class TossConfirmCancelDialog extends StatelessWidget {
             // Title - 기본: 18sp, 굵게, 중앙 정렬
             Text(
               title,
-              style: titleStyle ?? TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
-              ),
+              style: titleStyle ?? TossTextStyles.dialogTitle,
               textAlign: titleAlign,
             ),
 
@@ -206,11 +203,7 @@ class TossConfirmCancelDialog extends StatelessWidget {
               // Message - 기본: 15sp, 중앙 정렬, line height 1.5
               Text(
                 message!,
-                style: messageStyle ?? TossTextStyles.body.copyWith(
-                  fontSize: 15,
-                  height: 1.5,
-                  color: TossColors.black87,
-                ),
+                style: messageStyle ?? TossTextStyles.dialogMessage,
                 textAlign: messageAlign,
               ),
             ],
@@ -244,11 +237,9 @@ class TossConfirmCancelDialog extends StatelessWidget {
                     ),
                     child: Text(
                       cancelButtonText,
-                      style: TossTextStyles.body.copyWith(
-                        color: cancelButtonTextColor ?? TossColors.gray700,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15,
-                      ),
+                      style: cancelButtonTextColor != null
+                          ? TossTextStyles.dialogButton.copyWith(color: cancelButtonTextColor)
+                          : TossTextStyles.dialogButton,
                     ),
                   ),
                 ),
@@ -272,11 +263,9 @@ class TossConfirmCancelDialog extends StatelessWidget {
                     ),
                     child: Text(
                       confirmButtonText,
-                      style: TossTextStyles.body.copyWith(
-                        color: confirmButtonTextColor ?? TossColors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15,
-                      ),
+                      style: confirmButtonTextColor != null
+                          ? TossTextStyles.dialogButtonWhite.copyWith(color: confirmButtonTextColor)
+                          : TossTextStyles.dialogButtonWhite,
                     ),
                   ),
                 ),

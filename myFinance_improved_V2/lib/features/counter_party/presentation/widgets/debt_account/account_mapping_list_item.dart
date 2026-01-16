@@ -40,7 +40,7 @@ class AccountMappingListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

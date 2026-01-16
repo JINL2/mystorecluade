@@ -57,9 +57,8 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
         SizedBox(height: TossSpacing.space3),
 
         // Chart card
-        TossWhiteCard(
+        TossCard(
           padding: EdgeInsets.all(TossSpacing.space3),
-          showBorder: false,
           child: Column(
             children: [
               // Chart area with gesture detector

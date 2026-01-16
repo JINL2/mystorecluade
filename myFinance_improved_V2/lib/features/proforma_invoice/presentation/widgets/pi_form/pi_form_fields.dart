@@ -6,6 +6,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 /// Section title widget
 class PISectionTitle extends StatelessWidget {
@@ -168,11 +169,12 @@ class PIDateField extends StatelessWidget {
         const SizedBox(height: TossSpacing.space2),
         InkWell(
           onTap: () async {
-            final date = await showDatePicker(
+            final date = await showTossDatePicker(
               context: context,
               initialDate: value ?? DateTime.now(),
               firstDate: DateTime.now().subtract(const Duration(days: 365)),
               lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+              title: label,
             );
             onChanged(date);
           },

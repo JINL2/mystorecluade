@@ -10,6 +10,7 @@ import '../../../../../core/utils/datetime_utils.dart';
 // Shared themes
 import '../../../../../shared/themes/index.dart';
 // Shared widgets
+import '../../../../../shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 // Feature providers
 import '../../providers/time_table_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -27,24 +28,12 @@ class AddShiftBottomSheet extends ConsumerWidget {
   });
 
   Future<void> _selectDate(BuildContext context, WidgetRef ref, String storeId) async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showTossDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 90)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: TossColors.primary,
-              onPrimary: TossColors.white,
-              surface: TossColors.white,
-              onSurface: TossColors.gray900,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      title: 'Select Date',
     );
 
     if (picked != null) {

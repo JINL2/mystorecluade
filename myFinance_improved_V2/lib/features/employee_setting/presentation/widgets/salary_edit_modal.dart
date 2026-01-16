@@ -10,6 +10,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 import '../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../domain/entities/currency_type.dart';
@@ -527,24 +528,12 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   }
   
   void _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showTossDatePicker(
       context: context,
       initialDate: _effectiveDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: TossColors.primary,
-              onPrimary: TossColors.background,
-              surface: TossColors.background,
-              onSurface: TossColors.gray900,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      title: 'Effective Date',
     );
     
     if (picked != null && picked != _effectiveDate) {

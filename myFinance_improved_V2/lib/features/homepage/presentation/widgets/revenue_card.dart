@@ -117,30 +117,37 @@ class RevenueCard extends ConsumerWidget {
     WidgetRef ref,
     RevenuePeriod selectedPeriod,
   ) {
-    // Convert RevenuePeriod enum to TossSelectionItem list
+    // Convert RevenuePeriod enum to SelectionItem list
     final items = RevenuePeriod.values.map((period) {
-      return TossSelectionItem(
+      return SelectionItem(
         id: period.name,
         title: period.displayName,
       );
     }).toList();
 
-    TossSelectionBottomSheet.show(
+    SelectionBottomSheetCommon.show(
       context: context,
       title: 'Select Period',
-      items: items,
-      selectedId: selectedPeriod.name,
-      showIcon: false,
-      showSubtitle: false,
-      maxHeightFraction: 0.55, // 6 items need more space to avoid scrolling
-      onItemSelected: (item) {
-        final period = RevenuePeriod.values.firstWhere(
-          (p) => p.name == item.id,
-          orElse: () => RevenuePeriod.today,
+      maxHeightRatio: 0.55, // 6 items need more space to avoid scrolling
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final isSelected = item.id == selectedPeriod.name;
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.minimal,
+          onTap: () {
+            final period = RevenuePeriod.values.firstWhere(
+              (p) => p.name == item.id,
+              orElse: () => RevenuePeriod.today,
+            );
+            // Mark as user manually selected - disable auto-switch
+            ref.read(userManuallySelectedPeriodProvider.notifier).state = true;
+            ref.read(selectedRevenuePeriodProvider.notifier).state = period;
+            Navigator.pop(context);
+          },
         );
-        // Mark as user manually selected - disable auto-switch
-        ref.read(userManuallySelectedPeriodProvider.notifier).state = true;
-        ref.read(selectedRevenuePeriodProvider.notifier).state = period;
       },
     );
   }
@@ -379,7 +386,7 @@ class _LoadingRevenue extends StatelessWidget {
   }
 }
 
-class _TabSelector extends StatelessWidget {
+class _TabSelector extends StatefulWidget {
   final RevenueViewTab selectedTab;
   final ValueChanged<RevenueViewTab> onTabChanged;
 
@@ -389,44 +396,18 @@ class _TabSelector extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildTab(
-          'Store',
-          RevenueViewTab.store,
-          selectedTab == RevenueViewTab.store,
-        ),
-        _buildTab(
-          'Company',
-          RevenueViewTab.company,
-          selectedTab == RevenueViewTab.company,
-        ),
-      ],
-    );
-  }
+  State<_TabSelector> createState() => _TabSelectorState();
+}
 
-  Widget _buildTab(String label, RevenueViewTab tab, bool isSelected) {
-    return GestureDetector(
-      onTap: () => onTabChanged(tab),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3 + 2,
-          vertical: TossSpacing.space1 + 2,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.primary : TossColors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.full),
-        ),
-        child: Text(
-          label,
-          style: TossTextStyles.caption.copyWith(
-            color: isSelected ? TossColors.white : TossColors.textTertiary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+class _TabSelectorState extends State<_TabSelector> {
+  @override
+  Widget build(BuildContext context) {
+    return TossSectionBar.compact(
+      tabs: const ['Store', 'Company'],
+      initialIndex: widget.selectedTab == RevenueViewTab.store ? 0 : 1,
+      onTabChanged: (index) {
+        widget.onTabChanged(index == 0 ? RevenueViewTab.store : RevenueViewTab.company);
+      },
     );
   }
 }

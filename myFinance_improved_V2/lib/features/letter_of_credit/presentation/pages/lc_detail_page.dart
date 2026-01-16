@@ -328,7 +328,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
     final rate = exchangeRateData?.getRate(lc.currencyCode);
     final convertedAvailable = showDualCurrency && rate != null ? lc.availableAmount * rate : null;
 
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         children: [
@@ -557,7 +557,7 @@ class _LCDetailContentState extends ConsumerState<_LCDetailContent> {
           ),
         ),
         const SizedBox(height: TossSpacing.space2),
-        TossWhiteCard(
+        TossCard(
           padding: const EdgeInsets.all(TossSpacing.space3),
           child: Column(children: children),
         ),

@@ -195,54 +195,9 @@ class _FinancialStatementsPageState
   Widget _buildTabBar() {
     return Column(
       children: [
-        Container(
-          height: 44,
-          margin: const EdgeInsets.symmetric(
-            horizontal: TossSpacing.space4,
-            vertical: TossSpacing.space2,
-          ),
-          child: Stack(
-            children: [
-              // Background
-              Container(
-                decoration: BoxDecoration(
-                  color: TossColors.gray100,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
-              ),
-              // Tab Bar
-              TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  color: TossColors.white,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  boxShadow: [
-                    BoxShadow(
-                      color: TossColors.black.withValues(alpha: 0.06),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                indicatorPadding: const EdgeInsets.all(TossSpacing.space1 - 1),
-                dividerColor: TossColors.transparent,
-                labelColor: TossColors.gray900,
-                unselectedLabelColor: TossColors.gray500,
-                labelStyle: TossTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                unselectedLabelStyle: TossTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-                tabs: const [
-                  Tab(text: 'P&L'),
-                  Tab(text: 'B/S'),
-                  Tab(text: 'Trend'),
-                ],
-              ),
-            ],
-          ),
+        TossSectionBar(
+          tabs: const ['P&L', 'B/S', 'Trend'],
+          controller: _tabController,
         ),
         // Divider
         Container(

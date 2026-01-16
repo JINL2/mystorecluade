@@ -133,6 +133,136 @@ class TossExpandableCard extends StatefulWidget {
     this.expandIcon,
   });
 
+  // ══════════════════════════════════════════════════════════════════════════════
+  // FACTORY: Simple (without footer)
+  // Use for: Clean expand/collapse with header only when collapsed
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  /// Simple expandable card without footer
+  ///
+  /// When collapsed: Shows only header
+  /// When expanded: Shows header + divider + content
+  ///
+  /// Use for transaction details, settings sections, etc.
+  /// ```dart
+  /// TossExpandableCard.simple(
+  ///   title: 'Transaction Details',
+  ///   isExpanded: _expanded,
+  ///   onToggle: () => setState(() => _expanded = !_expanded),
+  ///   content: TransactionDetailsContent(),
+  /// )
+  /// ```
+  factory TossExpandableCard.simple({
+    Key? key,
+    String title = '',
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required Widget content,
+    Widget? headerWidget,
+    Color? backgroundColor,
+    bool canToggle = true,
+    bool showToggleIcon = true,
+    TextStyle? titleStyle,
+    EdgeInsets? padding,
+    EdgeInsets? contentPadding,
+    Color? borderColor,
+    Color? dividerColor,
+    double borderRadius = 12,
+    Duration animationDuration = TossAnimations.fast,
+    Color? iconColor,
+    IconData? expandIcon,
+  }) {
+    return TossExpandableCard(
+      key: key,
+      title: title,
+      isExpanded: isExpanded,
+      onToggle: onToggle,
+      content: content,
+      headerWidget: headerWidget,
+      footer: null, // No footer
+      alwaysShowDivider: false,
+      backgroundColor: backgroundColor,
+      canToggle: canToggle,
+      showToggleIcon: showToggleIcon,
+      titleStyle: titleStyle,
+      padding: padding,
+      contentPadding: contentPadding,
+      borderColor: borderColor,
+      dividerColor: dividerColor,
+      borderRadius: borderRadius,
+      animationDuration: animationDuration,
+      iconColor: iconColor,
+      expandIcon: expandIcon,
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // FACTORY: With Summary (always-visible footer)
+  // Use for: Currency sections, totals that should always be visible
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  /// Expandable card with always-visible summary footer
+  ///
+  /// When collapsed: Shows header + divider + footer
+  /// When expanded: Shows header + divider + content + divider + footer
+  ///
+  /// Use for currency sections with subtotals, order summaries, etc.
+  /// ```dart
+  /// TossExpandableCard.withSummary(
+  ///   headerWidget: CurrencyHeader(),
+  ///   isExpanded: _expanded,
+  ///   onToggle: () => setState(() => _expanded = !_expanded),
+  ///   content: DenominationInputs(),
+  ///   summary: SubtotalRow(total: _subtotal),
+  /// )
+  /// ```
+  factory TossExpandableCard.withSummary({
+    Key? key,
+    String title = '',
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required Widget content,
+    required Widget summary,
+    Widget? headerWidget,
+    Color? backgroundColor,
+    bool canToggle = true,
+    bool showToggleIcon = true,
+    TextStyle? titleStyle,
+    EdgeInsets? padding,
+    EdgeInsets? contentPadding,
+    EdgeInsets? footerPadding,
+    Color? borderColor,
+    Color? dividerColor,
+    double borderRadius = 12,
+    Duration animationDuration = TossAnimations.fast,
+    Color? iconColor,
+    IconData? expandIcon,
+  }) {
+    return TossExpandableCard(
+      key: key,
+      title: title,
+      isExpanded: isExpanded,
+      onToggle: onToggle,
+      content: content,
+      headerWidget: headerWidget,
+      footer: summary, // Always-visible summary
+      alwaysShowDivider: true, // Show divider even when collapsed
+      backgroundColor: backgroundColor,
+      canToggle: canToggle,
+      showToggleIcon: showToggleIcon,
+      titleStyle: titleStyle,
+      padding: padding,
+      contentPadding: contentPadding,
+      footerPadding: footerPadding,
+      borderColor: borderColor,
+      dividerColor: dividerColor,
+      borderRadius: borderRadius,
+      animationDuration: animationDuration,
+      iconColor: iconColor,
+      expandIcon: expandIcon,
+    );
+  }
+
   @override
   State<TossExpandableCard> createState() => _TossExpandableCardState();
 }

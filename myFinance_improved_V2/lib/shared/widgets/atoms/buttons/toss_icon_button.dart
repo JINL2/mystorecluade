@@ -224,11 +224,12 @@ class TossIconButton extends StatelessWidget {
   }
 
   Color _getBackgroundColor() {
+    // Custom backgroundColor always takes priority
+    if (backgroundColor != null) return backgroundColor!;
+
     if (!isEnabled) {
       return TossColors.gray100;
     }
-
-    if (backgroundColor != null) return backgroundColor!;
 
     switch (variant) {
       case TossIconButtonVariant.filled:
@@ -242,11 +243,12 @@ class TossIconButton extends StatelessWidget {
   }
 
   Color _getIconColor() {
+    // Custom iconColor always takes priority
+    if (iconColor != null) return iconColor!;
+
     if (!isEnabled) {
       return TossColors.gray400;
     }
-
-    if (iconColor != null) return iconColor!;
 
     switch (variant) {
       case TossIconButtonVariant.filled:
@@ -283,6 +285,9 @@ class TossIconButton extends StatelessWidget {
     final effectiveIconSize = iconSize ?? _defaultIconSize;
     final effectiveBorderRadius = borderRadius ?? TossBorderRadius.md;
 
+    // Disable splash/highlight when custom backgroundColor is provided
+    final disableFeedback = backgroundColor != null;
+
     final button = SizedBox(
       width: effectiveButtonSize,
       height: effectiveButtonSize,
@@ -292,6 +297,9 @@ class TossIconButton extends StatelessWidget {
         child: InkWell(
           onTap: isEnabled ? onPressed : null,
           borderRadius: BorderRadius.circular(effectiveBorderRadius),
+          splashColor: disableFeedback ? TossColors.transparent : null,
+          highlightColor: disableFeedback ? TossColors.transparent : null,
+          hoverColor: disableFeedback ? TossColors.transparent : null,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(effectiveBorderRadius),

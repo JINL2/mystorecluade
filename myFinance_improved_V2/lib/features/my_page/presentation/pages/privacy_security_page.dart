@@ -62,7 +62,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             ),
             const SizedBox(height: TossSpacing.space4),
 
-            TossWhiteCard(
+            TossCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -108,7 +108,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
             ),
             const SizedBox(height: TossSpacing.space4),
 
-            TossWhiteCard(
+            TossCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -194,7 +194,7 @@ class _PrivacySecurityPageState extends ConsumerState<PrivacySecurityPage> {
   }
 
   Widget _buildChangePasswordForm() {
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space5),
       child: Form(
         key: _formKey,

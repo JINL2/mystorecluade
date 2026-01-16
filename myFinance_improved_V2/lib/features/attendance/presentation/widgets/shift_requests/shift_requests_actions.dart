@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
+import '../../../../../shared/models/selection_item.dart';
 import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/monthly_shift_status.dart';
 import '../../../domain/entities/shift_metadata.dart';
@@ -191,9 +192,9 @@ class ShiftRequestsActions {
 
     // Combine approved and pending employees
     // Assigned users show blue check tick, applied users show nothing
-    final items = <TossSelectionItem>[
+    final items = <SelectionItem>[
       ...approvedEmployees.map((employee) {
-        return TossSelectionItem.fromGeneric(
+        return SelectionItem(
           id: employee.userId,
           title: employee.userName,
           avatarUrl: (employee.profileImage?.isNotEmpty ?? false) ? employee.profileImage : null,
@@ -205,7 +206,7 @@ class ShiftRequestsActions {
         );
       }),
       ...pendingEmployees.map((employee) {
-        return TossSelectionItem.fromGeneric(
+        return SelectionItem(
           id: employee.userId,
           title: employee.userName,
           avatarUrl: (employee.profileImage?.isNotEmpty ?? false) ? employee.profileImage : null,
@@ -213,14 +214,21 @@ class ShiftRequestsActions {
       }),
     ];
 
-    TossSelectionBottomSheet.show<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Applied Users',
-      items: items,
-      showSubtitle: false,
-      borderBottomWidth: 0,
-      onItemSelected: (item) {
-        // Optional: Navigate to user profile or show more details
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        return SelectionListItem(
+          item: item,
+          isSelected: false,
+          variant: SelectionItemVariant.avatar,
+          onTap: () {
+            // Optional: Navigate to user profile or show more details
+            Navigator.pop(ctx);
+          },
+        );
       },
     );
   }

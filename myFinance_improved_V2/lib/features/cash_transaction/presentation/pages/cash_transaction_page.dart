@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -596,30 +597,36 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     return Column(
       children: [
         // Expense card
-        TossSelectionCard.entryType(
-          label: MainEntryType.expense.label,
-          description: MainEntryType.expense.description,
-          icon: MainEntryType.expense.icon,
+        SelectionListItem(
+          item: SelectionItem(
+            id: 'expense',
+            title: MainEntryType.expense.label,
+            subtitle: MainEntryType.expense.description,
+            icon: MainEntryType.expense.icon,
+          ),
           isSelected: _selectedEntryType == MainEntryType.expense,
           onTap: () => _onEntryTypeSelected(MainEntryType.expense),
         ),
-        const SizedBox(height: TossSpacing.space2),
         // Debt card
-        TossSelectionCard.entryType(
-          label: MainEntryType.debt.label,
-          description: MainEntryType.debt.description,
-          icon: MainEntryType.debt.icon,
+        SelectionListItem(
+          item: SelectionItem(
+            id: 'debt',
+            title: MainEntryType.debt.label,
+            subtitle: MainEntryType.debt.description,
+            icon: MainEntryType.debt.icon,
+          ),
           isSelected: _selectedEntryType == MainEntryType.debt,
           onTap: () => _onEntryTypeSelected(MainEntryType.debt),
         ),
-        const SizedBox(height: TossSpacing.space2),
         // Transfer card
-        TossSelectionCard.entryType(
-          label: MainEntryType.transfer.label,
-          description: MainEntryType.transfer.description,
-          icon: MainEntryType.transfer.icon,
+        SelectionListItem(
+          item: SelectionItem(
+            id: 'transfer',
+            title: MainEntryType.transfer.label,
+            subtitle: MainEntryType.transfer.description,
+            icon: MainEntryType.transfer.icon,
+          ),
           isSelected: false, // Never shows as selected since it goes to sheet
-          isHighlighted: true,
           onTap: () => _onEntryTypeSelected(MainEntryType.transfer),
         ),
       ],
@@ -630,19 +637,24 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
     return Column(
       children: [
         // Pay card
-        TossSelectionCard.expenseSubType(
-          label: ExpenseSubType.pay.label,
-          description: ExpenseSubType.pay.description,
-          icon: ExpenseSubType.pay.icon,
+        SelectionListItem(
+          item: SelectionItem(
+            id: 'pay',
+            title: ExpenseSubType.pay.label,
+            subtitle: ExpenseSubType.pay.description,
+            icon: ExpenseSubType.pay.icon,
+          ),
           isSelected: _selectedExpenseSubType == ExpenseSubType.pay,
           onTap: () => _onExpenseSubTypeSelected(ExpenseSubType.pay),
         ),
-        const SizedBox(height: TossSpacing.space2),
         // Refund card
-        TossSelectionCard.expenseSubType(
-          label: ExpenseSubType.refund.label,
-          description: ExpenseSubType.refund.description,
-          icon: ExpenseSubType.refund.icon,
+        SelectionListItem(
+          item: SelectionItem(
+            id: 'refund',
+            title: ExpenseSubType.refund.label,
+            subtitle: ExpenseSubType.refund.description,
+            icon: ExpenseSubType.refund.icon,
+          ),
           isSelected: _selectedExpenseSubType == ExpenseSubType.refund,
           onTap: () => _onExpenseSubTypeSelected(ExpenseSubType.refund),
         ),
@@ -792,14 +804,14 @@ class _CashTransactionPageState extends ConsumerState<CashTransactionPage> {
         return Column(
           children: externalCounterparties.map((counterparty) {
             final isSelected = _selectedCounterpartyId == counterparty.counterpartyId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: TossSelectionCard(
+            return SelectionListItem(
+              item: SelectionItem(
+                id: counterparty.counterpartyId,
                 title: counterparty.name,
                 icon: Icons.business,
-                isSelected: isSelected,
-                onTap: () => _onCounterpartySelected(counterparty),
               ),
+              isSelected: isSelected,
+              onTap: () => _onCounterpartySelected(counterparty),
             );
           }).toList(),
         );

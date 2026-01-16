@@ -82,27 +82,35 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
 
   Future<AttributeType?> _showTypeSelector(AttributeType currentType) async {
     final items = AttributeType.values.map((type) {
-      return TossSelectionItem(
+      return SelectionItem(
         id: type.name,
         title: type.label,
       );
     }).toList();
 
-    final result = await TossSelectionBottomSheet.show<TossSelectionItem>(
+    SelectionItem? result;
+    await SelectionBottomSheetCommon.show<void>(
       context: context,
       title: 'Select Type',
-      items: items,
-      selectedId: currentType.name,
-      maxHeightFraction: 0.4,
-      showSubtitle: false,
-      showIcon: false,
-      checkIcon: LucideIcons.check,
-      borderBottomWidth: 0,
-      showSelectedBackground: false,
+      maxHeightRatio: 0.4,
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        final isSelected = item.id == currentType.name;
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.minimal,
+          onTap: () {
+            result = item;
+            Navigator.pop(ctx);
+          },
+        );
+      },
     );
 
     if (result != null) {
-      return AttributeType.values.firstWhere((t) => t.name == result.id);
+      return AttributeType.values.firstWhere((t) => t.name == result!.id);
     }
     return null;
   }

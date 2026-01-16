@@ -104,7 +104,7 @@ class StoreConfigSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

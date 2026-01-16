@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart' hide DateRange;
+import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -173,24 +174,12 @@ class DateRangeSelector extends ConsumerWidget {
                             label: 'Start Date',
                             date: tempStartDate,
                             onTap: () async {
-                              final picked = await showDatePicker(
+                              final picked = await showTossDatePicker(
                                 context: context,
                                 initialDate: tempStartDate,
                                 firstDate: DateTime(2020),
                                 lastDate: DateTime.now(),
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: const ColorScheme.light(
-                                        primary: TossColors.primary,
-                                        onPrimary: TossColors.white,
-                                        surface: TossColors.background,
-                                        onSurface: TossColors.gray900,
-                                      ),
-                                    ),
-                                    child: child!,
-                                  );
-                                },
+                                title: 'Start Date',
                               );
                               if (picked != null) {
                                 setState(() {
@@ -210,24 +199,12 @@ class DateRangeSelector extends ConsumerWidget {
                             label: 'End Date',
                             date: tempEndDate,
                             onTap: () async {
-                              final picked = await showDatePicker(
+                              final picked = await showTossDatePicker(
                                 context: context,
                                 initialDate: tempEndDate,
                                 firstDate: tempStartDate,
                                 lastDate: DateTime.now(),
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: const ColorScheme.light(
-                                        primary: TossColors.primary,
-                                        onPrimary: TossColors.white,
-                                        surface: TossColors.background,
-                                        onSurface: TossColors.gray900,
-                                      ),
-                                    ),
-                                    child: child!,
-                                  );
-                                },
+                                title: 'End Date',
                               );
                               if (picked != null) {
                                 setState(() {

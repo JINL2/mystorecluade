@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_selection_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';
 
 /// Bottom sheet for selecting auto mapping reason
-/// Uses TossSelectionBottomSheet for consistent styling
+/// Uses SelectionBottomSheetCommon for consistent styling
 class AutoMappingSheet {
   AutoMappingSheet._();
 
@@ -14,25 +16,33 @@ class AutoMappingSheet {
     String? selectedId;
 
     final items = [
-      TossSelectionItem(
+      SelectionItem(
         id: 'Error',
         title: 'Error',
         icon: Icons.error_outline,
       ),
-      TossSelectionItem(
+      SelectionItem(
         id: 'Exchange Rate Differences',
         title: 'Exchange Rate Differences',
         icon: Icons.currency_exchange,
       ),
     ];
 
-    await TossSelectionBottomSheet.show(
+    await SelectionBottomSheetCommon.show(
       context: context,
       title: 'Select Mapping Reason',
-      items: items,
-      showSubtitle: false,
-      onItemSelected: (item) {
-        selectedId = item.id;
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        return SelectionListItem(
+          item: item,
+          isSelected: false,
+          variant: SelectionItemVariant.standard,
+          onTap: () {
+            selectedId = item.id;
+            Navigator.pop(ctx);
+          },
+        );
       },
     );
 

@@ -26,7 +26,7 @@ class TemplateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
+    return TossCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

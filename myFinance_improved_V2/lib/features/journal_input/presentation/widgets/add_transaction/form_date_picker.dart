@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 /// A styled date picker widget for form inputs
 ///
@@ -57,11 +58,12 @@ class FormDatePicker extends StatelessWidget {
   }
 
   Future<void> _showPicker(BuildContext context) async {
-    final picked = await showDatePicker(
+    final picked = await showTossDatePicker(
       context: context,
       initialDate: date ?? DateTime.now(),
       firstDate: firstDate ?? DateTime(2000),
       lastDate: lastDate ?? DateTime(2100),
+      title: placeholder,
     );
     if (picked != null) {
       onChanged(picked);

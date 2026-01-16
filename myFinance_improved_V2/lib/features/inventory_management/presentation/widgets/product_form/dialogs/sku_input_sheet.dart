@@ -26,18 +26,18 @@ class SkuInputSheet {
     VoidCallback? onAutoGenerate,
   }) async {
     final skuOptions = [
-      const TossSelectionItem(
+      const SelectionItem(
         id: 'scan',
         title: 'Scan Barcode',
         icon: Icons.view_week_outlined,
       ),
-      const TossSelectionItem(
+      const SelectionItem(
         id: 'manual',
         title: 'Enter Manually',
         icon: Icons.keyboard_outlined,
       ),
       if (showAutoGenerate)
-        const TossSelectionItem(
+        const SelectionItem(
           id: 'auto',
           title: 'Auto-generate',
           icon: Icons.auto_awesome_outlined,

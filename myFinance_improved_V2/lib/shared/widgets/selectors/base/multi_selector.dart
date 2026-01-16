@@ -21,8 +21,10 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_selection_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';
 
 import 'selector_config.dart';
 
@@ -145,39 +147,55 @@ class TossMultiSelector<T> extends StatelessWidget {
   }
 
   void _showSelector(BuildContext context) {
-    // For multi-select, we'd need a different bottom sheet implementation
-    // This is a simplified version
+    // For multi-select, we need stateful selection tracking
     final currentSelectedIds = Set<String>.from(tempSelectedIds);
 
-    showModalBottomSheet<void>(
+    final selectionItems = items.map((item) {
+      return SelectionItem(
+        id: itemIdBuilder(item),
+        title: itemTitleBuilder(item),
+        subtitle: itemSubtitleBuilder(item),
+        icon: showIcon && itemIconBuilder != null ? itemIconBuilder!(item) : null,
+        avatarUrl: showIcon && itemAvatarBuilder != null ? itemAvatarBuilder!(item) : null,
+      );
+    }).toList();
+
+    SelectionBottomSheetCommon.show<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => TossSelectionBottomSheet(
-        title: config.label,
-        items: items.map((item) {
-          return TossSelectionItem(
-            id: itemIdBuilder(item),
-            title: itemTitleBuilder(item),
-            subtitle: itemSubtitleBuilder(item),
-            icon: showIcon && itemIconBuilder != null ? itemIconBuilder!(item) : null,
-            avatarUrl: showIcon && itemAvatarBuilder != null ? itemAvatarBuilder!(item) : null,
-            isSelected: currentSelectedIds.contains(itemIdBuilder(item)),
-          );
-        }).toList(),
-        onItemSelected: (item) {
-          // Toggle selection
-          final newSelection = List<String>.from(currentSelectedIds);
-          if (newSelection.contains(item.id)) {
-            newSelection.remove(item.id);
-          } else {
-            newSelection.add(item.id);
-          }
-          onTempSelectionChanged(newSelection);
-        },
-        showSearch: config.showSearch,
-        showIcon: showIcon,
-      ),
+      title: config.label,
+      showSearch: config.showSearch,
+      itemCount: selectionItems.length,
+      itemBuilder: (ctx, index) {
+        final item = selectionItems[index];
+        final isSelected = currentSelectedIds.contains(item.id);
+
+        // Determine variant based on showIcon and avatar
+        SelectionItemVariant variant;
+        if (showIcon && itemAvatarBuilder != null) {
+          variant = SelectionItemVariant.avatar;
+        } else if (showIcon) {
+          variant = SelectionItemVariant.standard;
+        } else {
+          variant = SelectionItemVariant.minimal;
+        }
+
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: variant,
+          onTap: () {
+            // Toggle selection
+            final newSelection = List<String>.from(currentSelectedIds);
+            if (newSelection.contains(item.id)) {
+              newSelection.remove(item.id);
+            } else {
+              newSelection.add(item.id);
+            }
+            onTempSelectionChanged(newSelection);
+            // Don't close sheet for multi-select - let user select multiple
+          },
+        );
+      },
     );
   }
 }

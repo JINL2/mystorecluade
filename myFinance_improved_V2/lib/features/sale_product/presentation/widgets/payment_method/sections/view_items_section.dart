@@ -31,7 +31,7 @@ class _ViewItemsSectionState extends State<ViewItemsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
+    return TossCard(
       padding: EdgeInsets.zero,
       child: Column(
         mainAxisSize: MainAxisSize.min,

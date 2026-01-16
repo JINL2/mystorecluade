@@ -1,15 +1,14 @@
-/// Transfer Selection Cards - Re-export from shared widgets
+/// Transfer Selection Cards - DEPRECATED
 ///
-/// This file now re-exports the unified selection card widgets
-/// from the shared widgets library for backward compatibility.
+/// This file previously re-exported TossSelectionCard widgets.
+/// These have been replaced with:
+/// - SelectionListItem (for selection lists)
+/// - InfoCard.summary (for summary displays)
+/// - InfoCard.alertWarning (for warning notices)
 ///
-/// The original duplicate widgets have been consolidated into:
-/// - TossSelectionCard (replaces SelectionCard)
-/// - TossSelectionCard.store (replaces StoreSelectionCard)
-/// - TossSelectionCard.company (replaces CompanySelectionCard)
-/// - TossSummaryCard (replaces SummaryCard)
-/// - TossNoticeCard.warning (replaces DebtTransactionNotice)
-/// - TossTransferArrow (replaces TransferArrow)
+/// Import these directly from shared/widgets/index.dart instead.
 library;
 
-export 'package:myfinance_improved/shared/widgets/molecules/cards/toss_selection_card.dart';
+// Re-export InfoCard for backward compatibility
+export 'package:myfinance_improved/shared/widgets/molecules/cards/info_card.dart';
+export 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';

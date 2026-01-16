@@ -31,8 +31,7 @@ class PerformanceKpiCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // KPI Card
-        TossWhiteCard(
-          showBorder: false,
+        TossCard(
           padding: EdgeInsets.zero,
           child: Row(
             children: [

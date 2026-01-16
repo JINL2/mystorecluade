@@ -4,11 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../app/providers/app_state_provider.dart';
-import '../../../../../../shared/themes/toss_border_radius.dart';
-import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_icons.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
-import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../providers/cash_ending_provider.dart';
 import '../../../providers/cash_ending_state.dart';
 import '../../store_selector.dart';
@@ -57,44 +53,9 @@ class LocationSelectionCard extends ConsumerWidget {
 
         const SizedBox(height: TossSpacing.space4),
 
-        if (state.cashLocations.isEmpty)
-          _buildEmptyLocationState()
-        else
-          _buildLocationSelector(ref),
+        // Always show dropdown - it handles empty/loading states internally
+        _buildLocationSelector(ref),
       ],
-    );
-  }
-
-  Widget _buildEmptyLocationState() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        border: Border.all(color: TossColors.gray300, width: 1),
-      ),
-      child: Row(
-        children: [
-          Icon(TossIcons.wallet, size: 20, color: TossColors.gray400),
-          const SizedBox(width: TossSpacing.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Cash Location',
-                  style: TossTextStyles.smallSectionTitle,
-                ),
-                SizedBox(height: TossSpacing.space1 / 2),
-                Text(
-                  'No cash locations available',
-                  style: TossTextStyles.emptyState,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

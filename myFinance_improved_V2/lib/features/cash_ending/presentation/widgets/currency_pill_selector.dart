@@ -6,7 +6,8 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../domain/entities/currency.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/display/toss_chip.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
 
 /// Currency pill selector with remove buttons
 ///
@@ -63,7 +64,7 @@ class CurrencyPillSelector extends StatelessWidget {
               orElse: () => availableCurrencies.first,
             );
 
-            return CategoryChip(
+            return TossChip(
               // Add dot (•) between currency code and name for consistency
               label: '${currency.currencyCode} • ${currency.currencyName}',
               onRemove: selectedCurrencyIds.length > 1 && onRemoveCurrency != null

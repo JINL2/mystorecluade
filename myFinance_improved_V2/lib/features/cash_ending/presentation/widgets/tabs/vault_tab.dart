@@ -10,6 +10,7 @@ import '../../../di/injection.dart';
 import '../../../domain/entities/denomination.dart';
 import '../../../domain/entities/currency.dart';
 import '../../../domain/entities/vault_recount.dart';
+import '../../../domain/entities/vault_transaction_type.dart';
 import '../../../domain/entities/multi_currency_recount.dart';
 import '../../providers/cash_ending_provider.dart';
 import '../../providers/cash_ending_state.dart';
