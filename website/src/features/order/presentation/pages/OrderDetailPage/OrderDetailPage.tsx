@@ -192,8 +192,8 @@ export const OrderDetailPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {orderDetail.items.map((item) => (
-                      <tr key={item.item_id}>
-                        <td className={styles.productName}>{item.product_name}</td>
+                      <tr key={`${item.item_id}-${item.variant_id || 'base'}`}>
+                        <td className={styles.productName}>{item.display_name}</td>
                         <td className={styles.sku}>{item.sku}</td>
                         <td>{formatPrice(item.unit_price)}</td>
                         <td>{item.quantity_ordered}</td>

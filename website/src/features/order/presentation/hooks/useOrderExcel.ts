@@ -43,7 +43,7 @@ export const useOrderExcel = ({
         const supabase = supabaseService.getClient();
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        const { data, error } = await supabase.rpc('get_inventory_page_v4', {
+        const { data, error } = await supabase.rpc('get_inventory_page_v6', {
           p_company_id: companyId,
           p_store_id: storeId,
           p_page: 1,
@@ -60,10 +60,15 @@ export const useOrderExcel = ({
           return null;
         }
 
-        if (data?.success && data?.data?.products && data.data.products.length > 0) {
-          // Find exact SKU match
-          const exactMatch = data.data.products.find(
-            (p: InventoryProduct) => p.sku.toLowerCase() === sku.trim().toLowerCase()
+        // v6 response structure: data.items instead of data.products
+        const response = data as { success?: boolean; data?: { items?: InventoryProduct[] } };
+        if (response?.success && response?.data?.items && response.data.items.length > 0) {
+          // Find exact SKU match (check display_sku, product_sku, and variant_sku)
+          const exactMatch = response.data.items.find(
+            (p: InventoryProduct) =>
+              p.display_sku?.toLowerCase() === sku.trim().toLowerCase() ||
+              p.product_sku?.toLowerCase() === sku.trim().toLowerCase() ||
+              p.variant_sku?.toLowerCase() === sku.trim().toLowerCase()
           );
           return exactMatch || null;
         }
@@ -157,8 +162,11 @@ export const useOrderExcel = ({
 
           if (product) {
             // Check if product already exists in order items
+            // v6: unique key is product_id + variant_id
             const existingIndex = newOrderItems.findIndex(
-              (item) => item.productId === product.product_id
+              (item) =>
+                item.productId === product.product_id &&
+                item.variantId === (product.variant_id || undefined)
             );
 
             if (existingIndex >= 0) {
@@ -167,10 +175,12 @@ export const useOrderExcel = ({
               newOrderItems[existingIndex].cost = row.cost;
             } else {
               // Add new item with cost and quantity from Excel
+              // v6: use display_name/display_sku for display
               newOrderItems.push({
                 productId: product.product_id,
-                productName: product.product_name,
-                sku: product.sku,
+                variantId: product.variant_id || undefined,
+                productName: product.display_name || product.product_name,
+                sku: product.display_sku || product.product_sku,
                 quantity: row.quantity,
                 cost: row.cost,
               });

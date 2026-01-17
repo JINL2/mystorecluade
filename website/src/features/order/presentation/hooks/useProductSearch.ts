@@ -58,7 +58,7 @@ export const useProductSearch = ({
           p_timezone: userTimezone,
         });
 
-        const { data, error } = await supabase.rpc('get_inventory_page_v4', {
+        const { data, error } = await supabase.rpc('get_inventory_page_v6', {
           p_company_id: companyId,
           p_store_id: storeId,
           p_page: 1,
@@ -78,11 +78,13 @@ export const useProductSearch = ({
           return;
         }
 
-        if (data?.success && data?.data?.products) {
-          console.log('🔍 Products found:', data.data.products.length);
-          setSearchResults(data.data.products);
-          if (onCurrencyUpdate && data.data.currency) {
-            onCurrencyUpdate(data.data.currency);
+        // v6 response structure: data.items instead of data.products
+        const response = data as { success?: boolean; data?: { items?: InventoryProduct[]; currency?: Currency } };
+        if (response?.success && response?.data?.items) {
+          console.log('🔍 Products found:', response.data.items.length);
+          setSearchResults(response.data.items);
+          if (onCurrencyUpdate && response.data.currency) {
+            onCurrencyUpdate(response.data.currency);
           }
           setShowDropdown(true);
         } else {

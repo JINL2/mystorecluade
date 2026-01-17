@@ -298,9 +298,10 @@ export const useOrderCreate = () => {
         throw new Error('User not authenticated');
       }
 
-      // Build items array for RPC
+      // Build items array for RPC (v4: includes variant_id)
       const items = orderItems.map((item) => ({
         sku: item.sku,
+        variant_id: item.variantId || null, // v4: required field (null for non-variant products)
         quantity: item.quantity,
         unit_price: item.cost,
       }));
@@ -353,9 +354,9 @@ export const useOrderCreate = () => {
       console.log('📦 One-time supplier info:', supplierInfo);
       console.log('📦 Order title:', orderTitle);
 
-      const { data, error } = await supabase.rpc('inventory_create_order_v3', rpcParams);
+      const { data, error } = await supabase.rpc('inventory_create_order_v4', rpcParams);
 
-      console.log('📦 inventory_create_order_v3 response:', { data, error });
+      console.log('📦 inventory_create_order_v4 response:', { data, error });
       if (error) {
         console.error('📦 RPC Error details:', {
           message: error.message,

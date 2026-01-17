@@ -94,19 +94,20 @@ export const useOrderDetail = () => {
         const supabase = supabaseService.getClient();
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        console.log('📦 Calling inventory_get_order_detail with:', {
+        console.log('📦 Calling inventory_get_order_detail_v2 with:', {
           p_order_id: orderId,
           p_company_id: companyId,
           p_timezone: userTimezone,
         });
 
-        const { data, error: rpcError } = await supabase.rpc('inventory_get_order_detail', {
+        // v2: supports variant fields (variant_id, variant_name, display_name, has_variants)
+        const { data, error: rpcError } = await supabase.rpc('inventory_get_order_detail_v2', {
           p_order_id: orderId,
           p_company_id: companyId,
           p_timezone: userTimezone,
         });
 
-        console.log('📦 inventory_get_order_detail response:', { data, rpcError });
+        console.log('📦 inventory_get_order_detail_v2 response:', { data, rpcError });
 
         if (rpcError) {
           throw new Error(rpcError.message);
