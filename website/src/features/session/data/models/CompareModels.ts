@@ -1,17 +1,8 @@
 /**
  * Compare Models
- * DTO types and mappers for session comparison and merge operations
+ * DTO types for session comparison and merge operations
+ * Note: Mapper functions are defined in ProductReceiveRepositoryImpl.ts
  */
-
-import type {
-  MergeSessionsResult,
-  MergedItem,
-  CompareSessionsResult,
-  CompareSessionInfo,
-  CompareMatchedItem,
-  CompareOnlyItem,
-  CompareSessionsSummary,
-} from '../../domain/entities';
 
 // ============ DTO Types ============
 
@@ -120,107 +111,3 @@ export interface CompareSessionsResultDTO {
   };
   summary: CompareSessionsSummaryDTO;
 }
-
-// ============ Mapper Functions: DTO -> Domain Entity ============
-
-export const mapCompareSessionInfoDTO = (dto: CompareSessionInfoDTO): CompareSessionInfo => ({
-  sessionId: dto.session_id,
-  sessionName: dto.session_name,
-  sessionType: dto.session_type,
-  storeId: dto.store_id,
-  storeName: dto.store_name,
-  createdBy: dto.created_by,
-  createdByName: dto.created_by_name,
-  totalProducts: dto.total_products,
-  totalQuantity: dto.total_quantity,
-});
-
-export const mapCompareMatchedItemDTO = (dto: CompareMatchedItemDTO): CompareMatchedItem => ({
-  productId: dto.product_id,
-  variantId: dto.variant_id,
-  sku: dto.sku,
-  productName: dto.product_name,
-  variantName: dto.variant_name,
-  displayName: dto.display_name,
-  hasVariants: dto.has_variants,
-  quantityA: dto.quantity_a,
-  quantityB: dto.quantity_b,
-  quantityDiff: dto.quantity_diff,
-  isMatch: dto.is_match,
-});
-
-export const mapCompareOnlyItemDTO = (dto: CompareOnlyItemDTO): CompareOnlyItem => ({
-  productId: dto.product_id,
-  variantId: dto.variant_id,
-  sku: dto.sku,
-  productName: dto.product_name,
-  variantName: dto.variant_name,
-  displayName: dto.display_name,
-  hasVariants: dto.has_variants,
-  quantity: dto.quantity,
-});
-
-export const mapCompareSessionsSummaryDTO = (dto: CompareSessionsSummaryDTO): CompareSessionsSummary => ({
-  totalMatched: dto.total_matched,
-  quantitySameCount: dto.quantity_same_count,
-  quantityDiffCount: dto.quantity_diff_count,
-  onlyInACount: dto.only_in_a_count,
-  onlyInBCount: dto.only_in_b_count,
-});
-
-export const mapMergedItemDTO = (dto: MergedItemDTO): MergedItem => ({
-  itemId: dto.item_id,
-  productId: dto.product_id,
-  variantId: dto.variant_id,
-  sku: dto.sku,
-  productName: dto.product_name,
-  variantName: dto.variant_name,
-  displayName: dto.display_name,
-  hasVariants: dto.has_variants,
-  quantity: dto.quantity,
-  quantityRejected: dto.quantity_rejected,
-  scannedBy: dto.scanned_by,
-  scannedByName: dto.scanned_by_name,
-});
-
-export const mapMergeSessionsResultDTO = (dto: MergeSessionsResultDTO): MergeSessionsResult => ({
-  targetSession: {
-    sessionId: dto.target_session.session_id,
-    sessionName: dto.target_session.session_name,
-    sessionType: dto.target_session.session_type,
-    storeId: dto.target_session.store_id,
-    storeName: dto.target_session.store_name,
-    itemsBefore: dto.target_session.items_before,
-    itemsAfter: dto.target_session.items_after,
-    quantityBefore: dto.target_session.quantity_before,
-    quantityAfter: dto.target_session.quantity_after,
-    membersBefore: dto.target_session.members_before,
-    membersAfter: dto.target_session.members_after,
-  },
-  sourceSession: {
-    sessionId: dto.source_session.session_id,
-    sessionName: dto.source_session.session_name,
-    itemsCopied: dto.source_session.items_copied,
-    quantityCopied: dto.source_session.quantity_copied,
-    membersAdded: dto.source_session.members_added,
-    deactivated: dto.source_session.deactivated,
-  },
-  mergedItems: dto.merged_items.map(mapMergedItemDTO),
-  summary: {
-    totalItemsCopied: dto.summary.total_items_copied,
-    totalQuantityCopied: dto.summary.total_quantity_copied,
-    totalMembersAdded: dto.summary.total_members_added,
-    uniqueProductsCopied: dto.summary.unique_products_copied,
-  },
-});
-
-export const mapCompareSessionsResultDTO = (dto: CompareSessionsResultDTO): CompareSessionsResult => ({
-  sessionA: mapCompareSessionInfoDTO(dto.session_a),
-  sessionB: mapCompareSessionInfoDTO(dto.session_b),
-  comparison: {
-    matched: dto.comparison.matched.map(mapCompareMatchedItemDTO),
-    onlyInA: dto.comparison.only_in_a.map(mapCompareOnlyItemDTO),
-    onlyInB: dto.comparison.only_in_b.map(mapCompareOnlyItemDTO),
-  },
-  summary: mapCompareSessionsSummaryDTO(dto.summary),
-});

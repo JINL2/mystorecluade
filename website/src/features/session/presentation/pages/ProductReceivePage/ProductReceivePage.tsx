@@ -302,7 +302,7 @@ export const ProductReceivePage: React.FC = () => {
                   </div>
 
                   <CountingSessionsTable
-                    sessions={countingSessions.filter(s => s.is_active)}
+                    sessions={countingSessions.filter(s => s.isActive)}
                     sessionsLoading={countingSessionsLoading}
                     searchQuery={countingSearchQuery}
                     onSessionClick={handleCountingSessionClick}
@@ -343,7 +343,7 @@ export const ProductReceivePage: React.FC = () => {
                   </div>
 
                   <ReceivingSessionsTable
-                    sessions={receivingSessions.filter(s => s.is_active)}
+                    sessions={receivingSessions.filter(s => s.isActive)}
                     sessionsLoading={receivingSessionsLoading}
                     searchQuery={receivingSearchQuery}
                     onSessionClick={handleReceivingSessionClick}

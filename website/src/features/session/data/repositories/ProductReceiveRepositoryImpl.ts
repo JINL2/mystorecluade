@@ -256,8 +256,12 @@ const mapCompareSessionInfoDTO = (dto: CompareSessionInfoDTO): CompareSessionInf
 
 const mapCompareMatchedItemDTO = (dto: CompareMatchedItemDTO): CompareMatchedItem => ({
   productId: dto.product_id,
+  variantId: dto.variant_id,
   sku: dto.sku,
   productName: dto.product_name,
+  variantName: dto.variant_name,
+  displayName: dto.display_name,
+  hasVariants: dto.has_variants,
   quantityA: dto.quantity_a,
   quantityB: dto.quantity_b,
   quantityDiff: dto.quantity_diff,
@@ -266,8 +270,12 @@ const mapCompareMatchedItemDTO = (dto: CompareMatchedItemDTO): CompareMatchedIte
 
 const mapCompareOnlyItemDTO = (dto: CompareOnlyItemDTO): CompareOnlyItem => ({
   productId: dto.product_id,
+  variantId: dto.variant_id,
   sku: dto.sku,
   productName: dto.product_name,
+  variantName: dto.variant_name,
+  displayName: dto.display_name,
+  hasVariants: dto.has_variants,
   quantity: dto.quantity,
 });
 

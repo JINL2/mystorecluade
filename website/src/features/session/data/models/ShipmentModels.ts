@@ -1,14 +1,8 @@
 /**
  * Shipment Models
- * DTO types and mappers for shipment-related data
+ * DTO types for shipment-related data
+ * Note: Mapper functions are defined in ProductReceiveRepositoryImpl.ts
  */
-
-import type {
-  Shipment,
-  ShipmentDetail,
-  ShipmentItem,
-  ReceivingSummary,
-} from '../../domain/entities';
 
 // ============ DTO Types ============
 
@@ -57,51 +51,3 @@ export interface ShipmentDetailDTO {
   items: ShipmentItemDTO[];
   receiving_summary?: ReceivingSummaryDTO;
 }
-
-// ============ Mapper Functions: DTO -> Domain Entity ============
-
-export const mapShipmentDTO = (dto: ShipmentDTO): Shipment => ({
-  shipmentId: dto.shipment_id,
-  shipmentNumber: dto.shipment_number,
-  supplierName: dto.supplier_name,
-  status: dto.status,
-  shippedDate: dto.shipped_date,
-  totalItems: dto.total_items,
-  totalQuantity: dto.total_quantity,
-  totalCost: dto.total_cost,
-});
-
-export const mapShipmentItemDTO = (dto: ShipmentItemDTO): ShipmentItem => ({
-  itemId: dto.item_id,
-  productId: dto.product_id,
-  productName: dto.product_name,
-  sku: dto.sku,
-  quantityShipped: dto.quantity_shipped,
-  quantityReceived: dto.quantity_received,
-  quantityAccepted: dto.quantity_accepted,
-  quantityRejected: dto.quantity_rejected,
-  quantityRemaining: dto.quantity_remaining,
-  unitCost: dto.unit_cost,
-});
-
-export const mapReceivingSummaryDTO = (dto: ReceivingSummaryDTO): ReceivingSummary => ({
-  totalShipped: dto.total_shipped,
-  totalReceived: dto.total_received,
-  totalAccepted: dto.total_accepted,
-  totalRejected: dto.total_rejected,
-  totalRemaining: dto.total_remaining,
-  progressPercentage: dto.progress_percentage,
-});
-
-export const mapShipmentDetailDTO = (dto: ShipmentDetailDTO): ShipmentDetail => ({
-  shipmentId: dto.shipment_id,
-  shipmentNumber: dto.shipment_number,
-  supplierId: dto.supplier_id,
-  supplierName: dto.supplier_name,
-  status: dto.status,
-  shippedDate: dto.shipped_date,
-  trackingNumber: dto.tracking_number,
-  notes: dto.notes,
-  items: dto.items.map(mapShipmentItemDTO),
-  receivingSummary: dto.receiving_summary ? mapReceivingSummaryDTO(dto.receiving_summary) : undefined,
-});

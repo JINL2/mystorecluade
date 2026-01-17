@@ -30,9 +30,9 @@ import type {
 } from '../../domain/entities';
 
 /**
- * Map user DTO to entity
+ * Map user DTO to entity (internal helper)
  */
-export const mapUserDTOToEntity = (dto: SessionHistoryUserDTO): SessionHistoryUser => ({
+const mapUserDTOToEntity = (dto: SessionHistoryUserDTO): SessionHistoryUser => ({
   userId: dto.user_id,
   firstName: dto.first_name,
   lastName: dto.last_name,
@@ -40,9 +40,9 @@ export const mapUserDTOToEntity = (dto: SessionHistoryUserDTO): SessionHistoryUs
 });
 
 /**
- * Map member DTO to entity
+ * Map member DTO to entity (internal helper)
  */
-export const mapMemberDTOToEntity = (dto: SessionHistoryMemberDTO): SessionHistoryMember => ({
+const mapMemberDTOToEntity = (dto: SessionHistoryMemberDTO): SessionHistoryMember => ({
   userId: dto.user_id,
   firstName: dto.first_name,
   lastName: dto.last_name,
@@ -52,9 +52,9 @@ export const mapMemberDTOToEntity = (dto: SessionHistoryMemberDTO): SessionHisto
 });
 
 /**
- * Map scanned by DTO to entity
+ * Map scanned by DTO to entity (internal helper)
  */
-export const mapScannedByDTOToEntity = (dto: SessionHistoryScannedByDTO): SessionHistoryScannedBy => ({
+const mapScannedByDTOToEntity = (dto: SessionHistoryScannedByDTO): SessionHistoryScannedBy => ({
   userId: dto.user_id,
   firstName: dto.first_name,
   lastName: dto.last_name,
@@ -64,9 +64,9 @@ export const mapScannedByDTOToEntity = (dto: SessionHistoryScannedByDTO): Sessio
 });
 
 /**
- * Map item DTO to entity (with variant support)
+ * Map item DTO to entity (internal helper, with variant support)
  */
-export const mapItemDTOToEntity = (dto: SessionHistoryItemDTO): SessionHistoryItem => ({
+const mapItemDTOToEntity = (dto: SessionHistoryItemDTO): SessionHistoryItem => ({
   productId: dto.product_id,
   variantId: dto.variant_id,
   productName: dto.product_name,
@@ -86,9 +86,9 @@ export const mapItemDTOToEntity = (dto: SessionHistoryItemDTO): SessionHistoryIt
 });
 
 /**
- * Map stock snapshot DTO to entity (with variant support)
+ * Map stock snapshot DTO to entity (internal helper, with variant support)
  */
-export const mapStockSnapshotDTOToEntity = (dto: StockSnapshotDTO): StockSnapshot => ({
+const mapStockSnapshotDTOToEntity = (dto: StockSnapshotDTO): StockSnapshot => ({
   productId: dto.product_id,
   variantId: dto.variant_id,
   sku: dto.sku,
@@ -105,9 +105,9 @@ export const mapStockSnapshotDTOToEntity = (dto: StockSnapshotDTO): StockSnapsho
 });
 
 /**
- * Map merge info DTO to entity (with variant support)
+ * Map merge info DTO to entity (internal helper, with variant support)
  */
-export const mapMergeInfoDTOToEntity = (dto: SessionMergeInfoDTO | null): SessionMergeInfo | null => {
+const mapMergeInfoDTOToEntity = (dto: SessionMergeInfoDTO | null): SessionMergeInfo | null => {
   if (!dto) return null;
   return {
     originalSession: {
@@ -157,9 +157,9 @@ export const mapMergeInfoDTOToEntity = (dto: SessionMergeInfoDTO | null): Sessio
 };
 
 /**
- * Map receiving info DTO to entity
+ * Map receiving info DTO to entity (internal helper)
  */
-export const mapReceivingInfoDTOToEntity = (dto: SessionReceivingInfoDTO | null): SessionReceivingInfo | null => {
+const mapReceivingInfoDTOToEntity = (dto: SessionReceivingInfoDTO | null): SessionReceivingInfo | null => {
   if (!dto) return null;
   return {
     receivingId: dto.receiving_id,
@@ -172,9 +172,9 @@ export const mapReceivingInfoDTOToEntity = (dto: SessionReceivingInfoDTO | null)
 };
 
 /**
- * Map session history entry DTO to entity
+ * Map session history entry DTO to entity (internal helper)
  */
-export const mapSessionHistoryEntryDTOToEntity = (dto: SessionHistoryEntryDTO): SessionHistoryEntry => ({
+const mapSessionHistoryEntryDTOToEntity = (dto: SessionHistoryEntryDTO): SessionHistoryEntry => ({
   sessionId: dto.session_id,
   sessionName: dto.session_name,
   sessionType: dto.session_type,
@@ -202,9 +202,9 @@ export const mapSessionHistoryEntryDTOToEntity = (dto: SessionHistoryEntryDTO): 
 });
 
 /**
- * Map pagination DTO to entity
+ * Map pagination DTO to entity (internal helper)
  */
-export const mapPaginationDTOToEntity = (dto: SessionHistoryPaginationDTO): SessionHistoryPagination => ({
+const mapPaginationDTOToEntity = (dto: SessionHistoryPaginationDTO): SessionHistoryPagination => ({
   total: dto.total,
   limit: dto.limit,
   offset: dto.offset,
@@ -213,6 +213,7 @@ export const mapPaginationDTOToEntity = (dto: SessionHistoryPaginationDTO): Sess
 
 /**
  * Map full response DTO to entity
+ * This is the only exported function - used by ProductReceiveRepositoryImpl
  */
 export const mapSessionHistoryResponseDTOToEntity = (dto: SessionHistoryResponseDTO): SessionHistoryResponse => ({
   sessions: dto.sessions?.map(mapSessionHistoryEntryDTOToEntity) || [],

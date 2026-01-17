@@ -13,204 +13,78 @@ import { useDebounce } from '@/shared/hooks/useDebounce';
 import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
 import { ReceiveValidator } from '../../domain/validators/ReceiveValidator';
 import { useReceivingSessionStore } from '../providers/receiving_session_provider';
+import type { SearchProduct } from '../../domain/entities';
 import type {
-  SearchProduct,
-  SessionItem,
-  SessionItemsSummary,
-  CompareSessionsResult,
-  Session,
-} from '../../domain/entities';
-import type {
-  SessionInfo,
   ReceivingItem,
   ReceivingSessionLocationState,
-  ShipmentData,
 } from '../pages/ReceivingSessionPage/ReceivingSessionPage.types';
-import type {
-  ReceivedEntry,
-  EditableItem,
-  ActiveSession,
-} from '../providers/states/receiving_session_state';
+import type { ReceivedEntry, ActiveSession } from '../providers/states/receiving_session_state';
+
+// Import presenters
+import {
+  toReceivedEntriesPresentation,
+  toSessionInfoPresentation,
+  toShipmentDataPresentation,
+  toComparisonResultPresentation,
+} from './useReceivingSession.presenters';
 
 // Re-export types for backward compatibility
 export type {
   ReceivedEntry,
   EditableItem,
   ActiveSession,
-} from '../providers/states/receiving_session_state';
+  SearchProduct,
+  SessionItem,
+  SessionItemPresentation,
+  SessionItemsSummaryPresentation,
+  EditableItemPresentation,
+  SearchProductPresentation,
+} from './useReceivingSession.types';
 
-// Re-export domain entities for backward compatibility
-export type { SearchProduct, SessionItem } from '../../domain/entities';
+// Re-export comparison types from presenters
+export type {
+  ComparisonResultPresentation,
+} from './useReceivingSession.presenters';
 
-// Presentation layer types for backward compatibility
-export interface SessionItemPresentation {
-  product_id: string;
-  product_name: string;
-  total_quantity: number;
-  total_rejected: number;
-  scanned_by: {
-    user_id: string;
-    user_name: string;
-    quantity: number;
-    quantity_rejected: number;
-  }[];
-}
+// Alias types for backward compatibility with ReceivingSessionPage
+export type MatchedItem = {
+  productId: string;
+  sku: string;
+  productName: string;
+  quantityA: number;
+  quantityB: number;
+  quantityDiff: number;
+  isMatch: boolean;
+};
 
-export interface SessionItemsSummaryPresentation {
-  total_products: number;
-  total_quantity: number;
-  total_rejected: number;
-}
-
-export interface EditableItemPresentation {
-  product_id: string;
-  product_name: string;
+export type OnlyInSessionItem = {
+  productId: string;
+  sku: string;
+  productName: string;
   quantity: number;
-  quantity_rejected: number;
-}
+};
 
-export interface SearchProductPresentation {
-  // 제품 정보
-  product_id: string;
-  product_name: string;
-  product_sku: string;
-  product_barcode?: string;
-  product_type: string;
-  brand_id?: string;
-  brand_name?: string;
-  category_id?: string;
-  category_name?: string;
-  unit: string;
-  image_urls?: string[];
+// Import converters
+import {
+  toPresentationSearchProduct,
+  toPresentationSessionItem,
+  toPresentationSummary,
+  toPresentationEditableItem,
+  toActiveSession,
+  toDomainSearchProduct,
+} from './useReceivingSession.converters';
 
-  // 변형 정보
-  variant_id?: string;
-  variant_name?: string;
-  variant_sku?: string;
-  variant_barcode?: string;
+// Re-export converters for external use
+export {
+  toPresentationSearchProduct,
+  toPresentationSessionItem,
+  toPresentationSummary,
+  toPresentationEditableItem,
+  toActiveSession,
+  toDomainSearchProduct,
+} from './useReceivingSession.converters';
 
-  // 표시용
-  display_name: string;
-  display_sku: string;
-  display_barcode?: string;
-
-  // 재고
-  stock: {
-    quantity_on_hand: number;
-    quantity_available: number;
-    quantity_reserved: number;
-  };
-
-  // 가격
-  price: {
-    cost: number;
-    selling: number;
-    source: string;
-  };
-
-  // 상태
-  status: {
-    stock_level: 'normal' | 'low' | 'out_of_stock' | 'overstock';
-    is_active: boolean;
-  };
-
-  // 메타
-  has_variants: boolean;
-  created_at: string;
-}
-
-// Helper to convert domain entity to presentation format
-const toPresentationSearchProduct = (p: SearchProduct): SearchProductPresentation => ({
-  // 제품 정보
-  product_id: p.productId,
-  product_name: p.productName,
-  product_sku: p.productSku,
-  product_barcode: p.productBarcode,
-  product_type: p.productType,
-  brand_id: p.brandId,
-  brand_name: p.brandName,
-  category_id: p.categoryId,
-  category_name: p.categoryName,
-  unit: p.unit,
-  image_urls: p.imageUrls,
-
-  // 변형 정보
-  variant_id: p.variantId,
-  variant_name: p.variantName,
-  variant_sku: p.variantSku,
-  variant_barcode: p.variantBarcode,
-
-  // 표시용
-  display_name: p.displayName,
-  display_sku: p.displaySku,
-  display_barcode: p.displayBarcode,
-
-  // 재고
-  stock: {
-    quantity_on_hand: p.stock.quantityOnHand,
-    quantity_available: p.stock.quantityAvailable,
-    quantity_reserved: p.stock.quantityReserved,
-  },
-
-  // 가격
-  price: {
-    cost: p.price.cost,
-    selling: p.price.selling,
-    source: p.price.source,
-  },
-
-  // 상태
-  status: {
-    stock_level: p.status.stockLevel,
-    is_active: p.status.isActive,
-  },
-
-  // 메타
-  has_variants: p.hasVariants,
-  created_at: p.createdAt,
-});
-
-const toPresentationSessionItem = (item: SessionItem): SessionItemPresentation => ({
-  product_id: item.productId,
-  product_name: item.productName,
-  total_quantity: item.totalQuantity,
-  total_rejected: item.totalRejected,
-  scanned_by: item.scannedBy.map(user => ({
-    user_id: user.userId,
-    user_name: user.userName,
-    quantity: user.quantity,
-    quantity_rejected: user.quantityRejected,
-  })),
-});
-
-const toPresentationSummary = (summary: SessionItemsSummary): SessionItemsSummaryPresentation => ({
-  total_products: summary.totalProducts,
-  total_quantity: summary.totalQuantity,
-  total_rejected: summary.totalRejected,
-});
-
-const toPresentationEditableItem = (item: EditableItem): EditableItemPresentation => ({
-  product_id: item.productId,
-  product_name: item.productName,
-  quantity: item.quantity,
-  quantity_rejected: item.quantityRejected,
-});
-
-// Helper to convert Session to ActiveSession
-const toActiveSession = (s: Session): ActiveSession => ({
-  sessionId: s.sessionId,
-  sessionName: s.sessionName || '',
-  sessionType: s.sessionType,
-  storeId: s.storeId,
-  storeName: s.storeName,
-  isActive: s.isActive,
-  isFinal: s.isFinal,
-  memberCount: s.memberCount || 0,
-  createdBy: s.createdBy,
-  createdByName: s.createdByName,
-  completedAt: null,
-  createdAt: s.createdAt,
-});
+import type { SearchProductPresentation } from './useReceivingSession.types';
 
 export const useReceivingSession = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -452,55 +326,9 @@ export const useReceivingSession = () => {
   // Add product to received entries
   const addProductToReceived = useCallback((product: SearchProduct | SearchProductPresentation) => {
     // Normalize to domain entity if presentation format
-    const normalizedProduct: SearchProduct = 'productId' in product ? product : {
-      // 제품 정보
-      productId: product.product_id,
-      productName: product.product_name,
-      productSku: product.product_sku,
-      productBarcode: product.product_barcode,
-      productType: product.product_type,
-      brandId: product.brand_id,
-      brandName: product.brand_name,
-      categoryId: product.category_id,
-      categoryName: product.category_name,
-      unit: product.unit,
-      imageUrls: product.image_urls,
-
-      // 변형 정보
-      variantId: product.variant_id,
-      variantName: product.variant_name,
-      variantSku: product.variant_sku,
-      variantBarcode: product.variant_barcode,
-
-      // 표시용
-      displayName: product.display_name,
-      displaySku: product.display_sku,
-      displayBarcode: product.display_barcode,
-
-      // 재고
-      stock: {
-        quantityOnHand: product.stock.quantity_on_hand,
-        quantityAvailable: product.stock.quantity_available,
-        quantityReserved: product.stock.quantity_reserved,
-      },
-
-      // 가격
-      price: {
-        cost: product.price.cost,
-        selling: product.price.selling,
-        source: product.price.source,
-      },
-
-      // 상태
-      status: {
-        stockLevel: product.status.stock_level,
-        isActive: product.status.is_active,
-      },
-
-      // 메타
-      hasVariants: product.has_variants,
-      createdAt: product.created_at,
-    };
+    const normalizedProduct: SearchProduct = 'productId' in product
+      ? product
+      : toDomainSearchProduct(product);
 
     const newEntry: ReceivedEntry = {
       entryId: `temp-${Date.now()}`,
@@ -887,106 +715,11 @@ export const useReceivingSession = () => {
     : null;
   const editableItemsPresentation = store.editableItems.map(toPresentationEditableItem);
 
-  // Convert receivedEntries to presentation format
-  const receivedEntriesPresentation = store.receivedEntries.map(e => ({
-    entry_id: e.entryId,
-    product_id: e.productId,
-    product_name: e.productName,
-    sku: e.sku,
-    quantity: e.quantity,
-    created_at: e.createdAt,
-  }));
-
-  // Convert sessionInfo to presentation format
-  const sessionInfoPresentation: SessionInfo | null = store.sessionInfo ? {
-    session_id: store.sessionInfo.sessionId,
-    session_type: store.sessionInfo.sessionType,
-    store_id: store.sessionInfo.storeId,
-    store_name: store.sessionInfo.storeName,
-    shipment_id: store.sessionInfo.shipmentId,
-    shipment_number: store.sessionInfo.shipmentNumber,
-    is_active: store.sessionInfo.isActive,
-    is_final: store.sessionInfo.isFinal,
-    created_by: store.sessionInfo.createdBy,
-    created_by_name: store.sessionInfo.createdByName,
-    created_at: store.sessionInfo.createdAt,
-    member_count: store.sessionInfo.memberCount,
-  } : null;
-
-  // Convert shipmentData to presentation format
-  const shipmentDataPresentation: ShipmentData | null = store.shipmentData ? {
-    shipment_id: store.shipmentData.shipmentId,
-    shipment_number: store.shipmentData.shipmentNumber,
-    supplier_name: store.shipmentData.supplierName,
-    status: store.shipmentData.status,
-    shipped_date: store.shipmentData.shippedDate,
-    items: store.shipmentData.items.map(item => ({
-      item_id: item.itemId,
-      product_id: item.productId,
-      product_name: item.productName,
-      sku: item.sku,
-      quantity_shipped: item.quantityShipped,
-      quantity_received: item.quantityReceived,
-      quantity_accepted: item.quantityAccepted,
-      quantity_rejected: item.quantityRejected,
-      quantity_remaining: item.quantityRemaining,
-      unit_cost: item.unitCost,
-    })),
-    receiving_summary: store.shipmentData.receivingSummary ? {
-      total_shipped: store.shipmentData.receivingSummary.totalShipped,
-      total_received: store.shipmentData.receivingSummary.totalReceived,
-      total_accepted: store.shipmentData.receivingSummary.totalAccepted,
-      total_rejected: store.shipmentData.receivingSummary.totalRejected,
-      total_remaining: store.shipmentData.receivingSummary.totalRemaining,
-      progress_percentage: store.shipmentData.receivingSummary.progressPercentage,
-    } : undefined,
-  } : null;
-
-  // Convert comparison result for presentation
-  const comparisonResultPresentation = store.comparisonResult ? {
-    sessionA: {
-      sessionId: store.comparisonResult.sessionA.sessionId,
-      sessionName: store.comparisonResult.sessionA.sessionName,
-      storeName: store.comparisonResult.sessionA.storeName,
-      totalProducts: store.comparisonResult.sessionA.totalProducts,
-      totalQuantity: store.comparisonResult.sessionA.totalQuantity,
-    },
-    sessionB: {
-      sessionId: store.comparisonResult.sessionB.sessionId,
-      sessionName: store.comparisonResult.sessionB.sessionName,
-      storeName: store.comparisonResult.sessionB.storeName,
-      totalProducts: store.comparisonResult.sessionB.totalProducts,
-      totalQuantity: store.comparisonResult.sessionB.totalQuantity,
-    },
-    matched: store.comparisonResult.comparison.matched.map(item => ({
-      productId: item.productId,
-      sku: item.sku,
-      productName: item.productName,
-      quantityA: item.quantityA,
-      quantityB: item.quantityB,
-      quantityDiff: item.quantityDiff,
-      isMatch: item.isMatch,
-    })),
-    onlyInA: store.comparisonResult.comparison.onlyInA.map(item => ({
-      productId: item.productId,
-      sku: item.sku,
-      productName: item.productName,
-      quantity: item.quantity,
-    })),
-    onlyInB: store.comparisonResult.comparison.onlyInB.map(item => ({
-      productId: item.productId,
-      sku: item.sku,
-      productName: item.productName,
-      quantity: item.quantity,
-    })),
-    summary: {
-      totalMatched: store.comparisonResult.summary.totalMatched,
-      quantitySameCount: store.comparisonResult.summary.quantitySameCount,
-      quantityDiffCount: store.comparisonResult.summary.quantityDiffCount,
-      onlyInACount: store.comparisonResult.summary.onlyInACount,
-      onlyInBCount: store.comparisonResult.summary.onlyInBCount,
-    },
-  } : null;
+  // Convert store state to presentation formats using presenter functions
+  const receivedEntriesPresentation = toReceivedEntriesPresentation(store.receivedEntries);
+  const sessionInfoPresentation = toSessionInfoPresentation(store.sessionInfo);
+  const shipmentDataPresentation = toShipmentDataPresentation(store.shipmentData);
+  const comparisonResultPresentation = toComparisonResultPresentation(store.comparisonResult);
 
   return {
     // Session state (presentation format for backward compatibility)
