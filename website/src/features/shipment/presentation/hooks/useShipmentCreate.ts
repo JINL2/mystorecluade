@@ -71,7 +71,6 @@ export const useShipmentCreate = () => {
   const itemsHook = useShipmentCreateItems({
     selectedOrder: null, // Will be updated via effect
     allOrders: [],
-    orderItems: [],
   });
 
   // Supplier hook
@@ -100,8 +99,6 @@ export const useShipmentCreate = () => {
     shipmentItems,
     setShipmentItems,
     totalAmount,
-    handleAddItem,
-    handleAddAllItems,
     handleAddProductFromSearch,
     handleRemoveItem,
     handleQuantityChange,
@@ -113,7 +110,6 @@ export const useShipmentCreate = () => {
   } = useShipmentCreateItems({
     selectedOrder: orderHook.selectedOrder,
     allOrders: orderHook.allOrders,
-    orderItems: orderHook.orderItems,
   });
 
   // Import hook
@@ -222,8 +218,10 @@ export const useShipmentCreate = () => {
         throw new Error('User not authenticated');
       }
 
+      // v3: include variant_id in items (null for non-variant products)
       const items = shipmentItems.map((item) => ({
         sku: item.sku,
+        variant_id: item.variantId || null,
         quantity_shipped: item.quantity,
         unit_cost: item.unitPrice,
       }));

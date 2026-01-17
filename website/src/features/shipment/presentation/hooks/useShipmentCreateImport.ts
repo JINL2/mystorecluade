@@ -134,21 +134,26 @@ export const useShipmentCreateImport = ({
           const product = await searchProductBySku(row.sku);
 
           if (product) {
+            // v6: unique key is product_id + variant_id
             const existingIndex = newShipmentItems.findIndex(
-              (item) => item.productId === product.product_id
+              (item) =>
+                item.productId === product.product_id &&
+                item.variantId === (product.variant_id || undefined)
             );
 
             if (existingIndex >= 0) {
               newShipmentItems[existingIndex].quantity += row.quantity;
               newShipmentItems[existingIndex].unitPrice = row.cost;
             } else {
+              // v6: use display_name/display_sku for display
               newShipmentItems.push({
-                orderItemId: `import-${product.product_id}-${Date.now()}`,
+                orderItemId: `import-${product.product_id}-${product.variant_id || 'base'}-${Date.now()}`,
                 orderId: '',
                 orderNumber: '-',
                 productId: product.product_id,
-                productName: product.product_name,
-                sku: product.sku,
+                variantId: product.variant_id || undefined,
+                productName: product.display_name || product.product_name,
+                sku: product.display_sku || product.product_sku,
                 quantity: row.quantity,
                 maxQuantity: product.stock.quantity_on_hand,
                 unitPrice: row.cost,

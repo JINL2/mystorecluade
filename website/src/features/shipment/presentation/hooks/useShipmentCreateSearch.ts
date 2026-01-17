@@ -60,8 +60,9 @@ export const useShipmentCreateSearch = ({
           return;
         }
 
-        if (result.data?.products) {
-          setSearchResults(result.data.products);
+        // v6 response structure: data.items instead of data.products
+        if (result.data?.items) {
+          setSearchResults(result.data.items);
           if (result.data.currency) {
             onCurrencyChange(result.data.currency);
           }

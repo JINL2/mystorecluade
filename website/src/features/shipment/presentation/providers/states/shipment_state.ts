@@ -7,7 +7,6 @@ import type {
   Currency,
   Counterparty,
   OrderInfo,
-  OrderItem,
   ShipmentListItem,
   ShipmentDetail,
   ShipmentItem,
@@ -95,10 +94,6 @@ export interface ShipmentCreateState {
   orders: OrderInfo[];
   isOrdersLoading: boolean;
   selectedOrder: string | null;
-
-  // Order items (from selected order)
-  orderItems: OrderItem[];
-  isOrderItemsLoading: boolean;
 
   // Shipment items (items to be shipped)
   shipmentItems: ShipmentItem[];
@@ -231,12 +226,7 @@ export interface ShipmentCreateActions {
   setSelectedOrder: (orderId: string | null) => void;
   handleOrderChange: (orderId: string | null) => void;
 
-  // Order items
-  loadOrderItems: (orderId: string, timezone: string) => Promise<void>;
-
   // Shipment items
-  addItem: (orderItem: OrderItem, order: OrderInfo) => void;
-  addAllItems: (order: OrderInfo) => void;
   addProductFromSearch: (product: InventoryProduct) => void;
   removeItem: (orderItemId: string) => void;
   updateItemQuantity: (orderItemId: string, quantity: number) => void;
@@ -344,8 +334,6 @@ export const initialCreateState: ShipmentCreateState = {
   orders: [],
   isOrdersLoading: false,
   selectedOrder: null,
-  orderItems: [],
-  isOrderItemsLoading: false,
   shipmentItems: [],
   trackingNumber: '',
   notes: '',

@@ -17,7 +17,6 @@ import type {
   ShipmentDetail,
   Counterparty,
   OrderInfo,
-  OrderItem,
   InventoryProduct,
   Currency,
 } from '../../domain/types';
@@ -207,39 +206,6 @@ export class ShipmentRepositoryImpl implements IShipmentRepository {
   }
 
   /**
-   * Get order items by order ID
-   */
-  async getOrderItems(orderId: string, timezone: string): Promise<RepositoryResult<OrderItem[]>> {
-    try {
-      const response = await this.dataSource.getOrderItems({
-        orderId,
-        timezone,
-      });
-
-      if (!response.success) {
-        return {
-          success: false,
-          error: response.error || 'Failed to fetch order items',
-        };
-      }
-
-      // Filter items with remaining quantity > 0
-      const availableItems = ShipmentModel.filterAvailableOrderItems(response.data || []);
-
-      return {
-        success: true,
-        data: availableItems,
-      };
-    } catch (err) {
-      console.error('📦 ShipmentRepositoryImpl.getOrderItems error:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to fetch order items',
-      };
-    }
-  }
-
-  /**
    * Get base currency for company
    */
   async getBaseCurrency(companyId: string): Promise<RepositoryResult<Currency>> {
@@ -260,14 +226,14 @@ export class ShipmentRepositoryImpl implements IShipmentRepository {
   }
 
   /**
-   * Search products by query
+   * Search products by query (v6: variant support)
    */
   async searchProducts(
     companyId: string,
     storeId: string,
     query: string,
     timezone: string
-  ): Promise<RepositoryResult<{ products: InventoryProduct[]; currency?: Currency }>> {
+  ): Promise<RepositoryResult<{ items: InventoryProduct[]; currency?: Currency }>> {
     try {
       const response = await this.dataSource.searchProducts({
         companyId,
@@ -283,10 +249,11 @@ export class ShipmentRepositoryImpl implements IShipmentRepository {
         };
       }
 
+      // v6 response structure: data.items instead of data.products
       return {
         success: true,
         data: {
-          products: response.data?.products || [],
+          items: response.data?.items || [],
           currency: response.data?.currency,
         },
       };
