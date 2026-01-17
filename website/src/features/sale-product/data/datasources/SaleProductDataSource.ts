@@ -1,15 +1,48 @@
 /**
  * SaleProductDataSource
  * Handles RPC calls for sale product feature
+ * v6: Updated to use get_inventory_page_v6 with variant support
  */
 
 import { supabaseService } from '@/core/services/supabase_service';
 
+// Type for v6 inventory response (until Supabase types are regenerated)
+interface InventoryPageV6Response {
+  success: boolean;
+  data: {
+    items: Array<{
+      product_id: string;
+      product_sku: string;
+      product_name: string;
+      brand_name: string;
+      category_name: string;
+      unit: string;
+      image_urls: string[];
+      price: { cost: number; selling: number };
+      stock: { quantity_available: number; quantity_on_hand: number };
+      variant_id: string | null;
+      variant_name: string | null;
+      variant_sku: string | null;
+      variant_barcode: string | null;
+      display_name: string;
+      display_sku: string;
+      display_barcode: string;
+      has_variants: boolean;
+    }>;
+    pagination: {
+      total_count: number;
+      total_pages: number;
+      current_page: number;
+    };
+    currency?: { symbol: string; code: string };
+  };
+}
+
 export class SaleProductDataSource {
   /**
    * Get inventory products for sale
-   * Calls get_inventory_page_v4 RPC function with timezone support
-   * Supports store-specific pricing with fallback to default prices
+   * Calls get_inventory_page_v6 RPC function with timezone and variant support
+   * v6: Returns items array with variant fields (display_name, display_sku, variant_id, etc.)
    */
   async getProducts(
     companyId: string,
@@ -17,13 +50,14 @@ export class SaleProductDataSource {
     page: number = 1,
     limit: number = 100,
     search?: string
-  ) {
+  ): Promise<InventoryPageV6Response> {
     const supabase = supabaseService.getClient();
 
     // Get user's local timezone from device
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const { data, error } = await supabase.rpc('get_inventory_page_v4', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('get_inventory_page_v6', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: page,
@@ -39,7 +73,7 @@ export class SaleProductDataSource {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as InventoryPageV6Response;
   }
 
   /**
@@ -52,7 +86,8 @@ export class SaleProductDataSource {
   }> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('get_base_currency', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('get_base_currency', {
       p_company_id: companyId,
     });
 
@@ -61,10 +96,11 @@ export class SaleProductDataSource {
     }
 
     // Extract base_currency from response
-    if (data && data.base_currency) {
+    const response = data as { base_currency?: { symbol?: string; currency_code?: string } } | null;
+    if (response && response.base_currency) {
       return {
-        symbol: data.base_currency.symbol || '₫',
-        code: data.base_currency.currency_code || 'VND',
+        symbol: response.base_currency.symbol || '₫',
+        code: response.base_currency.currency_code || 'VND',
       };
     }
 
@@ -96,7 +132,8 @@ export class SaleProductDataSource {
   }> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('get_exchange_rate_v2', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('get_exchange_rate_v2', {
       p_company_id: companyId,
     });
 
@@ -104,7 +141,21 @@ export class SaleProductDataSource {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as {
+      base_currency: {
+        currency_id: string;
+        currency_code: string;
+        currency_name: string;
+        symbol: string;
+      };
+      exchange_rates: Array<{
+        currency_id: string;
+        currency_code: string;
+        currency_name: string;
+        symbol: string;
+        rate: number;
+      }>;
+    };
   }
 
   /**
@@ -132,7 +183,8 @@ export class SaleProductDataSource {
   }>> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('get_cash_locations_v2', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('get_cash_locations_v2', {
       p_company_id: companyId,
       p_store_id: storeId,
       p_location_type: null,
@@ -142,12 +194,31 @@ export class SaleProductDataSource {
       throw new Error(error.message);
     }
 
-    return data || [];
+    return (data || []) as Array<{
+      cash_location_id: string;
+      location_name: string;
+      location_type: 'cash' | 'bank' | 'vault';
+      store_id: string | null;
+      store_name: string | null;
+      company_id: string;
+      is_company_wide: boolean;
+      currency_code: string | null;
+      currency_id: string | null;
+      bank_account: string | null;
+      bank_name: string | null;
+      location_info: string | null;
+      icon: string | null;
+      note: string | null;
+      main_cash_location: boolean;
+      created_at: string;
+      created_at_utc: string | null;
+    }>;
   }
 
   /**
    * Submit sale invoice
-   * Calls inventory_create_invoice_v4 RPC function with timestamptz support and inventory_logs
+   * Calls inventory_create_invoice_v5 RPC function with variant support
+   * v5: Added variant_id support in items array
    */
   async submitInvoice(params: {
     companyId: string;
@@ -156,6 +227,7 @@ export class SaleProductDataSource {
     saleDate: string;
     items: Array<{
       product_id: string;
+      variant_id: string | null; // v5: variant support
       quantity: number;
       unit_price?: number;
       discount_amount?: number;
@@ -167,9 +239,19 @@ export class SaleProductDataSource {
     notes?: string;
   }): Promise<{
     success: boolean;
-    invoiceNumber?: string;
-    totalAmount?: number;
-    warnings?: string[];
+    invoice_id?: string; // v5: returns invoice_id instead of invoiceNumber
+    invoice_number?: string;
+    subtotal?: number;
+    tax_amount?: number;
+    discount_amount?: number;
+    total_amount?: number;
+    total_cost?: number;
+    profit?: number;
+    warnings?: Array<{
+      type: string;
+      product: string;
+      [key: string]: unknown;
+    }>;
     message?: string;
     error?: string;
   }> {
@@ -178,6 +260,7 @@ export class SaleProductDataSource {
     // Get user's local timezone from device
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcParams: Record<string, any> = {
       p_company_id: params.companyId,
       p_store_id: params.storeId,
@@ -202,7 +285,8 @@ export class SaleProductDataSource {
       rpcParams.p_notes = params.notes;
     }
 
-    const { data, error } = await supabase.rpc('inventory_create_invoice_v4', rpcParams);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('inventory_create_invoice_v5', rpcParams);
 
     if (error) {
       return {
@@ -229,7 +313,7 @@ export class SaleProductDataSource {
     totalAmount: number;
     totalCost: number;
     cashLocationId: string;
-    invoiceId: string; // Invoice ID from inventory_create_invoice_v4
+    invoiceId: string; // Invoice ID from inventory_create_invoice_v5
   }): Promise<{
     success: boolean;
     salesJournalId?: string;
@@ -280,7 +364,8 @@ export class SaleProductDataSource {
       p_invoice_id: params.invoiceId, // Link journal to invoice
     };
 
-    const { data: salesData, error: salesError } = await supabase.rpc(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: salesData, error: salesError } = await (supabase.rpc as any)(
       'insert_journal_with_everything_v2',
       salesJournalParams
     );
@@ -325,7 +410,8 @@ export class SaleProductDataSource {
         p_invoice_id: params.invoiceId, // Link journal to invoice
       };
 
-      const { data: cogsData, error: cogsError } = await supabase.rpc(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: cogsData, error: cogsError } = await (supabase.rpc as any)(
         'insert_journal_with_everything_v2',
         cogsJournalParams
       );
@@ -339,14 +425,14 @@ export class SaleProductDataSource {
 
       return {
         success: true,
-        salesJournalId: salesData,
-        cogsJournalId: cogsData,
+        salesJournalId: salesData as string,
+        cogsJournalId: cogsData as string,
       };
     }
 
     return {
       success: true,
-      salesJournalId: salesData,
+      salesJournalId: salesData as string,
     };
   }
 }

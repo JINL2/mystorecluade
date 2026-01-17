@@ -1,6 +1,7 @@
 /**
  * Sale Product State Interface
  * Type definitions for Zustand store
+ * v6: Updated cart actions to use uniqueKey (product_id + variant_id) for variant support
  */
 
 import { CartItem } from '../../../domain/entities/CartItem';
@@ -41,11 +42,12 @@ export interface SaleProductState {
 
   // ============================================
   // ACTIONS - Cart Management
+  // v6: Actions use uniqueKey (product_id + variant_id) for variant support
   // ============================================
 
   addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (uniqueKey: string) => void;
+  updateQuantity: (uniqueKey: string, quantity: number) => void;
   clearCart: () => void;
 
   // ============================================
