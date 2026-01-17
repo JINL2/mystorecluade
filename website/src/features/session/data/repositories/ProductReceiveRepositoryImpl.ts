@@ -60,26 +60,66 @@ import {
 
 // Mapper functions: DTO -> Domain Entity
 const mapSearchProductDTO = (dto: SearchProductDTO): SearchProduct => ({
+  // 제품 정보
   productId: dto.product_id,
   productName: dto.product_name,
-  sku: dto.sku,
-  barcode: dto.barcode,
+  productSku: dto.product_sku,
+  productBarcode: dto.product_barcode,
+  productType: dto.product_type,
+  brandId: dto.brand_id,
+  brandName: dto.brand_name,
+  categoryId: dto.category_id,
+  categoryName: dto.category_name,
+  unit: dto.unit,
   imageUrls: dto.image_urls,
+
+  // 변형 정보
+  variantId: dto.variant_id,
+  variantName: dto.variant_name,
+  variantSku: dto.variant_sku,
+  variantBarcode: dto.variant_barcode,
+
+  // 표시용
+  displayName: dto.display_name,
+  displaySku: dto.display_sku,
+  displayBarcode: dto.display_barcode,
+
+  // 재고
   stock: {
     quantityOnHand: dto.stock.quantity_on_hand,
     quantityAvailable: dto.stock.quantity_available,
     quantityReserved: dto.stock.quantity_reserved,
   },
+
+  // 가격
   price: {
     cost: dto.price.cost,
     selling: dto.price.selling,
     source: dto.price.source,
   },
+
+  // 상태
+  status: {
+    stockLevel: dto.status.stock_level,
+    isActive: dto.status.is_active,
+  },
+
+  // 메타
+  hasVariants: dto.has_variants,
+  createdAt: dto.created_at,
 });
 
 const mapSessionItemDTO = (dto: SessionItemDTO): SessionItem => ({
   productId: dto.product_id,
+  variantId: dto.variant_id,
   productName: dto.product_name,
+  variantName: dto.variant_name,
+  displayName: dto.display_name,
+  sku: dto.sku,
+  variantSku: dto.variant_sku,
+  displaySku: dto.display_sku,
+  hasVariants: dto.has_variants,
+  imageUrls: dto.image_urls,
   totalQuantity: dto.total_quantity,
   totalRejected: dto.total_rejected,
   scannedBy: dto.scanned_by.map((user) => ({
@@ -87,6 +127,7 @@ const mapSessionItemDTO = (dto: SessionItemDTO): SessionItem => ({
     userName: user.user_name,
     quantity: user.quantity,
     quantityRejected: user.quantity_rejected,
+    startedAt: user.started_at,
   })),
 });
 
@@ -99,6 +140,7 @@ const mapSessionItemsSummaryDTO = (dto: SessionItemsSummaryDTO): SessionItemsSum
 // Mapper functions: Domain Entity -> DTO
 const mapSaveItemToDTO = (item: SaveItem) => ({
   product_id: item.productId,
+  variant_id: item.variantId,
   quantity: item.quantity,
   quantity_rejected: item.quantityRejected,
 });
@@ -112,6 +154,9 @@ const mapSubmitItemToDTO = (item: SubmitItem) => ({
 // Map StockChangeDTO to StockChange domain entity
 const mapStockChangeDTO = (dto: StockChangeDTO): StockChange => ({
   productId: dto.product_id,
+  variantId: dto.variant_id,
+  variantName: dto.variant_name,
+  displayName: dto.display_name,
   sku: dto.sku,
   productName: dto.product_name,
   quantityBefore: dto.quantity_before,
@@ -304,7 +349,7 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
       receivingNumber: result.receiving_number,
       itemsCount: result.items_count,
       totalQuantity: result.total_quantity,
-      // v2 fields
+      // v3 fields
       stockChanges: result.stock_changes?.map(mapStockChangeDTO) || [],
       newDisplayCount: result.new_display_count || 0,
       totalCost: result.total_cost || 0,
@@ -419,21 +464,42 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
       targetSession: {
         sessionId: result.target_session.session_id,
         sessionName: result.target_session.session_name,
+        sessionType: result.target_session.session_type,
+        storeId: result.target_session.store_id,
+        storeName: result.target_session.store_name,
         itemsBefore: result.target_session.items_before,
         itemsAfter: result.target_session.items_after,
         quantityBefore: result.target_session.quantity_before,
         quantityAfter: result.target_session.quantity_after,
+        membersBefore: result.target_session.members_before,
+        membersAfter: result.target_session.members_after,
       },
       sourceSession: {
         sessionId: result.source_session.session_id,
         sessionName: result.source_session.session_name,
         itemsCopied: result.source_session.items_copied,
         quantityCopied: result.source_session.quantity_copied,
+        membersAdded: result.source_session.members_added,
         deactivated: result.source_session.deactivated,
       },
+      mergedItems: result.merged_items.map(item => ({
+        itemId: item.item_id,
+        productId: item.product_id,
+        variantId: item.variant_id,
+        sku: item.sku,
+        productName: item.product_name,
+        variantName: item.variant_name,
+        displayName: item.display_name,
+        hasVariants: item.has_variants,
+        quantity: item.quantity,
+        quantityRejected: item.quantity_rejected,
+        scannedBy: item.scanned_by,
+        scannedByName: item.scanned_by_name,
+      })),
       summary: {
         totalItemsCopied: result.summary.total_items_copied,
         totalQuantityCopied: result.summary.total_quantity_copied,
+        totalMembersAdded: result.summary.total_members_added,
         uniqueProductsCopied: result.summary.unique_products_copied,
       },
     };

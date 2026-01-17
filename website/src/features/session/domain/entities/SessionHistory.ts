@@ -1,6 +1,6 @@
 /**
  * SessionHistory Domain Entities
- * Based on inventory_get_session_history_v2 RPC response
+ * Based on inventory_get_session_history_v3 RPC response with variant support
  */
 
 /**
@@ -38,12 +38,18 @@ export interface SessionHistoryScannedBy {
 }
 
 /**
- * Item in a session (scanned product)
+ * Item in a session (scanned product with variant support)
  */
 export interface SessionHistoryItem {
   productId: string;
+  variantId: string | null;
   productName: string;
+  variantName: string | null;
+  displayName: string;
   sku: string | null;
+  variantSku: string | null;
+  displaySku: string;
+  hasVariants: boolean;
   scannedQuantity: number;
   scannedRejected: number;
   scannedBy: SessionHistoryScannedBy[];
@@ -54,14 +60,20 @@ export interface SessionHistoryItem {
 }
 
 /**
- * Merge information for sessions that resulted from merging
+ * Merge information for sessions that resulted from merging (with variant support)
  */
 export interface SessionMergeInfo {
   originalSession: {
     items: Array<{
       productId: string;
+      variantId: string | null;
       sku: string;
+      variantSku: string | null;
+      displaySku: string;
       productName: string;
+      variantName: string | null;
+      displayName: string;
+      hasVariants: boolean;
       quantity: number;
       quantityRejected: number;
       scannedBy: SessionHistoryUser;
@@ -77,8 +89,14 @@ export interface SessionMergeInfo {
     sourceCreatedBy: SessionHistoryUser;
     items: Array<{
       productId: string;
+      variantId: string | null;
       sku: string;
+      variantSku: string | null;
+      displaySku: string;
       productName: string;
+      variantName: string | null;
+      displayName: string;
+      hasVariants: boolean;
       quantity: number;
       quantityRejected: number;
       scannedBy: SessionHistoryUser;
@@ -91,12 +109,18 @@ export interface SessionMergeInfo {
 }
 
 /**
- * Stock snapshot for receiving sessions
+ * Stock snapshot for receiving sessions (with variant support)
  */
 export interface StockSnapshot {
   productId: string;
+  variantId: string | null;
   sku: string;
+  variantSku: string | null;
+  displaySku: string;
   productName: string;
+  variantName: string | null;
+  displayName: string;
+  hasVariants: boolean;
   quantityBefore: number;
   quantityReceived: number;
   quantityAfter: number;

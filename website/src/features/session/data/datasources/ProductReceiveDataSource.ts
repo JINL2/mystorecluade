@@ -5,23 +5,55 @@
 
 import { supabaseService } from '@/core/services/supabase_service';
 
-// Types for RPC responses
+// Types for RPC responses (get_inventory_page_v6)
 export interface SearchProductDTO {
+  // 제품 정보
   product_id: string;
   product_name: string;
-  sku: string;
-  barcode?: string;
+  product_sku: string;
+  product_barcode?: string;
+  product_type: string;
+  brand_id?: string;
+  brand_name?: string;
+  category_id?: string;
+  category_name?: string;
+  unit: string;
   image_urls?: string[];
+
+  // 변형 정보
+  variant_id?: string;
+  variant_name?: string;
+  variant_sku?: string;
+  variant_barcode?: string;
+
+  // 표시용
+  display_name: string;
+  display_sku: string;
+  display_barcode?: string;
+
+  // 재고
   stock: {
     quantity_on_hand: number;
     quantity_available: number;
     quantity_reserved: number;
   };
+
+  // 가격
   price: {
     cost: number;
     selling: number;
     source: string;
   };
+
+  // 상태
+  status: {
+    stock_level: 'normal' | 'low' | 'out_of_stock' | 'overstock';
+    is_active: boolean;
+  };
+
+  // 메타
+  has_variants: boolean;
+  created_at: string;
 }
 
 export interface SessionItemUserDTO {
@@ -29,11 +61,20 @@ export interface SessionItemUserDTO {
   user_name: string;
   quantity: number;
   quantity_rejected: number;
+  started_at?: string;
 }
 
 export interface SessionItemDTO {
   product_id: string;
+  variant_id?: string | null;
   product_name: string;
+  variant_name?: string | null;
+  display_name: string;
+  sku: string;
+  variant_sku?: string | null;
+  display_sku: string;
+  has_variants: boolean;
+  image_urls?: string[] | null;
   total_quantity: number;
   total_rejected: number;
   scanned_by: SessionItemUserDTO[];
@@ -70,19 +111,24 @@ export interface CurrencyDTO {
 
 export interface SaveItemDTO {
   product_id: string;
+  variant_id: string | null;
   quantity: number;
   quantity_rejected: number;
 }
 
 export interface SubmitItemDTO {
   product_id: string;
+  variant_id: string | null;
   quantity: number;
   quantity_rejected: number;
 }
 
-// Stock change item for v2 submit
+// Stock change item for v3 submit
 export interface StockChangeDTO {
   product_id: string;
+  variant_id?: string | null;
+  variant_name?: string | null;
+  display_name: string;
   sku: string;
   product_name: string;
   quantity_before: number;
@@ -95,7 +141,7 @@ export interface SubmitResultDTO {
   receiving_number?: string;
   items_count?: number;
   total_quantity?: number;
-  // v2 fields
+  // v3 fields
   stock_changes?: StockChangeDTO[];
   new_display_count?: number;
   total_cost?: number;
@@ -187,26 +233,50 @@ export interface JoinSessionResultDTO {
   created_by_name?: string;
 }
 
-// Merge Sessions Result DTO
+// Merged item DTO for v2 merge result
+export interface MergedItemDTO {
+  item_id: string;
+  product_id: string;
+  variant_id: string | null;
+  sku: string;
+  product_name: string;
+  variant_name: string | null;
+  display_name: string;
+  has_variants: boolean;
+  quantity: number;
+  quantity_rejected: number;
+  scanned_by: string;
+  scanned_by_name: string;
+}
+
+// Merge Sessions Result DTO (v2)
 export interface MergeSessionsResultDTO {
   target_session: {
     session_id: string;
     session_name: string;
+    session_type: string;
+    store_id: string;
+    store_name: string;
     items_before: number;
     items_after: number;
     quantity_before: number;
     quantity_after: number;
+    members_before: number;
+    members_after: number;
   };
   source_session: {
     session_id: string;
     session_name: string;
     items_copied: number;
     quantity_copied: number;
+    members_added: number;
     deactivated: boolean;
   };
+  merged_items: MergedItemDTO[];
   summary: {
     total_items_copied: number;
     total_quantity_copied: number;
+    total_members_added: number;
     unique_products_copied: number;
   };
 }
@@ -224,20 +294,30 @@ export interface CompareSessionInfoDTO {
   total_quantity: number;
 }
 
+// Compare matched item DTO (v2 with variant support)
 export interface CompareMatchedItemDTO {
   product_id: string;
+  variant_id: string | null;
   sku: string;
   product_name: string;
+  variant_name: string | null;
+  display_name: string;
+  has_variants: boolean;
   quantity_a: number;
   quantity_b: number;
   quantity_diff: number;
   is_match: boolean;
 }
 
+// Compare only item DTO (v2 with variant support)
 export interface CompareOnlyItemDTO {
   product_id: string;
+  variant_id: string | null;
   sku: string;
   product_name: string;
+  variant_name: string | null;
+  display_name: string;
+  has_variants: boolean;
   quantity: number;
 }
 
@@ -260,8 +340,8 @@ export interface CompareSessionsResultDTO {
   summary: CompareSessionsSummaryDTO;
 }
 
-// Session History DTOs (inventory_get_session_history_v2)
-// Updated to match actual RPC response structure
+// Session History DTOs (inventory_get_session_history_v3)
+// Updated to match actual RPC response structure with variant support
 
 export interface SessionHistoryUserDTO {
   user_id: string;
@@ -290,8 +370,14 @@ export interface SessionHistoryScannedByDTO {
 
 export interface SessionHistoryItemDTO {
   product_id: string;
+  variant_id: string | null;
   product_name: string;
+  variant_name: string | null;
+  display_name: string;
   sku: string | null;
+  variant_sku: string | null;
+  display_sku: string;
+  has_variants: boolean;
   scanned_quantity: number;
   scanned_rejected: number;
   scanned_by: SessionHistoryScannedByDTO[];
@@ -305,8 +391,14 @@ export interface SessionMergeInfoDTO {
   original_session: {
     items: Array<{
       product_id: string;
+      variant_id: string | null;
       sku: string;
+      variant_sku: string | null;
+      display_sku: string;
       product_name: string;
+      variant_name: string | null;
+      display_name: string;
+      has_variants: boolean;
       quantity: number;
       quantity_rejected: number;
       scanned_by: SessionHistoryUserDTO;
@@ -322,8 +414,14 @@ export interface SessionMergeInfoDTO {
     source_created_by: SessionHistoryUserDTO;
     items: Array<{
       product_id: string;
+      variant_id: string | null;
       sku: string;
+      variant_sku: string | null;
+      display_sku: string;
       product_name: string;
+      variant_name: string | null;
+      display_name: string;
+      has_variants: boolean;
       quantity: number;
       quantity_rejected: number;
       scanned_by: SessionHistoryUserDTO;
@@ -337,8 +435,14 @@ export interface SessionMergeInfoDTO {
 
 export interface StockSnapshotDTO {
   product_id: string;
+  variant_id: string | null;
   sku: string;
+  variant_sku: string | null;
+  display_sku: string;
   product_name: string;
+  variant_name: string | null;
+  display_name: string;
+  has_variants: boolean;
   quantity_before: number;
   quantity_received: number;
   quantity_after: number;
@@ -526,7 +630,8 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
   ): Promise<{ products: SearchProductDTO[]; currency: CurrencyDTO }> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('get_inventory_page_v4', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await client.rpc('get_inventory_page_v6' as any, {
       p_company_id: companyId,
       p_store_id: storeId,
       p_page: page,
@@ -542,15 +647,17 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       throw new Error(`Search failed: ${error.message}`);
     }
 
-    if (!data?.success) {
-      throw new Error(data?.error || 'Search failed');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = data as any;
+    if (!response?.success) {
+      throw new Error(response?.error || 'Search failed');
     }
 
     return {
-      products: data.data?.products || [],
+      products: response.data?.items || [],
       currency: {
-        symbol: data.data?.currency?.symbol || '₫',
-        code: data.data?.currency?.code || 'VND',
+        symbol: response.data?.currency?.symbol || '₫',
+        code: response.data?.currency?.code || 'VND',
       },
     };
   }
@@ -563,7 +670,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     const client = supabaseService.getClient();
     const localTime = new Date().toISOString();
 
-    const { data, error } = await client.rpc('inventory_add_session_items', {
+    const { data, error } = await client.rpc('inventory_add_session_items_v2', {
       p_session_id: sessionId,
       p_user_id: userId,
       p_items: items,
@@ -586,7 +693,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
   ): Promise<{ items: SessionItemDTO[]; summary: SessionItemsSummaryDTO }> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('inventory_get_session_items', {
+    const { data, error } = await client.rpc('inventory_get_session_items_v2', {
       p_session_id: sessionId,
       p_user_id: userId,
       p_timezone: this.getTimezone(),
@@ -620,8 +727,8 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     const client = supabaseService.getClient();
     const localTime = new Date().toISOString();
 
-    // Use inventory_submit_session_v2 for stock_changes and needs_display support
-    const { data, error } = await client.rpc('inventory_submit_session_v2', {
+    // Use inventory_submit_session_v3 for variant support in stock_changes
+    const { data, error } = await client.rpc('inventory_submit_session_v3', {
       p_session_id: sessionId,
       p_user_id: userId,
       p_items: items,
@@ -643,7 +750,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       receiving_number: data.data?.receiving_number,
       items_count: data.data?.items_count,
       total_quantity: data.data?.total_quantity,
-      // v2 fields
+      // v3 fields
       stock_changes: data.data?.stock_changes || [],
       new_display_count: data.data?.new_display_count || 0,
       total_cost: data.data?.total_cost || 0,
@@ -878,7 +985,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
   ): Promise<SessionItemsFullDTO> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('inventory_get_session_items', {
+    const { data, error } = await client.rpc('inventory_get_session_items_v2', {
       p_session_id: sessionId,
       p_user_id: userId,
       p_timezone: this.getTimezone(),
@@ -913,7 +1020,8 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     const client = supabaseService.getClient();
     const localTime = new Date().toISOString();
 
-    const { data, error } = await client.rpc('inventory_merge_sessions', {
+    // Use inventory_merge_sessions_v2 for variant support
+    const { data, error } = await client.rpc('inventory_merge_sessions_v2', {
       p_target_session_id: params.targetSessionId,
       p_source_session_id: params.sourceSessionId,
       p_user_id: params.userId,
@@ -933,21 +1041,42 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       target_session: {
         session_id: data.data?.target_session?.session_id || params.targetSessionId,
         session_name: data.data?.target_session?.session_name || '',
+        session_type: data.data?.target_session?.session_type || '',
+        store_id: data.data?.target_session?.store_id || '',
+        store_name: data.data?.target_session?.store_name || '',
         items_before: data.data?.target_session?.items_before || 0,
         items_after: data.data?.target_session?.items_after || 0,
         quantity_before: data.data?.target_session?.quantity_before || 0,
         quantity_after: data.data?.target_session?.quantity_after || 0,
+        members_before: data.data?.target_session?.members_before || 0,
+        members_after: data.data?.target_session?.members_after || 0,
       },
       source_session: {
         session_id: data.data?.source_session?.session_id || params.sourceSessionId,
         session_name: data.data?.source_session?.session_name || '',
         items_copied: data.data?.source_session?.items_copied || 0,
         quantity_copied: data.data?.source_session?.quantity_copied || 0,
+        members_added: data.data?.source_session?.members_added || 0,
         deactivated: data.data?.source_session?.deactivated || false,
       },
+      merged_items: (data.data?.merged_items || []).map((item: MergedItemDTO) => ({
+        item_id: item.item_id,
+        product_id: item.product_id,
+        variant_id: item.variant_id,
+        sku: item.sku,
+        product_name: item.product_name,
+        variant_name: item.variant_name,
+        display_name: item.display_name,
+        has_variants: item.has_variants,
+        quantity: item.quantity,
+        quantity_rejected: item.quantity_rejected,
+        scanned_by: item.scanned_by,
+        scanned_by_name: item.scanned_by_name,
+      })),
       summary: {
         total_items_copied: data.data?.summary?.total_items_copied || 0,
         total_quantity_copied: data.data?.summary?.total_quantity_copied || 0,
+        total_members_added: data.data?.summary?.total_members_added || 0,
         unique_products_copied: data.data?.summary?.unique_products_copied || 0,
       },
     };
@@ -960,7 +1089,8 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
   }): Promise<CompareSessionsResultDTO> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('inventory_compare_sessions', {
+    // Use inventory_compare_sessions_v2 for variant support
+    const { data, error } = await client.rpc('inventory_compare_sessions_v2', {
       p_session_id_a: params.sessionIdA,
       p_session_id_b: params.sessionIdB,
       p_user_id: params.userId,
@@ -1056,7 +1186,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       rpcParams.p_offset = params.offset;
     }
 
-    const { data, error } = await client.rpc('inventory_get_session_history_v2', rpcParams);
+    const { data, error } = await client.rpc('inventory_get_session_history_v3', rpcParams);
 
     if (error) {
       throw new Error(`Failed to get session history: ${error.message}`);

@@ -107,13 +107,13 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
             <div className={styles.searchResults}>
               {searchResults.map((product) => (
                 <div
-                  key={product.product_id}
+                  key={product.productId + (product.variantId || '')}
                   className={styles.searchResultItem}
                   onClick={() => onSelectProduct(product)}
                 >
                   <div className={styles.searchResultImage}>
-                    {product.image_urls && product.image_urls.length > 0 ? (
-                      <img src={product.image_urls[0]} alt={product.product_name} />
+                    {product.imageUrls && product.imageUrls.length > 0 ? (
+                      <img src={product.imageUrls[0]} alt={product.displayName} />
                     ) : (
                       <div className={styles.noImage}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -125,9 +125,9 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                     )}
                   </div>
                   <div className={styles.resultInfo}>
-                    <span className={styles.resultName}>{product.product_name}</span>
+                    <span className={styles.resultName}>{product.displayName}</span>
                     <span className={styles.resultMeta}>
-                      {product.sku} • Selling price: {currency.symbol}{product.price.selling.toLocaleString()}
+                      {product.displaySku} • Selling price: {currency.symbol}{product.price.selling.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -175,14 +175,14 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                 </thead>
                 <tbody>
                   {receivedEntries.map((entry) => (
-                    <tr key={entry.entry_id}>
-                      <td className={styles.entryProduct}>{entry.product_name}</td>
+                    <tr key={entry.entryId}>
+                      <td className={styles.entryProduct}>{entry.productName}</td>
                       <td className={styles.entrySku}>{entry.sku}</td>
                       <td className={styles.entryQty}>
                         <div className={styles.qtyControl}>
                           <button
                             className={styles.qtyButton}
-                            onClick={() => onUpdateQuantity(entry.entry_id, -1)}
+                            onClick={() => onUpdateQuantity(entry.entryId, -1)}
                           >
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M5 12h14" />
@@ -193,11 +193,11 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                             className={styles.qtyInput}
                             value={entry.quantity}
                             min="1"
-                            onChange={(e) => onSetQuantity(entry.entry_id, parseInt(e.target.value) || 1)}
+                            onChange={(e) => onSetQuantity(entry.entryId, parseInt(e.target.value) || 1)}
                           />
                           <button
                             className={styles.qtyButton}
-                            onClick={() => onUpdateQuantity(entry.entry_id, 1)}
+                            onClick={() => onUpdateQuantity(entry.entryId, 1)}
                           >
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M12 5v14M5 12h14" />
@@ -208,7 +208,7 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                       <td className={styles.entryActions}>
                         <button
                           className={styles.removeEntryButton}
-                          onClick={() => onRemoveEntry(entry.entry_id)}
+                          onClick={() => onRemoveEntry(entry.entryId)}
                           title="Remove item"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

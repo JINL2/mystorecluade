@@ -39,6 +39,9 @@ export type {
   ActiveSession,
 } from '../providers/states/receiving_session_state';
 
+// Re-export domain entities for backward compatibility
+export type { SearchProduct, SessionItem } from '../../domain/entities';
+
 // Presentation layer types for backward compatibility
 export interface SessionItemPresentation {
   product_id: string;
@@ -67,40 +70,104 @@ export interface EditableItemPresentation {
 }
 
 export interface SearchProductPresentation {
+  // 제품 정보
   product_id: string;
   product_name: string;
-  sku: string;
-  barcode?: string;
+  product_sku: string;
+  product_barcode?: string;
+  product_type: string;
+  brand_id?: string;
+  brand_name?: string;
+  category_id?: string;
+  category_name?: string;
+  unit: string;
   image_urls?: string[];
+
+  // 변형 정보
+  variant_id?: string;
+  variant_name?: string;
+  variant_sku?: string;
+  variant_barcode?: string;
+
+  // 표시용
+  display_name: string;
+  display_sku: string;
+  display_barcode?: string;
+
+  // 재고
   stock: {
     quantity_on_hand: number;
     quantity_available: number;
     quantity_reserved: number;
   };
+
+  // 가격
   price: {
     cost: number;
     selling: number;
     source: string;
   };
+
+  // 상태
+  status: {
+    stock_level: 'normal' | 'low' | 'out_of_stock' | 'overstock';
+    is_active: boolean;
+  };
+
+  // 메타
+  has_variants: boolean;
+  created_at: string;
 }
 
 // Helper to convert domain entity to presentation format
 const toPresentationSearchProduct = (p: SearchProduct): SearchProductPresentation => ({
+  // 제품 정보
   product_id: p.productId,
   product_name: p.productName,
-  sku: p.sku,
-  barcode: p.barcode,
+  product_sku: p.productSku,
+  product_barcode: p.productBarcode,
+  product_type: p.productType,
+  brand_id: p.brandId,
+  brand_name: p.brandName,
+  category_id: p.categoryId,
+  category_name: p.categoryName,
+  unit: p.unit,
   image_urls: p.imageUrls,
+
+  // 변형 정보
+  variant_id: p.variantId,
+  variant_name: p.variantName,
+  variant_sku: p.variantSku,
+  variant_barcode: p.variantBarcode,
+
+  // 표시용
+  display_name: p.displayName,
+  display_sku: p.displaySku,
+  display_barcode: p.displayBarcode,
+
+  // 재고
   stock: {
     quantity_on_hand: p.stock.quantityOnHand,
     quantity_available: p.stock.quantityAvailable,
     quantity_reserved: p.stock.quantityReserved,
   },
+
+  // 가격
   price: {
     cost: p.price.cost,
     selling: p.price.selling,
     source: p.price.source,
   },
+
+  // 상태
+  status: {
+    stock_level: p.status.stockLevel,
+    is_active: p.status.isActive,
+  },
+
+  // 메타
+  has_variants: p.hasVariants,
+  created_at: p.createdAt,
 });
 
 const toPresentationSessionItem = (item: SessionItem): SessionItemPresentation => ({
@@ -325,9 +392,9 @@ export const useReceivingSession = () => {
 
     for (const [, cachedProducts] of searchCacheRef.current.entries()) {
       const matchingProducts = cachedProducts.filter(p =>
-        p.sku.toLowerCase().includes(query) ||
-        p.productName.toLowerCase().includes(query) ||
-        (p.barcode && p.barcode.toLowerCase().includes(query))
+        p.displaySku.toLowerCase().includes(query) ||
+        p.displayName.toLowerCase().includes(query) ||
+        (p.displayBarcode && p.displayBarcode.toLowerCase().includes(query))
       );
       if (matchingProducts.length > 0) {
         store.setSearchResults(matchingProducts);
@@ -386,28 +453,61 @@ export const useReceivingSession = () => {
   const addProductToReceived = useCallback((product: SearchProduct | SearchProductPresentation) => {
     // Normalize to domain entity if presentation format
     const normalizedProduct: SearchProduct = 'productId' in product ? product : {
+      // 제품 정보
       productId: product.product_id,
       productName: product.product_name,
-      sku: product.sku,
-      barcode: product.barcode,
+      productSku: product.product_sku,
+      productBarcode: product.product_barcode,
+      productType: product.product_type,
+      brandId: product.brand_id,
+      brandName: product.brand_name,
+      categoryId: product.category_id,
+      categoryName: product.category_name,
+      unit: product.unit,
       imageUrls: product.image_urls,
+
+      // 변형 정보
+      variantId: product.variant_id,
+      variantName: product.variant_name,
+      variantSku: product.variant_sku,
+      variantBarcode: product.variant_barcode,
+
+      // 표시용
+      displayName: product.display_name,
+      displaySku: product.display_sku,
+      displayBarcode: product.display_barcode,
+
+      // 재고
       stock: {
         quantityOnHand: product.stock.quantity_on_hand,
         quantityAvailable: product.stock.quantity_available,
         quantityReserved: product.stock.quantity_reserved,
       },
+
+      // 가격
       price: {
         cost: product.price.cost,
         selling: product.price.selling,
         source: product.price.source,
       },
+
+      // 상태
+      status: {
+        stockLevel: product.status.stock_level,
+        isActive: product.status.is_active,
+      },
+
+      // 메타
+      hasVariants: product.has_variants,
+      createdAt: product.created_at,
     };
 
     const newEntry: ReceivedEntry = {
       entryId: `temp-${Date.now()}`,
       productId: normalizedProduct.productId,
-      productName: normalizedProduct.productName,
-      sku: normalizedProduct.sku,
+      productName: normalizedProduct.displayName,
+      sku: normalizedProduct.displaySku,
+      variantId: normalizedProduct.variantId,
       quantity: 1,
       createdAt: new Date().toISOString(),
     };
@@ -463,6 +563,7 @@ export const useReceivingSession = () => {
     // Convert received entries to SaveItem format for validation
     const itemsToSave = store.receivedEntries.map(entry => ({
       productId: entry.productId,
+      variantId: entry.variantId || null,
       quantity: entry.quantity,
       quantityRejected: 0,
     }));
@@ -542,6 +643,7 @@ export const useReceivingSession = () => {
       store.setSessionItemsSummary(result.summary);
       store.setEditableItems(result.items.map(item => ({
         productId: item.productId,
+        variantId: item.variantId ?? null,
         productName: item.productName,
         quantity: item.totalQuantity,
         quantityRejected: item.totalRejected,
@@ -679,6 +781,7 @@ export const useReceivingSession = () => {
     // Convert editable items to SubmitItem format
     const itemsToSubmit = store.editableItems.map(item => ({
       productId: item.productId,
+      variantId: item.variantId,
       quantity: item.quantity,
       quantityRejected: item.quantityRejected,
     }));

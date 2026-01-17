@@ -18,6 +18,7 @@ export interface ReceivedEntry {
   productId: string;
   productName: string;
   sku: string;
+  variantId?: string;
   quantity: number;
   createdAt: string;
 }
@@ -25,6 +26,7 @@ export interface ReceivedEntry {
 // Editable item for review modal
 export interface EditableItem {
   productId: string;
+  variantId: string | null;
   productName: string;
   quantity: number;
   quantityRejected: number;

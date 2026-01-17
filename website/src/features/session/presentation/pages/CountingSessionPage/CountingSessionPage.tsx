@@ -842,9 +842,9 @@ export const CountingSessionPage: React.FC = () => {
                             )}
                           </div>
                           <div className={receiveStyles.resultInfo}>
-                            <span className={receiveStyles.resultName}>{product.product_name}</span>
+                            <span className={receiveStyles.resultName}>{product.display_name}</span>
                             <span className={receiveStyles.resultMeta}>
-                              {product.sku} • Selling price: {currency.symbol}{product.price.selling.toLocaleString()}
+                              {product.display_sku} • Selling price: {currency.symbol}{product.price.selling.toLocaleString()}
                             </span>
                           </div>
                         </div>

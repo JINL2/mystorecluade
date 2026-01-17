@@ -21,22 +21,55 @@ import type {
 
 // ============ DTO Types ============
 
+// SearchProductDTO (get_inventory_page_v6 응답)
 export interface SearchProductDTO {
+  // 제품 정보
   product_id: string;
   product_name: string;
-  sku: string;
-  barcode?: string;
+  product_sku: string;
+  product_barcode?: string;
+  product_type: string;
+  brand_id?: string;
+  brand_name?: string;
+  category_id?: string;
+  category_name?: string;
+  unit: string;
   image_urls?: string[];
+
+  // 변형 정보
+  variant_id?: string;
+  variant_name?: string;
+  variant_sku?: string;
+  variant_barcode?: string;
+
+  // 표시용
+  display_name: string;
+  display_sku: string;
+  display_barcode?: string;
+
+  // 재고
   stock: {
     quantity_on_hand: number;
     quantity_available: number;
     quantity_reserved: number;
   };
+
+  // 가격
   price: {
     cost: number;
     selling: number;
     source: string;
   };
+
+  // 상태
+  status: {
+    stock_level: 'normal' | 'low' | 'out_of_stock' | 'overstock';
+    is_active: boolean;
+  };
+
+  // 메타
+  has_variants: boolean;
+  created_at: string;
 }
 
 export interface SessionItemUserDTO {
@@ -44,11 +77,20 @@ export interface SessionItemUserDTO {
   user_name: string;
   quantity: number;
   quantity_rejected: number;
+  started_at?: string;
 }
 
 export interface SessionItemDTO {
   product_id: string;
+  variant_id?: string | null;
   product_name: string;
+  variant_name?: string | null;
+  display_name: string;
+  sku: string;
+  variant_sku?: string | null;
+  display_sku: string;
+  has_variants: boolean;
+  image_urls?: string[] | null;
   total_quantity: number;
   total_rejected: number;
   scanned_by: SessionItemUserDTO[];
@@ -83,18 +125,23 @@ export interface CurrencyDTO {
 
 export interface SaveItemDTO {
   product_id: string;
+  variant_id: string | null;
   quantity: number;
   quantity_rejected: number;
 }
 
 export interface SubmitItemDTO {
   product_id: string;
+  variant_id: string | null;
   quantity: number;
   quantity_rejected: number;
 }
 
 export interface StockChangeDTO {
   product_id: string;
+  variant_id?: string | null;
+  variant_name?: string | null;
+  display_name: string;
   sku: string;
   product_name: string;
   quantity_before: number;
@@ -149,26 +196,66 @@ export interface JoinSessionResultDTO {
 // ============ Mapper Functions: DTO -> Domain Entity ============
 
 export const mapSearchProductDTO = (dto: SearchProductDTO): SearchProduct => ({
+  // 제품 정보
   productId: dto.product_id,
   productName: dto.product_name,
-  sku: dto.sku,
-  barcode: dto.barcode,
+  productSku: dto.product_sku,
+  productBarcode: dto.product_barcode,
+  productType: dto.product_type,
+  brandId: dto.brand_id,
+  brandName: dto.brand_name,
+  categoryId: dto.category_id,
+  categoryName: dto.category_name,
+  unit: dto.unit,
   imageUrls: dto.image_urls,
+
+  // 변형 정보
+  variantId: dto.variant_id,
+  variantName: dto.variant_name,
+  variantSku: dto.variant_sku,
+  variantBarcode: dto.variant_barcode,
+
+  // 표시용
+  displayName: dto.display_name,
+  displaySku: dto.display_sku,
+  displayBarcode: dto.display_barcode,
+
+  // 재고
   stock: {
     quantityOnHand: dto.stock.quantity_on_hand,
     quantityAvailable: dto.stock.quantity_available,
     quantityReserved: dto.stock.quantity_reserved,
   },
+
+  // 가격
   price: {
     cost: dto.price.cost,
     selling: dto.price.selling,
     source: dto.price.source,
   },
+
+  // 상태
+  status: {
+    stockLevel: dto.status.stock_level,
+    isActive: dto.status.is_active,
+  },
+
+  // 메타
+  hasVariants: dto.has_variants,
+  createdAt: dto.created_at,
 });
 
 export const mapSessionItemDTO = (dto: SessionItemDTO): SessionItem => ({
   productId: dto.product_id,
+  variantId: dto.variant_id,
   productName: dto.product_name,
+  variantName: dto.variant_name,
+  displayName: dto.display_name,
+  sku: dto.sku,
+  variantSku: dto.variant_sku,
+  displaySku: dto.display_sku,
+  hasVariants: dto.has_variants,
+  imageUrls: dto.image_urls,
   totalQuantity: dto.total_quantity,
   totalRejected: dto.total_rejected,
   scannedBy: dto.scanned_by.map((user) => ({
@@ -176,6 +263,7 @@ export const mapSessionItemDTO = (dto: SessionItemDTO): SessionItem => ({
     userName: user.user_name,
     quantity: user.quantity,
     quantityRejected: user.quantity_rejected,
+    startedAt: user.started_at,
   })),
 });
 
@@ -195,6 +283,9 @@ export const mapSessionParticipantDTO = (dto: SessionParticipantDTO): SessionPar
 
 export const mapStockChangeDTO = (dto: StockChangeDTO): StockChange => ({
   productId: dto.product_id,
+  variantId: dto.variant_id,
+  variantName: dto.variant_name,
+  displayName: dto.display_name,
   sku: dto.sku,
   productName: dto.product_name,
   quantityBefore: dto.quantity_before,
@@ -254,12 +345,14 @@ export const mapSubmitResultDTO = (dto: SubmitResultDTO): SubmitResult => ({
 
 export const mapSaveItemToDTO = (item: SaveItem): SaveItemDTO => ({
   product_id: item.productId,
+  variant_id: item.variantId,
   quantity: item.quantity,
   quantity_rejected: item.quantityRejected,
 });
 
 export const mapSubmitItemToDTO = (item: SubmitItem): SubmitItemDTO => ({
   product_id: item.productId,
+  variant_id: item.variantId,
   quantity: item.quantity,
   quantity_rejected: item.quantityRejected,
 });
