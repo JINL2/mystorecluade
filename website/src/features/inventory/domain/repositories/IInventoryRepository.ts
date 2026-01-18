@@ -48,10 +48,15 @@ export interface ImportExcelResult {
     skipped: number;
     errors: number;
     logs_created: number;
+    variant_updates: number; // v5: count of variant stock updates
   };
   errors?: Array<{
     row: number;
     error: string;
+    code?: string; // v5: error code (e.g., VARIANT_REQUIRED, VARIANT_NOT_FOUND)
+    sku?: string; // v5: product SKU
+    product_name?: string; // v5: product name for error identification
+    variant_name?: string; // v5: variant name if applicable
     barcode?: string;
     image_count?: number;
     unit?: string;

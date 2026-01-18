@@ -77,6 +77,30 @@
   margin: 0 0 24px 0;
   white-space: pre-wrap;
   word-break: keep-all;
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+  text-align: left;
+  padding-right: 8px;
+}
+
+/* Custom scrollbar for message area */
+.message::-webkit-scrollbar {
+  width: 6px;
+}
+
+.message::-webkit-scrollbar-track {
+  background: var(--toss-gray-100, #F3F4F6);
+  border-radius: 3px;
+}
+
+.message::-webkit-scrollbar-thumb {
+  background: var(--toss-gray-300, #D1D5DB);
+  border-radius: 3px;
+}
+
+.message::-webkit-scrollbar-thumb:hover {
+  background: var(--toss-gray-400, #9CA3AF);
 }
 
 /* When no title, increase message top spacing */

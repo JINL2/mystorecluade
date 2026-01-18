@@ -308,13 +308,44 @@ export class InventoryDataSource {
     return data as InventoryMetadataResponse;
   }
 
+  /**
+   * Import products from Excel with variant support (v5)
+   * @param companyId - Company ID
+   * @param storeId - Store ID
+   * @param userId - User performing the import
+   * @param products - Array of products to import (supports variant_name field)
+   * @param defaultPrice - false = store price, true = default price
+   * @returns Import result with summary including variant_updates count
+   */
   async importExcel(
     companyId: string,
     storeId: string,
     userId: string,
     products: any[],
     defaultPrice: boolean = false
-  ): Promise<{ success: boolean; summary?: any; errors?: any[]; message?: string; error?: string }> {
+  ): Promise<{
+    success: boolean;
+    summary?: {
+      total_rows: number;
+      created: number;
+      updated: number;
+      skipped: number;
+      errors: number;
+      logs_created: number;
+      variant_updates: number;
+    };
+    errors?: Array<{
+      row: number;
+      error: string;
+      code?: string;
+      sku?: string;
+      barcode?: string;
+      variant_name?: string;
+      product_name?: string;
+    }>;
+    message?: string;
+    error?: string;
+  }> {
     const supabase = supabaseService.getClient();
 
     // Get user's timezone
@@ -330,10 +361,11 @@ export class InventoryDataSource {
       p_timezone: userTimezone,
     };
 
-    const { data, error } = await supabase.rpc('inventory_import_excel_v4', rpcParams);
+    // v5: Now supports variant_name field for variant product stock updates
+    const { data, error } = await supabase.rpc('inventory_import_excel_v5', rpcParams);
 
     if (error) {
-      console.error('📦 [Import Excel] RPC error:', error);
+      console.error('📦 [Import Excel v5] RPC error:', error);
       return {
         success: false,
         error: error.message,
@@ -344,10 +376,16 @@ export class InventoryDataSource {
     if (data && typeof data === 'object' && 'success' in data) {
       // Log errors with details if any
       if (data.errors && data.errors.length > 0) {
-        console.error('📦 [Import Excel] Errors:', data.errors.map((e: any) =>
-          `Row ${e.row}: ${e.error}${e.sku ? ` (SKU: ${e.sku})` : ''}${e.barcode ? ` (Barcode: ${e.barcode})` : ''}`
+        console.error('📦 [Import Excel v5] Errors:', data.errors.map((e: any) =>
+          `Row ${e.row}: ${e.error}${e.code ? ` [${e.code}]` : ''}${e.sku ? ` (SKU: ${e.sku})` : ''}${e.variant_name ? ` (Variant: ${e.variant_name})` : ''}${e.barcode ? ` (Barcode: ${e.barcode})` : ''}`
         ));
       }
+
+      // Log variant updates if any
+      if (data.summary?.variant_updates > 0) {
+        console.log(`📦 [Import Excel v5] Variant updates: ${data.summary.variant_updates}`);
+      }
+
       return {
         success: data.success,
         summary: data.summary,
@@ -356,10 +394,10 @@ export class InventoryDataSource {
       };
     }
 
-    console.error('📦 [Import Excel] Invalid response format:', data);
+    console.error('📦 [Import Excel v5] Invalid response format:', data);
     return {
       success: false,
-      error: 'Invalid response format from inventory_import_excel_v4',
+      error: 'Invalid response format from inventory_import_excel_v5',
     };
   }
 
