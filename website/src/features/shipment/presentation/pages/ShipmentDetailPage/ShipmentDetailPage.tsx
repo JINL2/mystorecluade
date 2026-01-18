@@ -196,7 +196,11 @@ export const ShipmentDetailPage: React.FC = () => {
                   <tbody>
                     {shipmentDetail.items.map((item) => (
                       <tr key={item.item_id}>
-                        <td className={styles.productName}>{item.product_name}</td>
+                        <td className={styles.productName}>
+                          {item.variant_name
+                            ? `${item.product_name} - ${item.variant_name}`
+                            : item.product_name}
+                        </td>
                         <td className={styles.sku}>{item.sku}</td>
                         <td>{formatPrice(item.unit_cost)}</td>
                         <td>{item.quantity_shipped}</td>

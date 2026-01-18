@@ -123,8 +123,8 @@ export const useOrderList = () => {
             code: data.base_currency.currency_code || 'KRW',
           });
         }
-      } catch (err) {
-        console.error('💰 get_base_currency error:', err);
+      } catch {
+        // Use default currency on error
       }
     };
 
@@ -146,8 +146,8 @@ export const useOrderList = () => {
         if (!error && data?.success && data?.data) {
           setSuppliers(data.data);
         }
-      } catch (err) {
-        console.error('🏢 get_counterparty_info error:', err);
+      } catch {
+        // Use empty suppliers on error
       } finally {
         setSuppliersLoading(false);
       }
@@ -195,8 +195,7 @@ export const useOrderList = () => {
         setOrders([]);
         setTotalCount(0);
       }
-    } catch (err) {
-      console.error('📦 inventory_get_order_list error:', err);
+    } catch {
       setOrders([]);
       setTotalCount(0);
     } finally {

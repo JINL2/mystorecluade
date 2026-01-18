@@ -75,7 +75,9 @@ export interface OrderItem {
   productId: string;
   variantId?: string; // v6: variant support
   productName: string;
-  sku: string;
+  sku: string; // display SKU for UI
+  variantSku?: string; // v6: variant_sku for RPC call (variant products)
+  productSku?: string; // v6: product_sku for RPC call (non-variant products)
   quantity: number;
   cost: number;
 }

@@ -29,8 +29,6 @@ export const useProductSearch = ({
   // Search products using RPC
   const searchProducts = useCallback(
     async (query: string) => {
-      console.log('🔍 searchProducts called:', { query, companyId, storeId });
-
       if (!query.trim()) {
         setSearchResults([]);
         setShowDropdown(false);
@@ -38,7 +36,6 @@ export const useProductSearch = ({
       }
 
       if (!companyId || !storeId) {
-        console.warn('🔍 Missing companyId or storeId:', { companyId, storeId });
         setSearchResults([]);
         setShowDropdown(false);
         return;
@@ -48,15 +45,6 @@ export const useProductSearch = ({
       try {
         const supabase = supabaseService.getClient();
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-        console.log('🔍 Calling RPC with params:', {
-          p_company_id: companyId,
-          p_store_id: storeId,
-          p_page: 1,
-          p_limit: 10,
-          p_search: query.trim(),
-          p_timezone: userTimezone,
-        });
 
         const { data, error } = await supabase.rpc('get_inventory_page_v6', {
           p_company_id: companyId,
@@ -70,10 +58,7 @@ export const useProductSearch = ({
           p_timezone: userTimezone,
         });
 
-        console.log('🔍 RPC response:', { data, error });
-
         if (error) {
-          console.error('🔍 Search error:', error);
           setSearchResults([]);
           return;
         }
@@ -81,19 +66,16 @@ export const useProductSearch = ({
         // v6 response structure: data.items instead of data.products
         const response = data as { success?: boolean; data?: { items?: InventoryProduct[]; currency?: Currency } };
         if (response?.success && response?.data?.items) {
-          console.log('🔍 Products found:', response.data.items.length);
           setSearchResults(response.data.items);
           if (onCurrencyUpdate && response.data.currency) {
             onCurrencyUpdate(response.data.currency);
           }
           setShowDropdown(true);
         } else {
-          console.log('🔍 No products or invalid response:', data);
           setSearchResults([]);
           setShowDropdown(true); // Show "no results" message
         }
-      } catch (err) {
-        console.error('🔍 Search error:', err);
+      } catch {
         setSearchResults([]);
       } finally {
         setIsSearching(false);

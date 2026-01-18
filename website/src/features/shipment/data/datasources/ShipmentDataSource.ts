@@ -125,14 +125,10 @@ export class ShipmentDataSource {
         rpcParams.p_order_id = params.orderFilter;
       }
 
-      console.log('📦 Calling inventory_get_shipment_list with:', rpcParams);
-
       const { data, error } = await supabase.rpc(
         'inventory_get_shipment_list' as never,
         rpcParams as never
       );
-
-      console.log('📦 inventory_get_shipment_list response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };
@@ -165,12 +161,6 @@ export class ShipmentDataSource {
     try {
       const supabase = this.getClient();
 
-      console.log('📦 Calling inventory_get_shipment_detail_v2 with:', {
-        p_shipment_id: params.shipmentId,
-        p_company_id: params.companyId,
-        p_timezone: params.timezone,
-      });
-
       // v2: supports variant_id, variant_name, display_name, has_variants in items
       // v2: receiving progress now matches by (product_id, variant_id)
       const { data, error } = await supabase.rpc(
@@ -181,8 +171,6 @@ export class ShipmentDataSource {
           p_timezone: params.timezone,
         } as never
       );
-
-      console.log('📦 inventory_get_shipment_detail_v2 response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };
@@ -251,15 +239,11 @@ export class ShipmentDataSource {
         rpcParams.p_shipment_number = params.shipmentNumber;
       }
 
-      console.log('📦 Creating shipment with params:', rpcParams);
-
       // v3: supports variant_id in items
       const { data, error } = await supabase.rpc(
         'inventory_create_shipment_v3' as never,
         rpcParams as never
       );
-
-      console.log('📦 inventory_create_shipment_v3 response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };
@@ -324,11 +308,6 @@ export class ShipmentDataSource {
     try {
       const supabase = this.getClient();
 
-      console.log('📋 Calling inventory_get_order_info with:', {
-        p_company_id: params.companyId,
-        p_timezone: params.timezone,
-      });
-
       const { data, error } = await supabase.rpc(
         'inventory_get_order_info' as never,
         {
@@ -336,8 +315,6 @@ export class ShipmentDataSource {
           p_timezone: params.timezone,
         } as never
       );
-
-      console.log('📋 inventory_get_order_info response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };

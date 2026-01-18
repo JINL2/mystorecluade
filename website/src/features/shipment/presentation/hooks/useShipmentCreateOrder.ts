@@ -52,7 +52,9 @@ export const useShipmentCreateOrder = ({
     }
 
     const loadOrders = async () => {
-      if (!companyId) return;
+      if (!companyId) {
+        return;
+      }
 
       setOrdersLoading(true);
       try {
@@ -64,8 +66,7 @@ export const useShipmentCreateOrder = ({
         } else {
           setAllOrders([]);
         }
-      } catch (err) {
-        console.error('📋 getOrders error:', err);
+      } catch {
         setAllOrders([]);
       } finally {
         setOrdersLoading(false);

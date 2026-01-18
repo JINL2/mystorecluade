@@ -31,7 +31,7 @@ export const useOrderItems = () => {
           return updatedItems;
         } else {
           // Add new item with cost from RPC
-          // v6: use display_name/display_sku for display
+          // v6: use display_name/display_sku for display, store variant_sku/product_sku for RPC
           return [
             ...prevItems,
             {
@@ -39,6 +39,8 @@ export const useOrderItems = () => {
               variantId: product.variant_id || undefined,
               productName: product.display_name || product.product_name,
               sku: product.display_sku || product.product_sku,
+              variantSku: product.variant_sku || undefined, // v6: for RPC call
+              productSku: product.product_sku, // v6: for RPC call fallback
               quantity: 1,
               cost: product.price.cost || 0,
             },
