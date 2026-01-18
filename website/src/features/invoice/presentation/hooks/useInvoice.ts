@@ -6,7 +6,7 @@
 
 import { useEffect } from 'react';
 import { useInvoiceStore } from '../providers/invoice_provider';
-import type { DateFilterType } from '../providers/states/types';
+import type { DateFilterType, DateFilter, AmountFilter } from '../providers/states/types';
 
 /**
  * Invoice hook that wraps Zustand store
@@ -24,6 +24,8 @@ export const useInvoice = (companyId: string) => {
   const dateRange = useInvoiceStore((state) => state.dateRange);
   const selectedStoreId = useInvoiceStore((state) => state.selectedStoreId);
   const activeFilter = useInvoiceStore((state) => state.activeFilter);
+  const dateSortFilter = useInvoiceStore((state) => state.dateSortFilter);
+  const amountSortFilter = useInvoiceStore((state) => state.amountSortFilter);
   const selectedInvoice = useInvoiceStore((state) => state.selectedInvoice);
   const invoiceDetail = useInvoiceStore((state) => state.invoiceDetail);
   const detailLoading = useInvoiceStore((state) => state.detailLoading);
@@ -32,6 +34,8 @@ export const useInvoice = (companyId: string) => {
   // ========== Select Actions from Zustand Store ==========
   const setSelectedStoreId = useInvoiceStore((state) => state.setSelectedStoreId);
   const setActiveFilter = useInvoiceStore((state) => state.setActiveFilter);
+  const setDateSortFilter = useInvoiceStore((state) => state.setDateSortFilter);
+  const setAmountSortFilter = useInvoiceStore((state) => state.setAmountSortFilter);
   const setSelectedInvoice = useInvoiceStore((state) => state.setSelectedInvoice);
   const changeDateRange = useInvoiceStore((state) => state.changeDateRange);
   const changeSearch = useInvoiceStore((state) => state.changeSearch);
@@ -52,7 +56,7 @@ export const useInvoice = (companyId: string) => {
     } else {
       console.log('🟡 useInvoice - No companyId, skipping load');
     }
-  }, [companyId, selectedStoreId, currentPage, dateRange, loadInvoices]);
+  }, [companyId, selectedStoreId, currentPage, dateRange, dateSortFilter, amountSortFilter, loadInvoices]);
 
   // ========== Wrapped Actions with Enhanced Logic ==========
   const handleStoreChange = (storeId: string | null) => {
@@ -84,6 +88,8 @@ export const useInvoice = (companyId: string) => {
     dateRange,
     selectedStoreId,
     activeFilter,
+    dateSortFilter,
+    amountSortFilter,
     selectedInvoice,
     invoiceDetail,
     detailLoading,
@@ -92,6 +98,8 @@ export const useInvoice = (companyId: string) => {
     // Actions
     setSelectedStoreId: handleStoreChange,
     setActiveFilter,
+    setDateSortFilter,
+    setAmountSortFilter,
     setSelectedInvoice,
     changeDateRange: handleDateFilterChange,
     changeSearch,

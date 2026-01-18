@@ -10,7 +10,9 @@ import type {
   DateRange,
   InvoiceDetail,
   RefundResult,
-  BulkRefundResult
+  BulkRefundResult,
+  DateFilter,
+  AmountFilter
 } from './types';
 
 /**
@@ -35,6 +37,8 @@ export interface InvoiceState {
   searchQuery: string;
   dateRange: DateRange;
   activeFilter: DateFilterType;
+  dateSortFilter: DateFilter;
+  amountSortFilter: AmountFilter;
 
   // ========== Pagination State ==========
   pagination: PaginationInfo | null;
@@ -55,6 +59,8 @@ export interface InvoiceState {
   changeDateRange: (start: string, end: string) => void;
   changeSearch: (query: string) => void;
   changePage: (page: number) => void;
+  setDateSortFilter: (filter: DateFilter) => void;
+  setAmountSortFilter: (filter: AmountFilter) => void;
 
   // ========== Async Actions ==========
   loadInvoices: (companyId: string) => Promise<void>;

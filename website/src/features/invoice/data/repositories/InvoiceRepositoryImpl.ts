@@ -10,7 +10,7 @@ import {
   RefundResult,
   BulkRefundResult,
 } from '../../domain/repositories/IInvoiceRepository';
-import { InvoiceDataSource } from '../datasources/InvoiceDataSource';
+import { InvoiceDataSource, DateFilter, AmountFilter } from '../datasources/InvoiceDataSource';
 import { InvoiceModel } from '../models/InvoiceModel';
 
 export class InvoiceRepositoryImpl implements IInvoiceRepository {
@@ -26,8 +26,10 @@ export class InvoiceRepositoryImpl implements IInvoiceRepository {
     page: number,
     limit: number,
     search: string | null,
-    startDate: string,
-    endDate: string
+    startDate: string | null,
+    endDate: string | null,
+    dateFilter: DateFilter = null,
+    amountFilter: AmountFilter = null
   ): Promise<InvoiceResult> {
     try {
       const response = await this.dataSource.getInvoices(
@@ -37,7 +39,10 @@ export class InvoiceRepositoryImpl implements IInvoiceRepository {
         limit,
         search,
         startDate,
-        endDate
+        endDate,
+        'Asia/Ho_Chi_Minh',
+        dateFilter,
+        amountFilter
       );
 
       if (!response.success || !response.data) {
@@ -50,7 +55,7 @@ export class InvoiceRepositoryImpl implements IInvoiceRepository {
       const currencySymbol = response.data.currency?.symbol;
       const invoices = InvoiceModel.fromJsonArray(response.data.invoices, currencySymbol);
 
-      // Map v2 pagination structure to PaginationInfo
+      // Map v3 pagination structure to PaginationInfo
       const pagination = response.data.pagination ? {
         current_page: response.data.pagination.page,
         total_pages: response.data.pagination.total_pages,

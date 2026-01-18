@@ -40,6 +40,8 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
   searchQuery: '',
   dateRange: getDefaultDateRange(),
   activeFilter: 'all',
+  dateSortFilter: null, // null = newest (default)
+  amountSortFilter: null, // null = use date sort
   pagination: null,
 
   // ========== Setter Actions ==========
@@ -84,6 +86,16 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
     set({ currentPage: page });
   },
 
+  setDateSortFilter: (filter) => {
+    // When date sort is set, clear amount sort (date sort has lower priority)
+    set({ dateSortFilter: filter, currentPage: 1 });
+  },
+
+  setAmountSortFilter: (filter) => {
+    // Amount sort takes priority over date sort
+    set({ amountSortFilter: filter, currentPage: 1 });
+  },
+
   // ========== Async Actions ==========
   loadInvoices: async (companyId) => {
     const state = get();
@@ -94,6 +106,8 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       currentPage: state.currentPage,
       searchQuery: state.searchQuery,
       dateRange: state.dateRange,
+      dateSortFilter: state.dateSortFilter,
+      amountSortFilter: state.amountSortFilter,
     });
 
     set({ loading: true, error: null });
@@ -106,7 +120,9 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
         state.itemsPerPage,
         state.searchQuery || null,
         state.dateRange.start,
-        state.dateRange.end
+        state.dateRange.end,
+        state.dateSortFilter,
+        state.amountSortFilter
       );
 
       console.log('🟡 InvoiceProvider.loadInvoices - result:', result);
@@ -253,6 +269,8 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       searchQuery: '',
       dateRange: getDefaultDateRange(),
       activeFilter: 'all',
+      dateSortFilter: null,
+      amountSortFilter: null,
       pagination: null,
     });
   },
