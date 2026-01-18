@@ -8,10 +8,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
 import type { FilterSection } from '@/shared/components/common/LeftFilter';
-import { useCountingSessionList } from '../../hooks/useCountingSessionList';
+import { useCountingSessionList, type SessionStatus } from '../../hooks/useCountingSessionList';
 import { useReceivingSessionList } from '../../hooks/useReceivingSessionList';
 import { useProductReceiveList, formatDateDisplay } from '../../hooks/useProductReceiveList';
-import { SHIPMENT_STATUS_OPTIONS } from './ProductReceivePage.types';
+import { SESSION_STATUS_OPTIONS } from './ProductReceivePage.types';
 import {
   CreateSessionModal,
   CreateReceivingSessionModal,
@@ -53,7 +53,7 @@ export const ProductReceivePage: React.FC = () => {
     setTempToDate,
   } = useProductReceiveList();
 
-  // Counting sessions hook
+  // Counting sessions hook - pass date filters
   const {
     sessions: countingSessions,
     sessionsLoading: countingSessionsLoading,
@@ -73,9 +73,13 @@ export const ProductReceivePage: React.FC = () => {
     setSelectedStoreId: setCountingSelectedStoreId,
     setSessionName: setCountingSessionName,
     handleCreateSession: handleCreateCountingSession,
-  } = useCountingSessionList();
+  } = useCountingSessionList({
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    statusFilter: (shipmentStatusFilter as SessionStatus) || undefined,
+  });
 
-  // Receiving sessions hook
+  // Receiving sessions hook - pass date and status filters
   const {
     sessions: receivingSessions,
     sessionsLoading: receivingSessionsLoading,
@@ -98,7 +102,12 @@ export const ProductReceivePage: React.FC = () => {
     setSelectedShipmentId: setReceivingSelectedShipmentId,
     setSessionName: setReceivingSessionName,
     handleCreateSession: handleCreateReceivingSession,
-  } = useReceivingSessionList();
+  } = useReceivingSessionList({
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    statusFilter: (shipmentStatusFilter as SessionStatus) || undefined,
+    supplierId: supplierFilter || undefined,
+  });
 
   // Session history hook - show closed sessions (isActive: false)
   const {
@@ -124,7 +133,14 @@ export const ProductReceivePage: React.FC = () => {
     };
 
     if (showDatePicker) {
-      document.addEventListener('mousedown', handleClickOutside);
+      // Add a small delay to prevent the click that opened the picker from closing it
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -210,7 +226,7 @@ export const ProductReceivePage: React.FC = () => {
       title: 'Status',
       type: 'radio',
       defaultExpanded: true,
-      options: SHIPMENT_STATUS_OPTIONS,
+      options: SESSION_STATUS_OPTIONS,
       selectedValues: shipmentStatusFilter || '',
       onSelect: selectShipmentStatus,
       onClear: clearShipmentStatusFilter,
@@ -302,7 +318,7 @@ export const ProductReceivePage: React.FC = () => {
                   </div>
 
                   <CountingSessionsTable
-                    sessions={countingSessions.filter(s => s.isActive)}
+                    sessions={countingSessions}
                     sessionsLoading={countingSessionsLoading}
                     searchQuery={countingSearchQuery}
                     onSessionClick={handleCountingSessionClick}
@@ -343,7 +359,7 @@ export const ProductReceivePage: React.FC = () => {
                   </div>
 
                   <ReceivingSessionsTable
-                    sessions={receivingSessions.filter(s => s.isActive)}
+                    sessions={receivingSessions}
                     sessionsLoading={receivingSessionsLoading}
                     searchQuery={receivingSearchQuery}
                     onSessionClick={handleReceivingSessionClick}

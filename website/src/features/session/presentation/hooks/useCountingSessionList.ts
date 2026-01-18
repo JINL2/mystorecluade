@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { productReceiveDataSource } from '../../data/datasources/ProductReceiveDataSource';
+import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
 
 // Store interface
 export interface Store {
@@ -29,9 +29,22 @@ export interface CountingSession {
   createdByName: string;
   completedAt: string | null;
   createdAt: string;
+  // v2 field
+  status: SessionStatus;
 }
 
-export const useCountingSessionList = () => {
+// Session status type (from v2 RPC)
+export type SessionStatus = 'pending' | 'process' | 'complete' | 'cancelled';
+
+// Filter props interface
+interface UseCountingSessionListProps {
+  fromDate?: string;
+  toDate?: string;
+  statusFilter?: SessionStatus;
+}
+
+export const useCountingSessionList = (props?: UseCountingSessionListProps) => {
+  const { fromDate, toDate, statusFilter } = props || {};
   const navigate = useNavigate();
   const { currentCompany, currentStore, currentUser } = useAppState();
   const companyId = currentCompany?.company_id;
@@ -55,7 +68,7 @@ export const useCountingSessionList = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  // Load counting sessions
+  // Load counting sessions (using v2 RPC with server-side filtering)
   const loadCountingSessions = useCallback(async () => {
     if (!companyId) return;
 
@@ -63,38 +76,44 @@ export const useCountingSessionList = () => {
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const result = await productReceiveDataSource.getSessionList({
+      // Use repository instead of direct dataSource call
+      const result = await productReceiveRepository.getSessionListV2({
         companyId,
         sessionType: 'counting',
         timezone: userTimezone,
+        startDate: fromDate || undefined,
+        endDate: toDate || undefined,
+        status: statusFilter || undefined,
       });
 
-      // Map DTO to presentation format
+      // Map domain entity to presentation format
       const mappedSessions: CountingSession[] = result.sessions.map((s) => ({
-        sessionId: s.session_id,
-        sessionName: s.session_name || `Counting Session`,
-        sessionType: s.session_type,
-        storeId: s.store_id,
-        storeName: s.store_name,
-        isActive: s.is_active,
-        isFinal: s.is_final,
-        memberCount: s.member_count || 0,
-        createdBy: s.created_by,
-        createdByName: s.created_by_name,
-        completedAt: s.completed_at || null,
-        createdAt: s.created_at,
+        sessionId: s.sessionId,
+        sessionName: s.sessionName || `Counting Session`,
+        sessionType: s.sessionType,
+        storeId: s.storeId,
+        storeName: s.storeName,
+        isActive: s.isActive,
+        isFinal: s.isFinal,
+        memberCount: s.memberCount || 0,
+        createdBy: s.createdBy,
+        createdByName: s.createdByName,
+        completedAt: null,
+        createdAt: s.createdAt,
+        // v2 field from server - use type assertion since Session entity has it
+        status: ((s as unknown as { status?: SessionStatus }).status) || 'pending',
       }));
 
       setSessions(mappedSessions);
       setTotalCount(result.totalCount);
     } catch (err) {
-      console.error('📋 Load counting sessions error:', err);
+      console.error('Load counting sessions error:', err);
       setSessions([]);
       setTotalCount(0);
     } finally {
       setSessionsLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, fromDate, toDate, statusFilter]);
 
   // Load sessions on mount
   useEffect(() => {
@@ -132,7 +151,6 @@ export const useCountingSessionList = () => {
 
       // Don't navigate if session is closed (not active and not final)
       if (session && !session.isActive && !session.isFinal) {
-        console.log('📋 Session is closed, not navigating:', sessionId);
         return;
       }
 
@@ -163,7 +181,6 @@ export const useCountingSessionList = () => {
         );
       }
 
-      console.log('📋 Navigate to counting session:', sessionId);
       navigate(`/product/counting/session/${sessionId}`);
     },
     [navigate, sessions]
@@ -199,37 +216,29 @@ export const useCountingSessionList = () => {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const localTime = new Date().toISOString();
 
-      console.log('📋 Creating counting session:', {
+      // Use repository instead of direct dataSource call
+      const result = await productReceiveRepository.createSession({
         companyId,
         storeId: selectedStoreId,
         userId,
         sessionType: 'counting',
-        sessionName: sessionName || undefined,
-      });
-
-      const result = await productReceiveDataSource.createSession({
-        companyId,
-        storeId: selectedStoreId,
-        userId,
-        sessionType: 'counting',
+        shipmentId: '', // Not required for counting sessions
         sessionName: sessionName || undefined,
         time: localTime,
         timezone: userTimezone,
       });
-
-      console.log('📋 Counting session created:', result);
 
       // Close modal and refresh list
       handleCloseCreateModal();
       loadCountingSessions();
 
       // Navigate to the new session
-      if (result.session_id) {
+      if (result.sessionId) {
         // Store session info for detail page
         localStorage.setItem(
-          `counting_session_${result.session_id}`,
+          `counting_session_${result.sessionId}`,
           JSON.stringify({
-            sessionId: result.session_id,
+            sessionId: result.sessionId,
             sessionName: sessionName || 'Counting Session',
             storeId: selectedStoreId,
             storeName: stores?.find((s: Store) => s.store_id === selectedStoreId)?.store_name || '',
@@ -240,10 +249,10 @@ export const useCountingSessionList = () => {
             createdAt: localTime,
           })
         );
-        navigate(`/product/counting/session/${result.session_id}`);
+        navigate(`/product/counting/session/${result.sessionId}`);
       }
     } catch (err) {
-      console.error('📋 Create counting session error:', err);
+      console.error('Create counting session error:', err);
       setCreateError(err instanceof Error ? err.message : 'Failed to create session');
     } finally {
       setIsCreating(false);
@@ -253,7 +262,7 @@ export const useCountingSessionList = () => {
     userId,
     selectedStoreId,
     sessionName,
-    currentCompany,
+    stores,
     currentUser,
     handleCloseCreateModal,
     loadCountingSessions,

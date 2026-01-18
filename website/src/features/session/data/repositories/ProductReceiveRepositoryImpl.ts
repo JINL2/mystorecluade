@@ -413,6 +413,30 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
     return result.sessions.map(mapSessionDTO);
   }
 
+  async getSessionListV2(params: {
+    companyId: string;
+    sessionType: 'counting' | 'receiving';
+    timezone: string;
+    startDate?: string;
+    endDate?: string;
+    status?: 'pending' | 'process' | 'complete' | 'cancelled';
+    supplierId?: string;
+  }): Promise<{ sessions: Session[]; totalCount: number }> {
+    const result = await this.dataSource.getSessionList({
+      companyId: params.companyId,
+      sessionType: params.sessionType,
+      timezone: params.timezone,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      status: params.status,
+      supplierId: params.supplierId,
+    });
+    return {
+      sessions: result.sessions.map(mapSessionDTO),
+      totalCount: result.totalCount,
+    };
+  }
+
   async createSession(params: {
     companyId: string;
     storeId: string;

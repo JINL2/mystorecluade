@@ -111,23 +111,24 @@ export const LeftFilter: React.FC<LeftFilterProps> = ({
 
     return (
       <div className={styles.filterOptions}>
-        {section.options?.map((option) => (
-          <label key={option.value} className={styles.radioOption}>
-            <input
-              type="radio"
-              name={section.id}
-              value={option.value}
-              checked={selectedValue === option.value}
-              onChange={() => section.onSelect?.(option.value)}
+        {section.options?.map((option) => {
+          const isSelected = selectedValue === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={`${styles.radioOption} ${isSelected ? styles.selected : ''}`}
+              onClick={() => section.onSelect?.(option.value)}
               disabled={option.disabled}
-              className={styles.radioInput}
-            />
-            <span className={styles.radioLabel}>
-              {option.icon && <span className={styles.optionIcon}>{option.icon}</span>}
-              {option.label}
-            </span>
-          </label>
-        ))}
+            >
+              <span className={`${styles.radioCircle} ${isSelected ? styles.checked : ''}`} />
+              <span className={styles.radioLabel}>
+                {option.icon && <span className={styles.optionIcon}>{option.icon}</span>}
+                {option.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     );
   };

@@ -6,7 +6,7 @@
  * Architecture: Uses Repository pattern, Validator, and Zustand store
  */
 
-import { useEffect, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useDebounce } from '@/shared/hooks/useDebounce';
@@ -102,6 +102,10 @@ export const useReceivingSession = () => {
   // Refs
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchCacheRef = useRef<Map<string, SearchProduct[]>>(new Map());
+  const isInitializedRef = useRef(false);
+
+  // Track if initial data load has completed to prevent multiple loads
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Local derived state for items (from shipment data)
   const items: ReceivingItem[] = useMemo(() => {
@@ -123,25 +127,36 @@ export const useReceivingSession = () => {
   // Debounced search query
   const debouncedSearchQuery = useDebounce(store.searchQuery, 300);
 
-  // Load session data
-  useEffect(() => {
-    const loadSessionData = async () => {
-      if (!sessionId || !currentCompany) return;
+  // Memoize location state to prevent unnecessary re-renders
+  const memoizedLocationState = useMemo(() => locationState, [
+    locationState?.sessionData?.session_id,
+    locationState?.shipmentId,
+    locationState?.shipmentData?.shipment_id,
+  ]);
 
+  // Load session data - only runs once on mount or when sessionId changes
+  useEffect(() => {
+    // Prevent multiple initializations
+    if (isInitializedRef.current) return;
+    if (!sessionId || !currentCompany) return;
+
+    isInitializedRef.current = true;
+
+    const loadSessionData = async () => {
       store.setLoading(true);
       store.setError(null);
 
       try {
         // If we have data from navigation state, use it
-        if (locationState?.sessionData) {
-          const sessionData = locationState.sessionData;
+        if (memoizedLocationState?.sessionData) {
+          const sessionData = memoizedLocationState.sessionData;
           store.setSessionInfo({
             sessionId: sessionData.session_id || sessionId,
             sessionType: sessionData.session_type || 'receiving',
             storeId: sessionData.store_id || '',
             storeName: sessionData.store_name || '',
-            shipmentId: locationState.shipmentId || sessionData.shipment_id || null,
-            shipmentNumber: locationState.shipmentData?.shipment_number || sessionData.shipment_number || null,
+            shipmentId: memoizedLocationState.shipmentId || sessionData.shipment_id || null,
+            shipmentNumber: memoizedLocationState.shipmentData?.shipment_number || sessionData.shipment_number || null,
             isActive: sessionData.is_active ?? true,
             isFinal: sessionData.is_final ?? false,
             createdBy: sessionData.created_by || '',
@@ -152,8 +167,8 @@ export const useReceivingSession = () => {
         }
 
         // If we have shipment data from navigation state, use it
-        if (locationState?.shipmentData) {
-          const shipment = locationState.shipmentData;
+        if (memoizedLocationState?.shipmentData) {
+          const shipment = memoizedLocationState.shipmentData;
           store.setShipmentData({
             shipmentId: shipment.shipment_id,
             shipmentNumber: shipment.shipment_number,
@@ -184,7 +199,7 @@ export const useReceivingSession = () => {
         }
 
         // If no navigation state, set default session info
-        if (!locationState?.sessionData) {
+        if (!memoizedLocationState?.sessionData) {
           store.setSessionInfo({
             sessionId: sessionId,
             sessionType: 'receiving',
@@ -212,7 +227,7 @@ export const useReceivingSession = () => {
         }
 
         // If no localStorage data and we have shipment_id, fetch from API
-        const shipmentId = locationState?.shipmentId || locationState?.sessionData?.shipment_id;
+        const shipmentId = memoizedLocationState?.shipmentId || memoizedLocationState?.sessionData?.shipment_id;
         if ((!storedSessions || storedSessions === '[]') && shipmentId && currentCompany) {
           try {
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -234,6 +249,8 @@ export const useReceivingSession = () => {
             console.error('Failed to load active sessions from API:', err);
           }
         }
+
+        setIsInitialized(true);
       } catch (err) {
         console.error('Load session error:', err);
         store.setError(err instanceof Error ? err.message : 'Failed to load session');
@@ -243,7 +260,8 @@ export const useReceivingSession = () => {
     };
 
     loadSessionData();
-  }, [sessionId, currentCompany, locationState, repository, store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, currentCompany?.company_id]);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
@@ -275,7 +293,8 @@ export const useReceivingSession = () => {
         return;
       }
     }
-  }, [store.searchQuery, store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.searchQuery]);
 
   // Search products using Repository (debounced)
   useEffect(() => {
@@ -321,7 +340,8 @@ export const useReceivingSession = () => {
     };
 
     searchProducts();
-  }, [debouncedSearchQuery, currentCompany?.company_id, store.sessionInfo?.storeId, repository, store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchQuery, currentCompany?.company_id, store.sessionInfo?.storeId]);
 
   // Add product to received entries
   const addProductToReceived = useCallback((product: SearchProduct | SearchProductPresentation) => {

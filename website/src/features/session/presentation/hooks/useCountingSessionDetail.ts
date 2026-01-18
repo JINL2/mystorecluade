@@ -9,9 +9,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { productReceiveDataSource } from '../../data/datasources/ProductReceiveDataSource';
 import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
-import type { SessionItemDTO } from '../../data/datasources/ProductReceiveDataSource';
 
 // Session info from session list
 export interface CountingSessionInfo {
@@ -290,30 +288,31 @@ export const useCountingSessionDetail = () => {
     setError(null);
 
     try {
-      const result = await productReceiveDataSource.getSessionItems(sessionId, userId);
+      // Use repository instead of direct dataSource call
+      const result = await productReceiveRepository.getSessionItems(sessionId, userId);
 
-      // Map DTO to presentation format
-      const mappedItems: CountingSessionItem[] = result.items.map((item: SessionItemDTO) => ({
-        productId: item.product_id,
-        productName: item.product_name,
-        totalQuantity: item.total_quantity,
-        totalRejected: item.total_rejected,
-        scannedBy: item.scanned_by.map((user) => ({
-          userId: user.user_id,
-          userName: user.user_name,
+      // Map domain entity to presentation format
+      const mappedItems: CountingSessionItem[] = result.items.map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        totalQuantity: item.totalQuantity,
+        totalRejected: item.totalRejected,
+        scannedBy: item.scannedBy.map((user) => ({
+          userId: user.userId,
+          userName: user.userName,
           quantity: user.quantity,
-          quantityRejected: user.quantity_rejected,
+          quantityRejected: user.quantityRejected,
         })),
       }));
 
       setItems(mappedItems);
       setSummary({
-        totalProducts: result.summary.total_products,
-        totalQuantity: result.summary.total_quantity,
-        totalRejected: result.summary.total_rejected,
+        totalProducts: result.summary.totalProducts,
+        totalQuantity: result.summary.totalQuantity,
+        totalRejected: result.summary.totalRejected,
       });
     } catch (err) {
-      console.error('📋 Load session items error:', err);
+      console.error('Load session items error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load session items');
     } finally {
       setLoading(false);
@@ -393,8 +392,6 @@ export const useCountingSessionDetail = () => {
           1,
           10
         );
-
-        console.log('🔍 Search result:', result);
 
         // Map domain entities to presentation format (snake_case for compatibility)
         const products: SearchProduct[] = result.products.map(p => ({
@@ -569,15 +566,11 @@ export const useCountingSessionDetail = () => {
         quantityRejected: 0,
       }));
 
-      console.log('💾 Saving items:', { sessionId, userId: currentUser.user_id, items: itemsToSave });
-
       await productReceiveRepository.addSessionItems(
         sessionId,
         currentUser.user_id,
         itemsToSave
       );
-
-      console.log('💾 Save successful');
 
       setSaveSuccess(true);
       setReceivedEntries([]);
@@ -643,14 +636,10 @@ export const useCountingSessionDetail = () => {
     setSubmitError(null);
 
     try {
-      console.log('📤 Loading session items:', { sessionId, userId: currentUser.user_id });
-
       const result = await productReceiveRepository.getSessionItems(
         sessionId,
         currentUser.user_id
       );
-
-      console.log('📤 Session items result:', result);
 
       setEditableItems(result.items.map(item => ({
         product_id: item.productId,
@@ -704,70 +693,63 @@ export const useCountingSessionDetail = () => {
     setComparisonError(null);
 
     try {
-      console.log('🔄 Comparing sessions:', {
-        sessionA: sessionId,
-        sessionB: selectedSession.sessionId,
-      });
-
-      // Use inventory_compare_sessions_v2 RPC
-      const result = await productReceiveDataSource.compareSessions({
+      // Use repository instead of direct dataSource call
+      const result = await productReceiveRepository.compareSessions({
         sessionIdA: sessionId,
         sessionIdB: selectedSession.sessionId,
         userId: currentUser.user_id,
       });
 
-      console.log('🔄 Comparison result:', result);
-
-      // Map RPC result to presentation format
+      // Map domain entity to presentation format
       const comparisonData: SessionComparisonResult = {
         sessionA: {
-          sessionId: result.session_a.session_id,
-          sessionName: result.session_a.session_name,
-          storeName: result.session_a.store_name,
-          totalProducts: result.session_a.total_products,
-          totalQuantity: result.session_a.total_quantity,
+          sessionId: result.sessionA.sessionId,
+          sessionName: result.sessionA.sessionName,
+          storeName: result.sessionA.storeName,
+          totalProducts: result.sessionA.totalProducts,
+          totalQuantity: result.sessionA.totalQuantity,
         },
         sessionB: {
-          sessionId: result.session_b.session_id,
-          sessionName: result.session_b.session_name,
-          storeName: result.session_b.store_name,
-          totalProducts: result.session_b.total_products,
-          totalQuantity: result.session_b.total_quantity,
+          sessionId: result.sessionB.sessionId,
+          sessionName: result.sessionB.sessionName,
+          storeName: result.sessionB.storeName,
+          totalProducts: result.sessionB.totalProducts,
+          totalQuantity: result.sessionB.totalQuantity,
         },
         matched: result.comparison.matched.map((item) => ({
-          productId: item.product_id,
+          productId: item.productId,
           sku: item.sku,
-          productName: item.product_name,
-          quantityA: item.quantity_a,
-          quantityB: item.quantity_b,
-          quantityDiff: item.quantity_diff,
-          isMatch: item.is_match,
+          productName: item.productName,
+          quantityA: item.quantityA,
+          quantityB: item.quantityB,
+          quantityDiff: item.quantityDiff,
+          isMatch: item.isMatch,
         })),
-        onlyInA: result.comparison.only_in_a.map((item) => ({
-          productId: item.product_id,
+        onlyInA: result.comparison.onlyInA.map((item) => ({
+          productId: item.productId,
           sku: item.sku,
-          productName: item.product_name,
+          productName: item.productName,
           quantity: item.quantity,
         })),
-        onlyInB: result.comparison.only_in_b.map((item) => ({
-          productId: item.product_id,
+        onlyInB: result.comparison.onlyInB.map((item) => ({
+          productId: item.productId,
           sku: item.sku,
-          productName: item.product_name,
+          productName: item.productName,
           quantity: item.quantity,
         })),
         summary: {
-          totalMatched: result.summary.total_matched,
-          quantitySameCount: result.summary.quantity_same_count,
-          quantityDiffCount: result.summary.quantity_diff_count,
-          onlyInACount: result.summary.only_in_a_count,
-          onlyInBCount: result.summary.only_in_b_count,
+          totalMatched: result.summary.totalMatched,
+          quantitySameCount: result.summary.quantitySameCount,
+          quantityDiffCount: result.summary.quantityDiffCount,
+          onlyInACount: result.summary.onlyInACount,
+          onlyInBCount: result.summary.onlyInBCount,
         },
       };
 
       setComparisonResult(comparisonData);
       setShowComparisonModal(true);
     } catch (err) {
-      console.error('🔄 Comparison error:', err);
+      console.error('Comparison error:', err);
       setComparisonError(err instanceof Error ? err.message : 'Failed to compare sessions');
     } finally {
       setIsLoadingComparison(false);
@@ -793,18 +775,12 @@ export const useCountingSessionDetail = () => {
     setMergeError(null);
 
     try {
-      console.log('🔀 Merging sessions:', {
-        targetSessionId: sessionId,
-        sourceSessionId: selectedCombineSession.sessionId,
-      });
-
-      const result = await productReceiveDataSource.mergeSessions({
+      // Use repository instead of direct dataSource call
+      await productReceiveRepository.mergeSessions({
         targetSessionId: sessionId,
         sourceSessionId: selectedCombineSession.sessionId,
         userId: currentUser.user_id,
       });
-
-      console.log('🔀 Merge result:', result);
 
       // Remove merged session from localStorage
       const storedSessions = localStorage.getItem('counting_active_sessions');
@@ -831,7 +807,7 @@ export const useCountingSessionDetail = () => {
       // Reset success message after 3 seconds
       setTimeout(() => setMergeSuccess(false), 3000);
     } catch (err) {
-      console.error('🔀 Merge error:', err);
+      console.error('Merge error:', err);
       setMergeError(err instanceof Error ? err.message : 'Failed to merge sessions');
     } finally {
       setIsMerging(false);
@@ -878,21 +854,12 @@ export const useCountingSessionDetail = () => {
         quantityRejected: item.quantity_rejected,
       }));
 
-      console.log('📤 Submitting session:', {
-        sessionId,
-        userId: currentUser.user_id,
-        isFinal,
-        items: itemsToSubmit,
-      });
-
       const result = await productReceiveRepository.submitSession(
         sessionId,
         currentUser.user_id,
         itemsToSubmit,
         isFinal
       );
-
-      console.log('📤 Submit session result:', result);
 
       setSubmitSuccess(true);
 

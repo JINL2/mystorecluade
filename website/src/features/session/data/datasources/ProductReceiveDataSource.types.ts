@@ -200,7 +200,7 @@ export interface ReceivingSummaryDTO {
   progress_percentage: number;
 }
 
-// Session DTO
+// Session DTO (v2 - supports status, supplier filters)
 export interface SessionDTO {
   session_id: string;
   session_name?: string;
@@ -216,6 +216,10 @@ export interface SessionDTO {
   created_at: string;
   completed_at?: string;
   member_count?: number;
+  // v2 fields
+  status?: 'pending' | 'process' | 'complete' | 'cancelled';
+  supplier_id?: string;
+  supplier_name?: string;
 }
 
 // Create Session Result DTO

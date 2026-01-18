@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { productReceiveDataSource } from '../../data/datasources/ProductReceiveDataSource';
+import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
 
 // Store interface
 export interface Store {
@@ -39,9 +39,25 @@ export interface ReceivingSession {
   createdByName: string;
   completedAt: string | null;
   createdAt: string;
+  // v2 fields
+  status: SessionStatus;
+  supplierId: string | null;
+  supplierName: string | null;
 }
 
-export const useReceivingSessionList = () => {
+// Session status type (from v2 RPC)
+export type SessionStatus = 'pending' | 'process' | 'complete' | 'cancelled';
+
+// Filter props interface
+interface UseReceivingSessionListProps {
+  fromDate?: string;
+  toDate?: string;
+  statusFilter?: SessionStatus;
+  supplierId?: string;
+}
+
+export const useReceivingSessionList = (props?: UseReceivingSessionListProps) => {
+  const { fromDate, toDate, statusFilter, supplierId } = props || {};
   const navigate = useNavigate();
   const { currentCompany, currentStore, currentUser } = useAppState();
   const companyId = currentCompany?.company_id;
@@ -70,7 +86,7 @@ export const useReceivingSessionList = () => {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shipmentsLoading, setShipmentsLoading] = useState(false);
 
-  // Load receiving sessions
+  // Load receiving sessions (using v2 RPC with server-side filtering)
   const loadReceivingSessions = useCallback(async () => {
     if (!companyId) return;
 
@@ -78,28 +94,37 @@ export const useReceivingSessionList = () => {
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const result = await productReceiveDataSource.getSessionList({
+      // v2 RPC supports server-side filtering for date, status, and supplier
+      const result = await productReceiveRepository.getSessionListV2({
         companyId,
         sessionType: 'receiving',
         timezone: userTimezone,
+        startDate: fromDate || undefined,
+        endDate: toDate || undefined,
+        status: statusFilter || undefined,
+        supplierId: supplierId || undefined,
       });
 
-      // Map DTO to presentation format
+      // Map domain entity to presentation format (Repository returns camelCase)
       const mappedSessions: ReceivingSession[] = result.sessions.map((s) => ({
-        sessionId: s.session_id,
-        sessionName: s.session_name || 'Receiving Session',
-        sessionType: s.session_type,
-        storeId: s.store_id,
-        storeName: s.store_name,
-        shipmentId: s.shipment_id || null,
-        shipmentNumber: s.shipment_number || null,
-        isActive: s.is_active,
-        isFinal: s.is_final,
-        memberCount: s.member_count || 0,
-        createdBy: s.created_by,
-        createdByName: s.created_by_name,
-        completedAt: s.completed_at || null,
-        createdAt: s.created_at,
+        sessionId: s.sessionId,
+        sessionName: s.sessionName || 'Receiving Session',
+        sessionType: s.sessionType,
+        storeId: s.storeId,
+        storeName: s.storeName,
+        shipmentId: s.shipmentId || null,
+        shipmentNumber: s.shipmentNumber || null,
+        isActive: s.isActive,
+        isFinal: s.isFinal,
+        memberCount: s.memberCount || 0,
+        createdBy: s.createdBy,
+        createdByName: s.createdByName,
+        completedAt: s.completedAt || null,
+        createdAt: s.createdAt,
+        // v2 fields from server
+        status: (s.status as SessionStatus) || 'pending',
+        supplierId: s.supplierId || null,
+        supplierName: s.supplierName || null,
       }));
 
       setSessions(mappedSessions);
@@ -111,7 +136,7 @@ export const useReceivingSessionList = () => {
     } finally {
       setSessionsLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, fromDate, toDate, statusFilter, supplierId]);
 
   // Load shipments for modal selection
   const loadShipments = useCallback(async () => {
@@ -121,18 +146,19 @@ export const useReceivingSessionList = () => {
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const result = await productReceiveDataSource.getShipmentList({
+      const result = await productReceiveRepository.getShipmentList({
         companyId,
         timezone: userTimezone,
       });
 
       // Map and filter for modal (only non-completed shipments)
+      // Repository returns domain entities with camelCase properties
       const mappedShipments: Shipment[] = result.shipments
         .filter((s) => s.status !== 'completed' && s.status !== 'cancelled')
         .map((s) => ({
-          shipment_id: s.shipment_id,
-          shipment_number: s.shipment_number,
-          supplier_name: s.supplier_name,
+          shipment_id: s.shipmentId,
+          shipment_number: s.shipmentNumber,
+          supplier_name: s.supplierName,
           status: s.status,
         }));
 
@@ -182,7 +208,6 @@ export const useReceivingSessionList = () => {
 
       // Don't navigate if session is closed (not active and not final)
       if (session && !session.isActive && !session.isFinal) {
-        console.log('📦 Session is closed, not navigating:', sessionId);
         return;
       }
 
@@ -215,7 +240,6 @@ export const useReceivingSessionList = () => {
         );
       }
 
-      console.log('📦 Navigate to receiving session:', sessionId);
       navigate(`/product/receive/session/${sessionId}`, {
         state: {
           sessionData: session ? {
@@ -274,16 +298,7 @@ export const useReceivingSessionList = () => {
       const now = new Date();
       const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-      console.log('📦 Creating receiving session:', {
-        companyId,
-        storeId: selectedStoreId,
-        userId,
-        sessionType: 'receiving',
-        shipmentId: selectedShipmentId || undefined,
-        sessionName: sessionName || undefined,
-      });
-
-      const result = await productReceiveDataSource.createSession({
+      const result = await productReceiveRepository.createSession({
         companyId,
         storeId: selectedStoreId,
         userId,
@@ -294,22 +309,20 @@ export const useReceivingSessionList = () => {
         timezone: userTimezone,
       });
 
-      console.log('📦 Receiving session created:', result);
-
       // Close modal and refresh list
       handleCloseCreateModal();
       loadReceivingSessions();
 
-      // Navigate to the new session
-      if (result.session_id) {
+      // Navigate to the new session (Repository returns camelCase sessionId)
+      if (result.sessionId) {
         const selectedStore = stores?.find((s: Store) => s.store_id === selectedStoreId);
         const selectedShipment = shipments.find((s) => s.shipment_id === selectedShipmentId);
 
         // Store session info for detail page
         localStorage.setItem(
-          `receiving_session_${result.session_id}`,
+          `receiving_session_${result.sessionId}`,
           JSON.stringify({
-            sessionId: result.session_id,
+            sessionId: result.sessionId,
             sessionName: sessionName || 'Receiving Session',
             storeId: selectedStoreId,
             storeName: selectedStore?.store_name || '',
@@ -323,10 +336,10 @@ export const useReceivingSessionList = () => {
           })
         );
 
-        navigate(`/product/receive/session/${result.session_id}`, {
+        navigate(`/product/receive/session/${result.sessionId}`, {
           state: {
             sessionData: {
-              session_id: result.session_id,
+              session_id: result.sessionId,
               session_name: sessionName || 'Receiving Session',
               store_id: selectedStoreId,
               store_name: selectedStore?.store_name || '',

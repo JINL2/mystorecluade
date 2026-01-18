@@ -122,7 +122,12 @@ export interface IProductReceiveDataSource {
     shipmentId?: string;
     sessionType?: string;
     isActive?: boolean;
+    startDate?: string;
+    endDate?: string;
     timezone: string;
+    // v2 parameters
+    status?: 'pending' | 'process' | 'complete' | 'cancelled';
+    supplierId?: string;
   }): Promise<{ sessions: SessionDTO[]; totalCount: number }>;
 
   createSession(params: {
@@ -407,7 +412,9 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
   }): Promise<ShipmentDetailDTO> {
     const client = supabaseService.getClient();
 
-    const { data, error } = await client.rpc('inventory_get_shipment_detail', {
+    // v2: supports variant_id, variant_name, display_name, has_variants in items
+    // v2: receiving progress now matches by (product_id, variant_id)
+    const { data, error } = await client.rpc('inventory_get_shipment_detail_v2', {
       p_shipment_id: params.shipmentId,
       p_company_id: params.companyId,
       p_timezone: params.timezone,
@@ -429,7 +436,12 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     shipmentId?: string;
     sessionType?: string;
     isActive?: boolean;
+    startDate?: string;
+    endDate?: string;
     timezone: string;
+    // v2 parameters
+    status?: 'pending' | 'process' | 'complete' | 'cancelled';
+    supplierId?: string;
   }): Promise<{ sessions: SessionDTO[]; totalCount: number }> {
     const client = supabaseService.getClient();
 
@@ -447,8 +459,25 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     if (params.isActive !== undefined) {
       rpcParams.p_is_active = params.isActive;
     }
+    // v2: date filter parameters
+    if (params.startDate) {
+      rpcParams.p_start_date = `${params.startDate} 00:00:00`;
+    }
+    if (params.endDate) {
+      rpcParams.p_end_date = `${params.endDate} 23:59:59`;
+    }
+    // v2: status filter (pending, process, complete, cancelled)
+    if (params.status) {
+      rpcParams.p_status = params.status;
+    }
+    // v2: supplier filter
+    if (params.supplierId) {
+      rpcParams.p_supplier_id = params.supplierId;
+    }
 
-    const { data, error } = await client.rpc('inventory_get_session_list', rpcParams);
+    // Use v2 RPC which supports date, status, and supplier filters
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await client.rpc('inventory_get_session_list_v2' as any, rpcParams);
 
     if (error) {
       throw new Error(`Failed to get sessions: ${error.message}`);
