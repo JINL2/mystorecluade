@@ -137,10 +137,9 @@ export const SHIPMENT_STATUS_OPTIONS = [
 ];
 
 // Session status options (for Session list filtering - v2 RPC)
-// Note: 'process' means session is in progress (is_active = true)
+// Note: 'in_progress' means session is active (pending or process)
 export const SESSION_STATUS_OPTIONS = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'process', label: 'In Progress' },
+  { value: 'in_progress', label: 'In Progress' },
   { value: 'complete', label: 'Complete' },
   { value: 'cancelled', label: 'Cancelled' },
 ];

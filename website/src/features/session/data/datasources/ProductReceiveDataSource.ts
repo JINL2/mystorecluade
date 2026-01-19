@@ -184,6 +184,51 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
   }
 
+  // Get local time string in 'YYYY-MM-DD HH:mm:ss' format (user's device local time)
+  // This is the format expected by RPC functions
+  private getLocalTimeString(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  // Transform RPC item to SearchProductDTO format
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private transformSearchItem(item: any): SearchProductDTO {
+    return {
+      product_id: item.product_id,
+      product_name: item.product_name,
+      product_sku: item.product_sku,
+      product_barcode: item.product_barcode,
+      product_type: item.product_type,
+      brand_id: item.brand_id,
+      brand_name: item.brand_name,
+      category_id: item.category_id,
+      category_name: item.category_name,
+      unit: item.unit,
+      image_urls: item.image_urls || [],
+      // v6 variant fields
+      variant_id: item.variant_id,
+      variant_name: item.variant_name,
+      variant_sku: item.variant_sku,
+      variant_barcode: item.variant_barcode,
+      display_name: item.display_name || item.product_name,
+      display_sku: item.display_sku || item.product_sku,
+      display_barcode: item.display_barcode || item.product_barcode,
+      has_variants: item.has_variants ?? false,
+      created_at: item.created_at,
+      // Nested structures
+      stock: item.stock || { quantity_on_hand: 0, quantity_available: 0, quantity_reserved: 0 },
+      price: item.price || { cost: 0, selling: 0, source: 'default' },
+      status: item.status || { stock_level: 'normal', is_active: true },
+    };
+  }
+
   async searchProducts(
     companyId: string,
     storeId: string,
@@ -216,8 +261,13 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       throw new Error(response?.error || 'Search failed');
     }
 
+    // Transform items to ensure consistent format
+    const rawItems = response.data?.items || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const products = rawItems.map((item: any) => this.transformSearchItem(item));
+
     return {
-      products: response.data?.items || [],
+      products,
       currency: {
         symbol: response.data?.currency?.symbol || '₫',
         code: response.data?.currency?.code || 'VND',
@@ -231,7 +281,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     items: SaveItemDTO[]
   ): Promise<void> {
     const client = supabaseService.getClient();
-    const localTime = new Date().toISOString();
+    const localTime = this.getLocalTimeString();
 
     const { data, error } = await client.rpc('inventory_add_session_items_v2', {
       p_session_id: sessionId,
@@ -288,7 +338,16 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     notes?: string
   ): Promise<SubmitResultDTO> {
     const client = supabaseService.getClient();
-    const localTime = new Date().toISOString();
+    const localTime = this.getLocalTimeString();
+    const timezone = this.getTimezone();
+
+    // Debug: Log submit parameters
+    console.log('🕐 [submitSession] Time Debug:', {
+      localTime,
+      timezone,
+      browserDate: new Date().toString(),
+      browserTimezoneOffset: new Date().getTimezoneOffset(),
+    });
 
     // Use inventory_submit_session_v3 for variant support in stock_changes
     const { data, error } = await client.rpc('inventory_submit_session_v3', {
@@ -297,9 +356,11 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       p_items: items,
       p_is_final: isFinal,
       p_time: localTime,
-      p_timezone: this.getTimezone(),
+      p_timezone: timezone,
       p_notes: notes || null,
     });
+
+    console.log('📤 [submitSession] RPC Response:', { success: data?.success, error: error?.message });
 
     if (error) {
       throw new Error(`Submit failed: ${error.message}`);
@@ -505,6 +566,14 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
   }): Promise<CreateSessionResultDTO> {
     const client = supabaseService.getClient();
 
+    // Debug: Log create session parameters
+    console.log('🕐 [createSession] Time Debug:', {
+      time: params.time,
+      timezone: params.timezone,
+      browserDate: new Date().toString(),
+      browserTimezoneOffset: new Date().getTimezoneOffset(),
+    });
+
     const rpcParams: Record<string, unknown> = {
       p_company_id: params.companyId,
       p_store_id: params.storeId,
@@ -605,7 +674,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     userId: string;
   }): Promise<MergeSessionsResultDTO> {
     const client = supabaseService.getClient();
-    const localTime = new Date().toISOString();
+    const localTime = this.getLocalTimeString();
 
     // Use inventory_merge_sessions_v2 for variant support
     const { data, error } = await client.rpc('inventory_merge_sessions_v2', {

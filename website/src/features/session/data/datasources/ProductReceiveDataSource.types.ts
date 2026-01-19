@@ -181,7 +181,11 @@ export interface ShipmentDetailDTO {
 export interface ShipmentItemDTO {
   item_id: string;
   product_id: string;
+  variant_id?: string | null;
   product_name: string;
+  variant_name?: string | null;
+  display_name?: string;
+  has_variants?: boolean;
   sku: string;
   quantity_shipped: number;
   quantity_received: number;
@@ -200,7 +204,7 @@ export interface ReceivingSummaryDTO {
   progress_percentage: number;
 }
 
-// Session DTO (v2 - supports status, supplier filters)
+// Session DTO (v2.1 - supports status, supplier filters)
 export interface SessionDTO {
   session_id: string;
   session_name?: string;
@@ -216,8 +220,8 @@ export interface SessionDTO {
   created_at: string;
   completed_at?: string;
   member_count?: number;
-  // v2 fields
-  status?: 'pending' | 'process' | 'complete' | 'cancelled';
+  // v2.1 fields (status: in_progress, complete, cancelled)
+  status?: 'in_progress' | 'complete' | 'cancelled';
   supplier_id?: string;
   supplier_name?: string;
 }

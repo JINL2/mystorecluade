@@ -45,8 +45,9 @@ export interface ReceivingSession {
   supplierName: string | null;
 }
 
-// Session status type (from v2 RPC)
-export type SessionStatus = 'pending' | 'process' | 'complete' | 'cancelled';
+// Session status type (from v2.1 RPC)
+// in_progress = session open, complete = submitted, cancelled = force closed
+export type SessionStatus = 'in_progress' | 'complete' | 'cancelled';
 
 // Filter props interface
 interface UseReceivingSessionListProps {
@@ -94,6 +95,9 @@ export const useReceivingSessionList = (props?: UseReceivingSessionListProps) =>
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+      // v2.1 RPC supports 'in_progress', 'complete', 'cancelled' directly
+      const rpcStatus = statusFilter;
+
       // v2 RPC supports server-side filtering for date, status, and supplier
       const result = await productReceiveRepository.getSessionListV2({
         companyId,
@@ -101,12 +105,12 @@ export const useReceivingSessionList = (props?: UseReceivingSessionListProps) =>
         timezone: userTimezone,
         startDate: fromDate || undefined,
         endDate: toDate || undefined,
-        status: statusFilter || undefined,
+        status: rpcStatus || undefined,
         supplierId: supplierId || undefined,
       });
 
       // Map domain entity to presentation format (Repository returns camelCase)
-      const mappedSessions: ReceivingSession[] = result.sessions.map((s) => ({
+      let mappedSessions: ReceivingSession[] = result.sessions.map((s) => ({
         sessionId: s.sessionId,
         sessionName: s.sessionName || 'Receiving Session',
         sessionType: s.sessionType,
@@ -121,8 +125,8 @@ export const useReceivingSessionList = (props?: UseReceivingSessionListProps) =>
         createdByName: s.createdByName,
         completedAt: s.completedAt || null,
         createdAt: s.createdAt,
-        // v2 fields from server
-        status: (s.status as SessionStatus) || 'pending',
+        // v2.1 fields from server
+        status: (s.status as SessionStatus) || 'in_progress',
         supplierId: s.supplierId || null,
         supplierName: s.supplierName || null,
       }));
@@ -153,8 +157,9 @@ export const useReceivingSessionList = (props?: UseReceivingSessionListProps) =>
 
       // Map and filter for modal (only non-completed shipments)
       // Repository returns domain entities with camelCase properties
+      // Note: status values are 'pending', 'process', 'complete', 'cancelled' (not 'completed')
       const mappedShipments: Shipment[] = result.shipments
-        .filter((s) => s.status !== 'completed' && s.status !== 'cancelled')
+        .filter((s) => s.status !== 'complete' && s.status !== 'cancelled')
         .map((s) => ({
           shipment_id: s.shipmentId,
           shipment_number: s.shipmentNumber,
@@ -206,8 +211,8 @@ export const useReceivingSessionList = (props?: UseReceivingSessionListProps) =>
       // Find the session to check if it's closed
       const session = sessions.find((s) => s.sessionId === sessionId);
 
-      // Don't navigate if session is closed (not active and not final)
-      if (session && !session.isActive && !session.isFinal) {
+      // Don't navigate if session is closed (complete/cancelled status OR isActive is false)
+      if (session && (session.status === 'complete' || session.status === 'cancelled' || !session.isActive)) {
         return;
       }
 
@@ -240,21 +245,28 @@ export const useReceivingSessionList = (props?: UseReceivingSessionListProps) =>
         );
       }
 
+      // Determine if session is active - v2.1: status 'in_progress' means session is open
+      const isSessionActive = session
+        ? session.status === 'in_progress' && session.isActive
+        : true;
+
+      const sessionData = session ? {
+        session_id: session.sessionId,
+        session_name: session.sessionName,
+        store_id: session.storeId,
+        store_name: session.storeName,
+        shipment_id: session.shipmentId,
+        shipment_number: session.shipmentNumber,
+        is_active: isSessionActive, // Use status-based check instead of isActive field
+        is_final: session.isFinal,
+        created_by: session.createdBy,
+        created_by_name: session.createdByName,
+        created_at: session.createdAt,
+      } : null;
+
       navigate(`/product/receive/session/${sessionId}`, {
         state: {
-          sessionData: session ? {
-            session_id: session.sessionId,
-            session_name: session.sessionName,
-            store_id: session.storeId,
-            store_name: session.storeName,
-            shipment_id: session.shipmentId,
-            shipment_number: session.shipmentNumber,
-            is_active: session.isActive,
-            is_final: session.isFinal,
-            created_by: session.createdBy,
-            created_by_name: session.createdByName,
-            created_at: session.createdAt,
-          } : null,
+          sessionData,
           shipmentId: session?.shipmentId,
           isNewSession: false,
         }
@@ -295,6 +307,7 @@ export const useReceivingSessionList = (props?: UseReceivingSessionListProps) =>
 
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // Use local time string (user's device time) - RPC expects local time with timezone info
       const now = new Date();
       const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 

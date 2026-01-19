@@ -78,7 +78,11 @@ export interface ShipmentData {
 export interface ShipmentItemData {
   itemId: string;
   productId: string;
+  variantId?: string | null;
   productName: string;
+  variantName?: string | null;
+  displayName?: string;
+  hasVariants?: boolean;
   sku: string;
   quantityShipped: number;
   quantityReceived: number;
@@ -100,8 +104,11 @@ export interface ReceivingSummaryData {
 // Needs display item
 export interface NeedsDisplayItem {
   productId: string;
+  variantId: string | null;
   sku: string;
   productName: string;
+  variantName: string | null;
+  displayName: string;
   quantityReceived: number;
 }
 
@@ -211,7 +218,7 @@ export interface ReceivingSessionActions {
   setSessionItems: (items: SessionItem[]) => void;
   setSessionItemsSummary: (summary: SessionItemsSummary | null) => void;
   setEditableItems: (items: EditableItem[]) => void;
-  updateEditableItemQuantity: (productId: string, field: 'quantity' | 'quantityRejected', value: number) => void;
+  updateEditableItemQuantity: (productId: string, variantId: string | null, field: 'quantity' | 'quantityRejected', value: number) => void;
 
   // Combine session actions
   setAvailableSessions: (sessions: ActiveSession[]) => void;

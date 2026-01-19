@@ -61,13 +61,13 @@ const getDateRangeForPreset = (preset: DatePreset): { from: string; to: string }
 };
 
 // Format date for display (yyyy/MM/dd)
+// Input format: 'YYYY-MM-DD' (local date string)
+// Just reformat the string, not parse it as Date (which would cause timezone issues)
 export const formatDateDisplay = (dateStr: string): string => {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}/${month}/${day}`;
+  // dateStr format: 'YYYY-MM-DD'
+  // Just replace dashes with slashes
+  return dateStr.replace(/-/g, '/');
 };
 
 export const useProductReceiveList = () => {
@@ -112,8 +112,8 @@ export const useProductReceiveList = () => {
   const [tempFromDate, setTempFromDate] = useState<string>('');
   const [tempToDate, setTempToDate] = useState<string>('');
 
-  // Status filter states (single select) - default to 'process' (In Progress)
-  const [shipmentStatusFilter, setShipmentStatusFilter] = useState<string | null>('process');
+  // Status filter states (single select) - default to 'in_progress' (Pending + Process)
+  const [shipmentStatusFilter, setShipmentStatusFilter] = useState<string | null>('in_progress');
 
   // Supplier filter state (single select)
   const [supplierFilter, setSupplierFilter] = useState<string | null>(null);
@@ -415,7 +415,8 @@ export const useProductReceiveList = () => {
   };
 
   const handleSetTodayDate = () => {
-    const today = new Date().toISOString().split('T')[0];
+    // Use local date string (not UTC) to avoid timezone issues
+    const today = formatLocalDate(new Date());
     setTempFromDate(today);
     setTempToDate(today);
   };

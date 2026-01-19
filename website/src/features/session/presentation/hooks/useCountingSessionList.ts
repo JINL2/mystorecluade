@@ -34,7 +34,8 @@ export interface CountingSession {
 }
 
 // Session status type (from v2 RPC)
-export type SessionStatus = 'pending' | 'process' | 'complete' | 'cancelled';
+// 'in_progress' is a UI-only value that maps to both 'pending' and 'process'
+export type SessionStatus = 'pending' | 'process' | 'complete' | 'cancelled' | 'in_progress';
 
 // Filter props interface
 interface UseCountingSessionListProps {
@@ -76,6 +77,10 @@ export const useCountingSessionList = (props?: UseCountingSessionListProps) => {
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+      // Map 'in_progress' to undefined to fetch both 'pending' and 'process' sessions
+      // Then filter client-side to exclude 'complete' and 'cancelled'
+      const rpcStatus = statusFilter === 'in_progress' ? undefined : statusFilter;
+
       // Use repository instead of direct dataSource call
       const result = await productReceiveRepository.getSessionListV2({
         companyId,
@@ -83,11 +88,11 @@ export const useCountingSessionList = (props?: UseCountingSessionListProps) => {
         timezone: userTimezone,
         startDate: fromDate || undefined,
         endDate: toDate || undefined,
-        status: statusFilter || undefined,
+        status: rpcStatus || undefined,
       });
 
       // Map domain entity to presentation format
-      const mappedSessions: CountingSession[] = result.sessions.map((s) => ({
+      let mappedSessions: CountingSession[] = result.sessions.map((s) => ({
         sessionId: s.sessionId,
         sessionName: s.sessionName || `Counting Session`,
         sessionType: s.sessionType,
@@ -104,8 +109,15 @@ export const useCountingSessionList = (props?: UseCountingSessionListProps) => {
         status: ((s as unknown as { status?: SessionStatus }).status) || 'pending',
       }));
 
+      // Client-side filter for 'in_progress': only show 'pending' and 'process' sessions
+      if (statusFilter === 'in_progress') {
+        mappedSessions = mappedSessions.filter(
+          (s) => s.status === 'pending' || s.status === 'process'
+        );
+      }
+
       setSessions(mappedSessions);
-      setTotalCount(result.totalCount);
+      setTotalCount(statusFilter === 'in_progress' ? mappedSessions.length : result.totalCount);
     } catch (err) {
       console.error('Load counting sessions error:', err);
       setSessions([]);
@@ -149,8 +161,8 @@ export const useCountingSessionList = (props?: UseCountingSessionListProps) => {
       // Find the session to check if it's closed
       const session = sessions.find((s) => s.sessionId === sessionId);
 
-      // Don't navigate if session is closed (not active and not final)
-      if (session && !session.isActive && !session.isFinal) {
+      // Don't navigate if session is closed (complete or cancelled status)
+      if (session && (session.status === 'complete' || session.status === 'cancelled')) {
         return;
       }
 
@@ -214,7 +226,9 @@ export const useCountingSessionList = (props?: UseCountingSessionListProps) => {
 
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const localTime = new Date().toISOString();
+      // Use local time string (user's device time) - RPC expects local time with timezone info
+      const now = new Date();
+      const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
       // Use repository instead of direct dataSource call
       const result = await productReceiveRepository.createSession({

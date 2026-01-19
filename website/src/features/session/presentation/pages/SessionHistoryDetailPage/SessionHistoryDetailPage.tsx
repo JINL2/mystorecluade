@@ -13,15 +13,20 @@ import type { SessionHistoryEntry, SessionHistoryItem, SessionMergeInfo } from '
 import styles from './SessionHistoryDetailPage.module.css';
 
 // Format date for display (yyyy/MM/dd HH:mm)
+// RPC returns date string already in user's local timezone (e.g., '2026-01-19 21:34:51')
+// So we just need to reformat the string, not parse it as Date (which would cause timezone issues)
 const formatDateTime = (dateStr: string | null): string => {
   if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}/${month}/${day} ${hours}:${minutes}`;
+  // dateStr format from RPC: 'YYYY-MM-DD HH:MM:SS'
+  // Convert to display format: 'YYYY/MM/DD HH:MM'
+  const parts = dateStr.split(' ');
+  if (parts.length >= 2) {
+    const datePart = parts[0].replace(/-/g, '/');
+    const timePart = parts[1].substring(0, 5); // HH:MM (remove seconds)
+    return `${datePart} ${timePart}`;
+  }
+  // Fallback: return as-is with dashes replaced
+  return dateStr.replace(/-/g, '/');
 };
 
 // Get user display name from first and last name

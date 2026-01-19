@@ -25,6 +25,7 @@ interface ReceiveProductSectionProps {
   saveSuccess: boolean;
   sessionOwnerId: string;
   currentUserId: string;
+  isSessionActive: boolean;
   onSearchKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onSelectProduct: (product: SearchProduct) => void;
   onClearSearch: () => void;
@@ -50,6 +51,7 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
   saveSuccess,
   sessionOwnerId,
   currentUserId,
+  isSessionActive,
   onSearchKeyDown,
   onSelectProduct,
   onClearSearch,
@@ -61,6 +63,7 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
   onDismissSaveError,
 }) => {
   const canSubmit = sessionOwnerId === currentUserId;
+  const canSave = isSessionActive;
 
   return (
     <div className={styles.receiveSection}>
@@ -105,15 +108,15 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
           {/* Search Results Dropdown */}
           {searchResults.length > 0 && (
             <div className={styles.searchResults}>
-              {searchResults.map((product) => (
+              {searchResults.map((product, index) => (
                 <div
-                  key={product.productId + (product.variantId || '')}
+                  key={`${product.productId || 'unknown'}-${product.variantId || 'base'}-${index}`}
                   className={styles.searchResultItem}
                   onClick={() => onSelectProduct(product)}
                 >
                   <div className={styles.searchResultImage}>
                     {product.imageUrls && product.imageUrls.length > 0 ? (
-                      <img src={product.imageUrls[0]} alt={product.displayName} />
+                      <img src={product.imageUrls[0]} alt={product.displayName || product.productName} />
                     ) : (
                       <div className={styles.noImage}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -125,9 +128,9 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                     )}
                   </div>
                   <div className={styles.resultInfo}>
-                    <span className={styles.resultName}>{product.displayName}</span>
+                    <span className={styles.resultName}>{product.displayName || product.productName || 'Unknown Product'}</span>
                     <span className={styles.resultMeta}>
-                      {product.displaySku} • Selling price: {currency.symbol}{product.price.selling.toLocaleString()}
+                      {product.displaySku || product.productSku || 'N/A'} • Selling price: {currency.symbol}{(product.price?.selling || 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -225,6 +228,17 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
         </div>
       </div>
 
+      {/* Session Inactive Warning */}
+      {!isSessionActive && (
+        <div className={styles.saveErrorMessage}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M15 9l-6 6M9 9l6 6" />
+          </svg>
+          Session is not active
+        </div>
+      )}
+
       {/* Save Status Messages */}
       {saveError && (
         <div className={styles.saveErrorMessage}>
@@ -250,7 +264,8 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
         <button
           className={`${styles.saveButton} ${isSaving ? styles.saveButtonLoading : ''}`}
           onClick={onSave}
-          disabled={isSaving || receivedEntries.length === 0}
+          disabled={isSaving || receivedEntries.length === 0 || !canSave}
+          title={!canSave ? 'Session is not active' : ''}
         >
           {isSaving ? (
             <>
@@ -269,10 +284,10 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
           )}
         </button>
         <button
-          className={`${styles.submitButton} ${!canSubmit ? styles.submitButtonDisabled : ''}`}
+          className={`${styles.submitButton} ${(!canSubmit || !canSave) ? styles.submitButtonDisabled : ''}`}
           onClick={onSubmitClick}
-          disabled={!canSubmit}
-          title={!canSubmit ? 'Only the session owner can submit' : ''}
+          disabled={!canSubmit || !canSave}
+          title={!canSave ? 'Session is not active' : (!canSubmit ? 'Only the session owner can submit' : '')}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M22 2L11 13" />

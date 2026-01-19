@@ -17,6 +17,7 @@ import {
   FinalChoiceModal,
   ReceiveProductSection,
   ShipmentItemsCard,
+  SessionReceivedItemsCard,
 } from './components';
 import styles from './ReceivingSessionPage.module.css';
 
@@ -59,6 +60,7 @@ export const ReceivingSessionPage: React.FC = () => {
 
     // Session items for review
     sessionItems,
+    sessionItemsSummary,
     editableItems,
 
     // Combine session state
@@ -89,6 +91,9 @@ export const ReceivingSessionPage: React.FC = () => {
     totalRejected,
     totalRemaining,
     progressPercentage,
+
+    // Session active status
+    isSessionActive,
 
     // Actions
     handleBack,
@@ -341,9 +346,9 @@ export const ReceivingSessionPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {needsDisplayItems.map((item) => (
-                    <tr key={item.productId}>
+                    <tr key={`${item.productId}-${item.variantId || 'base'}`}>
                       <td className={styles.needsDisplaySku}>{item.sku}</td>
-                      <td className={styles.needsDisplayProduct}>{item.productName}</td>
+                      <td className={styles.needsDisplayProduct}>{item.displayName}</td>
                       <td className={styles.needsDisplayQuantity}>
                         <span className={styles.quantityBadge}>{item.quantityReceived}</span>
                       </td>
@@ -676,16 +681,30 @@ export const ReceivingSessionPage: React.FC = () => {
             </div>
           )}
 
-          {/* Items to Receive Card with Progress */}
-          <ShipmentItemsCard
-            items={items}
-            totalShipped={totalShipped}
-            totalReceived={totalReceived}
-            totalAccepted={totalAccepted}
-            totalRejected={totalRejected}
-            totalRemaining={totalRemaining}
-            progressPercentage={progressPercentage}
-          />
+          {/* Items to Receive Card with Progress - Only show when linked to a shipment */}
+          {shipmentData && (
+            <ShipmentItemsCard
+              items={items}
+              totalShipped={totalShipped}
+              totalReceived={totalReceived}
+              totalAccepted={totalAccepted}
+              totalRejected={totalRejected}
+              totalRemaining={totalRemaining}
+              progressPercentage={progressPercentage}
+            />
+          )}
+
+          {/* Session Received Items Card - Shows all products received in session */}
+          {sessionItems.length > 0 && (
+            <div style={{ marginTop: '24px' }}>
+              <SessionReceivedItemsCard
+                sessionItems={sessionItems}
+                totalProducts={sessionItemsSummary?.total_products ?? sessionItems.length}
+                totalQuantity={sessionItemsSummary?.total_quantity ?? sessionItems.reduce((sum, item) => sum + item.totalQuantity, 0)}
+                totalRejected={sessionItemsSummary?.total_rejected ?? sessionItems.reduce((sum, item) => sum + item.totalRejected, 0)}
+              />
+            </div>
+          )}
 
           {/* Receive Product Section */}
           <ReceiveProductSection
@@ -702,6 +721,7 @@ export const ReceivingSessionPage: React.FC = () => {
             saveSuccess={saveSuccess}
             sessionOwnerId={sessionInfo?.created_by || ''}
             currentUserId={currentUser?.user_id || ''}
+            isSessionActive={isSessionActive}
             onSearchKeyDown={handleSearchKeyDown}
             onSelectProduct={handleSelectProduct}
             onClearSearch={clearSearch}

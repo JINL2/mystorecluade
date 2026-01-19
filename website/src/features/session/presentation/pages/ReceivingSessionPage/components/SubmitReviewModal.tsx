@@ -4,7 +4,8 @@
  */
 
 import React from 'react';
-import type { SessionItem, EditableItem } from '../../../hooks/useReceivingSession';
+import type { SessionItem } from '../../../../domain/entities';
+import type { EditableItem } from '../../../providers/states/receiving_session_state';
 import styles from './SubmitReviewModal.module.css';
 
 interface SubmitReviewModalProps {
@@ -17,7 +18,7 @@ interface SubmitReviewModalProps {
   editableTotalRejected: number;
   onClose: () => void;
   onConfirm: () => void;
-  onQuantityChange: (productId: string, field: 'quantity' | 'quantityRejected', value: number) => void;
+  onQuantityChange: (productId: string, variantId: string | null, field: 'quantity' | 'quantityRejected', value: number) => void;
   onFinalSubmit: () => void;
 }
 
@@ -117,17 +118,22 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({
                   </thead>
                   <tbody>
                     {editableItems.map((item) => {
-                      const originalItem = sessionItems.find(si => si.productId === item.productId);
+                      // Match by both productId and variantId to handle variants correctly
+                      const originalItem = sessionItems.find(
+                        si => si.productId === item.productId && si.variantId === item.variantId
+                      );
+                      // Use displayName from sessionItems (includes variant name) or fallback to productName
+                      const displayName = originalItem?.displayName || item.productName;
                       return (
-                        <tr key={item.productId}>
+                        <tr key={`${item.productId}-${item.variantId || 'base'}`}>
                           <td className={styles.tdReviewProduct}>
-                            <span className={styles.reviewProductName}>{item.productName}</span>
+                            <span className={styles.reviewProductName}>{displayName}</span>
                           </td>
                           <td className={styles.tdReviewQty}>
                             <div className={styles.reviewQtyControl}>
                               <button
                                 className={styles.reviewQtyButton}
-                                onClick={() => onQuantityChange(item.productId, 'quantity', item.quantity - 1)}
+                                onClick={() => onQuantityChange(item.productId, item.variantId, 'quantity', item.quantity - 1)}
                               >
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <path d="M5 12h14" />
@@ -138,11 +144,11 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({
                                 className={styles.reviewQtyInput}
                                 value={item.quantity}
                                 min="0"
-                                onChange={(e) => onQuantityChange(item.productId, 'quantity', parseInt(e.target.value) || 0)}
+                                onChange={(e) => onQuantityChange(item.productId, item.variantId, 'quantity', parseInt(e.target.value) || 0)}
                               />
                               <button
                                 className={styles.reviewQtyButton}
-                                onClick={() => onQuantityChange(item.productId, 'quantity', item.quantity + 1)}
+                                onClick={() => onQuantityChange(item.productId, item.variantId, 'quantity', item.quantity + 1)}
                               >
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <path d="M12 5v14M5 12h14" />
@@ -154,7 +160,7 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({
                             <div className={styles.reviewQtyControl}>
                               <button
                                 className={styles.reviewQtyButton}
-                                onClick={() => onQuantityChange(item.productId, 'quantityRejected', item.quantityRejected - 1)}
+                                onClick={() => onQuantityChange(item.productId, item.variantId, 'quantityRejected', item.quantityRejected - 1)}
                               >
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <path d="M5 12h14" />
@@ -165,11 +171,11 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({
                                 className={styles.reviewQtyInputRed}
                                 value={item.quantityRejected}
                                 min="0"
-                                onChange={(e) => onQuantityChange(item.productId, 'quantityRejected', parseInt(e.target.value) || 0)}
+                                onChange={(e) => onQuantityChange(item.productId, item.variantId, 'quantityRejected', parseInt(e.target.value) || 0)}
                               />
                               <button
                                 className={styles.reviewQtyButton}
-                                onClick={() => onQuantityChange(item.productId, 'quantityRejected', item.quantityRejected + 1)}
+                                onClick={() => onQuantityChange(item.productId, item.variantId, 'quantityRejected', item.quantityRejected + 1)}
                               >
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <path d="M12 5v14M5 12h14" />
@@ -181,8 +187,8 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({
                             {originalItem?.scannedBy && originalItem.scannedBy.length > 0 ? (
                               <div className={styles.employeesList}>
                                 {originalItem.scannedBy.map((user) => (
-                                  <div key={user.user_id} className={styles.employeeRow}>
-                                    <span className={styles.employeeName}>{user.user_name}</span>
+                                  <div key={user.userId} className={styles.employeeRow}>
+                                    <span className={styles.employeeName}>{user.userName}</span>
                                     <div className={styles.employeeCounts}>
                                       <span className={styles.employeeAccepted}>{user.quantity}</span>
                                       {user.quantityRejected > 0 && (

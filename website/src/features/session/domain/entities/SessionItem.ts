@@ -98,11 +98,15 @@ export interface Shipment {
   totalCost: number;
 }
 
-// Shipment item entity
+// Shipment item entity (v2: variant support)
 export interface ShipmentItem {
   itemId: string;
   productId: string;
+  variantId?: string | null;
   productName: string;
+  variantName?: string | null;
+  displayName?: string;
+  hasVariants?: boolean;
   sku: string;
   quantityShipped: number;
   quantityReceived: number;
@@ -136,6 +140,9 @@ export interface ShipmentDetail {
   receivingSummary?: ReceivingSummary;
 }
 
+// Session status type (v2.1: in_progress, complete, cancelled)
+export type SessionStatus = 'in_progress' | 'complete' | 'cancelled';
+
 // Session entity
 export interface Session {
   sessionId: string;
@@ -150,7 +157,12 @@ export interface Session {
   createdBy: string;
   createdByName: string;
   createdAt: string;
+  completedAt?: string;
   memberCount?: number;
+  // v2 fields
+  status?: SessionStatus;
+  supplierId?: string;
+  supplierName?: string;
 }
 
 // Create session result

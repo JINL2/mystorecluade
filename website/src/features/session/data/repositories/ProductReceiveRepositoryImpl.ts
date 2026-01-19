@@ -59,55 +59,62 @@ import {
 } from '../datasources/ProductReceiveDataSource';
 
 // Mapper functions: DTO -> Domain Entity
-const mapSearchProductDTO = (dto: SearchProductDTO): SearchProduct => ({
-  // 제품 정보
-  productId: dto.product_id,
-  productName: dto.product_name,
-  productSku: dto.product_sku,
-  productBarcode: dto.product_barcode,
-  productType: dto.product_type,
-  brandId: dto.brand_id,
-  brandName: dto.brand_name,
-  categoryId: dto.category_id,
-  categoryName: dto.category_name,
-  unit: dto.unit,
-  imageUrls: dto.image_urls,
+const mapSearchProductDTO = (dto: SearchProductDTO): SearchProduct => {
+  // Defensive handling for nested objects that may be undefined
+  const stock = dto.stock || { quantity_on_hand: 0, quantity_available: 0, quantity_reserved: 0 };
+  const price = dto.price || { cost: 0, selling: 0, source: 'default' };
+  const status = dto.status || { stock_level: 'normal' as const, is_active: true };
 
-  // 변형 정보
-  variantId: dto.variant_id,
-  variantName: dto.variant_name,
-  variantSku: dto.variant_sku,
-  variantBarcode: dto.variant_barcode,
+  return {
+    // 제품 정보
+    productId: dto.product_id,
+    productName: dto.product_name,
+    productSku: dto.product_sku,
+    productBarcode: dto.product_barcode,
+    productType: dto.product_type,
+    brandId: dto.brand_id,
+    brandName: dto.brand_name,
+    categoryId: dto.category_id,
+    categoryName: dto.category_name,
+    unit: dto.unit,
+    imageUrls: dto.image_urls,
 
-  // 표시용
-  displayName: dto.display_name,
-  displaySku: dto.display_sku,
-  displayBarcode: dto.display_barcode,
+    // 변형 정보
+    variantId: dto.variant_id,
+    variantName: dto.variant_name,
+    variantSku: dto.variant_sku,
+    variantBarcode: dto.variant_barcode,
 
-  // 재고
-  stock: {
-    quantityOnHand: dto.stock.quantity_on_hand,
-    quantityAvailable: dto.stock.quantity_available,
-    quantityReserved: dto.stock.quantity_reserved,
-  },
+    // 표시용
+    displayName: dto.display_name || dto.product_name,
+    displaySku: dto.display_sku || dto.product_sku,
+    displayBarcode: dto.display_barcode,
 
-  // 가격
-  price: {
-    cost: dto.price.cost,
-    selling: dto.price.selling,
-    source: dto.price.source,
-  },
+    // 재고
+    stock: {
+      quantityOnHand: stock.quantity_on_hand ?? 0,
+      quantityAvailable: stock.quantity_available ?? 0,
+      quantityReserved: stock.quantity_reserved ?? 0,
+    },
 
-  // 상태
-  status: {
-    stockLevel: dto.status.stock_level,
-    isActive: dto.status.is_active,
-  },
+    // 가격
+    price: {
+      cost: price.cost ?? 0,
+      selling: price.selling ?? 0,
+      source: price.source ?? 'default',
+    },
 
-  // 메타
-  hasVariants: dto.has_variants,
-  createdAt: dto.created_at,
-});
+    // 상태
+    status: {
+      stockLevel: status.stock_level ?? 'normal',
+      isActive: status.is_active ?? true,
+    },
+
+    // 메타
+    hasVariants: dto.has_variants ?? false,
+    createdAt: dto.created_at,
+  };
+};
 
 const mapSessionItemDTO = (dto: SessionItemDTO): SessionItem => ({
   productId: dto.product_id,
@@ -147,6 +154,7 @@ const mapSaveItemToDTO = (item: SaveItem) => ({
 
 const mapSubmitItemToDTO = (item: SubmitItem) => ({
   product_id: item.productId,
+  variant_id: item.variantId,
   quantity: item.quantity,
   quantity_rejected: item.quantityRejected,
 });
@@ -186,7 +194,11 @@ const mapShipmentDTO = (dto: ShipmentDTO): Shipment => ({
 const mapShipmentItemDTO = (dto: ShipmentItemDTO): ShipmentItem => ({
   itemId: dto.item_id,
   productId: dto.product_id,
+  variantId: dto.variant_id || null,
   productName: dto.product_name,
+  variantName: dto.variant_name || null,
+  displayName: dto.display_name || dto.product_name,
+  hasVariants: dto.has_variants || false,
   sku: dto.sku,
   quantityShipped: dto.quantity_shipped,
   quantityReceived: dto.quantity_received,
@@ -231,7 +243,12 @@ const mapSessionDTO = (dto: SessionDTO): Session => ({
   createdBy: dto.created_by,
   createdByName: dto.created_by_name,
   createdAt: dto.created_at,
+  completedAt: dto.completed_at,
   memberCount: dto.member_count,
+  // v2 fields
+  status: dto.status,
+  supplierId: dto.supplier_id,
+  supplierName: dto.supplier_name,
 });
 
 const mapSessionParticipantDTO = (dto: SessionParticipantDTO): SessionParticipant => ({

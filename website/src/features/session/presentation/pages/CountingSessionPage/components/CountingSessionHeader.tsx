@@ -19,13 +19,13 @@ interface CountingSessionHeaderProps {
 }
 
 // Format date for display (yyyy/MM/dd)
+// RPC returns date string already in user's local timezone (e.g., '2026-01-19' or '2026-01-19 21:34:51')
+// So we just reformat the string, not parse it as Date (which would cause timezone issues)
 const formatDateDisplay = (dateStr: string): string => {
   if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}/${month}/${day}`;
+  // dateStr format: 'YYYY-MM-DD' (already split by caller)
+  // Just replace dashes with slashes
+  return dateStr.replace(/-/g, '/');
 };
 
 export const CountingSessionHeader: React.FC<CountingSessionHeaderProps> = ({
