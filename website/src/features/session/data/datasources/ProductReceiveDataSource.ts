@@ -592,7 +592,7 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
       rpcParams.p_session_name = params.sessionName;
     }
 
-    const { data, error } = await client.rpc('inventory_create_session', rpcParams);
+    const { data, error } = await client.rpc('inventory_create_session_v2', rpcParams);
 
     if (error) {
       throw new Error(`Failed to create session: ${error.message}`);

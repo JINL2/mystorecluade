@@ -192,8 +192,8 @@ export const SessionHistoryDetailPage: React.FC = () => {
               <div className={styles.infoLabel}>Duration</div>
               <div className={styles.infoValue}>
                 {session.durationMinutes >= 60
-                  ? `${Math.floor(session.durationMinutes / 60)}h ${session.durationMinutes % 60}m`
-                  : `${session.durationMinutes}m`}
+                  ? `${Math.floor(session.durationMinutes / 60)}h ${Math.round(session.durationMinutes % 60)}m`
+                  : `${Math.round(session.durationMinutes)}m`}
               </div>
             </div>
           )}
