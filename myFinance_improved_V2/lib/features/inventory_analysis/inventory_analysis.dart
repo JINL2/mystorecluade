@@ -46,24 +46,28 @@ export 'sales/presentation/widgets/time_series_chart.dart';
 export 'sales/presentation/widgets/top_products_list.dart';
 
 // ============================================================================
-// Inventory Optimization
+// Inventory Optimization V2
 // ============================================================================
 
 // Domain - Entities
-export 'optimization/domain/entities/inventory_optimization.dart';
+export 'optimization/domain/entities/inventory_status.dart';
+export 'optimization/domain/entities/threshold_info.dart';
+export 'optimization/domain/entities/inventory_health.dart';
+export 'optimization/domain/entities/category_summary.dart';
+export 'optimization/domain/entities/inventory_product.dart';
+export 'optimization/domain/entities/inventory_dashboard.dart';
+export 'optimization/domain/entities/paginated_products.dart';
 
 // Domain - Repository Interface
-export 'optimization/domain/repositories/optimization_repository.dart';
-
-// DI - Providers (hide supabaseClientProvider to avoid conflicts)
-export 'optimization/di/optimization_providers.dart'
-    hide supabaseClientProvider;
+export 'optimization/domain/repositories/inventory_optimization_repository.dart';
 
 // Presentation - Pages
 export 'optimization/presentation/pages/inventory_optimization_page.dart';
+export 'optimization/presentation/pages/product_list_page.dart';
+export 'optimization/presentation/pages/category_list_page.dart';
 
 // Presentation - Providers
-export 'optimization/presentation/providers/inventory_optimization_provider.dart';
+export 'optimization/presentation/providers/inventory_optimization_providers.dart';
 
 // ============================================================================
 // Supply Chain

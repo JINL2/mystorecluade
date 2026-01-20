@@ -55,3 +55,4 @@ class TossScaffold extends StatelessWidget {
     );
   }
 }
+

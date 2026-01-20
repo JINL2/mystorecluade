@@ -1,24 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_loading_view.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_error_view.dart';
-import 'package:myfinance_improved/shared/widgets/molecules/cards/toss_card.dart';
-import 'package:myfinance_improved/shared/widgets/molecules/navigation/toss_app_bar.dart';
 
-import '../../domain/entities/inventory_optimization.dart';
-import '../providers/inventory_optimization_provider.dart';
-import '../../../shared/presentation/widgets/analytics_widgets.dart';
+import '../../../../../app/providers/app_state_provider.dart';
+import '../../../../../shared/index.dart';
+import '../../domain/entities/inventory_dashboard.dart';
+import '../../domain/entities/inventory_health.dart';
+import '../../domain/entities/inventory_status.dart';
+import '../providers/inventory_optimization_providers.dart';
+import '../widgets/category_list_tile.dart';
+import '../widgets/inventory_summary_section.dart';
+import '../widgets/priority_action_card.dart';
+import '../widgets/status_filter_chips.dart';
+import 'category_list_page.dart';
+import 'product_list_page.dart';
 
-/// Inventory Optimization Detail Page
+/// 재고 최적화 대시보드 페이지 (2026 UI/UX 트렌드 적용)
+///
+/// 핵심 개선:
+/// - 스토어 선택 지원
+/// - 우선순위 기반 레이아웃 (중요한 것 먼저)
+/// - 중복 정보 제거
+/// - 쉬운 용어 사용
+/// - Warning 상태 추가
 class InventoryOptimizationPage extends ConsumerStatefulWidget {
-  final String companyId;
+  final String? companyId;
   final String? storeId;
 
   const InventoryOptimizationPage({
     super.key,
-    required this.companyId,
+    this.companyId,
     this.storeId,
   });
 
@@ -29,323 +39,402 @@ class InventoryOptimizationPage extends ConsumerStatefulWidget {
 
 class _InventoryOptimizationPageState
     extends ConsumerState<InventoryOptimizationPage> {
-  String? _selectedPriority;
+  late String _companyId;
+  String? _selectedStoreId;
+  List<Map<String, dynamic>> _stores = [];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(inventoryOptimizationProvider.notifier).loadData(
-            companyId: widget.companyId,
-          );
+      _initializeData();
     });
+  }
+
+  void _initializeData() {
+    final appState = ref.read(appStateProvider);
+    _companyId = widget.companyId?.isNotEmpty == true
+        ? widget.companyId!
+        : appState.companyChoosen;
+
+    _initializeStores();
+    _selectedStoreId = widget.storeId;
+  }
+
+  void _initializeStores() {
+    final appState = ref.read(appStateProvider);
+    final userData = appState.user;
+    final companies = userData['companies'] as List<dynamic>? ?? [];
+
+    for (final company in companies) {
+      final companyData = company as Map<String, dynamic>;
+      if (companyData['company_id'] == _companyId) {
+        final storesList = companyData['stores'] as List<dynamic>? ?? [];
+        _stores = storesList.map((s) => s as Map<String, dynamic>).toList();
+        break;
+      }
+    }
+  }
+
+  void _onStoreChanged(String? storeId) {
+    setState(() {
+      _selectedStoreId = storeId;
+    });
+    ref.invalidate(inventoryDashboardProvider(_companyId));
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(inventoryOptimizationProvider);
+    final appState = ref.watch(appStateProvider);
+    final companyId = widget.companyId?.isNotEmpty == true
+        ? widget.companyId!
+        : appState.companyChoosen;
 
-    return Scaffold(
-      backgroundColor: TossColors.gray50,
-      appBar: const TossAppBar(
-        title: 'Inventory Optimization',
-      ),
-      body: _buildBody(state),
-    );
-  }
-
-  Widget _buildBody(InventoryOptimizationState state) {
-    if (state.isLoading && !state.hasData) {
-      return const TossLoadingView();
-    }
-
-    if (state.hasError && !state.hasData) {
-      return TossErrorView(
-        error: Exception(state.errorMessage ?? 'Failed to load data'),
-        onRetry: () =>
-            ref.read(inventoryOptimizationProvider.notifier).loadData(
-                  companyId: widget.companyId,
-                ),
+    if (companyId.isEmpty) {
+      return const TossScaffold(
+        appBar: TossAppBar(title: 'Inventory Health'),
+        body: TossEmptyView(
+          icon: Icon(Icons.business_outlined, size: 48),
+          title: 'No Company Selected',
+          description: 'Please select a company first',
+        ),
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(inventoryOptimizationProvider.notifier).refresh(
-                companyId: widget.companyId,
+    _companyId = companyId;
+    if (_stores.isEmpty) {
+      _initializeStores();
+    }
+
+    final dashboardAsync = ref.watch(inventoryDashboardProvider(companyId));
+
+    return TossScaffold(
+      backgroundColor: TossColors.gray50,
+      appBar: TossAppBar(
+        title: 'Inventory Health',
+        primaryActionIcon: Icons.refresh,
+        onPrimaryAction: () {
+          ref.invalidate(inventoryDashboardProvider(companyId));
+        },
+      ),
+      body: Column(
+        children: [
+          // Store Selector
+          _buildStoreSelector(),
+          // Main Content
+          Expanded(
+            child: dashboardAsync.when(
+              loading: () => const TossLoadingView(),
+              error: (error, stack) => TossErrorView(
+                error: error,
+                onRetry: () {
+                  ref.invalidate(inventoryDashboardProvider(companyId));
+                },
               ),
+              data: (dashboard) => _buildContent(dashboard, companyId),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Store Selector (Sales Analytics V2와 동일한 패턴)
+  Widget _buildStoreSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.paddingMD,
+        vertical: TossSpacing.paddingSM,
+      ),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        border: Border(
+          bottom: BorderSide(color: TossColors.gray200, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.store_outlined,
+            size: TossSpacing.iconSM,
+            color: TossColors.textSecondary,
+          ),
+          const SizedBox(width: TossSpacing.gapSM),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.paddingSM,
+                vertical: TossSpacing.paddingXS,
+              ),
+              decoration: BoxDecoration(
+                color: TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.button),
+                border: Border.all(color: TossColors.gray200),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String?>(
+                  value: _selectedStoreId,
+                  isExpanded: true,
+                  isDense: true,
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: TossColors.gray600,
+                    size: 20,
+                  ),
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.gray900,
+                  ),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.business,
+                            size: 16,
+                            color: TossColors.primary,
+                          ),
+                          const SizedBox(width: TossSpacing.gapSM),
+                          Text(
+                            'All Stores',
+                            style: TossTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: TossColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ..._stores.map((store) {
+                      final storeId = store['store_id'] as String;
+                      final storeName =
+                          store['store_name'] as String? ?? 'Store';
+                      return DropdownMenuItem<String?>(
+                        value: storeId,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.storefront,
+                              size: 16,
+                              color: TossColors.gray500,
+                            ),
+                            const SizedBox(width: TossSpacing.gapSM),
+                            Expanded(
+                              child: Text(
+                                storeName,
+                                style: TossTextStyles.body,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                  onChanged: _onStoreChanged,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(InventoryDashboard dashboard, String companyId) {
+    final health = dashboard.health;
+
+    // 긴급 조치가 필요한 총 수
+    final urgentCount = health.abnormalCount + health.stockoutCount;
+    final attentionCount = health.criticalCount + health.warningCount;
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(inventoryDashboardProvider(companyId));
+      },
       color: TossColors.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: TossSpacing.space4),
-
-            // Overall Score
-            if (state.dashboard != null) _buildScoreSection(state.dashboard!),
-
-            const SizedBox(height: TossSpacing.space4),
-
-            // Key Metrics
-            if (state.dashboard != null) _buildMetricsSection(state.dashboard!),
-
-            const SizedBox(height: TossSpacing.space4),
-
-            // Reorder List
-            _buildReorderSection(state.reorderList ?? []),
-
-            const SizedBox(height: TossSpacing.space6),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Overall Score Section
-  Widget _buildScoreSection(InventoryOptimization dashboard) {
-    final statusColor = switch (dashboard.status) {
-      'good' => TossColors.success,
-      'warning' => TossColors.warning,
-      _ => TossColors.error,
-    };
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: TossCard(
-        child: Column(
-          children: [
-            Text(
-              'Optimization Score',
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  '${dashboard.overallScore}',
-                  style: TossTextStyles.h1.copyWith(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
-                  ),
-                ),
-                Text(
-                  ' / 100',
-                  style: TossTextStyles.h4.copyWith(
-                    color: TossColors.gray500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            AnalyticsStatusBadge(
-              status: dashboard.status,
-              large: true,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Key Metrics Section
-  Widget _buildMetricsSection(InventoryOptimization dashboard) {
-    final metrics = dashboard.metrics;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-      child: TossCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Key Metrics',
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            _buildMetricRow(
-              label: 'Stockout Rate',
-              value: '${metrics.stockoutRate.toStringAsFixed(1)}%',
-              status: metrics.stockoutStatus,
-              description: 'Recommended: <= 3%',
-            ),
-            const Divider(height: TossSpacing.space4),
-            _buildMetricRow(
-              label: 'Overstock Rate',
-              value: '${metrics.overstockRate.toStringAsFixed(1)}%',
-              status: metrics.overstockStatus,
-              description: 'Recommended: <= 5%',
-            ),
-            const Divider(height: TossSpacing.space4),
-            _buildMetricRow(
-              label: 'Avg Turnover',
-              value: '${metrics.avgTurnover.toStringAsFixed(1)}x',
-              status: metrics.turnoverStatus,
-              description: 'Recommended: >= 5x',
-            ),
-            const Divider(height: TossSpacing.space4),
-            _buildMetricRow(
-              label: 'Reorder Needed',
-              value: '${metrics.reorderNeeded}',
-              status: metrics.reorderNeeded == 0 ? 'good' : 'warning',
-              description: 'Products needing reorder',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetricRow({
-    required String label,
-    required String value,
-    required String status,
-    required String description,
-  }) {
-    final statusColor = switch (status) {
-      'good' => TossColors.success,
-      'warning' => TossColors.warning,
-      _ => TossColors.error,
-    };
-
-    return Row(
-      children: [
-        Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(TossSpacing.paddingMD),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
+              // 1. 긴급 조치 필요 (가장 중요) - 빨간색
+              if (urgentCount > 0)
+                PriorityActionCard.urgent(
+                  count: urgentCount,
+                  stockoutCount: health.stockoutCount,
+                  abnormalCount: health.abnormalCount,
+                  onTap: () => _navigateToProductList(
+                    companyId,
+                    urgentCount == health.stockoutCount
+                        ? InventoryStatus.stockout
+                        : InventoryStatus.abnormal,
+                  ),
                 ),
-              ),
-              Text(
-                description,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
+              if (urgentCount > 0) const SizedBox(height: TossSpacing.gapMD),
+
+              // 2. 주의 필요 (두번째 중요) - 주황색
+              if (attentionCount > 0)
+                PriorityActionCard.attention(
+                  count: attentionCount,
+                  criticalCount: health.criticalCount,
+                  warningCount: health.warningCount,
+                  criticalDays: dashboard.thresholds.criticalDays,
+                  warningDays: dashboard.thresholds.warningDays,
+                  onTap: () => _navigateToProductList(
+                    companyId,
+                    health.criticalCount > 0
+                        ? InventoryStatus.critical
+                        : InventoryStatus.warning,
+                  ),
                 ),
+              if (attentionCount > 0)
+                const SizedBox(height: TossSpacing.gapLG),
+
+              // 3. 재고 현황 요약 (한눈에 보기)
+              InventorySummarySection(
+                totalProducts: health.totalProducts,
+                normalCount: health.normalCount,
+                reorderCount: health.reorderNeededCount,
+                overstockCount: health.overstockCount,
+                deadStockCount: health.deadStockCount,
               ),
+              const SizedBox(height: TossSpacing.gapLG),
+
+              // 4. 빠른 필터 (클릭하면 목록으로 이동)
+              _buildQuickFilters(companyId, health),
+              const SizedBox(height: TossSpacing.gapLG),
+
+              // 5. Top 카테고리
+              _buildTopCategories(dashboard, companyId),
+
+              const SizedBox(height: TossSpacing.gapXL),
             ],
           ),
-        ),
-        Text(
-          value,
-          style: TossTextStyles.h4.copyWith(
-            color: statusColor,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Reorder List Section
-  Widget _buildReorderSection(List<ReorderProduct> products) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AnalyticsSectionHeader(
-          title: 'Products to Reorder',
-          subtitle: '${products.length} products',
-          trailing: _buildPriorityFilter(),
-        ),
-        const SizedBox(height: TossSpacing.space2),
-        if (products.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Center(
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    size: 48,
-                    color: TossColors.success,
-                  ),
-                  const SizedBox(height: TossSpacing.space2),
-                  Text(
-                    'No products need reordering',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return _buildReorderItem(product);
-            },
-          ),
-      ],
-    );
-  }
-
-  Widget _buildPriorityFilter() {
-    return PopupMenuButton<String?>(
-      initialValue: _selectedPriority,
-      onSelected: (value) {
-        setState(() => _selectedPriority = value);
-        ref.read(inventoryOptimizationProvider.notifier).filterByPriority(
-              companyId: widget.companyId,
-              priority: value,
-            );
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(value: null, child: Text('All')),
-        const PopupMenuItem(value: 'critical', child: Text('Critical')),
-        const PopupMenuItem(value: 'warning', child: Text('Warning')),
-        const PopupMenuItem(value: 'normal', child: Text('Normal')),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          border: Border.all(color: TossColors.gray300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _selectedPriority == null
-                  ? 'All'
-                  : _selectedPriority == 'critical'
-                      ? 'Critical'
-                      : _selectedPriority == 'warning'
-                          ? 'Warning'
-                          : 'Normal',
-              style: TossTextStyles.bodySmall,
-            ),
-            const Icon(Icons.arrow_drop_down, size: 20),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildReorderItem(ReorderProduct product) {
-    final numberFormat = NumberFormat('#,###');
+  Widget _buildQuickFilters(String companyId, InventoryHealth health) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Quick Filters',
+          style: TossTextStyles.subtitle.copyWith(
+            fontWeight: TossFontWeight.semibold,
+          ),
+        ),
+        const SizedBox(height: TossSpacing.gapMD),
+        StatusFilterChips(
+          filters: [
+            StatusFilterItem(
+              status: InventoryStatus.reorderNeeded,
+              count: health.reorderNeededCount,
+              label: 'Reorder',
+            ),
+            StatusFilterItem(
+              status: InventoryStatus.overstock,
+              count: health.overstockCount,
+              label: 'Overstock',
+            ),
+            StatusFilterItem(
+              status: InventoryStatus.deadStock,
+              count: health.deadStockCount,
+              label: 'Dead Stock',
+            ),
+            StatusFilterItem(
+              status: InventoryStatus.warning,
+              count: health.warningCount,
+              label: 'Warning',
+            ),
+          ],
+          onTap: (status) => _navigateToProductList(companyId, status),
+        ),
+      ],
+    );
+  }
 
-    return AnalyticsListItem(
-      title: product.productName,
-      subtitle: product.categoryName ?? 'Uncategorized',
-      status: product.priority,
-      value: '${numberFormat.format(product.orderQty)} to order',
-      subValue: product.daysLeftText,
+  Widget _buildTopCategories(InventoryDashboard dashboard, String companyId) {
+    if (dashboard.topCategories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Categories',
+              style: TossTextStyles.subtitle.copyWith(
+                fontWeight: TossFontWeight.semibold,
+              ),
+            ),
+            TossButton.textButton(
+              text: 'View All',
+              onPressed: () => _navigateToCategoryList(companyId),
+            ),
+          ],
+        ),
+        const SizedBox(height: TossSpacing.gapMD),
+        ...dashboard.topCategories.take(5).map(
+              (category) => Padding(
+                padding: const EdgeInsets.only(bottom: TossSpacing.gapMD),
+                child: CategoryListTile(
+                  category: category,
+                  onTap: () => _navigateToProductListByCategory(
+                    companyId,
+                    category.categoryId,
+                    category.categoryName,
+                  ),
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  void _navigateToProductList(String companyId, InventoryStatus status) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ProductListPage(
+          companyId: companyId,
+          statusFilter: status.filterValue,
+          title: status.labelEn,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToProductListByCategory(
+    String companyId,
+    String categoryId,
+    String categoryName,
+  ) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ProductListPage(
+          companyId: companyId,
+          categoryId: categoryId,
+          title: categoryName,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToCategoryList(String companyId) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => CategoryListPage(companyId: companyId),
+      ),
     );
   }
 }

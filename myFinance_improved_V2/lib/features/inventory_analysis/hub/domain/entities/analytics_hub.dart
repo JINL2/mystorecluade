@@ -1,9 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../discrepancy/domain/entities/discrepancy_overview.dart';
+import '../../../optimization/domain/entities/inventory_dashboard.dart';
 import '../../../sales/domain/entities/sales_dashboard.dart';
 import '../../../supply_chain/domain/entities/supply_chain_status.dart';
-import '../../../discrepancy/domain/entities/discrepancy_overview.dart';
-import '../../../optimization/domain/entities/inventory_optimization.dart';
 
 part 'analytics_hub.freezed.dart';
 
@@ -29,7 +29,7 @@ class AnalyticsHubData with _$AnalyticsHubData {
     required SalesDashboard? salesDashboard,
     required SupplyChainStatus? supplyChainStatus,
     required DiscrepancyOverview? discrepancyOverview,
-    required InventoryOptimization? inventoryOptimization,
+    required InventoryDashboard? inventoryDashboard,
   }) = _AnalyticsHubData;
 
   /// Sales analysis card data
@@ -55,24 +55,35 @@ class AnalyticsHubData with _$AnalyticsHubData {
 
   /// Inventory optimization card data
   AnalyticsSummaryCard get optimizationCard {
-    if (inventoryOptimization == null) {
+    if (inventoryDashboard == null) {
       return const AnalyticsSummaryCard(
-        title: 'Inventory Optimization',
+        title: 'Inventory Health',
         status: 'insufficient',
         statusText: 'No data',
         primaryMetric: '-',
       );
     }
 
-    final opt = inventoryOptimization!;
-    final criticalText = opt.criticalCount > 0 ? '${opt.criticalCount} urgent' : null;
+    final health = inventoryDashboard!.health;
+    final criticalCount = health.criticalCount;
+    final stockoutCount = health.stockoutCount;
+    final totalIssues = criticalCount + stockoutCount;
+
+    String status;
+    if (stockoutCount > 0) {
+      status = 'critical';
+    } else if (criticalCount > 0) {
+      status = 'warning';
+    } else {
+      status = 'good';
+    }
 
     return AnalyticsSummaryCard(
-      title: 'Inventory Optimization',
-      status: opt.criticalCount > 0 ? 'critical' : opt.status,
-      statusText: opt.statusText,
-      primaryMetric: 'Score ${opt.overallScore}/100',
-      secondaryMetric: criticalText,
+      title: 'Inventory Health',
+      status: status,
+      statusText: totalIssues > 0 ? '$totalIssues products need attention' : 'All products healthy',
+      primaryMetric: '${health.stockoutRate.toStringAsFixed(1)}% stockout',
+      secondaryMetric: criticalCount > 0 ? '$criticalCount critical' : null,
     );
   }
 
