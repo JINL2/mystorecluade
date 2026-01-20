@@ -507,7 +507,7 @@ class SessionDetailNotifier extends _$SessionDetailNotifier {
     state = state.copyWith(selectedProducts: []);
   }
 
-  /// Save items to session via UseCase (uses inventory_update_session_item RPC)
+  /// Save items to session via UseCase (uses inventory_update_session_item_v2 RPC)
   /// This RPC updates existing items, inserts new ones, and consolidates duplicates
   Future<({bool success, String? error})> saveItems(String userId) async {
     if (state.selectedProducts.isEmpty) {

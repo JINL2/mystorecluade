@@ -7,7 +7,7 @@ part of 'session_list_provider.dart';
 // **************************************************************************
 
 String _$sessionListNotifierHash() =>
-    r'c22f07055c08fdd3d8a3fd012b3e6dbe2b6ad73c';
+    r'2a3cd54762d6861ead24ccfab79a047cb3fc7822';
 
 /// Copied from Dart SDK
 class _SystemHash {

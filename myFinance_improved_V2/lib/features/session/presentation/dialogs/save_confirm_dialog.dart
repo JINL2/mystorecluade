@@ -97,7 +97,7 @@ class SaveConfirmDialog extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              item.productName,
+              item.name,
               style: TossTextStyles.bodySmall,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

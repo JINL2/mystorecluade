@@ -36,7 +36,7 @@ class SessionListNotifier extends _$SessionListNotifier {
       final response = await getSessionList(
         companyId: companyId,
         sessionType: typeFilter,
-        isActive: true, // Only show active sessions
+        status: 'in_progress', // v2: Only show active sessions
       );
 
       state = state.copyWith(

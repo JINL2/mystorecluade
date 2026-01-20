@@ -1582,7 +1582,12 @@ mixin _$StockChangeItem {
   int get quantityAfter => throw _privateConstructorUsedError;
 
   /// True if quantityBefore was 0 (new item needs display)
-  bool get needsDisplay => throw _privateConstructorUsedError;
+  bool get needsDisplay =>
+      throw _privateConstructorUsedError; // v3 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  bool get hasVariants => throw _privateConstructorUsedError;
 
   /// Create a copy of StockChangeItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1604,7 +1609,11 @@ abstract class $StockChangeItemCopyWith<$Res> {
       int quantityBefore,
       int quantityReceived,
       int quantityAfter,
-      bool needsDisplay});
+      bool needsDisplay,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -1629,6 +1638,10 @@ class _$StockChangeItemCopyWithImpl<$Res, $Val extends StockChangeItem>
     Object? quantityReceived = null,
     Object? quantityAfter = null,
     Object? needsDisplay = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -1659,6 +1672,22 @@ class _$StockChangeItemCopyWithImpl<$Res, $Val extends StockChangeItem>
           ? _value.needsDisplay
           : needsDisplay // ignore: cast_nullable_to_non_nullable
               as bool,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -1678,7 +1707,11 @@ abstract class _$$StockChangeItemImplCopyWith<$Res>
       int quantityBefore,
       int quantityReceived,
       int quantityAfter,
-      bool needsDisplay});
+      bool needsDisplay,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -1701,6 +1734,10 @@ class __$$StockChangeItemImplCopyWithImpl<$Res>
     Object? quantityReceived = null,
     Object? quantityAfter = null,
     Object? needsDisplay = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_$StockChangeItemImpl(
       productId: null == productId
@@ -1731,13 +1768,29 @@ class __$$StockChangeItemImplCopyWithImpl<$Res>
           ? _value.needsDisplay
           : needsDisplay // ignore: cast_nullable_to_non_nullable
               as bool,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
 
-class _$StockChangeItemImpl implements _StockChangeItem {
+class _$StockChangeItemImpl extends _StockChangeItem {
   const _$StockChangeItemImpl(
       {required this.productId,
       this.sku,
@@ -1745,7 +1798,12 @@ class _$StockChangeItemImpl implements _StockChangeItem {
       required this.quantityBefore,
       required this.quantityReceived,
       required this.quantityAfter,
-      required this.needsDisplay});
+      required this.needsDisplay,
+      this.variantId,
+      this.variantName,
+      this.displayName,
+      this.hasVariants = false})
+      : super._();
 
   @override
   final String productId;
@@ -1763,10 +1821,20 @@ class _$StockChangeItemImpl implements _StockChangeItem {
   /// True if quantityBefore was 0 (new item needs display)
   @override
   final bool needsDisplay;
+// v3 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
+  @override
+  @JsonKey()
+  final bool hasVariants;
 
   @override
   String toString() {
-    return 'StockChangeItem(productId: $productId, sku: $sku, productName: $productName, quantityBefore: $quantityBefore, quantityReceived: $quantityReceived, quantityAfter: $quantityAfter, needsDisplay: $needsDisplay)';
+    return 'StockChangeItem(productId: $productId, sku: $sku, productName: $productName, quantityBefore: $quantityBefore, quantityReceived: $quantityReceived, quantityAfter: $quantityAfter, needsDisplay: $needsDisplay, variantId: $variantId, variantName: $variantName, displayName: $displayName, hasVariants: $hasVariants)';
   }
 
   @override
@@ -1786,12 +1854,31 @@ class _$StockChangeItemImpl implements _StockChangeItem {
             (identical(other.quantityAfter, quantityAfter) ||
                 other.quantityAfter == quantityAfter) &&
             (identical(other.needsDisplay, needsDisplay) ||
-                other.needsDisplay == needsDisplay));
+                other.needsDisplay == needsDisplay) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, productId, sku, productName,
-      quantityBefore, quantityReceived, quantityAfter, needsDisplay);
+  int get hashCode => Object.hash(
+      runtimeType,
+      productId,
+      sku,
+      productName,
+      quantityBefore,
+      quantityReceived,
+      quantityAfter,
+      needsDisplay,
+      variantId,
+      variantName,
+      displayName,
+      hasVariants);
 
   /// Create a copy of StockChangeItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1803,7 +1890,7 @@ class _$StockChangeItemImpl implements _StockChangeItem {
           this, _$identity);
 }
 
-abstract class _StockChangeItem implements StockChangeItem {
+abstract class _StockChangeItem extends StockChangeItem {
   const factory _StockChangeItem(
       {required final String productId,
       final String? sku,
@@ -1811,7 +1898,12 @@ abstract class _StockChangeItem implements StockChangeItem {
       required final int quantityBefore,
       required final int quantityReceived,
       required final int quantityAfter,
-      required final bool needsDisplay}) = _$StockChangeItemImpl;
+      required final bool needsDisplay,
+      final String? variantId,
+      final String? variantName,
+      final String? displayName,
+      final bool hasVariants}) = _$StockChangeItemImpl;
+  const _StockChangeItem._() : super._();
 
   @override
   String get productId;
@@ -1828,7 +1920,15 @@ abstract class _StockChangeItem implements StockChangeItem {
 
   /// True if quantityBefore was 0 (new item needs display)
   @override
-  bool get needsDisplay;
+  bool get needsDisplay; // v3 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
+  @override
+  bool get hasVariants;
 
   /// Create a copy of StockChangeItem
   /// with the given fields replaced by the non-null parameter values.

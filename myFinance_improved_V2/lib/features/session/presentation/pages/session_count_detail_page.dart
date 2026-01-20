@@ -178,7 +178,7 @@ class _SessionCountDetailPageState
     );
   }
 
-  /// Load session users from RPC (inventory_get_session_items)
+  /// Load session users from RPC (inventory_get_session_items_v2)
   Future<void> _loadSessionUsers() async {
     if (_isLoadingUsers) return;
 

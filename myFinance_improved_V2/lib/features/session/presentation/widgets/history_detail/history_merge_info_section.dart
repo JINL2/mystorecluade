@@ -318,7 +318,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName,
+                  item.name,
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.textPrimary,
                   ),

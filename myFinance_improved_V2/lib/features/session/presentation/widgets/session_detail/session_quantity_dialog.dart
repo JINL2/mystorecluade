@@ -60,9 +60,9 @@ class _SessionQuantityDialogState extends State<SessionQuantityDialog> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: TossSpacing.space2),
-            // Product name
+            // Product name (uses displayName if available for variant products)
             Text(
-              widget.item.productName,
+              widget.item.name,
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray500,
               ),

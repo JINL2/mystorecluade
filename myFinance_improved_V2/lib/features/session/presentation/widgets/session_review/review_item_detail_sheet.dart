@@ -169,7 +169,7 @@ class ReviewItemDetailSheet extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName,
+                  item.name,
                   style: TossTextStyles.h4.copyWith(
                     fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
@@ -177,10 +177,10 @@ class ReviewItemDetailSheet extends ConsumerWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (item.sku != null) ...[
+                if (item.effectiveSku != null) ...[
                   const SizedBox(height: TossSpacing.space1),
                   Text(
-                    item.sku!,
+                    item.effectiveSku!,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.textTertiary,
                     ),

@@ -12,13 +12,18 @@ import '../entities/user_session_items.dart';
 
 /// Repository interface for session operations
 abstract class SessionRepository {
-  /// Get session list via RPC
+  /// Get session list via RPC (inventory_get_session_list_v2)
+  /// v2: Replaced isActive with status, added supplier/date filters
   Future<SessionListResponse> getSessionList({
     required String companyId,
     String? storeId,
     String? sessionType,
     String? shipmentId,
-    bool? isActive,
+    /// v2: Status filter ('in_progress', 'complete', 'cancelled')
+    String? status,
+    String? supplierId,
+    DateTime? startDate,
+    DateTime? endDate,
     String? createdBy,
     int limit = 50,
     int offset = 0,
@@ -110,7 +115,10 @@ abstract class SessionRepository {
     String? notes,
   });
 
-  /// Create a new session via RPC (inventory_create_session)
+  /// Create a new session via RPC (inventory_create_session_v2)
+  /// v2: p_time is TIMESTAMP (without timezone) - treated as user's local time
+  ///     Conversion: p_time AT TIME ZONE p_timezone for UTC storage
+  ///     If p_time is NULL, uses NOW()
   /// For counting: no shipmentId needed
   /// For receiving: shipmentId is required
   Future<CreateSessionResponse> createSessionViaRpc({
@@ -175,7 +183,7 @@ abstract class SessionRepository {
     required String companyId,
   });
 
-  /// Get session history via RPC (inventory_get_session_history)
+  /// Get session history via RPC (inventory_get_session_history_v3)
   /// Returns detailed session history including members and items
   Future<SessionHistoryResponse> getSessionHistory({
     required String companyId,
@@ -188,8 +196,10 @@ abstract class SessionRepository {
     int offset = 0,
   });
 
-  /// Get product stock by store via RPC (inventory_product_stock_stores)
-  /// Returns stock quantity for each product in the specified store
+  /// Get product stock by store via RPC (inventory_product_stock_stores_v2)
+  /// v2: Supports both variant and non-variant products
+  /// Returns stock quantity for each product/variant in the specified store
+  /// Key format: productId for non-variant products, productId:variantId for variants
   Future<Map<String, int>> getProductStockByStore({
     required String companyId,
     required String storeId,
@@ -198,13 +208,13 @@ abstract class SessionRepository {
 
   /// Get individual items added by a specific user in a session
   /// Returns each item_id separately (no grouping by product_id)
-  /// via RPC (inventory_get_user_session_items)
+  /// via RPC (inventory_get_user_session_items_v2)
   Future<UserSessionItemsResponse> getUserSessionItems({
     required String sessionId,
     required String userId,
   });
 
-  /// Update or insert session items via RPC (inventory_update_session_item)
+  /// Update or insert session items via RPC (inventory_update_session_item_v2)
   /// - Existing products: Consolidates multiple items into one and updates quantity
   /// - New products: Inserts new item
   /// - Products not in items: Keeps as-is (no deletion)
@@ -214,7 +224,7 @@ abstract class SessionRepository {
     required List<SessionItemInput> items,
   });
 
-  /// Compare two sessions via RPC (inventory_compare_sessions)
+  /// Compare two sessions via RPC (inventory_compare_sessions_v2)
   /// Returns items that exist in target session but not in source session
   Future<SessionCompareResult> compareSessions({
     required String sourceSessionId,
@@ -222,7 +232,7 @@ abstract class SessionRepository {
     required String userId,
   });
 
-  /// Merge source session into target session via RPC (inventory_merge_sessions)
+  /// Merge source session into target session via RPC (inventory_merge_sessions_v2)
   /// - Copies all items from source to target with source_session_id tracking
   /// - Adds source's members to target (skips duplicates)
   /// - Deactivates source session

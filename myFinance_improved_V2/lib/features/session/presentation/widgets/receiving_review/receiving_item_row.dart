@@ -140,7 +140,7 @@ class ReceivingItemRow extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        item.productName,
+                        item.name,
                         style: TossTextStyles.bodyMedium.copyWith(
                           color: TossColors.textPrimary,
                           fontWeight: TossFontWeight.semibold,
@@ -148,10 +148,10 @@ class ReceivingItemRow extends ConsumerWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (item.sku != null) ...[
+                      if (item.effectiveSku != null) ...[
                         const SizedBox(height: TossSpacing.space1),
                         Text(
-                          item.sku!,
+                          item.effectiveSku!,
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.textTertiary,
                           ),

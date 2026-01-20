@@ -117,6 +117,9 @@ class StockSnapshotItem with _$StockSnapshotItem {
     String? displayName,
   }) = _StockSnapshotItem;
 
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
+
   /// Check if this is a new product (was 0 stock before)
   bool get isNewProduct => needsDisplay;
 

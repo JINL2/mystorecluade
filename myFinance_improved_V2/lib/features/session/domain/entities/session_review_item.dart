@@ -77,7 +77,7 @@ class SessionReviewSummary with _$SessionReviewSummary {
   int get netQuantity => totalQuantity - totalRejected;
 }
 
-/// Session participant (from inventory_get_session_items RPC)
+/// Session participant (from inventory_get_session_items_v2 RPC)
 @freezed
 class SessionParticipant with _$SessionParticipant {
   const factory SessionParticipant({
@@ -117,6 +117,8 @@ class SessionSubmitItem with _$SessionSubmitItem {
 /// Tracks before/after quantities for display tracking
 @freezed
 class StockChangeItem with _$StockChangeItem {
+  const StockChangeItem._();
+
   const factory StockChangeItem({
     required String productId,
     String? sku,
@@ -126,7 +128,15 @@ class StockChangeItem with _$StockChangeItem {
     required int quantityAfter,
     /// True if quantityBefore was 0 (new item needs display)
     required bool needsDisplay,
+    // v3 variant fields
+    String? variantId,
+    String? variantName,
+    String? displayName,
+    @Default(false) bool hasVariants,
   }) = _StockChangeItem;
+
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
 }
 
 /// Response from session submit

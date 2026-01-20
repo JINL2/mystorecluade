@@ -1,6 +1,6 @@
 import '../../domain/entities/user_session_items.dart';
 
-/// Model for inventory_get_user_session_items RPC response
+/// Model for inventory_get_user_session_items_v2 RPC response
 /// Returns individual item records (no grouping by product_id)
 
 /// Individual item added by user in a session
@@ -113,7 +113,7 @@ class UserSessionItemsSummaryModel {
   }
 }
 
-/// Response model for inventory_get_user_session_items RPC
+/// Response model for inventory_get_user_session_items_v2 RPC
 class UserSessionItemsResponseModel {
   final String sessionId;
   final String userId;

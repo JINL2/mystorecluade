@@ -206,13 +206,20 @@ class SessionDatasource {
     return updateSessionStatus(sessionId: sessionId, status: 'completed');
   }
 
-  /// Get session list via RPC (inventory_get_session_list)
+  /// Get session list via RPC (inventory_get_session_list_v2)
+  /// v2: Replaced p_is_active with p_status, added supplier filters
+  /// Status values: 'in_progress', 'complete', 'cancelled'
   Future<SessionListResponseModel> getSessionList({
     required String companyId,
     String? storeId,
     String? sessionType,
     String? shipmentId,
-    bool? isActive,
+    /// v2: Status filter replaces isActive
+    /// 'in_progress' = active sessions, 'complete' = submitted, 'cancelled' = closed without submit
+    String? status,
+    String? supplierId,
+    DateTime? startDate,
+    DateTime? endDate,
     String? createdBy,
     int limit = 50,
     int offset = 0,
@@ -227,11 +234,18 @@ class SessionDatasource {
     if (storeId != null) params['p_store_id'] = storeId;
     if (sessionType != null) params['p_session_type'] = sessionType;
     if (shipmentId != null) params['p_shipment_id'] = shipmentId;
-    if (isActive != null) params['p_is_active'] = isActive;
+    if (status != null) params['p_status'] = status;
+    if (supplierId != null) params['p_supplier_id'] = supplierId;
+    if (startDate != null) {
+      params['p_start_date'] = DateTimeUtils.toLocalWithOffset(startDate);
+    }
+    if (endDate != null) {
+      params['p_end_date'] = DateTimeUtils.toLocalWithOffset(endDate);
+    }
     if (createdBy != null) params['p_created_by'] = createdBy;
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_get_session_list',
+      'inventory_get_session_list_v2',
       params: params,
     ).single();
 
@@ -276,8 +290,10 @@ class SessionDatasource {
     return SessionReviewResponseModel.fromJson(data);
   }
 
-  /// Get product stock by store via RPC (inventory_product_stock_stores)
-  /// Returns stock quantity for each product in the specified store
+  /// Get product stock by store via RPC (inventory_product_stock_stores_v2)
+  /// v2: Supports both variant and non-variant products
+  /// Returns stock quantity for each product/variant in the specified store
+  /// Key format: productId for non-variant products, productId:variantId for variants
   Future<Map<String, int>> getProductStockByStore({
     required String companyId,
     required String storeId,
@@ -288,7 +304,7 @@ class SessionDatasource {
     }
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_product_stock_stores',
+      'inventory_product_stock_stores_v2',
       params: {
         'p_company_id': companyId,
         'p_product_ids': productIds,
@@ -303,25 +319,50 @@ class SessionDatasource {
     final data = response['data'] as Map<String, dynamic>? ?? {};
     final products = data['products'] as List<dynamic>? ?? [];
 
-    // Build a map of productId -> stock quantity for the specified store
+    // Build a map of productId (or productId:variantId) -> stock quantity for the specified store
     final stockMap = <String, int>{};
     for (final product in products) {
       final productMap = product as Map<String, dynamic>;
       final productId = productMap['product_id']?.toString() ?? '';
-      final stores = productMap['stores'] as List<dynamic>? ?? [];
+      final hasVariants = productMap['has_variants'] as bool? ?? false;
 
-      // Find the stock for the specified store
-      for (final store in stores) {
-        final storeMap = store as Map<String, dynamic>;
-        if (storeMap['store_id']?.toString() == storeId) {
-          stockMap[productId] = (storeMap['quantity_on_hand'] as num?)?.toInt() ?? 0;
-          break;
+      if (hasVariants) {
+        // v2: For variant products, process each variant's stores
+        final variants = productMap['variants'] as List<dynamic>? ?? [];
+        for (final variant in variants) {
+          final variantMap = variant as Map<String, dynamic>;
+          final variantId = variantMap['variant_id']?.toString() ?? '';
+          final variantStores = variantMap['stores'] as List<dynamic>? ?? [];
+
+          // Find the stock for the specified store
+          int stockFound = 0;
+          for (final store in variantStores) {
+            final storeMap = store as Map<String, dynamic>;
+            if (storeMap['store_id']?.toString() == storeId) {
+              stockFound = (storeMap['quantity_on_hand'] as num?)?.toInt() ?? 0;
+              break;
+            }
+          }
+          // Use composite key for variant products
+          stockMap['$productId:$variantId'] = stockFound;
         }
-      }
+      } else {
+        // For non-variant products, process stores directly
+        final stores = productMap['stores'] as List<dynamic>? ?? [];
 
-      // If store not found, default to 0
-      if (!stockMap.containsKey(productId)) {
-        stockMap[productId] = 0;
+        // Find the stock for the specified store
+        for (final store in stores) {
+          final storeMap = store as Map<String, dynamic>;
+          if (storeMap['store_id']?.toString() == storeId) {
+            stockMap[productId] = (storeMap['quantity_on_hand'] as num?)?.toInt() ?? 0;
+            break;
+          }
+        }
+
+        // If store not found, default to 0
+        if (!stockMap.containsKey(productId)) {
+          stockMap[productId] = 0;
+        }
       }
     }
 
@@ -371,7 +412,10 @@ class SessionDatasource {
     return SessionSubmitResponseModel.fromJson(data);
   }
 
-  /// Create a new session via RPC (inventory_create_session)
+  /// Create a new session via RPC (inventory_create_session_v2)
+  /// v2: p_time is TIMESTAMP (without timezone) - treated as user's local time
+  ///     Conversion: p_time AT TIME ZONE p_timezone for UTC storage
+  ///     If p_time is NULL, uses NOW()
   /// For counting: no shipmentId needed
   /// For receiving: shipmentId is required
   Future<CreateSessionResponseModel> createSessionViaRpc({
@@ -398,7 +442,7 @@ class SessionDatasource {
     }
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_create_session',
+      'inventory_create_session_v2',
       params: params,
     ).single();
 

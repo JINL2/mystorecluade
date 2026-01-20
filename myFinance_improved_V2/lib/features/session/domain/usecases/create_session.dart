@@ -5,7 +5,8 @@ import '../repositories/session_repository.dart';
 ///
 /// For counting: no shipmentId needed
 /// For receiving: shipmentId is required
-/// Matches RPC: inventory_create_session
+/// Matches RPC: inventory_create_session_v2
+/// v2: p_time is TIMESTAMP (without timezone) - treated as user's local time
 class CreateSession {
   final SessionRepository _repository;
 
