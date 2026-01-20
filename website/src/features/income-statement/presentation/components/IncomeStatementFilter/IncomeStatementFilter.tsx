@@ -1,9 +1,13 @@
 /**
  * IncomeStatementFilter Component
  * Filter component for Income Statement with Store, Type, and Date filters
+ *
+ * Following ARCHITECTURE.md pattern:
+ * - Uses Provider state instead of local useState
+ * - All filter state managed in Zustand Provider
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { TossSelector } from '@/shared/components/selectors/TossSelector';
@@ -11,35 +15,9 @@ import { TossButton } from '@/shared/components/toss/TossButton';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
 import { IncomeStatementValidator } from '../../../domain/validators/IncomeStatementValidator';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
+import { useIncomeStatement } from '../../hooks/useIncomeStatement';
 import type { IncomeStatementFilterProps } from './IncomeStatementFilter.types';
 import styles from './IncomeStatementFilter.module.css';
-
-// Helper functions to get current month's first and last day
-const getFirstDayOfMonth = (): string => {
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  return DateTimeUtils.toDateOnly(firstDay);
-};
-
-const getLastDayOfMonth = (): string => {
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return DateTimeUtils.toDateOnly(lastDay);
-};
-
-// Helper functions for 12-month view (full year)
-const getFirstDayOfYear = (): string => {
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), 0, 1); // January 1st
-  return DateTimeUtils.toDateOnly(firstDay);
-};
-
-const getLastDayOfYear = (): string => {
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), 11, 31); // December 31st
-  return DateTimeUtils.toDateOnly(lastDay);
-};
 
 export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
   onSearch,
@@ -50,11 +28,18 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
   const stores = currentCompany?.stores || [];
   const { messageState, closeMessage, showWarning } = useErrorMessage();
 
-  // Filter state
-  const [storeId, setStoreId] = useState<string | null>(null);
-  const [type, setType] = useState<'monthly' | '12month'>('monthly');
-  const [fromDate, setFromDate] = useState<string>(getFirstDayOfMonth());
-  const [toDate, setToDate] = useState<string>(getLastDayOfMonth());
+  // Use Provider state instead of local useState (ARCHITECTURE.md compliance)
+  const {
+    storeId,
+    statementType,
+    fromDate,
+    toDate,
+    setStoreId,
+    setStatementType,
+    setFromDate,
+    setToDate,
+    clearData,
+  } = useIncomeStatement();
 
   // Type options
   const typeOptions = [
@@ -88,7 +73,7 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
     }
 
     // Validate statement type
-    const typeResult = IncomeStatementValidator.validateStatementType(type);
+    const typeResult = IncomeStatementValidator.validateStatementType(statementType);
     if (!typeResult.isValid) {
       showWarning({
         title: 'Invalid Type',
@@ -101,37 +86,22 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
     // If validation passes, execute search
     onSearch({
       store: storeId,
-      type,
+      type: statementType,
       fromDate,
       toDate,
     });
   };
 
   const handleClear = () => {
-    setStoreId(null);
-    setType('monthly');
-    setFromDate(getFirstDayOfMonth());
-    setToDate(getLastDayOfMonth());
+    clearData();
     onClear?.();
   };
 
   // Reset filters when company changes
   useEffect(() => {
-    handleClear();
+    clearData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCompany?.company_id]);
-
-  // Update date range when type changes
-  useEffect(() => {
-    if (type === '12month') {
-      // 12-month view: set to full year (Jan 1 - Dec 31)
-      setFromDate(getFirstDayOfYear());
-      setToDate(getLastDayOfYear());
-    } else {
-      // Monthly view: set to current month
-      setFromDate(getFirstDayOfMonth());
-      setToDate(getLastDayOfMonth());
-    }
-  }, [type]);
 
   return (
     <div className={`${styles.filterContainer} ${className}`}>
@@ -163,9 +133,9 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
               id="income-type-filter"
               name="type"
               placeholder="Select type"
-              value={type}
+              value={statementType}
               options={typeOptions}
-              onChange={(value) => setType(value as 'monthly' | '12month')}
+              onChange={(value) => setStatementType(value as 'monthly' | '12month')}
               fullWidth
             />
           </div>
@@ -177,7 +147,7 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
               className={styles.dateInput}
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              disabled={type === '12month'}
+              disabled={statementType === '12month'}
             />
           </div>
 
@@ -188,7 +158,7 @@ export const IncomeStatementFilter: React.FC<IncomeStatementFilterProps> = ({
               className={styles.dateInput}
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              disabled={type === '12month'}
+              disabled={statementType === '12month'}
             />
           </div>
         </div>

@@ -21,6 +21,9 @@ export const useIncomeStatement = () => {
   // Select state with optimized selectors
   const companyId = useIncomeStatementStore((state) => state.companyId);
   const storeId = useIncomeStatementStore((state) => state.storeId);
+  const statementType = useIncomeStatementStore((state) => state.statementType);
+  const fromDate = useIncomeStatementStore((state) => state.fromDate);
+  const toDate = useIncomeStatementStore((state) => state.toDate);
   const monthlyData = useIncomeStatementStore((state) => state.monthlyData);
   const twelveMonthData = useIncomeStatementStore((state) => state.twelveMonthData);
   const currentFilters = useIncomeStatementStore((state) => state.currentFilters);
@@ -32,6 +35,9 @@ export const useIncomeStatement = () => {
   // Select actions
   const setCompanyId = useIncomeStatementStore((state) => state.setCompanyId);
   const setStoreId = useIncomeStatementStore((state) => state.setStoreId);
+  const setStatementType = useIncomeStatementStore((state) => state.setStatementType);
+  const setFromDate = useIncomeStatementStore((state) => state.setFromDate);
+  const setToDate = useIncomeStatementStore((state) => state.setToDate);
   const setCurrentFilters = useIncomeStatementStore((state) => state.setCurrentFilters);
   const closeMessage = useIncomeStatementStore((state) => state.closeMessage);
   const loadMonthlyData = useIncomeStatementStore((state) => state.loadMonthlyData);
@@ -43,6 +49,9 @@ export const useIncomeStatement = () => {
     // State
     companyId,
     storeId,
+    statementType,
+    fromDate,
+    toDate,
     monthlyData,
     twelveMonthData,
     currentFilters,
@@ -54,6 +63,9 @@ export const useIncomeStatement = () => {
     // Actions
     setCompanyId,
     setStoreId,
+    setStatementType,
+    setFromDate,
+    setToDate,
     setCurrentFilters,
     closeMessage,
     loadMonthlyData,
