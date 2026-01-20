@@ -2,7 +2,7 @@
  * BalanceSheetModel
  * DTO and Mapper for Balance Sheet data
  * Converts server response (snake_case) to Domain Entity (camelCase)
- * Compatible with get_balance_sheet_v2 RPC
+ * Compatible with get_balance_sheet_v3 RPC
  */
 
 import {
@@ -10,164 +10,141 @@ import {
   BalanceSheetSection,
   BalanceSheetAccount,
 } from '../../domain/entities/BalanceSheetData';
+import { BalanceSheetV3Row } from '../datasources/BalanceSheetDataSource';
 
 /**
- * Server Response Types (get_balance_sheet_v2)
+ * Section names from get_balance_sheet_v3
  */
-interface ServerAccount {
-  account_id: string;
-  account_name: string;
-  balance: number;
-  formatted_balance?: string;
-}
-
-interface ServerTotals {
-  total_assets: number;
-  total_liabilities: number;
-  total_equity: number;
-  total_liabilities_and_equity: number;
-  total_current_assets: number;
-  total_non_current_assets: number;
-  total_current_liabilities: number;
-  total_non_current_liabilities: number;
-  total_comprehensive_income?: number;
-  net_income?: number;
-  balance_check?: boolean;
-  balance_difference?: number;
-}
-
-interface ServerBalanceSheetData {
-  success: boolean;
-  data: {
-    totals: ServerTotals;
-    current_assets: ServerAccount[];
-    non_current_assets: ServerAccount[];
-    current_liabilities: ServerAccount[];
-    non_current_liabilities: ServerAccount[];
-    equity: ServerAccount[];
-    comprehensive_income: ServerAccount[];
-  };
-  company_info?: {
-    currency_symbol: string;
-    currency_code?: string;
-    company_name?: string;
-    store_name?: string;
-  };
-  ui_data?: {
-    balance_verification?: {
-      is_balanced: boolean;
-      difference: number;
-    };
-  };
-}
+const SECTION_NAMES = {
+  CURRENT_ASSETS: 'Current Assets',
+  NON_CURRENT_ASSETS: 'Non-Current Assets',
+  CURRENT_LIABILITIES: 'Current Liabilities',
+  NON_CURRENT_LIABILITIES: 'Non-Current Liabilities',
+  EQUITY: 'Equity',
+} as const;
 
 export class BalanceSheetModel {
   /**
-   * Convert server account to domain account
+   * Convert V3 row to domain account
    */
-  private static mapAccount(serverAccount: ServerAccount): BalanceSheetAccount {
+  private static mapRowToAccount(row: BalanceSheetV3Row): BalanceSheetAccount {
+    const balance = parseFloat(row.balance) || 0;
     return {
-      accountId: serverAccount.account_id,
-      accountName: serverAccount.account_name,
-      balance: serverAccount.balance,
-      formattedBalance:
-        serverAccount.formatted_balance ||
-        serverAccount.balance.toLocaleString('en-US'),
+      accountId: row.account_code, // Use account_code as ID
+      accountName: row.account_name,
+      balance,
+      formattedBalance: balance.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }),
     };
   }
 
   /**
-   * Convert server accounts array to domain section
+   * Group rows by section and create BalanceSheetSection
    */
-  private static mapSection(
+  private static createSection(
     title: string,
-    total: number,
-    accounts: ServerAccount[]
+    rows: BalanceSheetV3Row[]
   ): BalanceSheetSection {
+    const accounts = rows.map((row) => this.mapRowToAccount(row));
+    const total = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+
     return {
       title,
       total,
-      accounts: (accounts || []).map((acc) => this.mapAccount(acc)),
+      accounts,
     };
   }
 
   /**
-   * Convert full server response to BalanceSheetData entity
+   * Convert V3 rows array to BalanceSheetData entity
    */
-  static fromServerResponse(response: ServerBalanceSheetData): BalanceSheetData {
-    const data = response.data;
-    const totals = data.totals;
+  static fromV3Response(
+    rows: BalanceSheetV3Row[],
+    currencySymbol: string = '₫',
+    asOfDate?: string
+  ): BalanceSheetData {
+    // Group rows by section
+    const grouped: Record<string, BalanceSheetV3Row[]> = {
+      [SECTION_NAMES.CURRENT_ASSETS]: [],
+      [SECTION_NAMES.NON_CURRENT_ASSETS]: [],
+      [SECTION_NAMES.CURRENT_LIABILITIES]: [],
+      [SECTION_NAMES.NON_CURRENT_LIABILITIES]: [],
+      [SECTION_NAMES.EQUITY]: [],
+    };
 
-    // Map all sections
-    const currentAssets = this.mapSection(
-      'Current Assets',
-      totals?.total_current_assets || 0,
-      data.current_assets
+    rows.forEach((row) => {
+      if (row.section && grouped[row.section]) {
+        grouped[row.section].push(row);
+      }
+    });
+
+    // Create sections
+    const currentAssets = this.createSection(
+      SECTION_NAMES.CURRENT_ASSETS,
+      grouped[SECTION_NAMES.CURRENT_ASSETS]
+    );
+    const nonCurrentAssets = this.createSection(
+      SECTION_NAMES.NON_CURRENT_ASSETS,
+      grouped[SECTION_NAMES.NON_CURRENT_ASSETS]
+    );
+    const currentLiabilities = this.createSection(
+      SECTION_NAMES.CURRENT_LIABILITIES,
+      grouped[SECTION_NAMES.CURRENT_LIABILITIES]
+    );
+    const nonCurrentLiabilities = this.createSection(
+      SECTION_NAMES.NON_CURRENT_LIABILITIES,
+      grouped[SECTION_NAMES.NON_CURRENT_LIABILITIES]
+    );
+    const equity = this.createSection(
+      SECTION_NAMES.EQUITY,
+      grouped[SECTION_NAMES.EQUITY]
     );
 
-    const nonCurrentAssets = this.mapSection(
-      'Non-Current Assets',
-      totals?.total_non_current_assets || 0,
-      data.non_current_assets
-    );
+    // Empty comprehensive income (v3 doesn't include it)
+    const comprehensiveIncome: BalanceSheetSection = {
+      title: 'Other Comprehensive Income',
+      total: 0,
+      accounts: [],
+    };
 
-    const currentLiabilities = this.mapSection(
-      'Current Liabilities',
-      totals?.total_current_liabilities || 0,
-      data.current_liabilities
-    );
+    // Calculate totals
+    const totalCurrentAssets = currentAssets.total;
+    const totalNonCurrentAssets = nonCurrentAssets.total;
+    const totalAssets = totalCurrentAssets + totalNonCurrentAssets;
 
-    const nonCurrentLiabilities = this.mapSection(
-      'Non-Current Liabilities',
-      totals?.total_non_current_liabilities || 0,
-      data.non_current_liabilities
-    );
+    const totalCurrentLiabilities = currentLiabilities.total;
+    const totalNonCurrentLiabilities = nonCurrentLiabilities.total;
+    const totalLiabilities = totalCurrentLiabilities + totalNonCurrentLiabilities;
 
-    const equity = this.mapSection(
-      'Equity',
-      totals?.total_equity || 0,
-      data.equity
-    );
+    const totalEquity = equity.total;
+    const totalLiabilitiesAndEquity = totalLiabilities + totalEquity;
 
-    const comprehensiveIncome = this.mapSection(
-      'Other Comprehensive Income',
-      totals?.total_comprehensive_income || 0,
-      data.comprehensive_income
-    );
-
-    // Create and return entity (asOfDate is now today since we removed date filters)
     return new BalanceSheetData(
-      totals?.total_assets || 0,
-      totals?.total_liabilities || 0,
-      totals?.total_equity || 0,
-      totals?.total_liabilities_and_equity || 0,
-      totals?.total_current_assets || 0,
-      totals?.total_non_current_assets || 0,
-      totals?.total_current_liabilities || 0,
-      totals?.total_non_current_liabilities || 0,
+      totalAssets,
+      totalLiabilities,
+      totalEquity,
+      totalLiabilitiesAndEquity,
+      totalCurrentAssets,
+      totalNonCurrentAssets,
+      totalCurrentLiabilities,
+      totalNonCurrentLiabilities,
       currentAssets,
       nonCurrentAssets,
       currentLiabilities,
       nonCurrentLiabilities,
       equity,
       comprehensiveIncome,
-      response.company_info?.currency_symbol || '₩',
-      new Date().toISOString().split('T')[0]
+      currencySymbol,
+      asOfDate || new Date().toISOString().split('T')[0]
     );
   }
 
   /**
-   * Validate server response structure
+   * Validate V3 response (array of rows)
    */
-  static isValidResponse(response: any): response is ServerBalanceSheetData {
-    return (
-      response &&
-      typeof response === 'object' &&
-      response.success === true &&
-      response.data &&
-      typeof response.data === 'object' &&
-      response.data.totals &&
-      typeof response.data.totals === 'object'
-    );
+  static isValidV3Response(response: unknown): response is BalanceSheetV3Row[] {
+    return Array.isArray(response);
   }
 }

@@ -75,7 +75,10 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({
                 {/* Partial Receiving Option */}
                 <button
                   className={styles.finalChoiceOption}
-                  onClick={() => onSubmit(false)}
+                  onClick={() => {
+                    console.log('🔶 Partial Receiving clicked - isFinal: false');
+                    onSubmit(false);
+                  }}
                   disabled={isSubmitting}
                 >
                   <div className={styles.optionIconWrapper} style={{ background: '#FEF3C7' }}>
@@ -97,7 +100,10 @@ export const FinalChoiceModal: React.FC<FinalChoiceModalProps> = ({
                 {/* Complete Receiving Option */}
                 <button
                   className={`${styles.finalChoiceOption} ${styles.finalChoiceOptionComplete}`}
-                  onClick={() => onSubmit(true)}
+                  onClick={() => {
+                    console.log('🟢 Complete Receiving clicked - isFinal: true');
+                    onSubmit(true);
+                  }}
                   disabled={isSubmitting}
                 >
                   <div className={styles.optionIconWrapper} style={{ background: '#DCFCE7' }}>

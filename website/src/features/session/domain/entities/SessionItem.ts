@@ -8,11 +8,20 @@ export interface SessionItemUser {
   userName: string;
   quantity: number;
   quantityRejected: number;
+  startedAt?: string;
 }
 
 export interface SessionItem {
   productId: string;
+  variantId?: string | null;
   productName: string;
+  variantName?: string | null;
+  displayName: string;
+  sku: string;
+  variantSku?: string | null;
+  displaySku: string;
+  hasVariants: boolean;
+  imageUrls?: string[] | null;
   totalQuantity: number;
   totalRejected: number;
   scannedBy: SessionItemUser[];
@@ -31,19 +40,24 @@ export interface SessionItemsResult {
 
 export interface SaveItem {
   productId: string;
+  variantId: string | null;
   quantity: number;
   quantityRejected: number;
 }
 
 export interface SubmitItem {
   productId: string;
+  variantId: string | null;
   quantity: number;
   quantityRejected: number;
 }
 
-// Stock change item for v2 submit result
+// Stock change item for v3 submit result
 export interface StockChange {
   productId: string;
+  variantId?: string | null;
+  variantName?: string | null;
+  displayName: string;
   sku: string;
   productName: string;
   quantityBefore: number;
@@ -56,18 +70,14 @@ export interface SubmitResult {
   receivingNumber?: string;
   itemsCount?: number;
   totalQuantity?: number;
-  // v2 fields
+  // v3 fields
   stockChanges?: StockChange[];
   newDisplayCount?: number;
   totalCost?: number;
 }
 
-// Currency entity
-export interface Currency {
-  symbol: string;
-  code: string;
-  name?: string;
-}
+// Currency re-exported from SearchProduct
+// (Currency interface is defined in SearchProduct.ts to avoid duplication)
 
 // Counterparty (supplier) entity
 export interface Counterparty {
@@ -88,11 +98,15 @@ export interface Shipment {
   totalCost: number;
 }
 
-// Shipment item entity
+// Shipment item entity (v2: variant support)
 export interface ShipmentItem {
   itemId: string;
   productId: string;
+  variantId?: string | null;
   productName: string;
+  variantName?: string | null;
+  displayName?: string;
+  hasVariants?: boolean;
   sku: string;
   quantityShipped: number;
   quantityReceived: number;
@@ -126,6 +140,9 @@ export interface ShipmentDetail {
   receivingSummary?: ReceivingSummary;
 }
 
+// Session status type (v2.1: in_progress, complete, cancelled)
+export type SessionStatus = 'in_progress' | 'complete' | 'cancelled';
+
 // Session entity
 export interface Session {
   sessionId: string;
@@ -140,7 +157,12 @@ export interface Session {
   createdBy: string;
   createdByName: string;
   createdAt: string;
+  completedAt?: string;
   memberCount?: number;
+  // v2 fields
+  status?: SessionStatus;
+  supplierId?: string;
+  supplierName?: string;
 }
 
 // Create session result
@@ -173,26 +195,50 @@ export interface SessionItemsFullResult {
   summary: SessionItemsSummary & { totalParticipants?: number };
 }
 
-// Merge sessions result
+// Merged item for v2 merge result
+export interface MergedItem {
+  itemId: string;
+  productId: string;
+  variantId: string | null;
+  sku: string;
+  productName: string;
+  variantName: string | null;
+  displayName: string;
+  hasVariants: boolean;
+  quantity: number;
+  quantityRejected: number;
+  scannedBy: string;
+  scannedByName: string;
+}
+
+// Merge sessions result (v2)
 export interface MergeSessionsResult {
   targetSession: {
     sessionId: string;
     sessionName: string;
+    sessionType: string;
+    storeId: string;
+    storeName: string;
     itemsBefore: number;
     itemsAfter: number;
     quantityBefore: number;
     quantityAfter: number;
+    membersBefore: number;
+    membersAfter: number;
   };
   sourceSession: {
     sessionId: string;
     sessionName: string;
     itemsCopied: number;
     quantityCopied: number;
+    membersAdded: number;
     deactivated: boolean;
   };
+  mergedItems: MergedItem[];
   summary: {
     totalItemsCopied: number;
     totalQuantityCopied: number;
+    totalMembersAdded: number;
     uniqueProductsCopied: number;
   };
 }
@@ -210,20 +256,30 @@ export interface CompareSessionInfo {
   totalQuantity: number;
 }
 
+// Compare matched item (v2 with variant support)
 export interface CompareMatchedItem {
   productId: string;
+  variantId: string | null;
   sku: string;
   productName: string;
+  variantName: string | null;
+  displayName: string;
+  hasVariants: boolean;
   quantityA: number;
   quantityB: number;
   quantityDiff: number;
   isMatch: boolean;
 }
 
+// Compare only item (v2 with variant support)
 export interface CompareOnlyItem {
   productId: string;
+  variantId: string | null;
   sku: string;
   productName: string;
+  variantName: string | null;
+  displayName: string;
+  hasVariants: boolean;
   quantity: number;
 }
 

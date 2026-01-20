@@ -10,7 +10,6 @@ import type {
   ShipmentDetail,
   Counterparty,
   OrderInfo,
-  OrderItem,
   InventoryProduct,
   Currency,
   CreateShipmentParams,
@@ -59,8 +58,10 @@ export interface ShipmentDetailParams {
 export interface CreateShipmentRequest {
   companyId: string;
   userId: string;
+  // v3: items now include variant_id (null for non-variant products)
   items: Array<{
     sku: string;
+    variant_id: string | null;
     quantity_shipped: number;
     unit_cost: number;
   }>;
@@ -113,24 +114,19 @@ export interface IShipmentRepository {
   getOrders(companyId: string, timezone: string): Promise<RepositoryResult<OrderInfo[]>>;
 
   /**
-   * Get order items by order ID
-   */
-  getOrderItems(orderId: string, timezone: string): Promise<RepositoryResult<OrderItem[]>>;
-
-  /**
    * Get base currency for company
    */
   getBaseCurrency(companyId: string): Promise<RepositoryResult<Currency>>;
 
   /**
-   * Search products by query
+   * Search products by query (v6: variant support)
    */
   searchProducts(
     companyId: string,
     storeId: string,
     query: string,
     timezone: string
-  ): Promise<RepositoryResult<{ products: InventoryProduct[]; currency?: Currency }>>;
+  ): Promise<RepositoryResult<{ items: InventoryProduct[]; currency?: Currency }>>;
 
   /**
    * Search product by exact SKU

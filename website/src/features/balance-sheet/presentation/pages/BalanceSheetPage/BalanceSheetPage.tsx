@@ -39,6 +39,7 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
       setStoreId(storeIdToUse);
       loadBalanceSheet(storeIdToUse);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
   // Sync store from AppState to BalanceSheet provider
@@ -46,7 +47,8 @@ export const BalanceSheetPage: React.FC<BalanceSheetPageProps> = () => {
     if (currentStore?.store_id) {
       setStoreId(currentStore.store_id);
     }
-  }, [currentStore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStore?.store_id]);
 
   const handleSearch = (filters: FilterValues) => {
     setStoreId(filters.storeId);

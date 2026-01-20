@@ -10,7 +10,6 @@ import type {
   ShipmentDetail,
   Counterparty,
   OrderInfo,
-  OrderItem,
   InventoryProduct,
   Currency,
   OneTimeSupplier,
@@ -43,12 +42,6 @@ interface OrderInfoRpcResponse {
   error?: string;
 }
 
-interface OrderItemsRpcResponse {
-  success: boolean;
-  data?: OrderItem[];
-  error?: string;
-}
-
 interface CurrencyRpcResponse {
   base_currency?: {
     symbol?: string;
@@ -56,10 +49,11 @@ interface CurrencyRpcResponse {
   };
 }
 
+// v6 response structure: data.items instead of data.products
 interface InventoryRpcResponse {
   success: boolean;
   data?: {
-    products: InventoryProduct[];
+    items: InventoryProduct[];
     currency?: Currency;
   };
   error?: string;
@@ -131,14 +125,10 @@ export class ShipmentDataSource {
         rpcParams.p_order_id = params.orderFilter;
       }
 
-      console.log('📦 Calling inventory_get_shipment_list with:', rpcParams);
-
       const { data, error } = await supabase.rpc(
         'inventory_get_shipment_list' as never,
         rpcParams as never
       );
-
-      console.log('📦 inventory_get_shipment_list response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };
@@ -161,7 +151,7 @@ export class ShipmentDataSource {
   }
 
   /**
-   * Get shipment detail by ID
+   * Get shipment detail by ID (v2: variant support)
    */
   async getShipmentDetail(params: {
     shipmentId: string;
@@ -171,22 +161,16 @@ export class ShipmentDataSource {
     try {
       const supabase = this.getClient();
 
-      console.log('📦 Calling inventory_get_shipment_detail with:', {
-        p_shipment_id: params.shipmentId,
-        p_company_id: params.companyId,
-        p_timezone: params.timezone,
-      });
-
+      // v2: supports variant_id, variant_name, display_name, has_variants in items
+      // v2: receiving progress now matches by (product_id, variant_id)
       const { data, error } = await supabase.rpc(
-        'inventory_get_shipment_detail' as never,
+        'inventory_get_shipment_detail_v2' as never,
         {
           p_shipment_id: params.shipmentId,
           p_company_id: params.companyId,
           p_timezone: params.timezone,
         } as never
       );
-
-      console.log('📦 inventory_get_shipment_detail response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };
@@ -208,12 +192,13 @@ export class ShipmentDataSource {
   }
 
   /**
-   * Create a new shipment
+   * Create a new shipment (v3: variant support)
    */
   async createShipment(params: {
     companyId: string;
     userId: string;
-    items: Array<{ sku: string; quantity_shipped: number; unit_cost: number }>;
+    // v3: items now include variant_id (null for non-variant products)
+    items: Array<{ sku: string; variant_id: string | null; quantity_shipped: number; unit_cost: number }>;
     time: string;
     timezone: string;
     orderIds?: string[];
@@ -254,14 +239,11 @@ export class ShipmentDataSource {
         rpcParams.p_shipment_number = params.shipmentNumber;
       }
 
-      console.log('📦 Creating shipment with params:', rpcParams);
-
+      // v3: supports variant_id in items
       const { data, error } = await supabase.rpc(
-        'inventory_create_shipment_v2' as never,
+        'inventory_create_shipment_v3' as never,
         rpcParams as never
       );
-
-      console.log('📦 inventory_create_shipment_v2 response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };
@@ -326,11 +308,6 @@ export class ShipmentDataSource {
     try {
       const supabase = this.getClient();
 
-      console.log('📋 Calling inventory_get_order_info with:', {
-        p_company_id: params.companyId,
-        p_timezone: params.timezone,
-      });
-
       const { data, error } = await supabase.rpc(
         'inventory_get_order_info' as never,
         {
@@ -338,8 +315,6 @@ export class ShipmentDataSource {
           p_timezone: params.timezone,
         } as never
       );
-
-      console.log('📋 inventory_get_order_info response:', { data, error });
 
       if (error) {
         return { success: false, error: error.message };
@@ -356,50 +331,6 @@ export class ShipmentDataSource {
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to fetch orders',
-      };
-    }
-  }
-
-  /**
-   * Get order items by order ID
-   */
-  async getOrderItems(params: {
-    orderId: string;
-    timezone: string;
-  }): Promise<OrderItemsRpcResponse> {
-    try {
-      const supabase = this.getClient();
-
-      console.log('📦 Calling inventory_get_order_items with:', {
-        p_order_id: params.orderId,
-        p_timezone: params.timezone,
-      });
-
-      const { data, error } = await supabase.rpc(
-        'inventory_get_order_items' as never,
-        {
-          p_order_id: params.orderId,
-          p_timezone: params.timezone,
-        } as never
-      );
-
-      console.log('📦 inventory_get_order_items response:', { data, error });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      const rpcData = data as GenericRpcData;
-      return {
-        success: rpcData?.success ?? false,
-        data: (rpcData?.data as OrderItem[]) ?? [],
-        error: rpcData?.error,
-      };
-    } catch (err) {
-      console.error('📦 getOrderItems error:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to fetch order items',
       };
     }
   }
@@ -431,7 +362,7 @@ export class ShipmentDataSource {
   }
 
   /**
-   * Search products by query
+   * Search products by query (v6: variant support)
    */
   async searchProducts(params: {
     companyId: string;
@@ -443,8 +374,9 @@ export class ShipmentDataSource {
     try {
       const supabase = this.getClient();
 
+      // v6: variant expansion support
       const { data, error } = await supabase.rpc(
-        'get_inventory_page_v4' as never,
+        'get_inventory_page_v6' as never,
         {
           p_company_id: params.companyId,
           p_store_id: params.storeId,
@@ -463,13 +395,14 @@ export class ShipmentDataSource {
         return { success: false, error: error.message };
       }
 
+      // v6 response structure: data.items instead of data.products
       const rpcData = data as GenericRpcData & {
-        data?: { products?: InventoryProduct[]; currency?: Currency };
+        data?: { items?: InventoryProduct[]; currency?: Currency };
       };
       return {
         success: rpcData?.success ?? false,
         data: {
-          products: rpcData?.data?.products ?? [],
+          items: rpcData?.data?.items ?? [],
           currency: rpcData?.data?.currency,
         },
         error: rpcData?.error,
@@ -484,7 +417,7 @@ export class ShipmentDataSource {
   }
 
   /**
-   * Search product by exact SKU
+   * Search product by exact SKU (v6: checks display_sku, product_sku, variant_sku)
    */
   async searchProductBySku(params: {
     companyId: string;
@@ -496,16 +429,20 @@ export class ShipmentDataSource {
       const result = await this.searchProducts({
         ...params,
         query: params.sku,
-        limit: 1,
+        limit: 10, // v6: search more to find exact match
       });
 
-      if (!result.success || !result.data?.products) {
+      // v6: response uses data.items instead of data.products
+      if (!result.success || !result.data?.items) {
         return null;
       }
 
-      // Find exact SKU match
-      const exactMatch = result.data.products.find(
-        (p) => p.sku.toLowerCase() === params.sku.trim().toLowerCase()
+      // v6: Find exact SKU match (check display_sku, product_sku, variant_sku)
+      const exactMatch = result.data.items.find(
+        (p) =>
+          p.display_sku?.toLowerCase() === params.sku.trim().toLowerCase() ||
+          p.product_sku?.toLowerCase() === params.sku.trim().toLowerCase() ||
+          p.variant_sku?.toLowerCase() === params.sku.trim().toLowerCase()
       );
 
       return exactMatch || null;

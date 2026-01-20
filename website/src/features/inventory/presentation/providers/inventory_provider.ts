@@ -360,7 +360,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   },
 
   /**
-   * Move product between stores
+   * Move product between stores (v4: supports variants)
    * Calls RPC to move product and refreshes inventory
    */
   moveProduct: async (
@@ -371,7 +371,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     quantity,
     notes,
     time,
-    updatedBy
+    updatedBy,
+    variantId
   ) => {
     try {
       const result = await repository.moveProduct(
@@ -382,7 +383,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         quantity,
         notes,
         time,
-        updatedBy
+        updatedBy,
+        variantId
       );
 
       if (result.success) {

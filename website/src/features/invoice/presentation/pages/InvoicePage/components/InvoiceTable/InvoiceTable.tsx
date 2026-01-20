@@ -132,17 +132,17 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                                   </thead>
                                   <tbody>
                                     {invoiceDetail?.items.map((item) => (
-                                      <tr key={item.item_id}>
+                                      <tr key={item.invoice_item_id}>
                                         <td>
-                                          <div className={styles.productName}>{item.product_name}</div>
+                                          <div className={styles.productName}>{item.display_name}</div>
                                         </td>
                                         <td>
-                                          <div className={styles.productSku}>{item.sku}</div>
+                                          <div className={styles.productSku}>{item.display_sku || '-'}</div>
                                         </td>
-                                        <td>{item.quantity_sold}</td>
+                                        <td>{item.quantity}</td>
                                         <td>{expandedInvoice?.formatCurrency(item.unit_price)}</td>
                                         <td>{expandedInvoice?.formatCurrency(item.discount_amount)}</td>
-                                        <td><strong>{expandedInvoice?.formatCurrency(item.total_amount)}</strong></td>
+                                        <td><strong>{expandedInvoice?.formatCurrency(item.total_price)}</strong></td>
                                       </tr>
                                     ))}
                                   </tbody>

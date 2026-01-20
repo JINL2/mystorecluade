@@ -235,9 +235,26 @@ export const useExcelOperations = ({
 
       if (totalErrors > 0) {
         message += `, ❌ Errors: ${totalErrors}`;
+
+        // Show detailed error information (first 5 errors)
+        if (allErrors.length > 0) {
+          message += '\n\n❌ Error Details:';
+          const errorsToShow = allErrors.slice(0, 5);
+          errorsToShow.forEach((err) => {
+            const rowNum = err.row || '?';
+            const productName = err.product_name || err.sku || 'Unknown';
+            const variantName = err.variant_name ? ` (${err.variant_name})` : '';
+            const errorMsg = err.error || err.code || 'Unknown error';
+            message += `\n• Row ${rowNum}: ${productName}${variantName} - ${errorMsg}`;
+          });
+
+          if (allErrors.length > 5) {
+            message += `\n... and ${allErrors.length - 5} more errors`;
+          }
+        }
       }
 
-      showNotification('success', message);
+      showNotification(totalErrors > 0 ? 'error' : 'success', message);
 
       // Reset to page 1 and refresh inventory after all batches complete
       setCurrentPage(1);

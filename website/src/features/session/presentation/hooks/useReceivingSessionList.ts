@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { productReceiveDataSource } from '../../data/datasources/ProductReceiveDataSource';
+import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
 
 // Store interface
 export interface Store {
@@ -39,9 +39,26 @@ export interface ReceivingSession {
   createdByName: string;
   completedAt: string | null;
   createdAt: string;
+  // v2 fields
+  status: SessionStatus;
+  supplierId: string | null;
+  supplierName: string | null;
 }
 
-export const useReceivingSessionList = () => {
+// Session status type (from v2.1 RPC)
+// in_progress = session open, complete = submitted, cancelled = force closed
+export type SessionStatus = 'in_progress' | 'complete' | 'cancelled';
+
+// Filter props interface
+interface UseReceivingSessionListProps {
+  fromDate?: string;
+  toDate?: string;
+  statusFilter?: SessionStatus;
+  supplierId?: string;
+}
+
+export const useReceivingSessionList = (props?: UseReceivingSessionListProps) => {
+  const { fromDate, toDate, statusFilter, supplierId } = props || {};
   const navigate = useNavigate();
   const { currentCompany, currentStore, currentUser } = useAppState();
   const companyId = currentCompany?.company_id;
@@ -70,7 +87,7 @@ export const useReceivingSessionList = () => {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shipmentsLoading, setShipmentsLoading] = useState(false);
 
-  // Load receiving sessions
+  // Load receiving sessions (using v2 RPC with server-side filtering)
   const loadReceivingSessions = useCallback(async () => {
     if (!companyId) return;
 
@@ -78,28 +95,40 @@ export const useReceivingSessionList = () => {
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const result = await productReceiveDataSource.getSessionList({
+      // v2.1 RPC supports 'in_progress', 'complete', 'cancelled' directly
+      const rpcStatus = statusFilter;
+
+      // v2 RPC supports server-side filtering for date, status, and supplier
+      const result = await productReceiveRepository.getSessionListV2({
         companyId,
         sessionType: 'receiving',
         timezone: userTimezone,
+        startDate: fromDate || undefined,
+        endDate: toDate || undefined,
+        status: rpcStatus || undefined,
+        supplierId: supplierId || undefined,
       });
 
-      // Map DTO to presentation format
-      const mappedSessions: ReceivingSession[] = result.sessions.map((s) => ({
-        sessionId: s.session_id,
-        sessionName: s.session_name || 'Receiving Session',
-        sessionType: s.session_type,
-        storeId: s.store_id,
-        storeName: s.store_name,
-        shipmentId: s.shipment_id || null,
-        shipmentNumber: s.shipment_number || null,
-        isActive: s.is_active,
-        isFinal: s.is_final,
-        memberCount: s.member_count || 0,
-        createdBy: s.created_by,
-        createdByName: s.created_by_name,
-        completedAt: s.completed_at || null,
-        createdAt: s.created_at,
+      // Map domain entity to presentation format (Repository returns camelCase)
+      let mappedSessions: ReceivingSession[] = result.sessions.map((s) => ({
+        sessionId: s.sessionId,
+        sessionName: s.sessionName || 'Receiving Session',
+        sessionType: s.sessionType,
+        storeId: s.storeId,
+        storeName: s.storeName,
+        shipmentId: s.shipmentId || null,
+        shipmentNumber: s.shipmentNumber || null,
+        isActive: s.isActive,
+        isFinal: s.isFinal,
+        memberCount: s.memberCount || 0,
+        createdBy: s.createdBy,
+        createdByName: s.createdByName,
+        completedAt: s.completedAt || null,
+        createdAt: s.createdAt,
+        // v2.1 fields from server
+        status: (s.status as SessionStatus) || 'in_progress',
+        supplierId: s.supplierId || null,
+        supplierName: s.supplierName || null,
       }));
 
       setSessions(mappedSessions);
@@ -111,7 +140,7 @@ export const useReceivingSessionList = () => {
     } finally {
       setSessionsLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, fromDate, toDate, statusFilter, supplierId]);
 
   // Load shipments for modal selection
   const loadShipments = useCallback(async () => {
@@ -121,18 +150,20 @@ export const useReceivingSessionList = () => {
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const result = await productReceiveDataSource.getShipmentList({
+      const result = await productReceiveRepository.getShipmentList({
         companyId,
         timezone: userTimezone,
       });
 
       // Map and filter for modal (only non-completed shipments)
+      // Repository returns domain entities with camelCase properties
+      // Note: status values are 'pending', 'process', 'complete', 'cancelled' (not 'completed')
       const mappedShipments: Shipment[] = result.shipments
-        .filter((s) => s.status !== 'completed' && s.status !== 'cancelled')
+        .filter((s) => s.status !== 'complete' && s.status !== 'cancelled')
         .map((s) => ({
-          shipment_id: s.shipment_id,
-          shipment_number: s.shipment_number,
-          supplier_name: s.supplier_name,
+          shipment_id: s.shipmentId,
+          shipment_number: s.shipmentNumber,
+          supplier_name: s.supplierName,
           status: s.status,
         }));
 
@@ -180,9 +211,8 @@ export const useReceivingSessionList = () => {
       // Find the session to check if it's closed
       const session = sessions.find((s) => s.sessionId === sessionId);
 
-      // Don't navigate if session is closed (not active and not final)
-      if (session && !session.isActive && !session.isFinal) {
-        console.log('📦 Session is closed, not navigating:', sessionId);
+      // Don't navigate if session is closed (complete/cancelled status OR isActive is false)
+      if (session && (session.status === 'complete' || session.status === 'cancelled' || !session.isActive)) {
         return;
       }
 
@@ -215,22 +245,28 @@ export const useReceivingSessionList = () => {
         );
       }
 
-      console.log('📦 Navigate to receiving session:', sessionId);
+      // Determine if session is active - v2.1: status 'in_progress' means session is open
+      const isSessionActive = session
+        ? session.status === 'in_progress' && session.isActive
+        : true;
+
+      const sessionData = session ? {
+        session_id: session.sessionId,
+        session_name: session.sessionName,
+        store_id: session.storeId,
+        store_name: session.storeName,
+        shipment_id: session.shipmentId,
+        shipment_number: session.shipmentNumber,
+        is_active: isSessionActive, // Use status-based check instead of isActive field
+        is_final: session.isFinal,
+        created_by: session.createdBy,
+        created_by_name: session.createdByName,
+        created_at: session.createdAt,
+      } : null;
+
       navigate(`/product/receive/session/${sessionId}`, {
         state: {
-          sessionData: session ? {
-            session_id: session.sessionId,
-            session_name: session.sessionName,
-            store_id: session.storeId,
-            store_name: session.storeName,
-            shipment_id: session.shipmentId,
-            shipment_number: session.shipmentNumber,
-            is_active: session.isActive,
-            is_final: session.isFinal,
-            created_by: session.createdBy,
-            created_by_name: session.createdByName,
-            created_at: session.createdAt,
-          } : null,
+          sessionData,
           shipmentId: session?.shipmentId,
           isNewSession: false,
         }
@@ -271,19 +307,11 @@ export const useReceivingSessionList = () => {
 
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // Use local time string (user's device time) - RPC expects local time with timezone info
       const now = new Date();
       const localTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-      console.log('📦 Creating receiving session:', {
-        companyId,
-        storeId: selectedStoreId,
-        userId,
-        sessionType: 'receiving',
-        shipmentId: selectedShipmentId || undefined,
-        sessionName: sessionName || undefined,
-      });
-
-      const result = await productReceiveDataSource.createSession({
+      const result = await productReceiveRepository.createSession({
         companyId,
         storeId: selectedStoreId,
         userId,
@@ -294,22 +322,20 @@ export const useReceivingSessionList = () => {
         timezone: userTimezone,
       });
 
-      console.log('📦 Receiving session created:', result);
-
       // Close modal and refresh list
       handleCloseCreateModal();
       loadReceivingSessions();
 
-      // Navigate to the new session
-      if (result.session_id) {
+      // Navigate to the new session (Repository returns camelCase sessionId)
+      if (result.sessionId) {
         const selectedStore = stores?.find((s: Store) => s.store_id === selectedStoreId);
         const selectedShipment = shipments.find((s) => s.shipment_id === selectedShipmentId);
 
         // Store session info for detail page
         localStorage.setItem(
-          `receiving_session_${result.session_id}`,
+          `receiving_session_${result.sessionId}`,
           JSON.stringify({
-            sessionId: result.session_id,
+            sessionId: result.sessionId,
             sessionName: sessionName || 'Receiving Session',
             storeId: selectedStoreId,
             storeName: selectedStore?.store_name || '',
@@ -323,10 +349,10 @@ export const useReceivingSessionList = () => {
           })
         );
 
-        navigate(`/product/receive/session/${result.session_id}`, {
+        navigate(`/product/receive/session/${result.sessionId}`, {
           state: {
             sessionData: {
-              session_id: result.session_id,
+              session_id: result.sessionId,
               session_name: sessionName || 'Receiving Session',
               store_id: selectedStoreId,
               store_name: selectedStore?.store_name || '',

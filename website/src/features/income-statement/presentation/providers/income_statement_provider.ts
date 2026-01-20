@@ -13,12 +13,40 @@ import { create } from 'zustand';
 import { IncomeStatementState } from './states/income_statement_state';
 import { IncomeStatementRepositoryImpl } from '../../data/repositories/IncomeStatementRepositoryImpl';
 import { IncomeStatementValidator } from '../../domain/validators/IncomeStatementValidator';
-import type { IncomeStatementFilters } from './states/types';
+import type { IncomeStatementFilters, IncomeStatementType } from './states/types';
+import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 /**
  * Create repository instance (singleton pattern)
  */
 const repository = new IncomeStatementRepositoryImpl();
+
+/**
+ * Helper functions for default dates
+ */
+const getFirstDayOfMonth = (): string => {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  return DateTimeUtils.toDateOnly(firstDay);
+};
+
+const getLastDayOfMonth = (): string => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return DateTimeUtils.toDateOnly(lastDay);
+};
+
+const getFirstDayOfYear = (): string => {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), 0, 1);
+  return DateTimeUtils.toDateOnly(firstDay);
+};
+
+const getLastDayOfYear = (): string => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), 11, 31);
+  return DateTimeUtils.toDateOnly(lastDay);
+};
 
 /**
  * Income Statement Store
@@ -30,6 +58,9 @@ export const useIncomeStatementStore = create<IncomeStatementState>((set, get) =
   // ============================================
   companyId: '',
   storeId: null,
+  statementType: 'monthly',
+  fromDate: getFirstDayOfMonth(),
+  toDate: getLastDayOfMonth(),
   monthlyData: null,
   twelveMonthData: null,
   currentFilters: null,
@@ -53,6 +84,31 @@ export const useIncomeStatementStore = create<IncomeStatementState>((set, get) =
 
   setStoreId: (storeId: string | null) => {
     set({ storeId });
+  },
+
+  setStatementType: (type: IncomeStatementType) => {
+    // Update dates based on type
+    if (type === '12month') {
+      set({
+        statementType: type,
+        fromDate: getFirstDayOfYear(),
+        toDate: getLastDayOfYear(),
+      });
+    } else {
+      set({
+        statementType: type,
+        fromDate: getFirstDayOfMonth(),
+        toDate: getLastDayOfMonth(),
+      });
+    }
+  },
+
+  setFromDate: (date: string) => {
+    set({ fromDate: date });
+  },
+
+  setToDate: (date: string) => {
+    set({ toDate: date });
   },
 
   setCurrentFilters: (filters: IncomeStatementFilters | null) => {
@@ -287,6 +343,10 @@ export const useIncomeStatementStore = create<IncomeStatementState>((set, get) =
   clearData: () => {
     console.log('🧹 [Provider] Clearing income statement data');
     set({
+      storeId: null,
+      statementType: 'monthly',
+      fromDate: getFirstDayOfMonth(),
+      toDate: getLastDayOfMonth(),
       monthlyData: null,
       twelveMonthData: null,
       currentFilters: null,
@@ -300,6 +360,9 @@ export const useIncomeStatementStore = create<IncomeStatementState>((set, get) =
     set({
       companyId: '',
       storeId: null,
+      statementType: 'monthly',
+      fromDate: getFirstDayOfMonth(),
+      toDate: getLastDayOfMonth(),
       monthlyData: null,
       twelveMonthData: null,
       currentFilters: null,

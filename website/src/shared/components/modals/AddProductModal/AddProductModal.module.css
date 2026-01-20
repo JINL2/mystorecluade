@@ -306,6 +306,44 @@
   flex-shrink: 0;
 }
 
+/* Attribute Options Grid */
+.optionsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+}
+
+.optionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-4, 16px);
+  border: 1px solid var(--border-secondary, #E9ECEF);
+  border-radius: var(--radius-full, 20px);
+  background: var(--bg-primary, #FFFFFF);
+  color: var(--text-primary, #212529);
+  font-size: var(--font-body, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.optionButton:hover {
+  border-color: var(--toss-primary, #0064FF);
+  background: var(--bg-hover, #F0F6FF);
+}
+
+.optionButton.optionSelected {
+  border-color: var(--toss-primary, #0064FF);
+  background: var(--toss-primary, #0064FF);
+  color: white;
+}
+
+.optionButton .checkIcon {
+  width: 16px;
+  height: 16px;
+}
+
 /* Responsive */
 @media (max-width: 767px) {
   .modalContainer {

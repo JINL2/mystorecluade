@@ -35,11 +35,15 @@ export interface ShipmentData {
   receiving_summary?: ReceivingSummary;
 }
 
-// Shipment item with receiving progress
+// Shipment item with receiving progress (v2: variant support)
 export interface ShipmentItem {
   item_id: string;
   product_id: string;
+  variant_id?: string | null;       // v2: variant support
   product_name: string;
+  variant_name?: string | null;     // v2: variant support
+  display_name?: string;            // v2: "Product Name - Variant Name" or "Product Name"
+  has_variants?: boolean;           // v2: whether product has variants
   sku: string;
   quantity_shipped: number;
   quantity_received: number;
@@ -77,11 +81,15 @@ export interface SessionMember {
   joined_at: string;
 }
 
-// Shipment item for receiving
+// Shipment item for receiving (v2: variant support)
 export interface ReceivingItem {
   item_id: string;
   product_id: string;
+  variant_id?: string | null;       // v2: variant support
   product_name: string;
+  variant_name?: string | null;     // v2: variant support
+  display_name?: string;            // v2: "Product Name - Variant Name" or "Product Name"
+  has_variants?: boolean;           // v2: whether product has variants
   sku: string;
   quantity_shipped: number;
   quantity_received: number;

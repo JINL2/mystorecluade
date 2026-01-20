@@ -96,7 +96,11 @@ export const ShipmentItemsCard: React.FC<ShipmentItemsCardProps> = ({
             <tbody>
               {items.map((item) => (
                 <tr key={item.item_id}>
-                  <td className={styles.tdProduct}>{item.product_name}</td>
+                  <td className={styles.tdProduct}>
+                    {item.variant_name
+                      ? `${item.product_name} - ${item.variant_name}`
+                      : item.product_name}
+                  </td>
                   <td className={styles.tdSku}>{item.sku}</td>
                   <td className={styles.tdNumber}>{item.quantity_shipped}</td>
                   <td className={styles.tdNumberBlue}>{item.quantity_received}</td>

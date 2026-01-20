@@ -12,7 +12,7 @@ import type {
   MonthlyIncomeStatementData,
   TwelveMonthIncomeStatementData
 } from '../../../domain/entities/IncomeStatementData';
-import type { IncomeStatementFilters, MessageState } from './types';
+import type { IncomeStatementFilters, IncomeStatementType, MessageState } from './types';
 
 export interface IncomeStatementState {
   // ============================================
@@ -24,6 +24,15 @@ export interface IncomeStatementState {
 
   /** Current store ID (null = all stores) */
   storeId: string | null;
+
+  /** Statement type (monthly or 12month) */
+  statementType: IncomeStatementType;
+
+  /** From date (YYYY-MM-DD) */
+  fromDate: string;
+
+  /** To date (YYYY-MM-DD) */
+  toDate: string;
 
   /** Monthly income statement data */
   monthlyData: MonthlyIncomeStatementData | null;
@@ -61,6 +70,24 @@ export interface IncomeStatementState {
    * @param storeId Store ID (null = all stores)
    */
   setStoreId: (storeId: string | null) => void;
+
+  /**
+   * Set statement type (monthly or 12month)
+   * @param type Statement type
+   */
+  setStatementType: (type: IncomeStatementType) => void;
+
+  /**
+   * Set from date
+   * @param date Date string (YYYY-MM-DD)
+   */
+  setFromDate: (date: string) => void;
+
+  /**
+   * Set to date
+   * @param date Date string (YYYY-MM-DD)
+   */
+  setToDate: (date: string) => void;
 
   /**
    * Set current filters

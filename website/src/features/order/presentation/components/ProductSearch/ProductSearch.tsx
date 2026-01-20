@@ -58,13 +58,13 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
         <div ref={dropdownRef} className={styles.searchDropdown}>
           {searchResults.map((product) => (
             <div
-              key={product.product_id}
+              key={`${product.product_id}-${product.variant_id || 'base'}`}
               className={styles.searchResultItem}
               onClick={() => onAddProduct(product)}
             >
               <div className={styles.searchResultImage}>
                 {product.image_urls && product.image_urls.length > 0 ? (
-                  <img src={product.image_urls[0]} alt={product.product_name} />
+                  <img src={product.image_urls[0]} alt={product.display_name || product.product_name} />
                 ) : (
                   <div className={styles.noImage}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -76,9 +76,9 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
                 )}
               </div>
               <div className={styles.searchResultInfo}>
-                <span className={styles.searchResultName}>{product.product_name}</span>
+                <span className={styles.searchResultName}>{product.display_name || product.product_name}</span>
                 <span className={styles.searchResultMeta}>
-                  {product.sku} • Selling price: {formatPrice(product.price.selling)}
+                  {product.display_sku || product.product_sku} • Selling price: {formatPrice(product.price.selling)}
                 </span>
                 <span className={styles.searchResultStock}>
                   OnHand: {product.stock.quantity_on_hand} • Customer ordered: {product.stock.quantity_reserved}

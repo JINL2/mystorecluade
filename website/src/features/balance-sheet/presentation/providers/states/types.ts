@@ -39,6 +39,6 @@ export interface ErrorState {
  * Data state
  */
 export interface DataState {
-  balanceSheet: any | null; // BalanceSheetData type
+  balanceSheet: import('../../../domain/entities/BalanceSheetData').BalanceSheetData | null;
   companyId: string;
 }

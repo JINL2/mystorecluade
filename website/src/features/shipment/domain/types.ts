@@ -45,18 +45,6 @@ export interface OrderInfo {
   status: 'pending' | 'process';
 }
 
-/** Order item from order details (from inventory_get_order_items RPC) */
-export interface OrderItem {
-  order_item_id: string;
-  product_id: string;
-  product_name: string;
-  sku: string;
-  ordered_quantity: number;
-  fulfilled_quantity: number;
-  remaining_quantity: number;
-  unit_price: number;
-}
-
 /** Linked order in shipment detail */
 export interface LinkedOrder {
   order_id: string;
@@ -66,23 +54,59 @@ export interface LinkedOrder {
 
 // ===== Product Types =====
 
-/** Product interface from inventory RPC response */
+/** Product interface from inventory RPC response (get_inventory_page_v6) */
 export interface InventoryProduct {
+  // 제품 정보
   product_id: string;
   product_name: string;
-  sku: string;
-  barcode?: string;
+  product_sku: string;
+  product_barcode?: string;
+  product_type?: string;
+  brand_id?: string;
+  brand_name?: string;
+  category_id?: string;
+  category_name?: string;
+  unit?: string;
   image_urls?: string[];
+
+  // 변형 정보 (v6 신규)
+  variant_id?: string | null;
+  variant_name?: string | null;
+  variant_sku?: string | null;
+  variant_barcode?: string | null;
+
+  // 표시용 (v6 신규)
+  display_name: string;
+  display_sku: string;
+  display_barcode?: string;
+
+  // 재고
   stock: {
     quantity_on_hand: number;
     quantity_available: number;
     quantity_reserved: number;
   };
+
+  // 가격
   price: {
     cost: number;
     selling: number;
     source: string;
   };
+
+  // 상태
+  status?: {
+    stock_level: string;
+    is_active: boolean;
+  };
+
+  // 메타 (v6 신규)
+  has_variants?: boolean;
+  created_at?: string;
+
+  // v4 호환 (deprecated, v6에서는 display_sku 사용)
+  sku?: string;
+  barcode?: string;
 }
 
 // ===== Shipment Types =====
@@ -113,12 +137,13 @@ export interface ShipmentListItem {
   created_by: string | null;
 }
 
-/** Shipment item to create */
+/** Shipment item to create (v6: variant support) */
 export interface ShipmentItem {
   orderItemId: string;
   orderId: string;
   orderNumber: string;
   productId: string;
+  variantId?: string; // v6: variant support
   productName: string;
   sku: string;
   quantity: number;
@@ -126,11 +151,15 @@ export interface ShipmentItem {
   unitPrice: number;
 }
 
-/** Shipment detail item (from inventory_get_shipment_detail RPC) */
+/** Shipment detail item (from inventory_get_shipment_detail_v2 RPC) */
 export interface ShipmentDetailItem {
   item_id: string;
   product_id: string;
+  variant_id: string | null; // v2: variant support
   product_name: string;
+  variant_name: string | null; // v2: variant support
+  display_name: string; // v2: variant support
+  has_variants: boolean; // v2: variant support
   sku: string;
   quantity_shipped: number;
   quantity_received: number;
@@ -141,7 +170,17 @@ export interface ShipmentDetailItem {
   total_amount: number;
 }
 
-/** Shipment detail (from inventory_get_shipment_detail RPC) */
+/** Receiving summary (from inventory_get_shipment_detail_v2 RPC) */
+export interface ReceivingSummary {
+  total_shipped: number;
+  total_received: number;
+  total_accepted: number;
+  total_rejected: number;
+  total_remaining: number;
+  progress_percentage: number;
+}
+
+/** Shipment detail (from inventory_get_shipment_detail_v2 RPC) */
 export interface ShipmentDetail {
   // Shipment Header
   shipment_id: string;
@@ -162,8 +201,11 @@ export interface ShipmentDetail {
   supplier_address: string | null;
   is_registered_supplier: boolean;
 
-  // Shipment Items
+  // Shipment Items (v2: with variant support)
   items: ShipmentDetailItem[];
+
+  // Receiving Summary (v2: new field)
+  receiving_summary?: ReceivingSummary;
 
   // Linked Orders
   has_orders: boolean;
@@ -190,9 +232,10 @@ export interface CreateShipmentParams {
   notes?: string;
 }
 
-/** Item structure for RPC call */
+/** Item structure for RPC call (v3: variant support) */
 export interface CreateShipmentItem {
   sku: string;
+  variant_id: string | null; // v3: required (null for non-variant products)
   quantity_shipped: number;
   unit_cost: number;
 }

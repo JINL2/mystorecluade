@@ -102,8 +102,9 @@ export const useReceivingSessionStore = create<ReceivingSessionStore>()(
       // Received entries actions
       addReceivedEntry: (entry: ReceivedEntry) =>
         set((state) => {
+          // Check for existing entry by both productId AND variantId
           const existingIndex = state.receivedEntries.findIndex(
-            (e) => e.productId === entry.productId
+            (e) => e.productId === entry.productId && e.variantId === entry.variantId
           );
           if (existingIndex >= 0) {
             const updatedEntries = [...state.receivedEntries];
@@ -152,12 +153,13 @@ export const useReceivingSessionStore = create<ReceivingSessionStore>()(
       setEditableItems: (items: EditableItem[]) => set({ editableItems: items }),
       updateEditableItemQuantity: (
         productId: string,
+        variantId: string | null,
         field: 'quantity' | 'quantityRejected',
         value: number
       ) =>
         set((state) => ({
           editableItems: state.editableItems.map((item) =>
-            item.productId === productId
+            item.productId === productId && item.variantId === variantId
               ? { ...item, [field]: Math.max(0, value) }
               : item
           ),

@@ -1,334 +1,75 @@
 /**
  * InvoicePage Component
  * Invoice list and management
- * Refactored to use component composition (2025 Best Practice)
+ * Refactored to use useInvoicePage hook (ARCHITECTURE.md: TSX ≤15KB rule)
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { ConfirmModal } from '@/shared/components/common/ConfirmModal/ConfirmModal';
-import { useErrorMessage } from '@/shared/hooks/useErrorMessage';
-import { useInvoice } from '../../hooks/useInvoice';
-import { useRefundInvoice } from '../../hooks/useRefundInvoice';
-import { useAppState } from '@/app/providers/app_state_provider';
 import { LeftFilter } from '@/shared/components/common/LeftFilter';
-import type { FilterSection } from '@/shared/components/common/LeftFilter';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { InvoiceHeader } from './components/InvoiceHeader';
 import { InvoiceTable } from './components/InvoiceTable';
 import { InvoicePagination } from './components/InvoicePagination';
+import { useInvoicePage } from '../../hooks/useInvoicePage';
 import type { InvoicePageProps } from './InvoicePage.types';
 import styles from './InvoicePage.module.css';
 
 export const InvoicePage: React.FC<InvoicePageProps> = () => {
-  const { currentCompany, currentUser, currentStore, setCurrentStore } = useAppState();
-  const { messageState, closeMessage, showError, showSuccess } = useErrorMessage();
-
-  // Get company ID from app state
-  const companyId = currentCompany?.company_id || '';
-
-  // Local search query state for real-time client-side filtering
-  const [localSearchQuery, setLocalSearchQuery] = useState('');
-
-  // Selection state - following inventory page pattern
-  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
-
-  // Expanded invoice state
-  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
-
-  // Refund confirmation modal state
-  const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundTargetInvoiceId, setRefundTargetInvoiceId] = useState<string | null>(null);
-  const [refundProcessing, setRefundProcessing] = useState(false);
-
-  // Bulk refund confirmation modal state
-  const [bulkRefundModalOpen, setBulkRefundModalOpen] = useState(false);
-
-  // Get all state and actions from useInvoice hook (which wraps Zustand store)
   const {
+    // App State
+    companyId,
+    stores,
+
+    // Invoice State
     invoices,
+    filteredInvoices,
     loading,
     error,
     pagination,
     currentPage,
     itemsPerPage,
     selectedStoreId,
-    activeFilter,
     invoiceDetail,
     detailLoading,
     refunding,
-    refundInvoices,
-    setSelectedStoreId: setInvoiceStoreId,
-    changeDateRange,
+
+    // Local State
+    localSearchQuery,
+    selectedInvoices,
+    expandedInvoiceId,
+    refundModalOpen,
+    refundProcessing,
+    bulkRefundModalOpen,
+    refundTargetInvoice,
+
+    // Computed Values
+    hasSelectedCancelledInvoice,
+    bulkRefundTotalAmount,
+    bulkRefundTotalCost,
+    filterSections,
+
+    // Message State
+    messageState,
+    closeMessage,
+
+    // Actions
+    setLocalSearchQuery,
+    handleStoreSelect,
+    toggleInvoiceSelection,
+    selectAllInvoices,
+    handleRowClick,
+    handleBulkRefund,
+    handleCloseBulkRefundModal,
+    handleConfirmBulkRefund,
+    handleSingleRefund,
+    handleCloseRefundModal,
+    handleConfirmRefund,
     changePage,
-    refresh,
-    fetchInvoiceDetail,
-  } = useInvoice(companyId);
-
-  // Get refund hook for handling refund operations
-  const { refundInvoicesWithJournal } = useRefundInvoice(refundInvoices);
-
-  // Sync App State's currentStore to Invoice provider on mount and when currentStore changes
-  useEffect(() => {
-    const appStateStoreId = currentStore?.store_id || null;
-    if (appStateStoreId !== selectedStoreId) {
-      setInvoiceStoreId(appStateStoreId);
-    }
-  }, [currentStore, selectedStoreId, setInvoiceStoreId]);
-
-  // Handle store selection - syncs App State and invoice provider
-  const handleStoreSelect = (storeId: string | null) => {
-    const selectedStore = stores.find((s) => s.store_id === storeId) || null;
-    setCurrentStore(selectedStore); // Updates App State + localStorage
-    setInvoiceStoreId(storeId); // Updates Invoice provider
-  };
-
-  // Clear selections when store changes
-  useEffect(() => {
-    setSelectedInvoices(new Set());
-  }, [selectedStoreId]);
-
-  // Get stores from current company
-  const stores = currentCompany?.stores || [];
-
-  // Client-side filtering for real-time search
-  const filteredInvoices = invoices.filter((invoice) => {
-    if (!localSearchQuery) return true;
-
-    const query = localSearchQuery.toLowerCase();
-    return (
-      invoice.invoiceNumber.toLowerCase().includes(query) ||
-      invoice.customerName.toLowerCase().includes(query) ||
-      invoice.totalAmount.toString().includes(query) ||
-      invoice.formatCurrency(invoice.totalAmount).toLowerCase().includes(query)
-    );
-  });
-
-  // Selection handlers - following inventory page pattern
-  const toggleInvoiceSelection = (invoiceId: string) => {
-    const newSelection = new Set(selectedInvoices);
-    if (newSelection.has(invoiceId)) {
-      newSelection.delete(invoiceId);
-    } else {
-      newSelection.add(invoiceId);
-    }
-    setSelectedInvoices(newSelection);
-  };
-
-  const selectAllInvoices = () => {
-    if (selectedInvoices.size === filteredInvoices.length) {
-      setSelectedInvoices(new Set());
-    } else {
-      setSelectedInvoices(new Set(filteredInvoices.map(inv => inv.invoiceId)));
-    }
-  };
-
-  // Handle row click to expand/collapse and fetch detail
-  const handleRowClick = (invoiceId: string) => {
-    if (expandedInvoiceId === invoiceId) {
-      // Collapse if clicking the same row
-      setExpandedInvoiceId(null);
-    } else {
-      // Expand new row and fetch detail
-      setExpandedInvoiceId(invoiceId);
-      fetchInvoiceDetail(invoiceId);
-    }
-  };
-
-  // Check if any selected invoice is cancelled
-  const hasSelectedCancelledInvoice = Array.from(selectedInvoices).some(invoiceId => {
-    const invoice = invoices.find(inv => inv.invoiceId === invoiceId);
-    return invoice?.status === 'cancelled';
-  });
-
-  // Open bulk refund confirmation modal
-  const handleBulkRefund = () => {
-    if (selectedInvoices.size === 0) return;
-    setBulkRefundModalOpen(true);
-  };
-
-  // Close bulk refund modal
-  const handleCloseBulkRefundModal = () => {
-    setBulkRefundModalOpen(false);
-  };
-
-  // Calculate selected invoices totals
-  const selectedInvoicesData = Array.from(selectedInvoices).map(id =>
-    invoices.find(inv => inv.invoiceId === id)
-  ).filter(Boolean);
-
-  const bulkRefundTotalAmount = selectedInvoicesData.reduce(
-    (sum, inv) => sum + (inv?.totalAmount || 0), 0
-  );
-  const bulkRefundTotalCost = selectedInvoicesData.reduce(
-    (sum, inv) => sum + (inv?.totalCost || 0), 0
-  );
-
-  // Execute bulk refund after confirmation
-  const handleConfirmBulkRefund = async () => {
-    if (!currentUser?.user_id || !companyId || selectedInvoices.size === 0) return;
-
-    // Close modal first, then show loading overlay
-    handleCloseBulkRefundModal();
-    setRefundProcessing(true);
-
-    try {
-      const invoiceIdsArray = Array.from(selectedInvoices);
-      const result = await refundInvoicesWithJournal({
-        invoiceIds: invoiceIdsArray,
-        notes: 'Bulk refund',
-        companyId,
-        userId: currentUser.user_id,
-        invoices,
-      });
-
-      if (result.success) {
-        await refresh(companyId);
-        showSuccess({
-          message: `Successfully refunded ${result.totalSucceeded} invoice${result.totalSucceeded > 1 ? 's' : ''}. Total amount: ${invoices[0]?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
-          autoCloseDuration: 3000
-        });
-        setSelectedInvoices(new Set());
-      } else {
-        showError({
-          title: 'Refund Failed',
-          message: result.error || 'Failed to refund invoices'
-        });
-      }
-    } catch (error) {
-      showError({
-        title: 'Refund Error',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred'
-      });
-    } finally {
-      setRefundProcessing(false);
-    }
-  };
-
-  // Open refund confirmation modal
-  const handleSingleRefund = (invoiceId: string) => {
-    setRefundTargetInvoiceId(invoiceId);
-    setRefundModalOpen(true);
-  };
-
-  // Close refund modal
-  const handleCloseRefundModal = () => {
-    setRefundModalOpen(false);
-    setRefundTargetInvoiceId(null);
-  };
-
-  // Execute refund after confirmation
-  const handleConfirmRefund = async () => {
-    if (!currentUser?.user_id || !companyId || !refundTargetInvoiceId) return;
-
-    // Close modal first, then show loading overlay
-    handleCloseRefundModal();
-    setRefundProcessing(true);
-
-    try {
-      const result = await refundInvoicesWithJournal({
-        invoiceIds: [refundTargetInvoiceId],
-        notes: 'Single refund',
-        companyId,
-        userId: currentUser.user_id,
-        invoices,
-      });
-
-      if (result.success) {
-        const refundedInvoice = invoices.find(inv => inv.invoiceId === refundTargetInvoiceId);
-        await refresh(companyId);
-        showSuccess({
-          message: `Successfully refunded invoice. Amount: ${refundedInvoice?.formatCurrency(result.totalAmountRefunded) || result.totalAmountRefunded}`,
-          autoCloseDuration: 3000
-        });
-        setExpandedInvoiceId(null);
-      } else {
-        showError({
-          title: 'Refund Failed',
-          message: result.error || 'Failed to refund invoice'
-        });
-      }
-    } catch (error) {
-      showError({
-        title: 'Refund Error',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred'
-      });
-    } finally {
-      setRefundProcessing(false);
-    }
-  };
-
-  // Get target invoice for modal display
-  const refundTargetInvoice = refundTargetInvoiceId
-    ? invoices.find(inv => inv.invoiceId === refundTargetInvoiceId)
-    : null;
-
-  // Helper function to calculate date range (from DateFilterTabs logic)
-  const calculateDateRange = (filter: string): { start: string; end: string } => {
-    const today = new Date();
-    let start: Date;
-    let end: Date = new Date(today);
-
-    switch (filter) {
-      case 'all':
-        start = new Date(today.getFullYear() - 10, 0, 1);
-        break;
-      case 'today':
-        start = new Date(today);
-        break;
-      case 'yesterday':
-        start = new Date(today);
-        start.setDate(today.getDate() - 1);
-        end = new Date(start);
-        break;
-      case 'this-week':
-        start = new Date(today);
-        const day = today.getDay();
-        const diff = day === 0 ? -6 : 1 - day;
-        start.setDate(today.getDate() + diff);
-        break;
-      case 'this-month':
-        start = new Date(today.getFullYear(), today.getMonth(), 1);
-        break;
-      case 'last-month':
-        start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        end = new Date(today.getFullYear(), today.getMonth(), 0);
-        break;
-      default:
-        start = new Date(today);
-    }
-
-    return {
-      start: DateTimeUtils.toDateOnly(start),
-      end: DateTimeUtils.toDateOnly(end),
-    };
-  };
-
-  // LeftFilter sections configuration (Date Range only - Search moved to header)
-  const filterSections: FilterSection[] = [
-    {
-      id: 'date',
-      title: 'Date Range',
-      type: 'sort',
-      defaultExpanded: true,
-      selectedValues: activeFilter,
-      options: [
-        { value: 'all', label: 'All' },
-        { value: 'today', label: 'Today' },
-        { value: 'yesterday', label: 'Yesterday' },
-        { value: 'this-week', label: 'This Week' },
-        { value: 'this-month', label: 'This Month' },
-        { value: 'last-month', label: 'Last Month' },
-      ],
-      onSelect: (value) => {
-        const { start, end } = calculateDateRange(value);
-        changeDateRange(value as any, start, end);
-      },
-    },
-  ];
+  } = useInvoicePage();
 
   // Show loading if no company selected yet
   if (!companyId) {

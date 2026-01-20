@@ -33,31 +33,83 @@ export const useShipmentCreateImport = ({
     notFoundSkus: [],
   });
 
-  // Search product by SKU using Repository
+  // Search product by SKU and variant name (for import)
+  // v2: Added variantName parameter for variant product matching
+  // v3: Returns error reason for better error messages
+  type SearchResult = {
+    product: InventoryProduct | null;
+    error?: 'not_found' | 'variant_required' | 'variant_not_found' | 'variant_not_applicable';
+  };
+
   const searchProductBySku = useCallback(
-    async (sku: string): Promise<InventoryProduct | null> => {
+    async (sku: string, variantName?: string): Promise<SearchResult> => {
       if (!companyId || !storeId || !sku.trim()) {
-        return null;
+        return { product: null, error: 'not_found' };
       }
 
       try {
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const result = await repository.searchProductBySku(
+        const result = await repository.searchProducts(
           companyId,
           storeId,
           sku.trim(),
           userTimezone
         );
 
-        if (!result.success) {
-          console.error('📦 Search by SKU error:', result.error);
-          return null;
+        if (!result.success || !result.data?.items) {
+          return { product: null, error: 'not_found' };
         }
 
-        return result.data || null;
-      } catch (err) {
-        console.error('📦 Search by SKU exception:', err);
-        return null;
+        const items = result.data.items;
+
+        // Find exact SKU match (check display_sku, product_sku, and variant_sku)
+        const skuMatches = items.filter(
+          (p: InventoryProduct) =>
+            p.display_sku?.toLowerCase() === sku.trim().toLowerCase() ||
+            p.product_sku?.toLowerCase() === sku.trim().toLowerCase() ||
+            p.variant_sku?.toLowerCase() === sku.trim().toLowerCase()
+        );
+
+        if (skuMatches.length === 0) {
+          return { product: null, error: 'not_found' };
+        }
+
+        // Check if product has variants
+        const hasVariants = skuMatches.some((p: InventoryProduct) => p.variant_id);
+        const nonVariantMatch = skuMatches.find((p: InventoryProduct) => !p.variant_id);
+
+        // v3: If variantName is provided
+        if (variantName && variantName.trim()) {
+          // Check if product has no variants (variant_not_applicable)
+          if (!hasVariants) {
+            // Product has no variants, but variant name was provided - that's OK, just ignore it
+            return { product: nonVariantMatch || skuMatches[0] };
+          }
+
+          // Product has variants, find matching variant
+          const variantMatch = skuMatches.find(
+            (p: InventoryProduct) =>
+              p.variant_name?.toLowerCase() === variantName.trim().toLowerCase()
+          );
+
+          if (variantMatch) {
+            return { product: variantMatch };
+          }
+
+          // Variant name provided but not found
+          return { product: null, error: 'variant_not_found' };
+        }
+
+        // v3: No variantName provided
+        if (hasVariants && !nonVariantMatch) {
+          // Product only has variants, variant name is required
+          return { product: null, error: 'variant_required' };
+        }
+
+        // Return non-variant product or first match
+        return { product: nonVariantMatch || skuMatches[0] };
+      } catch {
+        return { product: null, error: 'not_found' };
       }
     },
     [companyId, storeId, repository]
@@ -97,21 +149,26 @@ export const useShipmentCreateImport = ({
           throw new Error('No worksheet found in the Excel file');
         }
 
-        const rowsToProcess: { sku: string; cost: number; quantity: number }[] = [];
+        // Parse rows (skip header row 1)
+        // v2: Added variant_name column (Column B)
+        // v3: Added rowNumber for error tracking
+        const rowsToProcess: { rowNumber: number; sku: string; variantName: string; cost: number; quantity: number }[] = [];
 
         worksheet.eachRow((row, rowNumber) => {
-          if (rowNumber === 1) return;
+          if (rowNumber === 1) return; // Skip header
 
-          const skuCell = row.getCell(1);
-          const costCell = row.getCell(2);
-          const quantityCell = row.getCell(3);
+          const skuCell = row.getCell(1); // Column A = SKU
+          const variantNameCell = row.getCell(2); // Column B = Variant Name (v2)
+          const costCell = row.getCell(3); // Column C = Cost
+          const quantityCell = row.getCell(4); // Column D = Quantity
 
           const sku = skuCell.value?.toString().trim();
+          const variantName = variantNameCell.value?.toString().trim() || '';
           const cost = parseFloat(costCell.value?.toString() || '0') || 0;
           const quantity = parseInt(quantityCell.value?.toString() || '1') || 1;
 
           if (sku) {
-            rowsToProcess.push({ sku, cost, quantity });
+            rowsToProcess.push({ rowNumber, sku, variantName, cost, quantity });
           }
         });
 
@@ -127,35 +184,60 @@ export const useShipmentCreateImport = ({
           return;
         }
 
+        // Search products and add to shipment items
+        // v3: Enhanced error messages with row number and specific error reasons
         const notFoundSkus: string[] = [];
         const newShipmentItems: ShipmentItem[] = [...shipmentItems];
 
         for (const row of rowsToProcess) {
-          const product = await searchProductBySku(row.sku);
+          const result = await searchProductBySku(row.sku, row.variantName);
 
-          if (product) {
+          if (result.product) {
+            // v6: unique key is product_id + variant_id
             const existingIndex = newShipmentItems.findIndex(
-              (item) => item.productId === product.product_id
+              (item) =>
+                item.productId === result.product!.product_id &&
+                item.variantId === (result.product!.variant_id || undefined)
             );
 
             if (existingIndex >= 0) {
+              // Update quantity and cost if already exists
               newShipmentItems[existingIndex].quantity += row.quantity;
               newShipmentItems[existingIndex].unitPrice = row.cost;
             } else {
+              // Add new item with cost and quantity from Excel
+              // v6: use display_name/display_sku for display
               newShipmentItems.push({
-                orderItemId: `import-${product.product_id}-${Date.now()}`,
+                orderItemId: `import-${result.product.product_id}-${result.product.variant_id || 'base'}-${Date.now()}`,
                 orderId: '',
                 orderNumber: '-',
-                productId: product.product_id,
-                productName: product.product_name,
-                sku: product.sku,
+                productId: result.product.product_id,
+                variantId: result.product.variant_id || undefined,
+                productName: result.product.display_name || result.product.product_name,
+                sku: result.product.display_sku || result.product.product_sku,
                 quantity: row.quantity,
-                maxQuantity: product.stock.quantity_on_hand,
+                maxQuantity: result.product.stock.quantity_on_hand,
                 unitPrice: row.cost,
               });
             }
           } else {
-            notFoundSkus.push(row.sku);
+            // v3: More descriptive error message with row number and specific error reason
+            let errorMsg = `Row ${row.rowNumber}: ${row.sku}`;
+
+            switch (result.error) {
+              case 'variant_required':
+                errorMsg += ' - Variant Name is required for this product';
+                break;
+              case 'variant_not_found':
+                errorMsg += ` - Variant "${row.variantName}" not found`;
+                break;
+              case 'not_found':
+              default:
+                errorMsg += ' - SKU not found';
+                break;
+            }
+
+            notFoundSkus.push(errorMsg);
           }
         }
 
@@ -168,7 +250,6 @@ export const useShipmentCreateImport = ({
           });
         }
       } catch (error) {
-        console.error('📦 Import error:', error);
         setImportError({
           show: true,
           notFoundSkus: [
@@ -194,8 +275,10 @@ export const useShipmentCreateImport = ({
 
       const worksheet = workbook.addWorksheet('Shipment Items');
 
+      // Define columns (v2: added Variant Name for variant products)
       worksheet.columns = [
         { header: 'SKU', key: 'sku', width: 20 },
+        { header: 'Variant Name', key: 'variant_name', width: 20 },
         { header: 'Cost', key: 'cost', width: 15 },
         { header: 'Quantity', key: 'quantity', width: 12 },
       ];
@@ -228,8 +311,9 @@ export const useShipmentCreateImport = ({
         };
       });
 
-      worksheet.addRow({ sku: 'SAMPLE-SKU-001', cost: 10000, quantity: 5 });
-      worksheet.addRow({ sku: 'SAMPLE-SKU-002', cost: 25000, quantity: 10 });
+      // Add sample data rows (with variant_name examples)
+      worksheet.addRow({ sku: 'SAMPLE-SKU-001', variant_name: '', cost: 10000, quantity: 5 });
+      worksheet.addRow({ sku: 'SAMPLE-SKU-002', variant_name: 'Red / Large', cost: 25000, quantity: 10 });
 
       [2, 3].forEach((rowNum) => {
         const row = worksheet.getRow(rowNum);
@@ -287,8 +371,7 @@ export const useShipmentCreateImport = ({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting sample:', error);
+    } catch {
       alert('Failed to export sample file');
     }
   }, []);

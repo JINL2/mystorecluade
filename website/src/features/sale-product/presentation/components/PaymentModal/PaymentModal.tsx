@@ -146,7 +146,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <h3 className={styles.sectionTitle}>Selected Products</h3>
             <div className={styles.productsList}>
               {cartItems.map((item) => (
-                <div key={item.productId} className={styles.productItem}>
+                <div key={item.uniqueKey} className={styles.productItem}>
                   <div className={styles.productInfo}>
                     <span className={styles.productName}>{item.productName}</span>
                     <span className={styles.productSku}>({item.sku})</span>
@@ -285,13 +285,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               ) : (
                 <div className={styles.currencyButtons}>
                   {exchangeRates.map((rate) => (
-                    <div key={rate.id} className={styles.currencyItem}>
+                    <div key={rate.currencyId} className={styles.currencyItem}>
                       <button className={styles.currencyBtn}>
                         <span className={styles.currencyCode}>
                           {rate.currencyCode}
                         </span>
                         <span className={styles.convertedAmount}>
-                          {rate.currencySymbol}
+                          {rate.symbol}
                           {rate.convertAmount(total).toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,

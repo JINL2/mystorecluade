@@ -1,13 +1,12 @@
 /**
  * useShipmentCreateOrder Hook
- * Handles order selection and order items management for shipment creation
+ * Handles order selection for shipment creation
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getShipmentRepository } from '../../data/repositories/ShipmentRepositoryImpl';
 import type {
   OrderInfo,
-  OrderItem,
   SelectionMode,
 } from '../pages/ShipmentCreatePage/ShipmentCreatePage.types';
 
@@ -35,10 +34,6 @@ export const useShipmentCreateOrder = ({
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
 
-  // Order items state
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [orderItemsLoading, setOrderItemsLoading] = useState(false);
-
   // Filter orders by selected supplier
   const filteredOrders = selectedSupplier
     ? allOrders.filter((order) => order.supplier_id === selectedSupplier)
@@ -57,7 +52,9 @@ export const useShipmentCreateOrder = ({
     }
 
     const loadOrders = async () => {
-      if (!companyId) return;
+      if (!companyId) {
+        return;
+      }
 
       setOrdersLoading(true);
       try {
@@ -69,8 +66,7 @@ export const useShipmentCreateOrder = ({
         } else {
           setAllOrders([]);
         }
-      } catch (err) {
-        console.error('📋 getOrders error:', err);
+      } catch {
         setAllOrders([]);
       } finally {
         setOrdersLoading(false);
@@ -79,35 +75,6 @@ export const useShipmentCreateOrder = ({
 
     loadOrders();
   }, [companyId, ordersFromState, repository]);
-
-  // Load order items when order is selected using Repository
-  useEffect(() => {
-    const loadOrderItems = async () => {
-      if (!selectedOrder) {
-        setOrderItems([]);
-        return;
-      }
-
-      setOrderItemsLoading(true);
-      try {
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const result = await repository.getOrderItems(selectedOrder, userTimezone);
-
-        if (result.success && result.data) {
-          setOrderItems(result.data);
-        } else {
-          setOrderItems([]);
-        }
-      } catch (err) {
-        console.error('📦 getOrderItems error:', err);
-        setOrderItems([]);
-      } finally {
-        setOrderItemsLoading(false);
-      }
-    };
-
-    loadOrderItems();
-  }, [selectedOrder, repository]);
 
   // Handle supplier change - reset order selection if filtered out
   const handleSupplierChange = useCallback((supplierId: string | null) => {
@@ -119,7 +86,6 @@ export const useShipmentCreateOrder = ({
       );
       if (!orderStillValid) {
         setSelectedOrder(null);
-        setOrderItems([]);
         onClearShipmentItems();
       }
     }
@@ -144,7 +110,6 @@ export const useShipmentCreateOrder = ({
   // Clear order selection (for external use)
   const clearOrderSelection = useCallback(() => {
     setSelectedOrder(null);
-    setOrderItems([]);
   }, []);
 
   return {
@@ -153,8 +118,6 @@ export const useShipmentCreateOrder = ({
     ordersLoading,
     orderOptions,
     selectedOrder,
-    orderItems,
-    orderItemsLoading,
     handleSupplierChange,
     handleOrderChange,
     clearOrderSelection,

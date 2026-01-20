@@ -1,6 +1,6 @@
 /**
  * ProductDetailsForm Component
- * Product information form with three sections: Product Info, Stock Info, Price Info
+ * Product information form with four sections: Product Info, Attributes, Stock Info, Price Info
  */
 
 import React from 'react';
@@ -28,9 +28,54 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
   formData,
   metadata,
   onInputChange,
+  onAttributeChange,
   onAddBrand,
   onAddCategory,
+  onAddAttribute,
+  hasVariants,
+  variantName,
 }) => {
+  // Get attributes from metadata
+  const allAttributes = metadata?.attributes || [];
+
+  // For products with variants, find the attribute that matches the variant
+  const getVariantAttributeId = (): string | null => {
+    if (!hasVariants || !variantName) return null;
+
+    for (const attribute of allAttributes) {
+      for (const option of attribute.options) {
+        if (option.option_value === variantName) {
+          return attribute.attribute_id;
+        }
+      }
+    }
+    return null;
+  };
+
+  const variantAttributeId = getVariantAttributeId();
+
+  // Track selected attribute for checkbox (only 1 allowed for products without variants)
+  const selectedAttributeId = Object.keys(formData.selectedAttributes || {})[0] || null;
+
+  // Handle checkbox click for attribute selection
+  const handleAttributeCheckboxClick = (attributeId: string) => {
+    if (hasVariants) return; // Don't allow changes for products with variants
+
+    if (onAttributeChange) {
+      if (selectedAttributeId === attributeId) {
+        // Deselect - pass empty string to clear
+        onAttributeChange(attributeId, '');
+      } else {
+        // Clear previous selection and select new one
+        if (selectedAttributeId) {
+          onAttributeChange(selectedAttributeId, '');
+        }
+        // Select new attribute (mark as selected without option)
+        onAttributeChange(attributeId, '__selected__');
+      }
+    }
+  };
+
   return (
     <>
       {/* Product Information Section */}
@@ -132,6 +177,70 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Variant Attributes Section - Only show if attributes exist */}
+      {allAttributes.length > 0 && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>
+            Variant Attributes
+            {variantName && (
+              <span className={styles.variantBadge}>{variantName}</span>
+            )}
+            {onAddAttribute && !hasVariants && (
+              <button
+                type="button"
+                className={styles.addAttributeButton}
+                onClick={onAddAttribute}
+                title="Add new attribute"
+              >
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+              </button>
+            )}
+          </h3>
+          {/* Subtitle for attribute selection */}
+          <p className={styles.attributeSubtitle}>
+            {hasVariants
+              ? 'This product has variants. Attribute cannot be changed.'
+              : 'Select variant attribute (optional, only 1 allowed)'}
+          </p>
+          {/* Checkbox list for attributes */}
+          <div className={styles.attributeCheckboxList}>
+            {allAttributes.map((attribute) => {
+              // For products with variants: check if this is the variant's attribute
+              const isSelected = hasVariants
+                ? variantAttributeId === attribute.attribute_id
+                : selectedAttributeId === attribute.attribute_id;
+              const isDisabled = hasVariants;
+
+              return (
+                <div
+                  key={attribute.attribute_id}
+                  className={`${styles.attributeCheckboxRow} ${isDisabled ? styles.attributeCheckboxDisabled : ''}`}
+                  onClick={() => !isDisabled && handleAttributeCheckboxClick(attribute.attribute_id)}
+                >
+                  <div
+                    className={`${styles.attributeCheckbox} ${isSelected ? styles.attributeCheckboxSelected : ''} ${isDisabled ? styles.attributeCheckboxDisabledBox : ''}`}
+                  >
+                    {isSelected && (
+                      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg>
+                    )}
+                  </div>
+                  <span className={`${styles.attributeCheckboxLabel} ${isDisabled ? styles.attributeCheckboxLabelDisabled : ''}`}>
+                    {attribute.attribute_name}
+                  </span>
+                  <span className={styles.attributeOptionCount}>
+                    {attribute.options.length} options
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Stock Information Section */}
       <div className={styles.section}>

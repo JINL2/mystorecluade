@@ -45,11 +45,11 @@ export class IncomeStatementRepositoryImpl implements IIncomeStatementRepository
         };
       }
 
-      // Transform RPC response to Domain Entity using Model
-      const data = IncomeStatementModel.fromMonthlyRpcResponse(rawData);
-
       // Get currency symbol
-      const currency = await this.dataSource.getCompanyCurrency(companyId);
+      const currency = await this.dataSource.getBaseCurrencySymbol(companyId);
+
+      // Transform RPC response to Domain Entity using Model (with currency)
+      const data = IncomeStatementModel.fromMonthlyRpcResponse(rawData, currency);
 
       console.log('✅ [Repository] Monthly income statement data processed successfully');
 
@@ -94,11 +94,11 @@ export class IncomeStatementRepositoryImpl implements IIncomeStatementRepository
         };
       }
 
-      // Transform RPC response to Domain Entity using Model
-      const data = IncomeStatementModel.from12MonthRpcResponse(rawData);
-
       // Get currency symbol
-      const currency = await this.dataSource.getCompanyCurrency(companyId);
+      const currency = await this.dataSource.getBaseCurrencySymbol(companyId);
+
+      // Transform RPC response to Domain Entity using Model (with currency)
+      const data = IncomeStatementModel.from12MonthRpcResponse(rawData, currency);
 
       console.log('✅ [Repository] 12-month income statement data processed successfully');
 

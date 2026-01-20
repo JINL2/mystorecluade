@@ -117,6 +117,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
   const [isBulkMoveModalOpen, setIsBulkMoveModalOpen] = useState(false);
   const [selectedProductForMove, setSelectedProductForMove] = useState<{
     productId: string;
+    variantId?: string | null; // v2: variant support
     productName: string;
     currentStock: number;
   } | null>(null);
@@ -422,11 +423,13 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
                 onCheckboxChange={handleCheckboxChange}
                 onRowClick={(productId) => setExpandedProductId(expandedProductId === productId ? null : productId)}
                 onEditProduct={handleEditProduct}
-                onMoveProduct={(productId) => {
-                  const product = inventory.find((p) => p.productId === productId);
+                onMoveProduct={(uniqueId) => {
+                  // v2: Find product by uniqueId (variantId || productId)
+                  const product = inventory.find((p) => p.uniqueId === uniqueId);
                   if (product) {
                     setSelectedProductForMove({
                       productId: product.productId,
+                      variantId: product.variantId, // v2: variant support
                       productName: product.productName,
                       currentStock: product.currentStock,
                     });
@@ -451,6 +454,12 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         productData={selectedProductData}
         metadata={metadata}
         onSave={async (updatedData, originalData) => {
+          // Check if this is a variant creation (non-variant product with selected attribute)
+          const isCreatingVariants =
+            updatedData.selectedAttributes &&
+            Object.keys(updatedData.selectedAttributes).length > 0 &&
+            !updatedData.variantId;
+
           const result = await updateProduct(
             selectedProductData?.productId || '',
             companyId,
@@ -460,7 +469,13 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           );
 
           if (result.success) {
-            showNotification('success', 'Product updated successfully!');
+            if (isCreatingVariants) {
+              // Variants were created - refresh inventory and show appropriate message
+              await loadInventory(companyId, selectedStoreId);
+              showNotification('success', 'Product updated with variants. You can now manage each variant separately.');
+            } else {
+              showNotification('success', 'Product updated successfully!');
+            }
           } else {
             showNotification('error', result.error || 'Failed to update product');
           }
@@ -485,6 +500,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           setSelectedProductForMove(null);
         }}
         productId={selectedProductForMove?.productId || ''}
+        variantId={selectedProductForMove?.variantId} // v2: variant support
         productName={selectedProductForMove?.productName || ''}
         currentStock={selectedProductForMove?.currentStock || 0}
         sourceStoreId={selectedStoreId || ''}
@@ -522,7 +538,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
             quantity,
             notes,
             DateTimeUtils.nowUtc(),
-            userId
+            userId,
+            selectedProductForMove.variantId // v4: variant support
           );
 
           if (result.success) {
@@ -540,10 +557,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         onClose={() => {
           setIsBulkMoveModalOpen(false);
         }}
-        products={Array.from(selectedProducts).map(productId => {
-          const product = inventory.find(p => p.productId === productId);
+        products={Array.from(selectedProducts).map(uniqueId => {
+          const product = inventory.find(p => p.uniqueId === uniqueId);
           return {
-            productId,
+            productId: product?.productId || uniqueId,
+            variantId: product?.variantId || null, // v4: variant support
             productName: product?.productName || '',
             productCode: product?.productCode || '',
             currentStock: product?.currentStock || 0
@@ -573,7 +591,8 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
               item.quantity,
               notes,
               DateTimeUtils.nowUtc(),
-              userId
+              userId,
+              item.variantId // v4: variant support
             );
 
             if (result.success) {

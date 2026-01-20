@@ -4,6 +4,10 @@
  */
 
 import type { PaginationInfo, InvoiceDetailResult } from '../../../domain/repositories/IInvoiceRepository';
+import type { DateFilter, AmountFilter } from '../../../data/datasources/InvoiceDataSource';
+
+// Re-export for convenience
+export type { DateFilter, AmountFilter };
 
 /**
  * Date filter type for invoice queries

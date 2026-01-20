@@ -35,7 +35,6 @@ class SupabaseService {
       },
     });
 
-    console.log('Supabase initialized successfully with persistence');
   }
 
   /**

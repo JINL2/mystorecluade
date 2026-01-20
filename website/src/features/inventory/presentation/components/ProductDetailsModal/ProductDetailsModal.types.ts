@@ -24,6 +24,10 @@ export interface ProductDetailsModalProps {
     unitPrice: number;
     costPrice?: number;
     imageUrls?: string[]; // Add imageUrls
+    // v6 variant fields
+    variantId?: string | null;
+    variantName?: string | null;
+    hasVariants?: boolean;
   };
   metadata?: InventoryMetadata | null;
   onSave?: (updatedData: any, originalData?: any) => void;

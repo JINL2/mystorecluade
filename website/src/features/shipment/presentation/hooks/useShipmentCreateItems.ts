@@ -6,7 +6,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type {
   OrderInfo,
-  OrderItem,
   ShipmentItem,
   InventoryProduct,
 } from '../pages/ShipmentCreatePage/ShipmentCreatePage.types';
@@ -14,13 +13,11 @@ import type {
 interface UseShipmentCreateItemsProps {
   selectedOrder: string | null;
   allOrders: OrderInfo[];
-  orderItems: OrderItem[];
 }
 
 export const useShipmentCreateItems = ({
   selectedOrder,
   allOrders,
-  orderItems,
 }: UseShipmentCreateItemsProps) => {
   // Shipment items state
   const [shipmentItems, setShipmentItems] = useState<ShipmentItem[]>([]);
@@ -34,74 +31,34 @@ export const useShipmentCreateItems = ({
     0
   );
 
-  // Add item to shipment from order items
-  const handleAddItem = useCallback(
-    (orderItem: OrderItem) => {
-      const selectedOrderData = allOrders.find((o) => o.order_id === selectedOrder);
-      if (!selectedOrderData) return;
-
-      const exists = shipmentItems.find((item) => item.orderItemId === orderItem.order_item_id);
-      if (exists) return;
-
-      const newItem: ShipmentItem = {
-        orderItemId: orderItem.order_item_id,
-        orderId: selectedOrder!,
-        orderNumber: selectedOrderData.order_number,
-        productId: orderItem.product_id,
-        productName: orderItem.product_name,
-        sku: orderItem.sku,
-        quantity: orderItem.remaining_quantity,
-        maxQuantity: orderItem.remaining_quantity,
-        unitPrice: orderItem.unit_price,
-      };
-
-      setShipmentItems((prev) => [...prev, newItem]);
-    },
-    [selectedOrder, allOrders, shipmentItems]
-  );
-
-  // Add all items from current order
-  const handleAddAllItems = useCallback(() => {
-    const selectedOrderData = allOrders.find((o) => o.order_id === selectedOrder);
-    if (!selectedOrderData) return;
-
-    const newItems: ShipmentItem[] = orderItems
-      .filter((oi) => !shipmentItems.find((si) => si.orderItemId === oi.order_item_id))
-      .map((orderItem) => ({
-        orderItemId: orderItem.order_item_id,
-        orderId: selectedOrder!,
-        orderNumber: selectedOrderData.order_number,
-        productId: orderItem.product_id,
-        productName: orderItem.product_name,
-        sku: orderItem.sku,
-        quantity: orderItem.remaining_quantity,
-        maxQuantity: orderItem.remaining_quantity,
-        unitPrice: orderItem.unit_price,
-      }));
-
-    setShipmentItems((prev) => [...prev, ...newItems]);
-  }, [selectedOrder, allOrders, orderItems, shipmentItems]);
-
-  // Add product from search
+  // Add product from search (v6: variant support)
   const handleAddProductFromSearch = useCallback(
     (product: InventoryProduct) => {
-      const existingItem = shipmentItems.find((item) => item.productId === product.product_id);
+      // v6: unique key is product_id + variant_id (if exists)
+      const existingItem = shipmentItems.find(
+        (item) =>
+          item.productId === product.product_id &&
+          item.variantId === (product.variant_id || undefined)
+      );
       if (existingItem) {
         setShipmentItems((prev) =>
           prev.map((item) =>
-            item.productId === product.product_id
+            item.productId === product.product_id &&
+            item.variantId === (product.variant_id || undefined)
               ? { ...item, quantity: item.quantity + 1 }
               : item
           )
         );
       } else {
+        // v6: use display_name/display_sku for display
         const newItem: ShipmentItem = {
-          orderItemId: `search-${product.product_id}-${Date.now()}`,
+          orderItemId: `search-${product.product_id}-${product.variant_id || 'base'}-${Date.now()}`,
           orderId: '',
           orderNumber: '-',
           productId: product.product_id,
-          productName: product.product_name,
-          sku: product.sku,
+          variantId: product.variant_id || undefined,
+          productName: product.display_name || product.product_name,
+          sku: product.display_sku || product.product_sku,
           quantity: 1,
           maxQuantity: product.stock.quantity_on_hand,
           unitPrice: product.price.cost,
@@ -162,8 +119,6 @@ export const useShipmentCreateItems = ({
     shipmentItems,
     setShipmentItems,
     totalAmount,
-    handleAddItem,
-    handleAddAllItems,
     handleAddProductFromSearch,
     handleRemoveItem,
     handleQuantityChange,

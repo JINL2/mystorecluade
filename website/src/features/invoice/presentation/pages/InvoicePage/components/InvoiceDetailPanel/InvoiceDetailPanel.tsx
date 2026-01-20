@@ -36,7 +36,7 @@ export const InvoiceDetailPanel: React.FC<InvoiceDetailPanelProps> = ({
     <>
       {/* Items Table - Full Width */}
       <div className={styles.detailSection} style={{ marginBottom: '16px', paddingLeft: '24px' }}>
-        <h4 className={styles.detailSectionTitle}>Items ({invoiceDetail.items.length})</h4>
+        <h4 className={styles.detailSectionTitle}>Items ({invoiceDetail.items_summary?.item_count ?? invoiceDetail.items.length})</h4>
         <div className={styles.detailItems}>
           <table className={styles.itemsTable}>
             <thead>
@@ -52,14 +52,14 @@ export const InvoiceDetailPanel: React.FC<InvoiceDetailPanelProps> = ({
             </thead>
             <tbody>
               {invoiceDetail.items.map((item) => (
-                <tr key={item.item_id}>
-                  <td>{item.product_name}</td>
-                  <td>{item.sku}</td>
-                  <td>{item.quantity_sold}</td>
+                <tr key={item.invoice_item_id}>
+                  <td>{item.display_name}</td>
+                  <td>{item.display_sku || '-'}</td>
+                  <td>{item.quantity}</td>
                   <td>{invoice.formatCurrency(item.unit_price)}</td>
                   <td>{invoice.formatCurrency(item.unit_cost)}</td>
                   <td>{invoice.formatCurrency(item.discount_amount)}</td>
-                  <td><strong>{invoice.formatCurrency(item.total_amount)}</strong></td>
+                  <td><strong>{invoice.formatCurrency(item.total_price)}</strong></td>
                 </tr>
               ))}
             </tbody>
@@ -75,11 +75,11 @@ export const InvoiceDetailPanel: React.FC<InvoiceDetailPanelProps> = ({
           <div className={styles.detailInfo}>
             <div className={styles.detailItem}>
               <span className={styles.detailLabel}>Store:</span>
-              <span className={styles.detailValue}>{invoiceDetail.invoice.store_name}</span>
+              <span className={styles.detailValue}>{invoiceDetail.store?.store_name}</span>
             </div>
             <div className={styles.detailItem}>
               <span className={styles.detailLabel}>Sale Date:</span>
-              <span className={styles.detailValue}>{new Date(invoiceDetail.invoice.sale_date).toLocaleString('en-US')}</span>
+              <span className={styles.detailValue}>{new Date(invoiceDetail.sale_date).toLocaleString('en-US')}</span>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@ export const InvoiceDetailPanel: React.FC<InvoiceDetailPanelProps> = ({
       </div>
 
       {/* Refund Button - Only show for completed invoices */}
-      {invoiceDetail.invoice.status === 'completed' && (
+      {invoiceDetail.status === 'completed' && (
         <div className={styles.detailActions}>
           <TossButton
             variant="error"

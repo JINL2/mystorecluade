@@ -101,11 +101,24 @@ export interface IProductReceiveRepository {
    */
   getSessionList(params: {
     companyId: string;
-    shipmentId: string;
+    shipmentId?: string;
     sessionType: string;
-    isActive: boolean;
+    isActive?: boolean;
     timezone: string;
   }): Promise<Session[]>;
+
+  /**
+   * Get session list with v2 parameters (date range, status filter)
+   */
+  getSessionListV2(params: {
+    companyId: string;
+    sessionType: 'counting' | 'receiving';
+    timezone: string;
+    startDate?: string;
+    endDate?: string;
+    status?: 'pending' | 'process' | 'complete' | 'cancelled';
+    supplierId?: string;
+  }): Promise<{ sessions: Session[]; totalCount: number }>;
 
   /**
    * Create a new receiving session

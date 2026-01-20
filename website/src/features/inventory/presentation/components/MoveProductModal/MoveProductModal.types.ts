@@ -6,6 +6,7 @@ export interface MoveProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   productId: string;
+  variantId?: string | null; // v2: variant support
   productName: string;
   currentStock: number;
   sourceStoreId: string;

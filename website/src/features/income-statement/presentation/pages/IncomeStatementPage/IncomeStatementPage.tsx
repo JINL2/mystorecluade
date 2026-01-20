@@ -6,6 +6,10 @@
  * - Uses Zustand provider (no local useState)
  * - All state managed by income_statement_provider
  * - Clean separation of concerns
+ *
+ * Entity Usage:
+ * - Uses class-based entities with camelCase properties
+ * - Leverages Entity methods (formatCurrency, displaySections, etc.)
  */
 
 import React, { useEffect } from 'react';
@@ -77,58 +81,6 @@ export const IncomeStatementPage: React.FC = () => {
     clearData();
   };
 
-  // Format number with currency
-  const formatAmount = (amount: number | string | undefined | null): string => {
-    if (amount === null || amount === undefined) return `${currency}0`;
-    if (typeof amount === 'string') return amount;
-    return `${currency}${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-  };
-
-  // Calculate financial ratios from monthly data
-  const calculateRatios = (data: MonthlyIncomeStatementData) => {
-    let revenue = 0;
-    let grossProfit = 0;
-    let operatingIncome = 0;
-    let netIncome = 0;
-    let grossMargin = 0;
-    let operatingMargin = 0;
-    let netMargin = 0;
-    let ebitda = 0;
-
-    data.forEach((section) => {
-      const sectionName = section.section.toLowerCase();
-
-      if (sectionName === 'revenue') {
-        revenue = typeof section.section_total === 'number' ? section.section_total : 0;
-      } else if (sectionName === 'gross profit') {
-        grossProfit = typeof section.section_total === 'number' ? section.section_total : 0;
-      } else if (sectionName === 'operating income') {
-        operatingIncome = typeof section.section_total === 'number' ? section.section_total : 0;
-      } else if (sectionName === 'net income') {
-        netIncome = typeof section.section_total === 'number' ? section.section_total : 0;
-      } else if (sectionName === 'gross margin') {
-        grossMargin = typeof section.section_total === 'number' ? section.section_total : 0;
-      } else if (sectionName === 'operating margin') {
-        operatingMargin = typeof section.section_total === 'number' ? section.section_total : 0;
-      } else if (sectionName === 'net margin') {
-        netMargin = typeof section.section_total === 'number' ? section.section_total : 0;
-      } else if (sectionName === 'ebitda') {
-        ebitda = typeof section.section_total === 'number' ? section.section_total : 0;
-      }
-    });
-
-    return {
-      revenue,
-      grossProfit,
-      operatingIncome,
-      netIncome,
-      grossMargin,
-      operatingMargin,
-      netMargin,
-      ebitda,
-    };
-  };
-
   // Format date range for display
   const formatDateRange = (filters: IncomeStatementFilters | null): string => {
     if (!filters) return '';
@@ -144,33 +96,31 @@ export const IncomeStatementPage: React.FC = () => {
     return `${fromDate.toLocaleDateString('en-US', options)} - ${toDate.toLocaleDateString('en-US', options)}`;
   };
 
-  // Render Monthly View
+  // Render Monthly View - uses Entity methods and camelCase properties
   const renderMonthlyView = (data: MonthlyIncomeStatementData) => {
-    const ratios = calculateRatios(data);
-
     return (
       <div className={styles.contentWrapper}>
-        {/* Summary Cards */}
+        {/* Summary Cards - using Entity computed properties */}
         <div className={styles.summaryCards}>
           <div className={`${styles.summaryCard} ${styles.revenue}`}>
             <div className={styles.cardLabel}>TOTAL REVENUE</div>
-            <div className={styles.cardValue}>{formatAmount(ratios.revenue)}</div>
-            <div className={styles.cardPercent}>{ratios.grossMargin.toFixed(2)}% Gross Margin</div>
+            <div className={styles.cardValue}>{data.formatCurrency(data.revenue)}</div>
+            <div className={styles.cardPercent}>{data.grossMargin.toFixed(2)}% Gross Margin</div>
           </div>
           <div className={`${styles.summaryCard} ${styles.profit}`}>
             <div className={styles.cardLabel}>GROSS PROFIT</div>
-            <div className={styles.cardValue}>{formatAmount(ratios.grossProfit)}</div>
-            <div className={styles.cardPercent}>{ratios.operatingMargin.toFixed(2)}% Operating Margin</div>
+            <div className={styles.cardValue}>{data.formatCurrency(data.grossProfit)}</div>
+            <div className={styles.cardPercent}>{data.operatingMargin.toFixed(2)}% Operating Margin</div>
           </div>
           <div className={`${styles.summaryCard} ${styles.operating}`}>
             <div className={styles.cardLabel}>OPERATING INCOME</div>
-            <div className={styles.cardValue}>{formatAmount(ratios.operatingIncome)}</div>
-            <div className={styles.cardPercent}>EBITDA: {formatAmount(ratios.ebitda)}</div>
+            <div className={styles.cardValue}>{data.formatCurrency(data.operatingIncome)}</div>
+            <div className={styles.cardPercent}>EBITDA: {data.formatCurrency(data.ebitda)}</div>
           </div>
           <div className={`${styles.summaryCard} ${styles.net}`}>
             <div className={styles.cardLabel}>NET INCOME</div>
-            <div className={styles.cardValue}>{formatAmount(ratios.netIncome)}</div>
-            <div className={styles.cardPercent}>{ratios.netMargin.toFixed(2)}% Net Margin</div>
+            <div className={styles.cardValue}>{data.formatCurrency(data.netIncome)}</div>
+            <div className={styles.cardPercent}>{data.netMargin.toFixed(2)}% Net Margin</div>
           </div>
         </div>
 
@@ -187,72 +137,63 @@ export const IncomeStatementPage: React.FC = () => {
                 <th className={styles.descriptionColumn}>Description</th>
                 <th className={styles.amountColumn}>
                   Amount<br/>
-                  <small className={styles.currencyNote}>(in {currency})</small>
+                  <small className={styles.currencyNote}>(in {data.currencySymbol})</small>
                 </th>
               </tr>
             </thead>
             <tbody>
-              {data.map((section, sIdx) => {
-                // Skip margin sections as they're shown in summary cards
-                if (section.section.toLowerCase().includes('margin')) return null;
+              {/* Use displaySections to filter out margin sections */}
+              {data.displaySections.map((section, sIdx) => (
+                <React.Fragment key={sIdx}>
+                  {/* Section Header - using sectionType for styling */}
+                  <tr className={`${styles.sectionHeader} ${styles[section.sectionType] || ''}`}>
+                    <td colSpan={2}>{section.sectionName.toUpperCase()}</td>
+                  </tr>
 
-                // Determine section type for styling
-                const sectionType = section.section.toLowerCase().replace(/ /g, '-');
+                  {/* Subcategories and Accounts - using camelCase properties */}
+                  {section.subcategories.map((subcategory, subIdx) => (
+                    <React.Fragment key={`${sIdx}-${subIdx}`}>
+                      {/* Subcategory Header */}
+                      {subcategory.subcategoryName && (
+                        <tr className={styles.subsectionHeader}>
+                          <td colSpan={2}>{subcategory.subcategoryName}</td>
+                        </tr>
+                      )}
 
-                return (
-                  <React.Fragment key={sIdx}>
-                    {/* Section Header */}
-                    <tr className={`${styles.sectionHeader} ${styles[sectionType] || ''}`}>
-                      <td colSpan={2}>{section.section.toUpperCase()}</td>
-                    </tr>
-
-                    {/* Subcategories and Accounts */}
-                    {section.subcategories && section.subcategories.map((subcategory, subIdx) => (
-                      <React.Fragment key={`${sIdx}-${subIdx}`}>
-                        {/* Subcategory Header */}
-                        {subcategory.subcategory && (
-                          <tr className={styles.subsectionHeader}>
-                            <td colSpan={2}>{subcategory.subcategory}</td>
-                          </tr>
-                        )}
-
-                        {/* Account Rows */}
-                        {subcategory.accounts && subcategory.accounts.map((account, accIdx) => (
-                          <tr key={`${sIdx}-${subIdx}-${accIdx}`} className={styles.accountRow}>
-                            <td className={styles.accountName}>{account.account_name}</td>
-                            <td className={styles.accountAmount}>{account.net_amount.toLocaleString('en-US')}</td>
-                          </tr>
-                        ))}
-                      </React.Fragment>
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+                      {/* Account Rows - using camelCase properties */}
+                      {subcategory.accounts.map((account, accIdx) => (
+                        <tr key={`${sIdx}-${subIdx}-${accIdx}`} className={styles.accountRow}>
+                          <td className={styles.accountName}>{account.accountName}</td>
+                          <td className={styles.accountAmount}>{account.formattedNetAmount}</td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         </div>
 
-        {/* Key Financial Ratios */}
+        {/* Key Financial Ratios - using Entity computed properties */}
         <div className={styles.ratiosSection}>
           <h3 className={styles.ratiosTitle}>Key Financial Ratios</h3>
           <div className={styles.ratiosGrid}>
             <div className={styles.ratioCard}>
               <div className={styles.ratioLabel}>GROSS MARGIN</div>
-              <div className={styles.ratioValue}>{ratios.grossMargin.toFixed(2)}%</div>
+              <div className={styles.ratioValue}>{data.grossMargin.toFixed(2)}%</div>
             </div>
             <div className={styles.ratioCard}>
               <div className={styles.ratioLabel}>OPERATING MARGIN</div>
-              <div className={styles.ratioValue}>{ratios.operatingMargin.toFixed(2)}%</div>
+              <div className={styles.ratioValue}>{data.operatingMargin.toFixed(2)}%</div>
             </div>
             <div className={styles.ratioCard}>
               <div className={styles.ratioLabel}>NET MARGIN</div>
-              <div className={styles.ratioValue}>{ratios.netMargin.toFixed(2)}%</div>
+              <div className={styles.ratioValue}>{data.netMargin.toFixed(2)}%</div>
             </div>
             <div className={styles.ratioCard}>
               <div className={styles.ratioLabel}>EBITDA MARGIN</div>
-              <div className={styles.ratioValue}>
-                {ratios.revenue !== 0 ? ((ratios.ebitda / ratios.revenue) * 100).toFixed(2) : '0.00'}%
-              </div>
+              <div className={styles.ratioValue}>{data.ebitdaMargin.toFixed(2)}%</div>
             </div>
           </div>
         </div>
@@ -260,28 +201,16 @@ export const IncomeStatementPage: React.FC = () => {
     );
   };
 
-  // Format month display (2025-01 -> 2025 JAN)
-  const formatMonthDisplay = (monthString: string): string => {
-    const [year, month] = monthString.split('-');
-    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                       'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    const monthIndex = parseInt(month, 10) - 1;
-    return `${year} ${monthNames[monthIndex]}`;
-  };
-
-  // Render 12-Month View
+  // Render 12-Month View - uses Entity methods and camelCase properties
   const render12MonthView = (data: TwelveMonthIncomeStatementData) => {
-    const { months, sections, summary } = data;
-
     return (
       <div className={styles.contentWrapper}>
-        {/* Header Section */}
+        {/* Header Section - using Entity computed properties */}
         <div className={styles.tableHeader}>
           <h3 className={styles.tableTitle}>Income Statement - 12 Month View</h3>
           <div className={styles.periodInfo}>
-            Period: {summary?.period_info?.start_date || 'N/A'} to {summary?.period_info?.end_date || 'N/A'}
-            {summary?.period_info?.store_name && ` (${summary.period_info.store_name})`}
-            {!summary?.period_info?.store_name && ' (ALL STORES)'}
+            Period: {data.periodDisplay}
+            {` (${data.storeDisplay})`}
           </div>
         </div>
 
@@ -292,86 +221,79 @@ export const IncomeStatementPage: React.FC = () => {
                 <tr>
                   <th className={styles.accountColumn}>
                     ACCOUNT<br/>
-                    <small className={styles.currencyNote}>(in {currency})</small>
+                    <small className={styles.currencyNote}>(in {data.currencySymbol})</small>
                   </th>
-                  {months.map((month, idx) => (
-                    <th key={idx} className={styles.monthColumn}>{formatMonthDisplay(month)}</th>
+                  {data.months.map((month, idx) => (
+                    <th key={idx} className={styles.monthColumn}>{data.formatMonth(month)}</th>
                   ))}
                   <th className={styles.totalColumn}>TOTAL</th>
                 </tr>
               </thead>
               <tbody>
-                {sections.map((section, sIdx) => {
-                  // Skip margin sections
-                  if (section.section.toLowerCase().includes('margin')) return null;
-
-                  // Determine section type for styling
-                  const sectionType = section.section.toLowerCase().replace(/ /g, '-');
-
-                  return (
+                {/* Use displaySections to filter out margin sections */}
+                {data.displaySections.map((section, sIdx) => (
                   <React.Fragment key={sIdx}>
                     {/* Section Header Row */}
-                    <tr className={`${styles.sectionHeader} ${styles[sectionType] || ''}`}>
-                      <td colSpan={months.length + 2}>{section.section.toUpperCase()}</td>
+                    <tr className={`${styles.sectionHeader} ${styles[section.sectionType] || ''}`}>
+                      <td colSpan={data.months.length + 2}>{section.sectionName.toUpperCase()}</td>
                     </tr>
 
-                    {/* Subcategories and Accounts */}
-                    {section.subcategories && section.subcategories.map((subcategory, subIdx) => (
+                    {/* Subcategories and Accounts - using camelCase properties */}
+                    {section.subcategories.map((subcategory, subIdx) => (
                       <React.Fragment key={`${sIdx}-${subIdx}`}>
                         {/* Subcategory Header */}
-                        {subcategory.subcategory && (
+                        {subcategory.subcategoryName && (
                           <tr className={styles.subsectionHeader}>
-                            <td colSpan={months.length + 2}>{subcategory.subcategory}</td>
+                            <td colSpan={data.months.length + 2}>{subcategory.subcategoryName}</td>
                           </tr>
                         )}
 
-                        {/* Account Rows */}
-                        {subcategory.accounts && subcategory.accounts.map((account, accIdx) => (
+                        {/* Account Rows - using Entity methods */}
+                        {subcategory.accounts.map((account, accIdx) => (
                           <tr key={`${sIdx}-${subIdx}-${accIdx}`} className={styles.accountRow}>
-                            <td className={styles.accountName}>{account.account_name}</td>
-                            {months.map((month, mIdx) => (
+                            <td className={styles.accountName}>{account.accountName}</td>
+                            {data.months.map((month, mIdx) => (
                               <td key={mIdx} className={styles.accountAmount}>
-                                {formatAmount(account.monthly_amounts?.[month] || 0)}
+                                {data.formatCurrency(account.getMonthlyAmount(month))}
                               </td>
                             ))}
                             <td className={styles.accountAmount}>
-                              {formatAmount(account.total || account.net_amount)}
+                              {data.formatCurrency(account.total ?? account.netAmount)}
                             </td>
                           </tr>
                         ))}
 
                         {/* Subcategory Total Row */}
-                        {subcategory.subcategory && (
+                        {subcategory.subcategoryName && (
                           <tr className={styles.totalRow}>
-                            <td className={styles.totalLabel}>Total {subcategory.subcategory}</td>
-                            {months.map((month, mIdx) => (
+                            <td className={styles.totalLabel}>Total {subcategory.subcategoryName}</td>
+                            {data.months.map((month, mIdx) => (
                               <td key={mIdx} className={styles.totalAmount}>
-                                {formatAmount(subcategory.subcategory_monthly_totals?.[month] || 0)}
+                                {data.formatCurrency(subcategory.getMonthlyTotal(month))}
                               </td>
                             ))}
                             <td className={styles.totalAmount}>
-                              {formatAmount(subcategory.subcategory_total)}
+                              {data.formatCurrency(subcategory.subcategoryTotal)}
                             </td>
                           </tr>
                         )}
                       </React.Fragment>
                     ))}
 
-                    {/* Section Total Row */}
-                    <tr className={`${styles.sectionTotal} ${styles[sectionType] || ''}`}>
-                      <td className={styles.sectionTotalLabel}><strong>{section.section}</strong></td>
-                      {months.map((month, mIdx) => (
+                    {/* Section Total Row - using Entity methods */}
+                    <tr className={`${styles.sectionTotal} ${styles[section.sectionType] || ''}`}>
+                      <td className={styles.sectionTotalLabel}><strong>{section.sectionName}</strong></td>
+                      {data.months.map((month, mIdx) => (
                         <td key={mIdx} className={styles.sectionTotalAmount}>
-                          {formatAmount(section.section_monthly_totals?.[month] || 0)}
+                          {data.formatCurrency(section.getMonthlyTotal(month))}
                         </td>
                       ))}
                       <td className={styles.sectionTotalAmount}>
-                        {formatAmount(section.section_total)}
+                        {data.formatCurrency(section.sectionTotal)}
                       </td>
                     </tr>
                   </React.Fragment>
-                  );
-                })}
+                ))}
               </tbody>
             </table>
           </div>

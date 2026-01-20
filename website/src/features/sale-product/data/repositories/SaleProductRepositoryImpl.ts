@@ -23,6 +23,10 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
     this.dataSource = new SaleProductDataSource();
   }
 
+  /**
+   * Get products for sale
+   * v6: Uses items array instead of products, with variant support
+   */
   async getProducts(
     companyId: string,
     storeId: string,
@@ -42,13 +46,13 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
       throw new Error('Failed to load products');
     }
 
-    const productsData = response.data.products || [];
+    // v6: response uses 'items' instead of 'products'
+    const productsData = response.data.items || [];
     const products = ProductModel.toDomainList(productsData);
 
-    const pagination = response.data.pagination || {};
-    const totalCount = pagination.total_count || pagination.total || 0;
-    const totalPages =
-      pagination.total_pages || Math.ceil(totalCount / limit) || 1;
+    const pagination = response.data.pagination || { total_count: 0, total_pages: 1 };
+    const totalCount = pagination.total_count || 0;
+    const totalPages = pagination.total_pages || Math.ceil(totalCount / limit) || 1;
 
     return {
       items: products,
@@ -92,6 +96,10 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
     return CashLocationModel.filterAndConvertActive(response);
   }
 
+  /**
+   * Submit sale invoice
+   * v5: Added variant_id support in items array
+   */
   async submitSaleInvoice(invoice: SaleInvoice): Promise<{
     success: boolean;
     invoiceId?: string;
@@ -99,13 +107,21 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
   }> {
     try {
       // Map CartItem[] to RPC items format
+      // v5: Include variant_id for variant support
       // Rule:
       // - 1개 상품: p_items[0].discount_amount에 할인, p_discount_amount = null
       // - 2개 이상: p_items에 discount_amount 안 넣고, p_discount_amount에 총 할인
       const isSingleItem = invoice.items.length === 1;
       const items = invoice.items.map(item => {
-        const itemData: any = {
+        const itemData: {
+          product_id: string;
+          variant_id: string | null;
+          quantity: number;
+          unit_price: number;
+          discount_amount?: number;
+        } = {
           product_id: item.productId,
+          variant_id: item.variantId, // v5: variant support
           quantity: item.quantity,
           unit_price: item.unitPrice,
         };
@@ -134,7 +150,7 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
         discountAmount: isSingleItem ? undefined : invoice.discountAmount,
       };
 
-      // Call the RPC function
+      // Call the RPC function (v5)
       const response = await this.dataSource.submitInvoice(rpcParams);
 
       if (!response.success) {
@@ -161,7 +177,7 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
         totalAmount: invoice.total,
         totalCost: invoice.totalCost,
         cashLocationId: invoice.cashLocation.id,
-        invoiceId: response.invoice_id, // Pass invoice_id from inventory_create_invoice_v4 response
+        invoiceId: response.invoice_id!, // Pass invoice_id from inventory_create_invoice_v5 response
       });
 
       if (!journalResult.success) {
@@ -173,7 +189,7 @@ export class SaleProductRepositoryImpl implements ISaleProductRepository {
 
       return {
         success: true,
-        invoiceId: response.invoiceNumber,
+        invoiceId: response.invoice_number,
       };
     } catch (error) {
       return {

@@ -66,12 +66,13 @@ export interface ShipmentListItemEntity extends ShipmentBase {
 
 // ===== Create Shipment Entity =====
 
-/** New shipment item for creation */
+/** New shipment item for creation (v6: variant support) */
 export interface NewShipmentItem {
   orderItemId: string;
   orderId: string;
   orderNumber: string;
   productId: string;
+  variantId?: string; // v6: variant support
   productName: string;
   sku: string;
   quantity: number;

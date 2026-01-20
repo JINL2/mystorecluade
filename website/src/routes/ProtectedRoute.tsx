@@ -152,17 +152,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
     const companyPermissions = selectedCompany?.role?.permissions || [];
 
-    // Debug logging
-    console.log('🔐 ProtectedRoute 권한 체크:', {
-      requiredFeatureId,
-      selectedCompanyId,
-      companyName: selectedCompany?.company_name,
-      roleName: selectedCompany?.role?.role_name,
-      permissionsCount: companyPermissions.length,
-      permissions: companyPermissions,
-      hasFeature: companyPermissions.includes(requiredFeatureId)
-    });
-
     // localStorage의 회사 권한을 우선 사용 (AppState 동기화 문제 해결)
     const hasAccess = companyPermissions.includes(requiredFeatureId);
 

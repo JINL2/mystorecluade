@@ -115,7 +115,8 @@ export interface InventoryState {
     quantity: number,
     notes: string,
     time: string,
-    updatedBy: string
+    updatedBy: string,
+    variantId?: string | null
   ) => Promise<{ success: boolean; data?: any; error?: string }>;
   deleteProducts: (
     productIds: string[],

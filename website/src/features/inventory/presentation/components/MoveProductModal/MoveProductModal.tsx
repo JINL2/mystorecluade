@@ -24,6 +24,7 @@ export const MoveProductModal: React.FC<MoveProductModalProps> = ({
   isOpen,
   onClose,
   productId,
+  variantId, // v2: variant support
   productName,
   currentStock,
   sourceStoreId,
@@ -46,40 +47,41 @@ export const MoveProductModal: React.FC<MoveProductModalProps> = ({
   const fromDropdownRef = useRef<HTMLDivElement>(null);
   const toDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch stock info when modal opens
+  // Fetch stock info when modal opens - v2: supports variants
   useEffect(() => {
     const fetchStockInfo = async () => {
       if (!isOpen || !productId || !companyId) return;
 
       setIsLoadingStock(true);
       try {
-        console.log('🔍 Fetching stock info for product:', productId);
-        const { data, error } = await supabaseService.rpc('inventory_product_stock_stores', {
+        const { data, error } = await supabaseService.rpc('inventory_product_stock_stores_v2', {
           p_company_id: companyId,
           p_product_ids: [productId]
         });
-
-        console.log('📦 RPC Response:', JSON.stringify(data, null, 2));
-        console.log('❌ RPC Error:', error);
 
         if (error) {
           console.error('Failed to fetch stock info:', error);
           return;
         }
 
-        // Check different possible response structures
-        if (data?.success && data?.data?.products?.[0]?.stores) {
-          console.log('✅ Found stores in data.data.products[0].stores');
-          setStoreStockInfo(data.data.products[0].stores);
-        } else if (data?.products?.[0]?.stores) {
-          console.log('✅ Found stores in data.products[0].stores');
-          setStoreStockInfo(data.products[0].stores);
-        } else if (Array.isArray(data) && data[0]?.stores) {
-          console.log('✅ Found stores in data[0].stores');
-          setStoreStockInfo(data[0].stores);
-        } else {
-          console.log('⚠️ Could not find stores in response. Data structure:', typeof data, Object.keys(data || {}));
+        // v2: Handle response structure - check for variants first
+        let stores: StoreStockInfo[] = [];
+        const product = data?.products?.[0] || data?.data?.products?.[0] || (Array.isArray(data) ? data[0] : null);
+
+        if (product) {
+          if (product.has_variants && product.variants && variantId) {
+            // For variant products: find the matching variant and use its stores
+            const matchingVariant = product.variants.find((v: any) => v.variant_id === variantId);
+            if (matchingVariant?.stores) {
+              stores = matchingVariant.stores;
+            }
+          } else if (product.stores) {
+            // For non-variant products: use stores directly
+            stores = product.stores;
+          }
         }
+
+        setStoreStockInfo(stores);
       } catch (err) {
         console.error('Error fetching stock info:', err);
       } finally {
@@ -88,7 +90,7 @@ export const MoveProductModal: React.FC<MoveProductModalProps> = ({
     };
 
     fetchStockInfo();
-  }, [isOpen, productId, companyId]);
+  }, [isOpen, productId, variantId, companyId]);
 
   // Reset form when modal opens - set default from store from app state
   useEffect(() => {

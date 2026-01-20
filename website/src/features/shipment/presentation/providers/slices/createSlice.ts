@@ -8,7 +8,7 @@ import type { ShipmentStore } from '../states/shipment_state';
 import { initialCreateState } from '../states/shipment_state';
 import { ShipmentModel } from '../../../data/models/ShipmentModel';
 import type { IShipmentRepository } from '../../../domain/repositories/IShipmentRepository';
-import type { OrderItem, ShipmentItem } from '../../../domain/types';
+import type { ShipmentItem } from '../../../domain/types';
 
 // ===== Slice Creator =====
 
@@ -97,7 +97,6 @@ export const createCreateSlice = (
             create: {
               ...s.create,
               selectedOrder: null,
-              orderItems: [],
               shipmentItems: [],
             },
           }));
@@ -112,7 +111,6 @@ export const createCreateSlice = (
           selectedSupplier: supplierId,
           selectionMode: supplierId ? 'supplier' : null,
           selectedOrder: null,
-          orderItems: [],
           shipmentItems: [],
         },
       }));
@@ -164,7 +162,6 @@ export const createCreateSlice = (
           selectionMode: allFieldsEmpty ? null : 'supplier',
           ...(allFieldsEmpty ? {} : {
             selectedOrder: null,
-            orderItems: [],
             shipmentItems: [],
           }),
         },
@@ -232,94 +229,13 @@ export const createCreateSlice = (
       }
     },
 
-    loadOrderItems: async (orderId, timezone) => {
-      set((state) => ({
-        create: { ...state.create, isOrderItemsLoading: true },
-      }));
-
-      try {
-        const result = await repository.getOrderItems({ orderId, timezone });
-        if (result.success && result.data) {
-          // Filter items with remaining quantity > 0
-          const availableItems = result.data.filter(
-            (item: OrderItem) => item.remaining_quantity > 0
-          );
-          set((state) => ({
-            create: {
-              ...state.create,
-              orderItems: availableItems,
-              isOrderItemsLoading: false,
-            },
-          }));
-        } else {
-          set((state) => ({
-            create: { ...state.create, orderItems: [], isOrderItemsLoading: false },
-          }));
-        }
-      } catch {
-        set((state) => ({
-          create: { ...state.create, orderItems: [], isOrderItemsLoading: false },
-        }));
-      }
-    },
-
-    addItem: (orderItem, order) => {
-      const state = get();
-      const exists = state.create.shipmentItems.find(
-        (item) => item.orderItemId === orderItem.order_item_id
-      );
-      if (exists) return;
-
-      const newItem: ShipmentItem = {
-        orderItemId: orderItem.order_item_id,
-        orderId: order.order_id,
-        orderNumber: order.order_number,
-        productId: orderItem.product_id,
-        productName: orderItem.product_name,
-        sku: orderItem.sku,
-        quantity: orderItem.remaining_quantity,
-        maxQuantity: orderItem.remaining_quantity,
-        unitPrice: orderItem.unit_price,
-      };
-
-      set((s) => ({
-        create: {
-          ...s.create,
-          shipmentItems: [...s.create.shipmentItems, newItem],
-        },
-      }));
-    },
-
-    addAllItems: (order) => {
-      const state = get();
-      const newItems: ShipmentItem[] = state.create.orderItems
-        .filter(
-          (oi) => !state.create.shipmentItems.find((si) => si.orderItemId === oi.order_item_id)
-        )
-        .map((orderItem) => ({
-          orderItemId: orderItem.order_item_id,
-          orderId: order.order_id,
-          orderNumber: order.order_number,
-          productId: orderItem.product_id,
-          productName: orderItem.product_name,
-          sku: orderItem.sku,
-          quantity: orderItem.remaining_quantity,
-          maxQuantity: orderItem.remaining_quantity,
-          unitPrice: orderItem.unit_price,
-        }));
-
-      set((s) => ({
-        create: {
-          ...s.create,
-          shipmentItems: [...s.create.shipmentItems, ...newItems],
-        },
-      }));
-    },
-
     addProductFromSearch: (product) => {
       const state = get();
+      // v6: unique key is product_id + variant_id
       const existingItem = state.create.shipmentItems.find(
-        (item) => item.productId === product.product_id
+        (item) =>
+          item.productId === product.product_id &&
+          item.variantId === (product.variant_id || undefined)
       );
 
       if (existingItem) {
@@ -327,7 +243,8 @@ export const createCreateSlice = (
           create: {
             ...s.create,
             shipmentItems: s.create.shipmentItems.map((item) =>
-              item.productId === product.product_id
+              item.productId === product.product_id &&
+              item.variantId === (product.variant_id || undefined)
                 ? { ...item, quantity: item.quantity + 1 }
                 : item
             ),
@@ -428,10 +345,11 @@ export const createCreateSlice = (
         });
 
         if (result.success && result.data) {
+          // v6: response uses data.items instead of data.products
           set((state) => ({
             create: {
               ...state.create,
-              searchResults: result.data?.products || [],
+              searchResults: result.data?.items || [],
               showDropdown: true,
               isSearching: false,
               ...(result.data?.currency && { currency: result.data.currency }),
@@ -605,21 +523,26 @@ export const createCreateSlice = (
           });
 
           if (product) {
+            // v6: unique key is product_id + variant_id
             const existingIndex = newShipmentItems.findIndex(
-              (item) => item.productId === product.product_id
+              (item) =>
+                item.productId === product.product_id &&
+                item.variantId === (product.variant_id || undefined)
             );
 
             if (existingIndex >= 0) {
               newShipmentItems[existingIndex].quantity += row.quantity;
               newShipmentItems[existingIndex].unitPrice = row.cost;
             } else {
+              // v6: use display_name/display_sku for display
               newShipmentItems.push({
-                orderItemId: `import-${product.product_id}-${Date.now()}`,
+                orderItemId: `import-${product.product_id}-${product.variant_id || 'base'}-${Date.now()}`,
                 orderId: '',
                 orderNumber: '-',
                 productId: product.product_id,
-                productName: product.product_name,
-                sku: product.sku,
+                variantId: product.variant_id || undefined,
+                productName: product.display_name || product.product_name,
+                sku: product.display_sku || product.product_sku,
                 quantity: row.quantity,
                 maxQuantity: product.stock.quantity_on_hand,
                 unitPrice: row.cost,

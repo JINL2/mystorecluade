@@ -24,19 +24,22 @@ export class BalanceSheetRepositoryImpl implements IBalanceSheetRepository {
 
   async getBalanceSheet(companyId: string, storeId: string | null): Promise<BalanceSheetResult> {
     try {
-      // Fetch data from data source
-      const response = await this.dataSource.getBalanceSheet(companyId, storeId);
+      // Fetch currency symbol and balance sheet data in parallel
+      const [currencySymbol, rows] = await Promise.all([
+        this.dataSource.getBaseCurrencySymbol(companyId),
+        this.dataSource.getBalanceSheet(companyId, storeId),
+      ]);
 
       // Validate response structure
-      if (!BalanceSheetModel.isValidResponse(response)) {
+      if (!BalanceSheetModel.isValidV3Response(rows)) {
         return {
           success: false,
           error: 'Invalid balance sheet data structure',
         };
       }
 
-      // Use Model to map server response to domain entity
-      const balanceSheetData = BalanceSheetModel.fromServerResponse(response);
+      // Use Model to map V3 response to domain entity with dynamic currency
+      const balanceSheetData = BalanceSheetModel.fromV3Response(rows, currencySymbol);
 
       return {
         success: true,

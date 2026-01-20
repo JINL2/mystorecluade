@@ -66,8 +66,8 @@ export const useShipmentDetail = () => {
         if (result.success && result.data) {
           setCurrency(result.data);
         }
-      } catch (err) {
-        console.error('💰 getBaseCurrency error:', err);
+      } catch {
+        // Use default currency on error
       }
     };
 
@@ -98,29 +98,21 @@ export const useShipmentDetail = () => {
         if (result.success && result.data) {
           const detailData = result.data as ShipmentDetail;
 
-          // Debug: Log raw items data
-          console.log('📦 Raw items from RPC:', detailData.items);
-
           if (detailData.items) {
-            detailData.items = detailData.items.map((item) => {
-              console.log('📦 Item before mapping:', item);
-              return {
-                ...item,
-                quantity_received: item.quantity_received ?? 0,
-                quantity_accepted: item.quantity_accepted ?? 0,
-                quantity_rejected: item.quantity_rejected ?? 0,
-                quantity_remaining: item.quantity_remaining ?? item.quantity_shipped,
-              };
-            });
+            detailData.items = detailData.items.map((item) => ({
+              ...item,
+              quantity_received: item.quantity_received ?? 0,
+              quantity_accepted: item.quantity_accepted ?? 0,
+              quantity_rejected: item.quantity_rejected ?? 0,
+              quantity_remaining: item.quantity_remaining ?? item.quantity_shipped,
+            }));
           }
 
-          console.log('📦 Final shipment detail:', detailData);
           setShipmentDetail(detailData);
         } else {
           throw new Error(result.error || 'Failed to load shipment details');
         }
       } catch (err) {
-        console.error('📦 Load shipment detail error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load shipment details');
       } finally {
         setIsLoading(false);
@@ -161,7 +153,6 @@ export const useShipmentDetail = () => {
   // Handle close shipment
   const handleCloseShipment = useCallback(async () => {
     if (!shipmentId || !companyId || !user?.id) {
-      console.error('❌ Missing required parameters for close shipment');
       return;
     }
 
@@ -171,13 +162,6 @@ export const useShipmentDetail = () => {
       const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      console.log('🚫 Calling inventory_close_shipment with:', {
-        p_shipment_id: shipmentId,
-        p_user_id: user.id,
-        p_company_id: companyId,
-        p_timezone: userTimezone,
-      });
-
       const { data, error: rpcError } = await supabase.rpc('inventory_close_shipment', {
         p_shipment_id: shipmentId,
         p_user_id: user.id,
@@ -185,21 +169,17 @@ export const useShipmentDetail = () => {
         p_timezone: userTimezone,
       });
 
-      console.log('🚫 inventory_close_shipment response:', { data, rpcError });
-
       if (rpcError) {
         throw new Error(rpcError.message);
       }
 
       if (data?.success) {
-        // Close modal and navigate back to list
         setIsCloseModalOpen(false);
         navigate('/product/shipment');
       } else {
         throw new Error(data?.error || 'Failed to close shipment');
       }
     } catch (err) {
-      console.error('🚫 Close shipment error:', err);
       alert(err instanceof Error ? err.message : 'Failed to close shipment');
     } finally {
       setIsClosing(false);
