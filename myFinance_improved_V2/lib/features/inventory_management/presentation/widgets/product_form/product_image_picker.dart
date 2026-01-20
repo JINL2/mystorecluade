@@ -101,6 +101,7 @@ class ProductImagePicker {
   }
 
   /// Apply second compression to images using flutter_image_compress
+  /// Handles both JPG and PNG formats appropriately
   static Future<List<XFile>> _applySecondCompression(
     List<XFile> images,
     int quality,
@@ -110,22 +111,36 @@ class ProductImagePicker {
 
     for (int i = 0; i < images.length; i++) {
       final image = images[i];
+      final extension = image.path.split('.').last.toLowerCase();
+      final isPng = extension == 'png';
+
+      // Determine output format based on input
+      // PNG files keep PNG format to preserve transparency
+      // All other formats convert to JPG for better compression
+      final outputExtension = isPng ? 'png' : 'jpg';
       final targetPath =
-          '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+          '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}_$i.$outputExtension';
 
-      final XFile? compressedFile =
-          await FlutterImageCompress.compressAndGetFile(
-        image.path,
-        targetPath,
-        quality: quality,
-        minWidth: 1920,
-        minHeight: 1920,
-      );
+      try {
+        final XFile? compressedFile =
+            await FlutterImageCompress.compressAndGetFile(
+          image.path,
+          targetPath,
+          quality: quality,
+          minWidth: 1920,
+          minHeight: 1920,
+          // PNG format uses CompressFormat.png, others use jpeg
+          format: isPng ? CompressFormat.png : CompressFormat.jpeg,
+        );
 
-      if (compressedFile != null) {
-        compressedImages.add(compressedFile);
-      } else {
-        // If compression fails, use original image
+        if (compressedFile != null) {
+          compressedImages.add(compressedFile);
+        } else {
+          // If compression fails, use original image
+          compressedImages.add(image);
+        }
+      } catch (e) {
+        // If compression throws error, use original image
         compressedImages.add(image);
       }
     }
