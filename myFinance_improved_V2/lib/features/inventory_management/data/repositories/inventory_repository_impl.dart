@@ -690,6 +690,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   /// Create new attribute with optional options
+  @override
   Future<CreateAttributeResult> createAttributeAndOption({
     required String companyId,
     required String attributeName,
@@ -715,5 +716,49 @@ class InventoryRepositoryImpl implements InventoryRepository {
           )
           .toList(),
     );
+  }
+
+  /// Update attribute name and manage options (add, update, delete)
+  @override
+  Future<UpdateAttributeResult> updateAttributeAndOptions({
+    required String companyId,
+    required String attributeId,
+    required String createdBy,
+    String? attributeName,
+    List<Map<String, dynamic>>? options,
+  }) async {
+    try {
+      final response = await _remoteDataSource.updateAttributeAndOptions(
+        companyId: companyId,
+        attributeId: attributeId,
+        createdBy: createdBy,
+        attributeName: attributeName,
+        options: options,
+      );
+
+      return UpdateAttributeResult(
+        attributeId: response.attributeId,
+        attributeName: response.attributeName,
+        optionsUpdated: response.optionsUpdated,
+        optionsAdded: response.optionsAdded,
+        optionsDeleted: response.optionsDeleted,
+        options: response.options
+            .map(
+              (o) => UpdatedAttributeOption(
+                optionId: o.optionId,
+                optionValue: o.optionValue,
+                sortOrder: o.sortOrder,
+                action: o.action,
+              ),
+            )
+            .toList(),
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to update attribute: $e',
+        details: e,
+      );
+    }
   }
 }

@@ -10,7 +10,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../domain/entities/product.dart';
-import '../move_stock_dialog.dart';
+import '../../models/store_location.dart';
 import 'store_row_item.dart';
 
 /// Locations section showing store list with stock information

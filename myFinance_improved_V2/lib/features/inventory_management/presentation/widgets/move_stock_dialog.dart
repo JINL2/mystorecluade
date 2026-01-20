@@ -8,32 +8,8 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../di/inventory_providers.dart';
+import '../models/store_location.dart';
 import 'store_picker_sheet.dart';
-
-/// Store location data class for Move Stock Dialog
-class StoreLocation {
-  final String id;
-  final String name;
-  final int stock;
-  final bool isCurrentStore;
-
-  StoreLocation({
-    required this.id,
-    required this.name,
-    required this.stock,
-    this.isCurrentStore = false,
-  });
-
-  /// Create a copy with updated stock
-  StoreLocation copyWith({int? stock}) {
-    return StoreLocation(
-      id: id,
-      name: name,
-      stock: stock ?? this.stock,
-      isCurrentStore: isCurrentStore,
-    );
-  }
-}
 
 /// Move Stock Dialog Widget
 class MoveStockDialog extends ConsumerStatefulWidget {

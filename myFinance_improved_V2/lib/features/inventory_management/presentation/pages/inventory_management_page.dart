@@ -23,6 +23,7 @@ import '../providers/states/inventory_page_state.dart';
 import '../widgets/inventory_filter_header.dart';
 import '../widgets/inventory_product_card.dart';
 import '../widgets/inventory_sort_sheet.dart';
+import '../models/store_location.dart';
 import '../widgets/move_stock_dialog.dart';
 import 'inventory_history_page.dart';
 import 'inventory_search_page.dart';

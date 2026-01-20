@@ -789,6 +789,66 @@ class CreatedOptionData {
   }
 }
 
+/// Response from inventory_update_attribute_and_options RPC
+class UpdateAttributeResponse {
+  final bool success;
+  final String attributeId;
+  final String attributeName;
+  final int optionsUpdated;
+  final int optionsAdded;
+  final int optionsDeleted;
+  final List<UpdatedOptionData> options;
+
+  UpdateAttributeResponse({
+    required this.success,
+    required this.attributeId,
+    required this.attributeName,
+    required this.optionsUpdated,
+    required this.optionsAdded,
+    required this.optionsDeleted,
+    required this.options,
+  });
+
+  factory UpdateAttributeResponse.fromJson(Map<String, dynamic> json) {
+    final optionsJson = json['options'] as List<dynamic>? ?? [];
+    return UpdateAttributeResponse(
+      success: json['success'] as bool? ?? false,
+      attributeId: json['attribute_id'] as String? ?? '',
+      attributeName: json['attribute_name'] as String? ?? '',
+      optionsUpdated: (json['options_updated'] as num?)?.toInt() ?? 0,
+      optionsAdded: (json['options_added'] as num?)?.toInt() ?? 0,
+      optionsDeleted: (json['options_deleted'] as num?)?.toInt() ?? 0,
+      options: optionsJson
+          .map((o) => UpdatedOptionData.fromJson(o as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+/// Option data from update attribute response
+class UpdatedOptionData {
+  final String optionId;
+  final String optionValue;
+  final int sortOrder;
+  final String action;
+
+  UpdatedOptionData({
+    required this.optionId,
+    required this.optionValue,
+    required this.sortOrder,
+    required this.action,
+  });
+
+  factory UpdatedOptionData.fromJson(Map<String, dynamic> json) {
+    return UpdatedOptionData(
+      optionId: json['option_id'] as String? ?? '',
+      optionValue: json['option_value'] as String? ?? '',
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      action: json['action'] as String? ?? '',
+    );
+  }
+}
+
 /// Individual history item from inventory history (includes product info)
 /// v2: Added variant_id, variant_name, display_name for variant support
 class InventoryHistoryItem {
