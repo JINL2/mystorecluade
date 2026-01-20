@@ -22,7 +22,7 @@ interface ExpandedDetailRowProps {
   item: InventoryItem;
   quantityClass: string;
   formatCurrency: (value: number) => string;
-  onEditProduct: (productId: string) => void;
+  onEditProduct: (uniqueId: string) => void;
   companyId: string;
   storeId: string;
 }
@@ -298,7 +298,8 @@ const ExpandedDetailRow: React.FC<ExpandedDetailRowProps> = ({
         storeId,
         item.productId,
         page,
-        10
+        10,
+        item.variantId // v2: filter by variant
       );
 
       if (response.success) {
@@ -315,7 +316,7 @@ const ExpandedDetailRow: React.FC<ExpandedDetailRowProps> = ({
     } finally {
       setHistoryLoading(false);
     }
-  }, [companyId, storeId, item.productId]);
+  }, [companyId, storeId, item.productId, item.variantId]);
 
   // Load history when switching to history tab for the first time
   useEffect(() => {
@@ -436,7 +437,7 @@ const ExpandedDetailRow: React.FC<ExpandedDetailRowProps> = ({
                     size="md"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onEditProduct(item.productId);
+                      onEditProduct(item.uniqueId);
                     }}
                     icon={
                       <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -715,7 +716,7 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
               <tbody>
                 {items.map((item) => {
                   const status = getStatusInfo(item);
-                  const isExpanded = expandedProductId === item.productId;
+                  const isExpanded = expandedProductId === item.uniqueId;
 
                   // Determine quantity class - only negative numbers are red
                   let quantityClass = '';
@@ -723,11 +724,14 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
                     quantityClass = styles.quantityNegative;
                   }
 
+                  // v6: Use variantId for unique key when available (variant products have same productId)
+                  const itemKey = item.variantId ? `${item.productId}-${item.variantId}` : item.productId;
+
                   return (
-                    <React.Fragment key={item.productId}>
+                    <React.Fragment key={itemKey}>
                       <tr
                         className={`${styles.productRow} ${isExpanded ? styles.expandedRow : ''}`}
-                        onClick={() => onRowClick(item.productId)}
+                        onClick={() => onRowClick(item.uniqueId)}
                         style={{ cursor: 'pointer' }}
                       >
                         <td className={styles.checkboxCell} onClick={(e) => e.stopPropagation()}>
@@ -754,10 +758,10 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
                           )}
                         </td>
                         <td className={styles.productNameCell}>
-                          <span className={styles.productName}>{item.productName}</span>
+                          <span className={styles.productName}>{item.name}</span>
                         </td>
                         <td className={styles.productCodeCell}>
-                          <span className={styles.productCode}>{item.productCode}</span>
+                          <span className={styles.productCode}>{item.effectiveSku}</span>
                         </td>
                         <td className={styles.barcodeCell}>
                           <span className={styles.barcode}>{item.brandName || 'N/A'}</span>
@@ -777,7 +781,7 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
                           <TossButton
                             variant="outline"
                             size="sm"
-                            onClick={() => onMoveProduct(item.productId)}
+                            onClick={() => onMoveProduct(item.uniqueId)}
                             icon={
                               <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M6,13H14L10.5,16.5L11.92,17.92L17.84,12L11.92,6.08L10.5,7.5L14,11H6V13M20,6V18H11V20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4H11V6H20Z"/>

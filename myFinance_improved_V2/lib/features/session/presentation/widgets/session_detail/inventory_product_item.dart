@@ -44,7 +44,7 @@ class InventoryProductItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.productName,
+                    product.name, // Uses displayName for variants
                     style: TossTextStyles.body.copyWith(
                       fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,
@@ -53,17 +53,17 @@ class InventoryProductItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: TossSpacing.space0_5),
-                  if (product.sku != null)
+                  if (product.effectiveSku != null)
                     Text(
-                      product.sku!,
+                      product.effectiveSku!,
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray500,
                       ),
                     ),
-                  if (product.barcode != null) ...[
+                  if (product.effectiveBarcode != null) ...[
                     const SizedBox(height: TossSpacing.space0_5),
                     Text(
-                      product.barcode!,
+                      product.effectiveBarcode!,
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray500,
                       ),

@@ -20,10 +20,18 @@ interface StoreStockInfo {
   quantity_reserved: number;
 }
 
-// Product with stock info
+// Variant stock info (v2)
+interface VariantStockInfo {
+  variant_id: string;
+  stores: StoreStockInfo[];
+}
+
+// Product with stock info (v2: supports variants)
 interface ProductStockInfo {
   product_id: string;
-  stores: StoreStockInfo[];
+  has_variants?: boolean;
+  stores?: StoreStockInfo[]; // For non-variant products
+  variants?: VariantStockInfo[]; // For variant products
 }
 
 export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
@@ -50,41 +58,36 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
   const fromDropdownRef = useRef<HTMLDivElement>(null);
   const toDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch stock info when modal opens
+  // Fetch stock info when modal opens - v2: supports variants
   useEffect(() => {
     const fetchStockInfo = async () => {
       if (!isOpen || !products.length || !companyId) return;
 
       setIsLoadingStock(true);
       try {
-        const productIds = products.map(p => p.productId);
-        console.log('🔍 Fetching stock info for products:', productIds);
-        const { data, error } = await supabaseService.rpc('inventory_product_stock_stores', {
+        // Get unique product IDs (variants share the same productId)
+        const productIds = [...new Set(products.map(p => p.productId))];
+        const { data, error } = await supabaseService.rpc('inventory_product_stock_stores_v2', {
           p_company_id: companyId,
           p_product_ids: productIds
         });
-
-        console.log('📦 RPC Response:', JSON.stringify(data, null, 2));
-        console.log('❌ RPC Error:', error);
 
         if (error) {
           console.error('Failed to fetch stock info:', error);
           return;
         }
 
-        // Check different possible response structures
+        // v2: Check different possible response structures
+        let productsData: ProductStockInfo[] = [];
         if (data?.success && data?.data?.products) {
-          console.log('✅ Found products in data.data.products');
-          setProductStockInfo(data.data.products);
+          productsData = data.data.products;
         } else if (data?.products) {
-          console.log('✅ Found products in data.products');
-          setProductStockInfo(data.products);
+          productsData = data.products;
         } else if (Array.isArray(data)) {
-          console.log('✅ Data is array');
-          setProductStockInfo(data);
-        } else {
-          console.log('⚠️ Could not find products in response. Data structure:', typeof data, Object.keys(data || {}));
+          productsData = data;
         }
+
+        setProductStockInfo(productsData);
       } catch (err) {
         console.error('Error fetching stock info:', err);
       } finally {
@@ -94,6 +97,11 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
 
     fetchStockInfo();
   }, [isOpen, products, companyId]);
+
+  // Helper to get unique key for a product (variantId || productId)
+  const getProductUniqueKey = (product: { productId: string; variantId?: string | null }): string => {
+    return product.variantId || product.productId;
+  };
 
   // Reset form when modal opens - set default from store from app state
   useEffect(() => {
@@ -105,10 +113,11 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
       setIsFromDropdownOpen(false);
       setIsToDropdownOpen(false);
 
-      // Initialize all quantities to 1
+      // Initialize all quantities to 1 (v2: use uniqueKey for variants)
       const initialQuantities: Record<string, string> = {};
       products.forEach(product => {
-        initialQuantities[product.productId] = '1';
+        const uniqueKey = getProductUniqueKey(product);
+        initialQuantities[uniqueKey] = '1';
       });
       setQuantities(initialQuantities);
     }
@@ -131,10 +140,21 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Get stock for a specific product and store
-  const getProductStoreStock = (productId: string, storeId: string): number => {
+  // Get stock for a specific product/variant and store (v2: supports variants)
+  const getProductStoreStock = (productId: string, storeId: string, variantId?: string | null): number => {
     const productInfo = productStockInfo.find(p => p.product_id === productId);
     if (!productInfo) return 0;
+
+    // v2: Check if product has variants
+    if (productInfo.has_variants && productInfo.variants && variantId) {
+      // Find the matching variant
+      const variantInfo = productInfo.variants.find(v => v.variant_id === variantId);
+      if (!variantInfo) return 0;
+      const storeStock = variantInfo.stores?.find(s => s.store_id === storeId);
+      return storeStock?.quantity_on_hand ?? 0;
+    }
+
+    // For non-variant products, use stores directly
     const storeStock = productInfo.stores?.find(s => s.store_id === storeId);
     return storeStock?.quantity_on_hand ?? 0;
   };
@@ -154,12 +174,12 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
     (store) => store.store_id !== selectedSourceStoreId
   ) || [];
 
-  const handleQuantityChange = (productId: string, value: string) => {
+  const handleQuantityChange = (uniqueKey: string, value: string) => {
     // Only allow positive numbers
     if (value === '' || /^\d+$/.test(value)) {
       setQuantities(prev => ({
         ...prev,
-        [productId]: value
+        [uniqueKey]: value
       }));
     }
   };
@@ -181,18 +201,20 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
   const handleMove = async () => {
     if (!selectedSourceStoreId || !selectedTargetStoreId || !onMove) return;
 
-    // Build items array with quantities
+    // Build items array with quantities (v4: includes variantId, v2: use uniqueKey)
     const items = products
       .map(product => {
-        const quantity = parseInt(quantities[product.productId] || '1', 10);
+        const uniqueKey = getProductUniqueKey(product);
+        const quantity = parseInt(quantities[uniqueKey] || '1', 10);
         if (isNaN(quantity) || quantity <= 0) return null;
         return {
           productId: product.productId,
+          variantId: product.variantId, // v4: variant support
           productName: product.productName,
           quantity
         };
       })
-      .filter((item): item is { productId: string; productName: string; quantity: number } => item !== null);
+      .filter((item): item is { productId: string; variantId?: string | null; productName: string; quantity: number } => item !== null);
 
     if (items.length === 0) return;
 
@@ -208,7 +230,8 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
   };
 
   const isValidMove = selectedSourceStoreId && selectedTargetStoreId && products.every(product => {
-    const qty = quantities[product.productId];
+    const uniqueKey = getProductUniqueKey(product);
+    const qty = quantities[uniqueKey];
     return qty && parseInt(qty, 10) > 0;
   });
 
@@ -322,17 +345,19 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
             <label className={styles.formLabel}>Products ({products.length})</label>
             <div className={styles.productsList}>
               {products.map(product => {
+                // v2: Use unique key and pass variantId for stock lookup
+                const uniqueKey = getProductUniqueKey(product);
                 const sourceStock = selectedSourceStoreId
-                  ? getProductStoreStock(product.productId, selectedSourceStoreId)
+                  ? getProductStoreStock(product.productId, selectedSourceStoreId, product.variantId)
                   : 0;
                 const targetStock = selectedTargetStoreId
-                  ? getProductStoreStock(product.productId, selectedTargetStoreId)
+                  ? getProductStoreStock(product.productId, selectedTargetStoreId, product.variantId)
                   : 0;
-                const moveQty = parseInt(quantities[product.productId] || '0', 10);
+                const moveQty = parseInt(quantities[uniqueKey] || '0', 10);
                 const afterSourceStock = sourceStock - moveQty;
 
                 return (
-                  <div key={product.productId} className={styles.productItem}>
+                  <div key={uniqueKey} className={styles.productItem}>
                     <div className={styles.productInfo}>
                       <span className={styles.productName}>{product.productName}</span>
                       <span className={styles.productCode}>{product.productCode}</span>
@@ -362,8 +387,8 @@ export const BulkMoveProductModal: React.FC<BulkMoveProductModalProps> = ({
                       type="text"
                       inputMode="numeric"
                       className={styles.quantityInput}
-                      value={quantities[product.productId] || '1'}
-                      onChange={(e) => handleQuantityChange(product.productId, e.target.value)}
+                      value={quantities[uniqueKey] || '1'}
+                      onChange={(e) => handleQuantityChange(uniqueKey, e.target.value)}
                       placeholder="Qty"
                     />
                   </div>

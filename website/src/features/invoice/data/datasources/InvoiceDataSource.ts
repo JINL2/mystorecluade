@@ -7,15 +7,20 @@ import { supabaseService } from '@/core/services/supabase_service';
 import { DateTimeUtils } from '@/core/utils/datetime-utils';
 import { ACCOUNT_IDS } from '@/core/constants/account-ids';
 
+export type DateFilter = 'newest' | 'oldest' | null;
+export type AmountFilter = 'high' | 'low' | null;
+
 export interface InvoicePageParams {
   p_company_id: string;
   p_store_id: string | null;
   p_page: number;
   p_limit: number;
   p_search: string | null;
-  p_start_date: string;
-  p_end_date: string;
+  p_start_date: string | null;
+  p_end_date: string | null;
   p_timezone: string;
+  p_date_filter: DateFilter;
+  p_amount_filter: AmountFilter;
 }
 
 export interface InvoicePageResponse {
@@ -34,10 +39,13 @@ export interface InvoicePageResponse {
       search: string | null;
       store_id: string | null;
       date_range: {
-        start_date: string;
-        end_date: string;
+        start_date: string | null;
+        end_date: string | null;
       };
       timezone: string;
+      date_filter: string;
+      amount_filter: string | null;
+      sort_applied: string;
     };
     summary: {
       period_total: {
@@ -67,53 +75,107 @@ export interface InvoicePageResponse {
   error?: string;
 }
 
+export interface InvoiceDetailItem {
+  invoice_item_id: string;
+  // Product info (base product)
+  product_id: string;
+  product_name: string;
+  product_sku: string | null;
+  product_barcode: string | null;
+  product_image: string | null;
+  brand_name: string | null;
+  category_name: string | null;
+  // Variant info (null if product has no variants)
+  variant_id: string | null;
+  variant_name: string | null;
+  variant_sku: string | null;
+  variant_barcode: string | null;
+  // Display fields (combined product + variant)
+  display_name: string;
+  display_sku: string | null;
+  display_barcode: string | null;
+  // Quantity and pricing
+  quantity: number;
+  unit_price: number;
+  unit_cost: number;
+  discount_amount: number;
+  total_price: number;
+  total_cost: number;
+  // Meta
+  has_variants: boolean;
+}
+
 export interface InvoiceDetailResponse {
   success: boolean;
   data?: {
-    invoice: {
-      invoice_id: string;
-      invoice_number: string;
-      sale_date: string;
-      status: string;
+    invoice_id: string;
+    invoice_number: string;
+    status: string;
+    sale_date: string;
+    payment_method: string;
+    payment_status: string;
+    store: {
       store_id: string;
       store_name: string;
       store_code: string;
-      company_id: string;
-      customer_id: string | null;
-      customer_name: string | null;
-      created_at: string;
     };
-    items: Array<{
-      item_id: string;
-      product_id: string;
-      product_name: string;
-      sku: string;
-      quantity_sold: number;
-      unit_price: number;
-      unit_cost: number;
-      discount_amount: number;
-      total_amount: number;
-    }>;
+    customer: {
+      customer_id: string;
+      name: string;
+      phone: string | null;
+      email: string | null;
+      address: string | null;
+      type: string;
+    } | null;
+    cash_location: {
+      cash_location_id: string;
+      location_name: string;
+      location_type: string;
+    } | null;
     amounts: {
       subtotal: number;
       tax_amount: number;
       discount_amount: number;
       total_amount: number;
+      total_cost: number;
+      profit: number;
     };
-    payment: {
-      method: string;
-      status: string;
+    items: InvoiceDetailItem[];
+    items_summary: {
+      item_count: number;
+      total_quantity: number;
     };
-    inventory_movements: Array<{
-      product_id: string;
-      product_name: string;
-      quantity_change: number;
-      stock_before: number;
-      stock_after: number;
-    }>;
+    journal: {
+      journal_id: string;
+      ai_description: string | null;
+      attachments: Array<{
+        attachment_id: string;
+        file_url: string;
+        file_name: string;
+        file_type: string;
+      }>;
+    } | null;
+    refund: {
+      refund_date: string;
+      refund_reason: string | null;
+      refunded_by: {
+        user_id: string;
+        name: string;
+        email: string;
+        profile_image: string | null;
+      } | null;
+    } | null;
+    created_by: {
+      user_id: string;
+      name: string;
+      email: string;
+      profile_image: string | null;
+    } | null;
+    created_at: string;
   };
   message?: string;
   error?: string;
+  code?: string;
 }
 
 export interface RefundInvoiceResponse {
@@ -143,9 +205,11 @@ export class InvoiceDataSource {
     page: number,
     limit: number,
     search: string | null,
-    startDate: string,
-    endDate: string,
-    timezone: string = 'Asia/Ho_Chi_Minh'
+    startDate: string | null,
+    endDate: string | null,
+    timezone: string = 'Asia/Ho_Chi_Minh',
+    dateFilter: DateFilter = null,
+    amountFilter: AmountFilter = null
   ): Promise<InvoicePageResponse> {
     const supabase = supabaseService.getClient();
 
@@ -158,11 +222,13 @@ export class InvoiceDataSource {
       p_start_date: startDate,
       p_end_date: endDate,
       p_timezone: timezone,
+      p_date_filter: dateFilter,
+      p_amount_filter: amountFilter,
     };
 
-    console.log('🔵 InvoiceDataSource.getInvoices - calling get_invoice_page_v2:', rpcParams);
+    console.log('🔵 InvoiceDataSource.getInvoices - calling get_invoice_page_v3:', rpcParams);
 
-    const { data, error } = await supabase.rpc('get_invoice_page_v2' as any, rpcParams);
+    const { data, error } = await supabase.rpc('get_invoice_page_v3' as any, rpcParams);
 
     if (error) {
       console.error('❌ Error fetching invoices:', error);
@@ -174,17 +240,28 @@ export class InvoiceDataSource {
     return data as InvoicePageResponse;
   }
 
-  async getInvoiceDetail(invoiceId: string): Promise<InvoiceDetailResponse> {
+  async getInvoiceDetail(
+    invoiceId: string,
+    timezone: string = 'Asia/Ho_Chi_Minh'
+  ): Promise<InvoiceDetailResponse> {
     const supabase = supabaseService.getClient();
 
-    const { data, error } = await supabase.rpc('get_invoice_detail', {
+    console.log('🔵 InvoiceDataSource.getInvoiceDetail - calling get_invoice_detail_v2:', {
       p_invoice_id: invoiceId,
+      p_timezone: timezone,
+    });
+
+    const { data, error } = await supabase.rpc('get_invoice_detail_v2' as any, {
+      p_invoice_id: invoiceId,
+      p_timezone: timezone,
     });
 
     if (error) {
       console.error('❌ Error fetching invoice detail:', error);
       throw new Error(error.message);
     }
+
+    console.log('🟢 InvoiceDataSource.getInvoiceDetail - response:', data);
 
     return data as unknown as InvoiceDetailResponse;
   }
@@ -197,10 +274,10 @@ export class InvoiceDataSource {
   ): Promise<RefundInvoiceResponse> {
     const supabase = supabaseService.getClient();
 
-    // v3 uses timestamptz - send ISO 8601 format
+    // v4 uses timestamptz - send ISO 8601 format
     const refundDate = new Date().toISOString();
 
-    const { data, error } = await supabase.rpc('inventory_refund_invoice_v3' as any, {
+    const { data, error } = await supabase.rpc('inventory_refund_invoice_v4' as any, {
       p_invoice_ids: [invoiceId],
       p_refund_date: refundDate,
       p_notes: refundReason || null,
@@ -223,10 +300,10 @@ export class InvoiceDataSource {
   ): Promise<BulkRefundInvoiceResponse> {
     const supabase = supabaseService.getClient();
 
-    // v3 uses timestamptz - send ISO 8601 format
+    // v4 uses timestamptz - send ISO 8601 format
     const refundDate = new Date().toISOString();
 
-    const { data, error } = await supabase.rpc('inventory_refund_invoice_v3' as any, {
+    const { data, error } = await supabase.rpc('inventory_refund_invoice_v4' as any, {
       p_invoice_ids: invoiceIds,
       p_refund_date: refundDate,
       p_notes: notes || null,

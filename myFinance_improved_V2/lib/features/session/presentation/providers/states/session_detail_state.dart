@@ -1,6 +1,7 @@
 import '../../../domain/entities/session_item.dart';
 
 /// Selected product for session detail
+/// Supports v6 variant - variantId used to uniquely identify variants
 class SelectedProduct {
   final String productId;
   final String productName;
@@ -11,6 +12,10 @@ class SelectedProduct {
   final int quantityRejected;
   final double? unitPrice;
 
+  // v6 variant fields
+  final String? variantId;
+  final String? displayName;
+
   const SelectedProduct({
     required this.productId,
     required this.productName,
@@ -20,7 +25,12 @@ class SelectedProduct {
     this.quantity = 1,
     this.quantityRejected = 0,
     this.unitPrice,
+    this.variantId,
+    this.displayName,
   });
+
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
 
   /// Total quantity (good + rejected)
   int get totalQuantity => quantity + quantityRejected;
@@ -34,6 +44,8 @@ class SelectedProduct {
     int? quantity,
     int? quantityRejected,
     double? unitPrice,
+    String? variantId,
+    String? displayName,
   }) {
     return SelectedProduct(
       productId: productId ?? this.productId,
@@ -44,6 +56,8 @@ class SelectedProduct {
       quantity: quantity ?? this.quantity,
       quantityRejected: quantityRejected ?? this.quantityRejected,
       unitPrice: unitPrice ?? this.unitPrice,
+      variantId: variantId ?? this.variantId,
+      displayName: displayName ?? this.displayName,
     );
   }
 }
@@ -160,15 +174,18 @@ class SessionDetailState {
     );
   }
 
-  /// Check if a product is already selected
-  bool isProductSelected(String productId) {
-    return selectedProducts.any((p) => p.productId == productId);
+  /// Check if a product/variant is already selected
+  /// For variants, uses productId + variantId combination
+  bool isProductSelected(String productId, {String? variantId}) {
+    return selectedProducts.any((p) =>
+        p.productId == productId && p.variantId == variantId);
   }
 
-  /// Get selected product by ID
-  SelectedProduct? getSelectedProduct(String productId) {
+  /// Get selected product by ID (and variantId for variants)
+  SelectedProduct? getSelectedProduct(String productId, {String? variantId}) {
     try {
-      return selectedProducts.firstWhere((p) => p.productId == productId);
+      return selectedProducts.firstWhere((p) =>
+          p.productId == productId && p.variantId == variantId);
     } catch (_) {
       return null;
     }
@@ -190,6 +207,7 @@ class SessionDetailState {
 }
 
 /// Search result product (from inventory search)
+/// Supports v6 variant expansion - each variant is a separate row
 class SearchProductResult {
   final String productId;
   final String productName;
@@ -199,6 +217,14 @@ class SearchProductResult {
   final double? sellingPrice;
   final int stockQuantity;
 
+  // v6 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  final String? displaySku;
+  final String? displayBarcode;
+  final bool hasVariants;
+
   const SearchProductResult({
     required this.productId,
     required this.productName,
@@ -207,5 +233,20 @@ class SearchProductResult {
     this.imageUrl,
     this.sellingPrice,
     this.stockQuantity = 0,
+    this.variantId,
+    this.variantName,
+    this.displayName,
+    this.displaySku,
+    this.displayBarcode,
+    this.hasVariants = false,
   });
+
+  /// Display name for UI - uses displayName if available, otherwise productName
+  String get name => displayName ?? productName;
+
+  /// Display SKU for UI - uses displaySku if available, otherwise sku
+  String? get effectiveSku => displaySku ?? sku;
+
+  /// Display barcode for UI - uses displayBarcode if available, otherwise barcode
+  String? get effectiveBarcode => displayBarcode ?? barcode;
 }

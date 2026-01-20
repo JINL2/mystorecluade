@@ -3,8 +3,9 @@
  * Modal for creating a new receiving session with store selection and optional shipment
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from './SessionModals.module.css';
+import { TossSelector } from '@/shared/components/selectors/TossSelector';
 
 interface Store {
   store_id: string;
@@ -52,9 +53,25 @@ export const CreateReceivingSessionModal: React.FC<CreateReceivingSessionModalPr
   if (!isOpen) return null;
 
   // Filter shipments that are not completed (only shipped, partial, in_progress)
+  // Note: status values are 'pending', 'process', 'complete', 'cancelled' (not 'completed')
   const availableShipments = shipments.filter(
-    (s) => s.status !== 'completed' && s.status !== 'cancelled'
+    (s) => s.status !== 'complete' && s.status !== 'cancelled'
   );
+
+  // Transform shipments to TossSelector options format
+  const shipmentOptions = useMemo(() => {
+    const options = [
+      {
+        value: '',
+        label: 'No shipment (standalone receiving)',
+      },
+      ...availableShipments.map((shipment) => ({
+        value: shipment.shipment_id,
+        label: `${shipment.shipment_number} - ${shipment.supplier_name}`,
+      })),
+    ];
+    return options;
+  }, [availableShipments]);
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -109,37 +126,16 @@ export const CreateReceivingSessionModal: React.FC<CreateReceivingSessionModalPr
 
           {/* Shipment Selection (Optional) */}
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              Link to Shipment <span className={styles.optional}>(Optional)</span>
-            </label>
-            <div className={styles.shipmentSelectWrapper}>
-              <select
-                className={styles.shipmentSelect}
-                value={selectedShipmentId || ''}
-                onChange={(e) => onSelectShipment(e.target.value || null)}
-              >
-                <option value="">No shipment (standalone receiving)</option>
-                {availableShipments.map((shipment) => (
-                  <option key={shipment.shipment_id} value={shipment.shipment_id}>
-                    {shipment.shipment_number} - {shipment.supplier_name}
-                  </option>
-                ))}
-              </select>
-              <svg
-                className={styles.selectIcon}
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
-            <p className={styles.formHint}>
-              Select a shipment to track receiving against shipped items, or leave empty for manual receiving.
-            </p>
+            <TossSelector
+              label="Link to Shipment"
+              placeholder="Select a shipment..."
+              value={selectedShipmentId || ''}
+              options={shipmentOptions}
+              onChange={(value) => onSelectShipment(value || null)}
+              searchable={true}
+              fullWidth={true}
+              helperText="Select a shipment to track receiving against shipped items, or leave empty for manual receiving."
+            />
           </div>
 
           {/* Session Name Input */}

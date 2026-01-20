@@ -3,12 +3,13 @@
  * Route guard with authentication and authorization checks
  */
 
-import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { supabaseService } from '@/core/services/supabase_service';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,11 +20,55 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredFeatureId
 }) => {
+  const navigate = useNavigate();
   const { authenticated, loading } = useAuth();
   const { permissions, companies, currentCompany } = useAppState();
   const [showPermissionError, setShowPermissionError] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const redirectAttempted = useRef(false);
+
+  // Helper function to fully logout and redirect
+  const forceLogoutAndRedirect = async (reason: string) => {
+    if (redirectAttempted.current) return;
+    redirectAttempted.current = true;
+
+    console.warn(`${reason}, forcing logout and redirect to login`);
+
+    // Clear all localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('companyChoosen');
+    localStorage.removeItem('storeChoosen');
+    localStorage.removeItem('categoryFeatures');
+
+    // Sign out from Supabase
+    try {
+      await supabaseService.getClient().auth.signOut();
+    } catch (e) {
+      console.error('Error signing out:', e);
+    }
+
+    // Force redirect using window.location
+    window.location.href = '/login';
+  };
+
+  // Check for user without companies immediately on mount
+  useEffect(() => {
+    if (!loading && authenticated) {
+      const storedUserStr = localStorage.getItem('user');
+      if (storedUserStr) {
+        try {
+          const storedUserData = JSON.parse(storedUserStr);
+          if (storedUserData && (!storedUserData.companies || storedUserData.companies.length === 0)) {
+            forceLogoutAndRedirect('User has no companies in localStorage');
+          }
+        } catch (e) {
+          forceLogoutAndRedirect('Failed to parse user data');
+        }
+      }
+    }
+  }, [loading, authenticated]);
 
   // Wait for initial data load after authentication
   useEffect(() => {
@@ -31,15 +76,40 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       // Give some time for loadUserData to complete
       const timer = setTimeout(() => {
         setInitialLoadComplete(true);
-      }, 2000); // 2 second timeout for initial load
+      }, 3000); // 3 second timeout for initial load (increased for slow connections)
       return () => clearTimeout(timer);
     }
   }, [authenticated, loading]);
+
+  // Check after initial load complete
+  useEffect(() => {
+    if (initialLoadComplete && authenticated) {
+      const storedUserStr = localStorage.getItem('user');
+      let hasCompaniesInStorage = false;
+
+      if (storedUserStr) {
+        try {
+          const userData = JSON.parse(storedUserStr);
+          hasCompaniesInStorage = userData?.companies && userData.companies.length > 0;
+        } catch (e) {
+          // Parse error
+        }
+      }
+
+      const hasCompaniesInState = companies && companies.length > 0;
+
+      if (!hasCompaniesInState && !hasCompaniesInStorage) {
+        forceLogoutAndRedirect('No companies found for user after timeout');
+      }
+    }
+  }, [initialLoadComplete, authenticated, companies]);
 
   // Reset states when route changes
   useEffect(() => {
     setShowPermissionError(false);
     setShouldRedirect(false);
+    setHasError(false);
+    redirectAttempted.current = false;
   }, [requiredFeatureId]);
 
   // Loading state
@@ -52,48 +122,37 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  // Check if user has companies - wait for initial load or check localStorage
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
-  const hasCompanies = (companies && companies.length > 0) ||
-                       (userData?.companies && userData.companies.length > 0);
-
-  // If initial load complete and still no companies → redirect to login
-  if (initialLoadComplete && !hasCompanies) {
-    console.warn('No companies found for user, redirecting to login');
-    // Clear localStorage to force fresh login
-    localStorage.removeItem('user');
-    localStorage.removeItem('companyChoosen');
-    localStorage.removeItem('storeChoosen');
-    return <Navigate to="/login" replace />;
+  // Safe localStorage parsing with error handling
+  let userData: any = {};
+  try {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      userData = JSON.parse(storedUser);
+    }
+  } catch (e) {
+    // Will be handled by useEffect
+    return <LoadingAnimation fullscreen size="large" />;
   }
 
-  // Still loading companies data
-  if (!hasCompanies && !initialLoadComplete) {
+  const hasCompaniesInState = companies && companies.length > 0;
+  const hasCompaniesInStorage = userData?.companies && userData.companies.length > 0;
+  const hasCompanies = hasCompaniesInState || hasCompaniesInStorage;
+
+  // Still loading companies data - show loading while useEffect handles redirect
+  if (!hasCompanies) {
     return <LoadingAnimation fullscreen size="large" />;
   }
 
   // Check permission if requiredFeatureId is specified
   if (requiredFeatureId) {
-    // Debug log - 현재 선택된 회사와 그 회사의 권한 확인
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    // Use already parsed userData from above (no duplicate parsing)
     const selectedCompanyId = localStorage.getItem('companyChoosen');
     const selectedCompany = userData?.companies?.find(
       (c: any) => c.company_id === selectedCompanyId
     );
     const companyPermissions = selectedCompany?.role?.permissions || [];
 
-    // Debug logging
-    console.log('🔐 ProtectedRoute 권한 체크:', {
-      requiredFeatureId,
-      selectedCompanyId,
-      companyName: selectedCompany?.company_name,
-      roleName: selectedCompany?.role?.role_name,
-      permissionsCount: companyPermissions.length,
-      permissions: companyPermissions,
-      hasFeature: companyPermissions.includes(requiredFeatureId)
-    });
-
-// localStorage의 회사 권한을 우선 사용 (AppState 동기화 문제 해결)
+    // localStorage의 회사 권한을 우선 사용 (AppState 동기화 문제 해결)
     const hasAccess = companyPermissions.includes(requiredFeatureId);
 
     if (!hasAccess) {

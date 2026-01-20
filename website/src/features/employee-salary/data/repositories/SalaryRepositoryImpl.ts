@@ -10,13 +10,22 @@ import type {
 } from '../../domain/repositories/ISalaryRepository';
 import { SalaryDataSource } from '../datasources/SalaryDataSource';
 import { SalaryModel } from '../models/SalaryModel';
-import { DateTimeUtils } from '@/core/utils/datetime-utils';
 
 export class SalaryRepositoryImpl implements ISalaryRepository {
   private dataSource: SalaryDataSource;
 
   constructor() {
     this.dataSource = new SalaryDataSource();
+  }
+
+  /**
+   * Format timestamp string from RPC (already in local timezone)
+   * Input: "2026-01-02T11:30:00" → Output: "2026-01-02 11:30"
+   */
+  private formatLocalTimestamp(timestamp: string): string {
+    if (!timestamp) return '';
+    // Replace T with space and remove seconds
+    return timestamp.replace('T', ' ').substring(0, 16);
   }
 
   async getSalaryData(companyId: string, month: string, storeId?: string | null): Promise<SalaryDataResult> {
@@ -94,28 +103,14 @@ export class SalaryRepositoryImpl implements ISalaryRepository {
         store_code: row.store_code || '',
         // Shift info
         shift_request_id: row.shift_request_id || '',
-        request_date: row.request_date
-          ? DateTimeUtils.formatDateOnly(DateTimeUtils.toLocal(row.request_date))
-          : '',
+        request_date: row.request_date || '',
         shift_name: row.shift_name || '',
-        start_time: row.start_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.start_time))
-          : '',
-        end_time: row.end_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.end_time))
-          : '',
-        actual_start_time: row.actual_start_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.actual_start_time))
-          : '',
-        actual_end_time: row.actual_end_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.actual_end_time))
-          : '',
-        confirm_start_time: row.confirm_start_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.confirm_start_time))
-          : '',
-        confirm_end_time: row.confirm_end_time
-          ? DateTimeUtils.format(DateTimeUtils.toLocal(row.confirm_end_time))
-          : '',
+        start_time: row.start_time ? this.formatLocalTimestamp(row.start_time) : '',
+        end_time: row.end_time ? this.formatLocalTimestamp(row.end_time) : '',
+        actual_start_time: row.actual_start_time ? this.formatLocalTimestamp(row.actual_start_time) : '',
+        actual_end_time: row.actual_end_time ? this.formatLocalTimestamp(row.actual_end_time) : '',
+        confirm_start_time: row.confirm_start_time ? this.formatLocalTimestamp(row.confirm_start_time) : '',
+        confirm_end_time: row.confirm_end_time ? this.formatLocalTimestamp(row.confirm_end_time) : '',
         // Hours
         scheduled_hours: row.scheduled_hours || 0,
         actual_worked_hours: row.actual_worked_hours || 0,

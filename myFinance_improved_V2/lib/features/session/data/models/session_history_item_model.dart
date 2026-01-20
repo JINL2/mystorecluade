@@ -139,10 +139,19 @@ class ScannedByInfoModel {
 }
 
 /// Model for SessionHistoryItemDetail
+/// v3: Supports variant fields for variant-level grouping
 class SessionHistoryItemDetailModel {
   final String productId;
   final String productName;
   final String? sku;
+  // v3 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  final bool hasVariants;
+  final String? variantSku;
+  final String? displaySku;
+
   final int scannedQuantity;
   final int scannedRejected;
   final List<ScannedByInfoModel> scannedBy;
@@ -155,6 +164,12 @@ class SessionHistoryItemDetailModel {
     required this.productId,
     required this.productName,
     this.sku,
+    this.variantId,
+    this.variantName,
+    this.displayName,
+    this.hasVariants = false,
+    this.variantSku,
+    this.displaySku,
     required this.scannedQuantity,
     required this.scannedRejected,
     required this.scannedBy,
@@ -173,6 +188,13 @@ class SessionHistoryItemDetailModel {
       productId: json['product_id']?.toString() ?? '',
       productName: json['product_name']?.toString() ?? '',
       sku: json['sku']?.toString(),
+      // v3 variant fields
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
+      hasVariants: json['has_variants'] as bool? ?? false,
+      variantSku: json['variant_sku']?.toString(),
+      displaySku: json['display_sku']?.toString(),
       scannedQuantity: (json['scanned_quantity'] as num?)?.toInt() ?? 0,
       scannedRejected: (json['scanned_rejected'] as num?)?.toInt() ?? 0,
       scannedBy: scannedByList,
@@ -188,6 +210,13 @@ class SessionHistoryItemDetailModel {
       productId: productId,
       productName: productName,
       sku: sku,
+      // v3 variant fields
+      variantId: variantId,
+      variantName: variantName,
+      displayName: displayName,
+      hasVariants: hasVariants,
+      variantSku: variantSku,
+      displaySku: displaySku,
       scannedQuantity: scannedQuantity,
       scannedRejected: scannedRejected,
       scannedBy: scannedBy.map((e) => e.toEntity()).toList(),
@@ -200,6 +229,7 @@ class SessionHistoryItemDetailModel {
 }
 
 /// Model for StockSnapshotItem (V2)
+/// v3: Supports variant fields
 class StockSnapshotItemModel {
   final String productId;
   final String sku;
@@ -208,6 +238,10 @@ class StockSnapshotItemModel {
   final int quantityReceived;
   final int quantityAfter;
   final bool needsDisplay;
+  // v3 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
 
   const StockSnapshotItemModel({
     required this.productId,
@@ -217,6 +251,9 @@ class StockSnapshotItemModel {
     required this.quantityReceived,
     required this.quantityAfter,
     required this.needsDisplay,
+    this.variantId,
+    this.variantName,
+    this.displayName,
   });
 
   factory StockSnapshotItemModel.fromJson(Map<String, dynamic> json) {
@@ -228,6 +265,10 @@ class StockSnapshotItemModel {
       quantityReceived: (json['quantity_received'] as num?)?.toInt() ?? 0,
       quantityAfter: (json['quantity_after'] as num?)?.toInt() ?? 0,
       needsDisplay: json['needs_display'] as bool? ?? false,
+      // v3 variant fields
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
     );
   }
 
@@ -240,6 +281,10 @@ class StockSnapshotItemModel {
       quantityReceived: quantityReceived,
       quantityAfter: quantityAfter,
       needsDisplay: needsDisplay,
+      // v3 variant fields
+      variantId: variantId,
+      variantName: variantName,
+      displayName: displayName,
     );
   }
 }
@@ -290,6 +335,7 @@ class ReceivingInfoModel {
 }
 
 /// Model for MergedSessionItem (V2)
+/// v3: Supports variant fields
 class MergedSessionItemModel {
   final String productId;
   final String sku;
@@ -297,6 +343,11 @@ class MergedSessionItemModel {
   final int quantity;
   final int quantityRejected;
   final SessionHistoryUserModel scannedBy;
+  // v3 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  final bool hasVariants;
 
   const MergedSessionItemModel({
     required this.productId,
@@ -305,6 +356,10 @@ class MergedSessionItemModel {
     required this.quantity,
     required this.quantityRejected,
     required this.scannedBy,
+    this.variantId,
+    this.variantName,
+    this.displayName,
+    this.hasVariants = false,
   });
 
   factory MergedSessionItemModel.fromJson(Map<String, dynamic> json) {
@@ -317,6 +372,11 @@ class MergedSessionItemModel {
       scannedBy: SessionHistoryUserModel.fromJson(
         json['scanned_by'] as Map<String, dynamic>? ?? {},
       ),
+      // v3 variant fields
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
+      hasVariants: json['has_variants'] as bool? ?? false,
     );
   }
 
@@ -328,6 +388,11 @@ class MergedSessionItemModel {
       quantity: quantity,
       quantityRejected: quantityRejected,
       scannedBy: scannedBy.toEntity(),
+      // v3 variant fields
+      variantId: variantId,
+      variantName: variantName,
+      displayName: displayName,
+      hasVariants: hasVariants,
     );
   }
 }

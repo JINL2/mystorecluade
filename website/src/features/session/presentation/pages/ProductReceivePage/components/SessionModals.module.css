@@ -13,10 +13,12 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1100;
   animation: fadeIn 0.2s ease;
+  overflow-y: auto;
+  padding: 40px 16px;
 }
 
 @keyframes fadeIn {
@@ -42,6 +44,9 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 440px;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   animation: slideUp 0.3s ease;
 }
@@ -54,6 +59,7 @@
   background: linear-gradient(135deg, #0064FF 0%, #0050CC 100%);
   color: white;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .createSessionIcon {
@@ -86,6 +92,9 @@
 
 .createSessionBody {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .formGroup {
@@ -277,6 +286,8 @@
   gap: 12px;
   padding: 16px 24px 24px;
   border-top: 1px solid var(--toss-gray-100, #F1F3F5);
+  flex-shrink: 0;
+  background: white;
 }
 
 .cancelSessionButton {

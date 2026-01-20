@@ -24,7 +24,13 @@ mixin _$SessionCompareItem {
   String? get brand => throw _privateConstructorUsedError;
   String? get category => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
-  String? get scannedByName => throw _privateConstructorUsedError;
+  String? get scannedByName =>
+      throw _privateConstructorUsedError; // v2 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  String? get displaySku => throw _privateConstructorUsedError;
+  bool get hasVariants => throw _privateConstructorUsedError;
 
   /// Create a copy of SessionCompareItem
   /// with the given fields replaced by the non-null parameter values.
@@ -48,7 +54,12 @@ abstract class $SessionCompareItemCopyWith<$Res> {
       String? brand,
       String? category,
       int quantity,
-      String? scannedByName});
+      String? scannedByName,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      String? displaySku,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -75,6 +86,11 @@ class _$SessionCompareItemCopyWithImpl<$Res, $Val extends SessionCompareItem>
     Object? category = freezed,
     Object? quantity = null,
     Object? scannedByName = freezed,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? displaySku = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -113,6 +129,26 @@ class _$SessionCompareItemCopyWithImpl<$Res, $Val extends SessionCompareItem>
           ? _value.scannedByName
           : scannedByName // ignore: cast_nullable_to_non_nullable
               as String?,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -134,7 +170,12 @@ abstract class _$$SessionCompareItemImplCopyWith<$Res>
       String? brand,
       String? category,
       int quantity,
-      String? scannedByName});
+      String? scannedByName,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      String? displaySku,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -159,6 +200,11 @@ class __$$SessionCompareItemImplCopyWithImpl<$Res>
     Object? category = freezed,
     Object? quantity = null,
     Object? scannedByName = freezed,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? displaySku = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_$SessionCompareItemImpl(
       productId: null == productId
@@ -197,13 +243,33 @@ class __$$SessionCompareItemImplCopyWithImpl<$Res>
           ? _value.scannedByName
           : scannedByName // ignore: cast_nullable_to_non_nullable
               as String?,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
 
-class _$SessionCompareItemImpl implements _SessionCompareItem {
+class _$SessionCompareItemImpl extends _SessionCompareItem {
   const _$SessionCompareItemImpl(
       {required this.productId,
       required this.productName,
@@ -213,7 +279,13 @@ class _$SessionCompareItemImpl implements _SessionCompareItem {
       this.brand,
       this.category,
       required this.quantity,
-      this.scannedByName});
+      this.scannedByName,
+      this.variantId,
+      this.variantName,
+      this.displayName,
+      this.displaySku,
+      this.hasVariants = false})
+      : super._();
 
   @override
   final String productId;
@@ -233,10 +305,22 @@ class _$SessionCompareItemImpl implements _SessionCompareItem {
   final int quantity;
   @override
   final String? scannedByName;
+// v2 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
+  @override
+  final String? displaySku;
+  @override
+  @JsonKey()
+  final bool hasVariants;
 
   @override
   String toString() {
-    return 'SessionCompareItem(productId: $productId, productName: $productName, sku: $sku, barcode: $barcode, imageUrl: $imageUrl, brand: $brand, category: $category, quantity: $quantity, scannedByName: $scannedByName)';
+    return 'SessionCompareItem(productId: $productId, productName: $productName, sku: $sku, barcode: $barcode, imageUrl: $imageUrl, brand: $brand, category: $category, quantity: $quantity, scannedByName: $scannedByName, variantId: $variantId, variantName: $variantName, displayName: $displayName, displaySku: $displaySku, hasVariants: $hasVariants)';
   }
 
   @override
@@ -258,12 +342,36 @@ class _$SessionCompareItemImpl implements _SessionCompareItem {
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.scannedByName, scannedByName) ||
-                other.scannedByName == scannedByName));
+                other.scannedByName == scannedByName) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.displaySku, displaySku) ||
+                other.displaySku == displaySku) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, productId, productName, sku,
-      barcode, imageUrl, brand, category, quantity, scannedByName);
+  int get hashCode => Object.hash(
+      runtimeType,
+      productId,
+      productName,
+      sku,
+      barcode,
+      imageUrl,
+      brand,
+      category,
+      quantity,
+      scannedByName,
+      variantId,
+      variantName,
+      displayName,
+      displaySku,
+      hasVariants);
 
   /// Create a copy of SessionCompareItem
   /// with the given fields replaced by the non-null parameter values.
@@ -275,7 +383,7 @@ class _$SessionCompareItemImpl implements _SessionCompareItem {
           this, _$identity);
 }
 
-abstract class _SessionCompareItem implements SessionCompareItem {
+abstract class _SessionCompareItem extends SessionCompareItem {
   const factory _SessionCompareItem(
       {required final String productId,
       required final String productName,
@@ -285,7 +393,13 @@ abstract class _SessionCompareItem implements SessionCompareItem {
       final String? brand,
       final String? category,
       required final int quantity,
-      final String? scannedByName}) = _$SessionCompareItemImpl;
+      final String? scannedByName,
+      final String? variantId,
+      final String? variantName,
+      final String? displayName,
+      final String? displaySku,
+      final bool hasVariants}) = _$SessionCompareItemImpl;
+  const _SessionCompareItem._() : super._();
 
   @override
   String get productId;
@@ -304,7 +418,17 @@ abstract class _SessionCompareItem implements SessionCompareItem {
   @override
   int get quantity;
   @override
-  String? get scannedByName;
+  String? get scannedByName; // v2 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
+  @override
+  String? get displaySku;
+  @override
+  bool get hasVariants;
 
   /// Create a copy of SessionCompareItem
   /// with the given fields replaced by the non-null parameter values.

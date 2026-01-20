@@ -1,6 +1,7 @@
 /**
  * Sale Product Provider
  * Zustand store for sale-product feature (2025 Best Practice)
+ * v6: Updated cart management to use uniqueKey (product_id + variant_id) for variant support
  */
 
 import { create } from 'zustand';
@@ -56,12 +57,14 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
 
   // ============================================
   // CART MANAGEMENT ACTIONS
+  // v6: Uses uniqueKey (product_id + variant_id) for variant support
   // ============================================
 
   addToCart: (product: Product) => {
     set((state) => {
+      // v6: Use uniqueKey to find existing item (handles variants correctly)
       const existing = state.cartItems.find(
-        (item) => item.productId === product.id
+        (item) => item.uniqueKey === product.uniqueKey
       );
 
       let newItems: CartItem[];
@@ -69,17 +72,19 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
       if (existing) {
         // Increment existing item quantity
         newItems = state.cartItems.map((item) =>
-          item.productId === product.id ? item.incrementQuantity() : item
+          item.uniqueKey === product.uniqueKey ? item.incrementQuantity() : item
         );
       } else {
         // Add new item to cart
+        // v6: Use displayName for product name, include variantId
         const newItem = CartItem.fromProduct(
           product.id,
-          product.sku,
-          product.name,
+          product.displaySku,
+          product.displayName,
           product.sellingPrice,
           product.costPrice,
-          1
+          1,
+          product.variantId
         );
         newItems = [...state.cartItems, newItem];
       }
@@ -97,10 +102,11 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
     });
   },
 
-  removeFromCart: (productId: string) => {
+  // v6: Uses uniqueKey instead of productId for variant support
+  removeFromCart: (uniqueKey: string) => {
     set((state) => {
       const newItems = state.cartItems.filter(
-        (item) => item.productId !== productId
+        (item) => item.uniqueKey !== uniqueKey
       );
 
       const totals = calculateTotals(
@@ -116,12 +122,13 @@ export const useSaleProductStore = create<SaleProductState>((set, get) => ({
     });
   },
 
-  updateQuantity: (productId: string, quantity: number) => {
+  // v6: Uses uniqueKey instead of productId for variant support
+  updateQuantity: (uniqueKey: string, quantity: number) => {
     set((state) => {
       const newItems: CartItem[] = [];
 
       for (const item of state.cartItems) {
-        if (item.productId === productId) {
+        if (item.uniqueKey === uniqueKey) {
           const updated = item.updateQuantity(quantity);
           if (updated) {
             newItems.push(updated);

@@ -52,7 +52,7 @@ export const OrderItemsTable: React.FC<OrderItemsTableProps> = ({
         </thead>
         <tbody>
           {orderItems.map((item, index) => (
-            <tr key={item.productId}>
+            <tr key={`${item.productId}-${item.variantId || 'base'}`}>
               <td className={styles.productName}>{item.productName}</td>
               <td className={styles.sku}>{item.sku}</td>
               <td>

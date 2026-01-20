@@ -25,6 +25,7 @@ interface ReceiveProductSectionProps {
   saveSuccess: boolean;
   sessionOwnerId: string;
   currentUserId: string;
+  isSessionActive: boolean;
   onSearchKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onSelectProduct: (product: SearchProduct) => void;
   onClearSearch: () => void;
@@ -50,6 +51,7 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
   saveSuccess,
   sessionOwnerId,
   currentUserId,
+  isSessionActive,
   onSearchKeyDown,
   onSelectProduct,
   onClearSearch,
@@ -61,6 +63,7 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
   onDismissSaveError,
 }) => {
   const canSubmit = sessionOwnerId === currentUserId;
+  const canSave = isSessionActive;
 
   return (
     <div className={styles.receiveSection}>
@@ -105,15 +108,15 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
           {/* Search Results Dropdown */}
           {searchResults.length > 0 && (
             <div className={styles.searchResults}>
-              {searchResults.map((product) => (
+              {searchResults.map((product, index) => (
                 <div
-                  key={product.product_id}
+                  key={`${product.productId || 'unknown'}-${product.variantId || 'base'}-${index}`}
                   className={styles.searchResultItem}
                   onClick={() => onSelectProduct(product)}
                 >
                   <div className={styles.searchResultImage}>
-                    {product.image_urls && product.image_urls.length > 0 ? (
-                      <img src={product.image_urls[0]} alt={product.product_name} />
+                    {product.imageUrls && product.imageUrls.length > 0 ? (
+                      <img src={product.imageUrls[0]} alt={product.displayName || product.productName} />
                     ) : (
                       <div className={styles.noImage}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -125,9 +128,9 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                     )}
                   </div>
                   <div className={styles.resultInfo}>
-                    <span className={styles.resultName}>{product.product_name}</span>
+                    <span className={styles.resultName}>{product.displayName || product.productName || 'Unknown Product'}</span>
                     <span className={styles.resultMeta}>
-                      {product.sku} • Selling price: {currency.symbol}{product.price.selling.toLocaleString()}
+                      {product.displaySku || product.productSku || 'N/A'} • Selling price: {currency.symbol}{(product.price?.selling || 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -175,14 +178,14 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                 </thead>
                 <tbody>
                   {receivedEntries.map((entry) => (
-                    <tr key={entry.entry_id}>
-                      <td className={styles.entryProduct}>{entry.product_name}</td>
+                    <tr key={entry.entryId}>
+                      <td className={styles.entryProduct}>{entry.productName}</td>
                       <td className={styles.entrySku}>{entry.sku}</td>
                       <td className={styles.entryQty}>
                         <div className={styles.qtyControl}>
                           <button
                             className={styles.qtyButton}
-                            onClick={() => onUpdateQuantity(entry.entry_id, -1)}
+                            onClick={() => onUpdateQuantity(entry.entryId, -1)}
                           >
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M5 12h14" />
@@ -193,11 +196,11 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                             className={styles.qtyInput}
                             value={entry.quantity}
                             min="1"
-                            onChange={(e) => onSetQuantity(entry.entry_id, parseInt(e.target.value) || 1)}
+                            onChange={(e) => onSetQuantity(entry.entryId, parseInt(e.target.value) || 1)}
                           />
                           <button
                             className={styles.qtyButton}
-                            onClick={() => onUpdateQuantity(entry.entry_id, 1)}
+                            onClick={() => onUpdateQuantity(entry.entryId, 1)}
                           >
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M12 5v14M5 12h14" />
@@ -208,7 +211,7 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
                       <td className={styles.entryActions}>
                         <button
                           className={styles.removeEntryButton}
-                          onClick={() => onRemoveEntry(entry.entry_id)}
+                          onClick={() => onRemoveEntry(entry.entryId)}
                           title="Remove item"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -224,6 +227,17 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
           )}
         </div>
       </div>
+
+      {/* Session Inactive Warning */}
+      {!isSessionActive && (
+        <div className={styles.saveErrorMessage}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M15 9l-6 6M9 9l6 6" />
+          </svg>
+          Session is not active
+        </div>
+      )}
 
       {/* Save Status Messages */}
       {saveError && (
@@ -250,7 +264,8 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
         <button
           className={`${styles.saveButton} ${isSaving ? styles.saveButtonLoading : ''}`}
           onClick={onSave}
-          disabled={isSaving || receivedEntries.length === 0}
+          disabled={isSaving || receivedEntries.length === 0 || !canSave}
+          title={!canSave ? 'Session is not active' : ''}
         >
           {isSaving ? (
             <>
@@ -269,10 +284,10 @@ export const ReceiveProductSection: React.FC<ReceiveProductSectionProps> = ({
           )}
         </button>
         <button
-          className={`${styles.submitButton} ${!canSubmit ? styles.submitButtonDisabled : ''}`}
+          className={`${styles.submitButton} ${(!canSubmit || !canSave) ? styles.submitButtonDisabled : ''}`}
           onClick={onSubmitClick}
-          disabled={!canSubmit}
-          title={!canSubmit ? 'Only the session owner can submit' : ''}
+          disabled={!canSubmit || !canSave}
+          title={!canSave ? 'Session is not active' : (!canSubmit ? 'Only the session owner can submit' : '')}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M22 2L11 13" />

@@ -70,8 +70,8 @@ export const useOrderDetail = () => {
             code: data.base_currency.currency_code || 'KRW',
           });
         }
-      } catch (err) {
-        console.error('💰 get_base_currency error:', err);
+      } catch {
+        // Use default currency on error
       }
     };
 
@@ -94,19 +94,12 @@ export const useOrderDetail = () => {
         const supabase = supabaseService.getClient();
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        console.log('📦 Calling inventory_get_order_detail with:', {
+        // v2: supports variant fields (variant_id, variant_name, display_name, has_variants)
+        const { data, error: rpcError } = await supabase.rpc('inventory_get_order_detail_v2', {
           p_order_id: orderId,
           p_company_id: companyId,
           p_timezone: userTimezone,
         });
-
-        const { data, error: rpcError } = await supabase.rpc('inventory_get_order_detail', {
-          p_order_id: orderId,
-          p_company_id: companyId,
-          p_timezone: userTimezone,
-        });
-
-        console.log('📦 inventory_get_order_detail response:', { data, rpcError });
 
         if (rpcError) {
           throw new Error(rpcError.message);
@@ -118,7 +111,6 @@ export const useOrderDetail = () => {
           throw new Error(data?.error || 'Failed to load order details');
         }
       } catch (err) {
-        console.error('📦 Load order detail error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load order details');
       } finally {
         setIsLoading(false);
@@ -159,7 +151,6 @@ export const useOrderDetail = () => {
   // Handle cancel order
   const handleCancelOrder = useCallback(async () => {
     if (!orderId || !companyId || !user?.id) {
-      console.error('❌ Missing required parameters for cancel order');
       return;
     }
 
@@ -169,13 +160,6 @@ export const useOrderDetail = () => {
       const supabase = supabaseService.getClient();
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      console.log('🚫 Calling inventory_close_order with:', {
-        p_order_id: orderId,
-        p_user_id: user.id,
-        p_company_id: companyId,
-        p_timezone: userTimezone,
-      });
-
       const { data, error: rpcError } = await supabase.rpc('inventory_close_order', {
         p_order_id: orderId,
         p_user_id: user.id,
@@ -183,21 +167,17 @@ export const useOrderDetail = () => {
         p_timezone: userTimezone,
       });
 
-      console.log('🚫 inventory_close_order response:', { data, rpcError });
-
       if (rpcError) {
         throw new Error(rpcError.message);
       }
 
       if (data?.success) {
-        // Close modal and navigate back to list
         setIsCancelModalOpen(false);
         navigate('/product/order');
       } else {
         throw new Error(data?.error || 'Failed to cancel order');
       }
     } catch (err) {
-      console.error('🚫 Cancel order error:', err);
       alert(err instanceof Error ? err.message : 'Failed to cancel order');
     } finally {
       setIsCancelling(false);

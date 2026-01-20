@@ -17,7 +17,6 @@ import { useAppState } from '@/app/providers/app_state_provider';
 import { useSaleProducts } from '../../hooks/useSaleProducts';
 import { useSaleInvoice } from '../../hooks/useSaleInvoice';
 import { PaymentModal } from '../../components/PaymentModal/PaymentModal';
-import { ProductModel } from '../../../data/models/ProductModel';
 import type { SaleProductPageProps } from './SaleProductPage.types';
 import pageStyles from './SaleProductPage.module.css';
 import cartStyles from './styles/CartSection.module.css';
@@ -65,6 +64,7 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
     prevPage,
     searchQuery,
     setSearchQuery,
+    convertToDomainProduct,
   } = useSaleProducts(currentCompany?.company_id, selectedStoreId);
 
   // Handle store selection
@@ -75,8 +75,9 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
 
   // Handle product click - add to cart
   const handleProductClick = (product: any) => {
-    // Convert ProductForSale to Domain Product Entity using mapper
-    const domainProduct = ProductModel.fromSaleProduct(product);
+    // Convert ProductForSale to Domain Product Entity using hook's converter
+    // This follows Clean Architecture - presentation doesn't access data layer directly
+    const domainProduct = convertToDomainProduct(product);
     addToCart(domainProduct);
   };
 
@@ -101,18 +102,19 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
             <div className={styles.topSection}>
               {/* Cart Items */}
               <div className={styles.selectedItems}>
+                {/* v6: Uses uniqueKey for cart item identification (supports variants) */}
                 {itemCount === 0 ? (
                   <div className={styles.emptyCart}>No items selected</div>
                 ) : (
                   cartItems.map((item, index) => (
-                    <div key={item.productId} className={styles.cartItem}>
+                    <div key={item.uniqueKey} className={styles.cartItem}>
                       <div className={styles.cartItemHeader}>
                         <span className={styles.cartItemNumber}>
                           {index + 1}
                         </span>
                         <button
                           className={styles.deleteBtn}
-                          onClick={() => removeFromCart(item.productId)}
+                          onClick={() => removeFromCart(item.uniqueKey)}
                           aria-label="Remove item"
                         >
                           <svg
@@ -136,7 +138,7 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
                           <button
                             className={styles.quantityBtn}
                             onClick={() =>
-                              updateQuantity(item.productId, item.quantity - 1)
+                              updateQuantity(item.uniqueKey, item.quantity - 1)
                             }
                             aria-label="Decrease quantity"
                           >
@@ -156,7 +158,7 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
                             min="1"
                             onChange={(e) =>
                               updateQuantity(
-                                item.productId,
+                                item.uniqueKey,
                                 parseInt(e.target.value) || 1
                               )
                             }
@@ -164,7 +166,7 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
                           <button
                             className={styles.quantityBtn}
                             onClick={() =>
-                              updateQuantity(item.productId, item.quantity + 1)
+                              updateQuantity(item.uniqueKey, item.quantity + 1)
                             }
                             aria-label="Increase quantity"
                           >
@@ -263,10 +265,11 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
                 </div>
               ) : (
                 <>
+                  {/* v6: Uses unique key (product_id + variant_id) and display_name for variant support */}
                   <div className={styles.productGrid}>
                     {products.map((product) => (
                       <div
-                        key={product.product_id}
+                        key={product.variant_id ? `${product.product_id}-${product.variant_id}` : product.product_id}
                         className={styles.productCard}
                         onClick={() => handleProductClick(product)}
                       >
@@ -275,7 +278,7 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
                           product.image_urls.length > 0 ? (
                             <img
                               src={product.image_urls[0]}
-                              alt={product.product_name}
+                              alt={product.display_name || product.product_name}
                             />
                           ) : (
                             <div className={styles.noImage}>No Image</div>
@@ -286,7 +289,7 @@ export const SaleProductPage: React.FC<SaleProductPageProps> = () => {
                             {product.brand_name}
                           </div>
                           <div className={styles.productName}>
-                            {product.product_name}
+                            {product.display_name || product.product_name}
                           </div>
                           <div className={styles.productPrice}>
                             {currencySymbol}

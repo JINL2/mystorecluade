@@ -39,7 +39,7 @@ class CountedItemRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.productName,
+                    item.name, // Uses displayName for variants
                     style: TossTextStyles.caption.copyWith(
                       fontWeight: TossFontWeight.semibold,
                       color: TossColors.gray900,

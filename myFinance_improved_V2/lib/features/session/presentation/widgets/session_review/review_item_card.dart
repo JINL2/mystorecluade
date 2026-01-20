@@ -130,7 +130,7 @@ class ReviewItemCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.productName,
+                    item.name, // Uses displayName for variants
                     style: TossTextStyles.bodyMedium.copyWith(
                       fontWeight: TossFontWeight.medium,
                       color: TossColors.textPrimary,
@@ -139,9 +139,9 @@ class ReviewItemCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: TossSpacing.space0_5),
-                  if (item.sku != null) ...[
+                  if (item.effectiveSku != null) ...[
                     Text(
-                      item.sku!,
+                      item.effectiveSku!,
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.textTertiary,
                       ),

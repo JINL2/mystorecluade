@@ -26,4 +26,7 @@ export interface ProductFormData {
   initialQuantity: string;
   imageUrl: string;
   thumbnailUrl: string;
+  // Attribute selection for variants (only 1 attribute allowed per product)
+  selectedAttributeId: string;
+  selectedOptionIds: string[]; // Multiple options create multiple variants
 }

@@ -7,14 +7,15 @@
  * - Properly abstracts data access layer
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { SaleProductRepositoryImpl } from '../../data/repositories/SaleProductRepositoryImpl';
 import { ProductModel, ProductForSale } from '../../data/models/ProductModel';
 import { Product } from '../../domain/entities/Product';
 
-const repository = new SaleProductRepositoryImpl();
-
+// Repository instance created inside hook for better testability
 export const useSaleProducts = (companyId: string | undefined, storeId: string | null) => {
+  // Memoize repository to prevent unnecessary re-creation
+  const repository = useMemo(() => new SaleProductRepositoryImpl(), []);
   const [products, setProducts] = useState<ProductForSale[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export const useSaleProducts = (companyId: string | undefined, storeId: string |
       const result = await repository.getProducts(companyId, storeId, page, 20, searchQuery || undefined);
 
       // Convert Domain Products to ProductForSale for presentation
+      // v6: Added variant fields mapping
       const mappedProducts: ProductForSale[] = result.items.map((product: Product) => ({
         product_id: product.id,
         product_name: product.name,
@@ -62,6 +64,12 @@ export const useSaleProducts = (companyId: string | undefined, storeId: string |
         cost_price: product.costPrice,
         selling_price: product.sellingPrice,
         quantity_available: product.quantityAvailable,
+        // v6: variant fields
+        variant_id: product.variantId,
+        variant_name: product.variantName,
+        display_name: product.displayName,
+        display_sku: product.displaySku,
+        has_variants: product.hasVariants,
       }));
 
       setProducts(mappedProducts);
@@ -110,6 +118,15 @@ export const useSaleProducts = (companyId: string | undefined, storeId: string |
     }
   };
 
+  /**
+   * Convert ProductForSale to Domain Product Entity
+   * This keeps the data layer conversion logic within the hook
+   * following Clean Architecture principles
+   */
+  const convertToDomainProduct = useCallback((saleProduct: ProductForSale): Product => {
+    return ProductModel.fromSaleProduct(saleProduct);
+  }, []);
+
   return {
     products,
     loading,
@@ -124,5 +141,6 @@ export const useSaleProducts = (companyId: string | undefined, storeId: string |
     nextPage,
     prevPage,
     refresh: () => loadProducts(currentPage),
+    convertToDomainProduct,
   };
 };

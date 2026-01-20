@@ -43,11 +43,15 @@ export interface Shipment {
   created_by: string | null;
 }
 
-// Shipment item with receiving progress (from inventory_get_shipment_detail RPC)
+// Shipment item with receiving progress (from inventory_get_shipment_detail_v2 RPC)
 export interface ShipmentItem {
   item_id: string;
   product_id: string;
+  variant_id: string | null;        // v2: variant support
   product_name: string;
+  variant_name: string | null;      // v2: variant support
+  display_name: string;             // v2: "Product Name - Variant Name" or "Product Name"
+  has_variants: boolean;            // v2: whether product has variants
   sku: string;
   quantity_shipped: number;
   quantity_received: number;
@@ -124,10 +128,18 @@ export interface DatePickerState {
   tempToDate: string;
 }
 
-// Shipment status options (same as Receive status)
+// Shipment status options (for Shipment list filtering)
 export const SHIPMENT_STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
   { value: 'process', label: 'In Transit' },
+  { value: 'complete', label: 'Complete' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
+
+// Session status options (for Session list filtering - v2 RPC)
+// Note: 'in_progress' means session is active (pending or process)
+export const SESSION_STATUS_OPTIONS = [
+  { value: 'in_progress', label: 'In Progress' },
   { value: 'complete', label: 'Complete' },
   { value: 'cancelled', label: 'Cancelled' },
 ];

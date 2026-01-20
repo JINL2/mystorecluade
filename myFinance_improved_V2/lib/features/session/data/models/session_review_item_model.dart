@@ -43,6 +43,7 @@ class ScannedByUserModel {
 }
 
 /// Model for SessionReviewItem with JSON serialization
+/// Supports v2 variants with variantId and displayName
 class SessionReviewItemModel {
   final String productId;
   final String productName;
@@ -55,6 +56,13 @@ class SessionReviewItemModel {
   final int previousStock;
   final List<ScannedByUserModel> scannedBy;
   final String sessionType;
+  // v2 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  final String? variantSku;
+  final String? displaySku;
+  final bool hasVariants;
 
   const SessionReviewItemModel({
     required this.productId,
@@ -68,6 +76,12 @@ class SessionReviewItemModel {
     this.previousStock = 0,
     required this.scannedBy,
     this.sessionType = 'receiving',
+    this.variantId,
+    this.variantName,
+    this.displayName,
+    this.variantSku,
+    this.displaySku,
+    this.hasVariants = false,
   });
 
   factory SessionReviewItemModel.fromJson(Map<String, dynamic> json) {
@@ -101,6 +115,13 @@ class SessionReviewItemModel {
                      (json['current_stock'] as num?)?.toInt() ?? 0,
       scannedBy: scannedByList,
       sessionType: json['session_type']?.toString() ?? 'receiving',
+      // v2 variant fields
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
+      variantSku: json['variant_sku']?.toString(),
+      displaySku: json['display_sku']?.toString(),
+      hasVariants: json['has_variants'] as bool? ?? false,
     );
   }
 
@@ -117,6 +138,13 @@ class SessionReviewItemModel {
       'previous_stock': previousStock,
       'session_type': sessionType,
       'scanned_by': scannedBy.map((e) => e.toJson()).toList(),
+      // v2 variant fields
+      'variant_id': variantId,
+      'variant_name': variantName,
+      'display_name': displayName,
+      'variant_sku': variantSku,
+      'display_sku': displaySku,
+      'has_variants': hasVariants,
     };
   }
 
@@ -133,6 +161,13 @@ class SessionReviewItemModel {
       previousStock: previousStock,
       scannedBy: scannedBy.map((e) => e.toEntity()).toList(),
       sessionType: sessionType,
+      // v2 variant fields
+      variantId: variantId,
+      variantName: variantName,
+      displayName: displayName,
+      variantSku: variantSku,
+      displaySku: displaySku,
+      hasVariants: hasVariants,
     );
   }
 }

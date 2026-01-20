@@ -9,9 +9,11 @@ import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import { TossInput } from '@/shared/components/toss/TossInput';
 import { AddBrandModal } from '@/shared/components/modals/AddBrandModal';
 import { AddCategoryModal } from '@/shared/components/modals/AddCategoryModal';
+import { AddAttributeModal } from '@/shared/components/modals/AddAttributeModal';
 import { ErrorMessage } from '@/shared/components/common/ErrorMessage';
 import { supabaseService, storageService } from '@/core/services/supabase_service';
 import { compressImage, formatFileSize, validateImageFile } from '@/core/utils/image-utils';
+import { useAppState } from '@/app/providers/app_state_provider';
 import type { AddProductModalProps, ProductFormData } from './AddProductModal.types';
 import type { CompressedImageResult } from '@/core/utils/image-utils';
 import styles from './AddProductModal.module.css';
@@ -25,6 +27,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   onProductAdded,
   onMetadataRefresh,
 }) => {
+  const { currentUser } = useAppState();
+
   const [formData, setFormData] = useState<ProductFormData>({
     productName: '',
     sku: '',
@@ -37,6 +41,9 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     initialQuantity: '0',
     imageUrl: '',
     thumbnailUrl: '',
+    // Attribute selection for variants
+    selectedAttributeId: '',
+    selectedOptionIds: [],
   });
 
   const [errors, setErrors] = useState<Partial<ProductFormData>>({});
@@ -53,6 +60,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
   const [isAddBrandModalOpen, setIsAddBrandModalOpen] = useState(false);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [isAddAttributeModalOpen, setIsAddAttributeModalOpen] = useState(false);
 
   // Image upload state (최대 3개)
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -81,6 +89,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         initialQuantity: '0',
         imageUrl: '',
         thumbnailUrl: '',
+        selectedAttributeId: '',
+        selectedOptionIds: [],
       });
       setErrors({});
       setIsSubmitting(false);
@@ -307,32 +317,56 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         }
       }
 
-      // Step 3: Build RPC parameters for product creation
-      console.log('📝 Step 3: Creating product...');
+      // Step 3: Build RPC parameters for product creation (v4 with variant support)
+      console.log('📝 Step 3: Creating product with inventory_create_product_v4...');
+
+      // Build variants array if attribute and options are selected
+      let variantsParam: any[] | null = null;
+      if (formData.selectedAttributeId && formData.selectedOptionIds.length > 0) {
+        // Get attribute options to build variant names
+        const selectedAttribute = metadata?.attributes?.find(
+          attr => attr.attribute_id === formData.selectedAttributeId
+        );
+
+        variantsParam = formData.selectedOptionIds.map(optionId => {
+          const option = selectedAttribute?.options?.find(opt => opt.option_id === optionId);
+          return {
+            variant_name: option?.option_value || optionId,
+            option_id: optionId,
+            // initial_quantity is optional, defaults to 0 in RPC
+          };
+        });
+
+        console.log('📦 Creating product with variants:');
+        console.log('  - Attribute ID:', formData.selectedAttributeId);
+        console.log('  - Variants:', variantsParam);
+      }
+
       const rpcParams: any = {
         p_company_id: companyId,
-        p_product_name: formData.productName.trim(),
         p_store_id: storeId || null,
+        p_created_by: currentUser?.user_id || null, // v4: required parameter
+        p_product_name: formData.productName.trim(),
         p_sku: formData.sku.trim() || null, // null이면 RPC가 'SKU-001' 형식으로 자동 생성
         p_barcode: formData.barcode.trim() || null, // null이면 RPC가 '88xxxxxxxxxx' 형식으로 자동 생성
         p_category_id: formData.categoryId || null,
         p_brand_id: formData.brandId || null,
         p_unit: formData.unit || null,
-        p_cost_price: formData.costPrice && parseFloat(formData.costPrice) > 0 ? parseFloat(formData.costPrice) : null,
-        p_selling_price: formData.sellingPrice && parseFloat(formData.sellingPrice) > 0 ? parseFloat(formData.sellingPrice) : null,
-        p_initial_quantity: formData.initialQuantity && parseFloat(formData.initialQuantity) > 0 ? parseFloat(formData.initialQuantity) : null,
-        p_image_urls: imageUrls, // JSONB array format (최대 3개)
-      }
+        p_cost_price: formData.costPrice && parseFloat(formData.costPrice) > 0 ? parseFloat(formData.costPrice) : 0,
+        p_selling_price: formData.sellingPrice && parseFloat(formData.sellingPrice) > 0 ? parseFloat(formData.sellingPrice) : 0,
+        p_image_urls: imageUrls.length > 0 ? imageUrls : null, // JSONB array format (최대 3개)
+        // v4: Variant parameters
+        p_attribute_id: formData.selectedAttributeId || null,
+        p_variants: variantsParam,
+        // v4: Only set initial_quantity if no variants
+        p_initial_quantity: variantsParam ? null : (formData.initialQuantity && parseFloat(formData.initialQuantity) > 0 ? parseFloat(formData.initialQuantity) : 0),
+      };
 
       // Log RPC parameters for debugging
       console.log('Creating product with parameters:', rpcParams);
-      console.log('  - p_sku type:', typeof rpcParams.p_sku, '| value:', rpcParams.p_sku, '| is null:', rpcParams.p_sku === null);
-      console.log('  - p_barcode type:', typeof rpcParams.p_barcode, '| value:', rpcParams.p_barcode, '| is null:', rpcParams.p_barcode === null);
-      console.log('  - categoryId type:', typeof rpcParams.p_category_id, '| value:', rpcParams.p_category_id);
-      console.log('  - brandId type:', typeof rpcParams.p_brand_id, '| value:', rpcParams.p_brand_id);
 
-      // Call RPC function to create product (Flutter 앱처럼 .single() 사용)
-      const { data, error } = await supabaseService.getClient().rpc('inventory_create_product', rpcParams).single();
+      // Call RPC v4 function to create product
+      const { data, error } = await supabaseService.getClient().rpc('inventory_create_product_v4', rpcParams).single();
 
       console.log('🔍 RPC Response:', { data, error });
       console.log('🔍 Full data:', JSON.stringify(data, null, 2));
@@ -379,20 +413,27 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       if (data.success === false) {
         console.error('❌ RPC returned success: false', data);
 
-        // Handle specific error codes from RPC response
-        let errorMsg = 'Failed to create product';
+        // Handle specific error codes from RPC v4 response
+        const errorMessages: { [key: string]: string } = {
+          'COMPANY_ID_REQUIRED': 'Company ID is required',
+          'STORE_ID_REQUIRED': 'Store ID is required',
+          'CREATED_BY_REQUIRED': 'User ID is required',
+          'PRODUCT_NAME_REQUIRED': 'Product name is required',
+          'ATTRIBUTE_REQUIRED': 'Attribute is required when creating variants',
+          'ATTRIBUTE_NOT_FOUND': 'Selected attribute not found or inactive',
+          'INVALID_VARIANTS_FORMAT': 'Invalid variants format',
+          'INVALID_VARIANT_DATA': 'Each variant must have variant_name and option_id',
+          'OPTION_NOT_FOUND': 'Selected option not found',
+          'OPTION_ATTRIBUTE_MISMATCH': 'Option does not belong to the selected attribute',
+          'DUPLICATE_SKU': 'This SKU already exists. Please use a different SKU or leave it empty to auto-generate.',
+          'DUPLICATE_BARCODE': 'This barcode already exists. Please use a different barcode.',
+          'FOREIGN_KEY_ERROR': 'Invalid category or brand selected.',
+          'TOO_MANY_IMAGES': 'Maximum 3 images allowed',
+        };
 
-        if (data.code === 'DUPLICATE_SKU' || data.details?.includes('inventory_products_company_id_sku_key')) {
-          errorMsg = 'This SKU already exists. Please use a different SKU or leave it empty to auto-generate.';
-        } else if (data.code === 'DUPLICATE_BARCODE' || data.details?.includes('barcode')) {
-          errorMsg = 'This barcode already exists. Please use a different barcode.';
-        } else if (data.code === 'FOREIGN_KEY_ERROR' || data.details?.includes('foreign key')) {
-          errorMsg = 'Invalid category or brand selected.';
-        } else {
-          errorMsg = data.error || data.message || 'Failed to create product';
-          if (data.details) {
-            errorMsg += ` (${data.details})`;
-          }
+        let errorMsg = errorMessages[data.code] || data.error || data.message || 'Failed to create product';
+        if (data.details && !errorMessages[data.code]) {
+          errorMsg += ` (${data.details})`;
         }
 
         setNotification({
@@ -410,8 +451,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       console.log('✅ Product data type:', typeof productData);
       console.log('✅ Product data keys:', productData ? Object.keys(productData) : 'null');
 
-      // Build success message with auto-generated info
+      // Build success message with variant and auto-generated info
       let successMessage = `Product "${formData.productName}" has been created successfully!`;
+
+      // v4: Show variant info if created with variants
+      if (productData?.has_variants && productData?.variants_created > 0) {
+        successMessage = `Product "${formData.productName}" has been created with ${productData.variants_created} variant(s)!`;
+      }
+
       const autoGenerated = [];
 
       // Show SKU if it was auto-generated (user didn't provide one)
@@ -701,6 +748,79 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 max="999999999"
               />
             </div>
+
+            {/* Attribute Selection (Optional - for variants) */}
+            <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
+              <TossSelector
+                label="Attribute (for variants)"
+                placeholder="Select attribute"
+                value={formData.selectedAttributeId}
+                options={metadata?.attributes?.filter(attr => attr.is_active).map((attr) => ({
+                  value: attr.attribute_id,
+                  label: attr.attribute_name,
+                  description: `${attr.option_count} options`,
+                })) || []}
+                onChange={(value) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    selectedAttributeId: value,
+                    selectedOptionIds: [], // Reset options when attribute changes
+                  }));
+                }}
+                showAddButton={true}
+                addButtonText="Add attribute"
+                onAddClick={() => setIsAddAttributeModalOpen(true)}
+                showDescriptions={true}
+                fullWidth={true}
+              />
+              <span className={styles.helperText}>
+                Select an attribute to create product variants (e.g., Size, Color)
+              </span>
+            </div>
+
+            {/* Attribute Options Selection (shown when attribute is selected) */}
+            {formData.selectedAttributeId && (
+              <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
+                <label className={styles.label}>Select Options</label>
+                <div className={styles.optionsGrid}>
+                  {metadata?.attributes
+                    ?.find(attr => attr.attribute_id === formData.selectedAttributeId)
+                    ?.options
+                    ?.filter(opt => opt.is_active)
+                    ?.map((option) => {
+                      const isSelected = formData.selectedOptionIds.includes(option.option_id);
+                      return (
+                        <button
+                          key={option.option_id}
+                          type="button"
+                          className={`${styles.optionButton} ${isSelected ? styles.optionSelected : ''}`}
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              selectedOptionIds: isSelected
+                                ? prev.selectedOptionIds.filter(id => id !== option.option_id)
+                                : [...prev.selectedOptionIds, option.option_id],
+                            }));
+                          }}
+                        >
+                          {isSelected && (
+                            <svg className={styles.checkIcon} fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {option.option_value}
+                        </button>
+                      );
+                    })}
+                </div>
+                <span className={styles.helperText}>
+                  {formData.selectedOptionIds.length > 0
+                    ? `${formData.selectedOptionIds.length} option(s) selected - will create ${formData.selectedOptionIds.length} variant(s)`
+                    : 'Select options to create variants'
+                  }
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -749,6 +869,25 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         onCategoryAdded={(category) => {
           // Auto-select newly created category
           handleInputChange('categoryId', category.category_id);
+          // Refresh metadata to update the list
+          if (onMetadataRefresh) {
+            onMetadataRefresh();
+          }
+        }}
+      />
+
+      {/* Add Attribute Modal */}
+      <AddAttributeModal
+        isOpen={isAddAttributeModalOpen}
+        onClose={() => setIsAddAttributeModalOpen(false)}
+        companyId={companyId}
+        onAttributeAdded={(attribute) => {
+          // Auto-select newly created attribute
+          setFormData(prev => ({
+            ...prev,
+            selectedAttributeId: attribute.attribute_id,
+            selectedOptionIds: [],
+          }));
           // Refresh metadata to update the list
           if (onMetadataRefresh) {
             onMetadataRefresh();

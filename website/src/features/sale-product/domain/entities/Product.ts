@@ -1,6 +1,7 @@
 /**
  * Product Entity
  * Domain entity representing a product available for sale
+ * v6: Added variant support
  */
 
 export class Product {
@@ -14,8 +15,19 @@ export class Product {
     public readonly imageUrls: string[],
     public readonly sellingPrice: number,
     public readonly costPrice: number,
-    public readonly quantityAvailable: number
+    public readonly quantityAvailable: number,
+    // v6: variant fields
+    public readonly variantId: string | null = null,
+    public readonly variantName: string | null = null,
+    public readonly displayName: string = name,
+    public readonly displaySku: string = sku,
+    public readonly hasVariants: boolean = false
   ) {}
+
+  // v6: unique key combining product_id + variant_id for cart identification
+  get uniqueKey(): string {
+    return this.variantId ? `${this.id}-${this.variantId}` : this.id;
+  }
 
   get isAvailable(): boolean {
     return this.quantityAvailable > 0;
@@ -36,6 +48,12 @@ export class Product {
     sellingPrice: number;
     costPrice: number;
     quantityAvailable: number;
+    // v6: variant fields
+    variantId?: string | null;
+    variantName?: string | null;
+    displayName?: string;
+    displaySku?: string;
+    hasVariants?: boolean;
   }): Product {
     return new Product(
       data.id,
@@ -47,7 +65,12 @@ export class Product {
       data.imageUrls,
       data.sellingPrice,
       data.costPrice,
-      data.quantityAvailable
+      data.quantityAvailable,
+      data.variantId ?? null,
+      data.variantName ?? null,
+      data.displayName ?? data.name,
+      data.displaySku ?? data.sku,
+      data.hasVariants ?? false
     );
   }
 }

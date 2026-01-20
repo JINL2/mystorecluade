@@ -4,6 +4,7 @@
  */
 
 import { Invoice } from '../entities/Invoice';
+import { DateFilter, AmountFilter, InvoiceDetailItem } from '../../data/datasources/InvoiceDataSource';
 
 export interface PaginationInfo {
   current_page: number;
@@ -23,47 +24,70 @@ export interface InvoiceResult {
 export interface InvoiceDetailResult {
   success: boolean;
   data?: {
-    invoice: {
-      invoice_id: string;
-      invoice_number: string;
-      sale_date: string;
-      status: string;
+    invoice_id: string;
+    invoice_number: string;
+    status: string;
+    sale_date: string;
+    payment_method: string;
+    payment_status: string;
+    store: {
       store_id: string;
       store_name: string;
       store_code: string;
-      company_id: string;
-      customer_id: string | null;
-      customer_name: string | null;
-      created_at: string;
     };
-    items: Array<{
-      item_id: string;
-      product_id: string;
-      product_name: string;
-      sku: string;
-      quantity_sold: number;
-      unit_price: number;
-      unit_cost: number;
-      discount_amount: number;
-      total_amount: number;
-    }>;
+    customer: {
+      customer_id: string;
+      name: string;
+      phone: string | null;
+      email: string | null;
+      address: string | null;
+      type: string;
+    } | null;
+    cash_location: {
+      cash_location_id: string;
+      location_name: string;
+      location_type: string;
+    } | null;
     amounts: {
       subtotal: number;
       tax_amount: number;
       discount_amount: number;
       total_amount: number;
+      total_cost: number;
+      profit: number;
     };
-    payment: {
-      method: string;
-      status: string;
+    items: InvoiceDetailItem[];
+    items_summary: {
+      item_count: number;
+      total_quantity: number;
     };
-    inventory_movements: Array<{
-      product_id: string;
-      product_name: string;
-      quantity_change: number;
-      stock_before: number;
-      stock_after: number;
-    }>;
+    journal: {
+      journal_id: string;
+      ai_description: string | null;
+      attachments: Array<{
+        attachment_id: string;
+        file_url: string;
+        file_name: string;
+        file_type: string;
+      }>;
+    } | null;
+    refund: {
+      refund_date: string;
+      refund_reason: string | null;
+      refunded_by: {
+        user_id: string;
+        name: string;
+        email: string;
+        profile_image: string | null;
+      } | null;
+    } | null;
+    created_by: {
+      user_id: string;
+      name: string;
+      email: string;
+      profile_image: string | null;
+    } | null;
+    created_at: string;
   };
   message?: string;
   error?: string;
@@ -103,8 +127,10 @@ export interface IInvoiceRepository {
     page: number,
     limit: number,
     search: string | null,
-    startDate: string,
-    endDate: string
+    startDate: string | null,
+    endDate: string | null,
+    dateFilter?: DateFilter,
+    amountFilter?: AmountFilter
   ): Promise<InvoiceResult>;
 
   /**

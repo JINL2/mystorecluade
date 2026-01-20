@@ -183,9 +183,11 @@ class SessionReviewNotifier extends _$SessionReviewNotifier {
 
       // Convert state items to submit items
       // Use edited quantities if manager has made changes
+      // v3: Include variantId for variant products
       final submitItems = state.items
           .map((item) => SessionSubmitItem(
                 productId: item.productId,
+                variantId: item.variantId,
                 quantity: state.getEffectiveQuantity(
                   item.productId,
                   item.totalQuantity,

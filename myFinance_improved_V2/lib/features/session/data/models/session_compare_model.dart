@@ -1,6 +1,7 @@
 import '../../domain/entities/session_compare_result.dart';
 
 /// Model for compare item (product that exists in one session but not the other)
+/// v2: Supports variant fields for variant-level comparison
 class SessionCompareItemModel {
   final String productId;
   final String productName;
@@ -11,6 +12,12 @@ class SessionCompareItemModel {
   final String? category;
   final int quantity;
   final String? scannedByName;
+  // v2 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  final String? displaySku;
+  final bool hasVariants;
 
   const SessionCompareItemModel({
     required this.productId,
@@ -22,6 +29,11 @@ class SessionCompareItemModel {
     this.category,
     required this.quantity,
     this.scannedByName,
+    this.variantId,
+    this.variantName,
+    this.displayName,
+    this.displaySku,
+    this.hasVariants = false,
   });
 
   factory SessionCompareItemModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +59,12 @@ class SessionCompareItemModel {
       category: json['category']?.toString(),
       quantity: (json['quantity'] as num?)?.toInt() ?? 0,
       scannedByName: json['scanned_by_name']?.toString(),
+      // v2 variant fields
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
+      displaySku: json['display_sku']?.toString(),
+      hasVariants: json['has_variants'] == true,
     );
   }
 
@@ -61,6 +79,12 @@ class SessionCompareItemModel {
       'category': category,
       'quantity': quantity,
       'scanned_by_name': scannedByName,
+      // v2 variant fields
+      'variant_id': variantId,
+      'variant_name': variantName,
+      'display_name': displayName,
+      'display_sku': displaySku,
+      'has_variants': hasVariants,
     };
   }
 
@@ -75,6 +99,12 @@ class SessionCompareItemModel {
       category: category,
       quantity: quantity,
       scannedByName: scannedByName,
+      // v2 variant fields
+      variantId: variantId,
+      variantName: variantName,
+      displayName: displayName,
+      displaySku: displaySku,
+      hasVariants: hasVariants,
     );
   }
 }

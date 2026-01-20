@@ -87,19 +87,19 @@ export interface InventoryTableSectionProps {
   onCheckboxChange: (productId: string) => void;
 
   /**
-   * Callback when row is clicked to expand/collapse
+   * Callback when row is clicked to expand/collapse (uses uniqueId: variantId || productId)
    */
-  onRowClick: (productId: string) => void;
+  onRowClick: (uniqueId: string) => void;
 
   /**
-   * Callback when edit product button is clicked
+   * Callback when edit product button is clicked (uses uniqueId: variantId || productId)
    */
-  onEditProduct: (productId: string) => void;
+  onEditProduct: (uniqueId: string) => void;
 
   /**
-   * Callback when move product button is clicked
+   * Callback when move product button is clicked (uses uniqueId: variantId || productId)
    */
-  onMoveProduct: (productId: string) => void;
+  onMoveProduct: (uniqueId: string) => void;
 
   /**
    * Callback when page changes

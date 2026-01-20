@@ -734,7 +734,13 @@ abstract class _ScannedByInfo implements ScannedByInfo {
 mixin _$SessionHistoryItemDetail {
   String get productId => throw _privateConstructorUsedError;
   String get productName => throw _privateConstructorUsedError;
-  String? get sku => throw _privateConstructorUsedError;
+  String? get sku => throw _privateConstructorUsedError; // v3 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  bool get hasVariants => throw _privateConstructorUsedError;
+  String? get variantSku => throw _privateConstructorUsedError;
+  String? get displaySku => throw _privateConstructorUsedError;
 
   /// Scanned by employees (from inventory_session_items)
   int get scannedQuantity => throw _privateConstructorUsedError;
@@ -767,6 +773,12 @@ abstract class $SessionHistoryItemDetailCopyWith<$Res> {
       {String productId,
       String productName,
       String? sku,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      bool hasVariants,
+      String? variantSku,
+      String? displaySku,
       int scannedQuantity,
       int scannedRejected,
       List<ScannedByInfo> scannedBy,
@@ -795,6 +807,12 @@ class _$SessionHistoryItemDetailCopyWithImpl<$Res,
     Object? productId = null,
     Object? productName = null,
     Object? sku = freezed,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
+    Object? variantSku = freezed,
+    Object? displaySku = freezed,
     Object? scannedQuantity = null,
     Object? scannedRejected = null,
     Object? scannedBy = null,
@@ -815,6 +833,30 @@ class _$SessionHistoryItemDetailCopyWithImpl<$Res,
       sku: freezed == sku
           ? _value.sku
           : sku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
+      variantSku: freezed == variantSku
+          ? _value.variantSku
+          : variantSku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
               as String?,
       scannedQuantity: null == scannedQuantity
           ? _value.scannedQuantity
@@ -861,6 +903,12 @@ abstract class _$$SessionHistoryItemDetailImplCopyWith<$Res>
       {String productId,
       String productName,
       String? sku,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      bool hasVariants,
+      String? variantSku,
+      String? displaySku,
       int scannedQuantity,
       int scannedRejected,
       List<ScannedByInfo> scannedBy,
@@ -888,6 +936,12 @@ class __$$SessionHistoryItemDetailImplCopyWithImpl<$Res>
     Object? productId = null,
     Object? productName = null,
     Object? sku = freezed,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
+    Object? variantSku = freezed,
+    Object? displaySku = freezed,
     Object? scannedQuantity = null,
     Object? scannedRejected = null,
     Object? scannedBy = null,
@@ -908,6 +962,30 @@ class __$$SessionHistoryItemDetailImplCopyWithImpl<$Res>
       sku: freezed == sku
           ? _value.sku
           : sku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
+      variantSku: freezed == variantSku
+          ? _value.variantSku
+          : variantSku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
               as String?,
       scannedQuantity: null == scannedQuantity
           ? _value.scannedQuantity
@@ -948,6 +1026,12 @@ class _$SessionHistoryItemDetailImpl extends _SessionHistoryItemDetail {
       {required this.productId,
       required this.productName,
       this.sku,
+      this.variantId,
+      this.variantName,
+      this.displayName,
+      this.hasVariants = false,
+      this.variantSku,
+      this.displaySku,
       required this.scannedQuantity,
       required this.scannedRejected,
       required final List<ScannedByInfo> scannedBy,
@@ -964,6 +1048,20 @@ class _$SessionHistoryItemDetailImpl extends _SessionHistoryItemDetail {
   final String productName;
   @override
   final String? sku;
+// v3 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
+  @override
+  @JsonKey()
+  final bool hasVariants;
+  @override
+  final String? variantSku;
+  @override
+  final String? displaySku;
 
   /// Scanned by employees (from inventory_session_items)
   @override
@@ -993,7 +1091,7 @@ class _$SessionHistoryItemDetailImpl extends _SessionHistoryItemDetail {
 
   @override
   String toString() {
-    return 'SessionHistoryItemDetail(productId: $productId, productName: $productName, sku: $sku, scannedQuantity: $scannedQuantity, scannedRejected: $scannedRejected, scannedBy: $scannedBy, confirmedQuantity: $confirmedQuantity, confirmedRejected: $confirmedRejected, quantityExpected: $quantityExpected, quantityDifference: $quantityDifference)';
+    return 'SessionHistoryItemDetail(productId: $productId, productName: $productName, sku: $sku, variantId: $variantId, variantName: $variantName, displayName: $displayName, hasVariants: $hasVariants, variantSku: $variantSku, displaySku: $displaySku, scannedQuantity: $scannedQuantity, scannedRejected: $scannedRejected, scannedBy: $scannedBy, confirmedQuantity: $confirmedQuantity, confirmedRejected: $confirmedRejected, quantityExpected: $quantityExpected, quantityDifference: $quantityDifference)';
   }
 
   @override
@@ -1006,6 +1104,18 @@ class _$SessionHistoryItemDetailImpl extends _SessionHistoryItemDetail {
             (identical(other.productName, productName) ||
                 other.productName == productName) &&
             (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants) &&
+            (identical(other.variantSku, variantSku) ||
+                other.variantSku == variantSku) &&
+            (identical(other.displaySku, displaySku) ||
+                other.displaySku == displaySku) &&
             (identical(other.scannedQuantity, scannedQuantity) ||
                 other.scannedQuantity == scannedQuantity) &&
             (identical(other.scannedRejected, scannedRejected) ||
@@ -1028,6 +1138,12 @@ class _$SessionHistoryItemDetailImpl extends _SessionHistoryItemDetail {
       productId,
       productName,
       sku,
+      variantId,
+      variantName,
+      displayName,
+      hasVariants,
+      variantSku,
+      displaySku,
       scannedQuantity,
       scannedRejected,
       const DeepCollectionEquality().hash(_scannedBy),
@@ -1051,6 +1167,12 @@ abstract class _SessionHistoryItemDetail extends SessionHistoryItemDetail {
       {required final String productId,
       required final String productName,
       final String? sku,
+      final String? variantId,
+      final String? variantName,
+      final String? displayName,
+      final bool hasVariants,
+      final String? variantSku,
+      final String? displaySku,
       required final int scannedQuantity,
       required final int scannedRejected,
       required final List<ScannedByInfo> scannedBy,
@@ -1065,7 +1187,19 @@ abstract class _SessionHistoryItemDetail extends SessionHistoryItemDetail {
   @override
   String get productName;
   @override
-  String? get sku;
+  String? get sku; // v3 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
+  @override
+  bool get hasVariants;
+  @override
+  String? get variantSku;
+  @override
+  String? get displaySku;
 
   /// Scanned by employees (from inventory_session_items)
   @override
@@ -1106,7 +1240,11 @@ mixin _$StockSnapshotItem {
   int get quantityAfter => throw _privateConstructorUsedError;
 
   /// true = new product (needs display), false = restock
-  bool get needsDisplay => throw _privateConstructorUsedError;
+  bool get needsDisplay =>
+      throw _privateConstructorUsedError; // v3 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
 
   /// Create a copy of StockSnapshotItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1128,7 +1266,10 @@ abstract class $StockSnapshotItemCopyWith<$Res> {
       int quantityBefore,
       int quantityReceived,
       int quantityAfter,
-      bool needsDisplay});
+      bool needsDisplay,
+      String? variantId,
+      String? variantName,
+      String? displayName});
 }
 
 /// @nodoc
@@ -1153,6 +1294,9 @@ class _$StockSnapshotItemCopyWithImpl<$Res, $Val extends StockSnapshotItem>
     Object? quantityReceived = null,
     Object? quantityAfter = null,
     Object? needsDisplay = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -1183,6 +1327,18 @@ class _$StockSnapshotItemCopyWithImpl<$Res, $Val extends StockSnapshotItem>
           ? _value.needsDisplay
           : needsDisplay // ignore: cast_nullable_to_non_nullable
               as bool,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -1202,7 +1358,10 @@ abstract class _$$StockSnapshotItemImplCopyWith<$Res>
       int quantityBefore,
       int quantityReceived,
       int quantityAfter,
-      bool needsDisplay});
+      bool needsDisplay,
+      String? variantId,
+      String? variantName,
+      String? displayName});
 }
 
 /// @nodoc
@@ -1225,6 +1384,9 @@ class __$$StockSnapshotItemImplCopyWithImpl<$Res>
     Object? quantityReceived = null,
     Object? quantityAfter = null,
     Object? needsDisplay = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
   }) {
     return _then(_$StockSnapshotItemImpl(
       productId: null == productId
@@ -1255,6 +1417,18 @@ class __$$StockSnapshotItemImplCopyWithImpl<$Res>
           ? _value.needsDisplay
           : needsDisplay // ignore: cast_nullable_to_non_nullable
               as bool,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1269,7 +1443,10 @@ class _$StockSnapshotItemImpl extends _StockSnapshotItem {
       required this.quantityBefore,
       required this.quantityReceived,
       required this.quantityAfter,
-      required this.needsDisplay})
+      required this.needsDisplay,
+      this.variantId,
+      this.variantName,
+      this.displayName})
       : super._();
 
   @override
@@ -1288,10 +1465,17 @@ class _$StockSnapshotItemImpl extends _StockSnapshotItem {
   /// true = new product (needs display), false = restock
   @override
   final bool needsDisplay;
+// v3 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
 
   @override
   String toString() {
-    return 'StockSnapshotItem(productId: $productId, sku: $sku, productName: $productName, quantityBefore: $quantityBefore, quantityReceived: $quantityReceived, quantityAfter: $quantityAfter, needsDisplay: $needsDisplay)';
+    return 'StockSnapshotItem(productId: $productId, sku: $sku, productName: $productName, quantityBefore: $quantityBefore, quantityReceived: $quantityReceived, quantityAfter: $quantityAfter, needsDisplay: $needsDisplay, variantId: $variantId, variantName: $variantName, displayName: $displayName)';
   }
 
   @override
@@ -1311,12 +1495,28 @@ class _$StockSnapshotItemImpl extends _StockSnapshotItem {
             (identical(other.quantityAfter, quantityAfter) ||
                 other.quantityAfter == quantityAfter) &&
             (identical(other.needsDisplay, needsDisplay) ||
-                other.needsDisplay == needsDisplay));
+                other.needsDisplay == needsDisplay) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, productId, sku, productName,
-      quantityBefore, quantityReceived, quantityAfter, needsDisplay);
+  int get hashCode => Object.hash(
+      runtimeType,
+      productId,
+      sku,
+      productName,
+      quantityBefore,
+      quantityReceived,
+      quantityAfter,
+      needsDisplay,
+      variantId,
+      variantName,
+      displayName);
 
   /// Create a copy of StockSnapshotItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1336,7 +1536,10 @@ abstract class _StockSnapshotItem extends StockSnapshotItem {
       required final int quantityBefore,
       required final int quantityReceived,
       required final int quantityAfter,
-      required final bool needsDisplay}) = _$StockSnapshotItemImpl;
+      required final bool needsDisplay,
+      final String? variantId,
+      final String? variantName,
+      final String? displayName}) = _$StockSnapshotItemImpl;
   const _StockSnapshotItem._() : super._();
 
   @override
@@ -1354,7 +1557,13 @@ abstract class _StockSnapshotItem extends StockSnapshotItem {
 
   /// true = new product (needs display), false = restock
   @override
-  bool get needsDisplay;
+  bool get needsDisplay; // v3 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
 
   /// Create a copy of StockSnapshotItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1626,7 +1835,12 @@ mixin _$MergedSessionItem {
   String get productName => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   int get quantityRejected => throw _privateConstructorUsedError;
-  SessionHistoryUser get scannedBy => throw _privateConstructorUsedError;
+  SessionHistoryUser get scannedBy =>
+      throw _privateConstructorUsedError; // v3 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  bool get hasVariants => throw _privateConstructorUsedError;
 
   /// Create a copy of MergedSessionItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1647,7 +1861,11 @@ abstract class $MergedSessionItemCopyWith<$Res> {
       String productName,
       int quantity,
       int quantityRejected,
-      SessionHistoryUser scannedBy});
+      SessionHistoryUser scannedBy,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      bool hasVariants});
 
   $SessionHistoryUserCopyWith<$Res> get scannedBy;
 }
@@ -1673,6 +1891,10 @@ class _$MergedSessionItemCopyWithImpl<$Res, $Val extends MergedSessionItem>
     Object? quantity = null,
     Object? quantityRejected = null,
     Object? scannedBy = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -1699,6 +1921,22 @@ class _$MergedSessionItemCopyWithImpl<$Res, $Val extends MergedSessionItem>
           ? _value.scannedBy
           : scannedBy // ignore: cast_nullable_to_non_nullable
               as SessionHistoryUser,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 
@@ -1727,7 +1965,11 @@ abstract class _$$MergedSessionItemImplCopyWith<$Res>
       String productName,
       int quantity,
       int quantityRejected,
-      SessionHistoryUser scannedBy});
+      SessionHistoryUser scannedBy,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      bool hasVariants});
 
   @override
   $SessionHistoryUserCopyWith<$Res> get scannedBy;
@@ -1752,6 +1994,10 @@ class __$$MergedSessionItemImplCopyWithImpl<$Res>
     Object? quantity = null,
     Object? quantityRejected = null,
     Object? scannedBy = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_$MergedSessionItemImpl(
       productId: null == productId
@@ -1778,20 +2024,41 @@ class __$$MergedSessionItemImplCopyWithImpl<$Res>
           ? _value.scannedBy
           : scannedBy // ignore: cast_nullable_to_non_nullable
               as SessionHistoryUser,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
 
-class _$MergedSessionItemImpl implements _MergedSessionItem {
+class _$MergedSessionItemImpl extends _MergedSessionItem {
   const _$MergedSessionItemImpl(
       {required this.productId,
       required this.sku,
       required this.productName,
       required this.quantity,
       required this.quantityRejected,
-      required this.scannedBy});
+      required this.scannedBy,
+      this.variantId,
+      this.variantName,
+      this.displayName,
+      this.hasVariants = false})
+      : super._();
 
   @override
   final String productId;
@@ -1805,10 +2072,20 @@ class _$MergedSessionItemImpl implements _MergedSessionItem {
   final int quantityRejected;
   @override
   final SessionHistoryUser scannedBy;
+// v3 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
+  @override
+  @JsonKey()
+  final bool hasVariants;
 
   @override
   String toString() {
-    return 'MergedSessionItem(productId: $productId, sku: $sku, productName: $productName, quantity: $quantity, quantityRejected: $quantityRejected, scannedBy: $scannedBy)';
+    return 'MergedSessionItem(productId: $productId, sku: $sku, productName: $productName, quantity: $quantity, quantityRejected: $quantityRejected, scannedBy: $scannedBy, variantId: $variantId, variantName: $variantName, displayName: $displayName, hasVariants: $hasVariants)';
   }
 
   @override
@@ -1826,12 +2103,30 @@ class _$MergedSessionItemImpl implements _MergedSessionItem {
             (identical(other.quantityRejected, quantityRejected) ||
                 other.quantityRejected == quantityRejected) &&
             (identical(other.scannedBy, scannedBy) ||
-                other.scannedBy == scannedBy));
+                other.scannedBy == scannedBy) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, productId, sku, productName,
-      quantity, quantityRejected, scannedBy);
+  int get hashCode => Object.hash(
+      runtimeType,
+      productId,
+      sku,
+      productName,
+      quantity,
+      quantityRejected,
+      scannedBy,
+      variantId,
+      variantName,
+      displayName,
+      hasVariants);
 
   /// Create a copy of MergedSessionItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1843,14 +2138,19 @@ class _$MergedSessionItemImpl implements _MergedSessionItem {
           this, _$identity);
 }
 
-abstract class _MergedSessionItem implements MergedSessionItem {
+abstract class _MergedSessionItem extends MergedSessionItem {
   const factory _MergedSessionItem(
       {required final String productId,
       required final String sku,
       required final String productName,
       required final int quantity,
       required final int quantityRejected,
-      required final SessionHistoryUser scannedBy}) = _$MergedSessionItemImpl;
+      required final SessionHistoryUser scannedBy,
+      final String? variantId,
+      final String? variantName,
+      final String? displayName,
+      final bool hasVariants}) = _$MergedSessionItemImpl;
+  const _MergedSessionItem._() : super._();
 
   @override
   String get productId;
@@ -1863,7 +2163,15 @@ abstract class _MergedSessionItem implements MergedSessionItem {
   @override
   int get quantityRejected;
   @override
-  SessionHistoryUser get scannedBy;
+  SessionHistoryUser get scannedBy; // v3 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
+  @override
+  bool get hasVariants;
 
   /// Create a copy of MergedSessionItem
   /// with the given fields replaced by the non-null parameter values.

@@ -9,7 +9,6 @@ export type {
   Currency,
   Counterparty,
   OrderInfo,
-  OrderItem,
   ShipmentItem,
   InventoryProduct,
   SaveResult,

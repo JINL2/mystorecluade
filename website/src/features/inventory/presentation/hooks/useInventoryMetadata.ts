@@ -42,7 +42,8 @@ export const useInventoryMetadata = (companyId: string, storeId?: string): UseIn
   };
 
   useEffect(() => {
-    if (companyId) {
+    // v2 requires both companyId and storeId
+    if (companyId && storeId) {
       fetchMetadata();
     }
   }, [companyId, storeId]);

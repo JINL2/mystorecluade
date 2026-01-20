@@ -137,41 +137,37 @@ export class IncomeStatementDataSource {
   }
 
   /**
-   * Get company currency information
+   * Get company's base currency symbol
+   * Uses get_base_currency RPC for consistency with other features
    */
-  async getCompanyCurrency(companyId: string): Promise<string> {
+  async getBaseCurrencySymbol(companyId: string): Promise<string> {
     const supabase = supabaseService.getClient();
 
-    try {
-      // Query companies table to get base_currency_id
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('base_currency_id')
-        .eq('company_id', companyId)
-        .single();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('get_base_currency', {
+      p_company_id: companyId,
+    });
 
-      if (companyError || !companyData?.base_currency_id) {
-        console.log('No base currency found, using default');
-        return '$';
-      }
-
-      // Query currency_types table to get currency symbol
-      const { data: currencyData, error: currencyError } = await supabase
-        .from('currency_types')
-        .select('currency_code, currency_name, symbol')
-        .eq('currency_id', companyData.base_currency_id)
-        .single();
-
-      if (currencyError || !currencyData?.symbol) {
-        console.log('No currency symbol found, using default');
-        return '$';
-      }
-
-      console.log('Using company currency:', currencyData);
-      return currencyData.symbol;
-    } catch (error) {
-      console.error('Error in getCompanyCurrency:', error);
-      return '$';
+    if (error) {
+      console.error('Failed to get base currency:', error.message);
+      return '$'; // fallback
     }
+
+    const response = data as {
+      base_currency: {
+        currency_id: string;
+        currency_code: string;
+        currency_name: string;
+        symbol: string;
+        flag_emoji: string;
+      };
+      company_currencies: Array<{
+        currency_id: string;
+        currency_code: string;
+        symbol: string;
+      }>;
+    };
+
+    return response?.base_currency?.symbol || '$';
   }
 }

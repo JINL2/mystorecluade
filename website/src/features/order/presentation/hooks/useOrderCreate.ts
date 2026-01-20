@@ -153,40 +153,31 @@ export const useOrderCreate = () => {
   // Load suppliers if not passed from OrderPage (direct navigation)
   useEffect(() => {
     if (suppliersFromState && suppliersFromState.length > 0) {
-      console.log('🏢 Using suppliers from OrderPage:', suppliersFromState.length);
       return;
     }
 
     const loadCounterparties = async () => {
       if (!companyId) {
-        console.log('🏢 get_counterparty_info: companyId not available yet');
         return;
       }
 
       setSuppliersLoading(true);
       try {
         const supabase = supabaseService.getClient();
-        console.log('🏢 Calling get_counterparty_info with p_company_id:', companyId);
 
         const { data, error } = await supabase.rpc('get_counterparty_info', {
           p_company_id: companyId,
         });
 
-        console.log('🏢 get_counterparty_info response:', { data, error });
-
         if (error) {
-          console.error('🏢 get_counterparty_info error:', error);
           return;
         }
 
         if (data?.success && data?.data) {
-          console.log('🏢 Counterparties found:', data.data.length);
           setSuppliers(data.data);
-        } else {
-          console.warn('🏢 No counterparties in response:', data);
         }
-      } catch (err) {
-        console.error('🏢 get_counterparty_info exception:', err);
+      } catch {
+        // Use empty suppliers on error
       } finally {
         setSuppliersLoading(false);
       }
@@ -198,42 +189,33 @@ export const useOrderCreate = () => {
   // Load base currency if not passed from OrderPage (direct navigation)
   useEffect(() => {
     if (currencyFromState) {
-      console.log('💰 Using currency from OrderPage:', currencyFromState);
       return;
     }
 
     const loadBaseCurrency = async () => {
       if (!companyId) {
-        console.log('💰 get_base_currency: companyId not available yet');
         return;
       }
 
       try {
         const supabase = supabaseService.getClient();
-        console.log('💰 Calling get_base_currency with p_company_id:', companyId);
 
         const { data, error } = await supabase.rpc('get_base_currency', {
           p_company_id: companyId,
         });
 
-        console.log('💰 get_base_currency response:', { data, error });
-
         if (error) {
-          console.error('💰 get_base_currency error:', error);
           return;
         }
 
         if (data?.base_currency) {
-          console.log('💰 Base currency found:', data.base_currency);
           setCurrency({
             symbol: data.base_currency.symbol || '₩',
             code: data.base_currency.currency_code || 'KRW',
           });
-        } else {
-          console.warn('💰 No base_currency in response:', data);
         }
-      } catch (err) {
-        console.error('💰 get_base_currency exception:', err);
+      } catch {
+        // Use default currency on error
       }
     };
 
@@ -298,9 +280,11 @@ export const useOrderCreate = () => {
         throw new Error('User not authenticated');
       }
 
-      // Build items array for RPC
+      // Build items array for RPC (v4: includes variant_id)
+      // v6: Use variantSku if available (for variant products), otherwise use productSku
       const items = orderItems.map((item) => ({
-        sku: item.sku,
+        sku: item.variantSku || item.productSku || item.sku, // v6: prioritize variant_sku for unique identification
+        variant_id: item.variantId || null, // v4: required field (null for non-variant products)
         quantity: item.quantity,
         unit_price: item.cost,
       }));
@@ -346,24 +330,7 @@ export const useOrderCreate = () => {
         rpcParams.p_order_number = orderTitle.trim();
       }
 
-      console.log('📦 Creating order with params:', JSON.stringify(rpcParams, null, 2));
-      console.log('📦 Order items detail:', JSON.stringify(items, null, 2));
-      console.log('📦 Supplier type:', supplierType);
-      console.log('📦 Selected supplier:', selectedSupplier);
-      console.log('📦 One-time supplier info:', supplierInfo);
-      console.log('📦 Order title:', orderTitle);
-
-      const { data, error } = await supabase.rpc('inventory_create_order_v3', rpcParams);
-
-      console.log('📦 inventory_create_order_v3 response:', { data, error });
-      if (error) {
-        console.error('📦 RPC Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-        });
-      }
+      const { data, error } = await supabase.rpc('inventory_create_order_v4', rpcParams);
 
       if (error) {
         throw error;
@@ -381,7 +348,6 @@ export const useOrderCreate = () => {
         throw new Error(data?.message || 'Failed to create order');
       }
     } catch (err) {
-      console.error('📦 Create order error:', err);
       setIsSaving(false);
       setSaveResult({
         show: true,

@@ -96,6 +96,19 @@ export const useSessionHistory = (options: UseSessionHistoryOptions = {}): UseSe
 
       const result = await productReceiveRepository.getSessionHistory(params);
 
+      // Debug: Log session history data to check time fields
+      console.log('📜 [useSessionHistory] Session History Data:', {
+        totalCount: result.pagination.total,
+        sessionsCount: result.sessions.length,
+        firstSession: result.sessions[0] ? {
+          sessionId: result.sessions[0].sessionId,
+          sessionName: result.sessions[0].sessionName,
+          createdAt: result.sessions[0].createdAt,
+          completedAt: result.sessions[0].completedAt,
+          durationMinutes: result.sessions[0].durationMinutes,
+        } : null,
+      });
+
       if (append) {
         setSessions((prev) => [...prev, ...result.sessions]);
       } else {
@@ -142,6 +155,17 @@ export const useSessionHistory = (options: UseSessionHistoryOptions = {}): UseSe
 
   // Navigate to session detail
   const handleSessionClick = useCallback((session: SessionHistoryEntry) => {
+    // Debug: Log session data when clicking
+    console.log('🔍 [handleSessionClick] Session Detail Data:', {
+      sessionId: session.sessionId,
+      sessionName: session.sessionName,
+      createdAt: session.createdAt,
+      completedAt: session.completedAt,
+      durationMinutes: session.durationMinutes,
+      isActive: session.isActive,
+      isFinal: session.isFinal,
+    });
+
     navigate(`/session/history/${session.sessionId}`, {
       state: { session },
     });

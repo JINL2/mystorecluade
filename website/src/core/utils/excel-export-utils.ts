@@ -89,10 +89,12 @@ class ExcelExportManager {
     const worksheet = workbook.addWorksheet('Inventory');
 
     // Define columns with headers and widths
+    // v5 format: Added variant_name column between Product Name and Category
     worksheet.columns = [
       { header: 'Product Code (SKU)', key: 'sku', width: 18 },
       { header: 'Barcode', key: 'barcode', width: 15 },
       { header: 'Product Name', key: 'product_name', width: 30 },
+      { header: 'Variant Name', key: 'variant_name', width: 20 },
       { header: 'Category', key: 'category', width: 20 },
       { header: 'Brand', key: 'brand', width: 20 },
       { header: 'Unit', key: 'unit', width: 10 },
@@ -113,6 +115,7 @@ class ExcelExportManager {
       worksheet.addRow({
         sku: product.productCode || product.sku || '',
         barcode: product.barcode || '',
+        variant_name: product.variantName || '',
         product_name: product.productName || '',
         category: product.categoryName || '',
         brand: product.brandName || '',
@@ -309,10 +312,12 @@ class ExcelExportManager {
     const worksheet = workbook.addWorksheet('Inventory');
 
     // Define columns with headers and widths (same as exportInventoryToExcel)
+    // v5 format: Added variant_name column between Product Name and Category
     worksheet.columns = [
       { header: 'Product Code (SKU)', key: 'sku', width: 18 },
       { header: 'Barcode', key: 'barcode', width: 15 },
       { header: 'Product Name', key: 'product_name', width: 30 },
+      { header: 'Variant Name', key: 'variant_name', width: 20 },
       { header: 'Category', key: 'category', width: 20 },
       { header: 'Brand', key: 'brand', width: 20 },
       { header: 'Unit', key: 'unit', width: 10 },
@@ -425,22 +430,25 @@ class ExcelExportManager {
     const products: any[] = [];
 
     // Extract data (skip header row)
+    // v5 format: Added variant_name column (D) between Product Name and Category
     worksheet.eachRow((row: any, rowNumber: number) => {
       if (rowNumber === 1) return; // Skip header row
 
       // Get cell values by column number (using helper to handle Rich Text)
+      // v5 column order: SKU, Barcode, Product Name, Variant Name, Category, Brand, Unit, Cost, Selling, Stock, Status, Images
       const productData = {
         sku: this.getCellValue(row.getCell(1)), // Column A - SKU
         barcode: this.getCellValue(row.getCell(2)), // Column B - Barcode
         product_name: this.getCellValue(row.getCell(3)), // Column C - Product Name (null preserves existing)
-        category: this.getCellValue(row.getCell(4)), // Column D - Category
-        brand: this.getCellValue(row.getCell(5)), // Column E - Brand
-        unit: this.getCellValue(row.getCell(6)) || 'piece', // Column F - Unit
-        cost_price: this.getCellValue(row.getCell(7)), // Column G - Cost Price (parsed later)
-        selling_price: this.getCellValue(row.getCell(8)), // Column H - Selling Price (parsed later)
-        current_stock: this.getCellValue(row.getCell(9)), // Column I - Current Stock (parsed later)
-        status: this.getCellValue(row.getCell(10)) || 'Active', // Column J - Status
-        image_urls: null as any, // Will be populated below from columns K, L, M
+        variant_name: this.getCellValue(row.getCell(4)), // Column D - Variant Name (v5: for variant products)
+        category: this.getCellValue(row.getCell(5)), // Column E - Category
+        brand: this.getCellValue(row.getCell(6)), // Column F - Brand
+        unit: this.getCellValue(row.getCell(7)) || 'piece', // Column G - Unit
+        cost_price: this.getCellValue(row.getCell(8)), // Column H - Cost Price (parsed later)
+        selling_price: this.getCellValue(row.getCell(9)), // Column I - Selling Price (parsed later)
+        current_stock: this.getCellValue(row.getCell(10)), // Column J - Current Stock (parsed later)
+        status: this.getCellValue(row.getCell(11)) || 'Active', // Column K - Status
+        image_urls: null as any, // Will be populated below from columns L, M, N
       };
 
       // Data validation and cleaning
@@ -449,6 +457,7 @@ class ExcelExportManager {
         // Convert all string fields to proper strings
         if (productData.sku !== null) productData.sku = String(productData.sku).trim();
         if (productData.barcode !== null) productData.barcode = String(productData.barcode).trim();
+        if (productData.variant_name !== null) productData.variant_name = String(productData.variant_name).trim();
         if (productData.product_name !== null) productData.product_name = String(productData.product_name).trim();
         if (productData.category !== null) productData.category = String(productData.category).trim();
         if (productData.brand !== null) productData.brand = String(productData.brand).trim();
@@ -458,6 +467,7 @@ class ExcelExportManager {
         // Convert empty strings to null
         if (productData.sku === '') productData.sku = null;
         if (productData.barcode === '') productData.barcode = null;
+        if (productData.variant_name === '') productData.variant_name = null;
         if (productData.product_name === '') productData.product_name = null;
         if (productData.category === '') productData.category = null;
         if (productData.brand === '') productData.brand = null;
@@ -477,11 +487,11 @@ class ExcelExportManager {
         productData.selling_price = (!isNaN(parsedSelling) && sellingValue !== null && sellingValue !== '') ? parsedSelling : null;
         productData.current_stock = (!isNaN(parsedStock) && stockValue !== null && stockValue !== '') ? parsedStock : null;
 
-        // Process image URLs from columns K, L, M (image1, image2, image3)
+        // Process image URLs from columns L, M, N (image1, image2, image3) - shifted due to variant_name column
         const imageUrls: string[] = [];
-        const image1 = row.getCell(11).value; // Column K - image1
-        const image2 = row.getCell(12).value; // Column L - image2
-        const image3 = row.getCell(13).value; // Column M - image3
+        const image1 = row.getCell(12).value; // Column L - image1
+        const image2 = row.getCell(13).value; // Column M - image2
+        const image3 = row.getCell(14).value; // Column N - image3
 
         // Add non-empty image URLs to array
         if (image1 && String(image1).trim() !== '') {

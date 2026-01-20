@@ -9,7 +9,7 @@ export interface Currency {
   code: string;
 }
 
-// Order item interface from RPC
+// Order item interface from RPC (v2: variant support)
 export interface OrderItem {
   item_id: string;
   product_id: string;
@@ -19,6 +19,11 @@ export interface OrderItem {
   quantity_fulfilled: number;
   unit_price: number;
   total_amount: number;
+  // v2: variant fields
+  variant_id: string | null;
+  variant_name: string | null;
+  display_name: string; // Product name (Variant) or just Product name
+  has_variants: boolean;
 }
 
 // Shipment interface from RPC

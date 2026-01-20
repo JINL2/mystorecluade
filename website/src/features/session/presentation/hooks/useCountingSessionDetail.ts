@@ -1,7 +1,7 @@
 /**
  * useCountingSessionDetail Hook
  * Custom hook for counting session detail page
- * Uses inventory_get_session_items RPC
+ * Uses inventory_get_session_items_v2 RPC (variant support)
  * Now includes product search and save functionality (same as receiving)
  */
 
@@ -9,9 +9,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { productReceiveDataSource } from '../../data/datasources/ProductReceiveDataSource';
 import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
-import type { SessionItemDTO } from '../../data/datasources/ProductReceiveDataSource';
 
 // Session info from session list
 export interface CountingSessionInfo {
@@ -47,23 +45,55 @@ export interface CountingSessionSummary {
   totalRejected: number;
 }
 
-// Product search result type (from get_inventory_page_v3 RPC)
+// Product search result type (from get_inventory_page_v6 RPC)
 export interface SearchProduct {
+  // 제품 정보
   product_id: string;
   product_name: string;
-  sku: string;
-  barcode?: string;
+  product_sku: string;
+  product_barcode?: string;
+  product_type: string;
+  brand_id?: string;
+  brand_name?: string;
+  category_id?: string;
+  category_name?: string;
+  unit: string;
   image_urls?: string[];
+
+  // 변형 정보
+  variant_id?: string;
+  variant_name?: string;
+  variant_sku?: string;
+  variant_barcode?: string;
+
+  // 표시용
+  display_name: string;
+  display_sku: string;
+  display_barcode?: string;
+
+  // 재고
   stock: {
     quantity_on_hand: number;
     quantity_available: number;
     quantity_reserved: number;
   };
+
+  // 가격
   price: {
     cost: number;
     selling: number;
     source: string;
   };
+
+  // 상태
+  status: {
+    stock_level: 'normal' | 'low' | 'out_of_stock' | 'overstock';
+    is_active: boolean;
+  };
+
+  // 메타
+  has_variants: boolean;
+  created_at: string;
 }
 
 // Received entry type
@@ -72,6 +102,7 @@ export interface ReceivedEntry {
   product_id: string;
   product_name: string;
   sku: string;
+  variant_id?: string;
   quantity: number;
   created_at: string;
 }
@@ -79,6 +110,7 @@ export interface ReceivedEntry {
 // Editable item for review modal
 export interface EditableItem {
   product_id: string;
+  variant_id: string | null;
   product_name: string;
   quantity: number;
   quantity_rejected: number;
@@ -110,7 +142,7 @@ export interface ComparisonItem {
   totalQuantity: number;
 }
 
-// New comparison types from inventory_compare_sessions RPC
+// New comparison types from inventory_compare_sessions_v2 RPC
 export interface MatchedItem {
   productId: string;
   sku: string;
@@ -256,30 +288,31 @@ export const useCountingSessionDetail = () => {
     setError(null);
 
     try {
-      const result = await productReceiveDataSource.getSessionItems(sessionId, userId);
+      // Use repository instead of direct dataSource call
+      const result = await productReceiveRepository.getSessionItems(sessionId, userId);
 
-      // Map DTO to presentation format
-      const mappedItems: CountingSessionItem[] = result.items.map((item: SessionItemDTO) => ({
-        productId: item.product_id,
-        productName: item.product_name,
-        totalQuantity: item.total_quantity,
-        totalRejected: item.total_rejected,
-        scannedBy: item.scanned_by.map((user) => ({
-          userId: user.user_id,
-          userName: user.user_name,
+      // Map domain entity to presentation format
+      const mappedItems: CountingSessionItem[] = result.items.map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        totalQuantity: item.totalQuantity,
+        totalRejected: item.totalRejected,
+        scannedBy: item.scannedBy.map((user) => ({
+          userId: user.userId,
+          userName: user.userName,
           quantity: user.quantity,
-          quantityRejected: user.quantity_rejected,
+          quantityRejected: user.quantityRejected,
         })),
       }));
 
       setItems(mappedItems);
       setSummary({
-        totalProducts: result.summary.total_products,
-        totalQuantity: result.summary.total_quantity,
-        totalRejected: result.summary.total_rejected,
+        totalProducts: result.summary.totalProducts,
+        totalQuantity: result.summary.totalQuantity,
+        totalRejected: result.summary.totalRejected,
       });
     } catch (err) {
-      console.error('📋 Load session items error:', err);
+      console.error('Load session items error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load session items');
     } finally {
       setLoading(false);
@@ -325,9 +358,9 @@ export const useCountingSessionDetail = () => {
     // Check if any cached query starts with or is contained in current query
     for (const [, cachedProducts] of searchCacheRef.current.entries()) {
       const matchingProducts = cachedProducts.filter(p =>
-        p.sku.toLowerCase().includes(query) ||
-        p.product_name.toLowerCase().includes(query) ||
-        (p.barcode && p.barcode.toLowerCase().includes(query))
+        p.display_sku.toLowerCase().includes(query) ||
+        p.display_name.toLowerCase().includes(query) ||
+        (p.display_barcode && p.display_barcode.toLowerCase().includes(query))
       );
       if (matchingProducts.length > 0) {
         setSearchResults(matchingProducts);
@@ -360,25 +393,55 @@ export const useCountingSessionDetail = () => {
           10
         );
 
-        console.log('🔍 Search result:', result);
-
         // Map domain entities to presentation format (snake_case for compatibility)
         const products: SearchProduct[] = result.products.map(p => ({
+          // 제품 정보
           product_id: p.productId,
           product_name: p.productName,
-          sku: p.sku,
-          barcode: p.barcode,
+          product_sku: p.productSku,
+          product_barcode: p.productBarcode,
+          product_type: p.productType,
+          brand_id: p.brandId,
+          brand_name: p.brandName,
+          category_id: p.categoryId,
+          category_name: p.categoryName,
+          unit: p.unit,
           image_urls: p.imageUrls,
+
+          // 변형 정보
+          variant_id: p.variantId,
+          variant_name: p.variantName,
+          variant_sku: p.variantSku,
+          variant_barcode: p.variantBarcode,
+
+          // 표시용
+          display_name: p.displayName,
+          display_sku: p.displaySku,
+          display_barcode: p.displayBarcode,
+
+          // 재고
           stock: {
             quantity_on_hand: p.stock.quantityOnHand,
             quantity_available: p.stock.quantityAvailable,
             quantity_reserved: p.stock.quantityReserved,
           },
+
+          // 가격
           price: {
             cost: p.price.cost,
             selling: p.price.selling,
             source: p.price.source,
           },
+
+          // 상태
+          status: {
+            stock_level: p.status.stockLevel,
+            is_active: p.status.isActive,
+          },
+
+          // 메타
+          has_variants: p.hasVariants,
+          created_at: p.createdAt,
         }));
 
         setSearchResults(products);
@@ -421,8 +484,9 @@ export const useCountingSessionDetail = () => {
       const newEntry: ReceivedEntry = {
         entry_id: `temp-${Date.now()}`,
         product_id: product.product_id,
-        product_name: product.product_name,
-        sku: product.sku,
+        product_name: product.display_name,
+        sku: product.display_sku,
+        variant_id: product.variant_id,
         quantity: 1,
         created_at: new Date().toISOString(),
       };
@@ -497,19 +561,16 @@ export const useCountingSessionDetail = () => {
     try {
       const itemsToSave = receivedEntries.map(entry => ({
         productId: entry.product_id,
+        variantId: entry.variant_id || null,
         quantity: entry.quantity,
         quantityRejected: 0,
       }));
-
-      console.log('💾 Saving items:', { sessionId, userId: currentUser.user_id, items: itemsToSave });
 
       await productReceiveRepository.addSessionItems(
         sessionId,
         currentUser.user_id,
         itemsToSave
       );
-
-      console.log('💾 Save successful');
 
       setSaveSuccess(true);
       setReceivedEntries([]);
@@ -575,17 +636,14 @@ export const useCountingSessionDetail = () => {
     setSubmitError(null);
 
     try {
-      console.log('📤 Loading session items:', { sessionId, userId: currentUser.user_id });
-
       const result = await productReceiveRepository.getSessionItems(
         sessionId,
         currentUser.user_id
       );
 
-      console.log('📤 Session items result:', result);
-
       setEditableItems(result.items.map(item => ({
         product_id: item.productId,
+        variant_id: item.variantId ?? null,
         product_name: item.productName,
         quantity: item.totalQuantity,
         quantity_rejected: item.totalRejected,
@@ -635,70 +693,63 @@ export const useCountingSessionDetail = () => {
     setComparisonError(null);
 
     try {
-      console.log('🔄 Comparing sessions:', {
-        sessionA: sessionId,
-        sessionB: selectedSession.sessionId,
-      });
-
-      // Use inventory_compare_sessions RPC
-      const result = await productReceiveDataSource.compareSessions({
+      // Use repository instead of direct dataSource call
+      const result = await productReceiveRepository.compareSessions({
         sessionIdA: sessionId,
         sessionIdB: selectedSession.sessionId,
         userId: currentUser.user_id,
       });
 
-      console.log('🔄 Comparison result:', result);
-
-      // Map RPC result to presentation format
+      // Map domain entity to presentation format
       const comparisonData: SessionComparisonResult = {
         sessionA: {
-          sessionId: result.session_a.session_id,
-          sessionName: result.session_a.session_name,
-          storeName: result.session_a.store_name,
-          totalProducts: result.session_a.total_products,
-          totalQuantity: result.session_a.total_quantity,
+          sessionId: result.sessionA.sessionId,
+          sessionName: result.sessionA.sessionName,
+          storeName: result.sessionA.storeName,
+          totalProducts: result.sessionA.totalProducts,
+          totalQuantity: result.sessionA.totalQuantity,
         },
         sessionB: {
-          sessionId: result.session_b.session_id,
-          sessionName: result.session_b.session_name,
-          storeName: result.session_b.store_name,
-          totalProducts: result.session_b.total_products,
-          totalQuantity: result.session_b.total_quantity,
+          sessionId: result.sessionB.sessionId,
+          sessionName: result.sessionB.sessionName,
+          storeName: result.sessionB.storeName,
+          totalProducts: result.sessionB.totalProducts,
+          totalQuantity: result.sessionB.totalQuantity,
         },
         matched: result.comparison.matched.map((item) => ({
-          productId: item.product_id,
+          productId: item.productId,
           sku: item.sku,
-          productName: item.product_name,
-          quantityA: item.quantity_a,
-          quantityB: item.quantity_b,
-          quantityDiff: item.quantity_diff,
-          isMatch: item.is_match,
+          productName: item.productName,
+          quantityA: item.quantityA,
+          quantityB: item.quantityB,
+          quantityDiff: item.quantityDiff,
+          isMatch: item.isMatch,
         })),
-        onlyInA: result.comparison.only_in_a.map((item) => ({
-          productId: item.product_id,
+        onlyInA: result.comparison.onlyInA.map((item) => ({
+          productId: item.productId,
           sku: item.sku,
-          productName: item.product_name,
+          productName: item.productName,
           quantity: item.quantity,
         })),
-        onlyInB: result.comparison.only_in_b.map((item) => ({
-          productId: item.product_id,
+        onlyInB: result.comparison.onlyInB.map((item) => ({
+          productId: item.productId,
           sku: item.sku,
-          productName: item.product_name,
+          productName: item.productName,
           quantity: item.quantity,
         })),
         summary: {
-          totalMatched: result.summary.total_matched,
-          quantitySameCount: result.summary.quantity_same_count,
-          quantityDiffCount: result.summary.quantity_diff_count,
-          onlyInACount: result.summary.only_in_a_count,
-          onlyInBCount: result.summary.only_in_b_count,
+          totalMatched: result.summary.totalMatched,
+          quantitySameCount: result.summary.quantitySameCount,
+          quantityDiffCount: result.summary.quantityDiffCount,
+          onlyInACount: result.summary.onlyInACount,
+          onlyInBCount: result.summary.onlyInBCount,
         },
       };
 
       setComparisonResult(comparisonData);
       setShowComparisonModal(true);
     } catch (err) {
-      console.error('🔄 Comparison error:', err);
+      console.error('Comparison error:', err);
       setComparisonError(err instanceof Error ? err.message : 'Failed to compare sessions');
     } finally {
       setIsLoadingComparison(false);
@@ -724,18 +775,12 @@ export const useCountingSessionDetail = () => {
     setMergeError(null);
 
     try {
-      console.log('🔀 Merging sessions:', {
-        targetSessionId: sessionId,
-        sourceSessionId: selectedCombineSession.sessionId,
-      });
-
-      const result = await productReceiveDataSource.mergeSessions({
+      // Use repository instead of direct dataSource call
+      await productReceiveRepository.mergeSessions({
         targetSessionId: sessionId,
         sourceSessionId: selectedCombineSession.sessionId,
         userId: currentUser.user_id,
       });
-
-      console.log('🔀 Merge result:', result);
 
       // Remove merged session from localStorage
       const storedSessions = localStorage.getItem('counting_active_sessions');
@@ -762,7 +807,7 @@ export const useCountingSessionDetail = () => {
       // Reset success message after 3 seconds
       setTimeout(() => setMergeSuccess(false), 3000);
     } catch (err) {
-      console.error('🔀 Merge error:', err);
+      console.error('Merge error:', err);
       setMergeError(err instanceof Error ? err.message : 'Failed to merge sessions');
     } finally {
       setIsMerging(false);
@@ -804,16 +849,10 @@ export const useCountingSessionDetail = () => {
     try {
       const itemsToSubmit = editableItems.map(item => ({
         productId: item.product_id,
+        variantId: item.variant_id,
         quantity: item.quantity,
         quantityRejected: item.quantity_rejected,
       }));
-
-      console.log('📤 Submitting session:', {
-        sessionId,
-        userId: currentUser.user_id,
-        isFinal,
-        items: itemsToSubmit,
-      });
 
       const result = await productReceiveRepository.submitSession(
         sessionId,
@@ -821,8 +860,6 @@ export const useCountingSessionDetail = () => {
         itemsToSubmit,
         isFinal
       );
-
-      console.log('📤 Submit session result:', result);
 
       setSubmitSuccess(true);
 

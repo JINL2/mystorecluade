@@ -6,144 +6,80 @@
  * Architecture: Uses Repository pattern, Validator, and Zustand store
  */
 
-import { useEffect, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
 import { ReceiveValidator } from '../../domain/validators/ReceiveValidator';
 import { useReceivingSessionStore } from '../providers/receiving_session_provider';
+import type { SearchProduct } from '../../domain/entities';
 import type {
-  SearchProduct,
-  SessionItem,
-  SessionItemsSummary,
-  CompareSessionsResult,
-  Session,
-} from '../../domain/entities';
-import type {
-  SessionInfo,
   ReceivingItem,
   ReceivingSessionLocationState,
-  ShipmentData,
 } from '../pages/ReceivingSessionPage/ReceivingSessionPage.types';
-import type {
-  ReceivedEntry,
-  EditableItem,
-  ActiveSession,
-} from '../providers/states/receiving_session_state';
+import type { ReceivedEntry, ActiveSession } from '../providers/states/receiving_session_state';
+
+// Import presenters
+import {
+  toSessionInfoPresentation,
+  toShipmentDataPresentation,
+  toComparisonResultPresentation,
+} from './useReceivingSession.presenters';
 
 // Re-export types for backward compatibility
 export type {
   ReceivedEntry,
   EditableItem,
   ActiveSession,
-} from '../providers/states/receiving_session_state';
+  SearchProduct,
+  SessionItem,
+  SessionItemPresentation,
+  SessionItemsSummaryPresentation,
+  EditableItemPresentation,
+  SearchProductPresentation,
+} from './useReceivingSession.types';
 
-// Presentation layer types for backward compatibility
-export interface SessionItemPresentation {
-  product_id: string;
-  product_name: string;
-  total_quantity: number;
-  total_rejected: number;
-  scanned_by: {
-    user_id: string;
-    user_name: string;
-    quantity: number;
-    quantity_rejected: number;
-  }[];
-}
+// Re-export comparison types from presenters
+export type {
+  ComparisonResultPresentation,
+} from './useReceivingSession.presenters';
 
-export interface SessionItemsSummaryPresentation {
-  total_products: number;
-  total_quantity: number;
-  total_rejected: number;
-}
-
-export interface EditableItemPresentation {
-  product_id: string;
-  product_name: string;
-  quantity: number;
-  quantity_rejected: number;
-}
-
-export interface SearchProductPresentation {
-  product_id: string;
-  product_name: string;
+// Alias types for backward compatibility with ReceivingSessionPage
+export type MatchedItem = {
+  productId: string;
   sku: string;
-  barcode?: string;
-  image_urls?: string[];
-  stock: {
-    quantity_on_hand: number;
-    quantity_available: number;
-    quantity_reserved: number;
-  };
-  price: {
-    cost: number;
-    selling: number;
-    source: string;
-  };
-}
+  productName: string;
+  quantityA: number;
+  quantityB: number;
+  quantityDiff: number;
+  isMatch: boolean;
+};
 
-// Helper to convert domain entity to presentation format
-const toPresentationSearchProduct = (p: SearchProduct): SearchProductPresentation => ({
-  product_id: p.productId,
-  product_name: p.productName,
-  sku: p.sku,
-  barcode: p.barcode,
-  image_urls: p.imageUrls,
-  stock: {
-    quantity_on_hand: p.stock.quantityOnHand,
-    quantity_available: p.stock.quantityAvailable,
-    quantity_reserved: p.stock.quantityReserved,
-  },
-  price: {
-    cost: p.price.cost,
-    selling: p.price.selling,
-    source: p.price.source,
-  },
-});
+export type OnlyInSessionItem = {
+  productId: string;
+  sku: string;
+  productName: string;
+  quantity: number;
+};
 
-const toPresentationSessionItem = (item: SessionItem): SessionItemPresentation => ({
-  product_id: item.productId,
-  product_name: item.productName,
-  total_quantity: item.totalQuantity,
-  total_rejected: item.totalRejected,
-  scanned_by: item.scannedBy.map(user => ({
-    user_id: user.userId,
-    user_name: user.userName,
-    quantity: user.quantity,
-    quantity_rejected: user.quantityRejected,
-  })),
-});
+// Import converters
+import {
+  toPresentationSearchProduct,
+  toPresentationSummary,
+  toActiveSession,
+  toDomainSearchProduct,
+} from './useReceivingSession.converters';
 
-const toPresentationSummary = (summary: SessionItemsSummary): SessionItemsSummaryPresentation => ({
-  total_products: summary.totalProducts,
-  total_quantity: summary.totalQuantity,
-  total_rejected: summary.totalRejected,
-});
+// Re-export converters for external use
+export {
+  toPresentationSearchProduct,
+  toPresentationSummary,
+  toActiveSession,
+  toDomainSearchProduct,
+} from './useReceivingSession.converters';
 
-const toPresentationEditableItem = (item: EditableItem): EditableItemPresentation => ({
-  product_id: item.productId,
-  product_name: item.productName,
-  quantity: item.quantity,
-  quantity_rejected: item.quantityRejected,
-});
-
-// Helper to convert Session to ActiveSession
-const toActiveSession = (s: Session): ActiveSession => ({
-  sessionId: s.sessionId,
-  sessionName: s.sessionName || '',
-  sessionType: s.sessionType,
-  storeId: s.storeId,
-  storeName: s.storeName,
-  isActive: s.isActive,
-  isFinal: s.isFinal,
-  memberCount: s.memberCount || 0,
-  createdBy: s.createdBy,
-  createdByName: s.createdByName,
-  completedAt: null,
-  createdAt: s.createdAt,
-});
+import type { SearchProductPresentation } from './useReceivingSession.types';
 
 export const useReceivingSession = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -161,6 +97,10 @@ export const useReceivingSession = () => {
   // Refs
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchCacheRef = useRef<Map<string, SearchProduct[]>>(new Map());
+  const isInitializedRef = useRef(false);
+
+  // Track if initial data load has completed to prevent multiple loads
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Local derived state for items (from shipment data)
   const items: ReceivingItem[] = useMemo(() => {
@@ -168,7 +108,11 @@ export const useReceivingSession = () => {
     return store.shipmentData.items.map(item => ({
       item_id: item.itemId,
       product_id: item.productId,
+      variant_id: item.variantId || null,
       product_name: item.productName,
+      variant_name: item.variantName || null,
+      display_name: item.displayName || item.productName,
+      has_variants: item.hasVariants || false,
       sku: item.sku,
       quantity_shipped: item.quantityShipped,
       quantity_received: item.quantityReceived,
@@ -182,25 +126,36 @@ export const useReceivingSession = () => {
   // Debounced search query
   const debouncedSearchQuery = useDebounce(store.searchQuery, 300);
 
-  // Load session data
-  useEffect(() => {
-    const loadSessionData = async () => {
-      if (!sessionId || !currentCompany) return;
+  // Memoize location state to prevent unnecessary re-renders
+  const memoizedLocationState = useMemo(() => locationState, [
+    locationState?.sessionData?.session_id,
+    locationState?.shipmentId,
+    locationState?.shipmentData?.shipment_id,
+  ]);
 
+  // Load session data - only runs once on mount or when sessionId changes
+  useEffect(() => {
+    // Prevent multiple initializations
+    if (isInitializedRef.current) return;
+    if (!sessionId || !currentCompany) return;
+
+    isInitializedRef.current = true;
+
+    const loadSessionData = async () => {
       store.setLoading(true);
       store.setError(null);
 
       try {
         // If we have data from navigation state, use it
-        if (locationState?.sessionData) {
-          const sessionData = locationState.sessionData;
+        if (memoizedLocationState?.sessionData) {
+          const sessionData = memoizedLocationState.sessionData;
           store.setSessionInfo({
             sessionId: sessionData.session_id || sessionId,
             sessionType: sessionData.session_type || 'receiving',
             storeId: sessionData.store_id || '',
             storeName: sessionData.store_name || '',
-            shipmentId: locationState.shipmentId || sessionData.shipment_id || null,
-            shipmentNumber: locationState.shipmentData?.shipment_number || sessionData.shipment_number || null,
+            shipmentId: memoizedLocationState.shipmentId || sessionData.shipment_id || null,
+            shipmentNumber: memoizedLocationState.shipmentData?.shipment_number || sessionData.shipment_number || null,
             isActive: sessionData.is_active ?? true,
             isFinal: sessionData.is_final ?? false,
             createdBy: sessionData.created_by || '',
@@ -211,8 +166,8 @@ export const useReceivingSession = () => {
         }
 
         // If we have shipment data from navigation state, use it
-        if (locationState?.shipmentData) {
-          const shipment = locationState.shipmentData;
+        if (memoizedLocationState?.shipmentData) {
+          const shipment = memoizedLocationState.shipmentData;
           store.setShipmentData({
             shipmentId: shipment.shipment_id,
             shipmentNumber: shipment.shipment_number,
@@ -222,7 +177,11 @@ export const useReceivingSession = () => {
             items: shipment.items?.map(item => ({
               itemId: item.item_id,
               productId: item.product_id,
+              variantId: item.variant_id || null,
               productName: item.product_name,
+              variantName: item.variant_name || null,
+              displayName: item.display_name || item.product_name,
+              hasVariants: item.has_variants || false,
               sku: item.sku,
               quantityShipped: item.quantity_shipped,
               quantityReceived: item.quantity_received,
@@ -240,10 +199,58 @@ export const useReceivingSession = () => {
               progressPercentage: shipment.receiving_summary.progress_percentage,
             } : undefined,
           });
+        } else {
+          // If no shipment data from navigation but shipmentId exists, fetch shipment detail
+          const linkedShipmentId = memoizedLocationState?.shipmentId || memoizedLocationState?.sessionData?.shipment_id;
+          if (linkedShipmentId && currentCompany) {
+            try {
+              const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+              const shipmentDetail = await repository.getShipmentDetail({
+                shipmentId: linkedShipmentId,
+                companyId: currentCompany.company_id,
+                timezone: userTimezone,
+              });
+
+              store.setShipmentData({
+                shipmentId: shipmentDetail.shipmentId,
+                shipmentNumber: shipmentDetail.shipmentNumber,
+                supplierName: shipmentDetail.supplierName,
+                status: shipmentDetail.status,
+                shippedDate: shipmentDetail.shippedDate,
+                items: shipmentDetail.items?.map(item => ({
+                  itemId: item.itemId,
+                  productId: item.productId,
+                  variantId: item.variantId || null,
+                  productName: item.productName,
+                  variantName: item.variantName || null,
+                  displayName: item.displayName || item.productName,
+                  hasVariants: item.hasVariants || false,
+                  sku: item.sku,
+                  quantityShipped: item.quantityShipped,
+                  quantityReceived: item.quantityReceived,
+                  quantityAccepted: item.quantityAccepted,
+                  quantityRejected: item.quantityRejected,
+                  quantityRemaining: item.quantityRemaining,
+                  unitCost: item.unitCost,
+                })) || [],
+                receivingSummary: shipmentDetail.receivingSummary ? {
+                  totalShipped: shipmentDetail.receivingSummary.totalShipped,
+                  totalReceived: shipmentDetail.receivingSummary.totalReceived,
+                  totalAccepted: shipmentDetail.receivingSummary.totalAccepted,
+                  totalRejected: shipmentDetail.receivingSummary.totalRejected,
+                  totalRemaining: shipmentDetail.receivingSummary.totalRemaining,
+                  progressPercentage: shipmentDetail.receivingSummary.progressPercentage,
+                } : undefined,
+              });
+            } catch (err) {
+              console.error('Failed to load shipment detail:', err);
+              // Don't fail the whole session load, just continue without shipment data
+            }
+          }
         }
 
         // If no navigation state, set default session info
-        if (!locationState?.sessionData) {
+        if (!memoizedLocationState?.sessionData) {
           store.setSessionInfo({
             sessionId: sessionId,
             sessionType: 'receiving',
@@ -271,7 +278,7 @@ export const useReceivingSession = () => {
         }
 
         // If no localStorage data and we have shipment_id, fetch from API
-        const shipmentId = locationState?.shipmentId || locationState?.sessionData?.shipment_id;
+        const shipmentId = memoizedLocationState?.shipmentId || memoizedLocationState?.sessionData?.shipment_id;
         if ((!storedSessions || storedSessions === '[]') && shipmentId && currentCompany) {
           try {
             const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -293,6 +300,20 @@ export const useReceivingSession = () => {
             console.error('Failed to load active sessions from API:', err);
           }
         }
+
+        // Load session items (products already received in this session)
+        if (currentUser?.user_id) {
+          try {
+            const sessionItemsResult = await repository.getSessionItems(sessionId, currentUser.user_id);
+            store.setSessionItems(sessionItemsResult.items);
+            store.setSessionItemsSummary(sessionItemsResult.summary);
+          } catch (err) {
+            console.error('Failed to load session items:', err);
+            // Don't fail the session load, just continue without session items
+          }
+        }
+
+        setIsInitialized(true);
       } catch (err) {
         console.error('Load session error:', err);
         store.setError(err instanceof Error ? err.message : 'Failed to load session');
@@ -302,7 +323,8 @@ export const useReceivingSession = () => {
     };
 
     loadSessionData();
-  }, [sessionId, currentCompany, locationState, repository, store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, currentCompany?.company_id]);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
@@ -325,16 +347,17 @@ export const useReceivingSession = () => {
 
     for (const [, cachedProducts] of searchCacheRef.current.entries()) {
       const matchingProducts = cachedProducts.filter(p =>
-        p.sku.toLowerCase().includes(query) ||
-        p.productName.toLowerCase().includes(query) ||
-        (p.barcode && p.barcode.toLowerCase().includes(query))
+        p.displaySku.toLowerCase().includes(query) ||
+        p.displayName.toLowerCase().includes(query) ||
+        (p.displayBarcode && p.displayBarcode.toLowerCase().includes(query))
       );
       if (matchingProducts.length > 0) {
         store.setSearchResults(matchingProducts);
         return;
       }
     }
-  }, [store.searchQuery, store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.searchQuery]);
 
   // Search products using Repository (debounced)
   useEffect(() => {
@@ -380,34 +403,22 @@ export const useReceivingSession = () => {
     };
 
     searchProducts();
-  }, [debouncedSearchQuery, currentCompany?.company_id, store.sessionInfo?.storeId, repository, store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchQuery, currentCompany?.company_id, store.sessionInfo?.storeId]);
 
   // Add product to received entries
   const addProductToReceived = useCallback((product: SearchProduct | SearchProductPresentation) => {
     // Normalize to domain entity if presentation format
-    const normalizedProduct: SearchProduct = 'productId' in product ? product : {
-      productId: product.product_id,
-      productName: product.product_name,
-      sku: product.sku,
-      barcode: product.barcode,
-      imageUrls: product.image_urls,
-      stock: {
-        quantityOnHand: product.stock.quantity_on_hand,
-        quantityAvailable: product.stock.quantity_available,
-        quantityReserved: product.stock.quantity_reserved,
-      },
-      price: {
-        cost: product.price.cost,
-        selling: product.price.selling,
-        source: product.price.source,
-      },
-    };
+    const normalizedProduct: SearchProduct = 'productId' in product
+      ? product
+      : toDomainSearchProduct(product);
 
     const newEntry: ReceivedEntry = {
       entryId: `temp-${Date.now()}`,
       productId: normalizedProduct.productId,
-      productName: normalizedProduct.productName,
-      sku: normalizedProduct.sku,
+      productName: normalizedProduct.displayName,
+      sku: normalizedProduct.displaySku,
+      variantId: normalizedProduct.variantId,
       quantity: 1,
       createdAt: new Date().toISOString(),
     };
@@ -460,9 +471,16 @@ export const useReceivingSession = () => {
       return;
     }
 
+    // Check if session is active before attempting to save
+    if (store.sessionInfo && !store.sessionInfo.isActive) {
+      store.setSaveError('Session is not active. Cannot save items to a closed session.');
+      return;
+    }
+
     // Convert received entries to SaveItem format for validation
     const itemsToSave = store.receivedEntries.map(entry => ({
       productId: entry.productId,
+      variantId: entry.variantId || null,
       quantity: entry.quantity,
       quantityRejected: 0,
     }));
@@ -483,6 +501,15 @@ export const useReceivingSession = () => {
       store.setSaveSuccess(true);
       store.clearReceivedEntries();
       setTimeout(() => store.setSaveSuccess(false), 3000);
+
+      // Refresh session items after successful save
+      try {
+        const sessionItemsResult = await repository.getSessionItems(sessionId, currentUser.user_id);
+        store.setSessionItems(sessionItemsResult.items);
+        store.setSessionItemsSummary(sessionItemsResult.summary);
+      } catch (refreshErr) {
+        console.error('Failed to refresh session items:', refreshErr);
+      }
     } catch (err) {
       console.error('Save error:', err);
       store.setSaveError(err instanceof Error ? err.message : 'Failed to save items');
@@ -542,6 +569,7 @@ export const useReceivingSession = () => {
       store.setSessionItemsSummary(result.summary);
       store.setEditableItems(result.items.map(item => ({
         productId: item.productId,
+        variantId: item.variantId ?? null,
         productName: item.productName,
         quantity: item.totalQuantity,
         quantityRejected: item.totalRejected,
@@ -656,11 +684,11 @@ export const useReceivingSession = () => {
   // Handle quantity change in review modal
   const handleReviewQuantityChange = useCallback((
     productId: string,
-    field: 'quantity' | 'quantity_rejected',
+    variantId: string | null,
+    field: 'quantity' | 'quantityRejected',
     value: number
   ) => {
-    const mappedField = field === 'quantity_rejected' ? 'quantityRejected' : 'quantity';
-    store.updateEditableItemQuantity(productId, mappedField, value);
+    store.updateEditableItemQuantity(productId, variantId, field, value);
   }, [store]);
 
   // Handle final submit button click
@@ -671,6 +699,8 @@ export const useReceivingSession = () => {
 
   // Handle final submission using Repository and Validator
   const handleSubmitSession = useCallback(async (isFinal: boolean) => {
+    console.log('🚀 handleSubmitSession called with isFinal:', isFinal);
+
     if (!sessionId || !currentUser?.user_id) {
       store.setSubmitError('Session or user information missing');
       return;
@@ -679,9 +709,15 @@ export const useReceivingSession = () => {
     // Convert editable items to SubmitItem format
     const itemsToSubmit = store.editableItems.map(item => ({
       productId: item.productId,
+      variantId: item.variantId,
       quantity: item.quantity,
       quantityRejected: item.quantityRejected,
     }));
+
+    console.log('📦 Items to submit:', itemsToSubmit);
+    console.log('📋 Session ID:', sessionId);
+    console.log('👤 User ID:', currentUser.user_id);
+    console.log('✅ Is Final (Complete Receiving):', isFinal);
 
     // Use Validator for validation
     const validationResult = ReceiveValidator.validateSubmitItems(itemsToSubmit);
@@ -695,12 +731,14 @@ export const useReceivingSession = () => {
     store.setSubmitError(null);
 
     try {
+      console.log('📤 Calling repository.submitSession with isFinal:', isFinal);
       const result = await repository.submitSession(
         sessionId,
         currentUser.user_id,
         itemsToSubmit,
         isFinal
       );
+      console.log('📥 Submit result:', result);
 
       store.setSubmitSuccess(true);
 
@@ -709,8 +747,11 @@ export const useReceivingSession = () => {
         .filter(item => item.needsDisplay)
         .map(item => ({
           productId: item.productId,
+          variantId: item.variantId || null,
           sku: item.sku,
           productName: item.productName,
+          variantName: item.variantName || null,
+          displayName: item.displayName || item.productName,
           quantityReceived: item.quantityReceived,
         }));
 
@@ -776,114 +817,15 @@ export const useReceivingSession = () => {
   const totalRemaining = receivingSummary?.totalRemaining ?? items.reduce((sum, item) => sum + item.quantity_remaining, 0);
   const progressPercentage = receivingSummary?.progressPercentage ?? (totalShipped > 0 ? (totalReceived / totalShipped) * 100 : 0);
 
-  // Convert domain entities to presentation format for backward compatibility
-  const searchResultsPresentation = store.searchResults.map(toPresentationSearchProduct);
-  const sessionItemsPresentation = store.sessionItems.map(toPresentationSessionItem);
+  // Session items summary for backward compatibility
   const sessionItemsSummaryPresentation = store.sessionItemsSummary
     ? toPresentationSummary(store.sessionItemsSummary)
     : null;
-  const editableItemsPresentation = store.editableItems.map(toPresentationEditableItem);
 
-  // Convert receivedEntries to presentation format
-  const receivedEntriesPresentation = store.receivedEntries.map(e => ({
-    entry_id: e.entryId,
-    product_id: e.productId,
-    product_name: e.productName,
-    sku: e.sku,
-    quantity: e.quantity,
-    created_at: e.createdAt,
-  }));
-
-  // Convert sessionInfo to presentation format
-  const sessionInfoPresentation: SessionInfo | null = store.sessionInfo ? {
-    session_id: store.sessionInfo.sessionId,
-    session_type: store.sessionInfo.sessionType,
-    store_id: store.sessionInfo.storeId,
-    store_name: store.sessionInfo.storeName,
-    shipment_id: store.sessionInfo.shipmentId,
-    shipment_number: store.sessionInfo.shipmentNumber,
-    is_active: store.sessionInfo.isActive,
-    is_final: store.sessionInfo.isFinal,
-    created_by: store.sessionInfo.createdBy,
-    created_by_name: store.sessionInfo.createdByName,
-    created_at: store.sessionInfo.createdAt,
-    member_count: store.sessionInfo.memberCount,
-  } : null;
-
-  // Convert shipmentData to presentation format
-  const shipmentDataPresentation: ShipmentData | null = store.shipmentData ? {
-    shipment_id: store.shipmentData.shipmentId,
-    shipment_number: store.shipmentData.shipmentNumber,
-    supplier_name: store.shipmentData.supplierName,
-    status: store.shipmentData.status,
-    shipped_date: store.shipmentData.shippedDate,
-    items: store.shipmentData.items.map(item => ({
-      item_id: item.itemId,
-      product_id: item.productId,
-      product_name: item.productName,
-      sku: item.sku,
-      quantity_shipped: item.quantityShipped,
-      quantity_received: item.quantityReceived,
-      quantity_accepted: item.quantityAccepted,
-      quantity_rejected: item.quantityRejected,
-      quantity_remaining: item.quantityRemaining,
-      unit_cost: item.unitCost,
-    })),
-    receiving_summary: store.shipmentData.receivingSummary ? {
-      total_shipped: store.shipmentData.receivingSummary.totalShipped,
-      total_received: store.shipmentData.receivingSummary.totalReceived,
-      total_accepted: store.shipmentData.receivingSummary.totalAccepted,
-      total_rejected: store.shipmentData.receivingSummary.totalRejected,
-      total_remaining: store.shipmentData.receivingSummary.totalRemaining,
-      progress_percentage: store.shipmentData.receivingSummary.progressPercentage,
-    } : undefined,
-  } : null;
-
-  // Convert comparison result for presentation
-  const comparisonResultPresentation = store.comparisonResult ? {
-    sessionA: {
-      sessionId: store.comparisonResult.sessionA.sessionId,
-      sessionName: store.comparisonResult.sessionA.sessionName,
-      storeName: store.comparisonResult.sessionA.storeName,
-      totalProducts: store.comparisonResult.sessionA.totalProducts,
-      totalQuantity: store.comparisonResult.sessionA.totalQuantity,
-    },
-    sessionB: {
-      sessionId: store.comparisonResult.sessionB.sessionId,
-      sessionName: store.comparisonResult.sessionB.sessionName,
-      storeName: store.comparisonResult.sessionB.storeName,
-      totalProducts: store.comparisonResult.sessionB.totalProducts,
-      totalQuantity: store.comparisonResult.sessionB.totalQuantity,
-    },
-    matched: store.comparisonResult.comparison.matched.map(item => ({
-      productId: item.productId,
-      sku: item.sku,
-      productName: item.productName,
-      quantityA: item.quantityA,
-      quantityB: item.quantityB,
-      quantityDiff: item.quantityDiff,
-      isMatch: item.isMatch,
-    })),
-    onlyInA: store.comparisonResult.comparison.onlyInA.map(item => ({
-      productId: item.productId,
-      sku: item.sku,
-      productName: item.productName,
-      quantity: item.quantity,
-    })),
-    onlyInB: store.comparisonResult.comparison.onlyInB.map(item => ({
-      productId: item.productId,
-      sku: item.sku,
-      productName: item.productName,
-      quantity: item.quantity,
-    })),
-    summary: {
-      totalMatched: store.comparisonResult.summary.totalMatched,
-      quantitySameCount: store.comparisonResult.summary.quantitySameCount,
-      quantityDiffCount: store.comparisonResult.summary.quantityDiffCount,
-      onlyInACount: store.comparisonResult.summary.onlyInACount,
-      onlyInBCount: store.comparisonResult.summary.onlyInBCount,
-    },
-  } : null;
+  // Convert store state to presentation formats using presenter functions
+  const sessionInfoPresentation = toSessionInfoPresentation(store.sessionInfo);
+  const shipmentDataPresentation = toShipmentDataPresentation(store.shipmentData);
+  const comparisonResultPresentation = toComparisonResultPresentation(store.comparisonResult);
 
   return {
     // Session state (presentation format for backward compatibility)
@@ -895,17 +837,17 @@ export const useReceivingSession = () => {
     error: store.error,
     currentUser,
 
-    // Search state (presentation format)
+    // Search state (domain entity format for component compatibility)
     searchQuery: store.searchQuery,
     setSearchQuery: store.setSearchQuery,
-    searchResults: searchResultsPresentation,
+    searchResults: store.searchResults,
     isSearching: store.isSearching,
     currency: store.currency,
     searchInputRef,
     debouncedSearchQuery,
 
-    // Received entries (presentation format)
-    receivedEntries: receivedEntriesPresentation,
+    // Received entries (domain entity format for component compatibility)
+    receivedEntries: store.receivedEntries,
 
     // Save state
     isSaving: store.isSaving,
@@ -922,10 +864,10 @@ export const useReceivingSession = () => {
     submitError: store.submitError,
     submitSuccess: store.submitSuccess,
 
-    // Session items for review (presentation format)
-    sessionItems: sessionItemsPresentation,
+    // Session items for review (domain entity format for component compatibility)
+    sessionItems: store.sessionItems,
     sessionItemsSummary: sessionItemsSummaryPresentation,
-    editableItems: editableItemsPresentation,
+    editableItems: store.editableItems,
 
     // Combine session state
     showSessionSelectModal: store.showSessionSelectModal,
@@ -955,6 +897,9 @@ export const useReceivingSession = () => {
     totalRejected,
     totalRemaining,
     progressPercentage,
+
+    // Session active status for UI controls
+    isSessionActive: store.sessionInfo?.isActive ?? true,
 
     // Actions
     handleBack,

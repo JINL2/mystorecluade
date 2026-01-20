@@ -31,7 +31,7 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
   ): Promise<InventoryResult> {
     try {
       const response = await this.dataSource.getInventory(companyId, storeId, page, limit, search);
-      const data = response.products;
+      const data = response.items;  // v6 uses 'items' instead of 'products'
 
       // Use InventoryItemModel to convert raw data to domain entities
       const currencySymbol = response.currency?.symbol || '₩';
@@ -156,7 +156,8 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
     quantity: number,
     notes: string,
     time: string,
-    updatedBy: string
+    updatedBy: string,
+    variantId?: string | null
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       return await this.dataSource.moveProduct(
@@ -167,7 +168,8 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
         quantity,
         notes,
         time,
-        updatedBy
+        updatedBy,
+        variantId
       );
     } catch (error) {
       return {
@@ -200,7 +202,7 @@ export class InventoryRepositoryImpl implements IInventoryRepository {
   ): Promise<InventoryResult> {
     try {
       const response = await this.dataSource.getAllInventoryForExport(companyId, storeId, search);
-      const data = response.products;
+      const data = response.items;  // v6 uses 'items' instead of 'products'
 
       // Use InventoryItemModel to convert raw data to domain entities
       const currencySymbol = response.currency?.symbol || '₩';

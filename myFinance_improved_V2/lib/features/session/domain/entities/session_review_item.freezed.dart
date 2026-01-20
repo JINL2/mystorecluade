@@ -219,7 +219,14 @@ mixin _$SessionReviewItem {
 
   /// Session type: 'counting' or 'receiving'
   /// Used to calculate newStock and stockChange differently
-  String get sessionType => throw _privateConstructorUsedError;
+  String get sessionType =>
+      throw _privateConstructorUsedError; // v2 variant fields
+  String? get variantId => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  String? get variantSku => throw _privateConstructorUsedError;
+  String? get displaySku => throw _privateConstructorUsedError;
+  bool get hasVariants => throw _privateConstructorUsedError;
 
   /// Create a copy of SessionReviewItem
   /// with the given fields replaced by the non-null parameter values.
@@ -245,7 +252,13 @@ abstract class $SessionReviewItemCopyWith<$Res> {
       int totalRejected,
       int previousStock,
       List<ScannedByUser> scannedBy,
-      String sessionType});
+      String sessionType,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      String? variantSku,
+      String? displaySku,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -274,6 +287,12 @@ class _$SessionReviewItemCopyWithImpl<$Res, $Val extends SessionReviewItem>
     Object? previousStock = null,
     Object? scannedBy = null,
     Object? sessionType = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? variantSku = freezed,
+    Object? displaySku = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_value.copyWith(
       productId: null == productId
@@ -320,6 +339,30 @@ class _$SessionReviewItemCopyWithImpl<$Res, $Val extends SessionReviewItem>
           ? _value.sessionType
           : sessionType // ignore: cast_nullable_to_non_nullable
               as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantSku: freezed == variantSku
+          ? _value.variantSku
+          : variantSku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -343,7 +386,13 @@ abstract class _$$SessionReviewItemImplCopyWith<$Res>
       int totalRejected,
       int previousStock,
       List<ScannedByUser> scannedBy,
-      String sessionType});
+      String sessionType,
+      String? variantId,
+      String? variantName,
+      String? displayName,
+      String? variantSku,
+      String? displaySku,
+      bool hasVariants});
 }
 
 /// @nodoc
@@ -370,6 +419,12 @@ class __$$SessionReviewItemImplCopyWithImpl<$Res>
     Object? previousStock = null,
     Object? scannedBy = null,
     Object? sessionType = null,
+    Object? variantId = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? variantSku = freezed,
+    Object? displaySku = freezed,
+    Object? hasVariants = null,
   }) {
     return _then(_$SessionReviewItemImpl(
       productId: null == productId
@@ -416,6 +471,30 @@ class __$$SessionReviewItemImplCopyWithImpl<$Res>
           ? _value.sessionType
           : sessionType // ignore: cast_nullable_to_non_nullable
               as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantSku: freezed == variantSku
+          ? _value.variantSku
+          : variantSku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displaySku: freezed == displaySku
+          ? _value.displaySku
+          : displaySku // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -434,7 +513,13 @@ class _$SessionReviewItemImpl extends _SessionReviewItem {
       required this.totalRejected,
       this.previousStock = 0,
       required final List<ScannedByUser> scannedBy,
-      this.sessionType = 'receiving'})
+      this.sessionType = 'receiving',
+      this.variantId,
+      this.variantName,
+      this.displayName,
+      this.variantSku,
+      this.displaySku,
+      this.hasVariants = false})
       : _scannedBy = scannedBy,
         super._();
 
@@ -470,10 +555,24 @@ class _$SessionReviewItemImpl extends _SessionReviewItem {
   @override
   @JsonKey()
   final String sessionType;
+// v2 variant fields
+  @override
+  final String? variantId;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
+  @override
+  final String? variantSku;
+  @override
+  final String? displaySku;
+  @override
+  @JsonKey()
+  final bool hasVariants;
 
   @override
   String toString() {
-    return 'SessionReviewItem(productId: $productId, productName: $productName, sku: $sku, imageUrl: $imageUrl, brand: $brand, category: $category, totalQuantity: $totalQuantity, totalRejected: $totalRejected, previousStock: $previousStock, scannedBy: $scannedBy, sessionType: $sessionType)';
+    return 'SessionReviewItem(productId: $productId, productName: $productName, sku: $sku, imageUrl: $imageUrl, brand: $brand, category: $category, totalQuantity: $totalQuantity, totalRejected: $totalRejected, previousStock: $previousStock, scannedBy: $scannedBy, sessionType: $sessionType, variantId: $variantId, variantName: $variantName, displayName: $displayName, variantSku: $variantSku, displaySku: $displaySku, hasVariants: $hasVariants)';
   }
 
   @override
@@ -500,7 +599,19 @@ class _$SessionReviewItemImpl extends _SessionReviewItem {
             const DeepCollectionEquality()
                 .equals(other._scannedBy, _scannedBy) &&
             (identical(other.sessionType, sessionType) ||
-                other.sessionType == sessionType));
+                other.sessionType == sessionType) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.variantSku, variantSku) ||
+                other.variantSku == variantSku) &&
+            (identical(other.displaySku, displaySku) ||
+                other.displaySku == displaySku) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants));
   }
 
   @override
@@ -516,7 +627,13 @@ class _$SessionReviewItemImpl extends _SessionReviewItem {
       totalRejected,
       previousStock,
       const DeepCollectionEquality().hash(_scannedBy),
-      sessionType);
+      sessionType,
+      variantId,
+      variantName,
+      displayName,
+      variantSku,
+      displaySku,
+      hasVariants);
 
   /// Create a copy of SessionReviewItem
   /// with the given fields replaced by the non-null parameter values.
@@ -540,7 +657,13 @@ abstract class _SessionReviewItem extends SessionReviewItem {
       required final int totalRejected,
       final int previousStock,
       required final List<ScannedByUser> scannedBy,
-      final String sessionType}) = _$SessionReviewItemImpl;
+      final String sessionType,
+      final String? variantId,
+      final String? variantName,
+      final String? displayName,
+      final String? variantSku,
+      final String? displaySku,
+      final bool hasVariants}) = _$SessionReviewItemImpl;
   const _SessionReviewItem._() : super._();
 
   @override
@@ -567,7 +690,19 @@ abstract class _SessionReviewItem extends SessionReviewItem {
   /// Session type: 'counting' or 'receiving'
   /// Used to calculate newStock and stockChange differently
   @override
-  String get sessionType;
+  String get sessionType; // v2 variant fields
+  @override
+  String? get variantId;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
+  @override
+  String? get variantSku;
+  @override
+  String? get displaySku;
+  @override
+  bool get hasVariants;
 
   /// Create a copy of SessionReviewItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1235,6 +1370,9 @@ abstract class _SessionReviewResponse implements SessionReviewResponse {
 /// @nodoc
 mixin _$SessionSubmitItem {
   String get productId => throw _privateConstructorUsedError;
+
+  /// Variant ID for variant products, null for simple products
+  String? get variantId => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   int get quantityRejected => throw _privateConstructorUsedError;
 
@@ -1251,7 +1389,11 @@ abstract class $SessionSubmitItemCopyWith<$Res> {
           SessionSubmitItem value, $Res Function(SessionSubmitItem) then) =
       _$SessionSubmitItemCopyWithImpl<$Res, SessionSubmitItem>;
   @useResult
-  $Res call({String productId, int quantity, int quantityRejected});
+  $Res call(
+      {String productId,
+      String? variantId,
+      int quantity,
+      int quantityRejected});
 }
 
 /// @nodoc
@@ -1270,6 +1412,7 @@ class _$SessionSubmitItemCopyWithImpl<$Res, $Val extends SessionSubmitItem>
   @override
   $Res call({
     Object? productId = null,
+    Object? variantId = freezed,
     Object? quantity = null,
     Object? quantityRejected = null,
   }) {
@@ -1278,6 +1421,10 @@ class _$SessionSubmitItemCopyWithImpl<$Res, $Val extends SessionSubmitItem>
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
               as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
       quantity: null == quantity
           ? _value.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
@@ -1298,7 +1445,11 @@ abstract class _$$SessionSubmitItemImplCopyWith<$Res>
       __$$SessionSubmitItemImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String productId, int quantity, int quantityRejected});
+  $Res call(
+      {String productId,
+      String? variantId,
+      int quantity,
+      int quantityRejected});
 }
 
 /// @nodoc
@@ -1315,6 +1466,7 @@ class __$$SessionSubmitItemImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? productId = null,
+    Object? variantId = freezed,
     Object? quantity = null,
     Object? quantityRejected = null,
   }) {
@@ -1323,6 +1475,10 @@ class __$$SessionSubmitItemImplCopyWithImpl<$Res>
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
               as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
       quantity: null == quantity
           ? _value.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
@@ -1340,11 +1496,16 @@ class __$$SessionSubmitItemImplCopyWithImpl<$Res>
 class _$SessionSubmitItemImpl implements _SessionSubmitItem {
   const _$SessionSubmitItemImpl(
       {required this.productId,
+      this.variantId,
       required this.quantity,
       this.quantityRejected = 0});
 
   @override
   final String productId;
+
+  /// Variant ID for variant products, null for simple products
+  @override
+  final String? variantId;
   @override
   final int quantity;
   @override
@@ -1353,7 +1514,7 @@ class _$SessionSubmitItemImpl implements _SessionSubmitItem {
 
   @override
   String toString() {
-    return 'SessionSubmitItem(productId: $productId, quantity: $quantity, quantityRejected: $quantityRejected)';
+    return 'SessionSubmitItem(productId: $productId, variantId: $variantId, quantity: $quantity, quantityRejected: $quantityRejected)';
   }
 
   @override
@@ -1363,6 +1524,8 @@ class _$SessionSubmitItemImpl implements _SessionSubmitItem {
             other is _$SessionSubmitItemImpl &&
             (identical(other.productId, productId) ||
                 other.productId == productId) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.quantityRejected, quantityRejected) ||
@@ -1370,8 +1533,8 @@ class _$SessionSubmitItemImpl implements _SessionSubmitItem {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, productId, quantity, quantityRejected);
+  int get hashCode => Object.hash(
+      runtimeType, productId, variantId, quantity, quantityRejected);
 
   /// Create a copy of SessionSubmitItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1386,11 +1549,16 @@ class _$SessionSubmitItemImpl implements _SessionSubmitItem {
 abstract class _SessionSubmitItem implements SessionSubmitItem {
   const factory _SessionSubmitItem(
       {required final String productId,
+      final String? variantId,
       required final int quantity,
       final int quantityRejected}) = _$SessionSubmitItemImpl;
 
   @override
   String get productId;
+
+  /// Variant ID for variant products, null for simple products
+  @override
+  String? get variantId;
   @override
   int get quantity;
   @override
