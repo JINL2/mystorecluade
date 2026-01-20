@@ -247,6 +247,34 @@ export class InventoryDataSource {
       params.p_image_urls = productData.imageUrls || null;
     }
 
+    // v5: If selectedAttributes has a new attribute selected (with __selected__ marker),
+    // this is a non-variant product being converted to a variant product
+    // We need to pass p_attribute_id and p_add_variants
+    if (productData.selectedAttributes && !productData.variantId) {
+      const selectedAttrId = Object.keys(productData.selectedAttributes)[0];
+      const selectedAttrValue = productData.selectedAttributes[selectedAttrId];
+
+      // Only proceed if attribute is selected (either __selected__ or a specific option)
+      if (selectedAttrId && selectedAttrValue) {
+        params.p_attribute_id = selectedAttrId;
+
+        // Build variants from all options of the selected attribute
+        // The metadata with attribute options should be passed via productData.metadata
+        if (productData.metadata?.attributes) {
+          const attribute = productData.metadata.attributes.find(
+            (attr: any) => attr.attribute_id === selectedAttrId
+          );
+          if (attribute && attribute.options?.length > 0) {
+            params.p_add_variants = attribute.options.map((option: any) => ({
+              variant_name: option.option_value,
+              option_id: option.option_id,
+              initial_quantity: 0,
+            }));
+          }
+        }
+      }
+    }
+
     const { data, error } = await supabase.rpc('inventory_edit_product_v5', params);
 
     if (error) {

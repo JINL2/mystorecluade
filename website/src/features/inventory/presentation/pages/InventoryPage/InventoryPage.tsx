@@ -454,6 +454,12 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
         productData={selectedProductData}
         metadata={metadata}
         onSave={async (updatedData, originalData) => {
+          // Check if this is a variant creation (non-variant product with selected attribute)
+          const isCreatingVariants =
+            updatedData.selectedAttributes &&
+            Object.keys(updatedData.selectedAttributes).length > 0 &&
+            !updatedData.variantId;
+
           const result = await updateProduct(
             selectedProductData?.productId || '',
             companyId,
@@ -463,7 +469,13 @@ export const InventoryPage: React.FC<InventoryPageProps> = () => {
           );
 
           if (result.success) {
-            showNotification('success', 'Product updated successfully!');
+            if (isCreatingVariants) {
+              // Variants were created - refresh inventory and show appropriate message
+              await loadInventory(companyId, selectedStoreId);
+              showNotification('success', 'Product updated with variants. You can now manage each variant separately.');
+            } else {
+              showNotification('success', 'Product updated successfully!');
+            }
           } else {
             showNotification('error', result.error || 'Failed to update product');
           }

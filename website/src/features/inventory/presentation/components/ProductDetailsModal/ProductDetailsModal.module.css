@@ -145,6 +145,88 @@
   margin: 0;
 }
 
+/* Attribute Checkbox Styles */
+.attributeSubtitle {
+  font-size: 13px;
+  color: var(--toss-gray-500);
+  margin: 0 0 12px 0;
+}
+
+.attributeCheckboxList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attributeCheckboxRow {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.attributeCheckboxRow:hover {
+  background: var(--toss-gray-50);
+}
+
+.attributeCheckboxDisabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.attributeCheckboxDisabled:hover {
+  background: transparent;
+}
+
+.attributeCheckbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1.5px solid var(--toss-gray-300);
+  background: var(--toss-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.attributeCheckboxSelected {
+  background: var(--toss-primary);
+  border-color: var(--toss-primary);
+  color: white;
+}
+
+.attributeCheckboxDisabledBox {
+  background: var(--toss-gray-100);
+  border-color: var(--toss-gray-300);
+}
+
+.attributeCheckboxDisabledBox.attributeCheckboxSelected {
+  background: var(--toss-gray-400);
+  border-color: var(--toss-gray-400);
+}
+
+.attributeCheckboxLabel {
+  flex: 1;
+  font-size: 14px;
+  color: var(--toss-gray-900);
+  margin-left: 12px;
+  font-weight: 500;
+}
+
+.attributeCheckboxLabelDisabled {
+  color: var(--toss-gray-500);
+}
+
+.attributeOptionCount {
+  font-size: 13px;
+  color: var(--toss-gray-500);
+  margin-left: 8px;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
