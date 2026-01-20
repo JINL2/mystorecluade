@@ -49,20 +49,44 @@ class HistoryReceivingInfoSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: TossSpacing.space2),
-                Text(
-                  'Stock Update',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: TossFontWeight.semibold,
-                    color: TossColors.textPrimary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Stock Update',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: TossFontWeight.semibold,
+                          color: TossColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Receiving #${receivingInfo.receivingNumber}',
+                        style: TossTextStyles.micro.copyWith(
+                          color: TossColors.textTertiary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  'Receiving #${receivingInfo.receivingNumber}',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.textTertiary,
+                if (newProducts.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TossSpacing.space2,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TossColors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                    ),
+                    child: Text(
+                      '${newProducts.length} needs display',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.warning,
+                        fontWeight: TossFontWeight.semibold,
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -93,14 +117,15 @@ class HistoryReceivingInfoSection extends StatelessWidget {
           ),
           const SizedBox(height: TossSpacing.space3),
 
-          // New Products section
+          // New Products section (needs display)
           if (newProducts.isNotEmpty) ...[
             _buildStockCategoryCard(
               title: 'New Products',
-              subtitle: 'First time in stock',
+              subtitle: 'First time in stock • Needs display',
               icon: Icons.fiber_new,
               color: TossColors.warning,
               items: newProducts,
+              showNeedsDisplay: true,
             ),
           ],
 
@@ -160,6 +185,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
     required IconData icon,
     required Color color,
     required List<StockSnapshotItem> items,
+    bool showNeedsDisplay = false,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -241,7 +267,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
             ),
             itemBuilder: (context, index) {
               final item = items[index];
-              return _buildStockSnapshotItemRow(item, color);
+              return _buildStockSnapshotItemRow(item, color, showNeedsDisplay);
             },
           ),
         ],
@@ -249,7 +275,7 @@ class HistoryReceivingInfoSection extends StatelessWidget {
     );
   }
 
-  Widget _buildStockSnapshotItemRow(StockSnapshotItem item, Color accentColor) {
+  Widget _buildStockSnapshotItemRow(StockSnapshotItem item, Color accentColor, bool showNeedsDisplay) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: TossSpacing.space3,
@@ -257,6 +283,22 @@ class HistoryReceivingInfoSection extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Display indicator for new products
+          if (showNeedsDisplay) ...[
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: TossColors.warning.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.visibility,
+                size: TossSpacing.iconXXS,
+                color: TossColors.warning,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space2),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

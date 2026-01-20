@@ -42,19 +42,41 @@ class ProductPageResponse {
 }
 
 /// Summary data from get_inventory_page_v6
+/// v6.1: Added store-wide totals (not affected by filters)
 class InventorySummaryData {
+  /// Filtered total value (selling price * quantity) - affected by filters
   final double totalValue;
+
+  /// Filtered item count - affected by filters
   final int filteredCount;
+
+  /// v6.1: Store-wide total cost value - NOT affected by filters
+  final double totalInventoryCost;
+
+  /// v6.1: Store-wide total retail value - NOT affected by filters
+  final double totalInventoryRetail;
+
+  /// v6.1: Store-wide total quantity - NOT affected by filters
+  final int totalInventoryQuantity;
 
   InventorySummaryData({
     required this.totalValue,
     required this.filteredCount,
+    this.totalInventoryCost = 0.0,
+    this.totalInventoryRetail = 0.0,
+    this.totalInventoryQuantity = 0,
   });
 
   factory InventorySummaryData.fromJson(Map<String, dynamic> json) {
     return InventorySummaryData(
       totalValue: (json['total_value'] as num?)?.toDouble() ?? 0.0,
       filteredCount: (json['filtered_count'] as num?)?.toInt() ?? 0,
+      totalInventoryCost:
+          (json['total_inventory_cost'] as num?)?.toDouble() ?? 0.0,
+      totalInventoryRetail:
+          (json['total_inventory_retail'] as num?)?.toDouble() ?? 0.0,
+      totalInventoryQuantity:
+          (json['total_inventory_quantity'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -768,6 +790,7 @@ class CreatedOptionData {
 }
 
 /// Individual history item from inventory history (includes product info)
+/// v2: Added variant_id, variant_name, display_name for variant support
 class InventoryHistoryItem {
   final String logId;
   final String eventCategory;
@@ -777,6 +800,10 @@ class InventoryHistoryItem {
   final String? productName;
   final String? productSku;
   final String? productImage;
+  // Variant info (v2)
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
   // Store info
   final String? storeId;
   final String? storeName;
@@ -832,6 +859,9 @@ class InventoryHistoryItem {
     this.productName,
     this.productSku,
     this.productImage,
+    this.variantId,
+    this.variantName,
+    this.displayName,
     this.storeId,
     this.storeName,
     this.quantityBefore,
@@ -883,6 +913,9 @@ class InventoryHistoryItem {
       productName: json['product_name'] as String?,
       productSku: json['product_sku'] as String?,
       productImage: json['product_image'] as String?,
+      variantId: json['variant_id'] as String?,
+      variantName: json['variant_name'] as String?,
+      displayName: json['display_name'] as String?,
       storeId: json['store_id'] as String?,
       storeName: json['store_name'] as String?,
       quantityBefore: (json['quantity_before'] as num?)?.toInt(),

@@ -200,14 +200,93 @@ class OriginalSessionInfo with _$OriginalSessionInfo {
   }) = _OriginalSessionInfo;
 }
 
+/// v4: Source info for items_by_product tracking
+@freezed
+class ProductSourceInfo with _$ProductSourceInfo {
+  const ProductSourceInfo._();
+
+  const factory ProductSourceInfo({
+    /// null for original session items
+    String? sessionId,
+    required String sessionName,
+    required bool isOriginal,
+    required int quantity,
+    required int quantityRejected,
+    required SessionHistoryUser scannedBy,
+  }) = _ProductSourceInfo;
+}
+
+/// v4: Product-level source tracking for merged sessions
+@freezed
+class ItemByProduct with _$ItemByProduct {
+  const ItemByProduct._();
+
+  const factory ItemByProduct({
+    required String productId,
+    String? variantId,
+    required String sku,
+    required String productName,
+    String? variantName,
+    String? displayName,
+    @Default(false) bool hasVariants,
+    required int totalQuantity,
+    required int totalRejected,
+    required List<ProductSourceInfo> sources,
+  }) = _ItemByProduct;
+
+  /// Display name for UI
+  String get name => displayName ?? productName;
+}
+
 /// Merge info for merged sessions (V2)
+/// v4: Added itemsByProduct for product-level source tracking
 @freezed
 class MergeInfo with _$MergeInfo {
+  const MergeInfo._();
+
   const factory MergeInfo({
     required OriginalSessionInfo originalSession,
     required List<MergedSessionInfo> mergedSessions,
     required int totalMergedSessionsCount,
+    /// v4: Product-level source tracking
+    @Default([]) List<ItemByProduct> itemsByProduct,
   }) = _MergeInfo;
+
+  /// v4: Check if has product-level tracking
+  bool get hasItemsByProduct => itemsByProduct.isNotEmpty;
+}
+
+/// v4: Zeroed item info for counting sessions
+@freezed
+class ZeroedItem with _$ZeroedItem {
+  const ZeroedItem._();
+
+  const factory ZeroedItem({
+    required String productId,
+    String? variantId,
+    required String sku,
+    required String productName,
+    String? variantName,
+    String? displayName,
+    required int quantityBefore,
+  }) = _ZeroedItem;
+
+  /// Display name for UI
+  String get name => displayName ?? productName;
+}
+
+/// v4: Counting info for counting sessions (zeroed items tracking)
+@freezed
+class CountingInfo with _$CountingInfo {
+  const CountingInfo._();
+
+  const factory CountingInfo({
+    required int itemsZeroedCount,
+    required List<ZeroedItem> zeroedItems,
+  }) = _CountingInfo;
+
+  /// Check if has zeroed items
+  bool get hasZeroedItems => itemsZeroedCount > 0;
 }
 
 /// Session history item entity from RPC response
@@ -261,6 +340,9 @@ class SessionHistoryItem with _$SessionHistoryItem {
 
     /// V2: Receiving info (receiving sessions only)
     ReceivingInfo? receivingInfo,
+
+    /// v4: Counting info (counting sessions only - zeroed items tracking)
+    CountingInfo? countingInfo,
   }) = _SessionHistoryItem;
 
   bool get isCounting => sessionType == 'counting';
@@ -289,6 +371,12 @@ class SessionHistoryItem with _$SessionHistoryItem {
 
   /// V2: Get restock products count (receiving only)
   int get restockProductsCount => receivingInfo?.restockProductsCount ?? 0;
+
+  /// v4: Check if has counting info
+  bool get hasCountingInfo => isCounting && countingInfo != null;
+
+  /// v4: Get zeroed items count (counting only)
+  int get zeroedItemsCount => countingInfo?.itemsZeroedCount ?? 0;
 }
 
 /// Response wrapper for session history

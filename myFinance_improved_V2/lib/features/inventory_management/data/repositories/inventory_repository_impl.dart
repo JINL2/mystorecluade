@@ -111,6 +111,10 @@ class InventoryRepositoryImpl implements InventoryRepository {
         currency: currency,
         serverTotalValue: response.summary.totalValue,
         filteredCount: response.summary.filteredCount,
+        // v6.1: Store-wide totals (not affected by filters)
+        totalInventoryCost: response.summary.totalInventoryCost,
+        totalInventoryRetail: response.summary.totalInventoryRetail,
+        totalInventoryQuantity: response.summary.totalInventoryQuantity,
       );
     } catch (e) {
       if (e is InventoryException) rethrow;
@@ -614,7 +618,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
         pageSize: pageSize,
       );
 
-      // Convert datasource model to domain entity
+      // Convert datasource model to domain entity (v2: with variant support)
       final entries = result.data.map((item) => InventoryHistoryEntry(
         logId: item.logId,
         eventCategory: item.eventCategory,
@@ -623,6 +627,10 @@ class InventoryRepositoryImpl implements InventoryRepository {
         productName: item.productName,
         productSku: item.productSku,
         productImage: item.productImage,
+        // v2: variant fields
+        variantId: item.variantId,
+        variantName: item.variantName,
+        displayName: item.displayName,
         storeId: item.storeId,
         storeName: item.storeName,
         quantityBefore: item.quantityBefore,

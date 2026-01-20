@@ -624,15 +624,12 @@ class SessionDatasource {
     }
   }
 
-  /// Get session history via RPC (inventory_get_session_history_v3)
-  /// Returns detailed session history including members, items, merge info, and receiving info
-  /// V3 includes:
-  /// - Full variant support: items grouped by (product_id, variant_id)
-  /// - variant_id, variant_name, display_name, has_variants in items
-  /// - confirmed_quantity matches by variant_id
-  /// - merge_info items include variant information
-  /// - is_merged_session: boolean flag for merged sessions
-  /// - receiving_info: stock_snapshot with variant info
+  /// Get session history via RPC (inventory_get_session_history_v4)
+  /// Returns detailed session history including members, items, merge info, receiving info, and counting info
+  /// v4 includes:
+  /// - All v3 features (variant support, merge_info, receiving_info)
+  /// - merge_info.items_by_product: Product-level source tracking for merged sessions
+  /// - counting_info: Zeroed items tracking for counting sessions (from v3.3+ submit)
   Future<SessionHistoryResponseModel> getSessionHistory({
     required String companyId,
     String? storeId,
@@ -661,7 +658,7 @@ class SessionDatasource {
     }
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'inventory_get_session_history_v3',
+      'inventory_get_session_history_v4',
       params: params,
     ).single();
 

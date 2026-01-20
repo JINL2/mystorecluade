@@ -750,8 +750,9 @@ class InventoryRemoteDataSource {
         'p_page_size': pageSize,
       };
 
+      // v2: Added variant support (variant_id, variant_name, display_name)
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_history', params: params)
+          .rpc<Map<String, dynamic>>('inventory_history_v2', params: params)
           .single();
 
       if (response['success'] == true) {

@@ -43,9 +43,9 @@ class HistoryItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Product name
+                // Product name (v2: use display_name which includes variant)
                 Text(
-                  entry.productName ?? 'Unknown Product',
+                  entry.displayName ?? entry.productName ?? 'Unknown Product',
                   style: TossTextStyles.body.copyWith(
                     fontWeight: TossFontWeight.semibold,
                     color: TossColors.gray900,

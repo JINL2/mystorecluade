@@ -12,44 +12,23 @@ class CashEndingConstants {
   // RPC Function Names
   // ============================================================================
 
-  /// ✅ Universal Multi-Currency RPC (Cash, Vault, Bank)
+  /// Universal Multi-Currency RPC (Cash, Vault, Bank)
   /// Supports multi-currency in one call with Entry-based workflow
+  /// Handles IN, OUT, and RECOUNT transaction types
   static const String rpcInsertAmountMultiCurrency = 'insert_amount_multi_currency';
 
-  /// @Deprecated Legacy RPCs (kept for reference)
-  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
-  static const String rpcInsertCashierAmount = 'insert_cashier_amount_lines';
-
-  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
-  static const String rpcInsertBankAmount = 'bank_amount_insert_v2';
-
-  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
-  static const String rpcInsertVaultAmount = 'vault_amount_insert_v3';
-
-  @Deprecated('Use rpcInsertAmountMultiCurrency instead')
-  static const String rpcVaultAmountRecount = 'vault_amount_recount';
-
   /// RPC function for getting location stock flow (UTC version)
-  /// ✅ Uses created_at_utc and system_time_utc columns
   static const String rpcGetLocationStockFlow = 'get_location_stock_flow_utc';
 
-  /// RPC function for getting cash location balance summary (Journal vs Real)
-  /// ⚠️ OLD: Uses flow data from v_cash_location view
-  @Deprecated('Use rpcGetBalanceSummaryV2 instead')
-  static const String rpcGetBalanceSummary = 'get_cash_location_balance_summary';
-
-  /// RPC function for getting cash location balance summary V2 (STOCK-BASED, UTC)
-  /// ✅ Uses stock data from cash_amount_entries.balance_after
-  /// ✅ Uses record_date_utc column
+  /// RPC function for getting cash location balance summary (STOCK-BASED, UTC)
+  /// Uses stock data from cash_amount_entries.balance_after
   static const String rpcGetBalanceSummaryV2 = 'get_cash_location_balance_summary_v2_utc';
 
   /// RPC function for getting multiple locations balance summary (UTC)
-  /// ✅ Uses record_date_utc column
   static const String rpcGetMultipleBalanceSummary =
       'get_multiple_locations_balance_summary_utc';
 
   /// RPC function for getting company-wide balance summary (UTC)
-  /// ✅ Uses record_date_utc column
   static const String rpcGetCompanyBalanceSummary =
       'get_company_balance_summary_utc';
 

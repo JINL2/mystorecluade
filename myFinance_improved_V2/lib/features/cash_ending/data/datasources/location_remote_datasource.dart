@@ -27,14 +27,13 @@ class LocationRemoteDataSource {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  /// Get locations by type
+  /// Get locations by type using RPC
   ///
   /// [companyId] - Company identifier
   /// [locationType] - 'cash', 'bank', or 'vault'
   /// [storeId] - Optional store filter ('headquarter' or null for HQ)
   ///
   /// Returns list of location records
-  /// Throws exception on error
   Future<List<Map<String, dynamic>>> getLocationsByType({
     required String companyId,
     required String locationType,
@@ -45,21 +44,14 @@ class LocationRemoteDataSource {
         ? null
         : storeId;
 
-    var query = _client
-        .from('cash_locations')
-        .select('*')
-        .eq('company_id', companyId)
-        .eq('location_type', locationType)
-        .eq('is_deleted', false);
-
-    // Add store_id filter
-    if (storeIdValue != null) {
-      query = query.eq('store_id', storeIdValue);
-    } else {
-      query = query.isFilter('store_id', null);
-    }
-
-    final response = await query.order('location_name');
+    final response = await _client.rpc<List<dynamic>>(
+      'get_cash_locations_v2',
+      params: {
+        'p_company_id': companyId,
+        'p_location_type': locationType,
+        'p_store_id': storeIdValue,
+      },
+    );
 
     return List<Map<String, dynamic>>.from(response);
   }

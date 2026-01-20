@@ -2701,11 +2701,614 @@ abstract class _OriginalSessionInfo implements OriginalSessionInfo {
 }
 
 /// @nodoc
+mixin _$ProductSourceInfo {
+  /// null for original session items
+  String? get sessionId => throw _privateConstructorUsedError;
+  String get sessionName => throw _privateConstructorUsedError;
+  bool get isOriginal => throw _privateConstructorUsedError;
+  int get quantity => throw _privateConstructorUsedError;
+  int get quantityRejected => throw _privateConstructorUsedError;
+  SessionHistoryUser get scannedBy => throw _privateConstructorUsedError;
+
+  /// Create a copy of ProductSourceInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ProductSourceInfoCopyWith<ProductSourceInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ProductSourceInfoCopyWith<$Res> {
+  factory $ProductSourceInfoCopyWith(
+          ProductSourceInfo value, $Res Function(ProductSourceInfo) then) =
+      _$ProductSourceInfoCopyWithImpl<$Res, ProductSourceInfo>;
+  @useResult
+  $Res call(
+      {String? sessionId,
+      String sessionName,
+      bool isOriginal,
+      int quantity,
+      int quantityRejected,
+      SessionHistoryUser scannedBy});
+
+  $SessionHistoryUserCopyWith<$Res> get scannedBy;
+}
+
+/// @nodoc
+class _$ProductSourceInfoCopyWithImpl<$Res, $Val extends ProductSourceInfo>
+    implements $ProductSourceInfoCopyWith<$Res> {
+  _$ProductSourceInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ProductSourceInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? sessionId = freezed,
+    Object? sessionName = null,
+    Object? isOriginal = null,
+    Object? quantity = null,
+    Object? quantityRejected = null,
+    Object? scannedBy = null,
+  }) {
+    return _then(_value.copyWith(
+      sessionId: freezed == sessionId
+          ? _value.sessionId
+          : sessionId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sessionName: null == sessionName
+          ? _value.sessionName
+          : sessionName // ignore: cast_nullable_to_non_nullable
+              as String,
+      isOriginal: null == isOriginal
+          ? _value.isOriginal
+          : isOriginal // ignore: cast_nullable_to_non_nullable
+              as bool,
+      quantity: null == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityRejected: null == quantityRejected
+          ? _value.quantityRejected
+          : quantityRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+      scannedBy: null == scannedBy
+          ? _value.scannedBy
+          : scannedBy // ignore: cast_nullable_to_non_nullable
+              as SessionHistoryUser,
+    ) as $Val);
+  }
+
+  /// Create a copy of ProductSourceInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SessionHistoryUserCopyWith<$Res> get scannedBy {
+    return $SessionHistoryUserCopyWith<$Res>(_value.scannedBy, (value) {
+      return _then(_value.copyWith(scannedBy: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$ProductSourceInfoImplCopyWith<$Res>
+    implements $ProductSourceInfoCopyWith<$Res> {
+  factory _$$ProductSourceInfoImplCopyWith(_$ProductSourceInfoImpl value,
+          $Res Function(_$ProductSourceInfoImpl) then) =
+      __$$ProductSourceInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String? sessionId,
+      String sessionName,
+      bool isOriginal,
+      int quantity,
+      int quantityRejected,
+      SessionHistoryUser scannedBy});
+
+  @override
+  $SessionHistoryUserCopyWith<$Res> get scannedBy;
+}
+
+/// @nodoc
+class __$$ProductSourceInfoImplCopyWithImpl<$Res>
+    extends _$ProductSourceInfoCopyWithImpl<$Res, _$ProductSourceInfoImpl>
+    implements _$$ProductSourceInfoImplCopyWith<$Res> {
+  __$$ProductSourceInfoImplCopyWithImpl(_$ProductSourceInfoImpl _value,
+      $Res Function(_$ProductSourceInfoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ProductSourceInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? sessionId = freezed,
+    Object? sessionName = null,
+    Object? isOriginal = null,
+    Object? quantity = null,
+    Object? quantityRejected = null,
+    Object? scannedBy = null,
+  }) {
+    return _then(_$ProductSourceInfoImpl(
+      sessionId: freezed == sessionId
+          ? _value.sessionId
+          : sessionId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sessionName: null == sessionName
+          ? _value.sessionName
+          : sessionName // ignore: cast_nullable_to_non_nullable
+              as String,
+      isOriginal: null == isOriginal
+          ? _value.isOriginal
+          : isOriginal // ignore: cast_nullable_to_non_nullable
+              as bool,
+      quantity: null == quantity
+          ? _value.quantity
+          : quantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      quantityRejected: null == quantityRejected
+          ? _value.quantityRejected
+          : quantityRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+      scannedBy: null == scannedBy
+          ? _value.scannedBy
+          : scannedBy // ignore: cast_nullable_to_non_nullable
+              as SessionHistoryUser,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ProductSourceInfoImpl extends _ProductSourceInfo {
+  const _$ProductSourceInfoImpl(
+      {this.sessionId,
+      required this.sessionName,
+      required this.isOriginal,
+      required this.quantity,
+      required this.quantityRejected,
+      required this.scannedBy})
+      : super._();
+
+  /// null for original session items
+  @override
+  final String? sessionId;
+  @override
+  final String sessionName;
+  @override
+  final bool isOriginal;
+  @override
+  final int quantity;
+  @override
+  final int quantityRejected;
+  @override
+  final SessionHistoryUser scannedBy;
+
+  @override
+  String toString() {
+    return 'ProductSourceInfo(sessionId: $sessionId, sessionName: $sessionName, isOriginal: $isOriginal, quantity: $quantity, quantityRejected: $quantityRejected, scannedBy: $scannedBy)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ProductSourceInfoImpl &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
+            (identical(other.sessionName, sessionName) ||
+                other.sessionName == sessionName) &&
+            (identical(other.isOriginal, isOriginal) ||
+                other.isOriginal == isOriginal) &&
+            (identical(other.quantity, quantity) ||
+                other.quantity == quantity) &&
+            (identical(other.quantityRejected, quantityRejected) ||
+                other.quantityRejected == quantityRejected) &&
+            (identical(other.scannedBy, scannedBy) ||
+                other.scannedBy == scannedBy));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, sessionId, sessionName,
+      isOriginal, quantity, quantityRejected, scannedBy);
+
+  /// Create a copy of ProductSourceInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ProductSourceInfoImplCopyWith<_$ProductSourceInfoImpl> get copyWith =>
+      __$$ProductSourceInfoImplCopyWithImpl<_$ProductSourceInfoImpl>(
+          this, _$identity);
+}
+
+abstract class _ProductSourceInfo extends ProductSourceInfo {
+  const factory _ProductSourceInfo(
+      {final String? sessionId,
+      required final String sessionName,
+      required final bool isOriginal,
+      required final int quantity,
+      required final int quantityRejected,
+      required final SessionHistoryUser scannedBy}) = _$ProductSourceInfoImpl;
+  const _ProductSourceInfo._() : super._();
+
+  /// null for original session items
+  @override
+  String? get sessionId;
+  @override
+  String get sessionName;
+  @override
+  bool get isOriginal;
+  @override
+  int get quantity;
+  @override
+  int get quantityRejected;
+  @override
+  SessionHistoryUser get scannedBy;
+
+  /// Create a copy of ProductSourceInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ProductSourceInfoImplCopyWith<_$ProductSourceInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$ItemByProduct {
+  String get productId => throw _privateConstructorUsedError;
+  String? get variantId => throw _privateConstructorUsedError;
+  String get sku => throw _privateConstructorUsedError;
+  String get productName => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  bool get hasVariants => throw _privateConstructorUsedError;
+  int get totalQuantity => throw _privateConstructorUsedError;
+  int get totalRejected => throw _privateConstructorUsedError;
+  List<ProductSourceInfo> get sources => throw _privateConstructorUsedError;
+
+  /// Create a copy of ItemByProduct
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ItemByProductCopyWith<ItemByProduct> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ItemByProductCopyWith<$Res> {
+  factory $ItemByProductCopyWith(
+          ItemByProduct value, $Res Function(ItemByProduct) then) =
+      _$ItemByProductCopyWithImpl<$Res, ItemByProduct>;
+  @useResult
+  $Res call(
+      {String productId,
+      String? variantId,
+      String sku,
+      String productName,
+      String? variantName,
+      String? displayName,
+      bool hasVariants,
+      int totalQuantity,
+      int totalRejected,
+      List<ProductSourceInfo> sources});
+}
+
+/// @nodoc
+class _$ItemByProductCopyWithImpl<$Res, $Val extends ItemByProduct>
+    implements $ItemByProductCopyWith<$Res> {
+  _$ItemByProductCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ItemByProduct
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? variantId = freezed,
+    Object? sku = null,
+    Object? productName = null,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
+    Object? totalQuantity = null,
+    Object? totalRejected = null,
+    Object? sources = null,
+  }) {
+    return _then(_value.copyWith(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
+      totalQuantity: null == totalQuantity
+          ? _value.totalQuantity
+          : totalQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalRejected: null == totalRejected
+          ? _value.totalRejected
+          : totalRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+      sources: null == sources
+          ? _value.sources
+          : sources // ignore: cast_nullable_to_non_nullable
+              as List<ProductSourceInfo>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ItemByProductImplCopyWith<$Res>
+    implements $ItemByProductCopyWith<$Res> {
+  factory _$$ItemByProductImplCopyWith(
+          _$ItemByProductImpl value, $Res Function(_$ItemByProductImpl) then) =
+      __$$ItemByProductImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String productId,
+      String? variantId,
+      String sku,
+      String productName,
+      String? variantName,
+      String? displayName,
+      bool hasVariants,
+      int totalQuantity,
+      int totalRejected,
+      List<ProductSourceInfo> sources});
+}
+
+/// @nodoc
+class __$$ItemByProductImplCopyWithImpl<$Res>
+    extends _$ItemByProductCopyWithImpl<$Res, _$ItemByProductImpl>
+    implements _$$ItemByProductImplCopyWith<$Res> {
+  __$$ItemByProductImplCopyWithImpl(
+      _$ItemByProductImpl _value, $Res Function(_$ItemByProductImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ItemByProduct
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? variantId = freezed,
+    Object? sku = null,
+    Object? productName = null,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
+    Object? totalQuantity = null,
+    Object? totalRejected = null,
+    Object? sources = null,
+  }) {
+    return _then(_$ItemByProductImpl(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
+      totalQuantity: null == totalQuantity
+          ? _value.totalQuantity
+          : totalQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalRejected: null == totalRejected
+          ? _value.totalRejected
+          : totalRejected // ignore: cast_nullable_to_non_nullable
+              as int,
+      sources: null == sources
+          ? _value._sources
+          : sources // ignore: cast_nullable_to_non_nullable
+              as List<ProductSourceInfo>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ItemByProductImpl extends _ItemByProduct {
+  const _$ItemByProductImpl(
+      {required this.productId,
+      this.variantId,
+      required this.sku,
+      required this.productName,
+      this.variantName,
+      this.displayName,
+      this.hasVariants = false,
+      required this.totalQuantity,
+      required this.totalRejected,
+      required final List<ProductSourceInfo> sources})
+      : _sources = sources,
+        super._();
+
+  @override
+  final String productId;
+  @override
+  final String? variantId;
+  @override
+  final String sku;
+  @override
+  final String productName;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
+  @override
+  @JsonKey()
+  final bool hasVariants;
+  @override
+  final int totalQuantity;
+  @override
+  final int totalRejected;
+  final List<ProductSourceInfo> _sources;
+  @override
+  List<ProductSourceInfo> get sources {
+    if (_sources is EqualUnmodifiableListView) return _sources;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sources);
+  }
+
+  @override
+  String toString() {
+    return 'ItemByProduct(productId: $productId, variantId: $variantId, sku: $sku, productName: $productName, variantName: $variantName, displayName: $displayName, hasVariants: $hasVariants, totalQuantity: $totalQuantity, totalRejected: $totalRejected, sources: $sources)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ItemByProductImpl &&
+            (identical(other.productId, productId) ||
+                other.productId == productId) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants) &&
+            (identical(other.totalQuantity, totalQuantity) ||
+                other.totalQuantity == totalQuantity) &&
+            (identical(other.totalRejected, totalRejected) ||
+                other.totalRejected == totalRejected) &&
+            const DeepCollectionEquality().equals(other._sources, _sources));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      productId,
+      variantId,
+      sku,
+      productName,
+      variantName,
+      displayName,
+      hasVariants,
+      totalQuantity,
+      totalRejected,
+      const DeepCollectionEquality().hash(_sources));
+
+  /// Create a copy of ItemByProduct
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ItemByProductImplCopyWith<_$ItemByProductImpl> get copyWith =>
+      __$$ItemByProductImplCopyWithImpl<_$ItemByProductImpl>(this, _$identity);
+}
+
+abstract class _ItemByProduct extends ItemByProduct {
+  const factory _ItemByProduct(
+      {required final String productId,
+      final String? variantId,
+      required final String sku,
+      required final String productName,
+      final String? variantName,
+      final String? displayName,
+      final bool hasVariants,
+      required final int totalQuantity,
+      required final int totalRejected,
+      required final List<ProductSourceInfo> sources}) = _$ItemByProductImpl;
+  const _ItemByProduct._() : super._();
+
+  @override
+  String get productId;
+  @override
+  String? get variantId;
+  @override
+  String get sku;
+  @override
+  String get productName;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
+  @override
+  bool get hasVariants;
+  @override
+  int get totalQuantity;
+  @override
+  int get totalRejected;
+  @override
+  List<ProductSourceInfo> get sources;
+
+  /// Create a copy of ItemByProduct
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ItemByProductImplCopyWith<_$ItemByProductImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 mixin _$MergeInfo {
   OriginalSessionInfo get originalSession => throw _privateConstructorUsedError;
   List<MergedSessionInfo> get mergedSessions =>
       throw _privateConstructorUsedError;
   int get totalMergedSessionsCount => throw _privateConstructorUsedError;
+
+  /// v4: Product-level source tracking
+  List<ItemByProduct> get itemsByProduct => throw _privateConstructorUsedError;
 
   /// Create a copy of MergeInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -2722,7 +3325,8 @@ abstract class $MergeInfoCopyWith<$Res> {
   $Res call(
       {OriginalSessionInfo originalSession,
       List<MergedSessionInfo> mergedSessions,
-      int totalMergedSessionsCount});
+      int totalMergedSessionsCount,
+      List<ItemByProduct> itemsByProduct});
 
   $OriginalSessionInfoCopyWith<$Res> get originalSession;
 }
@@ -2745,6 +3349,7 @@ class _$MergeInfoCopyWithImpl<$Res, $Val extends MergeInfo>
     Object? originalSession = null,
     Object? mergedSessions = null,
     Object? totalMergedSessionsCount = null,
+    Object? itemsByProduct = null,
   }) {
     return _then(_value.copyWith(
       originalSession: null == originalSession
@@ -2759,6 +3364,10 @@ class _$MergeInfoCopyWithImpl<$Res, $Val extends MergeInfo>
           ? _value.totalMergedSessionsCount
           : totalMergedSessionsCount // ignore: cast_nullable_to_non_nullable
               as int,
+      itemsByProduct: null == itemsByProduct
+          ? _value.itemsByProduct
+          : itemsByProduct // ignore: cast_nullable_to_non_nullable
+              as List<ItemByProduct>,
     ) as $Val);
   }
 
@@ -2784,7 +3393,8 @@ abstract class _$$MergeInfoImplCopyWith<$Res>
   $Res call(
       {OriginalSessionInfo originalSession,
       List<MergedSessionInfo> mergedSessions,
-      int totalMergedSessionsCount});
+      int totalMergedSessionsCount,
+      List<ItemByProduct> itemsByProduct});
 
   @override
   $OriginalSessionInfoCopyWith<$Res> get originalSession;
@@ -2806,6 +3416,7 @@ class __$$MergeInfoImplCopyWithImpl<$Res>
     Object? originalSession = null,
     Object? mergedSessions = null,
     Object? totalMergedSessionsCount = null,
+    Object? itemsByProduct = null,
   }) {
     return _then(_$MergeInfoImpl(
       originalSession: null == originalSession
@@ -2820,18 +3431,25 @@ class __$$MergeInfoImplCopyWithImpl<$Res>
           ? _value.totalMergedSessionsCount
           : totalMergedSessionsCount // ignore: cast_nullable_to_non_nullable
               as int,
+      itemsByProduct: null == itemsByProduct
+          ? _value._itemsByProduct
+          : itemsByProduct // ignore: cast_nullable_to_non_nullable
+              as List<ItemByProduct>,
     ));
   }
 }
 
 /// @nodoc
 
-class _$MergeInfoImpl implements _MergeInfo {
+class _$MergeInfoImpl extends _MergeInfo {
   const _$MergeInfoImpl(
       {required this.originalSession,
       required final List<MergedSessionInfo> mergedSessions,
-      required this.totalMergedSessionsCount})
-      : _mergedSessions = mergedSessions;
+      required this.totalMergedSessionsCount,
+      final List<ItemByProduct> itemsByProduct = const []})
+      : _mergedSessions = mergedSessions,
+        _itemsByProduct = itemsByProduct,
+        super._();
 
   @override
   final OriginalSessionInfo originalSession;
@@ -2846,9 +3464,21 @@ class _$MergeInfoImpl implements _MergeInfo {
   @override
   final int totalMergedSessionsCount;
 
+  /// v4: Product-level source tracking
+  final List<ItemByProduct> _itemsByProduct;
+
+  /// v4: Product-level source tracking
+  @override
+  @JsonKey()
+  List<ItemByProduct> get itemsByProduct {
+    if (_itemsByProduct is EqualUnmodifiableListView) return _itemsByProduct;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_itemsByProduct);
+  }
+
   @override
   String toString() {
-    return 'MergeInfo(originalSession: $originalSession, mergedSessions: $mergedSessions, totalMergedSessionsCount: $totalMergedSessionsCount)';
+    return 'MergeInfo(originalSession: $originalSession, mergedSessions: $mergedSessions, totalMergedSessionsCount: $totalMergedSessionsCount, itemsByProduct: $itemsByProduct)';
   }
 
   @override
@@ -2862,7 +3492,9 @@ class _$MergeInfoImpl implements _MergeInfo {
                 .equals(other._mergedSessions, _mergedSessions) &&
             (identical(
                     other.totalMergedSessionsCount, totalMergedSessionsCount) ||
-                other.totalMergedSessionsCount == totalMergedSessionsCount));
+                other.totalMergedSessionsCount == totalMergedSessionsCount) &&
+            const DeepCollectionEquality()
+                .equals(other._itemsByProduct, _itemsByProduct));
   }
 
   @override
@@ -2870,7 +3502,8 @@ class _$MergeInfoImpl implements _MergeInfo {
       runtimeType,
       originalSession,
       const DeepCollectionEquality().hash(_mergedSessions),
-      totalMergedSessionsCount);
+      totalMergedSessionsCount,
+      const DeepCollectionEquality().hash(_itemsByProduct));
 
   /// Create a copy of MergeInfo
   /// with the given fields replaced by the non-null parameter values.
@@ -2881,11 +3514,13 @@ class _$MergeInfoImpl implements _MergeInfo {
       __$$MergeInfoImplCopyWithImpl<_$MergeInfoImpl>(this, _$identity);
 }
 
-abstract class _MergeInfo implements MergeInfo {
+abstract class _MergeInfo extends MergeInfo {
   const factory _MergeInfo(
       {required final OriginalSessionInfo originalSession,
       required final List<MergedSessionInfo> mergedSessions,
-      required final int totalMergedSessionsCount}) = _$MergeInfoImpl;
+      required final int totalMergedSessionsCount,
+      final List<ItemByProduct> itemsByProduct}) = _$MergeInfoImpl;
+  const _MergeInfo._() : super._();
 
   @override
   OriginalSessionInfo get originalSession;
@@ -2894,11 +3529,435 @@ abstract class _MergeInfo implements MergeInfo {
   @override
   int get totalMergedSessionsCount;
 
+  /// v4: Product-level source tracking
+  @override
+  List<ItemByProduct> get itemsByProduct;
+
   /// Create a copy of MergeInfo
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$MergeInfoImplCopyWith<_$MergeInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$ZeroedItem {
+  String get productId => throw _privateConstructorUsedError;
+  String? get variantId => throw _privateConstructorUsedError;
+  String get sku => throw _privateConstructorUsedError;
+  String get productName => throw _privateConstructorUsedError;
+  String? get variantName => throw _privateConstructorUsedError;
+  String? get displayName => throw _privateConstructorUsedError;
+  int get quantityBefore => throw _privateConstructorUsedError;
+
+  /// Create a copy of ZeroedItem
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ZeroedItemCopyWith<ZeroedItem> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ZeroedItemCopyWith<$Res> {
+  factory $ZeroedItemCopyWith(
+          ZeroedItem value, $Res Function(ZeroedItem) then) =
+      _$ZeroedItemCopyWithImpl<$Res, ZeroedItem>;
+  @useResult
+  $Res call(
+      {String productId,
+      String? variantId,
+      String sku,
+      String productName,
+      String? variantName,
+      String? displayName,
+      int quantityBefore});
+}
+
+/// @nodoc
+class _$ZeroedItemCopyWithImpl<$Res, $Val extends ZeroedItem>
+    implements $ZeroedItemCopyWith<$Res> {
+  _$ZeroedItemCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ZeroedItem
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? variantId = freezed,
+    Object? sku = null,
+    Object? productName = null,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? quantityBefore = null,
+  }) {
+    return _then(_value.copyWith(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      quantityBefore: null == quantityBefore
+          ? _value.quantityBefore
+          : quantityBefore // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ZeroedItemImplCopyWith<$Res>
+    implements $ZeroedItemCopyWith<$Res> {
+  factory _$$ZeroedItemImplCopyWith(
+          _$ZeroedItemImpl value, $Res Function(_$ZeroedItemImpl) then) =
+      __$$ZeroedItemImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String productId,
+      String? variantId,
+      String sku,
+      String productName,
+      String? variantName,
+      String? displayName,
+      int quantityBefore});
+}
+
+/// @nodoc
+class __$$ZeroedItemImplCopyWithImpl<$Res>
+    extends _$ZeroedItemCopyWithImpl<$Res, _$ZeroedItemImpl>
+    implements _$$ZeroedItemImplCopyWith<$Res> {
+  __$$ZeroedItemImplCopyWithImpl(
+      _$ZeroedItemImpl _value, $Res Function(_$ZeroedItemImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ZeroedItem
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? variantId = freezed,
+    Object? sku = null,
+    Object? productName = null,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? quantityBefore = null,
+  }) {
+    return _then(_$ZeroedItemImpl(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sku: null == sku
+          ? _value.sku
+          : sku // ignore: cast_nullable_to_non_nullable
+              as String,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      quantityBefore: null == quantityBefore
+          ? _value.quantityBefore
+          : quantityBefore // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ZeroedItemImpl extends _ZeroedItem {
+  const _$ZeroedItemImpl(
+      {required this.productId,
+      this.variantId,
+      required this.sku,
+      required this.productName,
+      this.variantName,
+      this.displayName,
+      required this.quantityBefore})
+      : super._();
+
+  @override
+  final String productId;
+  @override
+  final String? variantId;
+  @override
+  final String sku;
+  @override
+  final String productName;
+  @override
+  final String? variantName;
+  @override
+  final String? displayName;
+  @override
+  final int quantityBefore;
+
+  @override
+  String toString() {
+    return 'ZeroedItem(productId: $productId, variantId: $variantId, sku: $sku, productName: $productName, variantName: $variantName, displayName: $displayName, quantityBefore: $quantityBefore)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ZeroedItemImpl &&
+            (identical(other.productId, productId) ||
+                other.productId == productId) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.sku, sku) || other.sku == sku) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.quantityBefore, quantityBefore) ||
+                other.quantityBefore == quantityBefore));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, productId, variantId, sku,
+      productName, variantName, displayName, quantityBefore);
+
+  /// Create a copy of ZeroedItem
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ZeroedItemImplCopyWith<_$ZeroedItemImpl> get copyWith =>
+      __$$ZeroedItemImplCopyWithImpl<_$ZeroedItemImpl>(this, _$identity);
+}
+
+abstract class _ZeroedItem extends ZeroedItem {
+  const factory _ZeroedItem(
+      {required final String productId,
+      final String? variantId,
+      required final String sku,
+      required final String productName,
+      final String? variantName,
+      final String? displayName,
+      required final int quantityBefore}) = _$ZeroedItemImpl;
+  const _ZeroedItem._() : super._();
+
+  @override
+  String get productId;
+  @override
+  String? get variantId;
+  @override
+  String get sku;
+  @override
+  String get productName;
+  @override
+  String? get variantName;
+  @override
+  String? get displayName;
+  @override
+  int get quantityBefore;
+
+  /// Create a copy of ZeroedItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ZeroedItemImplCopyWith<_$ZeroedItemImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$CountingInfo {
+  int get itemsZeroedCount => throw _privateConstructorUsedError;
+  List<ZeroedItem> get zeroedItems => throw _privateConstructorUsedError;
+
+  /// Create a copy of CountingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CountingInfoCopyWith<CountingInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CountingInfoCopyWith<$Res> {
+  factory $CountingInfoCopyWith(
+          CountingInfo value, $Res Function(CountingInfo) then) =
+      _$CountingInfoCopyWithImpl<$Res, CountingInfo>;
+  @useResult
+  $Res call({int itemsZeroedCount, List<ZeroedItem> zeroedItems});
+}
+
+/// @nodoc
+class _$CountingInfoCopyWithImpl<$Res, $Val extends CountingInfo>
+    implements $CountingInfoCopyWith<$Res> {
+  _$CountingInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CountingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemsZeroedCount = null,
+    Object? zeroedItems = null,
+  }) {
+    return _then(_value.copyWith(
+      itemsZeroedCount: null == itemsZeroedCount
+          ? _value.itemsZeroedCount
+          : itemsZeroedCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      zeroedItems: null == zeroedItems
+          ? _value.zeroedItems
+          : zeroedItems // ignore: cast_nullable_to_non_nullable
+              as List<ZeroedItem>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$CountingInfoImplCopyWith<$Res>
+    implements $CountingInfoCopyWith<$Res> {
+  factory _$$CountingInfoImplCopyWith(
+          _$CountingInfoImpl value, $Res Function(_$CountingInfoImpl) then) =
+      __$$CountingInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int itemsZeroedCount, List<ZeroedItem> zeroedItems});
+}
+
+/// @nodoc
+class __$$CountingInfoImplCopyWithImpl<$Res>
+    extends _$CountingInfoCopyWithImpl<$Res, _$CountingInfoImpl>
+    implements _$$CountingInfoImplCopyWith<$Res> {
+  __$$CountingInfoImplCopyWithImpl(
+      _$CountingInfoImpl _value, $Res Function(_$CountingInfoImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of CountingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? itemsZeroedCount = null,
+    Object? zeroedItems = null,
+  }) {
+    return _then(_$CountingInfoImpl(
+      itemsZeroedCount: null == itemsZeroedCount
+          ? _value.itemsZeroedCount
+          : itemsZeroedCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      zeroedItems: null == zeroedItems
+          ? _value._zeroedItems
+          : zeroedItems // ignore: cast_nullable_to_non_nullable
+              as List<ZeroedItem>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$CountingInfoImpl extends _CountingInfo {
+  const _$CountingInfoImpl(
+      {required this.itemsZeroedCount,
+      required final List<ZeroedItem> zeroedItems})
+      : _zeroedItems = zeroedItems,
+        super._();
+
+  @override
+  final int itemsZeroedCount;
+  final List<ZeroedItem> _zeroedItems;
+  @override
+  List<ZeroedItem> get zeroedItems {
+    if (_zeroedItems is EqualUnmodifiableListView) return _zeroedItems;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_zeroedItems);
+  }
+
+  @override
+  String toString() {
+    return 'CountingInfo(itemsZeroedCount: $itemsZeroedCount, zeroedItems: $zeroedItems)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CountingInfoImpl &&
+            (identical(other.itemsZeroedCount, itemsZeroedCount) ||
+                other.itemsZeroedCount == itemsZeroedCount) &&
+            const DeepCollectionEquality()
+                .equals(other._zeroedItems, _zeroedItems));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, itemsZeroedCount,
+      const DeepCollectionEquality().hash(_zeroedItems));
+
+  /// Create a copy of CountingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CountingInfoImplCopyWith<_$CountingInfoImpl> get copyWith =>
+      __$$CountingInfoImplCopyWithImpl<_$CountingInfoImpl>(this, _$identity);
+}
+
+abstract class _CountingInfo extends CountingInfo {
+  const factory _CountingInfo(
+      {required final int itemsZeroedCount,
+      required final List<ZeroedItem> zeroedItems}) = _$CountingInfoImpl;
+  const _CountingInfo._() : super._();
+
+  @override
+  int get itemsZeroedCount;
+  @override
+  List<ZeroedItem> get zeroedItems;
+
+  /// Create a copy of CountingInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CountingInfoImplCopyWith<_$CountingInfoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -2946,6 +4005,9 @@ mixin _$SessionHistoryItem {
   /// V2: Receiving info (receiving sessions only)
   ReceivingInfo? get receivingInfo => throw _privateConstructorUsedError;
 
+  /// v4: Counting info (counting sessions only - zeroed items tracking)
+  CountingInfo? get countingInfo => throw _privateConstructorUsedError;
+
   /// Create a copy of SessionHistoryItem
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2987,10 +4049,12 @@ abstract class $SessionHistoryItemCopyWith<$Res> {
       int? totalDifference,
       bool isMergedSession,
       MergeInfo? mergeInfo,
-      ReceivingInfo? receivingInfo});
+      ReceivingInfo? receivingInfo,
+      CountingInfo? countingInfo});
 
   $MergeInfoCopyWith<$Res>? get mergeInfo;
   $ReceivingInfoCopyWith<$Res>? get receivingInfo;
+  $CountingInfoCopyWith<$Res>? get countingInfo;
 }
 
 /// @nodoc
@@ -3036,6 +4100,7 @@ class _$SessionHistoryItemCopyWithImpl<$Res, $Val extends SessionHistoryItem>
     Object? isMergedSession = null,
     Object? mergeInfo = freezed,
     Object? receivingInfo = freezed,
+    Object? countingInfo = freezed,
   }) {
     return _then(_value.copyWith(
       sessionId: null == sessionId
@@ -3150,6 +4215,10 @@ class _$SessionHistoryItemCopyWithImpl<$Res, $Val extends SessionHistoryItem>
           ? _value.receivingInfo
           : receivingInfo // ignore: cast_nullable_to_non_nullable
               as ReceivingInfo?,
+      countingInfo: freezed == countingInfo
+          ? _value.countingInfo
+          : countingInfo // ignore: cast_nullable_to_non_nullable
+              as CountingInfo?,
     ) as $Val);
   }
 
@@ -3178,6 +4247,20 @@ class _$SessionHistoryItemCopyWithImpl<$Res, $Val extends SessionHistoryItem>
 
     return $ReceivingInfoCopyWith<$Res>(_value.receivingInfo!, (value) {
       return _then(_value.copyWith(receivingInfo: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SessionHistoryItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CountingInfoCopyWith<$Res>? get countingInfo {
+    if (_value.countingInfo == null) {
+      return null;
+    }
+
+    return $CountingInfoCopyWith<$Res>(_value.countingInfo!, (value) {
+      return _then(_value.copyWith(countingInfo: value) as $Val);
     });
   }
 }
@@ -3218,12 +4301,15 @@ abstract class _$$SessionHistoryItemImplCopyWith<$Res>
       int? totalDifference,
       bool isMergedSession,
       MergeInfo? mergeInfo,
-      ReceivingInfo? receivingInfo});
+      ReceivingInfo? receivingInfo,
+      CountingInfo? countingInfo});
 
   @override
   $MergeInfoCopyWith<$Res>? get mergeInfo;
   @override
   $ReceivingInfoCopyWith<$Res>? get receivingInfo;
+  @override
+  $CountingInfoCopyWith<$Res>? get countingInfo;
 }
 
 /// @nodoc
@@ -3267,6 +4353,7 @@ class __$$SessionHistoryItemImplCopyWithImpl<$Res>
     Object? isMergedSession = null,
     Object? mergeInfo = freezed,
     Object? receivingInfo = freezed,
+    Object? countingInfo = freezed,
   }) {
     return _then(_$SessionHistoryItemImpl(
       sessionId: null == sessionId
@@ -3381,6 +4468,10 @@ class __$$SessionHistoryItemImplCopyWithImpl<$Res>
           ? _value.receivingInfo
           : receivingInfo // ignore: cast_nullable_to_non_nullable
               as ReceivingInfo?,
+      countingInfo: freezed == countingInfo
+          ? _value.countingInfo
+          : countingInfo // ignore: cast_nullable_to_non_nullable
+              as CountingInfo?,
     ));
   }
 }
@@ -3416,7 +4507,8 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
       this.totalDifference,
       this.isMergedSession = false,
       this.mergeInfo,
-      this.receivingInfo})
+      this.receivingInfo,
+      this.countingInfo})
       : _members = members,
         _items = items,
         super._();
@@ -3502,9 +4594,13 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
   @override
   final ReceivingInfo? receivingInfo;
 
+  /// v4: Counting info (counting sessions only - zeroed items tracking)
+  @override
+  final CountingInfo? countingInfo;
+
   @override
   String toString() {
-    return 'SessionHistoryItem(sessionId: $sessionId, sessionName: $sessionName, sessionType: $sessionType, isActive: $isActive, isFinal: $isFinal, storeId: $storeId, storeName: $storeName, shipmentId: $shipmentId, shipmentNumber: $shipmentNumber, createdAt: $createdAt, completedAt: $completedAt, durationMinutes: $durationMinutes, createdBy: $createdBy, createdByName: $createdByName, createdByFirstName: $createdByFirstName, createdByLastName: $createdByLastName, createdByProfileImage: $createdByProfileImage, members: $members, memberCount: $memberCount, items: $items, totalScannedQuantity: $totalScannedQuantity, totalScannedRejected: $totalScannedRejected, totalConfirmedQuantity: $totalConfirmedQuantity, totalConfirmedRejected: $totalConfirmedRejected, totalDifference: $totalDifference, isMergedSession: $isMergedSession, mergeInfo: $mergeInfo, receivingInfo: $receivingInfo)';
+    return 'SessionHistoryItem(sessionId: $sessionId, sessionName: $sessionName, sessionType: $sessionType, isActive: $isActive, isFinal: $isFinal, storeId: $storeId, storeName: $storeName, shipmentId: $shipmentId, shipmentNumber: $shipmentNumber, createdAt: $createdAt, completedAt: $completedAt, durationMinutes: $durationMinutes, createdBy: $createdBy, createdByName: $createdByName, createdByFirstName: $createdByFirstName, createdByLastName: $createdByLastName, createdByProfileImage: $createdByProfileImage, members: $members, memberCount: $memberCount, items: $items, totalScannedQuantity: $totalScannedQuantity, totalScannedRejected: $totalScannedRejected, totalConfirmedQuantity: $totalConfirmedQuantity, totalConfirmedRejected: $totalConfirmedRejected, totalDifference: $totalDifference, isMergedSession: $isMergedSession, mergeInfo: $mergeInfo, receivingInfo: $receivingInfo, countingInfo: $countingInfo)';
   }
 
   @override
@@ -3563,7 +4659,9 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
             (identical(other.mergeInfo, mergeInfo) ||
                 other.mergeInfo == mergeInfo) &&
             (identical(other.receivingInfo, receivingInfo) ||
-                other.receivingInfo == receivingInfo));
+                other.receivingInfo == receivingInfo) &&
+            (identical(other.countingInfo, countingInfo) ||
+                other.countingInfo == countingInfo));
   }
 
   @override
@@ -3596,7 +4694,8 @@ class _$SessionHistoryItemImpl extends _SessionHistoryItem {
         totalDifference,
         isMergedSession,
         mergeInfo,
-        receivingInfo
+        receivingInfo,
+        countingInfo
       ]);
 
   /// Create a copy of SessionHistoryItem
@@ -3638,7 +4737,8 @@ abstract class _SessionHistoryItem extends SessionHistoryItem {
       final int? totalDifference,
       final bool isMergedSession,
       final MergeInfo? mergeInfo,
-      final ReceivingInfo? receivingInfo}) = _$SessionHistoryItemImpl;
+      final ReceivingInfo? receivingInfo,
+      final CountingInfo? countingInfo}) = _$SessionHistoryItemImpl;
   const _SessionHistoryItem._() : super._();
 
   @override
@@ -3709,6 +4809,10 @@ abstract class _SessionHistoryItem extends SessionHistoryItem {
   /// V2: Receiving info (receiving sessions only)
   @override
   ReceivingInfo? get receivingInfo;
+
+  /// v4: Counting info (counting sessions only - zeroed items tracking)
+  @override
+  CountingInfo? get countingInfo;
 
   /// Create a copy of SessionHistoryItem
   /// with the given fields replaced by the non-null parameter values.

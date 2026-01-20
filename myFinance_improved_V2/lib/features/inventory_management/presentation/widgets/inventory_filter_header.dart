@@ -68,9 +68,9 @@ class InventoryFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
-          // Summary text - uses server-provided total value from v5 RPC
+          // Summary text - v6.1: uses store-wide totals (not affected by filters)
           Text(
-            'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
+            'Total on hand: ${pageState.totalInventoryQuantity} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.totalInventoryCost)}',
             style: TossTextStyles.caption.copyWith(
               fontWeight: TossFontWeight.medium,
               color: TossColors.gray600,
@@ -230,9 +230,9 @@ class InventoryFilterSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TossSpacing.space3),
-          // Summary text
+          // Summary text - v6.1: uses store-wide totals (not affected by filters)
           Text(
-            'Total on hand: ${pageState.pagination.total} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.serverTotalValue)}',
+            'Total on hand: ${pageState.totalInventoryQuantity} items · Total value: ${pageState.currency?.symbol ?? '\$'}${_formatCurrency(pageState.totalInventoryCost)}',
             style: TossTextStyles.caption.copyWith(
               fontWeight: TossFontWeight.medium,
               color: TossColors.gray600,

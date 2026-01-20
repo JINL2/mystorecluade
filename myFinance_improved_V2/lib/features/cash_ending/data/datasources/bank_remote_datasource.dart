@@ -16,16 +16,14 @@ class BankRemoteDataSource {
 
   /// Save bank balance using universal multi-currency RPC
   ///
-  /// ✅ Uses insert_amount_multi_currency (Entry-based workflow)
+  /// Uses insert_amount_multi_currency (Entry-based workflow)
   /// Supports multi-currency bank balances
   /// [params] contains all parameters for the RPC function
   /// Returns the entry data from database (entry_id, balance_before, balance_after)
-  /// Throws exception on error
   Future<Map<String, dynamic>?> saveBankBalance(
     Map<String, dynamic> params,
   ) async {
     try {
-      // ✅ NEW: Universal RPC returns entry data
       final response = await _client.rpc(
         CashEndingConstants.rpcInsertAmountMultiCurrency,
         params: params,

@@ -156,8 +156,8 @@ abstract class SessionRepository {
     required String companyId,
   });
 
-  /// Get session history via RPC (inventory_get_session_history_v3)
-  /// Returns detailed session history including members and items
+  /// Get session history via RPC (inventory_get_session_history_v4)
+  /// Returns detailed session history including members, items, merge info, receiving info, and counting info
   Future<SessionHistoryResponse> getSessionHistory({
     required String companyId,
     String? storeId,
