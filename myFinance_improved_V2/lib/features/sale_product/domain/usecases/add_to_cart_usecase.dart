@@ -24,10 +24,10 @@ class AddToCartUseCase {
       throw const ValidationException('Quantity must be greater than 0');
     }
 
-    // Price validation - prevent 0원 sales from null prices
+    // Price validation - only reject null prices, allow 0원 sales
     final sellingPrice = product.pricing.sellingPrice;
-    if (sellingPrice == null || sellingPrice <= 0) {
-      throw const ValidationException('Product price is not set or invalid');
+    if (sellingPrice == null) {
+      throw const ValidationException('Product price is not set');
     }
 
     // Get available stock for display purposes

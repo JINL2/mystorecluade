@@ -8,7 +8,7 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_dimensions.dart';
-import '../move_stock_dialog.dart';
+import '../../models/store_location.dart';
 
 /// Individual store row item for the locations section
 /// Optimized with entrance animation and tap feedback

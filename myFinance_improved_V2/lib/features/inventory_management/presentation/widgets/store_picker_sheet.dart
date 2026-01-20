@@ -5,7 +5,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import 'move_stock_dialog.dart';
+import '../models/store_location.dart';
 
 /// Reusable bottom sheet for selecting a store from a list
 class StorePickerSheet extends StatelessWidget {

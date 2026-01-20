@@ -166,6 +166,15 @@ abstract class InventoryRepository {
     required String attributeName,
     List<Map<String, dynamic>>? options,
   });
+
+  /// Update attribute name and manage options (add, update, delete)
+  Future<UpdateAttributeResult> updateAttributeAndOptions({
+    required String companyId,
+    required String attributeId,
+    required String createdBy,
+    String? attributeName,
+    List<Map<String, dynamic>>? options,
+  });
 }
 
 /// Product Page Result
@@ -743,5 +752,39 @@ class CreatedAttributeOption {
     required this.optionId,
     required this.optionValue,
     required this.sortOrder,
+  });
+}
+
+/// Result from inventory_update_attribute_and_options RPC
+class UpdateAttributeResult {
+  final String attributeId;
+  final String attributeName;
+  final int optionsUpdated;
+  final int optionsAdded;
+  final int optionsDeleted;
+  final List<UpdatedAttributeOption> options;
+
+  const UpdateAttributeResult({
+    required this.attributeId,
+    required this.attributeName,
+    required this.optionsUpdated,
+    required this.optionsAdded,
+    required this.optionsDeleted,
+    required this.options,
+  });
+}
+
+/// Updated option data
+class UpdatedAttributeOption {
+  final String optionId;
+  final String optionValue;
+  final int sortOrder;
+  final String action; // 'updated', 'added', 'deleted'
+
+  const UpdatedAttributeOption({
+    required this.optionId,
+    required this.optionValue,
+    required this.sortOrder,
+    required this.action,
   });
 }

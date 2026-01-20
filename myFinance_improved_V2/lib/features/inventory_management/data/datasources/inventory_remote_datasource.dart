@@ -928,4 +928,56 @@ class InventoryRemoteDataSource {
       );
     }
   }
+
+  /// Update attribute name and manage options (add, update, delete)
+  /// Calls inventory_update_attribute_and_options RPC
+  Future<UpdateAttributeResponse> updateAttributeAndOptions({
+    required String companyId,
+    required String attributeId,
+    required String createdBy,
+    String? attributeName,
+    List<Map<String, dynamic>>? options,
+  }) async {
+    try {
+      final params = {
+        'p_company_id': companyId,
+        'p_attribute_id': attributeId,
+        'p_created_by': createdBy,
+        'p_time': DateTimeUtils.formatLocalTimestamp(),
+        'p_timezone': DateTimeUtils.getLocalTimezone(),
+        'p_attribute_name': attributeName,
+        'p_options': options,
+      };
+
+      final response = await _client
+          .rpc<Map<String, dynamic>>(
+            'inventory_update_attribute_and_options',
+            params: params,
+          )
+          .single();
+
+      if (response['success'] == true) {
+        return UpdateAttributeResponse.fromJson(response);
+      } else {
+        final error = response['error']?.toString() ?? 'UNKNOWN_ERROR';
+        final message =
+            response['message']?.toString() ?? 'Failed to update attribute';
+        throw InventoryAttributeException(
+          message: message,
+          errorCode: error,
+        );
+      }
+    } on PostgrestException catch (e) {
+      throw InventoryConnectionException(
+        message: 'Database error: ${e.message}',
+        details: {'code': e.code, 'details': e.details},
+      );
+    } catch (e) {
+      if (e is InventoryException) rethrow;
+      throw InventoryRepositoryException(
+        message: 'Failed to update attribute: $e',
+        details: e,
+      );
+    }
+  }
 }

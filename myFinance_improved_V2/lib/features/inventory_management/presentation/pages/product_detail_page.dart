@@ -16,6 +16,7 @@ import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/pagination_params.dart';
 import '../../domain/value_objects/product_filter.dart';
 import '../providers/inventory_providers.dart';
+import '../models/store_location.dart';
 import '../widgets/move_stock_dialog.dart';
 import '../widgets/product_detail/product_detail_widgets.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';

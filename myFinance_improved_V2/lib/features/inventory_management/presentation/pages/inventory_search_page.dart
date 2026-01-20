@@ -19,6 +19,7 @@ import '../../domain/entities/product.dart';
 import '../../domain/value_objects/pagination_params.dart';
 import '../../domain/value_objects/product_filter.dart';
 import '../providers/inventory_providers.dart';
+import '../models/store_location.dart';
 import '../widgets/inventory_product_card.dart';
 import '../widgets/move_stock_dialog.dart';
 

@@ -9,38 +9,11 @@ import '../../../../shared/themes/toss_text_styles.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/entities/inventory_metadata.dart' show Attribute;
 import '../../domain/exceptions/inventory_exceptions.dart';
+import '../models/attribute_item.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/attributes/add_attribute_form_dialog.dart';
+import 'attribute_detail_page.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
-
-/// Attribute item model for display
-class AttributeItem {
-  final String id;
-  final String name;
-  final bool isBuiltIn;
-  final int optionCount;
-
-  AttributeItem({
-    required this.id,
-    required this.name,
-    this.isBuiltIn = false,
-    this.optionCount = 0,
-  });
-
-  AttributeItem copyWith({
-    String? id,
-    String? name,
-    bool? isBuiltIn,
-    int? optionCount,
-  }) {
-    return AttributeItem(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      isBuiltIn: isBuiltIn ?? this.isBuiltIn,
-      optionCount: optionCount ?? this.optionCount,
-    );
-  }
-}
 
 /// Attributes Edit Page - Shows all attributes with their types
 class AttributesEditPage extends ConsumerStatefulWidget {
@@ -274,33 +247,9 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
   }
 
   Widget _buildBody() {
-    return ReorderableListView.builder(
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       itemCount: _attributes.length,
-      proxyDecorator: (child, index, animation) {
-        return AnimatedBuilder(
-          animation: animation,
-          builder: (context, child) {
-            final elevation =
-                Tween<double>(begin: 0, end: 4).evaluate(animation);
-            return Material(
-              elevation: elevation,
-              color: TossColors.white,
-              child: child,
-            );
-          },
-          child: child,
-        );
-      },
-      onReorder: (oldIndex, newIndex) {
-        setState(() {
-          if (newIndex > oldIndex) {
-            newIndex -= 1;
-          }
-          final item = _attributes.removeAt(oldIndex);
-          _attributes.insert(newIndex, item);
-        });
-      },
       itemBuilder: (context, index) {
         final attribute = _attributes[index];
         return _buildAttributeRow(
@@ -310,6 +259,23 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
         );
       },
     );
+  }
+
+  void _navigateToDetail(AttributeItem attribute) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<bool>(
+        builder: (context) => AttributeDetailPage(
+          attributeId: attribute.id,
+          attributeName: attribute.name,
+          isBuiltIn: attribute.isBuiltIn,
+        ),
+      ),
+    ).then((result) {
+      if (result == true) {
+        _loadAttributes();
+      }
+    });
   }
 
   Widget _buildAttributeRow({
@@ -339,42 +305,42 @@ class _AttributesEditPageState extends ConsumerState<AttributesEditPage> {
           _deleteAttribute(index);
           return false;
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Row(
-            children: [
-              // Attribute name
-              Expanded(
-                child: Text(
-                  attribute.name,
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: TossColors.gray900,
+        child: InkWell(
+          onTap: () => _navigateToDetail(attribute),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Row(
+              children: [
+                // Attribute name
+                Expanded(
+                  child: Text(
+                    attribute.name,
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: TossColors.gray900,
+                    ),
                   ),
                 ),
-              ),
 
-              // Options count
-              if (attribute.optionCount > 0)
-                Text(
-                  '${attribute.optionCount} options',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w400,
-                    color: TossColors.gray500,
+                // Options count
+                if (attribute.optionCount > 0)
+                  Text(
+                    '${attribute.optionCount} options',
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w400,
+                      color: TossColors.gray500,
+                    ),
                   ),
-                ),
-              const SizedBox(width: 16),
+                const SizedBox(width: 16),
 
-              // Reorder handle
-              ReorderableDragStartListener(
-                index: index,
-                child: const Icon(
-                  Icons.menu,
+                // Edit icon (chevron right)
+                const Icon(
+                  LucideIcons.chevronRight,
                   size: 20,
                   color: TossColors.gray400,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
