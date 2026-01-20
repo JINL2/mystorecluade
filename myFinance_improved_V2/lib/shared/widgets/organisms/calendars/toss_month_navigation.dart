@@ -30,26 +30,29 @@ class TossMonthNavigation extends StatelessWidget {
     return SizedBox(
       height: TossSpacing.iconXXL,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Left: Previous month button
           IconButton(
             onPressed: onPrevMonth,
-            icon: const Icon(Icons.chevron_left),
-            color: TossColors.gray600,
-            iconSize: 24,
+            icon: Icon(Icons.chevron_left, size: TossSpacing.iconLG, color: TossColors.gray600),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 48),
           ),
-          // Center: Current month text (tappable)
-          InkWell(
-            onTap: onCurrentMonth,
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4, vertical: TossSpacing.space2),
-              child: Text(
-                '$currentMonth $year',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w600,
+          // Center: Current month text (tappable) - takes remaining space
+          Expanded(
+            child: InkWell(
+              onTap: onCurrentMonth,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space1),
+                  child: Text(
+                    '$currentMonth $year',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.gray900,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -57,9 +60,9 @@ class TossMonthNavigation extends StatelessWidget {
           // Right: Next month button
           IconButton(
             onPressed: onNextMonth,
-            icon: const Icon(Icons.chevron_right),
-            color: TossColors.gray600,
-            iconSize: 24,
+            icon: Icon(Icons.chevron_right, size: TossSpacing.iconLG, color: TossColors.gray600),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 48),
           ),
         ],
       ),

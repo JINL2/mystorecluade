@@ -170,11 +170,9 @@ class DeepWidgetAnalyzer {
   void _analyzeSimilarity() {
     // Analyze Container+BoxDecoration vs TossCard
     _calculateWidgetSimilarity('Container+BoxDecoration', 'TossCard');
-    _calculateWidgetSimilarity('Container+BoxDecoration', 'TossWhiteCard');
-    
+
     // Analyze Card vs TossCard
     _calculateWidgetSimilarity('Card', 'TossCard');
-    _calculateWidgetSimilarity('Card', 'TossWhiteCard');
     
     // Analyze Button similarities
     _calculateWidgetSimilarity('ElevatedButton', 'TossPrimaryButton');
@@ -233,7 +231,6 @@ class DeepWidgetAnalyzer {
         break;
         
       case 'TossCard':
-      case 'TossWhiteCard':
         signature.properties = {
           'child', 'padding', 'margin', 'color', 'elevation',
           'borderRadius', 'onTap',
@@ -421,7 +418,6 @@ class DeepWidgetAnalyzer {
   void _assessRisks() {
     // Assess risks for each replacement pattern
     _assessReplacementRisk('Container+BoxDecoration', 'TossCard');
-    _assessReplacementRisk('Container+BoxDecoration', 'TossWhiteCard');
     _assessReplacementRisk('Card', 'TossCard');
     _assessReplacementRisk('ElevatedButton', 'TossPrimaryButton');
     _assessReplacementRisk('TextButton', 'TossSecondaryButton');

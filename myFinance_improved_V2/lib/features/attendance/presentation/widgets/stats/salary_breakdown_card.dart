@@ -21,8 +21,7 @@ class SalaryBreakdownCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
-      showBorder: false,
+    return TossCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [

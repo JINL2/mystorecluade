@@ -438,33 +438,51 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
 
             // Create selection items with "All Stores" option
             final items = [
-              TossSelectionItem.fromGeneric(
+              SelectionItem(
                 id: '',
                 title: 'All Stores',
                 subtitle: 'Show assets from all stores',
                 icon: Icons.store,
               ),
-              ...stores.map((store) => TossSelectionItem.fromStore(store as Map<String, dynamic>)),
+              ...stores.map((store) {
+                final storeMap = store as Map<String, dynamic>;
+                return SelectionItem(
+                  id: storeMap['store_id']?.toString() ?? '',
+                  title: storeMap['store_name']?.toString() ?? 'Unnamed Store',
+                  subtitle: storeMap['store_code']?.toString(),
+                  icon: Icons.store,
+                  data: storeMap,
+                );
+              }),
             ];
 
-            await TossSelectionBottomSheet.show<void>(
+            await SelectionBottomSheetCommon.show<void>(
               context: context,
               title: 'Select Store',
-              items: items,
-              selectedId: selectedStoreId ?? '',
-              onItemSelected: (item) {
-                final newStoreId = item.id.isEmpty ? null : item.id;
+              itemCount: items.length,
+              itemBuilder: (ctx, index) {
+                final item = items[index];
+                final isSelected = item.id == (selectedStoreId ?? '');
+                return SelectionListItem(
+                  item: item,
+                  isSelected: isSelected,
+                  variant: SelectionItemVariant.standard,
+                  onTap: () {
+                    final newStoreId = item.id.isEmpty ? null : item.id;
 
-                // Update notifier
-                ref.read(fixedAssetProvider.notifier).updateSelectedStore(newStoreId);
+                    // Update notifier
+                    ref.read(fixedAssetProvider.notifier).updateSelectedStore(newStoreId);
 
-                // Update app state
-                ref.read(appStateProvider.notifier).selectStore(item.id);
+                    // Update app state
+                    ref.read(appStateProvider.notifier).selectStore(item.id);
 
-                // Reload assets with new store filter
-                ref.read(fixedAssetProvider.notifier).loadAssets(
-                  companyId: appState.companyChoosen,
-                  storeId: newStoreId,
+                    // Reload assets with new store filter
+                    ref.read(fixedAssetProvider.notifier).loadAssets(
+                      companyId: appState.companyChoosen,
+                      storeId: newStoreId,
+                    );
+                    Navigator.pop(ctx);
+                  },
                 );
               },
             );

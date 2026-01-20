@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'package:myfinance_improved/shared/widgets/atoms/buttons/toggle_button.dart';
 import 'staff_timelog_card.dart' show StaffTimeRecord;
 import '../../pages/staff_timelog_detail_page.dart';
 import 'problem_card.dart';
@@ -35,6 +34,24 @@ class ProblemsSection extends StatelessWidget {
     this.onSaveResult,
   });
 
+  int _getFilterIndex(String? filter) {
+    return switch (filter) {
+      'today' => 0,
+      'this_week' => 1,
+      'this_month' => 2,
+      _ => 0,
+    };
+  }
+
+  String _getFilterId(int index) {
+    return switch (index) {
+      0 => 'today',
+      1 => 'this_week',
+      2 => 'this_month',
+      _ => 'today',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -52,27 +69,13 @@ class ProblemsSection extends StatelessWidget {
         const SizedBox(height: TossSpacing.space3),
 
         // Filter Chips
-        ToggleButtonGroup(
-          items: [
-            ToggleButtonItem(
-              id: 'today',
-              label: 'Today',
-              count: todayCount,
-            ),
-            ToggleButtonItem(
-              id: 'this_week',
-              label: 'This week',
-              count: thisWeekCount,
-            ),
-            ToggleButtonItem(
-              id: 'this_month',
-              label: 'This month',
-              count: thisMonthCount,
-            ),
-          ],
-          selectedId: selectedFilter ?? 'today',
-          onToggle: (value) => onFilterChanged(value),
-          layout: ToggleButtonLayout.expanded,
+        TossSectionBar(
+          tabs: const ['Today', 'This week', 'This month'],
+          tabCounts: [todayCount, thisWeekCount, thisMonthCount],
+          initialIndex: _getFilterIndex(selectedFilter),
+          onTabChanged: (index) => onFilterChanged(_getFilterId(index)),
+          margin: EdgeInsets.zero,
+          height: 40,
         ),
 
         const SizedBox(height: TossSpacing.space3),

@@ -50,7 +50,7 @@ class TossStatsCard extends StatelessWidget {
       return _buildErrorState();
     }
 
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +142,7 @@ class TossStatsCard extends StatelessWidget {
   }
 
   Widget _buildLoadingState() {
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: SizedBox(
         height: TossSpacing.space10 * 3.5,
@@ -152,7 +152,7 @@ class TossStatsCard extends StatelessWidget {
   }
 
   Widget _buildErrorState() {
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Center(
         child: Column(

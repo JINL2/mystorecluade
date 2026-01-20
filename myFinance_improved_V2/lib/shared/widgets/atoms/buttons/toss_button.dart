@@ -11,17 +11,19 @@ enum TossButtonVariant {
   outlinedGray,
   textButton,
   destructive,
+  pill,
 }
 
 /// Unified Toss-style button with full customization support
 ///
-/// Supports 6 variants:
+/// Supports 7 variants:
 /// - `primary` - Blue filled button (main CTA)
 /// - `secondary` - Gray filled button
 /// - `outlined` - Blue border, transparent background
 /// - `outlinedGray` - Gray border, transparent background
 /// - `textButton` - No background, no border (just text)
 /// - `destructive` - Red filled button (delete/danger actions)
+/// - `pill` - Fully rounded pill button with customizable colors
 ///
 /// Example:
 /// ```dart
@@ -31,6 +33,8 @@ enum TossButtonVariant {
 /// TossButton.textButton(text: 'Learn more', onPressed: () {})
 /// TossButton.destructive(text: 'Delete', onPressed: () {})
 /// TossButton.primary(text: 'Next', trailingIcon: Icon(Icons.arrow_forward), onPressed: () {})
+/// TossButton.pill(text: 'Approve', leadingIcon: Icon(Icons.check), backgroundColor: TossColors.primary, onPressed: () {})
+/// TossButton.pill(text: 'Next', trailingIcon: Icon(Icons.arrow_forward), backgroundColor: TossColors.success, onPressed: () {})
 /// ```
 class TossButton extends StatefulWidget {
   final String text;
@@ -397,6 +401,90 @@ class TossButton extends StatefulWidget {
     );
   }
 
+  /// Factory constructor for pill button (fully rounded with customizable colors)
+  ///
+  /// A pill-shaped button with full border radius (999px).
+  /// Supports both leading and trailing icons with fully customizable colors.
+  ///
+  /// Example:
+  /// ```dart
+  /// // With leading icon (left)
+  /// TossButton.pill(
+  ///   text: 'Approve',
+  ///   leadingIcon: Icon(Icons.check),
+  ///   backgroundColor: TossColors.primary,
+  ///   onPressed: () {},
+  /// )
+  ///
+  /// // With trailing icon (right)
+  /// TossButton.pill(
+  ///   text: 'Next',
+  ///   trailingIcon: Icon(Icons.arrow_forward),
+  ///   backgroundColor: TossColors.success,
+  ///   textColor: TossColors.white,
+  ///   onPressed: () {},
+  /// )
+  ///
+  /// // With both icons
+  /// TossButton.pill(
+  ///   text: 'Continue',
+  ///   leadingIcon: Icon(Icons.play_arrow),
+  ///   trailingIcon: Icon(Icons.arrow_forward),
+  ///   backgroundColor: TossColors.primary,
+  ///   onPressed: () {},
+  /// )
+  /// ```
+  factory TossButton.pill({
+    Key? key,
+    required String text,
+    VoidCallback? onPressed,
+    bool isLoading = false,
+    bool isEnabled = true,
+    Widget? leadingIcon,
+    Widget? trailingIcon,
+    bool fullWidth = false,
+    Color? backgroundColor,
+    Color? textColor,
+    Color? borderColor,
+    EdgeInsets? padding,
+    double? fontSize,
+    FontWeight? fontWeight,
+    double? height,
+    double? minWidth,
+    double? iconSize,
+    TextStyle? textStyle,
+    int? debounceDurationMs,
+    bool enablePressAnimation = true,
+  }) {
+    return TossButton(
+      key: key,
+      text: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
+      isEnabled: isEnabled,
+      leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
+      fullWidth: fullWidth,
+      variant: TossButtonVariant.pill,
+      backgroundColor: backgroundColor,
+      textColor: textColor,
+      borderColor: borderColor,
+      padding: padding ?? const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      borderRadius: TossBorderRadius.full, // 999px - fully rounded
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      height: height,
+      minWidth: minWidth,
+      iconSize: iconSize,
+      textStyle: textStyle,
+      debounceDurationMs: debounceDurationMs,
+      enablePressAnimation: enablePressAnimation,
+    );
+  }
+
   @override
   State<TossButton> createState() => _TossButtonState();
 }
@@ -446,6 +534,7 @@ class _TossButtonState extends State<TossButton>
 
     switch (widget.variant) {
       case TossButtonVariant.primary:
+      case TossButtonVariant.pill:
         return TossColors.primary;
       case TossButtonVariant.secondary:
         return TossColors.gray100;
@@ -470,6 +559,7 @@ class _TossButtonState extends State<TossButton>
     switch (widget.variant) {
       case TossButtonVariant.primary:
       case TossButtonVariant.destructive:
+      case TossButtonVariant.pill:
         return TossColors.white;
       case TossButtonVariant.secondary:
         return TossColors.gray900;
@@ -494,6 +584,7 @@ class _TossButtonState extends State<TossButton>
       case TossButtonVariant.primary:
       case TossButtonVariant.secondary:
       case TossButtonVariant.destructive:
+      case TossButtonVariant.pill:
       case TossButtonVariant.textButton:
         return TossColors.transparent;
     }

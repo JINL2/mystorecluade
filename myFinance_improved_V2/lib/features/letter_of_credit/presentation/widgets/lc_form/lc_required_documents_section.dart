@@ -36,13 +36,14 @@ class LCRequiredDocumentsSection extends StatelessWidget {
   }
 
   Widget _buildDocumentItem(BuildContext context, int index, LCRequiredDocumentParams doc) {
-    return TossWhiteCard(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space3,
-        vertical: TossSpacing.space2,
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+      child: TossCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        child: Row(
         children: [
           Expanded(
             child: Column(
@@ -71,6 +72,7 @@ class LCRequiredDocumentsSection extends StatelessWidget {
             },
           ),
         ],
+      ),
       ),
     );
   }

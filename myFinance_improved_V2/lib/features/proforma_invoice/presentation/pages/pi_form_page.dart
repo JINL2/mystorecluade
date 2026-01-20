@@ -19,6 +19,7 @@ import '../../domain/repositories/pi_repository.dart';
 import '../providers/pi_providers.dart';
 import '../widgets/pi_form/pi_form_widgets.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 class PIFormPage extends ConsumerStatefulWidget {
   final String? piId; // null for create, non-null for edit
@@ -496,11 +497,12 @@ class _PIFormPageState extends ConsumerState<PIFormPage> {
         // Date field
         InkWell(
           onTap: () async {
-            final date = await showDatePicker(
+            final date = await showTossDatePicker(
               context: context,
               initialDate: value ?? DateTime.now(),
               firstDate: DateTime.now().subtract(const Duration(days: 365)),
               lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+              title: label,
             );
             onChanged(date);
           },

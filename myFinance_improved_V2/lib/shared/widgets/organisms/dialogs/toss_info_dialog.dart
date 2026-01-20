@@ -63,10 +63,7 @@ class TossInfoDialog extends StatelessWidget {
           children: [
             Text(
               title,
-              style: TossTextStyles.h3.copyWith(
-                fontWeight: FontWeight.w700,
-                color: TossColors.gray900,
-              ),
+              style: TossTextStyles.dialogTitleLarge,
             ),
             SizedBox(height: TossSpacing.space5),
             ...bulletPoints.asMap().entries.map((entry) {
@@ -121,10 +118,7 @@ class _TossInfoBulletPoint extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray700,
-              height: 1.5,
-            ),
+            style: TossTextStyles.captionReadable,
           ),
         ),
       ],

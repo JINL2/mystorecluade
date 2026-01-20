@@ -34,7 +34,7 @@ class CurrencyOverviewCard extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () => _toggleExpansion(ref),
-      child: TossWhiteCard(
+      child: TossCard(
         padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

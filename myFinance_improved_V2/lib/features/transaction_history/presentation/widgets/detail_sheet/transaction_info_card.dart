@@ -30,7 +30,7 @@ class TransactionInfoCard extends StatelessWidget {
     final hasAiDesc = transaction.aiDescription != null &&
         transaction.aiDescription!.isNotEmpty;
 
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

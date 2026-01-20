@@ -81,8 +81,7 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
               ),
             ),
             SizedBox(height: TossSpacing.gapMD),
-            TossWhiteCard(
-              showBorder: false,
+            TossCard(
               padding: EdgeInsets.all(TossSpacing.space5),
               child: ReliabilityRadarChart(
                 criteria: criteria.cast<Map<String, dynamic>>(),
@@ -151,8 +150,7 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
     final color = _getScoreColor(widget.finalScore);
     final label = _getScoreLabel(widget.finalScore);
 
-    return TossWhiteCard(
-      showBorder: false,
+    return TossCard(
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

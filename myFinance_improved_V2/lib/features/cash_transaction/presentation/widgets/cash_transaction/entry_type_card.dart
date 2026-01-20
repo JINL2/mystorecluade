@@ -1,12 +1,13 @@
-/// Entry Type Card - Re-export from shared widgets
+/// Entry Type Card - DEPRECATED
 ///
-/// This file now re-exports the unified selection card widgets
-/// from the shared widgets library for backward compatibility.
+/// This file previously re-exported TossSelectionCard widgets.
+/// These have been replaced with:
+/// - SelectionListItem (for selection lists)
+/// - InfoCard.summary (for summary displays)
 ///
-/// The original duplicate widgets have been consolidated into:
-/// - TossSelectionCard.entryType (replaces EntryTypeCard)
-/// - TossSelectionCard.expenseSubType (replaces ExpenseSubTypeCard)
-/// - TossSelectionCard (replaces GenericSelectionCard)
+/// Import these directly from shared/widgets/index.dart instead.
 library;
 
-export 'package:myfinance_improved/shared/widgets/molecules/cards/toss_selection_card.dart';
+// Re-export for backward compatibility
+export 'package:myfinance_improved/shared/widgets/molecules/cards/info_card.dart';
+export 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';

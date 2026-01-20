@@ -2,20 +2,22 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../cash_location/presentation/pages/account_detail_page.dart';
 import '../../../../domain/entities/currency.dart';
 import '../../../../domain/entities/denomination.dart';
+import '../../../../domain/entities/vault_transaction_type.dart';
 import '../../../providers/cash_ending_provider.dart';
 import '../../../providers/cash_ending_state.dart';
 import '../../collapsible_currency_section.dart';
 import '../../currency_pill_selector.dart';
 import '../../grand_total_section.dart';
 import '../../sheets/currency_selector_sheet.dart';
-import 'debit_credit_toggle.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Vault Counting Section Widget
@@ -75,9 +77,36 @@ class _VaultCountingSectionState extends ConsumerState<VaultCountingSection> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DebitCreditToggle(
-              selectedType: widget.transactionType,
-              onTypeChanged: widget.onTransactionTypeChanged,
+            // In/Out/Recount toggle
+            Row(
+              children: [
+                Expanded(
+                  child: _buildToggleButton(
+                    label: 'In',
+                    icon: LucideIcons.arrowDownCircle,
+                    isSelected: widget.transactionType == VaultTransactionType.debit,
+                    onTap: () => widget.onTransactionTypeChanged(VaultTransactionType.debit),
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: _buildToggleButton(
+                    label: 'Out',
+                    icon: LucideIcons.arrowUpCircle,
+                    isSelected: widget.transactionType == VaultTransactionType.credit,
+                    onTap: () => widget.onTransactionTypeChanged(VaultTransactionType.credit),
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: _buildToggleButton(
+                    label: 'Recount',
+                    icon: LucideIcons.refreshCw,
+                    isSelected: widget.transactionType == VaultTransactionType.recount,
+                    onTap: () => widget.onTransactionTypeChanged(VaultTransactionType.recount),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: TossSpacing.space5),
@@ -318,5 +347,41 @@ class _VaultCountingSectionState extends ConsumerState<VaultCountingSection> {
         ),
       ),
     );
+  }
+
+  Widget _buildToggleButton({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    const buttonPadding = EdgeInsets.symmetric(
+      horizontal: TossSpacing.space3,
+      vertical: TossSpacing.space2 + 2,
+    );
+    const iconSize = 18.0;
+    const fontSize = 14.0;
+
+    if (isSelected) {
+      return TossButton.outlined(
+        text: label,
+        leadingIcon: Icon(icon, size: iconSize),
+        onPressed: onTap,
+        fullWidth: true,
+        borderRadius: TossBorderRadius.lg,
+        padding: buttonPadding,
+        fontSize: fontSize,
+      );
+    } else {
+      return TossButton.outlinedGray(
+        text: label,
+        leadingIcon: Icon(icon, size: iconSize),
+        onPressed: onTap,
+        fullWidth: true,
+        borderRadius: TossBorderRadius.lg,
+        padding: buttonPadding,
+        fontSize: fontSize,
+      );
+    }
   }
 }

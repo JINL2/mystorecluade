@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -38,7 +39,12 @@ class WithinCompanyStoreSection extends StatelessWidget {
         ),
 
         // Arrow
-        const TossTransferArrow(),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Center(
+            child: Icon(Icons.arrow_downward, color: TossColors.gray400, size: 20),
+          ),
+        ),
 
         Text(
           'To which store?',
@@ -69,21 +75,18 @@ class WithinCompanyStoreSection extends StatelessWidget {
             final storeId = store['store_id'] as String? ?? '';
             final storeName = store['store_name'] as String? ?? 'Unknown Store';
             final isSelected = selectedStoreId == storeId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: TossSelectionCard.store(
-                storeName: storeName,
-                isSelected: isSelected,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  onStoreSelected(storeId, storeName);
-                },
-              ),
+            return SelectionListItem(
+              item: SelectionItem(id: storeId, title: storeName, icon: Icons.store),
+              isSelected: isSelected,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onStoreSelected(storeId, storeName);
+              },
             );
           }),
 
         const SizedBox(height: TossSpacing.space2),
-        TossNoticeCard.warning(
+        InfoCard.alertWarning(
           message: 'This transfer will create a debt entry between stores/companies.',
         ),
       ],
@@ -122,7 +125,12 @@ class BetweenCompaniesCompanySection extends StatelessWidget {
         ),
 
         // Arrow
-        const TossTransferArrow(),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Center(
+            child: Icon(Icons.arrow_downward, color: TossColors.gray400, size: 20),
+          ),
+        ),
 
         Text(
           'To which company?',
@@ -154,22 +162,23 @@ class BetweenCompaniesCompanySection extends StatelessWidget {
             final companyName = company['company_name'] as String? ?? 'Unknown Company';
             final stores = company['stores'] as List<dynamic>? ?? [];
             final isSelected = selectedCompanyId == companyId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: TossSelectionCard.company(
-                companyName: companyName,
-                storeCount: stores.length,
-                isSelected: isSelected,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  onCompanySelected(companyId, companyName);
-                },
+            return SelectionListItem(
+              item: SelectionItem(
+                id: companyId,
+                title: companyName,
+                subtitle: '${stores.length} store${stores.length > 1 ? 's' : ''}',
+                icon: Icons.business,
               ),
+              isSelected: isSelected,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onCompanySelected(companyId, companyName);
+              },
             );
           }),
 
         const SizedBox(height: TossSpacing.space2),
-        TossNoticeCard.warning(
+        InfoCard.alertWarning(
           message: 'This transfer will create a debt entry between stores/companies.',
         ),
       ],
@@ -212,10 +221,15 @@ class BetweenCompaniesStoreSection extends StatelessWidget {
         ),
 
         // Arrow
-        const TossTransferArrow(),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Center(
+            child: Icon(Icons.arrow_downward, color: TossColors.gray400, size: 20),
+          ),
+        ),
 
         // To company summary
-        TossSummaryCard(
+        InfoCard.summary(
           icon: Icons.business,
           label: 'TO Company',
           value: toCompanyName ?? '',
@@ -253,16 +267,13 @@ class BetweenCompaniesStoreSection extends StatelessWidget {
             final storeId = store['store_id'] as String? ?? '';
             final storeName = store['store_name'] as String? ?? 'Unknown Store';
             final isSelected = selectedStoreId == storeId;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-              child: TossSelectionCard.store(
-                storeName: storeName,
-                isSelected: isSelected,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  onStoreSelected(storeId, storeName);
-                },
-              ),
+            return SelectionListItem(
+              item: SelectionItem(id: storeId, title: storeName, icon: Icons.store),
+              isSelected: isSelected,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onStoreSelected(storeId, storeName);
+              },
             );
           }),
       ],

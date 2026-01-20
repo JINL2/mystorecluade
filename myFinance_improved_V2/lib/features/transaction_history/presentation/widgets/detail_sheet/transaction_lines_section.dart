@@ -160,7 +160,7 @@ class _LineDetailCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: TossSpacing.space3),
-      child: TossWhiteCard(
+      child: TossCard(
         padding: const EdgeInsets.all(TossSpacing.space3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

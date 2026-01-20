@@ -531,7 +531,8 @@ class _TemplateCard extends ConsumerWidget {
     // Check edit permission - admin can edit any, creator can edit own
     final canEdit = ref.watch(canEditTemplateProvider(template.createdBy));
 
-    return TossWhiteCard(
+    return TossCard(
+      padding: EdgeInsets.zero,
       child: Material(
         color: TossColors.transparent,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),

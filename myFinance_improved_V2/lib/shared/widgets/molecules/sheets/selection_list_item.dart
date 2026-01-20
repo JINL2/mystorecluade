@@ -56,13 +56,11 @@ class SelectionListItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space5,
           vertical: variant == SelectionItemVariant.compact
-              ? TossSpacing.space3
-              : TossSpacing.space4,
+              ? TossSpacing.space2
+              : TossSpacing.space3,
         ),
         decoration: BoxDecoration(
-          color: isSelected
-              ? TossColors.primary.withValues(alpha: 0.05)
-              : Colors.transparent,
+          color: Colors.transparent,
           border: showDivider
               ? const Border(
                   bottom: BorderSide(color: TossColors.gray100, width: 0.5),

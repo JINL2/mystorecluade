@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -395,7 +396,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
             const SizedBox(height: TossSpacing.space3),
 
             // Cash location summary (read-only, from main page)
-            TossSummaryCard(
+            InfoCard.summary(
               icon: Icons.account_balance_wallet,
               label: 'Cash Location',
               value: widget.cashLocationName,
@@ -437,15 +438,15 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
               const SizedBox(height: TossSpacing.space2),
               ...displayAccounts.map((account) {
                 final isSelected = _selectedAccountId == account.accountId;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: TossSelectionCard(
+                return SelectionListItem(
+                  item: SelectionItem(
+                    id: account.accountId,
                     title: account.accountName,
                     subtitle: 'Code: ${account.accountCode}',
                     icon: Icons.receipt_long,
-                    isSelected: isSelected,
-                    onTap: () => _onAccountSelected(account),
                   ),
+                  isSelected: isSelected,
+                  onTap: () => _onAccountSelected(account),
                 );
               }),
             ] else if (hasNoSearchResults) ...[
@@ -462,15 +463,15 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
               const SizedBox(height: TossSpacing.space2),
               ...accounts.map((account) {
                 final isSelected = _selectedAccountId == account.accountId;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: TossSelectionCard(
+                return SelectionListItem(
+                  item: SelectionItem(
+                    id: account.accountId,
                     title: account.accountName,
                     subtitle: 'Code: ${account.accountCode}',
                     icon: Icons.receipt_long,
-                    isSelected: isSelected,
-                    onTap: () => _onAccountSelected(account),
                   ),
+                  isSelected: isSelected,
+                  onTap: () => _onAccountSelected(account),
                 );
               }),
             ],
@@ -596,7 +597,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
               ),
             );
           },
-          child: TossSummaryCard(
+          child: InfoCard.summary(
             icon: Icons.account_balance_wallet,
             label: 'Cash Location',
             value: widget.cashLocationName,
@@ -616,7 +617,7 @@ class _ExpenseEntrySheetState extends ConsumerState<ExpenseEntrySheet> {
               ),
             );
           },
-          child: TossSummaryCard(
+          child: InfoCard.summary(
             icon: Icons.receipt_long,
             label: 'Expense',
             value: _selectedAccountName ?? '',

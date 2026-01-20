@@ -29,7 +29,7 @@ class BusinessHoursSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hoursAsync = ref.watch(businessHoursProvider);
 
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -51,7 +51,7 @@ class ShiftListItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: onEdit,
-      child: TossWhiteCard(
+      child: TossCard(
         padding: const EdgeInsets.all(TossSpacing.space4),
         child: Row(
         children: [

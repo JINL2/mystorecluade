@@ -105,7 +105,7 @@ class AmountInputSection extends ConsumerWidget {
                 ),
               );
             },
-            child: TossNoticeCard.warning(
+            child: InfoCard.alertWarning(
               message: 'This transfer will create a debt entry between stores/companies.',
             ),
           ),

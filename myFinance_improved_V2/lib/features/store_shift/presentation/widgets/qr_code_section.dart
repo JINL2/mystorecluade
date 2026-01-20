@@ -30,7 +30,7 @@ class QRCodeSection extends StatelessWidget {
       onTap: () {
         _showStoreQRCode(context);
       },
-      child: TossWhiteCard(
+      child: TossCard(
         padding: const EdgeInsets.all(TossSpacing.space4),
         child: Row(
           children: [

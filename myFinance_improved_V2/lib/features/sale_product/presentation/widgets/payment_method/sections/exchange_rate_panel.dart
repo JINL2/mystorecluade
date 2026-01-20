@@ -149,7 +149,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
         final secondaryAmount =
             _customSecondaryAmount ?? (baseAmount * exchangeRate);
 
-        return TossWhiteCard(
+        return TossCard(
           padding: const EdgeInsets.all(TossSpacing.space3),
           child: Column(
             children: [
@@ -215,7 +215,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
           ),
         );
       },
-      loading: () => TossWhiteCard(
+      loading: () => TossCard(
         padding: const EdgeInsets.all(TossSpacing.space3),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -231,7 +231,7 @@ class _ExchangeRatePanelState extends ConsumerState<ExchangeRatePanel> {
           ],
         ),
       ),
-      error: (error, _) => TossWhiteCard(
+      error: (error, _) => TossCard(
         padding: const EdgeInsets.all(TossSpacing.space3),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

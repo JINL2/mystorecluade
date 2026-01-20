@@ -11,3 +11,4 @@
 # Environment files
 .env
 **/.env
+temp_compare_repo/

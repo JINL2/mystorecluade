@@ -7,7 +7,6 @@ import 'buttons/toggle_button_use_case.dart';
 // Display
 import 'display/toss_badge_use_case.dart';
 import 'display/toss_chip_use_case.dart';
-import 'display/info_row_use_case.dart';
 import 'display/cached_product_image_use_case.dart';
 import 'display/employee_profile_avatar_use_case.dart';
 
@@ -34,7 +33,7 @@ import 'sheets/drag_handle_use_case.dart';
 import 'sheets/icon_container_use_case.dart';
 
 final atomsDirectory = WidgetbookCategory(
-  name: 'Atoms (21)',
+  name: 'Atoms (20)',
   children: [
     WidgetbookFolder(
       name: 'Buttons (2)',
@@ -44,12 +43,11 @@ final atomsDirectory = WidgetbookCategory(
       ],
     ),
     WidgetbookFolder(
-      name: 'Display (5)',
+      name: 'Display (4)',
       children: [
         tossBadgeComponent,
         tossStatusBadgeComponent,
         tossChipComponent,
-        infoRowComponent,
         cachedProductImageComponent,
         employeeProfileAvatarComponent,
       ],

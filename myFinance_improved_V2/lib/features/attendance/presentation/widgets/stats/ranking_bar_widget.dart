@@ -26,7 +26,7 @@ class RankingBarWidget extends StatelessWidget {
     final color = _getRankingColor(score);
     final icon = _getRankingIcon(score);
 
-    return TossWhiteCard(
+    return TossCard(
       padding: const EdgeInsets.all(TossSpacing.space4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

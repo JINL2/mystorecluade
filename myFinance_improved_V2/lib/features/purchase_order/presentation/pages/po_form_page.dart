@@ -18,6 +18,7 @@ import '../../domain/repositories/po_repository.dart';
 import '../providers/po_providers.dart';
 import '../widgets/po_form/po_form_widgets.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 class POFormPage extends ConsumerStatefulWidget {
   final String? poId; // null for create, non-null for edit
@@ -379,12 +380,14 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   Future<void> _selectDate({
     DateTime? initialDate,
     required void Function(DateTime?) onSelected,
+    String title = 'Select date',
   }) async {
-    final picked = await showDatePicker(
+    final picked = await showTossDatePicker(
       context: context,
       initialDate: initialDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
+      title: title,
     );
     if (picked != null) {
       onSelected(picked);

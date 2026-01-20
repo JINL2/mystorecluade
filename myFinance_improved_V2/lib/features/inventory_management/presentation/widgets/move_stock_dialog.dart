@@ -3,17 +3,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
-import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_dimensions.dart';
-import '../../../../shared/themes/toss_font_weight.dart';
-import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
 import '../../di/inventory_providers.dart';
 import 'store_picker_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Store location data class for Move Stock Dialog
 class StoreLocation {
@@ -268,8 +263,8 @@ class _MoveStockDialogState extends ConsumerState<MoveStockDialog> {
             ),
             const SizedBox(height: TossSpacing.paddingXL),
             // Quantity stepper (no max limit - allow negative stock)
-            TossQuantityStepper(
-              initialValue: 0,
+            TossQuantityInput.stepper(
+              value: _quantity,
               maxValue: 999999,
               previousValue: _fromStore.stock,
               stockChangeMode: StockChangeMode.subtract,

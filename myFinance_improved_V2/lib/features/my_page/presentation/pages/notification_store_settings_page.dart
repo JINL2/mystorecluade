@@ -481,7 +481,7 @@ class _NotificationStoreSettingsPageState
             ),
             if (isExpanded) ...[
               const SizedBox(height: TossSpacing.space2),
-              TossWhiteCard(
+              TossCard(
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: groupStores.asMap().entries.map((entry) {

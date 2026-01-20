@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -56,7 +57,12 @@ class WithinStoreCashLocationSection extends ConsumerWidget {
         ),
 
         // Arrow
-        const TossTransferArrow(),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Center(
+            child: Icon(Icons.arrow_downward, color: TossColors.gray400, size: 20),
+          ),
+        ),
 
         Text(
           'Which Cash Location?',
@@ -94,17 +100,17 @@ class WithinStoreCashLocationSection extends ConsumerWidget {
             return Column(
               children: availableLocations.map((location) {
                 final isSelected = selectedCashLocationId == location.cashLocationId;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: TossSelectionCard(
+                return SelectionListItem(
+                  item: SelectionItem(
+                    id: location.cashLocationId,
                     title: location.locationName,
                     icon: Icons.account_balance_wallet,
-                    isSelected: isSelected,
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      onLocationSelected(location);
-                    },
                   ),
+                  isSelected: isSelected,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onLocationSelected(location);
+                  },
                 );
               }).toList(),
             );
@@ -170,10 +176,15 @@ class InterEntityCashLocationSection extends ConsumerWidget {
         ),
 
         // Arrow
-        const TossTransferArrow(),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Center(
+            child: Icon(Icons.arrow_downward, color: TossColors.gray400, size: 20),
+          ),
+        ),
 
         // To store summary
-        TossSummaryCard(
+        InfoCard.summary(
           icon: Icons.store,
           label: selectedScope == TransferScope.betweenCompanies
               ? targetCompanyName ?? ''
@@ -215,17 +226,17 @@ class InterEntityCashLocationSection extends ConsumerWidget {
             return Column(
               children: locations.map((location) {
                 final isSelected = selectedCashLocationId == location.cashLocationId;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: TossSpacing.space2),
-                  child: TossSelectionCard(
+                return SelectionListItem(
+                  item: SelectionItem(
+                    id: location.cashLocationId,
                     title: location.locationName,
                     icon: Icons.account_balance_wallet,
-                    isSelected: isSelected,
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      onLocationSelected(location);
-                    },
                   ),
+                  isSelected: isSelected,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onLocationSelected(location);
+                  },
                 );
               }).toList(),
             );

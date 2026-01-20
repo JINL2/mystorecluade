@@ -23,7 +23,7 @@ class EmployeeListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TossWhiteCard(
+    return TossCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [

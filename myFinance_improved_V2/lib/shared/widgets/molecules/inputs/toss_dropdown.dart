@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
-import 'toss_dropdown_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 /// Toss-style dropdown with bottom sheet selection
 class TossDropdown<T> extends StatelessWidget {
@@ -157,27 +159,28 @@ class TossDropdown<T> extends StatelessWidget {
   }
   
   void _showSelectionBottomSheet(BuildContext context) {
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black54,
-      isScrollControlled: true,
-      enableDrag: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xl),
-          topRight: Radius.circular(TossBorderRadius.xl),
-        ),
-      ),
-      builder: (context) => TossDropdownBottomSheet<T>(
-        title: label,
-        items: items,
-        selectedValue: value,
-        onSelected: (selectedValue) {
-          onChanged?.call(selectedValue);
-          Navigator.of(context).pop();
-        },
-      ),
+      title: label,
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final isSelected = item.value == value;
+        return SelectionListItem(
+          item: SelectionItem(
+            id: item.value.toString(),
+            title: item.label,
+            subtitle: item.subtitle,
+            icon: item.icon,
+          ),
+          isSelected: isSelected,
+          variant: SelectionItemVariant.minimal,
+          onTap: () {
+            onChanged?.call(item.value);
+            Navigator.of(context).pop();
+          },
+        );
+      },
     );
   }
 

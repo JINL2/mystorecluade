@@ -340,7 +340,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
       ),
       child: GestureDetector(
         onTap: () => _handleNotificationTap(notification),
-        child: TossWhiteCard(
+        child: TossCard(
           padding: const EdgeInsets.all(TossSpacing.space4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

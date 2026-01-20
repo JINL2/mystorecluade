@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/atoms/layout/sb_card_container.dart';
 
 /// Toss-style card with micro-interactions
+///
+/// Uses [SBCardContainer] as the base container atom.
 class TossCard extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsets? padding;
   final Color? backgroundColor;
   final double borderRadius;
-  
+
   const TossCard({
     super.key,
     required this.child,
@@ -17,17 +20,16 @@ class TossCard extends StatefulWidget {
     this.backgroundColor,
     this.borderRadius = TossBorderRadius.lg,
   });
-  
+
   @override
   State<TossCard> createState() => _TossCardState();
 }
 
-class _TossCardState extends State<TossCard> 
+class _TossCardState extends State<TossCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _shadowAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +37,7 @@ class _TossCardState extends State<TossCard>
       duration: TossAnimations.quick,
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.98,
@@ -43,16 +45,8 @@ class _TossCardState extends State<TossCard>
       parent: _controller,
       curve: TossAnimations.standard,
     ),);
-    
-    _shadowAnimation = Tween<double>(
-      begin: 0.08,
-      end: 0.05,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: TossAnimations.standard,
-    ),);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -64,27 +58,17 @@ class _TossCardState extends State<TossCard>
         animation: _controller,
         builder: (context, child) => Transform.scale(
           scale: _scaleAnimation.value,
-          child: Container(
+          child: SBCardContainer(
             padding: widget.padding ?? const EdgeInsets.all(TossSpacing.space5),
-            decoration: BoxDecoration(
-              color: widget.backgroundColor ?? TossColors.white,
-              borderRadius: BorderRadius.circular(widget.borderRadius),
-              boxShadow: [
-                BoxShadow(
-                  color: Color.fromRGBO(0, 0, 0, _shadowAnimation.value),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
+            backgroundColor: widget.backgroundColor,
+            borderRadius: widget.borderRadius,
             child: widget.child,
           ),
         ),
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();

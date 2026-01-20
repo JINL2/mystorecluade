@@ -87,9 +87,9 @@ class _ColorsTab extends StatelessWidget {
         ]),
         _buildSection('The Simple 4 Grays', [
           _ColorItem('white', TossColors.white, 'Background'),
-          _ColorItem('gray100 (lightGrey)', TossColors.gray100, 'Secondary BG'),
-          _ColorItem('gray200 (borderGrey)', TossColors.gray200, 'Borders'),
-          _ColorItem('gray600 (coolGrey)', TossColors.gray600, 'Secondary Text'),
+          _ColorItem('gray100 (borderGray)', TossColors.gray100, '⚠️ BORDER ONLY'),
+          _ColorItem('gray200 (lightGray)', TossColors.gray200, 'Light BG/Fills'),
+          _ColorItem('gray600 (darkGray)', TossColors.gray600, 'Secondary Text'),
           _ColorItem('gray900 (charcoal)', TossColors.gray900, 'Main Text'),
           _ColorItem('black', TossColors.black, 'Pure Black'),
         ]),

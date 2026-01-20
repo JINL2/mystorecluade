@@ -362,16 +362,17 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                 child: Column(
                   children: [
                     // Date and Company/Store info bar
-                    TossWhiteCard(
-                      margin: const EdgeInsets.symmetric(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.space4,
                         vertical: TossSpacing.space2,
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space4,
-                        vertical: TossSpacing.space3,
-                      ),
-                                            child: Row(
+                      child: TossCard(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: TossSpacing.space4,
+                          vertical: TossSpacing.space3,
+                        ),
+                        child: Row(
                         children: [
                           // Date
                           Text(
@@ -404,16 +405,18 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                           ],
                         ],
                       ),
+                      ),
                     ),
 
                     // Balance Summary Card
-                    TossWhiteCard(
-                      margin: const EdgeInsets.symmetric(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.space4,
                         vertical: TossSpacing.space2,
                       ),
-                      padding: const EdgeInsets.all(TossSpacing.space4),
-                                            child: Row(
+                      child: TossCard(
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        child: Row(
                         children: [
                           Expanded(
                             child: InkWell(
@@ -463,33 +466,38 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
                           ),
                         ],
                       ),
+                      ),
                     ),
 
                     // Description Field
-                    TossWhiteCard(
-                      margin: const EdgeInsets.symmetric(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.space4,
                         vertical: TossSpacing.space2,
                       ),
-                      padding: const EdgeInsets.all(TossSpacing.space4),
-                                            child: TossEnhancedTextField(
-                        controller: _descriptionController,
-                        label: 'Description (Optional)',
-                        hintText: 'Enter journal description...',
-                        maxLines: 2,
-                        textInputAction: TextInputAction.newline,
-                        showKeyboardToolbar: false,
+                      child: TossCard(
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        child: TossEnhancedTextField(
+                          controller: _descriptionController,
+                          label: 'Description (Optional)',
+                          hintText: 'Enter journal description...',
+                          maxLines: 2,
+                          textInputAction: TextInputAction.newline,
+                          showKeyboardToolbar: false,
+                        ),
                       ),
                     ),
 
                     // Attachments Section
-                    const TossWhiteCard(
-                      margin: EdgeInsets.symmetric(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: TossSpacing.space4,
                         vertical: TossSpacing.space2,
                       ),
-                      padding: EdgeInsets.all(TossSpacing.space4),
-                                            child: AttachmentPickerSection(),
+                      child: TossCard(
+                        padding: const EdgeInsets.all(TossSpacing.space4),
+                        child: AttachmentPickerSection(),
+                      ),
                     ),
 
                     // Transaction Lines Section
@@ -594,26 +602,28 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
   }
 
   Widget _buildEmptyState() {
-    return TossWhiteCard(
-      margin: const EdgeInsets.symmetric(
+    return Padding(
+      padding: const EdgeInsets.symmetric(
         vertical: TossSpacing.space4,
       ),
-      padding: const EdgeInsets.all(TossSpacing.space6),
-            child: TossEmptyView(
-        icon: Container(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          decoration: const BoxDecoration(
-            color: TossColors.gray50,
-            shape: BoxShape.circle,
+      child: TossCard(
+        padding: const EdgeInsets.all(TossSpacing.space6),
+        child: TossEmptyView(
+          icon: Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: const BoxDecoration(
+              color: TossColors.gray50,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.receipt_long_outlined,
+              size: TossSpacing.iconXXL,
+              color: TossColors.gray400,
+            ),
           ),
-          child: const Icon(
-            Icons.receipt_long_outlined,
-            size: TossSpacing.iconXXL,
-            color: TossColors.gray400,
-          ),
+          title: 'No transactions yet',
+          description: 'Tap Debits or Credits above to add',
         ),
-        title: 'No transactions yet',
-        description: 'Tap Debits or Credits above to add',
       ),
     );
   }

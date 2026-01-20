@@ -353,10 +353,11 @@ class _LCListItemWidget extends StatelessWidget {
     final dateFormat = DateFormat('MMM dd, yyyy');
     final amountFormat = NumberFormat('#,##0.00');
 
-    return TossWhiteCard(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      borderRadius: TossBorderRadius.lg,
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: TossCard(
+        borderRadius: TossBorderRadius.lg,
+        child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(TossBorderRadius.lg),
         child: Padding(
@@ -568,6 +569,7 @@ class _LCListItemWidget extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -52,7 +52,7 @@ class _TopProductsListState extends State<TopProductsList> {
                   Icon(
                     Icons.emoji_events,
                     size: 20,
-                    color: TossRankBadge.gold,
+                    color: TossColors.amber,
                   ),
                   const SizedBox(width: TossSpacing.space2),
                   Text(
@@ -181,14 +181,15 @@ class _TopProductItem extends StatelessWidget {
     required this.shareRatio,
   });
 
+  /// Rank colors: 1=Green, 2=Blue, 3=LightGray, 4+=Primary
   Color get _rankColor {
     switch (rank) {
       case 1:
-        return TossRankBadge.gold;
+        return TossColors.success;
       case 2:
-        return TossRankBadge.silver;
+        return TossColors.info;
       case 3:
-        return TossRankBadge.bronze;
+        return TossColors.gray400;
       default:
         return TossColors.primary;
     }
@@ -221,7 +222,10 @@ class _TopProductItem extends StatelessWidget {
           Row(
             children: [
               // Rank badge
-              TossRankBadge(rank: rank, size: 24),
+              TossBadge.circle(
+                text: '$rank',
+                backgroundColor: _rankColor,
+              ),
               const SizedBox(width: TossSpacing.space3),
               // Product name
               Expanded(
@@ -235,7 +239,7 @@ class _TopProductItem extends StatelessWidget {
                 ),
               ),
               // Growth indicator
-              if (growth != null) TossGrowthBadge(growthValue: growth!),
+              if (growth != null) TossBadge.growth(value: growth!),
             ],
           ),
           const SizedBox(height: TossSpacing.space2),

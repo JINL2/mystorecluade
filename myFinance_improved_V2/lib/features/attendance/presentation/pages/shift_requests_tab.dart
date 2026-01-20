@@ -12,6 +12,8 @@ import '../widgets/shift_requests/shift_status_helper.dart';
 import '../widgets/shift_signup/shift_signup_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/trigger_bottom_sheet_common.dart';
+import 'package:myfinance_improved/shared/models/selection_item.dart';
 
 /// ShiftRequestsTab - Shift requests page with new UI design
 ///
@@ -300,18 +302,16 @@ class _ShiftRequestsTabState extends ConsumerState<ShiftRequestsTab>
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(TossSpacing.space4, TossSpacing.space3, TossSpacing.space4, 0),
-                child: TossDropdown<String>(
+                child: TriggerBottomSheetCommon<String>(
                   label: 'Store',
                   value: widget.selectedStoreId,
-                  items: widget.stores.map((store) {
-                    return TossDropdownItem<String>(
-                      value: store['store_id']?.toString() ?? '',
-                      label: store['store_name']?.toString() ?? 'Unknown',
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    if (newValue != null) {
-                      widget.onStoreChanged?.call(newValue);
+                  items: widget.stores.map((store) => SelectionItem(
+                    id: store['store_id']?.toString() ?? '',
+                    title: store['store_name']?.toString() ?? 'Unknown',
+                  )).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      widget.onStoreChanged?.call(value);
                     }
                   },
                 ),

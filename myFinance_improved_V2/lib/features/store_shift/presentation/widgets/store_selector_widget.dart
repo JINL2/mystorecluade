@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../core/constants/icon_mapper.dart';
+import '../../../../shared/models/selection_item.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_font_weight.dart';
@@ -75,31 +76,41 @@ class StoreSelectorWidget extends ConsumerWidget {
             final stores =
                 _extractStores(appState.user, appState.companyChoosen);
 
-            // Show store selector using TossSelectionBottomSheet
-            final selectedItem =
-                await TossSelectionBottomSheet.show<TossSelectionItem>(
+            // Convert to SelectionItem list
+            final items = stores.map((store) {
+              final storeMap = store as Map<String, dynamic>;
+              return SelectionItem(
+                id: storeMap['store_id']?.toString() ?? '',
+                title: storeMap['store_name']?.toString() ?? 'Unnamed Store',
+                icon: IconMapper.getIcon('building'),
+                data: storeMap,
+              );
+            }).toList();
+
+            // Show store selector using SelectionBottomSheetCommon
+            SelectionBottomSheetCommon.show<void>(
               context: context,
               title: 'Select Store',
-              items: stores.map((store) {
-                final storeMap = store as Map<String, dynamic>;
-                return TossSelectionItem.fromStore(storeMap);
-              }).toList(),
-              selectedId: appState.storeChoosen,
-              showSubtitle: false, // Hide store code subtitle
-              onItemSelected: (item) {
-                // Item will be returned when bottom sheet closes
+              itemCount: items.length,
+              itemBuilder: (ctx, index) {
+                final item = items[index];
+                final isSelected = item.id == appState.storeChoosen;
+                return SelectionListItem(
+                  item: item,
+                  isSelected: isSelected,
+                  variant: SelectionItemVariant.standard,
+                  onTap: () {
+                    // Update app state
+                    if (item.data != null) {
+                      final storeId = item.data!['store_id'] as String? ?? '';
+                      final storeName = item.data!['store_name'] as String? ?? '';
+                      ref.read(appStateProvider.notifier).selectStore(storeId, storeName: storeName);
+                    }
+                    Navigator.pop(ctx);
+                  },
+                );
               },
             );
-
-            // Update app state if store was selected
-            if (selectedItem != null && selectedItem.data != null) {
-              final storeId = selectedItem.data!['store_id'] as String? ?? '';
-              final storeName =
-                  selectedItem.data!['store_name'] as String? ?? '';
-              ref
-                  .read(appStateProvider.notifier)
-                  .selectStore(storeId, storeName: storeName);
-            }
           },
           borderRadius: BorderRadius.circular(TossBorderRadius.lg),
           child: Container(

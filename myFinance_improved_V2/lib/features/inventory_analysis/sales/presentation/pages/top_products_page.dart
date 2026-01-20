@@ -193,14 +193,15 @@ class _ProductListTile extends StatelessWidget {
     required this.selectedMetric,
   });
 
+  /// Rank colors: 1=Green, 2=Blue, 3=LightGray, 4+=Primary
   Color get _rankColor {
     switch (rank) {
       case 1:
-        return TossRankBadge.gold;
+        return TossColors.success;
       case 2:
-        return TossRankBadge.silver;
+        return TossColors.info;
       case 3:
-        return TossRankBadge.bronze;
+        return TossColors.gray400;
       default:
         return TossColors.primary;
     }
@@ -250,7 +251,11 @@ class _ProductListTile extends StatelessWidget {
           // Header row
           Row(
             children: [
-              TossRankBadge(rank: rank, size: 24),
+              // Rank badge
+              TossBadge.circle(
+                text: '$rank',
+                backgroundColor: _rankColor,
+              ),
               const SizedBox(width: TossSpacing.space3),
               Expanded(
                 child: Text(
@@ -263,7 +268,7 @@ class _ProductListTile extends StatelessWidget {
                 ),
               ),
               if (_metricGrowth != null)
-                TossGrowthBadge(growthValue: _metricGrowth!),
+                TossBadge.growth(value: _metricGrowth!),
             ],
           ),
           const SizedBox(height: TossSpacing.space2),
