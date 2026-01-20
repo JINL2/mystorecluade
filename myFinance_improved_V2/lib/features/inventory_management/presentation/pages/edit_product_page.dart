@@ -419,12 +419,18 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   void _pickImages() {
+    // Calculate remaining slots
+    final remainingSlots = 3 - (_existingImageUrls.length + _selectedImages.length);
+    if (remainingSlots <= 0) return;
+
     ImageUploadSheet.show(
       context: context,
       onImagesSelected: (images) {
         if (mounted) {
           setState(() {
-            _selectedImages.addAll(images);
+            // Only add up to remaining slots
+            final imagesToAdd = images.take(remainingSlots).toList();
+            _selectedImages.addAll(imagesToAdd);
           });
         }
       },
@@ -914,10 +920,26 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   Widget _buildImageUpload() {
     return ProductImageThumbnail(
-      onTap: _pickImages,
+      onTap: _canAddMoreImages ? _pickImages : () {},
       existingImageUrls: _existingImageUrls,
       selectedImages: _selectedImages,
+      onRemoveExistingImage: (index) {
+        setState(() {
+          _existingImageUrls.removeAt(index);
+        });
+      },
+      onRemoveSelectedImage: (index) {
+        setState(() {
+          _selectedImages.removeAt(index);
+        });
+      },
+      maxImages: 3,
     );
+  }
+
+  /// Check if more images can be added (max 3)
+  bool get _canAddMoreImages {
+    return (_existingImageUrls.length + _selectedImages.length) < 3;
   }
 
   Widget _buildBasicInfoSection() {

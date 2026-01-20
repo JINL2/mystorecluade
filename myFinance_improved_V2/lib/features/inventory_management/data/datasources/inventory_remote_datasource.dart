@@ -1,6 +1,7 @@
 // Remote DataSource: Inventory Remote DataSource
 // Handles all RPC calls to Supabase for inventory management
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -532,7 +533,8 @@ class InventoryRemoteDataSource {
     const bucketName = 'inventory_image';
 
     try {
-      for (final image in images) {
+      for (int i = 0; i < images.length; i++) {
+        final image = images[i];
         // Generate unique filename with timestamp and UUID
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         final uniqueId = uuid.v4().substring(0, 8);
@@ -542,11 +544,19 @@ class InventoryRemoteDataSource {
         // Path: inventory_image/{company_id}/{filename}
         final storagePath = '$companyId/$fileName';
 
+        // Debug logging
+        debugPrint('📸 [Image Upload ${i + 1}/${images.length}]');
+        debugPrint('   Path: ${image.path}');
+        debugPrint('   Extension: $extension');
+        debugPrint('   Storage path: $storagePath');
+
         // Read file bytes
         final bytes = await image.readAsBytes();
+        debugPrint('   Bytes size: ${bytes.length}');
 
         // Determine correct MIME type (jpg -> jpeg for standard compliance)
         final mimeType = _getMimeType(extension);
+        debugPrint('   MIME type: $mimeType');
 
         // Upload to Supabase Storage
         await _client.storage.from(bucketName).uploadBinary(
@@ -562,6 +572,7 @@ class InventoryRemoteDataSource {
         final publicUrl =
             _client.storage.from(bucketName).getPublicUrl(storagePath);
 
+        debugPrint('   ✅ Uploaded: $publicUrl');
         uploadedUrls.add(publicUrl);
       }
 
