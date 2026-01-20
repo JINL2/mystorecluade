@@ -68,7 +68,7 @@ class HistoryItemCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        item.productName,
+                        item.name,
                         style: TossTextStyles.body.copyWith(
                           fontWeight: TossFontWeight.semibold,
                           color: TossColors.textPrimary,

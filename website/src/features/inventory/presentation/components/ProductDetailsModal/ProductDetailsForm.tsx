@@ -35,15 +35,46 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
   hasVariants,
   variantName,
 }) => {
-  // Get attributes from metadata (v2)
-  // Only 1 attribute per product is allowed - show only the attribute that this variant belongs to
+  // Get attributes from metadata
   const allAttributes = metadata?.attributes || [];
-  const selectedAttributeIds = Object.keys(formData.selectedAttributes || {});
 
-  // If product has a selected attribute, show only that one; otherwise show all for selection
-  const attributes = selectedAttributeIds.length > 0
-    ? allAttributes.filter(attr => selectedAttributeIds.includes(attr.attribute_id))
-    : allAttributes;
+  // For products with variants, find the attribute that matches the variant
+  const getVariantAttributeId = (): string | null => {
+    if (!hasVariants || !variantName) return null;
+
+    for (const attribute of allAttributes) {
+      for (const option of attribute.options) {
+        if (option.option_value === variantName) {
+          return attribute.attribute_id;
+        }
+      }
+    }
+    return null;
+  };
+
+  const variantAttributeId = getVariantAttributeId();
+
+  // Track selected attribute for checkbox (only 1 allowed for products without variants)
+  const selectedAttributeId = Object.keys(formData.selectedAttributes || {})[0] || null;
+
+  // Handle checkbox click for attribute selection
+  const handleAttributeCheckboxClick = (attributeId: string) => {
+    if (hasVariants) return; // Don't allow changes for products with variants
+
+    if (onAttributeChange) {
+      if (selectedAttributeId === attributeId) {
+        // Deselect - pass empty string to clear
+        onAttributeChange(attributeId, '');
+      } else {
+        // Clear previous selection and select new one
+        if (selectedAttributeId) {
+          onAttributeChange(selectedAttributeId, '');
+        }
+        // Select new attribute (mark as selected without option)
+        onAttributeChange(attributeId, '__selected__');
+      }
+    }
+  };
 
   return (
     <>
@@ -147,15 +178,15 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
         </div>
       </div>
 
-      {/* Variant Attributes Section - Only show if product has variants or attributes exist */}
-      {(hasVariants || attributes.length > 0) && (
+      {/* Variant Attributes Section - Only show if attributes exist */}
+      {allAttributes.length > 0 && (
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>
             Variant Attributes
             {variantName && (
               <span className={styles.variantBadge}>{variantName}</span>
             )}
-            {onAddAttribute && (
+            {onAddAttribute && !hasVariants && (
               <button
                 type="button"
                 className={styles.addAttributeButton}
@@ -168,38 +199,45 @@ export const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
               </button>
             )}
           </h3>
-          <div className={styles.formGrid}>
-            {attributes.map((attribute) => {
-              const selectedOptionId = formData.selectedAttributes?.[attribute.attribute_id];
-              const options = attribute.options || [];
+          {/* Subtitle for attribute selection */}
+          <p className={styles.attributeSubtitle}>
+            {hasVariants
+              ? 'This product has variants. Attribute cannot be changed.'
+              : 'Select variant attribute (optional, only 1 allowed)'}
+          </p>
+          {/* Checkbox list for attributes */}
+          <div className={styles.attributeCheckboxList}>
+            {allAttributes.map((attribute) => {
+              // For products with variants: check if this is the variant's attribute
+              const isSelected = hasVariants
+                ? variantAttributeId === attribute.attribute_id
+                : selectedAttributeId === attribute.attribute_id;
+              const isDisabled = hasVariants;
 
               return (
-                <div key={attribute.attribute_id} className={styles.formGroup}>
-                  <TossSelector
-                    label={attribute.attribute_name}
-                    placeholder={`Select ${attribute.attribute_name.toLowerCase()}`}
-                    value={selectedOptionId || ''}
-                    options={options.map((option) => ({
-                      value: option.option_id,
-                      label: option.option_value,
-                    }))}
-                    onChange={(value) => {
-                      if (onAttributeChange) {
-                        onAttributeChange(attribute.attribute_id, value);
-                      }
-                    }}
-                    fullWidth={true}
-                  />
+                <div
+                  key={attribute.attribute_id}
+                  className={`${styles.attributeCheckboxRow} ${isDisabled ? styles.attributeCheckboxDisabled : ''}`}
+                  onClick={() => !isDisabled && handleAttributeCheckboxClick(attribute.attribute_id)}
+                >
+                  <div
+                    className={`${styles.attributeCheckbox} ${isSelected ? styles.attributeCheckboxSelected : ''} ${isDisabled ? styles.attributeCheckboxDisabledBox : ''}`}
+                  >
+                    {isSelected && (
+                      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg>
+                    )}
+                  </div>
+                  <span className={`${styles.attributeCheckboxLabel} ${isDisabled ? styles.attributeCheckboxLabelDisabled : ''}`}>
+                    {attribute.attribute_name}
+                  </span>
+                  <span className={styles.attributeOptionCount}>
+                    {attribute.options.length} options
+                  </span>
                 </div>
               );
             })}
-            {attributes.length === 0 && (
-              <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-                <p className={styles.emptyAttributesText}>
-                  No variant attributes configured. Add attributes in Settings to create product variants.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       )}

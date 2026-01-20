@@ -62,6 +62,7 @@ export const SessionHistoryDetailPage: React.FC = () => {
     const query = searchQuery.toLowerCase();
     return session.items.filter(
       (item) =>
+        item.displayName.toLowerCase().includes(query) ||
         item.productName.toLowerCase().includes(query) ||
         item.sku?.toLowerCase().includes(query)
     );
@@ -358,7 +359,7 @@ export const SessionHistoryDetailPage: React.FC = () => {
                     {filteredItems.length > 0 ? (
                       filteredItems.map((item, index) => (
                         <tr key={`${item.productId}-${index}`}>
-                          <td className={styles.productName}>{item.productName}</td>
+                          <td className={styles.productName}>{item.displayName}</td>
                           <td>{item.sku || '-'}</td>
                           <td className={styles.quantityCell}>{item.scannedQuantity}</td>
                           {session.totalConfirmedQuantity != null && (
@@ -458,7 +459,7 @@ export const SessionHistoryDetailPage: React.FC = () => {
                       <tr key={`${product.productId}-${index}`} className={styles.newProductRow}>
                         <td className={styles.productName}>
                           <span className={styles.newBadge}>NEW</span>
-                          {product.productName}
+                          {product.displayName}
                         </td>
                         <td>{product.sku || '-'}</td>
                         <td className={`${styles.quantityCell} ${styles.positive}`}>
@@ -507,7 +508,7 @@ export const SessionHistoryDetailPage: React.FC = () => {
                   <tbody>
                     {restockedProducts.map((stock, index) => (
                       <tr key={`${stock.productId}-${index}`}>
-                        <td className={styles.productName}>{stock.productName}</td>
+                        <td className={styles.productName}>{stock.displayName}</td>
                         <td>{stock.sku || '-'}</td>
                         <td className={styles.quantityCell}>{stock.quantityBefore.toLocaleString()}</td>
                         <td className={`${styles.quantityCell} ${styles.positive}`}>+{stock.quantityReceived.toLocaleString()}</td>
@@ -553,7 +554,7 @@ export const SessionHistoryDetailPage: React.FC = () => {
                     <tbody>
                       {session.mergeInfo!.originalSession.items.map((item, idx) => (
                         <tr key={`original-${item.productId}-${idx}`}>
-                          <td className={styles.productName}>{item.productName}</td>
+                          <td className={styles.productName}>{item.displayName}</td>
                           <td>{item.sku || '-'}</td>
                           <td className={styles.quantityCell}>{item.quantity}</td>
                           <td className={item.quantityRejected > 0 ? styles.negative : ''}>
@@ -630,7 +631,7 @@ export const SessionHistoryDetailPage: React.FC = () => {
                         <tbody>
                           {mergedSession.items.map((item, idx) => (
                             <tr key={`merged-${mergedSession.sourceSessionId}-${item.productId}-${idx}`}>
-                              <td className={styles.productName}>{item.productName}</td>
+                              <td className={styles.productName}>{item.displayName}</td>
                               <td>{item.sku || '-'}</td>
                               <td className={styles.quantityCell}>{item.quantity}</td>
                               <td className={item.quantityRejected > 0 ? styles.negative : ''}>

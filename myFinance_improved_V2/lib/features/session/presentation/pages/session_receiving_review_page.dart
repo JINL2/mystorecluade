@@ -284,7 +284,8 @@ class _SessionReceivingReviewPageState
 
     for (final item in state.items) {
       totalShipped += item.previousStock;
-      final effectiveQty = state.getEffectiveQuantity(item.productId, item.totalQuantity);
+      // v2: Use item-based getEffectiveQuantity for variant support
+      final effectiveQty = state.getEffectiveQuantity(item);
       totalReceived += effectiveQty;
       totalAccepted += effectiveQty - item.totalRejected;
       totalRejected += item.totalRejected;

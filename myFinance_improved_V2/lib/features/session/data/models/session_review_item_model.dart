@@ -308,6 +308,7 @@ class SessionReviewResponseModel {
 }
 
 /// Model for StockChangeItem with JSON serialization
+/// v3: Supports variant products with displayName
 class StockChangeItemModel {
   final String productId;
   final String? sku;
@@ -316,6 +317,11 @@ class StockChangeItemModel {
   final int quantityReceived;
   final int quantityAfter;
   final bool needsDisplay;
+  // v3 variant fields
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
+  final bool hasVariants;
 
   const StockChangeItemModel({
     required this.productId,
@@ -325,6 +331,10 @@ class StockChangeItemModel {
     required this.quantityReceived,
     required this.quantityAfter,
     required this.needsDisplay,
+    this.variantId,
+    this.variantName,
+    this.displayName,
+    this.hasVariants = false,
   });
 
   factory StockChangeItemModel.fromJson(Map<String, dynamic> json) {
@@ -336,6 +346,11 @@ class StockChangeItemModel {
       quantityReceived: (json['quantity_received'] as num?)?.toInt() ?? 0,
       quantityAfter: (json['quantity_after'] as num?)?.toInt() ?? 0,
       needsDisplay: json['needs_display'] as bool? ?? false,
+      // v3 variant fields
+      variantId: json['variant_id']?.toString(),
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
+      hasVariants: json['has_variants'] as bool? ?? false,
     );
   }
 
@@ -348,6 +363,10 @@ class StockChangeItemModel {
       'quantity_received': quantityReceived,
       'quantity_after': quantityAfter,
       'needs_display': needsDisplay,
+      'variant_id': variantId,
+      'variant_name': variantName,
+      'display_name': displayName,
+      'has_variants': hasVariants,
     };
   }
 
@@ -360,6 +379,10 @@ class StockChangeItemModel {
       quantityReceived: quantityReceived,
       quantityAfter: quantityAfter,
       needsDisplay: needsDisplay,
+      variantId: variantId,
+      variantName: variantName,
+      displayName: displayName,
+      hasVariants: hasVariants,
     );
   }
 }

@@ -166,6 +166,10 @@ class InventoryPageNotifier extends _$InventoryPageNotifier {
           currency: result.currency,
           serverTotalValue: result.serverTotalValue,
           filteredCount: result.filteredCount,
+          // v6.1: Store-wide totals
+          totalInventoryCost: result.totalInventoryCost,
+          totalInventoryRetail: result.totalInventoryRetail,
+          totalInventoryQuantity: result.totalInventoryQuantity,
           isLoading: false,
           error: null,
         );

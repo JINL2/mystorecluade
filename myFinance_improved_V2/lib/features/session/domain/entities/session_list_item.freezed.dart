@@ -19,10 +19,17 @@ mixin _$SessionListItem {
   String get sessionId => throw _privateConstructorUsedError;
   String get sessionName => throw _privateConstructorUsedError;
   String get sessionType => throw _privateConstructorUsedError;
+
+  /// Session status: 'in_progress', 'complete', 'cancelled'
+  String get status => throw _privateConstructorUsedError;
   String get storeId => throw _privateConstructorUsedError;
   String get storeName => throw _privateConstructorUsedError;
   String? get shipmentId => throw _privateConstructorUsedError;
   String? get shipmentNumber => throw _privateConstructorUsedError;
+
+  /// v2: Supplier info (via shipment connection)
+  String? get supplierId => throw _privateConstructorUsedError;
+  String? get supplierName => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   bool get isFinal => throw _privateConstructorUsedError;
   int get memberCount => throw _privateConstructorUsedError;
@@ -48,10 +55,13 @@ abstract class $SessionListItemCopyWith<$Res> {
       {String sessionId,
       String sessionName,
       String sessionType,
+      String status,
       String storeId,
       String storeName,
       String? shipmentId,
       String? shipmentNumber,
+      String? supplierId,
+      String? supplierName,
       bool isActive,
       bool isFinal,
       int memberCount,
@@ -79,10 +89,13 @@ class _$SessionListItemCopyWithImpl<$Res, $Val extends SessionListItem>
     Object? sessionId = null,
     Object? sessionName = null,
     Object? sessionType = null,
+    Object? status = null,
     Object? storeId = null,
     Object? storeName = null,
     Object? shipmentId = freezed,
     Object? shipmentNumber = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
     Object? isActive = null,
     Object? isFinal = null,
     Object? memberCount = null,
@@ -104,6 +117,10 @@ class _$SessionListItemCopyWithImpl<$Res, $Val extends SessionListItem>
           ? _value.sessionType
           : sessionType // ignore: cast_nullable_to_non_nullable
               as String,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
       storeId: null == storeId
           ? _value.storeId
           : storeId // ignore: cast_nullable_to_non_nullable
@@ -119,6 +136,14 @@ class _$SessionListItemCopyWithImpl<$Res, $Val extends SessionListItem>
       shipmentNumber: freezed == shipmentNumber
           ? _value.shipmentNumber
           : shipmentNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
               as String?,
       isActive: null == isActive
           ? _value.isActive
@@ -164,10 +189,13 @@ abstract class _$$SessionListItemImplCopyWith<$Res>
       {String sessionId,
       String sessionName,
       String sessionType,
+      String status,
       String storeId,
       String storeName,
       String? shipmentId,
       String? shipmentNumber,
+      String? supplierId,
+      String? supplierName,
       bool isActive,
       bool isFinal,
       int memberCount,
@@ -193,10 +221,13 @@ class __$$SessionListItemImplCopyWithImpl<$Res>
     Object? sessionId = null,
     Object? sessionName = null,
     Object? sessionType = null,
+    Object? status = null,
     Object? storeId = null,
     Object? storeName = null,
     Object? shipmentId = freezed,
     Object? shipmentNumber = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
     Object? isActive = null,
     Object? isFinal = null,
     Object? memberCount = null,
@@ -218,6 +249,10 @@ class __$$SessionListItemImplCopyWithImpl<$Res>
           ? _value.sessionType
           : sessionType // ignore: cast_nullable_to_non_nullable
               as String,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
       storeId: null == storeId
           ? _value.storeId
           : storeId // ignore: cast_nullable_to_non_nullable
@@ -233,6 +268,14 @@ class __$$SessionListItemImplCopyWithImpl<$Res>
       shipmentNumber: freezed == shipmentNumber
           ? _value.shipmentNumber
           : shipmentNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
               as String?,
       isActive: null == isActive
           ? _value.isActive
@@ -273,10 +316,13 @@ class _$SessionListItemImpl extends _SessionListItem {
       {required this.sessionId,
       required this.sessionName,
       required this.sessionType,
+      required this.status,
       required this.storeId,
       required this.storeName,
       this.shipmentId,
       this.shipmentNumber,
+      this.supplierId,
+      this.supplierName,
       required this.isActive,
       required this.isFinal,
       required this.memberCount,
@@ -292,6 +338,10 @@ class _$SessionListItemImpl extends _SessionListItem {
   final String sessionName;
   @override
   final String sessionType;
+
+  /// Session status: 'in_progress', 'complete', 'cancelled'
+  @override
+  final String status;
   @override
   final String storeId;
   @override
@@ -300,6 +350,12 @@ class _$SessionListItemImpl extends _SessionListItem {
   final String? shipmentId;
   @override
   final String? shipmentNumber;
+
+  /// v2: Supplier info (via shipment connection)
+  @override
+  final String? supplierId;
+  @override
+  final String? supplierName;
   @override
   final bool isActive;
   @override
@@ -317,7 +373,7 @@ class _$SessionListItemImpl extends _SessionListItem {
 
   @override
   String toString() {
-    return 'SessionListItem(sessionId: $sessionId, sessionName: $sessionName, sessionType: $sessionType, storeId: $storeId, storeName: $storeName, shipmentId: $shipmentId, shipmentNumber: $shipmentNumber, isActive: $isActive, isFinal: $isFinal, memberCount: $memberCount, createdBy: $createdBy, createdByName: $createdByName, completedAt: $completedAt, createdAt: $createdAt)';
+    return 'SessionListItem(sessionId: $sessionId, sessionName: $sessionName, sessionType: $sessionType, status: $status, storeId: $storeId, storeName: $storeName, shipmentId: $shipmentId, shipmentNumber: $shipmentNumber, supplierId: $supplierId, supplierName: $supplierName, isActive: $isActive, isFinal: $isFinal, memberCount: $memberCount, createdBy: $createdBy, createdByName: $createdByName, completedAt: $completedAt, createdAt: $createdAt)';
   }
 
   @override
@@ -331,6 +387,7 @@ class _$SessionListItemImpl extends _SessionListItem {
                 other.sessionName == sessionName) &&
             (identical(other.sessionType, sessionType) ||
                 other.sessionType == sessionType) &&
+            (identical(other.status, status) || other.status == status) &&
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.storeName, storeName) ||
                 other.storeName == storeName) &&
@@ -338,6 +395,10 @@ class _$SessionListItemImpl extends _SessionListItem {
                 other.shipmentId == shipmentId) &&
             (identical(other.shipmentNumber, shipmentNumber) ||
                 other.shipmentNumber == shipmentNumber) &&
+            (identical(other.supplierId, supplierId) ||
+                other.supplierId == supplierId) &&
+            (identical(other.supplierName, supplierName) ||
+                other.supplierName == supplierName) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.isFinal, isFinal) || other.isFinal == isFinal) &&
@@ -359,10 +420,13 @@ class _$SessionListItemImpl extends _SessionListItem {
       sessionId,
       sessionName,
       sessionType,
+      status,
       storeId,
       storeName,
       shipmentId,
       shipmentNumber,
+      supplierId,
+      supplierName,
       isActive,
       isFinal,
       memberCount,
@@ -386,10 +450,13 @@ abstract class _SessionListItem extends SessionListItem {
       {required final String sessionId,
       required final String sessionName,
       required final String sessionType,
+      required final String status,
       required final String storeId,
       required final String storeName,
       final String? shipmentId,
       final String? shipmentNumber,
+      final String? supplierId,
+      final String? supplierName,
       required final bool isActive,
       required final bool isFinal,
       required final int memberCount,
@@ -405,6 +472,10 @@ abstract class _SessionListItem extends SessionListItem {
   String get sessionName;
   @override
   String get sessionType;
+
+  /// Session status: 'in_progress', 'complete', 'cancelled'
+  @override
+  String get status;
   @override
   String get storeId;
   @override
@@ -413,6 +484,12 @@ abstract class _SessionListItem extends SessionListItem {
   String? get shipmentId;
   @override
   String? get shipmentNumber;
+
+  /// v2: Supplier info (via shipment connection)
+  @override
+  String? get supplierId;
+  @override
+  String? get supplierName;
   @override
   bool get isActive;
   @override

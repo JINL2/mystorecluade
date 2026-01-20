@@ -3,7 +3,7 @@ import '../entities/update_session_items_response.dart';
 import '../repositories/session_repository.dart';
 
 /// UseCase for updating or inserting session items
-/// Uses inventory_update_session_item RPC which:
+/// Uses inventory_update_session_item_v2 RPC which:
 /// - Updates existing products (consolidates multiple items into one)
 /// - Inserts new products
 /// - Keeps products not in items list (no deletion)

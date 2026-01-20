@@ -49,9 +49,14 @@ class InventoryPageState with _$InventoryPageState {
     // Base currency info from get_base_currency RPC
     BaseCurrencyInfo? baseCurrency,
 
-    // Summary data from get_inventory_page_v6
+    // Summary data from get_inventory_page_v6 (filtered)
     @Default(0.0) double serverTotalValue,
     @Default(0) int filteredCount,
+
+    // v6.1: Store-wide totals (NOT affected by filters)
+    @Default(0.0) double totalInventoryCost,
+    @Default(0.0) double totalInventoryRetail,
+    @Default(0) int totalInventoryQuantity,
   }) = _InventoryPageState;
 
 

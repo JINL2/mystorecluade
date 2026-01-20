@@ -25,11 +25,9 @@ class ReceivingItemDetailSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(sessionReviewNotifierProvider(params));
-    final isEdited = state.isEdited(item.productId);
-    final effectiveQuantity = state.getEffectiveQuantity(
-      item.productId,
-      item.totalQuantity,
-    );
+    // v2: Use item-based methods for variant support
+    final isEdited = state.isEdited(item);
+    final effectiveQuantity = state.getEffectiveQuantity(item);
 
     final shipped = item.previousStock;
     final received = effectiveQuantity;
@@ -171,7 +169,7 @@ class ReceivingItemDetailSheet extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName,
+                  item.name,
                   style: TossTextStyles.h4.copyWith(
                     fontWeight: TossFontWeight.semibold,
                     color: TossColors.textPrimary,
@@ -179,10 +177,10 @@ class ReceivingItemDetailSheet extends ConsumerWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (item.sku != null) ...[
+                if (item.effectiveSku != null) ...[
                   const SizedBox(height: TossSpacing.space1),
                   Text(
-                    item.sku!,
+                    item.effectiveSku!,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.textTertiary,
                     ),

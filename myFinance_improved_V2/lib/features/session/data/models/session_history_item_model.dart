@@ -489,21 +489,133 @@ class OriginalSessionInfoModel {
   }
 }
 
+/// v4: Model for ProductSourceInfo (source tracking for items_by_product)
+class ProductSourceInfoModel {
+  final String? sessionId;
+  final String sessionName;
+  final bool isOriginal;
+  final int quantity;
+  final int quantityRejected;
+  final SessionHistoryUserModel scannedBy;
+
+  const ProductSourceInfoModel({
+    this.sessionId,
+    required this.sessionName,
+    required this.isOriginal,
+    required this.quantity,
+    required this.quantityRejected,
+    required this.scannedBy,
+  });
+
+  factory ProductSourceInfoModel.fromJson(Map<String, dynamic> json) {
+    return ProductSourceInfoModel(
+      sessionId: json['session_id']?.toString(),
+      sessionName: json['session_name']?.toString() ?? '',
+      isOriginal: json['is_original'] as bool? ?? false,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      quantityRejected: (json['quantity_rejected'] as num?)?.toInt() ?? 0,
+      scannedBy: SessionHistoryUserModel.fromJson(
+        json['scanned_by'] as Map<String, dynamic>? ?? {},
+      ),
+    );
+  }
+
+  ProductSourceInfo toEntity() {
+    return ProductSourceInfo(
+      sessionId: sessionId,
+      sessionName: sessionName,
+      isOriginal: isOriginal,
+      quantity: quantity,
+      quantityRejected: quantityRejected,
+      scannedBy: scannedBy.toEntity(),
+    );
+  }
+}
+
+/// v4: Model for ItemByProduct (product-level source tracking)
+class ItemByProductModel {
+  final String productId;
+  final String? variantId;
+  final String sku;
+  final String productName;
+  final String? variantName;
+  final String? displayName;
+  final bool hasVariants;
+  final int totalQuantity;
+  final int totalRejected;
+  final List<ProductSourceInfoModel> sources;
+
+  const ItemByProductModel({
+    required this.productId,
+    this.variantId,
+    required this.sku,
+    required this.productName,
+    this.variantName,
+    this.displayName,
+    this.hasVariants = false,
+    required this.totalQuantity,
+    required this.totalRejected,
+    required this.sources,
+  });
+
+  factory ItemByProductModel.fromJson(Map<String, dynamic> json) {
+    final sourcesList = (json['sources'] as List<dynamic>? ?? [])
+        .map((e) => ProductSourceInfoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return ItemByProductModel(
+      productId: json['product_id']?.toString() ?? '',
+      variantId: json['variant_id']?.toString(),
+      sku: json['sku']?.toString() ?? '',
+      productName: json['product_name']?.toString() ?? '',
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
+      hasVariants: json['has_variants'] as bool? ?? false,
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      totalRejected: (json['total_rejected'] as num?)?.toInt() ?? 0,
+      sources: sourcesList,
+    );
+  }
+
+  ItemByProduct toEntity() {
+    return ItemByProduct(
+      productId: productId,
+      variantId: variantId,
+      sku: sku,
+      productName: productName,
+      variantName: variantName,
+      displayName: displayName,
+      hasVariants: hasVariants,
+      totalQuantity: totalQuantity,
+      totalRejected: totalRejected,
+      sources: sources.map((e) => e.toEntity()).toList(),
+    );
+  }
+}
+
 /// Model for MergeInfo (V2)
+/// v4: Added itemsByProduct for product-level source tracking
 class MergeInfoModel {
   final OriginalSessionInfoModel originalSession;
   final List<MergedSessionInfoModel> mergedSessions;
   final int totalMergedSessionsCount;
+  /// v4: Product-level source tracking
+  final List<ItemByProductModel> itemsByProduct;
 
   const MergeInfoModel({
     required this.originalSession,
     required this.mergedSessions,
     required this.totalMergedSessionsCount,
+    this.itemsByProduct = const [],
   });
 
   factory MergeInfoModel.fromJson(Map<String, dynamic> json) {
     final mergedSessionsList = (json['merged_sessions'] as List<dynamic>? ?? [])
         .map((e) => MergedSessionInfoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    final itemsByProductList = (json['items_by_product'] as List<dynamic>? ?? [])
+        .map((e) => ItemByProductModel.fromJson(e as Map<String, dynamic>))
         .toList();
 
     return MergeInfoModel(
@@ -513,6 +625,7 @@ class MergeInfoModel {
       mergedSessions: mergedSessionsList,
       totalMergedSessionsCount:
           (json['total_merged_sessions_count'] as num?)?.toInt() ?? 0,
+      itemsByProduct: itemsByProductList,
     );
   }
 
@@ -521,6 +634,81 @@ class MergeInfoModel {
       originalSession: originalSession.toEntity(),
       mergedSessions: mergedSessions.map((e) => e.toEntity()).toList(),
       totalMergedSessionsCount: totalMergedSessionsCount,
+      itemsByProduct: itemsByProduct.map((e) => e.toEntity()).toList(),
+    );
+  }
+}
+
+/// v4: Model for ZeroedItem (zeroed items in counting sessions)
+class ZeroedItemModel {
+  final String productId;
+  final String? variantId;
+  final String sku;
+  final String productName;
+  final String? variantName;
+  final String? displayName;
+  final int quantityBefore;
+
+  const ZeroedItemModel({
+    required this.productId,
+    this.variantId,
+    required this.sku,
+    required this.productName,
+    this.variantName,
+    this.displayName,
+    required this.quantityBefore,
+  });
+
+  factory ZeroedItemModel.fromJson(Map<String, dynamic> json) {
+    return ZeroedItemModel(
+      productId: json['product_id']?.toString() ?? '',
+      variantId: json['variant_id']?.toString(),
+      sku: json['sku']?.toString() ?? '',
+      productName: json['product_name']?.toString() ?? '',
+      variantName: json['variant_name']?.toString(),
+      displayName: json['display_name']?.toString(),
+      quantityBefore: (json['quantity_before'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  ZeroedItem toEntity() {
+    return ZeroedItem(
+      productId: productId,
+      variantId: variantId,
+      sku: sku,
+      productName: productName,
+      variantName: variantName,
+      displayName: displayName,
+      quantityBefore: quantityBefore,
+    );
+  }
+}
+
+/// v4: Model for CountingInfo (counting sessions - zeroed items tracking)
+class CountingInfoModel {
+  final int itemsZeroedCount;
+  final List<ZeroedItemModel> zeroedItems;
+
+  const CountingInfoModel({
+    required this.itemsZeroedCount,
+    required this.zeroedItems,
+  });
+
+  factory CountingInfoModel.fromJson(Map<String, dynamic> json) {
+    final zeroedItemsList = (json['zeroed_items'] as List<dynamic>? ?? [])
+        .map((e) => ZeroedItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return CountingInfoModel(
+      itemsZeroedCount: (json['items_zeroed_count'] as num?)?.toInt() ?? 0,
+      zeroedItems: zeroedItemsList,
+    );
+  }
+
+  CountingInfo toEntity() {
+    return CountingInfo(
+      itemsZeroedCount: itemsZeroedCount,
+      zeroedItems: zeroedItems.map((e) => e.toEntity()).toList(),
     );
   }
 }
@@ -558,6 +746,8 @@ class SessionHistoryItemModel {
   final MergeInfoModel? mergeInfo;
   // V2: Receiving info
   final ReceivingInfoModel? receivingInfo;
+  // v4: Counting info
+  final CountingInfoModel? countingInfo;
 
   const SessionHistoryItemModel({
     required this.sessionId,
@@ -588,6 +778,7 @@ class SessionHistoryItemModel {
     this.isMergedSession = false,
     this.mergeInfo,
     this.receivingInfo,
+    this.countingInfo,
   });
 
   factory SessionHistoryItemModel.fromJson(Map<String, dynamic> json) {
@@ -637,6 +828,13 @@ class SessionHistoryItemModel {
       receivingInfoModel = ReceivingInfoModel.fromJson(receivingInfoData);
     }
 
+    // v4: Parse counting_info
+    CountingInfoModel? countingInfoModel;
+    final countingInfoData = json['counting_info'];
+    if (countingInfoData != null && countingInfoData is Map<String, dynamic>) {
+      countingInfoModel = CountingInfoModel.fromJson(countingInfoData);
+    }
+
     return SessionHistoryItemModel(
       sessionId: json['session_id']?.toString() ?? '',
       sessionName: json['session_name']?.toString() ?? '',
@@ -666,6 +864,7 @@ class SessionHistoryItemModel {
       isMergedSession: json['is_merged_session'] as bool? ?? false,
       mergeInfo: mergeInfoModel,
       receivingInfo: receivingInfoModel,
+      countingInfo: countingInfoModel,
     );
   }
 
@@ -699,6 +898,7 @@ class SessionHistoryItemModel {
       isMergedSession: isMergedSession,
       mergeInfo: mergeInfo?.toEntity(),
       receivingInfo: receivingInfo?.toEntity(),
+      countingInfo: countingInfo?.toEntity(),
     );
   }
 }

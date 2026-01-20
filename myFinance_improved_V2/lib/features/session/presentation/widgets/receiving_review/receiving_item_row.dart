@@ -35,10 +35,8 @@ class ReceivingItemRow extends ConsumerWidget {
   }
 
   void _showEditDialog(BuildContext context, WidgetRef ref, SessionReviewState state) {
-    final currentQuantity = state.getEffectiveQuantity(
-      item.productId,
-      item.totalQuantity,
-    );
+    // v2: Use item-based getEffectiveQuantity for variant support
+    final currentQuantity = state.getEffectiveQuantity(item);
 
     showDialog<void>(
       context: context,
@@ -46,8 +44,9 @@ class ReceivingItemRow extends ConsumerWidget {
         item: item,
         currentQuantity: currentQuantity,
         onSave: (newQuantity) {
+          // v2: Pass item instead of productId for variant support
           ref.read(sessionReviewNotifierProvider(params).notifier).updateQuantity(
-                item.productId,
+                item,
                 newQuantity,
               );
           Navigator.pop(dialogContext);
@@ -59,11 +58,9 @@ class ReceivingItemRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(sessionReviewNotifierProvider(params));
-    final isEdited = state.isEdited(item.productId);
-    final effectiveQuantity = state.getEffectiveQuantity(
-      item.productId,
-      item.totalQuantity,
-    );
+    // v2: Use item-based methods for variant support
+    final isEdited = state.isEdited(item);
+    final effectiveQuantity = state.getEffectiveQuantity(item);
 
     // Calculate status colors using effective quantities
     final shipped = item.previousStock;
@@ -140,7 +137,7 @@ class ReceivingItemRow extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        item.productName,
+                        item.name,
                         style: TossTextStyles.bodyMedium.copyWith(
                           color: TossColors.textPrimary,
                           fontWeight: TossFontWeight.semibold,
@@ -148,10 +145,10 @@ class ReceivingItemRow extends ConsumerWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (item.sku != null) ...[
+                      if (item.effectiveSku != null) ...[
                         const SizedBox(height: TossSpacing.space1),
                         Text(
-                          item.sku!,
+                          item.effectiveSku!,
                           style: TossTextStyles.caption.copyWith(
                             color: TossColors.textTertiary,
                           ),

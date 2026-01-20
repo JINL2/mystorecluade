@@ -115,13 +115,31 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   };
 
   const handleAttributeChange = (attributeId: string, optionId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedAttributes: {
-        ...prev.selectedAttributes,
-        [attributeId]: optionId,
-      },
-    }));
+    setFormData((prev) => {
+      const newSelectedAttributes = { ...prev.selectedAttributes };
+
+      if (optionId === '') {
+        // Deselect - remove the attribute
+        delete newSelectedAttributes[attributeId];
+      } else if (optionId === '__selected__') {
+        // Checkbox selection (no specific option yet) - clear others and select this one
+        // Only keep this attribute selected
+        Object.keys(newSelectedAttributes).forEach((key) => {
+          if (key !== attributeId) {
+            delete newSelectedAttributes[key];
+          }
+        });
+        newSelectedAttributes[attributeId] = '__selected__';
+      } else {
+        // Specific option selected
+        newSelectedAttributes[attributeId] = optionId;
+      }
+
+      return {
+        ...prev,
+        selectedAttributes: newSelectedAttributes,
+      };
+    });
   };
 
   const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,6 +228,8 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         // v6 variant attributes
         selectedAttributes: formData.selectedAttributes,
         variantId: productData.variantId,
+        // Pass metadata for variant creation (needed by datasource to get attribute options)
+        metadata: metadata,
       };
 
       const imageUrls: string[] = [];

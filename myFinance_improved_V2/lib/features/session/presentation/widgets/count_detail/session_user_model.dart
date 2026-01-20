@@ -1,4 +1,4 @@
-/// Session user data model (from inventory_get_session_items RPC participants)
+/// Session user data model (from inventory_get_session_items_v2 RPC participants)
 class SessionUser {
   final String id;
   final String userName;

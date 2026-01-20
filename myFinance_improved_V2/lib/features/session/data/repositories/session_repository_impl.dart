@@ -26,7 +26,10 @@ class SessionRepositoryImpl implements SessionRepository {
     String? storeId,
     String? sessionType,
     String? shipmentId,
-    bool? isActive,
+    String? status,
+    String? supplierId,
+    DateTime? startDate,
+    DateTime? endDate,
     String? createdBy,
     int limit = 50,
     int offset = 0,
@@ -36,34 +39,15 @@ class SessionRepositoryImpl implements SessionRepository {
       storeId: storeId,
       sessionType: sessionType,
       shipmentId: shipmentId,
-      isActive: isActive,
+      status: status,
+      supplierId: supplierId,
+      startDate: startDate,
+      endDate: endDate,
       createdBy: createdBy,
       limit: limit,
       offset: offset,
     );
     return model.toEntity();
-  }
-
-  @override
-  Future<List<InventorySession>> getSessions({
-    required String companyId,
-    String? sessionType,
-    String? status,
-  }) async {
-    final models = await _datasource.getSessions(
-      companyId: companyId,
-      sessionType: sessionType,
-      status: status,
-    );
-    return models.map((m) => m.toEntity()).toList();
-  }
-
-  @override
-  Future<InventorySession?> getSession({
-    required String sessionId,
-  }) async {
-    final model = await _datasource.getSession(sessionId: sessionId);
-    return model?.toEntity();
   }
 
   @override
@@ -96,21 +80,6 @@ class SessionRepositoryImpl implements SessionRepository {
       status: status,
     );
     return model.toEntity();
-  }
-
-  @override
-  Future<void> deleteSession({
-    required String sessionId,
-  }) async {
-    return _datasource.deleteSession(sessionId: sessionId);
-  }
-
-  @override
-  Future<List<SessionItem>> getSessionItems({
-    required String sessionId,
-  }) async {
-    final models = await _datasource.getSessionItems(sessionId: sessionId);
-    return models.map((m) => m.toEntity()).toList();
   }
 
   @override
@@ -158,14 +127,6 @@ class SessionRepositoryImpl implements SessionRepository {
     required String itemId,
   }) async {
     return _datasource.removeSessionItem(itemId: itemId);
-  }
-
-  @override
-  Future<InventorySession> completeSession({
-    required String sessionId,
-  }) async {
-    final model = await _datasource.completeSession(sessionId: sessionId);
-    return model.toEntity();
   }
 
   @override

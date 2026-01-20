@@ -79,17 +79,17 @@ class _ReceivingEditQuantityDialogState
         children: [
           // Product info
           Text(
-            widget.item.productName,
+            widget.item.name,
             style: TossTextStyles.bodyMedium.copyWith(
               color: TossColors.textPrimary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (widget.item.sku != null) ...[
+          if (widget.item.effectiveSku != null) ...[
             const SizedBox(height: TossSpacing.space1),
             Text(
-              widget.item.sku!,
+              widget.item.effectiveSku!,
               style: TossTextStyles.caption.copyWith(
                 color: TossColors.textTertiary,
               ),

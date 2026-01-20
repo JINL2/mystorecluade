@@ -8,7 +8,8 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../domain/entities/session_history_item.dart';
 
 /// Merge info section for history detail
-class HistoryMergeInfoSection extends StatelessWidget {
+/// v4: Added items_by_product view to show which sessions each product came from
+class HistoryMergeInfoSection extends StatefulWidget {
   final SessionHistoryItem session;
   final MergeInfo mergeInfo;
 
@@ -17,6 +18,17 @@ class HistoryMergeInfoSection extends StatelessWidget {
     required this.session,
     required this.mergeInfo,
   });
+
+  @override
+  State<HistoryMergeInfoSection> createState() => _HistoryMergeInfoSectionState();
+}
+
+class _HistoryMergeInfoSectionState extends State<HistoryMergeInfoSection> {
+  /// 0 = By Session, 1 = By Product
+  int _viewMode = 0;
+
+  MergeInfo get mergeInfo => widget.mergeInfo;
+  SessionHistoryItem get session => widget.session;
 
   @override
   Widget build(BuildContext context) {
@@ -119,26 +131,55 @@ class HistoryMergeInfoSection extends StatelessWidget {
           ),
           const SizedBox(height: TossSpacing.space3),
 
-          // Original session (this session's items before merge)
-          _buildMergeSessionCard(
-            sessionName: session.sessionName,
-            isOriginal: true,
-            items: originalSession.items,
-            totalQuantity: originalSession.totalQuantity,
-            totalRejected: originalSession.totalRejected,
-          ),
-
-          // Merged sessions
-          ...mergedSessions.map(
-            (MergedSessionInfo mergedSession) => _buildMergeSessionCard(
-              sessionName: mergedSession.sourceSessionName,
-              isOriginal: false,
-              items: mergedSession.items,
-              totalQuantity: mergedSession.totalQuantity,
-              totalRejected: mergedSession.totalRejected,
-              createdBy: mergedSession.sourceCreatedBy,
+          // v4: View mode toggle (By Session / By Product)
+          if (mergeInfo.hasItemsByProduct) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+              child: Row(
+                children: [
+                  _buildViewModeButton(
+                    label: 'By Session',
+                    isSelected: _viewMode == 0,
+                    onTap: () => setState(() => _viewMode = 0),
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  _buildViewModeButton(
+                    label: 'By Product',
+                    isSelected: _viewMode == 1,
+                    onTap: () => setState(() => _viewMode = 1),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: TossSpacing.space3),
+          ],
+
+          // Content based on view mode
+          if (_viewMode == 0) ...[
+            // Original session (this session's items before merge)
+            _buildMergeSessionCard(
+              sessionName: session.sessionName,
+              items: originalSession.items,
+              totalQuantity: originalSession.totalQuantity,
+              totalRejected: originalSession.totalRejected,
+            ),
+
+            // Merged sessions
+            ...mergedSessions.map(
+              (MergedSessionInfo mergedSession) => _buildMergeSessionCard(
+                sessionName: mergedSession.sourceSessionName,
+                items: mergedSession.items,
+                totalQuantity: mergedSession.totalQuantity,
+                totalRejected: mergedSession.totalRejected,
+                createdBy: mergedSession.sourceCreatedBy,
+              ),
+            ),
+          ] else ...[
+            // v4: By Product view - show which sessions each product came from
+            ...mergeInfo.itemsByProduct.map(
+              (item) => _buildProductSourceCard(item),
+            ),
+          ],
 
           const SizedBox(height: TossSpacing.space3),
         ],
@@ -148,7 +189,6 @@ class HistoryMergeInfoSection extends StatelessWidget {
 
   Widget _buildMergeSessionCard({
     required String sessionName,
-    required bool isOriginal,
     required List<MergedSessionItem> items,
     required int totalQuantity,
     required int totalRejected,
@@ -160,11 +200,9 @@ class HistoryMergeInfoSection extends StatelessWidget {
         vertical: TossSpacing.space2,
       ),
       decoration: BoxDecoration(
-        color: isOriginal ? TossColors.primary.withValues(alpha: 0.03) : TossColors.gray50,
+        color: TossColors.gray50,
         borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(
-          color: isOriginal ? TossColors.primary.withValues(alpha: 0.3) : TossColors.gray200,
-        ),
+        border: Border.all(color: TossColors.gray200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,58 +210,32 @@ class HistoryMergeInfoSection extends StatelessWidget {
           // Session header
           Container(
             padding: const EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: isOriginal ? TossColors.primary.withValues(alpha: 0.08) : TossColors.gray100,
-              borderRadius: const BorderRadius.only(
+            decoration: const BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(TossBorderRadius.md - 1),
                 topRight: Radius.circular(TossBorderRadius.md - 1),
               ),
             ),
             child: Row(
               children: [
-                Icon(
-                  isOriginal ? Icons.star : Icons.merge_type,
+                const Icon(
+                  Icons.inventory_2_outlined,
                   size: TossSpacing.iconSM2,
-                  color: isOriginal ? TossColors.primary : TossColors.textSecondary,
+                  color: TossColors.textSecondary,
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              sessionName,
-                              style: TossTextStyles.bodySmall.copyWith(
-                                fontWeight: TossFontWeight.semibold,
-                                color: isOriginal ? TossColors.primary : TossColors.textPrimary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isOriginal) ...[
-                            const SizedBox(width: TossSpacing.space2),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: TossSpacing.space2,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: TossColors.primary,
-                                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                              ),
-                              child: Text(
-                                'Original',
-                                style: TossTextStyles.micro.copyWith(
-                                  color: TossColors.white,
-                                  fontWeight: TossFontWeight.semibold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+                      Text(
+                        sessionName,
+                        style: TossTextStyles.bodySmall.copyWith(
+                          fontWeight: TossFontWeight.semibold,
+                          color: TossColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       if (createdBy != null)
                         Text(
@@ -318,7 +330,7 @@ class HistoryMergeInfoSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName,
+                  item.name,
                   style: TossTextStyles.bodySmall.copyWith(
                     color: TossColors.textPrimary,
                   ),
@@ -363,6 +375,174 @@ class HistoryMergeInfoSection extends StatelessWidget {
               ],
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  /// v4: View mode toggle button
+  Widget _buildViewModeButton({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TossSpacing.space3,
+          vertical: TossSpacing.space2,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? TossColors.primary : TossColors.gray100,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        child: Text(
+          label,
+          style: TossTextStyles.caption.copyWith(
+            color: isSelected ? TossColors.white : TossColors.textSecondary,
+            fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// v4: Build product source card showing which sessions a product came from
+  Widget _buildProductSourceCard(ItemByProduct item) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
+      ),
+      decoration: BoxDecoration(
+        color: TossColors.gray50,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product header
+          Container(
+            padding: const EdgeInsets.all(TossSpacing.space3),
+            decoration: const BoxDecoration(
+              color: TossColors.gray100,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(TossBorderRadius.md - 1),
+                topRight: Radius.circular(TossBorderRadius.md - 1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        style: TossTextStyles.bodySmall.copyWith(
+                          fontWeight: TossFontWeight.semibold,
+                          color: TossColors.textPrimary,
+                        ),
+                      ),
+                      if (item.sku.isNotEmpty)
+                        Text(
+                          'SKU: ${item.sku}',
+                          style: TossTextStyles.micro.copyWith(
+                            color: TossColors.textTertiary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space2,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TossColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                  ),
+                  child: Text(
+                    'Total: ${item.totalQuantity}',
+                    style: TossTextStyles.caption.copyWith(
+                      fontWeight: TossFontWeight.bold,
+                      color: TossColors.success,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Sources list - which sessions this product came from
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: item.sources.length,
+            separatorBuilder: (_, __) => const Divider(height: 1, indent: 12, endIndent: 12),
+            itemBuilder: (context, index) {
+              final source = item.sources[index];
+              return _buildSourceRow(source);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// v4: Build source row showing session name and quantity
+  Widget _buildSourceRow(ProductSourceInfo source) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space2,
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.inventory_2_outlined,
+            size: TossSpacing.iconSM2,
+            color: TossColors.textTertiary,
+          ),
+          const SizedBox(width: TossSpacing.space2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  source.sessionName,
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'by ${source.scannedBy.firstName} ${source.scannedBy.lastName}'.trim(),
+                  style: TossTextStyles.micro.copyWith(
+                    color: TossColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${source.quantity}',
+            style: TossTextStyles.bodySmall.copyWith(
+              fontWeight: TossFontWeight.semibold,
+              color: TossColors.success,
+            ),
+          ),
+          if (source.quantityRejected > 0) ...[
+            Text(
+              ' / ${source.quantityRejected}',
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.error,
+              ),
+            ),
+          ],
         ],
       ),
     );

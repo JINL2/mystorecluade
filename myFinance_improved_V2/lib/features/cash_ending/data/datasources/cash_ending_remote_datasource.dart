@@ -16,15 +16,13 @@ class CashEndingRemoteDataSource {
 
   /// Save cash ending using universal multi-currency RPC
   ///
-  /// ✅ Uses insert_amount_multi_currency (Entry-based workflow)
+  /// Uses insert_amount_multi_currency (Entry-based workflow)
   /// [params] contains all parameters for the RPC function
   /// Returns the entry data from database (entry_id, balance_before, balance_after)
-  /// Throws exception on error
   Future<Map<String, dynamic>?> saveCashEnding(
     Map<String, dynamic> params,
   ) async {
     try {
-      // ✅ NEW: Universal RPC returns entry data
       final response = await _client.rpc(
         CashEndingConstants.rpcInsertAmountMultiCurrency,
         params: params,
@@ -61,16 +59,14 @@ class CashEndingRemoteDataSource {
 
   /// Get balance summary (Journal vs Real) for a cash location
   ///
-  /// Calls get_cash_location_balance_summary_v2 RPC (STOCK-BASED)
-  /// ✅ Uses stock data from cash_amount_entries.balance_after
+  /// Uses stock data from cash_amount_entries.balance_after
   /// Returns balance comparison data
-  /// Throws exception on error
   Future<Map<String, dynamic>> getBalanceSummary({
     required String locationId,
   }) async {
     try {
       final response = await _client.rpc<Map<String, dynamic>>(
-        CashEndingConstants.rpcGetBalanceSummaryV2,  // ✅ CHANGED: Using V2
+        CashEndingConstants.rpcGetBalanceSummaryV2,
         params: {'p_location_id': locationId},
       );
 

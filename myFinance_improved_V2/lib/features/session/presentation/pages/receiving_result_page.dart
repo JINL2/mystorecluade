@@ -328,10 +328,10 @@ class _StockChangeRow extends StatelessWidget {
             const SizedBox(width: TossSpacing.space2),
           ],
 
-          // Product name
+          // Product name (uses displayName for variant products)
           Expanded(
             child: Text(
-              item.productName,
+              item.name,
               style: TossTextStyles.body.copyWith(
                 color: TossColors.gray900,
                 fontWeight: isNew ? TossFontWeight.semibold : TossFontWeight.regular,

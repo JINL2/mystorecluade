@@ -24,7 +24,8 @@ abstract class InventoryRepository {
     SortOption? sortOption,
   });
 
-  /// Create new product
+  /// Create new product with optional variant support
+  /// v4: Added attributeId and variants for single-attribute variant support
   Future<Product?> createProduct({
     required String companyId,
     required String storeId,
@@ -41,6 +42,9 @@ abstract class InventoryRepository {
     int? minStock,
     int? maxStock,
     List<String>? imageUrls,
+    // v4: Variant support
+    String? attributeId,
+    List<Map<String, dynamic>>? variants,
   });
 
   /// Check if product edit is valid before updating
@@ -165,12 +169,26 @@ abstract class InventoryRepository {
 }
 
 /// Product Page Result
+/// v6.1: Added store-wide totals (not affected by filters)
 class ProductPageResult {
   final List<Product> products;
   final PaginationResult pagination;
   final Currency currency;
+
+  /// Filtered total value (selling price based) - affected by filters
   final double serverTotalValue;
+
+  /// Filtered item count - affected by filters
   final int filteredCount;
+
+  /// v6.1: Store-wide total cost value - NOT affected by filters
+  final double totalInventoryCost;
+
+  /// v6.1: Store-wide total retail value - NOT affected by filters
+  final double totalInventoryRetail;
+
+  /// v6.1: Store-wide total quantity - NOT affected by filters
+  final int totalInventoryQuantity;
 
   const ProductPageResult({
     required this.products,
@@ -178,6 +196,9 @@ class ProductPageResult {
     required this.currency,
     this.serverTotalValue = 0.0,
     this.filteredCount = 0,
+    this.totalInventoryCost = 0.0,
+    this.totalInventoryRetail = 0.0,
+    this.totalInventoryQuantity = 0,
   });
 }
 
@@ -582,6 +603,7 @@ class InventoryHistoryPageResult {
 }
 
 /// Individual inventory history entry (includes product info)
+/// v2: Added variant_id, variant_name, display_name for variant support
 class InventoryHistoryEntry {
   final String logId;
   final String eventCategory;
@@ -591,6 +613,10 @@ class InventoryHistoryEntry {
   final String? productName;
   final String? productSku;
   final String? productImage;
+  // Variant info (v2)
+  final String? variantId;
+  final String? variantName;
+  final String? displayName;
   // Store info
   final String? storeId;
   final String? storeName;
@@ -646,6 +672,9 @@ class InventoryHistoryEntry {
     this.productName,
     this.productSku,
     this.productImage,
+    this.variantId,
+    this.variantName,
+    this.displayName,
     this.storeId,
     this.storeName,
     this.quantityBefore,

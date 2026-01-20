@@ -1,6 +1,6 @@
 import '../../domain/entities/update_session_items_response.dart';
 
-/// Response model for inventory_update_session_item RPC
+/// Response model for inventory_update_session_item_v2 RPC
 
 /// Individual updated item result (Model)
 class UpdatedItemModel {
@@ -79,7 +79,7 @@ class UpdateSummaryModel {
   }
 }
 
-/// Response model for inventory_update_session_item RPC
+/// Response model for inventory_update_session_item_v2 RPC
 class UpdateSessionItemsResponseModel {
   final bool success;
   final String sessionId;

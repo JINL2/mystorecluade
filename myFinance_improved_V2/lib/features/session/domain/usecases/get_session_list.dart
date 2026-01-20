@@ -3,7 +3,8 @@ import '../repositories/session_repository.dart';
 
 /// Get session list for a company
 ///
-/// Matches RPC: inventory_get_session_list
+/// Matches RPC: inventory_get_session_list_v2
+/// v2: Replaced isActive with status, added supplier/date filters
 class GetSessionList {
   final SessionRepository _repository;
 
@@ -14,7 +15,11 @@ class GetSessionList {
     String? storeId,
     String? sessionType,
     String? shipmentId,
-    bool? isActive,
+    /// v2: Status filter ('in_progress', 'complete', 'cancelled')
+    String? status,
+    String? supplierId,
+    DateTime? startDate,
+    DateTime? endDate,
     String? createdBy,
     int limit = 50,
     int offset = 0,
@@ -24,7 +29,10 @@ class GetSessionList {
       storeId: storeId,
       sessionType: sessionType,
       shipmentId: shipmentId,
-      isActive: isActive,
+      status: status,
+      supplierId: supplierId,
+      startDate: startDate,
+      endDate: endDate,
       createdBy: createdBy,
       limit: limit,
       offset: offset,
