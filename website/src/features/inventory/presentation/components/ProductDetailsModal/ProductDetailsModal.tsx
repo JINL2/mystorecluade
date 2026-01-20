@@ -238,16 +238,20 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         const preview = imagePreviews[i];
         const compressionInfo = compressionInfos[i];
 
-        if (compressionInfo && compressionInfo.compressedFile) {
-          const fileName = `product_${productId}_${Date.now()}_${i}.${compressionInfo.compressedFile.type.split('/')[1]}`;
-          const uploadResult = await storageService.uploadFile(
-            'product-images',
+        if (compressionInfo && compressionInfo.dataUrl) {
+          // Upload using dataUrl directly (storageService handles base64 conversion)
+          const fileExtension = compressionInfo.format.split('/')[1] || 'jpeg';
+          const fileName = `${companyId}/${productId}_${Date.now()}_${i}.${fileExtension}`;
+
+          const uploadResult = await storageService.uploadImage(
+            'inventory_image',
             fileName,
-            compressionInfo.compressedFile
+            compressionInfo.dataUrl,
+            { upsert: true }
           );
 
-          if (uploadResult.success && uploadResult.publicUrl) {
-            imageUrls.push(uploadResult.publicUrl);
+          if (uploadResult.success && uploadResult.data) {
+            imageUrls.push(uploadResult.data);
           }
         } else if (preview.startsWith('http')) {
           imageUrls.push(preview);
