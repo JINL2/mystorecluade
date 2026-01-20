@@ -29,18 +29,6 @@ abstract class SessionRepository {
     int offset = 0,
   });
 
-  /// Get all sessions for a company
-  Future<List<InventorySession>> getSessions({
-    required String companyId,
-    String? sessionType,
-    String? status,
-  });
-
-  /// Get a specific session by ID
-  Future<InventorySession?> getSession({
-    required String sessionId,
-  });
-
   /// Create a new session
   Future<InventorySession> createSession({
     required String companyId,
@@ -55,16 +43,6 @@ abstract class SessionRepository {
   Future<InventorySession> updateSessionStatus({
     required String sessionId,
     required String status,
-  });
-
-  /// Delete a session
-  Future<void> deleteSession({
-    required String sessionId,
-  });
-
-  /// Get items in a session
-  Future<List<SessionItem>> getSessionItems({
-    required String sessionId,
   });
 
   /// Add item to session
@@ -90,11 +68,6 @@ abstract class SessionRepository {
   /// Remove item from session
   Future<void> removeSessionItem({
     required String itemId,
-  });
-
-  /// Complete session and apply changes to inventory
-  Future<InventorySession> completeSession({
-    required String sessionId,
   });
 
   /// Get session items for review (aggregated by product with user breakdown)

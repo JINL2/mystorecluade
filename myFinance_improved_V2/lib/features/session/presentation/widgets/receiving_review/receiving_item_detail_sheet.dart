@@ -25,11 +25,9 @@ class ReceivingItemDetailSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(sessionReviewNotifierProvider(params));
-    final isEdited = state.isEdited(item.productId);
-    final effectiveQuantity = state.getEffectiveQuantity(
-      item.productId,
-      item.totalQuantity,
-    );
+    // v2: Use item-based methods for variant support
+    final isEdited = state.isEdited(item);
+    final effectiveQuantity = state.getEffectiveQuantity(item);
 
     final shipped = item.previousStock;
     final received = effectiveQuantity;

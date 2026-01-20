@@ -74,8 +74,13 @@ class SessionReviewNotifier extends _$SessionReviewNotifier {
       }
 
       // 3. Merge stock data into items - create new items with correct previousStock and sessionType
+      // v2: Use composite key (productId:variantId) for variant products
       final itemsWithStock = response.items.map((item) {
-        final currentStock = stockMap[item.productId] ?? 0;
+        // For variant products, stock is keyed by productId:variantId
+        final stockKey = item.hasVariants && item.variantId != null
+            ? '${item.productId}:${item.variantId}'
+            : item.productId;
+        final currentStock = stockMap[stockKey] ?? 0;
         return SessionReviewItem(
           productId: item.productId,
           productName: item.productName,
@@ -88,6 +93,13 @@ class SessionReviewNotifier extends _$SessionReviewNotifier {
           previousStock: currentStock,
           scannedBy: item.scannedBy,
           sessionType: state.sessionType,
+          // v2 variant fields - copy from original item
+          variantId: item.variantId,
+          variantName: item.variantName,
+          displayName: item.displayName,
+          variantSku: item.variantSku,
+          displaySku: item.displaySku,
+          hasVariants: item.hasVariants,
         );
       }).toList();
 
@@ -125,31 +137,28 @@ class SessionReviewNotifier extends _$SessionReviewNotifier {
     state = state.copyWith(searchQuery: '');
   }
 
-  /// Update quantity for a product (manager edit)
+  /// Update quantity for an item (manager edit)
   /// This stores the edited quantity to be used during submit
-  void updateQuantity(String productId, int newQuantity) {
+  /// v2: Uses composite key (productId:variantId) for variant products
+  void updateQuantity(SessionReviewItem item, int newQuantity) {
     final updatedEdits = Map<String, int>.from(state.editedQuantities);
-
-    // Find the original item to compare
-    final originalItem = state.items.firstWhere(
-      (item) => item.productId == productId,
-      orElse: () => throw StateError('Product not found'),
-    );
+    final itemKey = state.getItemKey(item);
 
     // If the new quantity matches the original, remove from edits
-    if (newQuantity == originalItem.totalQuantity) {
-      updatedEdits.remove(productId);
+    if (newQuantity == item.totalQuantity) {
+      updatedEdits.remove(itemKey);
     } else {
-      updatedEdits[productId] = newQuantity;
+      updatedEdits[itemKey] = newQuantity;
     }
 
     state = state.copyWith(editedQuantities: updatedEdits);
   }
 
-  /// Clear edit for a specific product (revert to original)
-  void clearEdit(String productId) {
+  /// Clear edit for a specific item (revert to original)
+  /// v2: Uses composite key for variant products
+  void clearEdit(SessionReviewItem item) {
     final updatedEdits = Map<String, int>.from(state.editedQuantities);
-    updatedEdits.remove(productId);
+    updatedEdits.remove(state.getItemKey(item));
     state = state.copyWith(editedQuantities: updatedEdits);
   }
 
@@ -188,12 +197,9 @@ class SessionReviewNotifier extends _$SessionReviewNotifier {
           .map((item) => SessionSubmitItem(
                 productId: item.productId,
                 variantId: item.variantId,
-                quantity: state.getEffectiveQuantity(
-                  item.productId,
-                  item.totalQuantity,
-                ),
+                quantity: state.getEffectiveQuantity(item),
                 quantityRejected: item.totalRejected,
-              ),)
+              ))
           .toList();
 
       final response = await submitSessionUseCase(

@@ -28,45 +28,6 @@ class SessionDatasource {
 
   SessionDatasource(this._client);
 
-  /// Get all sessions for a company
-  Future<List<InventorySessionModel>> getSessions({
-    required String companyId,
-    String? sessionType,
-    String? status,
-  }) async {
-    var query = _client
-        .from('inventory_sessions')
-        .select()
-        .eq('company_id', companyId);
-
-    if (sessionType != null) {
-      query = query.eq('session_type', sessionType);
-    }
-    if (status != null) {
-      query = query.eq('status', status);
-    }
-
-    final response = await query.order('created_at', ascending: false);
-
-    return (response as List)
-        .map((json) => InventorySessionModel.fromJson(json as Map<String, dynamic>))
-        .toList();
-  }
-
-  /// Get a specific session by ID
-  Future<InventorySessionModel?> getSession({
-    required String sessionId,
-  }) async {
-    final response = await _client
-        .from('inventory_sessions')
-        .select()
-        .eq('session_id', sessionId)
-        .maybeSingle();
-
-    if (response == null) return null;
-    return InventorySessionModel.fromJson(response);
-  }
-
   /// Create a new session
   Future<InventorySessionModel> createSession({
     required String companyId,
@@ -110,31 +71,6 @@ class SessionDatasource {
         .single();
 
     return InventorySessionModel.fromJson(response);
-  }
-
-  /// Delete a session
-  Future<void> deleteSession({
-    required String sessionId,
-  }) async {
-    await _client
-        .from('inventory_sessions')
-        .delete()
-        .eq('session_id', sessionId);
-  }
-
-  /// Get items in a session
-  Future<List<SessionItemModel>> getSessionItems({
-    required String sessionId,
-  }) async {
-    final response = await _client
-        .from('session_items')
-        .select()
-        .eq('session_id', sessionId)
-        .order('added_at', ascending: false);
-
-    return (response as List)
-        .map((json) => SessionItemModel.fromJson(json as Map<String, dynamic>))
-        .toList();
   }
 
   /// Add item to session
@@ -195,15 +131,6 @@ class SessionDatasource {
         .from('session_items')
         .delete()
         .eq('item_id', itemId);
-  }
-
-  /// Complete session
-  Future<InventorySessionModel> completeSession({
-    required String sessionId,
-  }) async {
-    // TODO: Call RPC function to apply inventory changes
-    // For now, just update status
-    return updateSessionStatus(sessionId: sessionId, status: 'completed');
   }
 
   /// Get session list via RPC (inventory_get_session_list_v2)

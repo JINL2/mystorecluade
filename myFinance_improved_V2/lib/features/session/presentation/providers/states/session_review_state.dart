@@ -27,8 +27,9 @@ class SessionReviewState {
   final ReviewFilter activeFilter;
   final String searchQuery;
 
-  // Manager edited quantities - key: productId, value: edited totalQuantity
-  // Only stores edits (if productId not in map, use original value)
+  // Manager edited quantities - key: itemKey (productId or productId:variantId), value: edited totalQuantity
+  // Only stores edits (if key not in map, use original value)
+  // v2: Uses composite key for variant products
   final Map<String, int> editedQuantities;
 
   const SessionReviewState({
@@ -124,17 +125,37 @@ class SessionReviewState {
     return items.where((item) => item.stockChange != 0).length;
   }
 
-  /// Check if a product has been edited by manager
-  bool isEdited(String productId) => editedQuantities.containsKey(productId);
+  /// Generate unique key for item (handles variant products)
+  /// v2: Uses composite key productId:variantId for variant products
+  String getItemKey(SessionReviewItem item) {
+    if (item.hasVariants && item.variantId != null) {
+      return '${item.productId}:${item.variantId}';
+    }
+    return item.productId;
+  }
 
-  /// Get effective quantity for a product (edited value if exists, otherwise original)
-  int getEffectiveQuantity(String productId, int originalQuantity) {
-    return editedQuantities[productId] ?? originalQuantity;
+  /// Check if an item has been edited by manager
+  /// v2: Uses composite key for variant products
+  bool isEdited(SessionReviewItem item) => editedQuantities.containsKey(getItemKey(item));
+
+  /// Check if a product has been edited by manager (legacy - for backward compatibility)
+  @Deprecated('Use isEdited(SessionReviewItem) instead for variant support')
+  bool isEditedByProductId(String productId) => editedQuantities.containsKey(productId);
+
+  /// Get effective quantity for an item (edited value if exists, otherwise original)
+  /// v2: Uses composite key for variant products
+  int getEffectiveQuantity(SessionReviewItem item) {
+    return editedQuantities[getItemKey(item)] ?? item.totalQuantity;
+  }
+
+  /// Get effective quantity by key (for submit)
+  int getEffectiveQuantityByKey(String itemKey, int originalQuantity) {
+    return editedQuantities[itemKey] ?? originalQuantity;
   }
 
   /// Get stock change for display, considering edited quantity
   int getEffectiveStockChange(SessionReviewItem item) {
-    final effectiveQty = getEffectiveQuantity(item.productId, item.totalQuantity);
+    final effectiveQty = getEffectiveQuantity(item);
     final netQty = effectiveQty - item.totalRejected;
     // For counting: newStock = netQty
     if (sessionType == 'counting') {
@@ -146,7 +167,7 @@ class SessionReviewState {
 
   /// Get new stock value, considering edited quantity
   int getEffectiveNewStock(SessionReviewItem item) {
-    final effectiveQty = getEffectiveQuantity(item.productId, item.totalQuantity);
+    final effectiveQty = getEffectiveQuantity(item);
     final netQty = effectiveQty - item.totalRejected;
     // For counting: newStock = netQty (counted quantity replaces stock)
     if (sessionType == 'counting') {

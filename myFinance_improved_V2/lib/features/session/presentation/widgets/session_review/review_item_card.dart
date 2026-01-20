@@ -35,10 +35,8 @@ class ReviewItemCard extends ConsumerWidget {
   }
 
   void _showEditDialog(BuildContext context, WidgetRef ref, SessionReviewState state) {
-    final currentQuantity = state.getEffectiveQuantity(
-      item.productId,
-      item.totalQuantity,
-    );
+    // v2: Use item-based getEffectiveQuantity for variant support
+    final currentQuantity = state.getEffectiveQuantity(item);
 
     showDialog<void>(
       context: context,
@@ -46,8 +44,9 @@ class ReviewItemCard extends ConsumerWidget {
         item: item,
         currentQuantity: currentQuantity,
         onSave: (newQuantity) {
+          // v2: Pass item instead of productId for variant support
           ref.read(sessionReviewNotifierProvider(params).notifier).updateQuantity(
-                item.productId,
+                item,
                 newQuantity,
               );
           Navigator.pop(dialogContext);
@@ -59,7 +58,8 @@ class ReviewItemCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(sessionReviewNotifierProvider(params));
-    final isEdited = state.isEdited(item.productId);
+    // v2: Use item-based isEdited for variant support
+    final isEdited = state.isEdited(item);
     final effectiveNewStock = state.getEffectiveNewStock(item);
     final effectiveStockChange = state.getEffectiveStockChange(item);
 
