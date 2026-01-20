@@ -67,6 +67,9 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   // Custom attributes: Map of attributeId -> selected optionId
   final Map<String, String?> _selectedAttributeValues = {};
 
+  // Selected attribute for variants (only 1 allowed)
+  String? _selectedVariantAttributeId;
+
   Product? _product;
   bool _isLoadingProduct = false;
   bool _productNotFound = false;
@@ -105,6 +108,8 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
     // Attribute changes - compare with original values
     if (!_mapEquals(_selectedAttributeValues, _originalAttributeValues)) return true;
+    // Variant attribute selection change (for products without variants)
+    if (_selectedVariantAttributeId != null) return true;
 
     // Image changes
     if (_selectedImages.isNotEmpty) return true;
@@ -527,14 +532,12 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
       String? attributeId;
       List<Map<String, dynamic>>? addVariants;
 
-      // Check if product doesn't have variants and user selected an attribute option
-      if (_product?.hasVariants != true && _selectedAttributeValues.isNotEmpty) {
+      // Check if product doesn't have variants and user selected a variant attribute
+      if (_product?.hasVariants != true && _selectedVariantAttributeId != null) {
         final metadataState = ref.read(inventoryMetadataNotifierProvider);
         if (metadataState.metadata != null) {
-          // Get the first selected attribute (currently supporting single attribute)
-          final selectedEntry = _selectedAttributeValues.entries.first;
-          final selectedAttributeId = selectedEntry.key;
-          final selectedOptionId = selectedEntry.value;
+          // Use the selected variant attribute
+          final selectedAttributeId = _selectedVariantAttributeId!;
 
           // Find the attribute in metadata
           final attribute = metadataState.metadata!.attributes.cast<Attribute?>().firstWhere(
@@ -542,17 +545,16 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             orElse: () => null,
           );
 
-          if (attribute != null && selectedOptionId != null) {
+          if (attribute != null) {
             attributeId = selectedAttributeId;
 
             // Create variants for ALL options of this attribute
-            // The selected option gets the current quantity, others get 0
+            // All variants start with quantity 0
             addVariants = attribute.options.map((option) {
-              final isSelectedOption = option.id == selectedOptionId;
               return {
                 'variant_name': option.value,
                 'option_id': option.id,
-                'initial_quantity': isSelectedOption ? (parsedOnHand ?? 0) : 0,
+                'initial_quantity': 0,
               };
             }).toList();
           }
@@ -591,20 +593,32 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
         await ref.read(inventoryPageNotifierProvider.notifier).refresh();
 
         if (!mounted) return;
+
+        // Check if variants were created (attribute was newly set)
+        final variantsCreated = addVariants != null && addVariants.isNotEmpty;
+
         await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => TossDialog.success(
             title: 'Product Updated',
-            message: 'Product updated successfully',
+            message: variantsCreated
+                ? 'Product updated with variants. You can now manage each variant separately.'
+                : 'Product updated successfully',
             primaryButtonText: 'OK',
           ),
         );
 
-        // Pop back to Product Detail page with updated product data
-        // This prevents duplicate product detail pages in the navigation stack
         if (mounted) {
-          context.pop(product);
+          if (variantsCreated) {
+            // If variants were created, go back to product list
+            // because the original product is now split into multiple variants
+            context.pop(); // Pop edit page
+            context.pop(); // Pop product detail page to go back to list
+          } else {
+            // Normal edit - go back to Product Detail page with updated product data
+            context.pop(product);
+          }
         }
       } else if (mounted) {
         await showDialog<bool>(
@@ -940,6 +954,9 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
   }
 
   Widget _buildAttributesSection(InventoryMetadata? metadata) {
+    // Check if product already has variants - if so, don't allow attribute selection change
+    final hasExistingVariants = _product?.hasVariants == true;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
       child: Column(
@@ -972,54 +989,171 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
             showChevron: true,
             onTap: metadata != null ? () => _showBrandSelector(metadata) : null,
           ),
-          // Custom attributes from metadata
-          if (metadata != null)
-            ...metadata.attributes.map((attribute) {
-              final selectedOptionId = _selectedAttributeValues[attribute.id];
-              final selectedOption = attribute.options.cast<AttributeOption?>().firstWhere(
-                (o) => o?.id == selectedOptionId,
-                orElse: () => null,
-              );
-              return FormListRow(
-                label: attribute.name,
-                value: selectedOption?.value,
-                placeholder: 'Select ${attribute.name.toLowerCase()}',
-                showChevron: true,
-                onTap: () => _showAttributeOptionSelector(attribute),
-              );
-            }),
+          // Custom attributes - checkbox selection (only 1 allowed)
+          if (metadata != null && metadata.attributes.isNotEmpty) ...[
+            const SizedBox(height: TossSpacing.space2),
+            // Show attribute selection UI only if product doesn't have variants yet
+            if (!hasExistingVariants) ...[
+              _buildAttributeCheckboxSection(metadata.attributes),
+            ] else ...[
+              // For products with variants, show the current variant attribute (read-only)
+              _buildExistingVariantAttributeDisplay(metadata),
+            ],
+          ],
         ],
       ),
     );
   }
 
-  void _showAttributeOptionSelector(Attribute attribute) {
-    final items = attribute.options
-        .map((option) => SelectionItem(
-              id: option.id,
-              title: option.value,
-            ))
-        .toList();
+  /// Build checkbox section for selecting variant attribute (only 1 allowed)
+  /// No option selection - just attribute checkbox
+  Widget _buildAttributeCheckboxSection(List<Attribute> attributes) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Text(
+            'Select variant attribute (optional)',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.textSecondary,
+            ),
+          ),
+        ),
+        ...attributes.map((attribute) {
+          final isSelected = _selectedVariantAttributeId == attribute.id;
+          return _buildAttributeCheckboxRow(
+            attribute: attribute,
+            isSelected: isSelected,
+            isEnabled: true,
+          );
+        }),
+      ],
+    );
+  }
 
-    SelectionBottomSheetCommon.show<void>(
-      context: context,
-      title: attribute.name,
-      itemCount: items.length,
-      itemBuilder: (ctx, index) {
-        final item = items[index];
-        final isSelected = item.id == _selectedAttributeValues[attribute.id];
-        return SelectionListItem(
-          item: item,
-          isSelected: isSelected,
-          variant: SelectionItemVariant.standard,
-          onTap: () {
-            setState(() {
-              _selectedAttributeValues[attribute.id] = item.id;
-            });
-            Navigator.pop(ctx);
-          },
-        );
-      },
+  /// Build a single checkbox row for an attribute
+  Widget _buildAttributeCheckboxRow({
+    required Attribute attribute,
+    required bool isSelected,
+    required bool isEnabled,
+  }) {
+    // Disabled state colors (for products with existing variants)
+    final checkboxColor = isEnabled
+        ? (isSelected ? TossColors.primary : TossColors.white)
+        : (isSelected ? TossColors.gray400 : TossColors.gray100);
+    final checkboxBorderColor = isEnabled
+        ? (isSelected ? TossColors.primary : TossColors.gray300)
+        : TossColors.gray300;
+    final checkIconColor = isEnabled ? TossColors.white : TossColors.gray100;
+    final textColor = isEnabled
+        ? TossColors.textPrimary
+        : TossColors.textTertiary;
+
+    return InkWell(
+      onTap: isEnabled
+          ? () {
+              setState(() {
+                if (isSelected) {
+                  // Deselect
+                  _selectedVariantAttributeId = null;
+                  _selectedAttributeValues.remove(attribute.id);
+                } else {
+                  // Clear previous selection and select new one
+                  if (_selectedVariantAttributeId != null) {
+                    _selectedAttributeValues.remove(_selectedVariantAttributeId);
+                  }
+                  _selectedVariantAttributeId = attribute.id;
+                }
+              });
+            }
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: checkboxColor,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: checkboxBorderColor,
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? Icon(
+                      Icons.check,
+                      size: 16,
+                      color: checkIconColor,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            Expanded(
+              child: Text(
+                attribute.name,
+                style: TossTextStyles.body.copyWith(
+                  color: textColor,
+                  fontWeight: isSelected ? TossFontWeight.medium : TossFontWeight.regular,
+                ),
+              ),
+            ),
+            Text(
+              '${attribute.options.length} options',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Display existing variant attribute for products that already have variants
+  /// Shows as checkbox (selected, disabled) - same style as non-variant products
+  Widget _buildExistingVariantAttributeDisplay(InventoryMetadata metadata) {
+    // Find the attribute that matches the product's variant
+    if (_product?.variantName == null) return const SizedBox.shrink();
+
+    Attribute? matchedAttribute;
+    for (final attribute in metadata.attributes) {
+      for (final option in attribute.options) {
+        if (option.value == _product?.variantName) {
+          matchedAttribute = attribute;
+          break;
+        }
+      }
+      if (matchedAttribute != null) break;
+    }
+
+    if (matchedAttribute == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+          child: Text(
+            'Select variant attribute (optional)',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.textSecondary,
+            ),
+          ),
+        ),
+        // Show all attributes with matched one selected (disabled)
+        ...metadata.attributes.map((attribute) {
+          final isSelected = attribute.id == matchedAttribute?.id;
+          return _buildAttributeCheckboxRow(
+            attribute: attribute,
+            isSelected: isSelected,
+            isEnabled: false, // Disabled for products with variants
+          );
+        }),
+      ],
     );
   }
 

@@ -138,6 +138,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
     int? minStock,
     int? maxStock,
     List<String>? imageUrls,
+    // v4: Variant support
+    String? attributeId,
+    List<Map<String, dynamic>>? variants,
   }) async {
     try {
       final model = await _remoteDataSource.createProduct(
@@ -156,6 +159,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
         minStock: minStock,
         maxStock: maxStock,
         imageUrls: imageUrls,
+        // v4: Variant support
+        attributeId: attributeId,
+        variants: variants,
       );
       return model.toEntity();
     } catch (e) {

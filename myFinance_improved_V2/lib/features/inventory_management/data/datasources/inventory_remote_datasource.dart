@@ -148,8 +148,9 @@ class InventoryRemoteDataSource {
     }
   }
 
-  /// Create new product
-  /// Calls inventory_create_product_v3 RPC
+  /// Create new product with optional variant support
+  /// Calls inventory_create_product_v4 RPC
+  /// v4: Added p_attribute_id and p_variants for single-attribute variant support
   Future<ProductModel> createProduct({
     required String companyId,
     required String storeId,
@@ -166,9 +167,12 @@ class InventoryRemoteDataSource {
     int? minStock,
     int? maxStock,
     List<String>? imageUrls,
+    // v4: Variant support
+    String? attributeId,
+    List<Map<String, dynamic>>? variants,
   }) async {
     try {
-      final params = {
+      final params = <String, dynamic>{
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_created_by': createdBy,
@@ -189,8 +193,16 @@ class InventoryRemoteDataSource {
         'p_timezone': DateTimeUtils.getLocalTimezone(),
       };
 
+      // v4: Add variant parameters if provided
+      if (attributeId != null) {
+        params['p_attribute_id'] = attributeId;
+      }
+      if (variants != null && variants.isNotEmpty) {
+        params['p_variants'] = variants;
+      }
+
       final response = await _client
-          .rpc<Map<String, dynamic>>('inventory_create_product_v3', params: params)
+          .rpc<Map<String, dynamic>>('inventory_create_product_v4', params: params)
           .single();
 
       if (response['success'] == true) {
@@ -212,6 +224,43 @@ class InventoryRemoteDataSource {
         if (errorCode == 'TOO_MANY_IMAGES') {
           throw InventoryRepositoryException(
             message: 'Maximum 3 image URLs allowed',
+            code: errorCode,
+          );
+        }
+        // v4: Variant-related errors
+        if (errorCode == 'ATTRIBUTE_REQUIRED') {
+          throw InventoryRepositoryException(
+            message: 'Attribute is required when variants are provided',
+            code: errorCode,
+          );
+        }
+        if (errorCode == 'ATTRIBUTE_NOT_FOUND') {
+          throw InventoryRepositoryException(
+            message: 'Attribute not found or inactive',
+            code: errorCode,
+          );
+        }
+        if (errorCode == 'INVALID_VARIANTS_FORMAT') {
+          throw InventoryRepositoryException(
+            message: 'Variants must be an array',
+            code: errorCode,
+          );
+        }
+        if (errorCode == 'INVALID_VARIANT_DATA') {
+          throw InventoryRepositoryException(
+            message: errorMessage ?? 'Invalid variant data',
+            code: errorCode,
+          );
+        }
+        if (errorCode == 'OPTION_NOT_FOUND') {
+          throw InventoryRepositoryException(
+            message: errorMessage ?? 'Option not found',
+            code: errorCode,
+          );
+        }
+        if (errorCode == 'OPTION_ATTRIBUTE_MISMATCH') {
+          throw InventoryRepositoryException(
+            message: errorMessage ?? 'Option does not belong to the specified attribute',
             code: errorCode,
           );
         }

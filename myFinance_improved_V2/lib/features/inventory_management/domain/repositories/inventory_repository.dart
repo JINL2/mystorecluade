@@ -24,7 +24,8 @@ abstract class InventoryRepository {
     SortOption? sortOption,
   });
 
-  /// Create new product
+  /// Create new product with optional variant support
+  /// v4: Added attributeId and variants for single-attribute variant support
   Future<Product?> createProduct({
     required String companyId,
     required String storeId,
@@ -41,6 +42,9 @@ abstract class InventoryRepository {
     int? minStock,
     int? maxStock,
     List<String>? imageUrls,
+    // v4: Variant support
+    String? attributeId,
+    List<Map<String, dynamic>>? variants,
   });
 
   /// Check if product edit is valid before updating
