@@ -147,7 +147,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     if (!file) return;
 
     const validation = validateImageFile(file);
-    if (!validation.isValid) {
+    if (!validation.valid) {
       setNotification({
         isOpen: true,
         variant: 'error',
@@ -160,12 +160,12 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
     try {
       const result = await compressImage(file, {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
+        quality: 80,
+        maxWidth: 1920,
+        maxHeight: 1920,
       });
 
-      setImagePreviews((prev) => [...prev, result.previewUrl]);
+      setImagePreviews((prev) => [...prev, result.dataUrl]);
       setCompressionInfos((prev) => [...prev, result]);
       setNotification({
         isOpen: true,
