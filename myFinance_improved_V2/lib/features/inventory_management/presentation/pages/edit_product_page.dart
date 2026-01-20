@@ -995,26 +995,30 @@ class _EditProductPageState extends ConsumerState<EditProductPage> {
 
   void _showAttributeOptionSelector(Attribute attribute) {
     final items = attribute.options
-        .map((option) => TossSelectionItem(
+        .map((option) => SelectionItem(
               id: option.id,
               title: option.value,
             ))
         .toList();
 
-    TossSelectionBottomSheet.show<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
       title: attribute.name,
-      items: items,
-      selectedId: _selectedAttributeValues[attribute.id],
-      showSubtitle: false,
-      selectedFontWeight: FontWeight.w700,
-      unselectedFontWeight: FontWeight.w500,
-      checkIcon: TossIcons.check,
-      enableHapticFeedback: true,
-      onItemSelected: (item) {
-        setState(() {
-          _selectedAttributeValues[attribute.id] = item.id;
-        });
+      itemCount: items.length,
+      itemBuilder: (ctx, index) {
+        final item = items[index];
+        final isSelected = item.id == _selectedAttributeValues[attribute.id];
+        return SelectionListItem(
+          item: item,
+          isSelected: isSelected,
+          variant: SelectionItemVariant.standard,
+          onTap: () {
+            setState(() {
+              _selectedAttributeValues[attribute.id] = item.id;
+            });
+            Navigator.pop(ctx);
+          },
+        );
       },
     );
   }
