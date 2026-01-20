@@ -80,28 +80,53 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Call RPC function to create category
-      const { data, error } = await supabaseService.getClient().rpc('inventory_create_category', {
+      // Get user timezone
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Call RPC function to create category (v2 with UTC time support)
+      const { data, error } = await supabaseService.getClient().rpc('inventory_create_category_v2', {
         p_company_id: companyId,
         p_category_name: formData.categoryName.trim(),
         p_parent_category_id: formData.parentCategoryId || null,
+        p_time: new Date().toISOString(),
+        p_timezone: userTimezone,
       });
 
       if (error) {
         console.error('Error creating category:', error);
+        setNotification({
+          isOpen: true,
+          variant: 'error',
+          message: error.message || 'Failed to create category. Please try again.',
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
-        // Check for duplicate category error
-        if (error.message && error.message.includes('DUPLICATE_CATEGORY')) {
+      // Handle v2 response format: { success, data, error }
+      const response = data as { success: boolean; data?: any; error?: { code: string; message: string; details?: any } };
+
+      if (!response.success) {
+        console.error('Error creating category:', response.error);
+
+        // Check for specific error codes
+        if (response.error?.code === 'DUPLICATE_CATEGORY') {
           setNotification({
             isOpen: true,
             variant: 'error',
             message: 'A category with this name already exists at this level',
           });
+        } else if (response.error?.code === 'PARENT_NOT_FOUND') {
+          setNotification({
+            isOpen: true,
+            variant: 'error',
+            message: 'Parent category not found or inactive',
+          });
         } else {
           setNotification({
             isOpen: true,
             variant: 'error',
-            message: error.message || 'Failed to create category. Please try again.',
+            message: response.error?.message || 'Failed to create category. Please try again.',
           });
         }
 
@@ -118,8 +143,18 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 
       // Delay to show success message before closing
       setTimeout(() => {
-        if (onCategoryAdded && data) {
-          onCategoryAdded(data);
+        if (onCategoryAdded && response.data) {
+          // Map v2 response to CategoryData format
+          const categoryData = {
+            category_id: response.data.category_id,
+            category_name: response.data.category_name,
+            parent_category_id: response.data.parent_category_id || null,
+            company_id: companyId,
+            description: null,
+            created_at: response.data.created_at,
+            updated_at: response.data.created_at,
+          };
+          onCategoryAdded(categoryData);
         }
         onClose();
       }, 1500);

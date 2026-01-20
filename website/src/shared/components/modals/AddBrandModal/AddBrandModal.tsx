@@ -78,28 +78,53 @@ export const AddBrandModal: React.FC<AddBrandModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Call RPC function to create brand
-      const { data, error } = await supabaseService.getClient().rpc('inventory_create_brand', {
+      // Get user timezone
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Call RPC function to create brand (v2 with UTC time support)
+      const { data, error } = await supabaseService.getClient().rpc('inventory_create_brand_v2', {
         p_company_id: companyId,
         p_brand_name: formData.brandName.trim(),
         p_brand_code: formData.brandCode.trim() || null,
+        p_time: new Date().toISOString(),
+        p_timezone: userTimezone,
       });
 
       if (error) {
         console.error('Error creating brand:', error);
+        setNotification({
+          isOpen: true,
+          variant: 'error',
+          message: error.message || 'Failed to create brand. Please try again.',
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
-        // Check for duplicate brand error
-        if (error.message && error.message.includes('DUPLICATE_BRAND')) {
+      // Handle v2 response format: { success, data, error }
+      const response = data as { success: boolean; data?: any; error?: { code: string; message: string; details?: any } };
+
+      if (!response.success) {
+        console.error('Error creating brand:', response.error);
+
+        // Check for specific error codes
+        if (response.error?.code === 'DUPLICATE_BRAND') {
           setNotification({
             isOpen: true,
             variant: 'error',
             message: 'A brand with this name already exists',
           });
+        } else if (response.error?.code === 'DUPLICATE_CODE') {
+          setNotification({
+            isOpen: true,
+            variant: 'error',
+            message: 'This brand code already exists',
+          });
         } else {
           setNotification({
             isOpen: true,
             variant: 'error',
-            message: error.message || 'Failed to create brand. Please try again.',
+            message: response.error?.message || 'Failed to create brand. Please try again.',
           });
         }
 
@@ -116,8 +141,17 @@ export const AddBrandModal: React.FC<AddBrandModalProps> = ({
 
       // Delay to show success message before closing
       setTimeout(() => {
-        if (onBrandAdded && data) {
-          onBrandAdded(data);
+        if (onBrandAdded && response.data) {
+          // Map v2 response to BrandData format
+          const brandData = {
+            brand_id: response.data.brand_id,
+            brand_name: response.data.brand_name,
+            brand_code: response.data.brand_code || null,
+            company_id: companyId,
+            created_at: response.data.created_at,
+            updated_at: response.data.created_at,
+          };
+          onBrandAdded(brandData);
         }
         onClose();
       }, 1500);
