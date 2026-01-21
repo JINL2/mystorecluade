@@ -76,8 +76,8 @@ export const useInvoicePage = (): UseInvoicePageReturn => {
   const companyId = currentCompany?.company_id || '';
   const stores = currentCompany?.stores || [];
 
-  // Local search query state
-  const [localSearchQuery, setLocalSearchQuery] = useState('');
+  // Local search query state (synced with server search)
+  const [localSearchQuery, setLocalSearchQueryState] = useState('');
 
   // Selection state
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
@@ -111,6 +111,7 @@ export const useInvoicePage = (): UseInvoicePageReturn => {
     setDateSortFilter,
     setAmountSortFilter,
     changeDateRange,
+    changeSearch,
     changePage,
     refresh,
     fetchInvoiceDetail,
@@ -132,19 +133,24 @@ export const useInvoicePage = (): UseInvoicePageReturn => {
     setSelectedInvoices(new Set());
   }, [selectedStoreId]);
 
-  // Client-side filtering
-  const filteredInvoices = useMemo(() => {
-    return invoices.filter((invoice) => {
-      if (!localSearchQuery) return true;
-      const query = localSearchQuery.toLowerCase();
-      return (
-        invoice.invoiceNumber.toLowerCase().includes(query) ||
-        invoice.customerName.toLowerCase().includes(query) ||
-        invoice.totalAmount.toString().includes(query) ||
-        invoice.formatCurrency(invoice.totalAmount).toLowerCase().includes(query)
-      );
-    });
-  }, [invoices, localSearchQuery]);
+  // Debounced server search - sync local search to server
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      changeSearch(localSearchQuery);
+    }, 300); // 300ms debounce for typing
+
+    return () => clearTimeout(debounceTimer);
+  }, [localSearchQuery, changeSearch]);
+
+  // Server-side search: invoices already filtered by RPC (get_invoice_page_v4)
+  // No client-side filtering needed - RPC searches: invoice_number, customer_name,
+  // payment_method, product_name, product_sku
+  const filteredInvoices = invoices;
+
+  // Wrapper for local search query setter
+  const setLocalSearchQuery = useCallback((query: string) => {
+    setLocalSearchQueryState(query);
+  }, []);
 
   // Handle store selection
   const handleStoreSelect = useCallback((storeId: string | null) => {
