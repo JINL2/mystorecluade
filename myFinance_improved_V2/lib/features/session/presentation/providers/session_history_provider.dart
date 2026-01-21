@@ -44,6 +44,7 @@ class SessionHistoryNotifier extends _$SessionHistoryNotifier {
         isActive: filter.isActive,
         startDate: dateRange.start,
         endDate: dateRange.end,
+        searchQuery: filter.searchQuery,
         limit: SessionHistoryState.pageSize,
         offset: 0,
       );
@@ -83,6 +84,7 @@ class SessionHistoryNotifier extends _$SessionHistoryNotifier {
         isActive: filter.isActive,
         startDate: dateRange.start,
         endDate: dateRange.end,
+        searchQuery: filter.searchQuery,
         limit: SessionHistoryState.pageSize,
         offset: state.currentOffset,
       );
@@ -151,6 +153,16 @@ class SessionHistoryNotifier extends _$SessionHistoryNotifier {
     final newFilter = state.filter.copyWith(
       sessionType: sessionType,
       clearSessionType: sessionType == null,
+    );
+    updateFilter(newFilter);
+  }
+
+  /// Update search query
+  void updateSearchQuery(String? query) {
+    final trimmedQuery = query?.trim();
+    final newFilter = state.filter.copyWith(
+      searchQuery: trimmedQuery,
+      clearSearchQuery: trimmedQuery == null || trimmedQuery.isEmpty,
     );
     updateFilter(newFilter);
   }

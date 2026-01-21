@@ -165,6 +165,7 @@ abstract class SessionRepository {
     bool? isActive,
     DateTime? startDate,
     DateTime? endDate,
+    String? searchQuery,
     int limit = 15,
     int offset = 0,
   });

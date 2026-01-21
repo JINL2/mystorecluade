@@ -26,6 +26,9 @@ class SessionHistoryFilterState {
   /// Filter by session type (null means all, 'counting' or 'receiving')
   final String? sessionType;
 
+  /// Search query for session name, product name, SKU, or product_id
+  final String? searchQuery;
+
   const SessionHistoryFilterState({
     this.selectedStoreId,
     this.dateRangeType = DateRangeType.thisMonth,
@@ -33,6 +36,7 @@ class SessionHistoryFilterState {
     this.customEndDate,
     this.isActive,
     this.sessionType,
+    this.searchQuery,
   });
 
   factory SessionHistoryFilterState.initial() {
@@ -46,11 +50,13 @@ class SessionHistoryFilterState {
     DateTime? customEndDate,
     bool? isActive,
     String? sessionType,
+    String? searchQuery,
     bool clearSelectedStoreId = false,
     bool clearIsActive = false,
     bool clearSessionType = false,
     bool clearCustomStartDate = false,
     bool clearCustomEndDate = false,
+    bool clearSearchQuery = false,
   }) {
     return SessionHistoryFilterState(
       selectedStoreId:
@@ -63,6 +69,8 @@ class SessionHistoryFilterState {
       isActive: clearIsActive ? null : (isActive ?? this.isActive),
       sessionType:
           clearSessionType ? null : (sessionType ?? this.sessionType),
+      searchQuery:
+          clearSearchQuery ? null : (searchQuery ?? this.searchQuery),
     );
   }
 
@@ -98,7 +106,8 @@ class SessionHistoryFilterState {
     return selectedStoreId != null ||
         dateRangeType != DateRangeType.thisMonth ||
         isActive != null ||
-        sessionType != null;
+        sessionType != null ||
+        (searchQuery != null && searchQuery!.isNotEmpty);
   }
 
   /// Get active filter count
@@ -108,6 +117,7 @@ class SessionHistoryFilterState {
     if (dateRangeType != DateRangeType.thisMonth) count++;
     if (isActive != null) count++;
     if (sessionType != null) count++;
+    if (searchQuery != null && searchQuery!.isNotEmpty) count++;
     return count;
   }
 

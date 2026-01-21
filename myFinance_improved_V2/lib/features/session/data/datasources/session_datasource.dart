@@ -630,6 +630,7 @@ class SessionDatasource {
   /// - All v3 features (variant support, merge_info, receiving_info)
   /// - merge_info.items_by_product: Product-level source tracking for merged sessions
   /// - counting_info: Zeroed items tracking for counting sessions (from v3.3+ submit)
+  /// - p_search: Multi-field search (session_name, product_name, SKU, product_id)
   Future<SessionHistoryResponseModel> getSessionHistory({
     required String companyId,
     String? storeId,
@@ -637,6 +638,7 @@ class SessionDatasource {
     bool? isActive,
     DateTime? startDate,
     DateTime? endDate,
+    String? searchQuery,
     int limit = 15,
     int offset = 0,
   }) async {
@@ -655,6 +657,9 @@ class SessionDatasource {
     }
     if (endDate != null) {
       params['p_end_date'] = DateTimeUtils.toLocalWithOffset(endDate);
+    }
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      params['p_search'] = searchQuery;
     }
 
     final response = await _client.rpc<Map<String, dynamic>>(

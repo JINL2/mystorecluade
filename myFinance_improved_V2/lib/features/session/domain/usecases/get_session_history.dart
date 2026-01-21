@@ -16,6 +16,7 @@ class GetSessionHistory {
     bool? isActive,
     DateTime? startDate,
     DateTime? endDate,
+    String? searchQuery,
     int limit = 15,
     int offset = 0,
   }) {
@@ -26,6 +27,7 @@ class GetSessionHistory {
       isActive: isActive,
       startDate: startDate,
       endDate: endDate,
+      searchQuery: searchQuery,
       limit: limit,
       offset: offset,
     );
