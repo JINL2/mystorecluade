@@ -1,6 +1,6 @@
 /**
  * SessionHistory Domain Entities
- * Based on inventory_get_session_history_v3 RPC response with variant support
+ * Based on inventory_get_session_history_v4 RPC response with variant support and server-side search
  */
 
 /**
@@ -200,4 +200,5 @@ export interface SessionHistoryParams {
   timezone?: string;
   limit?: number;
   offset?: number;
+  search?: string | null; // Server-side search (session_name, product_name, SKU, product_id)
 }

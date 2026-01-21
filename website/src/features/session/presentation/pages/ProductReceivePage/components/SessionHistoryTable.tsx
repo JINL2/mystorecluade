@@ -15,6 +15,10 @@ interface SessionHistoryTableProps {
   error: string | null;
   onSessionClick: (session: SessionHistoryEntry) => void;
   onLoadMore: () => void;
+  // Server-side search
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  totalCount: number;
 }
 
 // Format date for display (yyyy/MM/dd HH:mm)
@@ -82,7 +86,11 @@ export const SessionHistoryTable: React.FC<SessionHistoryTableProps> = ({
   error,
   onSessionClick,
   onLoadMore,
+  searchQuery,
+  onSearchChange,
+  totalCount,
 }) => {
+
   if (error) {
     return (
       <div className={styles.errorState}>
@@ -99,6 +107,50 @@ export const SessionHistoryTable: React.FC<SessionHistoryTableProps> = ({
 
   return (
     <div className={styles.tableContainer}>
+      {/* Search Bar */}
+      <div className={styles.historySearchContainer}>
+        <div className={styles.historySearchWrapper}>
+          <svg
+            className={styles.historySearchIcon}
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            className={styles.historySearchInput}
+            placeholder="Search by session name, product name, SKU..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className={styles.historySearchClear}
+              onClick={() => onSearchChange('')}
+              type="button"
+              aria-label="Clear search"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <span className={styles.historySearchResult}>
+            {sessions.length} of {totalCount} sessions
+          </span>
+        )}
+      </div>
+
       <table className={styles.receivesTable}>
         <thead>
           <tr>
@@ -205,12 +257,28 @@ export const SessionHistoryTable: React.FC<SessionHistoryTableProps> = ({
               <td colSpan={9}>
                 <div className={styles.emptyState}>
                   <svg className={styles.emptyIcon} width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    {searchQuery ? (
+                      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    ) : (
+                      <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    )}
                   </svg>
-                  <p className={styles.emptyTitle}>No session history found</p>
-                  <p className={styles.emptyDescription}>
-                    Completed or closed sessions will appear here
+                  <p className={styles.emptyTitle}>
+                    {searchQuery ? 'No matching sessions' : 'No session history found'}
                   </p>
+                  <p className={styles.emptyDescription}>
+                    {searchQuery
+                      ? `No sessions found matching "${searchQuery}"`
+                      : 'Completed or closed sessions will appear here'}
+                  </p>
+                  {searchQuery && (
+                    <button
+                      className={styles.clearSearchButton}
+                      onClick={() => onSearchChange('')}
+                    >
+                      Clear search
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>

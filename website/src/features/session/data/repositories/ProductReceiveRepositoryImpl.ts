@@ -9,10 +9,8 @@ import type {
   SearchProductResult,
   SearchProduct,
   SessionItemsResult,
-  SessionItemsFullResult,
   SessionItem,
   SessionItemsSummary,
-  SessionParticipant,
   SaveItem,
   SubmitItem,
   SubmitResult,
@@ -42,7 +40,6 @@ import {
   type SearchProductDTO,
   type SessionItemDTO,
   type SessionItemsSummaryDTO,
-  type SessionParticipantDTO,
   type CounterpartyDTO,
   type ShipmentDTO,
   type ShipmentDetailDTO,
@@ -249,14 +246,6 @@ const mapSessionDTO = (dto: SessionDTO): Session => ({
   status: dto.status,
   supplierId: dto.supplier_id,
   supplierName: dto.supplier_name,
-});
-
-const mapSessionParticipantDTO = (dto: SessionParticipantDTO): SessionParticipant => ({
-  userId: dto.user_id,
-  userName: dto.user_name,
-  userProfileImage: dto.user_profile_image,
-  productCount: dto.product_count,
-  totalScanned: dto.total_scanned,
 });
 
 const mapCompareSessionInfoDTO = (dto: CompareSessionInfoDTO): CompareSessionInfo => ({
@@ -482,24 +471,6 @@ export class ProductReceiveRepositoryImpl implements IProductReceiveRepository {
       memberId: result.member_id,
       createdBy: result.created_by,
       createdByName: result.created_by_name,
-    };
-  }
-
-  async getSessionItemsFull(
-    sessionId: string,
-    userId: string
-  ): Promise<SessionItemsFullResult> {
-    const result = await this.dataSource.getSessionItemsFull(sessionId, userId);
-    return {
-      sessionId: result.session_id,
-      items: result.items.map(mapSessionItemDTO),
-      participants: result.participants.map(mapSessionParticipantDTO),
-      summary: {
-        totalProducts: result.summary.total_products,
-        totalQuantity: result.summary.total_quantity,
-        totalRejected: result.summary.total_rejected,
-        totalParticipants: result.summary.total_participants,
-      },
     };
   }
 

@@ -11,13 +11,15 @@ import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { SelectorModal } from '@/shared/components/common/SelectorModal';
 import type { SelectorOption } from '@/shared/components/common/SelectorModal/SelectorModal.types';
 import { useReceivingSession } from '../../hooks/useReceivingSession';
-import type { ActiveSession, MatchedItem, OnlyInSessionItem } from '../../hooks/useReceivingSession';
 import {
   SubmitReviewModal,
   FinalChoiceModal,
   ReceiveProductSection,
   ShipmentItemsCard,
   SessionReceivedItemsCard,
+  SessionSelectModal,
+  ComparisonModal,
+  NeedsDisplayModal,
 } from './components';
 import styles from './ReceivingSessionPage.module.css';
 
@@ -66,7 +68,6 @@ export const ReceivingSessionPage: React.FC = () => {
     // Combine session state
     showSessionSelectModal,
     availableSessions,
-    selectedCombineSession,
     showComparisonModal,
     comparisonResult,
     isLoadingComparison,
@@ -268,357 +269,34 @@ export const ReceivingSessionPage: React.FC = () => {
       />
 
       {/* Session Selection Modal for Combine */}
-      {showSessionSelectModal && (
-        <div className={styles.modalBackdrop} onClick={handleSessionSelectClose}>
-          <div className={styles.sessionSelectModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h3>Select Session to Compare</h3>
-              <button className={styles.modalCloseButton} onClick={handleSessionSelectClose}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className={styles.sessionSelectContent}>
-              <p className={styles.sessionSelectDescription}>
-                Select another active receiving session to compare items with your current session.
-              </p>
-              {availableSessions.length === 0 ? (
-                <div className={styles.noSessionsMessage}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
-                    <rect x="9" y="3" width="6" height="4" rx="1" />
-                  </svg>
-                  <p>No other active sessions available</p>
-                </div>
-              ) : (
-                <div className={styles.sessionSelectList}>
-                  {availableSessions.map((session: ActiveSession) => (
-                    <button
-                      key={session.sessionId}
-                      className={styles.sessionSelectItem}
-                      onClick={() => handleCombineSessionSelect(session)}
-                    >
-                      <div className={styles.sessionSelectItemLeft}>
-                        <span className={styles.sessionSelectItemName}>{session.sessionName}</span>
-                        <span className={styles.sessionSelectItemMeta}>
-                          {session.storeName} • Created by {session.createdByName}
-                        </span>
-                      </div>
-                      <div className={styles.sessionSelectItemRight}>
-                        <span className={styles.sessionSelectItemMembers}>
-                          {session.memberCount} members
-                        </span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M9 18l6-6-6-6" />
-                        </svg>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <SessionSelectModal
+        isOpen={showSessionSelectModal}
+        availableSessions={availableSessions}
+        onClose={handleSessionSelectClose}
+        onSelect={handleCombineSessionSelect}
+      />
 
       {/* Comparison Loading */}
       {isLoadingComparison && <LoadingAnimation fullscreen size="large" />}
 
-      {/* Needs Display Modal - Show products that need to be displayed after receiving */}
-      {showNeedsDisplayModal && needsDisplayItems.length > 0 && (
-        <div className={styles.modalBackdrop}>
-          <div className={styles.needsDisplayModal}>
-            <div className={styles.needsDisplayHeader}>
-              <h3>New Products Need Display</h3>
-              <p className={styles.needsDisplaySubtext}>
-                {needsDisplayItems.length} product{needsDisplayItems.length > 1 ? 's' : ''} had zero stock. Please display on shelf.
-              </p>
-            </div>
-            <div className={styles.needsDisplayContent}>
-              <table className={styles.needsDisplayTable}>
-                <thead>
-                  <tr>
-                    <th>SKU</th>
-                    <th>Product</th>
-                    <th className={styles.thNumber}>Qty</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {needsDisplayItems.map((item) => (
-                    <tr key={`${item.productId}-${item.variantId || 'base'}`}>
-                      <td className={styles.needsDisplaySku}>{item.sku}</td>
-                      <td className={styles.needsDisplayProduct}>{item.displayName}</td>
-                      <td className={styles.needsDisplayQuantity}>
-                        <span className={styles.quantityBadge}>{item.quantityReceived}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {submitResultData && (
-              <div className={styles.needsDisplaySummary}>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryLabel}>Receiving #</span>
-                  <span className={styles.summaryValue}>{submitResultData.receivingNumber}</span>
-                </div>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryLabel}>Items</span>
-                  <span className={styles.summaryValue}>{submitResultData.itemsCount}</span>
-                </div>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryLabel}>Total Qty</span>
-                  <span className={styles.summaryValue}>{submitResultData.totalQuantity}</span>
-                </div>
-              </div>
-            )}
-            <div className={styles.needsDisplayActions}>
-              <button
-                className={styles.needsDisplayConfirmButton}
-                onClick={handleNeedsDisplayClose}
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Needs Display Modal */}
+      <NeedsDisplayModal
+        isOpen={showNeedsDisplayModal}
+        items={needsDisplayItems}
+        submitResultData={submitResultData}
+        onClose={handleNeedsDisplayClose}
+      />
 
       {/* Comparison Modal */}
-      {showComparisonModal && comparisonResult && (
-        <div className={styles.modalBackdrop} onClick={handleComparisonClose}>
-          <div className={styles.comparisonModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h3>Session Comparison</h3>
-              <button className={styles.modalCloseButton} onClick={handleComparisonClose}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className={styles.comparisonContent}>
-              {/* Session Info Header */}
-              <div className={styles.comparisonSessions}>
-                <div className={styles.comparisonSessionInfo}>
-                  <span className={styles.comparisonSessionLabel}>Current Session (A)</span>
-                  <span className={styles.comparisonSessionName}>{comparisonResult.sessionA.sessionName}</span>
-                  <span className={styles.comparisonSessionMeta}>
-                    {comparisonResult.sessionA.totalProducts} products • {comparisonResult.sessionA.totalQuantity} items
-                  </span>
-                </div>
-                <div className={styles.comparisonVs}>vs</div>
-                <div className={styles.comparisonSessionInfo}>
-                  <span className={styles.comparisonSessionLabel}>Selected Session (B)</span>
-                  <span className={styles.comparisonSessionName}>{comparisonResult.sessionB.sessionName}</span>
-                  <span className={styles.comparisonSessionMeta}>
-                    {comparisonResult.sessionB.totalProducts} products • {comparisonResult.sessionB.totalQuantity} items
-                  </span>
-                </div>
-              </div>
-
-              {comparisonError && (
-                <div className={styles.comparisonError}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M15 9l-6 6M9 9l6 6" />
-                  </svg>
-                  {comparisonError}
-                </div>
-              )}
-
-              {/* Two Column Comparison Layout */}
-              <div className={styles.comparisonTwoColumnLayout}>
-                {/* Column A - Current Session */}
-                <div className={styles.comparisonColumn}>
-                  <div className={`${styles.comparisonColumnHeader} ${styles.columnHeaderBlue}`}>
-                    <span className={styles.columnSessionName}>{comparisonResult.sessionA.sessionName}</span>
-                    <span className={styles.columnItemCount}>{comparisonResult.onlyInA.length} unique products</span>
-                  </div>
-                  <div className={styles.comparisonColumnContent}>
-                    {comparisonResult.onlyInA.length > 0 ? (
-                      <table className={styles.comparisonColumnTable}>
-                        <thead>
-                          <tr>
-                            <th>SKU</th>
-                            <th>Product</th>
-                            <th className={styles.thNumber}>Qty</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {comparisonResult.onlyInA.map((item: OnlyInSessionItem) => (
-                            <tr key={item.productId}>
-                              <td className={styles.comparisonSku}>{item.sku}</td>
-                              <td className={styles.comparisonProduct}>{item.productName}</td>
-                              <td className={styles.comparisonNumber}>
-                                <span className={styles.quantityBlue}>{item.quantity}</span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <div className={styles.columnEmptyState}>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5">
-                          <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                        <p>No unique products</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Column B - Selected Session */}
-                <div className={styles.comparisonColumn}>
-                  <div className={`${styles.comparisonColumnHeader} ${styles.columnHeaderOrange}`}>
-                    <span className={styles.columnSessionName}>{comparisonResult.sessionB.sessionName}</span>
-                    <span className={styles.columnItemCount}>{comparisonResult.onlyInB.length} unique products</span>
-                  </div>
-                  <div className={styles.comparisonColumnContent}>
-                    {comparisonResult.onlyInB.length > 0 ? (
-                      <table className={styles.comparisonColumnTable}>
-                        <thead>
-                          <tr>
-                            <th>SKU</th>
-                            <th>Product</th>
-                            <th className={styles.thNumber}>Qty</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {comparisonResult.onlyInB.map((item: OnlyInSessionItem) => (
-                            <tr key={item.productId}>
-                              <td className={styles.comparisonSku}>{item.sku}</td>
-                              <td className={styles.comparisonProduct}>{item.productName}</td>
-                              <td className={styles.comparisonNumber}>
-                                <span className={styles.quantityOrange}>{item.quantity}</span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <div className={styles.columnEmptyState}>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5">
-                          <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                        <p>No unique products</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Matched Products Section - Collapsed by default */}
-              {comparisonResult.matched.length > 0 && (
-                <details className={styles.matchedProductsDetails}>
-                  <summary className={styles.matchedProductsSummary}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                    Matched Products ({comparisonResult.matched.length})
-                    <span className={styles.matchedSummaryInfo}>
-                      {comparisonResult.summary.quantitySameCount} same, {comparisonResult.summary.quantityDiffCount} different
-                    </span>
-                  </summary>
-                  <div className={styles.comparisonTableContainer}>
-                    <table className={styles.comparisonTable}>
-                      <thead>
-                        <tr>
-                          <th>SKU</th>
-                          <th>Product</th>
-                          <th className={styles.thNumber}>{comparisonResult.sessionA.sessionName}</th>
-                          <th className={styles.thNumber}>{comparisonResult.sessionB.sessionName}</th>
-                          <th className={styles.thNumber}>Diff</th>
-                          <th className={styles.thNumber}>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {comparisonResult.matched.map((item: MatchedItem) => (
-                          <tr key={item.productId} className={item.isMatch ? styles.rowMatch : styles.rowMismatch}>
-                            <td className={styles.comparisonSku}>{item.sku}</td>
-                            <td className={styles.comparisonProduct}>{item.productName}</td>
-                            <td className={styles.comparisonNumber}>
-                              <span className={styles.quantityBlue}>{item.quantityA}</span>
-                            </td>
-                            <td className={styles.comparisonNumber}>
-                              <span className={styles.quantityOrange}>{item.quantityB}</span>
-                            </td>
-                            <td className={styles.comparisonNumber}>
-                              {item.quantityDiff !== 0 ? (
-                                <span className={item.quantityDiff > 0 ? styles.quantityDiffPositive : styles.quantityDiffNegative}>
-                                  {item.quantityDiff > 0 ? '+' : ''}{item.quantityDiff}
-                                </span>
-                              ) : (
-                                <span className={styles.quantityEmpty}>0</span>
-                              )}
-                            </td>
-                            <td className={styles.comparisonNumber}>
-                              {item.isMatch ? (
-                                <span className={styles.statusMatch}>Match</span>
-                              ) : (
-                                <span className={styles.statusMismatch}>Diff</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </details>
-              )}
-
-              {/* Empty State */}
-              {comparisonResult.matched.length === 0 &&
-               comparisonResult.onlyInA.length === 0 &&
-               comparisonResult.onlyInB.length === 0 && !comparisonError && (
-                <div className={styles.noComparisonItems}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
-                    <rect x="9" y="3" width="6" height="4" rx="1" />
-                  </svg>
-                  <p>No items in either session</p>
-                </div>
-              )}
-            </div>
-
-            {/* Merge Error */}
-            {mergeError && (
-              <div className={styles.mergeError}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M15 9l-6 6M9 9l6 6" />
-                </svg>
-                {mergeError}
-              </div>
-            )}
-
-            <div className={styles.comparisonActions}>
-              <button className={styles.closeComparisonButton} onClick={handleComparisonClose}>
-                Close
-              </button>
-              <button
-                className={`${styles.mergeButton} ${isMerging ? styles.mergeButtonLoading : ''}`}
-                onClick={handleMergeSessions}
-                disabled={isMerging || (comparisonResult.matched.length === 0 && comparisonResult.onlyInB.length === 0)}
-              >
-                {isMerging ? (
-                  <>
-                    <div className={styles.buttonSpinner} />
-                    Merging...
-                  </>
-                ) : (
-                  <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-                    </svg>
-                    Merge
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ComparisonModal
+        isOpen={showComparisonModal}
+        comparisonResult={comparisonResult}
+        comparisonError={comparisonError}
+        mergeError={mergeError}
+        isMerging={isMerging}
+        onClose={handleComparisonClose}
+        onMerge={handleMergeSessions}
+      />
 
       <div className={styles.pageLayout}>
         <div className={styles.container}>

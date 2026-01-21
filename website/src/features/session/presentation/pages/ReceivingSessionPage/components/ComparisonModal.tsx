@@ -1,18 +1,19 @@
 /**
  * ComparisonModal Component
- * Modal for displaying session comparison results and merge functionality
+ * Modal for comparing two sessions and merging them
  */
 
 import React from 'react';
-import type { SessionComparisonResult } from '../../../hooks/useCountingSessionDetail';
+import type { ComparisonResultPresentation } from '../../../hooks/useReceivingSession.presenters';
+import type { MatchedItem, OnlyInSessionItem } from '../../../hooks/useReceivingSession';
 import styles from './ComparisonModal.module.css';
 
 interface ComparisonModalProps {
   isOpen: boolean;
-  comparisonResult: SessionComparisonResult | null;
+  comparisonResult: ComparisonResultPresentation | null;
   comparisonError: string | null;
-  isMerging: boolean;
   mergeError: string | null;
+  isMerging: boolean;
   onClose: () => void;
   onMerge: () => void;
 }
@@ -21,8 +22,8 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
   isOpen,
   comparisonResult,
   comparisonError,
-  isMerging,
   mergeError,
+  isMerging,
   onClose,
   onMerge,
 }) => {
@@ -88,7 +89,7 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {comparisonResult.onlyInA.map((item) => (
+                      {comparisonResult.onlyInA.map((item: OnlyInSessionItem) => (
                         <tr key={item.productId}>
                           <td className={styles.comparisonSku}>{item.sku}</td>
                           <td className={styles.comparisonProduct}>{item.productName}</td>
@@ -127,7 +128,7 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {comparisonResult.onlyInB.map((item) => (
+                      {comparisonResult.onlyInB.map((item: OnlyInSessionItem) => (
                         <tr key={item.productId}>
                           <td className={styles.comparisonSku}>{item.sku}</td>
                           <td className={styles.comparisonProduct}>{item.productName}</td>
@@ -175,7 +176,7 @@ export const ComparisonModal: React.FC<ComparisonModalProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {comparisonResult.matched.map((item) => (
+                    {comparisonResult.matched.map((item: MatchedItem) => (
                       <tr key={item.productId} className={item.isMatch ? styles.rowMatch : styles.rowMismatch}>
                         <td className={styles.comparisonSku}>{item.sku}</td>
                         <td className={styles.comparisonProduct}>{item.productName}</td>
