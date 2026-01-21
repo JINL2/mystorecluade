@@ -1,0 +1,252 @@
+/**
+ * NeedsDisplayModal Styles
+ * Styles for the needs display modal component
+ * Simple, minimalist design following Toss Design System
+ */
+
+/* Modal Backdrop */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.needsDisplayModal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  width: 90%;
+  max-width: 480px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: dialogFadeIn 0.2s ease-out;
+  overflow: hidden;
+}
+
+.needsDisplayHeader {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.needsDisplayIconContainer {
+  display: none;
+}
+
+.needsDisplayHeader h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #191F28;
+  margin: 0 0 8px 0;
+}
+
+.needsDisplaySubtext {
+  font-size: 14px;
+  color: #6B7684;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.needsDisplayContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  max-height: 280px;
+}
+
+.needsDisplayTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.needsDisplayTable thead {
+  background: #F9FAFB;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.needsDisplayTable th {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7684;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.needsDisplayTable th:first-child {
+  width: 35%;
+}
+
+.needsDisplayTable th:nth-child(2) {
+  width: 45%;
+}
+
+.needsDisplayTable th:last-child {
+  width: 20%;
+  text-align: center;
+}
+
+.needsDisplayTable th.thNumber {
+  text-align: center;
+}
+
+.needsDisplayTable tbody tr {
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.needsDisplayTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.needsDisplaySku {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333D4B;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.needsDisplayProduct {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #4E5968;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.needsDisplayQuantity {
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0064FF;
+}
+
+.quantityBadge {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0064FF;
+}
+
+.needsDisplaySummary {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #F9FAFB;
+  border-top: 1px solid #F1F5F9;
+}
+
+.summaryItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.summaryLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: #8B95A1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.summaryValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: #191F28;
+}
+
+.needsDisplayActions {
+  padding: 16px 24px 24px 24px;
+}
+
+.needsDisplayConfirmButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  background: #0064FF;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.needsDisplayConfirmButton:hover {
+  background: #0052D4;
+}
+
+.needsDisplayConfirmButton:active {
+  background: #0047BA;
+}
+
+/* Responsive for Needs Display Modal */
+@media (max-width: 640px) {
+  .needsDisplayModal {
+    width: calc(100% - 32px);
+    max-height: 90vh;
+  }
+
+  .needsDisplayHeader {
+    padding: 20px 16px 12px 16px;
+  }
+
+  .needsDisplayHeader h3 {
+    font-size: 17px;
+  }
+
+  .needsDisplaySubtext {
+    font-size: 13px;
+  }
+
+  .needsDisplayTable th,
+  .needsDisplaySku,
+  .needsDisplayProduct,
+  .needsDisplayQuantity {
+    padding: 10px 12px;
+  }
+
+  .needsDisplaySummary {
+    padding: 12px 16px;
+  }
+
+  .needsDisplayActions {
+    padding: 12px 16px 20px 16px;
+  }
+
+  .needsDisplayConfirmButton {
+    height: 44px;
+    font-size: 15px;
+  }
+}

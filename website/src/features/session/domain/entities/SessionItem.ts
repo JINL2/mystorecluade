@@ -178,23 +178,6 @@ export interface JoinSessionResult {
   createdByName?: string;
 }
 
-// Session participant entity
-export interface SessionParticipant {
-  userId: string;
-  userName: string;
-  userProfileImage: string | null;
-  productCount: number;
-  totalScanned: number;
-}
-
-// Extended session items result with participants
-export interface SessionItemsFullResult {
-  sessionId: string;
-  items: SessionItem[];
-  participants: SessionParticipant[];
-  summary: SessionItemsSummary & { totalParticipants?: number };
-}
-
 // Merged item for v2 merge result
 export interface MergedItem {
   itemId: string;

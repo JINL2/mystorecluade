@@ -11,8 +11,6 @@ export type {
   SessionItemUserDTO,
   SessionItemDTO,
   SessionItemsSummaryDTO,
-  SessionParticipantDTO,
-  SessionItemsFullDTO,
   CurrencyDTO,
   SaveItemDTO,
   SubmitItemDTO,
@@ -50,7 +48,6 @@ import type {
   SearchProductDTO,
   SessionItemDTO,
   SessionItemsSummaryDTO,
-  SessionItemsFullDTO,
   CurrencyDTO,
   SaveItemDTO,
   SubmitItemDTO,
@@ -147,11 +144,6 @@ export interface IProductReceiveDataSource {
     time: string;
     timezone: string;
   }): Promise<JoinSessionResultDTO>;
-
-  getSessionItemsFull(
-    sessionId: string,
-    userId: string
-  ): Promise<SessionItemsFullDTO>;
 
   mergeSessions(params: {
     targetSessionId: string;
@@ -635,39 +627,6 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     };
   }
 
-  async getSessionItemsFull(
-    sessionId: string,
-    userId: string
-  ): Promise<SessionItemsFullDTO> {
-    const client = supabaseService.getClient();
-
-    const { data, error } = await client.rpc('inventory_get_session_items_v2', {
-      p_session_id: sessionId,
-      p_user_id: userId,
-      p_timezone: this.getTimezone(),
-    });
-
-    if (error) {
-      throw new Error(`Failed to load session items: ${error.message}`);
-    }
-
-    if (!data?.success) {
-      throw new Error(data?.error || 'Failed to load session items');
-    }
-
-    return {
-      session_id: data.data?.session_id || sessionId,
-      items: data.data?.items || [],
-      participants: data.data?.participants || [],
-      summary: data.data?.summary || {
-        total_products: 0,
-        total_quantity: 0,
-        total_rejected: 0,
-        total_participants: 0,
-      },
-    };
-  }
-
   async mergeSessions(params: {
     targetSessionId: string;
     sourceSessionId: string;
@@ -841,8 +800,11 @@ export class ProductReceiveDataSource implements IProductReceiveDataSource {
     if (params.offset !== undefined) {
       rpcParams.p_offset = params.offset;
     }
+    if (params.search) {
+      rpcParams.p_search = params.search;
+    }
 
-    const { data, error } = await client.rpc('inventory_get_session_history_v3', rpcParams);
+    const { data, error } = await client.rpc('inventory_get_session_history_v4', rpcParams);
 
     if (error) {
       throw new Error(`Failed to get session history: ${error.message}`);

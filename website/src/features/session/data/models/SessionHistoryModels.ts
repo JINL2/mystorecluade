@@ -1,6 +1,6 @@
 /**
  * SessionHistory DTO to Entity Mappers
- * Maps inventory_get_session_history_v3 RPC response to domain entities with variant support
+ * Maps inventory_get_session_history_v4 RPC response to domain entities with variant support and server-side search
  */
 
 import type {

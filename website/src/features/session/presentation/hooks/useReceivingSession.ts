@@ -11,7 +11,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { productReceiveRepository } from '../../data/repositories/ProductReceiveRepositoryImpl';
-import { ReceiveValidator } from '../../domain/validators/ReceiveValidator';
 import { useReceivingSessionStore } from '../providers/receiving_session_provider';
 import type { SearchProduct } from '../../domain/entities';
 import type {
@@ -26,6 +25,29 @@ import {
   toShipmentDataPresentation,
   toComparisonResultPresentation,
 } from './useReceivingSession.presenters';
+
+// Import converters
+import {
+  toPresentationSearchProduct,
+  toPresentationSummary,
+  toActiveSession,
+  toDomainSearchProduct,
+} from './useReceivingSession.converters';
+
+// Import data loader
+import { loadSessionData } from './useReceivingSession.dataLoader';
+
+// Import handlers
+import {
+  createSaveHandler,
+  createSubmitConfirmHandler,
+  createCombineSessionSelectHandler,
+  createMergeSessionsHandler,
+  createSubmitSessionHandler,
+  createNeedsDisplayCloseHandler,
+} from './useReceivingSession.handlers';
+
+import type { SearchProductPresentation } from './useReceivingSession.types';
 
 // Re-export types for backward compatibility
 export type {
@@ -45,6 +67,14 @@ export type {
   ComparisonResultPresentation,
 } from './useReceivingSession.presenters';
 
+// Re-export converters for external use
+export {
+  toPresentationSearchProduct,
+  toPresentationSummary,
+  toActiveSession,
+  toDomainSearchProduct,
+} from './useReceivingSession.converters';
+
 // Alias types for backward compatibility with ReceivingSessionPage
 export type MatchedItem = {
   productId: string;
@@ -62,24 +92,6 @@ export type OnlyInSessionItem = {
   productName: string;
   quantity: number;
 };
-
-// Import converters
-import {
-  toPresentationSearchProduct,
-  toPresentationSummary,
-  toActiveSession,
-  toDomainSearchProduct,
-} from './useReceivingSession.converters';
-
-// Re-export converters for external use
-export {
-  toPresentationSearchProduct,
-  toPresentationSummary,
-  toActiveSession,
-  toDomainSearchProduct,
-} from './useReceivingSession.converters';
-
-import type { SearchProductPresentation } from './useReceivingSession.types';
 
 export const useReceivingSession = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -135,194 +147,20 @@ export const useReceivingSession = () => {
 
   // Load session data - only runs once on mount or when sessionId changes
   useEffect(() => {
-    // Prevent multiple initializations
     if (isInitializedRef.current) return;
     if (!sessionId || !currentCompany) return;
 
     isInitializedRef.current = true;
 
-    const loadSessionData = async () => {
-      store.setLoading(true);
-      store.setError(null);
-
-      try {
-        // If we have data from navigation state, use it
-        if (memoizedLocationState?.sessionData) {
-          const sessionData = memoizedLocationState.sessionData;
-          store.setSessionInfo({
-            sessionId: sessionData.session_id || sessionId,
-            sessionType: sessionData.session_type || 'receiving',
-            storeId: sessionData.store_id || '',
-            storeName: sessionData.store_name || '',
-            shipmentId: memoizedLocationState.shipmentId || sessionData.shipment_id || null,
-            shipmentNumber: memoizedLocationState.shipmentData?.shipment_number || sessionData.shipment_number || null,
-            isActive: sessionData.is_active ?? true,
-            isFinal: sessionData.is_final ?? false,
-            createdBy: sessionData.created_by || '',
-            createdByName: sessionData.created_by_name || '',
-            createdAt: sessionData.created_at || new Date().toISOString(),
-            memberCount: sessionData.member_count,
-          });
-        }
-
-        // If we have shipment data from navigation state, use it
-        if (memoizedLocationState?.shipmentData) {
-          const shipment = memoizedLocationState.shipmentData;
-          store.setShipmentData({
-            shipmentId: shipment.shipment_id,
-            shipmentNumber: shipment.shipment_number,
-            supplierName: shipment.supplier_name,
-            status: shipment.status,
-            shippedDate: shipment.shipped_date,
-            items: shipment.items?.map(item => ({
-              itemId: item.item_id,
-              productId: item.product_id,
-              variantId: item.variant_id || null,
-              productName: item.product_name,
-              variantName: item.variant_name || null,
-              displayName: item.display_name || item.product_name,
-              hasVariants: item.has_variants || false,
-              sku: item.sku,
-              quantityShipped: item.quantity_shipped,
-              quantityReceived: item.quantity_received,
-              quantityAccepted: item.quantity_accepted,
-              quantityRejected: item.quantity_rejected,
-              quantityRemaining: item.quantity_remaining,
-              unitCost: item.unit_cost,
-            })) || [],
-            receivingSummary: shipment.receiving_summary ? {
-              totalShipped: shipment.receiving_summary.total_shipped,
-              totalReceived: shipment.receiving_summary.total_received,
-              totalAccepted: shipment.receiving_summary.total_accepted,
-              totalRejected: shipment.receiving_summary.total_rejected,
-              totalRemaining: shipment.receiving_summary.total_remaining,
-              progressPercentage: shipment.receiving_summary.progress_percentage,
-            } : undefined,
-          });
-        } else {
-          // If no shipment data from navigation but shipmentId exists, fetch shipment detail
-          const linkedShipmentId = memoizedLocationState?.shipmentId || memoizedLocationState?.sessionData?.shipment_id;
-          if (linkedShipmentId && currentCompany) {
-            try {
-              const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-              const shipmentDetail = await repository.getShipmentDetail({
-                shipmentId: linkedShipmentId,
-                companyId: currentCompany.company_id,
-                timezone: userTimezone,
-              });
-
-              store.setShipmentData({
-                shipmentId: shipmentDetail.shipmentId,
-                shipmentNumber: shipmentDetail.shipmentNumber,
-                supplierName: shipmentDetail.supplierName,
-                status: shipmentDetail.status,
-                shippedDate: shipmentDetail.shippedDate,
-                items: shipmentDetail.items?.map(item => ({
-                  itemId: item.itemId,
-                  productId: item.productId,
-                  variantId: item.variantId || null,
-                  productName: item.productName,
-                  variantName: item.variantName || null,
-                  displayName: item.displayName || item.productName,
-                  hasVariants: item.hasVariants || false,
-                  sku: item.sku,
-                  quantityShipped: item.quantityShipped,
-                  quantityReceived: item.quantityReceived,
-                  quantityAccepted: item.quantityAccepted,
-                  quantityRejected: item.quantityRejected,
-                  quantityRemaining: item.quantityRemaining,
-                  unitCost: item.unitCost,
-                })) || [],
-                receivingSummary: shipmentDetail.receivingSummary ? {
-                  totalShipped: shipmentDetail.receivingSummary.totalShipped,
-                  totalReceived: shipmentDetail.receivingSummary.totalReceived,
-                  totalAccepted: shipmentDetail.receivingSummary.totalAccepted,
-                  totalRejected: shipmentDetail.receivingSummary.totalRejected,
-                  totalRemaining: shipmentDetail.receivingSummary.totalRemaining,
-                  progressPercentage: shipmentDetail.receivingSummary.progressPercentage,
-                } : undefined,
-              });
-            } catch (err) {
-              console.error('Failed to load shipment detail:', err);
-              // Don't fail the whole session load, just continue without shipment data
-            }
-          }
-        }
-
-        // If no navigation state, set default session info
-        if (!memoizedLocationState?.sessionData) {
-          store.setSessionInfo({
-            sessionId: sessionId,
-            sessionType: 'receiving',
-            storeId: '',
-            storeName: 'Loading...',
-            shipmentId: null,
-            shipmentNumber: null,
-            isActive: true,
-            isFinal: false,
-            createdBy: '',
-            createdByName: '',
-            createdAt: new Date().toISOString(),
-          });
-        }
-
-        // Load available sessions for combine feature
-        const storedSessions = localStorage.getItem('receiving_active_sessions');
-        if (storedSessions) {
-          try {
-            const sessions: ActiveSession[] = JSON.parse(storedSessions);
-            store.setAvailableSessions(sessions.filter(s => s.sessionId !== sessionId));
-          } catch {
-            console.error('Failed to parse active sessions from localStorage');
-          }
-        }
-
-        // If no localStorage data and we have shipment_id, fetch from API
-        const shipmentId = memoizedLocationState?.shipmentId || memoizedLocationState?.sessionData?.shipment_id;
-        if ((!storedSessions || storedSessions === '[]') && shipmentId && currentCompany) {
-          try {
-            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const sessionsResult = await repository.getSessionList({
-              companyId: currentCompany.company_id,
-              shipmentId: shipmentId,
-              sessionType: 'receiving',
-              isActive: true,
-              timezone: userTimezone,
-            });
-
-            const otherSessions = sessionsResult
-              .filter(s => s.sessionId !== sessionId && s.isActive)
-              .map(toActiveSession);
-
-            store.setAvailableSessions(otherSessions);
-            localStorage.setItem('receiving_active_sessions', JSON.stringify(otherSessions));
-          } catch (err) {
-            console.error('Failed to load active sessions from API:', err);
-          }
-        }
-
-        // Load session items (products already received in this session)
-        if (currentUser?.user_id) {
-          try {
-            const sessionItemsResult = await repository.getSessionItems(sessionId, currentUser.user_id);
-            store.setSessionItems(sessionItemsResult.items);
-            store.setSessionItemsSummary(sessionItemsResult.summary);
-          } catch (err) {
-            console.error('Failed to load session items:', err);
-            // Don't fail the session load, just continue without session items
-          }
-        }
-
-        setIsInitialized(true);
-      } catch (err) {
-        console.error('Load session error:', err);
-        store.setError(err instanceof Error ? err.message : 'Failed to load session');
-      } finally {
-        store.setLoading(false);
-      }
-    };
-
-    loadSessionData();
+    loadSessionData({
+      sessionId,
+      currentCompany,
+      currentUser,
+      locationState: memoizedLocationState,
+      repository,
+      store,
+      setIsInitialized,
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, currentCompany?.company_id]);
 
@@ -408,7 +246,6 @@ export const useReceivingSession = () => {
 
   // Add product to received entries
   const addProductToReceived = useCallback((product: SearchProduct | SearchProductPresentation) => {
-    // Normalize to domain entity if presentation format
     const normalizedProduct: SearchProduct = 'productId' in product
       ? product
       : toDomainSearchProduct(product);
@@ -464,59 +301,11 @@ export const useReceivingSession = () => {
     store.clearSearch();
   }, [store]);
 
-  // Handle save - using Repository and Validator
-  const handleSave = useCallback(async () => {
-    if (!sessionId || !currentUser?.user_id) {
-      store.setSaveError('Session or user information missing');
-      return;
-    }
-
-    // Check if session is active before attempting to save
-    if (store.sessionInfo && !store.sessionInfo.isActive) {
-      store.setSaveError('Session is not active. Cannot save items to a closed session.');
-      return;
-    }
-
-    // Convert received entries to SaveItem format for validation
-    const itemsToSave = store.receivedEntries.map(entry => ({
-      productId: entry.productId,
-      variantId: entry.variantId || null,
-      quantity: entry.quantity,
-      quantityRejected: 0,
-    }));
-
-    // Use Validator for validation
-    const validationResult = ReceiveValidator.validateSaveItems(itemsToSave);
-    if (!validationResult.isValid) {
-      store.setSaveError(validationResult.errors.join(', '));
-      return;
-    }
-
-    store.setIsSaving(true);
-    store.setSaveError(null);
-    store.setSaveSuccess(false);
-
-    try {
-      await repository.addSessionItems(sessionId, currentUser.user_id, itemsToSave);
-      store.setSaveSuccess(true);
-      store.clearReceivedEntries();
-      setTimeout(() => store.setSaveSuccess(false), 3000);
-
-      // Refresh session items after successful save
-      try {
-        const sessionItemsResult = await repository.getSessionItems(sessionId, currentUser.user_id);
-        store.setSessionItems(sessionItemsResult.items);
-        store.setSessionItemsSummary(sessionItemsResult.summary);
-      } catch (refreshErr) {
-        console.error('Failed to refresh session items:', refreshErr);
-      }
-    } catch (err) {
-      console.error('Save error:', err);
-      store.setSaveError(err instanceof Error ? err.message : 'Failed to save items');
-    } finally {
-      store.setIsSaving(false);
-    }
-  }, [store.receivedEntries, sessionId, currentUser?.user_id, repository, store]);
+  // Create handlers using factory functions
+  const handleSave = useCallback(
+    createSaveHandler({ sessionId, currentUser, repository, store }),
+    [sessionId, currentUser?.user_id, repository, store]
+  );
 
   // Handle submit button click
   const handleSubmitClick = useCallback(() => {
@@ -550,38 +339,11 @@ export const useReceivingSession = () => {
     store.setShowSubmitModeModal(false);
   }, [store]);
 
-  // Handle initial confirmation - load session items using Repository
-  const handleSubmitConfirm = useCallback(async () => {
-    store.setShowSubmitConfirmModal(false);
-
-    if (!sessionId || !currentUser?.user_id) {
-      store.setSubmitError('Session or user information missing');
-      return;
-    }
-
-    store.setIsLoadingSessionItems(true);
-    store.setSubmitError(null);
-
-    try {
-      const result = await repository.getSessionItems(sessionId, currentUser.user_id);
-
-      store.setSessionItems(result.items);
-      store.setSessionItemsSummary(result.summary);
-      store.setEditableItems(result.items.map(item => ({
-        productId: item.productId,
-        variantId: item.variantId ?? null,
-        productName: item.productName,
-        quantity: item.totalQuantity,
-        quantityRejected: item.totalRejected,
-      })));
-      store.setShowSubmitReviewModal(true);
-    } catch (err) {
-      console.error('Load session items error:', err);
-      store.setSubmitError(err instanceof Error ? err.message : 'Failed to load session items');
-    } finally {
-      store.setIsLoadingSessionItems(false);
-    }
-  }, [sessionId, currentUser?.user_id, repository, store]);
+  // Handle initial confirmation
+  const handleSubmitConfirm = useCallback(
+    createSubmitConfirmHandler({ sessionId, currentUser, repository, store }),
+    [sessionId, currentUser?.user_id, repository, store]
+  );
 
   // Close modals
   const handleSubmitConfirmClose = useCallback(() => {
@@ -602,84 +364,22 @@ export const useReceivingSession = () => {
     store.setSelectedCombineSession(null);
   }, [store]);
 
-  // Handle session selection for combine - using Repository
-  const handleCombineSessionSelect = useCallback(async (selectedSession: ActiveSession) => {
-    if (!sessionId || !currentUser?.user_id) {
-      store.setComparisonError('Session or user information missing');
-      return;
-    }
-
-    store.setSelectedCombineSession(selectedSession);
-    store.setShowSessionSelectModal(false);
-    store.setIsLoadingComparison(true);
-    store.setComparisonError(null);
-
-    try {
-      const result = await repository.compareSessions({
-        sessionIdA: sessionId,
-        sessionIdB: selectedSession.sessionId,
-        userId: currentUser.user_id,
-      });
-
-      store.setComparisonResult(result);
-      store.setShowComparisonModal(true);
-    } catch (err) {
-      console.error('Comparison error:', err);
-      store.setComparisonError(err instanceof Error ? err.message : 'Failed to compare sessions');
-    } finally {
-      store.setIsLoadingComparison(false);
-    }
-  }, [sessionId, currentUser?.user_id, repository, store]);
+  // Handle session selection for combine
+  const handleCombineSessionSelect = useCallback(
+    createCombineSessionSelectHandler({ sessionId, currentUser, repository, store }),
+    [sessionId, currentUser?.user_id, repository, store]
+  );
 
   // Close comparison modal
   const handleComparisonClose = useCallback(() => {
     store.resetCompareState();
   }, [store]);
 
-  // Handle merge sessions - using Repository
-  const handleMergeSessions = useCallback(async () => {
-    if (!sessionId || !currentUser?.user_id || !store.selectedCombineSession) {
-      store.setMergeError('Session or user information missing');
-      return;
-    }
-
-    store.setIsMerging(true);
-    store.setMergeError(null);
-
-    try {
-      await repository.mergeSessions({
-        targetSessionId: sessionId,
-        sourceSessionId: store.selectedCombineSession.sessionId,
-        userId: currentUser.user_id,
-      });
-
-      // Remove merged session from localStorage
-      const storedSessions = localStorage.getItem('receiving_active_sessions');
-      if (storedSessions) {
-        try {
-          const sessions: ActiveSession[] = JSON.parse(storedSessions);
-          const updatedSessions = sessions.filter(
-            s => s.sessionId !== store.selectedCombineSession?.sessionId
-          );
-          localStorage.setItem('receiving_active_sessions', JSON.stringify(updatedSessions));
-          store.setAvailableSessions(updatedSessions.filter(s => s.sessionId !== sessionId));
-        } catch {
-          console.error('Failed to update active sessions in localStorage');
-        }
-      }
-
-      store.setMergeSuccess(true);
-      store.resetCompareState();
-      navigate(0); // Page refresh
-
-      setTimeout(() => store.setMergeSuccess(false), 3000);
-    } catch (err) {
-      console.error('Merge error:', err);
-      store.setMergeError(err instanceof Error ? err.message : 'Failed to merge sessions');
-    } finally {
-      store.setIsMerging(false);
-    }
-  }, [sessionId, currentUser?.user_id, store.selectedCombineSession, repository, navigate, store]);
+  // Handle merge sessions
+  const handleMergeSessions = useCallback(
+    createMergeSessionsHandler({ sessionId, currentUser, repository, store, navigate }),
+    [sessionId, currentUser?.user_id, store.selectedCombineSession, repository, navigate, store]
+  );
 
   // Handle quantity change in review modal
   const handleReviewQuantityChange = useCallback((
@@ -697,108 +397,17 @@ export const useReceivingSession = () => {
     store.setShowFinalChoiceModal(true);
   }, [store]);
 
-  // Handle final submission using Repository and Validator
-  const handleSubmitSession = useCallback(async (isFinal: boolean) => {
-    console.log('🚀 handleSubmitSession called with isFinal:', isFinal);
-
-    if (!sessionId || !currentUser?.user_id) {
-      store.setSubmitError('Session or user information missing');
-      return;
-    }
-
-    // Convert editable items to SubmitItem format
-    const itemsToSubmit = store.editableItems.map(item => ({
-      productId: item.productId,
-      variantId: item.variantId,
-      quantity: item.quantity,
-      quantityRejected: item.quantityRejected,
-    }));
-
-    console.log('📦 Items to submit:', itemsToSubmit);
-    console.log('📋 Session ID:', sessionId);
-    console.log('👤 User ID:', currentUser.user_id);
-    console.log('✅ Is Final (Complete Receiving):', isFinal);
-
-    // Use Validator for validation
-    const validationResult = ReceiveValidator.validateSubmitItems(itemsToSubmit);
-    if (!validationResult.isValid) {
-      store.setSubmitError(validationResult.errors.join(', '));
-      return;
-    }
-
-    store.setShowFinalChoiceModal(false);
-    store.setIsSubmitting(true);
-    store.setSubmitError(null);
-
-    try {
-      console.log('📤 Calling repository.submitSession with isFinal:', isFinal);
-      const result = await repository.submitSession(
-        sessionId,
-        currentUser.user_id,
-        itemsToSubmit,
-        isFinal
-      );
-      console.log('📥 Submit result:', result);
-
-      store.setSubmitSuccess(true);
-
-      // Check for products that need display
-      const displayItems = (result.stockChanges || [])
-        .filter(item => item.needsDisplay)
-        .map(item => ({
-          productId: item.productId,
-          variantId: item.variantId || null,
-          sku: item.sku,
-          productName: item.productName,
-          variantName: item.variantName || null,
-          displayName: item.displayName || item.productName,
-          quantityReceived: item.quantityReceived,
-        }));
-
-      if (displayItems.length > 0) {
-        store.setNeedsDisplayItems(displayItems);
-        store.setSubmitResultData({
-          receivingNumber: result.receivingNumber,
-          itemsCount: result.itemsCount,
-          totalQuantity: result.totalQuantity,
-        });
-        store.setShowNeedsDisplayModal(true);
-        store.setIsSubmitting(false);
-      } else {
-        navigate('/product/session', {
-          state: {
-            submitSuccess: true,
-            receivingNumber: result.receivingNumber,
-            itemsCount: result.itemsCount,
-            totalQuantity: result.totalQuantity,
-            refreshData: true,
-          }
-        });
-      }
-    } catch (err) {
-      console.error('Submit session error:', err);
-      store.setSubmitError(err instanceof Error ? err.message : 'Failed to submit session');
-      store.setShowFinalChoiceModal(true);
-      store.setIsSubmitting(false);
-    }
-  }, [sessionId, currentUser?.user_id, store.editableItems, repository, navigate, store]);
+  // Handle final submission
+  const handleSubmitSession = useCallback(
+    createSubmitSessionHandler({ sessionId, currentUser, repository, store, navigate }),
+    [sessionId, currentUser?.user_id, store.editableItems, repository, navigate, store]
+  );
 
   // Close needs display modal and navigate
-  const handleNeedsDisplayClose = useCallback(() => {
-    store.setShowNeedsDisplayModal(false);
-    store.setNeedsDisplayItems([]);
-
-    navigate('/product/session', {
-      state: {
-        submitSuccess: true,
-        receivingNumber: store.submitResultData?.receivingNumber,
-        itemsCount: store.submitResultData?.itemsCount,
-        totalQuantity: store.submitResultData?.totalQuantity,
-        refreshData: true,
-      }
-    });
-    store.setSubmitResultData(null);
-  }, [navigate, store]);
+  const handleNeedsDisplayClose = useCallback(
+    createNeedsDisplayCloseHandler({ store, navigate }),
+    [navigate, store]
+  );
 
   // Dismiss errors
   const dismissSaveError = useCallback(() => {

@@ -9,35 +9,31 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Navbar } from '@/shared/components/common/Navbar';
-import type { SessionHistoryEntry, SessionHistoryItem, SessionMergeInfo } from '../../../domain/entities';
+import type { SessionHistoryEntry } from '../../../domain/entities';
+import {
+  ItemsTab,
+  MembersTab,
+  NewProductsTab,
+  RestockedTab,
+  MergeDetailsTab,
+} from './components';
 import styles from './SessionHistoryDetailPage.module.css';
 
 // Format date for display (yyyy/MM/dd HH:mm)
-// RPC returns date string already in user's local timezone (e.g., '2026-01-19 21:34:51')
-// So we just need to reformat the string, not parse it as Date (which would cause timezone issues)
 const formatDateTime = (dateStr: string | null): string => {
   if (!dateStr) return '-';
-  // dateStr format from RPC: 'YYYY-MM-DD HH:MM:SS'
-  // Convert to display format: 'YYYY/MM/DD HH:MM'
   const parts = dateStr.split(' ');
   if (parts.length >= 2) {
     const datePart = parts[0].replace(/-/g, '/');
-    const timePart = parts[1].substring(0, 5); // HH:MM (remove seconds)
+    const timePart = parts[1].substring(0, 5);
     return `${datePart} ${timePart}`;
   }
-  // Fallback: return as-is with dashes replaced
   return dateStr.replace(/-/g, '/');
 };
 
 // Get user display name from first and last name
 const getUserDisplayName = (firstName: string, lastName: string): string => {
   return `${firstName} ${lastName}`.trim() || 'Unknown';
-};
-
-// Get scanned by display string from array of scanners
-const getScannedByDisplay = (scannedBy: SessionHistoryItem['scannedBy']): string => {
-  if (!scannedBy || scannedBy.length === 0) return '-';
-  return scannedBy.map(s => getUserDisplayName(s.firstName, s.lastName)).join(', ');
 };
 
 type DetailTab = 'items' | 'members' | 'newProducts' | 'restocked' | 'mergeDetails';
@@ -53,20 +49,6 @@ export const SessionHistoryDetailPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<DetailTab>('items');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedMergedSession, setExpandedMergedSession] = useState<string | null>(null);
-
-  // Filter items based on search
-  const filteredItems = useMemo(() => {
-    if (!session?.items) return [];
-    if (!searchQuery.trim()) return session.items;
-
-    const query = searchQuery.toLowerCase();
-    return session.items.filter(
-      (item) =>
-        item.displayName.toLowerCase().includes(query) ||
-        item.productName.toLowerCase().includes(query) ||
-        item.sku?.toLowerCase().includes(query)
-    );
-  }, [session?.items, searchQuery]);
 
   // Separate new products and restocked products for receiving sessions
   const { newProducts, restockedProducts } = useMemo(() => {
@@ -326,329 +308,34 @@ export const SessionHistoryDetailPage: React.FC = () => {
 
         {/* Tab Content */}
         <div className={styles.tabContent}>
-          {/* Items Tab */}
           {activeTab === 'items' && (
-            <div className={styles.itemsSection}>
-              <div className={styles.searchWrapper}>
-                <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-                <input
-                  type="text"
-                  className={styles.searchInput}
-                  placeholder="Search items..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className={styles.tableContainer}>
-                <table className={styles.dataTable}>
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>SKU</th>
-                      <th>Scanned Qty</th>
-                      {session.totalConfirmedQuantity != null && <th>Confirmed Qty</th>}
-                      {isReceivingSession && <th>Expected</th>}
-                      {isReceivingSession && <th>Difference</th>}
-                      <th>Scanned By</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredItems.length > 0 ? (
-                      filteredItems.map((item, index) => (
-                        <tr key={`${item.productId}-${index}`}>
-                          <td className={styles.productName}>{item.displayName}</td>
-                          <td>{item.sku || '-'}</td>
-                          <td className={styles.quantityCell}>{item.scannedQuantity}</td>
-                          {session.totalConfirmedQuantity != null && (
-                            <td className={styles.quantityCell}>{item.confirmedQuantity ?? '-'}</td>
-                          )}
-                          {isReceivingSession && (
-                            <td className={styles.quantityCell}>{item.quantityExpected ?? '-'}</td>
-                          )}
-                          {isReceivingSession && (
-                            <td className={`${styles.varianceCell} ${(item.quantityDifference ?? 0) < 0 ? styles.negative : (item.quantityDifference ?? 0) > 0 ? styles.positive : ''}`}>
-                              {item.quantityDifference != null ? (item.quantityDifference > 0 ? `+${item.quantityDifference}` : item.quantityDifference) : '-'}
-                            </td>
-                          )}
-                          <td>{getScannedByDisplay(item.scannedBy)}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={isReceivingSession ? 7 : (session.totalConfirmedQuantity != null ? 5 : 4)} className={styles.emptyCell}>
-                          {searchQuery ? 'No items match your search' : 'No items in this session'}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <ItemsTab
+              items={session.items || []}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              hasConfirmedQuantity={session.totalConfirmedQuantity != null}
+              isReceivingSession={isReceivingSession}
+            />
           )}
 
-          {/* Members Tab */}
           {activeTab === 'members' && (
-            <div className={styles.membersSection}>
-              <div className={styles.membersGrid}>
-                {session.members && session.members.length > 0 ? (
-                  session.members.map((member) => (
-                    <div key={member.userId} className={styles.memberCard}>
-                      <div className={styles.memberAvatar}>
-                        {member.profileImage ? (
-                          <img src={member.profileImage} alt="" />
-                        ) : (
-                          member.firstName.charAt(0).toUpperCase()
-                        )}
-                      </div>
-                      <div className={styles.memberInfo}>
-                        <div className={styles.memberName}>
-                          {getUserDisplayName(member.firstName, member.lastName)}
-                        </div>
-                        <div className={styles.memberStatus}>
-                          {member.isActive ? 'Active' : 'Inactive'}
-                        </div>
-                      </div>
-                      <div className={styles.memberTimestamps}>
-                        <div className={styles.timestamp}>
-                          <span className={styles.timestampLabel}>Joined:</span>
-                          <span>{formatDateTime(member.joinedAt)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.emptyMembers}>
-                    <p>No member data available</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            <MembersTab members={session.members || []} />
           )}
 
-          {/* New Products Tab (Receiving sessions) */}
           {activeTab === 'newProducts' && (
-            <div className={styles.newProductsSection}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionIcon}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className={styles.sectionTitle}>New Products Added</h3>
-                  <p className={styles.sectionSubtitle}>
-                    These products were added to inventory for the first time
-                  </p>
-                </div>
-              </div>
-              <div className={styles.tableContainer}>
-                <table className={styles.dataTable}>
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>SKU</th>
-                      <th>Quantity Received</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {newProducts.map((product, index) => (
-                      <tr key={`${product.productId}-${index}`} className={styles.newProductRow}>
-                        <td className={styles.productName}>
-                          <span className={styles.newBadge}>NEW</span>
-                          {product.displayName}
-                        </td>
-                        <td>{product.sku || '-'}</td>
-                        <td className={`${styles.quantityCell} ${styles.positive}`}>
-                          +{product.quantityReceived.toLocaleString()}
-                        </td>
-                        <td>
-                          <span className={styles.stockStatus}>
-                            Initial Stock: {product.quantityAfter.toLocaleString()}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <NewProductsTab newProducts={newProducts} />
           )}
 
-          {/* Restocked Products Tab (Receiving sessions) */}
           {activeTab === 'restocked' && (
-            <div className={styles.stockChangesSection}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionIconBlue}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className={styles.sectionTitle}>Restocked Products</h3>
-                  <p className={styles.sectionSubtitle}>
-                    Existing products that received additional stock
-                  </p>
-                </div>
-              </div>
-              <div className={styles.tableContainer}>
-                <table className={styles.dataTable}>
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>SKU</th>
-                      <th>Previous Qty</th>
-                      <th>Received</th>
-                      <th>New Qty</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {restockedProducts.map((stock, index) => (
-                      <tr key={`${stock.productId}-${index}`}>
-                        <td className={styles.productName}>{stock.displayName}</td>
-                        <td>{stock.sku || '-'}</td>
-                        <td className={styles.quantityCell}>{stock.quantityBefore.toLocaleString()}</td>
-                        <td className={`${styles.quantityCell} ${styles.positive}`}>+{stock.quantityReceived.toLocaleString()}</td>
-                        <td className={styles.quantityCell}>{stock.quantityAfter.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <RestockedTab restockedProducts={restockedProducts} />
           )}
 
-          {/* Merge Details Tab */}
           {activeTab === 'mergeDetails' && isMergedSession && (
-            <div className={styles.mergeDetailsSection}>
-              {/* Original Session */}
-              <div className={styles.mergeSessionCard}>
-                <div className={styles.mergeSessionHeader}>
-                  <div className={styles.mergeSessionBadge}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 8v8M8 12h8" />
-                    </svg>
-                    Original Session
-                  </div>
-                  <div className={styles.mergeSessionStats}>
-                    <span>{session.mergeInfo!.originalSession.itemsCount} items</span>
-                    <span className={styles.divider}>•</span>
-                    <span>{session.mergeInfo!.originalSession.totalQuantity.toLocaleString()} qty</span>
-                  </div>
-                </div>
-                <div className={styles.mergeSessionContent}>
-                  <table className={styles.dataTable}>
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>SKU</th>
-                        <th>Quantity</th>
-                        <th>Rejected</th>
-                        <th>Scanned By</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {session.mergeInfo!.originalSession.items.map((item, idx) => (
-                        <tr key={`original-${item.productId}-${idx}`}>
-                          <td className={styles.productName}>{item.displayName}</td>
-                          <td>{item.sku || '-'}</td>
-                          <td className={styles.quantityCell}>{item.quantity}</td>
-                          <td className={item.quantityRejected > 0 ? styles.negative : ''}>
-                            {item.quantityRejected > 0 ? item.quantityRejected : '-'}
-                          </td>
-                          <td>
-                            {getUserDisplayName(item.scannedBy.firstName, item.scannedBy.lastName)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Merged Sessions */}
-              {session.mergeInfo!.mergedSessions.map((mergedSession, sessionIdx) => (
-                <div key={mergedSession.sourceSessionId} className={styles.mergeSessionCard}>
-                  <div
-                    className={styles.mergeSessionHeader}
-                    onClick={() => toggleMergedSession(mergedSession.sourceSessionId)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className={styles.mergeSessionInfo}>
-                      <div className={styles.mergeSessionBadge}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5" />
-                        </svg>
-                        Merged Session #{sessionIdx + 1}
-                      </div>
-                      <div className={styles.mergeSessionName}>{mergedSession.sourceSessionName}</div>
-                    </div>
-                    <div className={styles.mergeSessionMeta}>
-                      <div className={styles.mergeSessionStats}>
-                        <span>{mergedSession.itemsCount} items</span>
-                        <span className={styles.divider}>•</span>
-                        <span>{mergedSession.totalQuantity.toLocaleString()} qty</span>
-                      </div>
-                      <div className={styles.mergeSessionCreator}>
-                        <span className={styles.creatorLabel}>Created by:</span>
-                        <span className={styles.creatorName}>
-                          {getUserDisplayName(mergedSession.sourceCreatedBy.firstName, mergedSession.sourceCreatedBy.lastName)}
-                        </span>
-                      </div>
-                      <div className={styles.mergeSessionDate}>
-                        {formatDateTime(mergedSession.sourceCreatedAt)}
-                      </div>
-                      <svg
-                        className={`${styles.expandIcon} ${expandedMergedSession === mergedSession.sourceSessionId ? styles.expanded : ''}`}
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {expandedMergedSession === mergedSession.sourceSessionId && (
-                    <div className={styles.mergeSessionContent}>
-                      <table className={styles.dataTable}>
-                        <thead>
-                          <tr>
-                            <th>Product</th>
-                            <th>SKU</th>
-                            <th>Quantity</th>
-                            <th>Rejected</th>
-                            <th>Scanned By</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {mergedSession.items.map((item, idx) => (
-                            <tr key={`merged-${mergedSession.sourceSessionId}-${item.productId}-${idx}`}>
-                              <td className={styles.productName}>{item.displayName}</td>
-                              <td>{item.sku || '-'}</td>
-                              <td className={styles.quantityCell}>{item.quantity}</td>
-                              <td className={item.quantityRejected > 0 ? styles.negative : ''}>
-                                {item.quantityRejected > 0 ? item.quantityRejected : '-'}
-                              </td>
-                              <td>
-                                {getUserDisplayName(item.scannedBy.firstName, item.scannedBy.lastName)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <MergeDetailsTab
+              mergeInfo={session.mergeInfo!}
+              expandedMergedSession={expandedMergedSession}
+              onToggleMergedSession={toggleMergedSession}
+            />
           )}
         </div>
       </div>

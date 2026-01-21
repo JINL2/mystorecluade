@@ -6,7 +6,6 @@
 import type {
   SearchProductResult,
   SessionItemsResult,
-  SessionItemsFullResult,
   SaveItem,
   SubmitItem,
   SubmitResult,
@@ -143,14 +142,6 @@ export interface IProductReceiveRepository {
     time: string;
     timezone: string;
   }): Promise<JoinSessionResult>;
-
-  /**
-   * Get session items with full details including participants
-   */
-  getSessionItemsFull(
-    sessionId: string,
-    userId: string
-  ): Promise<SessionItemsFullResult>;
 
   /**
    * Merge two sessions (copy items from source to target)

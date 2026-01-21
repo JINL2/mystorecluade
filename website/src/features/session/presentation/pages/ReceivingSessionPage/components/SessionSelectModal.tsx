@@ -1,22 +1,22 @@
 /**
  * SessionSelectModal Component
- * Modal for selecting a session to compare with
+ * Modal for selecting another session to compare/combine with
  */
 
 import React from 'react';
-import type { ActiveSession } from '../../../hooks/useCountingSessionDetail';
+import type { ActiveSession } from '../../../hooks/useReceivingSession';
 import styles from './SessionSelectModal.module.css';
 
 interface SessionSelectModalProps {
   isOpen: boolean;
-  sessions: ActiveSession[];
+  availableSessions: ActiveSession[];
   onClose: () => void;
   onSelect: (session: ActiveSession) => void;
 }
 
 export const SessionSelectModal: React.FC<SessionSelectModalProps> = ({
   isOpen,
-  sessions,
+  availableSessions,
   onClose,
   onSelect,
 }) => {
@@ -35,9 +35,9 @@ export const SessionSelectModal: React.FC<SessionSelectModalProps> = ({
         </div>
         <div className={styles.sessionSelectContent}>
           <p className={styles.sessionSelectDescription}>
-            Select another active counting session to compare items with your current session.
+            Select another active receiving session to compare items with your current session.
           </p>
-          {sessions.length === 0 ? (
+          {availableSessions.length === 0 ? (
             <div className={styles.noSessionsMessage}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5">
                 <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
@@ -47,7 +47,7 @@ export const SessionSelectModal: React.FC<SessionSelectModalProps> = ({
             </div>
           ) : (
             <div className={styles.sessionSelectList}>
-              {sessions.map((session) => (
+              {availableSessions.map((session: ActiveSession) => (
                 <button
                   key={session.sessionId}
                   className={styles.sessionSelectItem}
