@@ -300,6 +300,7 @@ class SessionRepositoryImpl implements SessionRepository {
     bool? isActive,
     DateTime? startDate,
     DateTime? endDate,
+    String? searchQuery,
     int limit = 15,
     int offset = 0,
   }) async {
@@ -310,6 +311,7 @@ class SessionRepositoryImpl implements SessionRepository {
       isActive: isActive,
       startDate: startDate,
       endDate: endDate,
+      searchQuery: searchQuery,
       limit: limit,
       offset: offset,
     );

@@ -24,7 +24,7 @@ class InvoiceRemoteDataSource {
     try {
       final dateRange = filter.period.getDateRange();
 
-      final response = await _client.rpc<Map<String, dynamic>>('get_invoice_page_v3', params: {
+      final response = await _client.rpc<Map<String, dynamic>>('get_invoice_page_v4', params: {
         'p_company_id': companyId,
         'p_store_id': storeId,
         'p_page': filter.page,

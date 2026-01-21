@@ -88,21 +88,6 @@ export interface SessionItemsSummaryDTO {
   total_participants?: number;
 }
 
-export interface SessionParticipantDTO {
-  user_id: string;
-  user_name: string;
-  user_profile_image: string | null;
-  product_count: number;
-  total_scanned: number;
-}
-
-export interface SessionItemsFullDTO {
-  session_id: string;
-  items: SessionItemDTO[];
-  participants: SessionParticipantDTO[];
-  summary: SessionItemsSummaryDTO;
-}
-
 export interface CurrencyDTO {
   symbol: string;
   code: string;

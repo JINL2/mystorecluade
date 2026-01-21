@@ -112,12 +112,15 @@ export const ProductReceivePage: React.FC = () => {
   // Session history hook - show closed sessions (isActive: false)
   const {
     sessions: historySessions,
+    totalCount: historyTotalCount,
     isLoading: historyLoading,
     isLoadingMore: historyLoadingMore,
     hasMore: historyHasMore,
     error: historyError,
     loadMore: loadMoreHistory,
     handleSessionClick: handleHistorySessionClick,
+    searchQuery: historySearchQuery,
+    setSearchQuery: setHistorySearchQuery,
   } = useSessionHistory({
     isActive: false, // Show only closed/completed sessions in history
     startDate: fromDate || undefined,
@@ -383,6 +386,9 @@ export const ProductReceivePage: React.FC = () => {
                     error={historyError}
                     onSessionClick={handleHistorySessionClick}
                     onLoadMore={loadMoreHistory}
+                    searchQuery={historySearchQuery}
+                    onSearchChange={setHistorySearchQuery}
+                    totalCount={historyTotalCount}
                   />
                 </div>
               )}

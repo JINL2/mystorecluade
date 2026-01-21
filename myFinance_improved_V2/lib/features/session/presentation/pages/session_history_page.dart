@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
@@ -11,16 +14,50 @@ import '../providers/states/session_history_filter_state.dart';
 import '../providers/states/session_history_state.dart';
 import '../widgets/history/session_history_card.dart';
 import '../widgets/history/session_history_filter_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Session history page - view past sessions and their results
-class SessionHistoryPage extends ConsumerWidget {
+class SessionHistoryPage extends ConsumerStatefulWidget {
   const SessionHistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SessionHistoryPage> createState() => _SessionHistoryPageState();
+}
+
+class _SessionHistoryPageState extends ConsumerState<SessionHistoryPage> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  Timer? _debounceTimer;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      ref.read(sessionHistoryNotifierProvider.notifier).updateSearchQuery(value);
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(sessionHistoryNotifierProvider.notifier).updateSearchQuery(null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(sessionHistoryNotifierProvider);
     final filter = state.filter;
+
+    // Sync search controller with filter state (for external changes)
+    if (_searchController.text != (filter.searchQuery ?? '') &&
+        !_searchFocusNode.hasFocus) {
+      _searchController.text = filter.searchQuery ?? '';
+    }
 
     return Scaffold(
       appBar: TossAppBar(
@@ -67,6 +104,8 @@ class SessionHistoryPage extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
+            // Search bar
+            _buildSearchBar(),
             // Filter summary bar
             _buildFilterSummaryBar(context, ref, filter),
             // Content
@@ -74,6 +113,71 @@ class SessionHistoryPage extends ConsumerWidget {
               child: _buildContent(context, ref, state),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      decoration: const BoxDecoration(
+        color: TossColors.white,
+        border: Border(
+          bottom: BorderSide(color: TossColors.gray100),
+        ),
+      ),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        onChanged: _onSearchChanged,
+        style: TossTextStyles.body.copyWith(
+          color: TossColors.textPrimary,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search by name, SKU, or product...',
+          hintStyle: TossTextStyles.body.copyWith(
+            color: TossColors.textTertiary,
+          ),
+          prefixIcon: const Icon(
+            Icons.search,
+            color: TossColors.textTertiary,
+            size: TossSpacing.iconMD,
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  onPressed: _clearSearch,
+                  icon: const Icon(
+                    Icons.close,
+                    color: TossColors.textTertiary,
+                    size: TossSpacing.iconSM,
+                  ),
+                )
+              : null,
+          filled: true,
+          fillColor: TossColors.gray50,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space4,
+            vertical: TossSpacing.space3,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            borderSide: const BorderSide(
+              color: TossColors.primary,
+              width: 1.5,
+            ),
+          ),
         ),
       ),
     );
@@ -211,32 +315,42 @@ class SessionHistoryPage extends ConsumerWidget {
     }
 
     if (state.isEmpty) {
+      final hasSearchQuery = state.filter.searchQuery?.isNotEmpty == true;
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(TossSpacing.space6),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.history,
+              Icon(
+                hasSearchQuery ? Icons.search_off : Icons.history,
                 size: TossSpacing.icon4XL,
                 color: TossColors.textTertiary,
               ),
               const SizedBox(height: TossSpacing.space4),
               Text(
-                'No sessions found',
+                hasSearchQuery ? 'No results found' : 'No sessions found',
                 style: TossTextStyles.h4.copyWith(
                   color: TossColors.textPrimary,
                 ),
               ),
               const SizedBox(height: TossSpacing.space2),
               Text(
-                'Try adjusting your filters or create a new session',
+                hasSearchQuery
+                    ? 'Try a different search term'
+                    : 'Try adjusting your filters or create a new session',
                 style: TossTextStyles.body.copyWith(
                   color: TossColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
+              if (hasSearchQuery) ...[
+                const SizedBox(height: TossSpacing.space4),
+                TossButton.secondary(
+                  text: 'Clear Search',
+                  onPressed: _clearSearch,
+                ),
+              ],
             ],
           ),
         ),
@@ -270,7 +384,7 @@ class SessionHistoryPage extends ConsumerWidget {
       padding: const EdgeInsets.all(TossSpacing.space4),
       alignment: Alignment.center,
       child: isLoading
-          ? TossLoadingView.inline(size: 24)
+          ? const TossLoadingView.inline(size: 24)
           : Text(
               'Load more...',
               style: TossTextStyles.bodySmall.copyWith(

@@ -1,0 +1,158 @@
+/**
+ * SessionSelectModal Styles (Counting)
+ * Styles for the session selection modal in counting sessions
+ */
+
+/* Modal Backdrop */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+/* Session Select Modal */
+.sessionSelectModal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.2s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modalHeader h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 0;
+}
+
+.modalCloseButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #F1F5F9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  transition: all 0.15s ease;
+}
+
+.modalCloseButton:hover {
+  background: #E2E8F0;
+  color: #1E293B;
+}
+
+.sessionSelectContent {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.sessionSelectDescription {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.noSessionsMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.noSessionsMessage p {
+  font-size: 14px;
+  color: #64748B;
+  margin: 16px 0 0 0;
+}
+
+.sessionSelectList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sessionSelectItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.sessionSelectItem:hover {
+  background: #F1F5F9;
+  border-color: #8B5CF6;
+}
+
+.sessionSelectItemLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sessionSelectItemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.sessionSelectItemMeta {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.sessionSelectItemRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sessionSelectItemMembers {
+  font-size: 12px;
+  color: #8B5CF6;
+  font-weight: 500;
+  background: #F3E8FF;
+  padding: 4px 8px;
+  border-radius: 4px;
+}

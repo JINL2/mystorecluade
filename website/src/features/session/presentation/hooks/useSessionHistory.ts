@@ -15,6 +15,7 @@ interface UseSessionHistoryOptions {
   startDate?: string | null;
   endDate?: string | null;
   limit?: number;
+  search?: string | null; // Server-side search (session_name, product_name, SKU, product_id)
 }
 
 interface UseSessionHistoryReturn {
@@ -39,6 +40,10 @@ interface UseSessionHistoryReturn {
   // Filters
   sessionTypeFilter: 'counting' | 'receiving' | null;
   setSessionTypeFilter: (type: 'counting' | 'receiving' | null) => void;
+
+  // Search
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 const PAGE_SIZE = 20;
@@ -58,6 +63,17 @@ export const useSessionHistory = (options: UseSessionHistoryOptions = {}): UseSe
   const [sessionTypeFilter, setSessionTypeFilter] = useState<'counting' | 'receiving' | null>(
     options.sessionType ?? null
   );
+  const [searchQuery, setSearchQuery] = useState(options.search ?? '');
+  const [debouncedSearch, setDebouncedSearch] = useState(options.search ?? '');
+
+  // Debounce search query (300ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch session history
   const fetchSessionHistory = useCallback(async (
@@ -92,6 +108,7 @@ export const useSessionHistory = (options: UseSessionHistoryOptions = {}): UseSe
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         limit: options.limit ?? PAGE_SIZE,
         offset,
+        search: debouncedSearch || null, // Server-side search
       };
 
       const result = await productReceiveRepository.getSessionHistory(params);
@@ -131,6 +148,7 @@ export const useSessionHistory = (options: UseSessionHistoryOptions = {}): UseSe
     options.startDate,
     options.endDate,
     options.limit,
+    debouncedSearch,
   ]);
 
   // Initial fetch and refetch when filters change
@@ -184,6 +202,8 @@ export const useSessionHistory = (options: UseSessionHistoryOptions = {}): UseSe
     handleSessionClick,
     sessionTypeFilter,
     setSessionTypeFilter,
+    searchQuery,
+    setSearchQuery,
   };
 };
 

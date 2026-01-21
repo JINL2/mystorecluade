@@ -427,6 +427,103 @@
   margin: 0;
 }
 
+/* ===== Session History Search Styles ===== */
+.historySearchContainer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--toss-gray-100, #F1F3F5);
+}
+
+.historySearchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 400px;
+}
+
+.historySearchIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-secondary, #6C757D);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.historySearchWrapper:focus-within .historySearchIcon {
+  color: var(--toss-primary, #0064FF);
+}
+
+.historySearchInput {
+  width: 100%;
+  padding: 10px 40px 10px 44px;
+  border: 1px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary, #212529);
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.historySearchInput::placeholder {
+  color: var(--text-secondary, #6C757D);
+}
+
+.historySearchInput:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+}
+
+.historySearchClear {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--toss-gray-100, #F1F3F5);
+  color: var(--text-secondary, #6C757D);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.historySearchClear:hover {
+  background: var(--toss-gray-200, #E9ECEF);
+  color: var(--text-primary, #212529);
+}
+
+.historySearchResult {
+  font-size: 13px;
+  color: var(--text-secondary, #6C757D);
+  white-space: nowrap;
+}
+
+.clearSearchButton {
+  margin-top: 16px;
+  padding: 8px 16px;
+  border: 1px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 6px;
+  background: white;
+  color: var(--text-primary, #212529);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.clearSearchButton:hover {
+  background: var(--toss-gray-50, #F8F9FA);
+  border-color: var(--toss-gray-300, #DEE2E6);
+}
+
 /* ===== Session History Table Styles ===== */
 .sessionNameCell {
   display: flex;

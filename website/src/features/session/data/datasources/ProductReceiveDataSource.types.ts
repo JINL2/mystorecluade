@@ -85,23 +85,6 @@ export interface SessionItemsSummaryDTO {
   total_participants?: number;
 }
 
-// Participant DTO for session items
-export interface SessionParticipantDTO {
-  user_id: string;
-  user_name: string;
-  user_profile_image: string | null;
-  product_count: number;
-  total_scanned: number;
-}
-
-// Extended session items result with participants
-export interface SessionItemsFullDTO {
-  session_id: string;
-  items: SessionItemDTO[];
-  participants: SessionParticipantDTO[];
-  summary: SessionItemsSummaryDTO;
-}
-
 export interface CurrencyDTO {
   symbol: string;
   code: string;
@@ -346,8 +329,8 @@ export interface CompareSessionsResultDTO {
   summary: CompareSessionsSummaryDTO;
 }
 
-// Session History DTOs (inventory_get_session_history_v3)
-// Updated to match actual RPC response structure with variant support
+// Session History DTOs (inventory_get_session_history_v4)
+// Updated to match actual RPC response structure with variant support and server-side search
 
 export interface SessionHistoryUserDTO {
   user_id: string;
@@ -513,4 +496,5 @@ export interface SessionHistoryParamsDTO {
   p_timezone: string;
   p_limit?: number;
   p_offset?: number;
+  p_search?: string | null; // Server-side search (session_name, product_name, SKU, product_id)
 }
