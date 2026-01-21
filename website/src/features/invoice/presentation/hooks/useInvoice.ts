@@ -48,15 +48,15 @@ export const useInvoice = (companyId: string) => {
   const clearDetail = useInvoiceStore((state) => state.clearDetail);
 
   // ========== Auto-load Invoices on Mount or Filter Changes ==========
-  // Note: searchQuery removed from dependencies - search is now client-side
+  // searchQuery included in dependencies - search is now server-side (get_invoice_page_v4)
   useEffect(() => {
     if (companyId && companyId !== '') {
-      console.log('🟡 useInvoice - useEffect triggered, loading invoices...');
+      console.log('🟡 useInvoice - useEffect triggered, loading invoices...', { searchQuery });
       loadInvoices(companyId);
     } else {
       console.log('🟡 useInvoice - No companyId, skipping load');
     }
-  }, [companyId, selectedStoreId, currentPage, dateRange, dateSortFilter, amountSortFilter, loadInvoices]);
+  }, [companyId, selectedStoreId, currentPage, dateRange, dateSortFilter, amountSortFilter, searchQuery, loadInvoices]);
 
   // ========== Wrapped Actions with Enhanced Logic ==========
   const handleStoreChange = (storeId: string | null) => {
