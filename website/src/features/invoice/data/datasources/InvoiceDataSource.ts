@@ -226,9 +226,9 @@ export class InvoiceDataSource {
       p_amount_filter: amountFilter,
     };
 
-    console.log('🔵 InvoiceDataSource.getInvoices - calling get_invoice_page_v3:', rpcParams);
+    console.log('🔵 InvoiceDataSource.getInvoices - calling get_invoice_page_v4:', rpcParams);
 
-    const { data, error } = await supabase.rpc('get_invoice_page_v3' as any, rpcParams);
+    const { data, error } = await supabase.rpc('get_invoice_page_v4' as any, rpcParams);
 
     if (error) {
       console.error('❌ Error fetching invoices:', error);
