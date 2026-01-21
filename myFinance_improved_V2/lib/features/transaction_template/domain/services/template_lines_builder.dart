@@ -110,10 +110,10 @@ class TemplateLinesBuilder {
     switch (rpcType) {
       case TemplateRpcType.cashCash:
         _debugLog('│ Building: CashCash lines...');
+        // CashCash: DO NOT pass cashLocationId - each line uses its own template value
         result = _buildCashCashLines(
           data: data,
           amount: amount,
-          cashLocationId: effectiveCashLocationId,
         );
 
       case TemplateRpcType.internal:
@@ -189,10 +189,14 @@ class TemplateLinesBuilder {
   /// Structure:
   /// - Line 1: Debit (destination cash account)
   /// - Line 2: Credit (source cash account)
+  ///
+  /// IMPORTANT: CashCash transfers have 2 different cash locations (source & destination).
+  /// Each line MUST use its own cash_location_id from the template.
+  /// DO NOT use user-selected cashLocationId here - it would override both lines!
   static List<Map<String, dynamic>> _buildCashCashLines({
     required List<dynamic> data,
     required double amount,
-    String? cashLocationId,
+    // NOTE: cashLocationId parameter removed - CashCash must use template values
   }) {
     final lines = <Map<String, dynamic>>[];
 
@@ -207,8 +211,9 @@ class TemplateLinesBuilder {
           entry['debit_credit'] == 'debit' ||
           i == 0; // Default first entry to debit
 
-      // User selection takes priority over template default
-      final entryCashLocationId = cashLocationId ?? _extractCashLocationId(entry);
+      // CashCash: Always use template's cash_location_id for each line
+      // Each line has its own location (e.g., Vault -> Cashier)
+      final entryCashLocationId = _extractCashLocationId(entry);
 
       lines.add({
         'account_id': accountId,

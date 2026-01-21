@@ -1,5 +1,7 @@
 import '../../../data/dtos/template_usage_response_dto.dart';
 import '../../../domain/entities/template_attachment.dart';
+import '../../../domain/enums/template_enums.dart';
+import '../../../domain/value_objects/template_analysis_result.dart';
 
 /// Template Usage State - 템플릿 사용 모달 UI 상태
 ///
@@ -59,9 +61,31 @@ class TemplateUsageState {
     this.submitSuccess,
   });
 
+  /// Determine RPC type from template data
+  TemplateRpcType get rpcType {
+    final templateData = rpcResponse?.template?.data;
+    if (templateData == null || templateData.isEmpty) {
+      return TemplateRpcType.unknown;
+    }
+    // Build template map for analysis
+    final template = {
+      'data': templateData,
+      'name': rpcResponse?.template?.name,
+    };
+    return TemplateAnalysisResult.determineRpcType(template);
+  }
+
+  /// Check if this is a CashCash transfer (2 cash locations, no user selection)
+  bool get isCashCashTransfer => rpcType == TemplateRpcType.cashCash;
+
   /// UI Config helpers
-  bool get showCashLocationSelector =>
-      rpcResponse?.uiConfig?.showCashLocationSelector ?? false;
+  /// NOTE: CashCash transfers have 2 different cash locations in template,
+  /// so we should NOT show the cash location selector (it would override both!)
+  bool get showCashLocationSelector {
+    // CashCash: Never show selector - each line uses its own template value
+    if (isCashCashTransfer) return false;
+    return rpcResponse?.uiConfig?.showCashLocationSelector ?? false;
+  }
   bool get showCounterpartySelector =>
       rpcResponse?.uiConfig?.showCounterpartySelector ?? false;
   bool get showCounterpartyStoreSelector =>
@@ -89,23 +113,21 @@ class TemplateUsageState {
     final parsedAmount = double.tryParse(cleanAmount);
     if (parsedAmount == null || parsedAmount <= 0) return false;
 
-    final uiConfig = rpcResponse!.uiConfig;
-    if (uiConfig == null) return false;
-
-    if (uiConfig.showCashLocationSelector && selectedMyCashLocationId == null) {
+    // Use getter methods that handle CashCash special case
+    // CashCash: showCashLocationSelector returns false, so this check is skipped
+    if (showCashLocationSelector && selectedMyCashLocationId == null) {
       return false;
     }
 
-    if (uiConfig.showCounterpartySelector && selectedCounterpartyId == null) {
+    if (showCounterpartySelector && selectedCounterpartyId == null) {
       return false;
     }
 
-    if (uiConfig.showCounterpartyStoreSelector &&
-        selectedCounterpartyStoreId == null) {
+    if (showCounterpartyStoreSelector && selectedCounterpartyStoreId == null) {
       return false;
     }
 
-    if (uiConfig.showCounterpartyCashLocationSelector &&
+    if (showCounterpartyCashLocationSelector &&
         selectedCounterpartyCashLocationId == null) {
       return false;
     }

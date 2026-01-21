@@ -185,10 +185,14 @@ class SessionHistoryCard extends StatelessWidget {
                         color: TossColors.textTertiary,
                       ),
                       const SizedBox(width: TossSpacing.space1),
-                      Text(
-                        session.createdByName,
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textTertiary,
+                      Flexible(
+                        child: Text(
+                          session.createdByName,
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.textTertiary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: TossSpacing.space3),
@@ -223,7 +227,7 @@ class SessionHistoryCard extends StatelessWidget {
                           ),
                         ],
                       ],
-                      const Spacer(),
+                      const SizedBox(width: TossSpacing.space2),
                       // Date
                       Text(
                         _formatDate(session.createdAt),
