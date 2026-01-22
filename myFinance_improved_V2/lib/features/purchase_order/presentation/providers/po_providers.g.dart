@@ -39,7 +39,7 @@ final poRepositoryProvider = Provider<PORepository>.internal(
 // ignore: unused_element
 typedef PoRepositoryRef = ProviderRef<PORepository>;
 String _$acceptedPIsForConversionHash() =>
-    r'9e989e6f5fdc86648552def2a3d6a62c141826d8';
+    r'26dbc90408c56bd79bf4c9649375a773896bdbed';
 
 /// See also [acceptedPIsForConversion].
 @ProviderFor(acceptedPIsForConversion)
@@ -58,7 +58,43 @@ final acceptedPIsForConversionProvider =
 // ignore: unused_element
 typedef AcceptedPIsForConversionRef
     = AutoDisposeFutureProviderRef<List<AcceptedPIForConversion>>;
-String _$poListHash() => r'36b7583cc542434f6ef566563e448833dd826ac3';
+String _$supplierListHash() => r'3b6a6bff685eb10975d36cc61f0cf6366f53fd4c';
+
+/// See also [supplierList].
+@ProviderFor(supplierList)
+final supplierListProvider =
+    AutoDisposeFutureProvider<List<SupplierFilterItem>>.internal(
+  supplierList,
+  name: r'supplierListProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$supplierListHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SupplierListRef
+    = AutoDisposeFutureProviderRef<List<SupplierFilterItem>>;
+String _$poBaseCurrencyHash() => r'322be326a5cfadbc13145973ce48cd7845d59857';
+
+/// See also [poBaseCurrency].
+@ProviderFor(poBaseCurrency)
+final poBaseCurrencyProvider =
+    AutoDisposeFutureProvider<POBaseCurrencyData>.internal(
+  poBaseCurrency,
+  name: r'poBaseCurrencyProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$poBaseCurrencyHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef PoBaseCurrencyRef = AutoDisposeFutureProviderRef<POBaseCurrencyData>;
+String _$poListHash() => r'33baf13109e3043b858208f10bc73e175de3dde3';
 
 /// See also [PoList].
 @ProviderFor(PoList)
@@ -73,7 +109,7 @@ final poListProvider =
 );
 
 typedef _$PoList = AutoDisposeNotifier<POListState>;
-String _$poDetailHash() => r'87e374e470926e7176e4e7cabfb6d58f098823fb';
+String _$poDetailHash() => r'010f75331b907e29f7eb993e0015ac256e81ddef';
 
 /// See also [PoDetail].
 @ProviderFor(PoDetail)
@@ -88,7 +124,7 @@ final poDetailProvider =
 );
 
 typedef _$PoDetail = AutoDisposeNotifier<PODetailState>;
-String _$poFormHash() => r'55abb85cecf54d29dbb8b81878ad1026c5b3be4c';
+String _$poFormHash() => r'3e292e36fa2807e326b54a9b14422bd79ed67c26';
 
 /// See also [PoForm].
 @ProviderFor(PoForm)
@@ -103,5 +139,21 @@ final poFormProvider =
 );
 
 typedef _$PoForm = AutoDisposeNotifier<POFormState>;
+String _$productSearchHash() => r'84958247068f4efe71c3d555bd28742121bf1ffb';
+
+/// See also [ProductSearch].
+@ProviderFor(ProductSearch)
+final productSearchProvider =
+    AutoDisposeNotifierProvider<ProductSearch, ProductSearchState>.internal(
+  ProductSearch.new,
+  name: r'productSearchProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$productSearchHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ProductSearch = AutoDisposeNotifier<ProductSearchState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

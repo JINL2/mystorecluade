@@ -30,7 +30,7 @@ final sessionHistoryFilterProvider =
 typedef SessionHistoryFilterRef
     = AutoDisposeProviderRef<SessionHistoryFilterState>;
 String _$sessionHistoryNotifierHash() =>
-    r'55e336a0890db381448920b155f32441a93aba9c';
+    r'1278d1528afbea8d17182474489332e3da12c4a1';
 
 /// Notifier for session history state management
 /// Migrated to @riverpod from StateNotifier (2025 Best Practice)

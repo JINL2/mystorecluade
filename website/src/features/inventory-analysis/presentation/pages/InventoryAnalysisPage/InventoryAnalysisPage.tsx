@@ -9,28 +9,23 @@ import { Navbar } from '@/shared/components/common/Navbar';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { useAppState } from '@/app/providers/app_state_provider';
 import { useSalesDashboard } from '../../hooks/useSalesDashboard';
-import { useInventoryHealth } from '../../hooks/useInventoryHealth';
-import { useSupplyChainStatus } from '../../hooks/useSupplyChainStatus';
-import { useDiscrepancyOverview } from '../../hooks/useDiscrepancyOverview';
+import { useBaseCurrency } from '../../hooks/useBaseCurrency';
 import type { InventoryAnalysisPageProps } from './InventoryAnalysisPage.types';
 import type { SalesDashboard } from '../../../domain/entities/salesDashboard';
-import type { InventoryHealthDashboard } from '../../../domain/entities/inventoryHealthDashboard';
-import type { SupplyChainStatus } from '../../../domain/entities/supplyChainStatus';
-import type { DiscrepancyOverview } from '../../../domain/entities/discrepancyOverview';
 import styles from './InventoryAnalysisPage.module.css';
 
-// Helper to format currency
-const formatCurrency = (value: number): string => {
+// Helper to format currency with dynamic symbol
+const formatCurrencyWithSymbol = (value: number, symbol: string): string => {
   if (value >= 1000000000) {
-    return `₫${(value / 1000000000).toFixed(1)}B`;
+    return `${symbol}${(value / 1000000000).toFixed(1)}B`;
   }
   if (value >= 1000000) {
-    return `₫${(value / 1000000).toFixed(1)}M`;
+    return `${symbol}${(value / 1000000).toFixed(1)}M`;
   }
   if (value >= 1000) {
-    return `₫${(value / 1000).toFixed(1)}K`;
+    return `${symbol}${(value / 1000).toFixed(1)}K`;
   }
-  return `₫${value.toFixed(0)}`;
+  return `${symbol}${value.toFixed(0)}`;
 };
 
 // Helper to format percentage with sign
@@ -47,7 +42,7 @@ const getGrowthStatus = (growthPct: number): 'good' | 'warning' | 'critical' => 
 };
 
 // Transform sales dashboard data to card props
-const transformSalesData = (data: SalesDashboard | null) => {
+const transformSalesData = (data: SalesDashboard | null, currencySymbol: string) => {
   if (!data) {
     return {
       status: 'insufficient' as const,
@@ -61,130 +56,7 @@ const transformSalesData = (data: SalesDashboard | null) => {
     status: getGrowthStatus(data.growth.revenuePct),
     statusText: 'This month vs Last month',
     primaryMetric: formatGrowth(data.growth.revenuePct),
-    secondaryMetric: `${formatCurrency(data.thisMonth.revenue)} revenue`,
-  };
-};
-
-// Transform inventory health data to card props
-const transformInventoryHealthData = (data: InventoryHealthDashboard | null) => {
-  if (!data) {
-    return {
-      status: 'insufficient' as const,
-      statusText: 'Loading...',
-      primaryMetric: '-',
-      secondaryMetric: null,
-    };
-  }
-
-  const { health } = data;
-
-  // Determine status based on abnormal rate
-  let status: 'good' | 'warning' | 'critical' | 'insufficient' = 'good';
-  if (health.abnormalRate >= 10) {
-    status = 'critical';
-  } else if (health.abnormalRate >= 5) {
-    status = 'warning';
-  }
-
-  // Build status text
-  const attentionCount = health.criticalCount + health.warningCount;
-  const statusText = attentionCount > 0
-    ? `${attentionCount} products need attention`
-    : 'All products healthy';
-
-  return {
-    status,
-    statusText,
-    primaryMetric: `${health.stockoutRate.toFixed(1)}% stockout`,
-    secondaryMetric: health.criticalCount > 0 ? `${health.criticalCount} critical` : null,
-  };
-};
-
-// Transform supply chain data to card props
-const transformSupplyChainData = (data: SupplyChainStatus | null) => {
-  if (!data) {
-    return {
-      status: 'insufficient' as const,
-      statusText: 'Loading...',
-      primaryMetric: '-',
-      secondaryMetric: null,
-    };
-  }
-
-  const { urgentProducts } = data;
-
-  // No risk products
-  if (urgentProducts.length === 0) {
-    return {
-      status: 'good' as const,
-      statusText: 'Supply chain normal',
-      primaryMetric: 'No risk products',
-      secondaryMetric: null,
-    };
-  }
-
-  // Count by risk level
-  const criticalCount = urgentProducts.filter(p => p.riskLevel === 'Critical').length;
-  const warningCount = urgentProducts.filter(p => p.riskLevel === 'Warning').length;
-
-  // Determine status
-  const status = criticalCount > 0 ? 'critical' : 'warning';
-
-  return {
-    status: status as 'good' | 'warning' | 'critical',
-    statusText: `${urgentProducts.length} products at risk`,
-    primaryMetric: criticalCount > 0 ? `${criticalCount} critical` : `${warningCount} warning`,
-    secondaryMetric: criticalCount > 0 && warningCount > 0 ? `${warningCount} warning` : null,
-  };
-};
-
-// Transform discrepancy data to card props
-const transformDiscrepancyData = (data: DiscrepancyOverview | null) => {
-  if (!data) {
-    return {
-      status: 'insufficient' as const,
-      statusText: 'Loading...',
-      primaryMetric: '-',
-      secondaryMetric: null,
-    };
-  }
-
-  // Insufficient data case
-  if (data.status === 'insufficient_data') {
-    return {
-      status: 'insufficient' as const,
-      statusText: 'Insufficient data',
-      primaryMetric: 'Need more data',
-      secondaryMetric: null,
-    };
-  }
-
-  // Success case
-  const { cumulative, stores } = data;
-  const storeCount = stores.length;
-
-  // Format net value with sign
-  const netValue = cumulative.netValue;
-  const formattedNet = netValue < 0
-    ? `-${formatCurrency(Math.abs(netValue))}`
-    : `+${formatCurrency(netValue)}`;
-
-  // Determine status based on net value
-  let status: 'good' | 'warning' | 'critical' = 'good';
-  if (netValue < -1000000) {
-    status = 'critical';  // Loss over 1M
-  } else if (netValue < 0) {
-    status = 'warning';   // Any loss
-  }
-
-  // Count abnormal stores (stores with significant negative net value)
-  const abnormalStores = stores.filter(s => s.netValue < -100000).length;
-
-  return {
-    status,
-    statusText: `${storeCount} stores analyzed`,
-    primaryMetric: formattedNet,
-    secondaryMetric: abnormalStores > 0 ? `${abnormalStores} abnormal stores` : null,
+    secondaryMetric: `${formatCurrencyWithSymbol(data.thisMonth.revenue, currencySymbol)} revenue`,
   };
 };
 
@@ -297,14 +169,8 @@ export const InventoryAnalysisPage: React.FC<InventoryAnalysisPageProps> = () =>
   // Fetch sales dashboard data (with store filter)
   const { data: salesData, loading: salesLoading } = useSalesDashboard(companyId, selectedStoreId || undefined);
 
-  // Fetch inventory health data (company-wide only)
-  const { data: inventoryHealthData, loading: inventoryHealthLoading } = useInventoryHealth(companyId);
-
-  // Fetch supply chain status (company-wide only)
-  const { data: supplyChainData, loading: supplyChainLoading } = useSupplyChainStatus(companyId);
-
-  // Fetch discrepancy overview (company-wide only)
-  const { data: discrepancyData, loading: discrepancyLoading } = useDiscrepancyOverview(companyId);
+  // Fetch base currency for formatting
+  const { currencySymbol } = useBaseCurrency(companyId);
 
   // Transform sales data for card display
   const salesCardData = useMemo(() => {
@@ -316,47 +182,30 @@ export const InventoryAnalysisPage: React.FC<InventoryAnalysisPageProps> = () =>
         secondaryMetric: null,
       };
     }
-    return transformSalesData(salesData);
-  }, [salesData, salesLoading]);
+    return transformSalesData(salesData, currencySymbol);
+  }, [salesData, salesLoading, currencySymbol]);
 
-  // Transform inventory health data for card display
-  const inventoryHealthCardData = useMemo(() => {
-    if (inventoryHealthLoading) {
-      return {
-        status: 'insufficient' as const,
-        statusText: 'Loading...',
-        primaryMetric: '-',
-        secondaryMetric: null,
-      };
-    }
-    return transformInventoryHealthData(inventoryHealthData);
-  }, [inventoryHealthData, inventoryHealthLoading]);
+  // Static data for cards not yet implemented (RPC dependencies missing)
+  const inventoryHealthCardData = {
+    status: 'insufficient' as const,
+    statusText: 'Loading...',
+    primaryMetric: '-',
+    secondaryMetric: null,
+  };
 
-  // Transform supply chain data for card display
-  const supplyChainCardData = useMemo(() => {
-    if (supplyChainLoading) {
-      return {
-        status: 'insufficient' as const,
-        statusText: 'Loading...',
-        primaryMetric: '-',
-        secondaryMetric: null,
-      };
-    }
-    return transformSupplyChainData(supplyChainData);
-  }, [supplyChainData, supplyChainLoading]);
+  const supplyChainCardData = {
+    status: 'good' as const,
+    statusText: 'Supply chain normal',
+    primaryMetric: 'No risk products',
+    secondaryMetric: null,
+  };
 
-  // Transform discrepancy data for card display
-  const discrepancyCardData = useMemo(() => {
-    if (discrepancyLoading) {
-      return {
-        status: 'insufficient' as const,
-        statusText: 'Loading...',
-        primaryMetric: '-',
-        secondaryMetric: null,
-      };
-    }
-    return transformDiscrepancyData(discrepancyData);
-  }, [discrepancyData, discrepancyLoading]);
+  const discrepancyCardData = {
+    status: 'insufficient' as const,
+    statusText: 'Insufficient data',
+    primaryMetric: 'Need more data',
+    secondaryMetric: null,
+  };
 
   const handleNavigate = (path: string) => {
     navigate(path);

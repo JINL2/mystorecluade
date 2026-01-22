@@ -29,6 +29,8 @@ import { JournalInputPage } from '@/features/journal-input/presentation/pages/Jo
 import { MarketingPlanPage } from '@/features/marketing-plan/presentation/pages/MarketingPlanPage';
 import { InventoryAnalysisPage } from '@/features/inventory-analysis/presentation/pages/InventoryAnalysisPage';
 import { SalesAnalysisPage } from '@/features/inventory-analysis/presentation/pages/SalesAnalysisPage';
+import { TopProductsPage } from '@/features/inventory-analysis/presentation/pages/TopProductsPage';
+import { CategoryAnalysisPage } from '@/features/inventory-analysis/presentation/pages/CategoryAnalysisPage';
 import { InventoryOptimizationPage } from '@/features/inventory-analysis/presentation/pages/InventoryOptimizationPage';
 import { SupplyChainPage } from '@/features/inventory-analysis/presentation/pages/SupplyChainPage';
 import { DiscrepancyPage } from '@/features/inventory-analysis/presentation/pages/DiscrepancyPage';
@@ -304,6 +306,30 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
             <SalesAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/sales-analysis"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <SalesAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/sales-analysis/top-products"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <TopProductsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/sales-analysis/category-analysis"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <CategoryAnalysisPage />
           </ProtectedRoute>
         }
       />

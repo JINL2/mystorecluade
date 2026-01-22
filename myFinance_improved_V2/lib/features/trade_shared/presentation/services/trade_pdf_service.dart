@@ -21,7 +21,8 @@ import 'dart:typed_data';
 import 'package:printing/printing.dart';
 
 import '../../../proforma_invoice/domain/entities/proforma_invoice.dart';
-import '../../../purchase_order/domain/entities/purchase_order.dart';
+// TODO: Re-enable when purchase_order is rebuilt with inventory_get_order_list RPC
+// import '../../../purchase_order/domain/entities/purchase_order.dart';
 import 'pdf/pdf_config.dart';
 import 'pdf/pi_pdf_generator.dart';
 import 'pdf/po_pdf_generator.dart';
@@ -49,12 +50,10 @@ class TradePdfService {
 
   /// Generate PDF for Purchase Order
   ///
-  /// [po] The purchase order entity to generate PDF for
-  /// [config] Optional configuration for customizing PDF appearance
-  ///
-  /// Returns the PDF as bytes
+  /// TODO: Re-enable when purchase_order is rebuilt with inventory_get_order_list RPC
+  /// Currently throws UnimplementedError
   static Future<Uint8List> generatePurchaseOrderPdf(
-    PurchaseOrder po, {
+    dynamic po, {
     TradePdfConfig config = const TradePdfConfig(),
   }) async {
     return PoPdfGenerator.generate(po, config: config);

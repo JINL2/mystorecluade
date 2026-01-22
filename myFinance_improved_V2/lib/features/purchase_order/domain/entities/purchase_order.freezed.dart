@@ -960,7 +960,7 @@ class _$PurchaseOrderImpl extends _PurchaseOrder {
       this.requiredShipmentDateUtc,
       this.partialShipmentAllowed = true,
       this.transshipmentAllowed = true,
-      this.status = POStatus.draft,
+      this.status = POStatus.pending,
       this.version = 1,
       this.shippedPercent = 0,
       this.notes,
@@ -1320,13 +1320,22 @@ abstract class _PurchaseOrder extends PurchaseOrder {
 mixin _$POListItem {
   String get poId => throw _privateConstructorUsedError;
   String get poNumber => throw _privateConstructorUsedError;
-  String? get piNumber => throw _privateConstructorUsedError;
+  String? get piNumber =>
+      throw _privateConstructorUsedError; // Supplier info (from inventory system - orders TO suppliers)
+  String? get supplierId => throw _privateConstructorUsedError;
+  String? get supplierName =>
+      throw _privateConstructorUsedError; // Legacy buyer fields for UI compatibility
   String? get buyerName => throw _privateConstructorUsedError;
   String? get buyerPoNumber => throw _privateConstructorUsedError;
   String get currencyCode => throw _privateConstructorUsedError;
   double get totalAmount => throw _privateConstructorUsedError;
-  POStatus get status => throw _privateConstructorUsedError;
+  POStatus get status =>
+      throw _privateConstructorUsedError; // New status fields from RPC
+  OrderStatus get orderStatus => throw _privateConstructorUsedError;
+  ReceivingStatus get receivingStatus =>
+      throw _privateConstructorUsedError; // Fulfillment percentage from RPC
   double get shippedPercent => throw _privateConstructorUsedError;
+  double get fulfilledPercentage => throw _privateConstructorUsedError;
   DateTime? get orderDateUtc => throw _privateConstructorUsedError;
   DateTime? get requiredShipmentDateUtc => throw _privateConstructorUsedError;
   DateTime? get createdAtUtc => throw _privateConstructorUsedError;
@@ -1349,12 +1358,17 @@ abstract class $POListItemCopyWith<$Res> {
       {String poId,
       String poNumber,
       String? piNumber,
+      String? supplierId,
+      String? supplierName,
       String? buyerName,
       String? buyerPoNumber,
       String currencyCode,
       double totalAmount,
       POStatus status,
+      OrderStatus orderStatus,
+      ReceivingStatus receivingStatus,
       double shippedPercent,
+      double fulfilledPercentage,
       DateTime? orderDateUtc,
       DateTime? requiredShipmentDateUtc,
       DateTime? createdAtUtc,
@@ -1379,12 +1393,17 @@ class _$POListItemCopyWithImpl<$Res, $Val extends POListItem>
     Object? poId = null,
     Object? poNumber = null,
     Object? piNumber = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
     Object? currencyCode = null,
     Object? totalAmount = null,
     Object? status = null,
+    Object? orderStatus = null,
+    Object? receivingStatus = null,
     Object? shippedPercent = null,
+    Object? fulfilledPercentage = null,
     Object? orderDateUtc = freezed,
     Object? requiredShipmentDateUtc = freezed,
     Object? createdAtUtc = freezed,
@@ -1402,6 +1421,14 @@ class _$POListItemCopyWithImpl<$Res, $Val extends POListItem>
       piNumber: freezed == piNumber
           ? _value.piNumber
           : piNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
               as String?,
       buyerName: freezed == buyerName
           ? _value.buyerName
@@ -1423,9 +1450,21 @@ class _$POListItemCopyWithImpl<$Res, $Val extends POListItem>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as POStatus,
+      orderStatus: null == orderStatus
+          ? _value.orderStatus
+          : orderStatus // ignore: cast_nullable_to_non_nullable
+              as OrderStatus,
+      receivingStatus: null == receivingStatus
+          ? _value.receivingStatus
+          : receivingStatus // ignore: cast_nullable_to_non_nullable
+              as ReceivingStatus,
       shippedPercent: null == shippedPercent
           ? _value.shippedPercent
           : shippedPercent // ignore: cast_nullable_to_non_nullable
+              as double,
+      fulfilledPercentage: null == fulfilledPercentage
+          ? _value.fulfilledPercentage
+          : fulfilledPercentage // ignore: cast_nullable_to_non_nullable
               as double,
       orderDateUtc: freezed == orderDateUtc
           ? _value.orderDateUtc
@@ -1459,12 +1498,17 @@ abstract class _$$POListItemImplCopyWith<$Res>
       {String poId,
       String poNumber,
       String? piNumber,
+      String? supplierId,
+      String? supplierName,
       String? buyerName,
       String? buyerPoNumber,
       String currencyCode,
       double totalAmount,
       POStatus status,
+      OrderStatus orderStatus,
+      ReceivingStatus receivingStatus,
       double shippedPercent,
+      double fulfilledPercentage,
       DateTime? orderDateUtc,
       DateTime? requiredShipmentDateUtc,
       DateTime? createdAtUtc,
@@ -1487,12 +1531,17 @@ class __$$POListItemImplCopyWithImpl<$Res>
     Object? poId = null,
     Object? poNumber = null,
     Object? piNumber = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
     Object? currencyCode = null,
     Object? totalAmount = null,
     Object? status = null,
+    Object? orderStatus = null,
+    Object? receivingStatus = null,
     Object? shippedPercent = null,
+    Object? fulfilledPercentage = null,
     Object? orderDateUtc = freezed,
     Object? requiredShipmentDateUtc = freezed,
     Object? createdAtUtc = freezed,
@@ -1510,6 +1559,14 @@ class __$$POListItemImplCopyWithImpl<$Res>
       piNumber: freezed == piNumber
           ? _value.piNumber
           : piNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
               as String?,
       buyerName: freezed == buyerName
           ? _value.buyerName
@@ -1531,9 +1588,21 @@ class __$$POListItemImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as POStatus,
+      orderStatus: null == orderStatus
+          ? _value.orderStatus
+          : orderStatus // ignore: cast_nullable_to_non_nullable
+              as OrderStatus,
+      receivingStatus: null == receivingStatus
+          ? _value.receivingStatus
+          : receivingStatus // ignore: cast_nullable_to_non_nullable
+              as ReceivingStatus,
       shippedPercent: null == shippedPercent
           ? _value.shippedPercent
           : shippedPercent // ignore: cast_nullable_to_non_nullable
+              as double,
+      fulfilledPercentage: null == fulfilledPercentage
+          ? _value.fulfilledPercentage
+          : fulfilledPercentage // ignore: cast_nullable_to_non_nullable
               as double,
       orderDateUtc: freezed == orderDateUtc
           ? _value.orderDateUtc
@@ -1562,12 +1631,17 @@ class _$POListItemImpl extends _POListItem {
       {required this.poId,
       required this.poNumber,
       this.piNumber,
+      this.supplierId,
+      this.supplierName,
       this.buyerName,
       this.buyerPoNumber,
       required this.currencyCode,
       required this.totalAmount,
       required this.status,
+      this.orderStatus = OrderStatus.pending,
+      this.receivingStatus = ReceivingStatus.pending,
       this.shippedPercent = 0,
+      this.fulfilledPercentage = 0,
       this.orderDateUtc,
       this.requiredShipmentDateUtc,
       this.createdAtUtc,
@@ -1580,6 +1654,12 @@ class _$POListItemImpl extends _POListItem {
   final String poNumber;
   @override
   final String? piNumber;
+// Supplier info (from inventory system - orders TO suppliers)
+  @override
+  final String? supplierId;
+  @override
+  final String? supplierName;
+// Legacy buyer fields for UI compatibility
   @override
   final String? buyerName;
   @override
@@ -1590,9 +1670,20 @@ class _$POListItemImpl extends _POListItem {
   final double totalAmount;
   @override
   final POStatus status;
+// New status fields from RPC
+  @override
+  @JsonKey()
+  final OrderStatus orderStatus;
+  @override
+  @JsonKey()
+  final ReceivingStatus receivingStatus;
+// Fulfillment percentage from RPC
   @override
   @JsonKey()
   final double shippedPercent;
+  @override
+  @JsonKey()
+  final double fulfilledPercentage;
   @override
   final DateTime? orderDateUtc;
   @override
@@ -1605,7 +1696,7 @@ class _$POListItemImpl extends _POListItem {
 
   @override
   String toString() {
-    return 'POListItem(poId: $poId, poNumber: $poNumber, piNumber: $piNumber, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, currencyCode: $currencyCode, totalAmount: $totalAmount, status: $status, shippedPercent: $shippedPercent, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, createdAtUtc: $createdAtUtc, itemCount: $itemCount)';
+    return 'POListItem(poId: $poId, poNumber: $poNumber, piNumber: $piNumber, supplierId: $supplierId, supplierName: $supplierName, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, currencyCode: $currencyCode, totalAmount: $totalAmount, status: $status, orderStatus: $orderStatus, receivingStatus: $receivingStatus, shippedPercent: $shippedPercent, fulfilledPercentage: $fulfilledPercentage, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, createdAtUtc: $createdAtUtc, itemCount: $itemCount)';
   }
 
   @override
@@ -1618,6 +1709,10 @@ class _$POListItemImpl extends _POListItem {
                 other.poNumber == poNumber) &&
             (identical(other.piNumber, piNumber) ||
                 other.piNumber == piNumber) &&
+            (identical(other.supplierId, supplierId) ||
+                other.supplierId == supplierId) &&
+            (identical(other.supplierName, supplierName) ||
+                other.supplierName == supplierName) &&
             (identical(other.buyerName, buyerName) ||
                 other.buyerName == buyerName) &&
             (identical(other.buyerPoNumber, buyerPoNumber) ||
@@ -1627,8 +1722,14 @@ class _$POListItemImpl extends _POListItem {
             (identical(other.totalAmount, totalAmount) ||
                 other.totalAmount == totalAmount) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.orderStatus, orderStatus) ||
+                other.orderStatus == orderStatus) &&
+            (identical(other.receivingStatus, receivingStatus) ||
+                other.receivingStatus == receivingStatus) &&
             (identical(other.shippedPercent, shippedPercent) ||
                 other.shippedPercent == shippedPercent) &&
+            (identical(other.fulfilledPercentage, fulfilledPercentage) ||
+                other.fulfilledPercentage == fulfilledPercentage) &&
             (identical(other.orderDateUtc, orderDateUtc) ||
                 other.orderDateUtc == orderDateUtc) &&
             (identical(
@@ -1646,12 +1747,17 @@ class _$POListItemImpl extends _POListItem {
       poId,
       poNumber,
       piNumber,
+      supplierId,
+      supplierName,
       buyerName,
       buyerPoNumber,
       currencyCode,
       totalAmount,
       status,
+      orderStatus,
+      receivingStatus,
       shippedPercent,
+      fulfilledPercentage,
       orderDateUtc,
       requiredShipmentDateUtc,
       createdAtUtc,
@@ -1671,12 +1777,17 @@ abstract class _POListItem extends POListItem {
       {required final String poId,
       required final String poNumber,
       final String? piNumber,
+      final String? supplierId,
+      final String? supplierName,
       final String? buyerName,
       final String? buyerPoNumber,
       required final String currencyCode,
       required final double totalAmount,
       required final POStatus status,
+      final OrderStatus orderStatus,
+      final ReceivingStatus receivingStatus,
       final double shippedPercent,
+      final double fulfilledPercentage,
       final DateTime? orderDateUtc,
       final DateTime? requiredShipmentDateUtc,
       final DateTime? createdAtUtc,
@@ -1688,7 +1799,12 @@ abstract class _POListItem extends POListItem {
   @override
   String get poNumber;
   @override
-  String? get piNumber;
+  String?
+      get piNumber; // Supplier info (from inventory system - orders TO suppliers)
+  @override
+  String? get supplierId;
+  @override
+  String? get supplierName; // Legacy buyer fields for UI compatibility
   @override
   String? get buyerName;
   @override
@@ -1698,9 +1814,15 @@ abstract class _POListItem extends POListItem {
   @override
   double get totalAmount;
   @override
-  POStatus get status;
+  POStatus get status; // New status fields from RPC
+  @override
+  OrderStatus get orderStatus;
+  @override
+  ReceivingStatus get receivingStatus; // Fulfillment percentage from RPC
   @override
   double get shippedPercent;
+  @override
+  double get fulfilledPercentage;
   @override
   DateTime? get orderDateUtc;
   @override

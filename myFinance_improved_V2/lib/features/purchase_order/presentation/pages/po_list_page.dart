@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
-import '../../data/datasources/po_remote_datasource.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
-import '../../domain/entities/purchase_order.dart';
 import '../providers/po_providers.dart';
+import '../widgets/po_filter_section.dart';
 import '../widgets/po_list_item.dart';
-import '../widgets/po_filter_chips.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class POListPage extends ConsumerStatefulWidget {
   const POListPage({super.key});
@@ -22,16 +19,18 @@ class POListPage extends ConsumerStatefulWidget {
 
 class _POListPageState extends ConsumerState<POListPage> {
   final _scrollController = ScrollController();
-  List<POStatus>? _selectedStatuses;
+  POFilterState _filterState = const POFilterState();
   String? _searchQuery;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    // Load initial data
+    // Load initial data with default date filter (this month)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(poListProvider.notifier).loadList();
+      // Pre-fetch base currency data
+      ref.read(poBaseCurrencyProvider);
+      _applyFilters();
     });
   }
 
@@ -48,157 +47,30 @@ class _POListPageState extends ConsumerState<POListPage> {
     }
   }
 
-  void _onFilterChanged(List<POStatus>? statuses) {
-    setState(() => _selectedStatuses = statuses);
+  void _onFilterChanged(POFilterState newFilterState) {
+    setState(() => _filterState = newFilterState);
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    final dateRange = _filterState.getDateRange();
     ref.read(poListProvider.notifier).loadList(
-          statuses: statuses,
+          orderStatuses: _filterState.orderStatuses.isEmpty
+              ? null
+              : _filterState.orderStatuses,
+          receivingStatuses: _filterState.receivingStatuses.isEmpty
+              ? null
+              : _filterState.receivingStatuses,
+          supplierId: _filterState.supplierId,
+          dateFrom: dateRange.$1,
+          dateTo: dateRange.$2,
           searchQuery: _searchQuery,
         );
   }
 
   void _onSearch(String query) {
     setState(() => _searchQuery = query.isEmpty ? null : query);
-    ref.read(poListProvider.notifier).loadList(
-          statuses: _selectedStatuses,
-          searchQuery: _searchQuery,
-        );
-  }
-
-  void _showCreatePOOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: TossSpacing.iconXL,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-                  decoration: BoxDecoration(
-                    color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
-                  ),
-                ),
-              ),
-              Text(
-                'Create Purchase Order',
-                style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              Text(
-                'How would you like to create a new PO?',
-                style: TossTextStyles.bodyMedium.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space5),
-
-              // Option 1: Convert from PI
-              _CreateOptionTile(
-                icon: Icons.swap_horiz,
-                iconColor: TossColors.primary,
-                title: 'Convert from PI',
-                subtitle: 'Select an accepted Proforma Invoice to convert',
-                onTap: () {
-                  Navigator.pop(context);
-                  _showPISelectionSheet();
-                },
-              ),
-
-              const SizedBox(height: TossSpacing.space3),
-
-              // Option 2: Create from scratch
-              _CreateOptionTile(
-                icon: Icons.add_circle_outline,
-                iconColor: TossColors.success,
-                title: 'Create from scratch',
-                subtitle: 'Start with a blank Purchase Order',
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/purchase-order/new');
-                },
-              ),
-
-              const SizedBox(height: TossSpacing.space4),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showPISelectionSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => _PISelectionSheet(
-          scrollController: scrollController,
-          onPISelected: (piId) async {
-            // Close the bottom sheet first
-            Navigator.pop(sheetContext);
-
-            // Show loading snackbar
-            if (mounted) {
-              ScaffoldMessenger.of(this.context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      TossLoadingView.inline(size: 20, color: TossColors.white),
-                      SizedBox(width: TossSpacing.space3),
-                      const Text('Converting PI to PO...'),
-                    ],
-                  ),
-                  duration: const Duration(seconds: 30),
-                ),
-              );
-            }
-
-            // Convert PI to PO
-            final poId = await ref
-                .read(poFormProvider.notifier)
-                .convertFromPI(piId);
-
-            if (mounted) {
-              TossToast.hide(this.context);
-
-              final formState = ref.read(poFormProvider);
-              if (formState.error != null) {
-                // Show error
-                TossToast.error(this.context, 'Error: ${formState.error}');
-              } else if (poId != null) {
-                // Show success
-                TossToast.success(this.context, 'PO created successfully!');
-
-                // Refresh PO list
-                ref.read(poListProvider.notifier).refresh();
-
-                // Navigate to the new PO detail
-                this.context.push('/purchase-order/$poId');
-              }
-            }
-          },
-        ),
-      ),
-    );
+    _applyFilters();
   }
 
   @override
@@ -240,7 +112,7 @@ class _POListPageState extends ConsumerState<POListPage> {
         ),
         primaryActionIcon: Icons.add,
         primaryActionText: 'New',
-        onPrimaryAction: _showCreatePOOptions,
+        onPrimaryAction: () => context.push('/purchase-order/new'),
       ),
       body: Column(
         children: [
@@ -254,13 +126,13 @@ class _POListPageState extends ConsumerState<POListPage> {
             ),
           ),
 
-          // Filter chips
-          POFilterChips(
-            selectedStatuses: _selectedStatuses,
-            onChanged: _onFilterChanged,
+          // Filter section
+          POFilterSection(
+            filterState: _filterState,
+            onFilterChanged: _onFilterChanged,
           ),
 
-          const SizedBox(height: TossSpacing.space2),
+          const SizedBox(height: TossSpacing.space3),
 
           // List
           Expanded(
@@ -341,8 +213,11 @@ class _POListPageState extends ConsumerState<POListPage> {
           }
 
           final item = state.items[index];
+          final baseCurrencyAsync = ref.watch(poBaseCurrencyProvider);
+          final baseCurrencyCode = baseCurrencyAsync.valueOrNull?.baseCurrency.currencyCode;
           return POListItemWidget(
             item: item,
+            baseCurrencyCode: baseCurrencyCode,
             onTap: () => context.push('/purchase-order/${item.poId}'),
           );
         },
@@ -351,309 +226,3 @@ class _POListPageState extends ConsumerState<POListPage> {
   }
 }
 
-// ============================================================================
-// Helper Widgets
-// ============================================================================
-
-/// Option tile for create PO bottom sheet
-class _CreateOptionTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _CreateOptionTile({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: TossColors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        child: Container(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            border: Border.all(color: TossColors.gray200),
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: TossSpacing.iconXXL,
-                height: TossSpacing.iconXXL,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Icon(icon, color: iconColor, size: TossSpacing.iconMD2),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: TossSpacing.space1 / 2),
-                    Text(
-                      subtitle,
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: TossColors.gray400),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Bottom sheet for selecting PI to convert to PO
-class _PISelectionSheet extends ConsumerWidget {
-  final ScrollController scrollController;
-  final void Function(String piId) onPISelected;
-
-  const _PISelectionSheet({
-    required this.scrollController,
-    required this.onPISelected,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final acceptedPIsAsync = ref.watch(acceptedPIsForConversionProvider);
-
-    return Column(
-      children: [
-        // Handle bar
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-          child: Center(
-            child: Container(
-              width: TossSpacing.iconXL,
-              height: 4,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
-              ),
-            ),
-          ),
-        ),
-
-        // Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select Proforma Invoice',
-                style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: TossSpacing.space1),
-              Text(
-                'Choose an accepted PI to convert to Purchase Order',
-                style: TossTextStyles.bodyMedium.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: TossSpacing.space4),
-        const Divider(height: 1),
-
-        // Content
-        Expanded(
-          child: acceptedPIsAsync.when(
-            loading: () => const TossLoadingView(),
-            error: (error, _) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
-                  const SizedBox(height: TossSpacing.space3),
-                  Text(
-                    'Failed to load PIs',
-                    style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
-                  ),
-                  const SizedBox(height: TossSpacing.space2),
-                  TossButton.textButton(
-                    text: 'Retry',
-                    onPressed: () => ref.invalidate(acceptedPIsForConversionProvider),
-                  ),
-                ],
-              ),
-            ),
-            data: (piList) {
-              if (piList.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.inbox_outlined, size: TossSpacing.icon4XL, color: TossColors.gray400),
-                      const SizedBox(height: TossSpacing.space4),
-                      Text(
-                        'No Available PIs',
-                        style: TossTextStyles.h3.copyWith(color: TossColors.gray600),
-                      ),
-                      const SizedBox(height: TossSpacing.space2),
-                      Text(
-                        'All accepted PIs have been converted to PO\nor there are no accepted PIs yet',
-                        textAlign: TextAlign.center,
-                        style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return ListView.separated(
-                controller: scrollController,
-                padding: const EdgeInsets.all(TossSpacing.space4),
-                itemCount: piList.length,
-                separatorBuilder: (_, __) => const SizedBox(height: TossSpacing.space3),
-                itemBuilder: (context, index) {
-                  final item = piList[index];
-                  return _PIItemCard(
-                    item: item,
-                    onTap: () => onPISelected(item.piId),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Card widget for PI item in selection list
-class _PIItemCard extends StatelessWidget {
-  final AcceptedPIForConversion item;
-  final VoidCallback onTap;
-
-  const _PIItemCard({
-    required this.item,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: TossColors.white,
-      borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        child: Container(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          decoration: BoxDecoration(
-            border: Border.all(color: TossColors.gray200),
-            borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          ),
-          child: Row(
-            children: [
-              // PI Icon
-              Container(
-                width: TossSpacing.iconXXL,
-                height: TossSpacing.iconXXL,
-                decoration: BoxDecoration(
-                  color: TossColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Icon(
-                  Icons.description_outlined,
-                  color: TossColors.primary,
-                  size: TossSpacing.iconMD2,
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space3),
-
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.piNumber,
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: TossSpacing.space1 / 2),
-                    Text(
-                      item.buyerName,
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Amount
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${item.currencySymbol}${_formatAmount(item.totalAmount)}',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.primary,
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(top: TossSpacing.space1),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space2,
-                      vertical: TossSpacing.space1 / 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: TossColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                    ),
-                    child: Text(
-                      'Accepted',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.success,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatAmount(double amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(2)}M';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(1)}K';
-    }
-    return amount.toStringAsFixed(2);
-  }
-}

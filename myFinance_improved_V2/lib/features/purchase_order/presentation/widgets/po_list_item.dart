@@ -10,11 +10,13 @@ import '../../domain/entities/purchase_order.dart';
 class POListItemWidget extends StatelessWidget {
   final POListItem item;
   final VoidCallback? onTap;
+  final String? baseCurrencyCode;
 
   const POListItemWidget({
     super.key,
     required this.item,
     this.onTap,
+    this.baseCurrencyCode,
   });
 
   @override
@@ -90,9 +92,9 @@ class POListItemWidget extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Amount
+                    // Amount (display in base currency)
                     Text(
-                      '${item.currencyCode} ${_formatAmount(item.totalAmount)}',
+                      '${baseCurrencyCode ?? item.currencyCode} ${_formatAmount(item.totalAmount)}',
                       style: TossTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
                         color: TossColors.gray900,
@@ -167,19 +169,11 @@ class POStatusChip extends StatelessWidget {
 
   (Color, Color) _getStatusStyle() {
     switch (status) {
-      case POStatus.draft:
+      case POStatus.pending:
         return (TossColors.gray700, TossColors.gray100);
-      case POStatus.confirmed:
-        return (TossColors.primary, TossColors.primarySurface);
-      case POStatus.inProduction:
+      case POStatus.process:
         return (TossColors.warning, TossColors.warningLight);
-      case POStatus.readyToShip:
-        return (TossColors.warning, TossColors.warningLight);
-      case POStatus.partiallyShipped:
-        return (TossColors.info, TossColors.infoLight);
-      case POStatus.shipped:
-        return (TossColors.success, TossColors.successLight);
-      case POStatus.completed:
+      case POStatus.complete:
         return (TossColors.success, TossColors.successLight);
       case POStatus.cancelled:
         return (TossColors.error, TossColors.errorLight);

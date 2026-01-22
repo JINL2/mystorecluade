@@ -1063,6 +1063,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const POListPage(),
       ),
 
+      // Order route alias (for features database compatibility)
+      GoRoute(
+        path: '/order',
+        name: 'order',
+        builder: (context, state) => const POListPage(),
+      ),
+
       // PO List (kebab-case URL alias)
       GoRoute(
         path: '/purchase-order',

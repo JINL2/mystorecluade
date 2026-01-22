@@ -1,0 +1,249 @@
+/**
+ * BcgScatterChart Styles
+ * Matching Flutter app design with animations
+ */
+
+.chartContainer {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Toggle Row */
+.toggleRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* Toggle Container */
+.toggleContainer {
+  display: inline-flex;
+  background: var(--color-gray-100, #f1f3f5);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.toggleButton {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-600, #6c757d);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.toggleButton:hover {
+  color: var(--color-gray-800, #343a40);
+}
+
+.toggleButton.toggleActive {
+  background: white;
+  color: var(--color-gray-900, #212529);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart Area */
+.chartArea {
+  position: relative;
+  width: 100%;
+  padding-left: 50px;
+  padding-bottom: 30px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Y-Axis Label */
+.yAxisLabel {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-gray-500, #adb5bd);
+  white-space: nowrap;
+}
+
+/* X-Axis Label */
+.xAxisLabel {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-gray-500, #adb5bd);
+}
+
+/* Chart Content */
+.chartContent {
+  display: flex;
+  width: 100%;
+  flex: 1;
+}
+
+/* Y-Axis Ticks */
+.yAxisTicks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 40px;
+  min-height: 200px;
+  padding-right: 8px;
+  text-align: right;
+}
+
+.yAxisTicks span {
+  font-size: 10px;
+  color: var(--color-gray-400, #ced4da);
+}
+
+/* Main Chart */
+.chartMain {
+  position: relative;
+  flex: 1;
+  min-height: 200px;
+  border: 1px solid var(--color-gray-200, #e9ecef);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Quadrant Backgrounds */
+.quadrantBg {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.quadrantLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-gray-500, #adb5bd);
+  opacity: 0.7;
+}
+
+/* Divider Lines */
+.dividerLine {
+  position: absolute;
+  background: var(--color-gray-300, #dee2e6);
+  transition: all 0.3s ease;
+}
+
+/* Scatter Points */
+.scatterPoint {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid white;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  opacity: 0.85;
+  z-index: 1;
+}
+
+.scatterPoint:hover {
+  transform: translate(-50%, 50%) scale(1.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  z-index: 10;
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  transform: translateX(-50%);
+  background: var(--color-gray-900, #212529);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  animation: fadeIn 0.15s ease;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: var(--color-gray-900, #212529) transparent transparent transparent;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.tooltipName {
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.tooltipRow span:first-child {
+  color: var(--color-gray-400, #ced4da);
+}
+
+.tooltipRow span:last-child {
+  font-weight: 500;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 200px;
+  color: var(--color-gray-500, #adb5bd);
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .toggleRow {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toggleContainer {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .chartMain {
+    min-height: 180px;
+  }
+
+  .yAxisTicks {
+    min-height: 180px;
+  }
+}

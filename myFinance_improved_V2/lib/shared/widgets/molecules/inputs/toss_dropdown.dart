@@ -174,7 +174,9 @@ class TossDropdown<T> extends StatelessWidget {
             icon: item.icon,
           ),
           isSelected: isSelected,
-          variant: SelectionItemVariant.minimal,
+          variant: item.subtitle != null
+              ? SelectionItemVariant.compact
+              : SelectionItemVariant.minimal,
           onTap: () {
             onChanged?.call(item.value);
             Navigator.of(context).pop();

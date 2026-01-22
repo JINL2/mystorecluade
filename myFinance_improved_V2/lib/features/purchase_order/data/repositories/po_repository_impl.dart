@@ -53,4 +53,29 @@ class PORepositoryImpl implements PORepository {
       {Map<String, dynamic>? options}) async {
     return _datasource.convertFromPI(piId, options: options);
   }
+
+  @override
+  Future<String> generateNumber(String companyId) async {
+    return _datasource.generateNumber(companyId);
+  }
+
+  @override
+  Future<Map<String, dynamic>> closeOrder({
+    required String orderId,
+    required String userId,
+    required String companyId,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  }) async {
+    return _datasource.closeOrder(
+      orderId: orderId,
+      userId: userId,
+      companyId: companyId,
+      timezone: timezone,
+    );
+  }
+
+  @override
+  Future<List<AcceptedPIForConversion>> getAcceptedPIsForConversion() async {
+    return _datasource.getAcceptedPIsForConversion();
+  }
 }
