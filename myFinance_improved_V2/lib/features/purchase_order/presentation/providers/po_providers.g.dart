@@ -124,7 +124,7 @@ final poDetailProvider =
 );
 
 typedef _$PoDetail = AutoDisposeNotifier<PODetailState>;
-String _$poFormHash() => r'3e292e36fa2807e326b54a9b14422bd79ed67c26';
+String _$poFormHash() => r'ca34d0be2b57c0e8dfbbc985d8fd6170af95f6d8';
 
 /// See also [PoForm].
 @ProviderFor(PoForm)
@@ -139,7 +139,7 @@ final poFormProvider =
 );
 
 typedef _$PoForm = AutoDisposeNotifier<POFormState>;
-String _$productSearchHash() => r'84958247068f4efe71c3d555bd28742121bf1ffb';
+String _$productSearchHash() => r'e3a0d76b16f072d3256ae21cb8b04ab4ea0ae08b';
 
 /// See also [ProductSearch].
 @ProviderFor(ProductSearch)

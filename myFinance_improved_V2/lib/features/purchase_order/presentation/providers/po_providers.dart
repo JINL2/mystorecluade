@@ -445,6 +445,54 @@ class PoForm extends _$PoForm {
   void reset() {
     state = const POFormState();
   }
+
+  /// Create order using inventory_create_order_v4 RPC
+  Future<Map<String, dynamic>?> createOrder({
+    required List<Map<String, dynamic>> items,
+    required String orderTitle,
+    String? counterpartyId,
+    Map<String, dynamic>? supplierInfo,
+    String? notes,
+  }) async {
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+    final userId = appState.userId;
+
+    if (companyId.isEmpty || userId.isEmpty) {
+      state = state.copyWith(error: 'Company or user not selected');
+      return null;
+    }
+
+    state = state.copyWith(isSaving: true, error: null);
+
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.rpc<Map<String, dynamic>>(
+        'inventory_create_order_v4',
+        params: {
+          'p_company_id': companyId,
+          'p_user_id': userId,
+          'p_items': items,
+          'p_time': DateTime.now().toIso8601String(),
+          'p_timezone': 'Asia/Ho_Chi_Minh',
+          'p_counterparty_id': counterpartyId,
+          'p_supplier_info': supplierInfo,
+          'p_notes': notes ?? orderTitle,
+          'p_order_number': state.generatedNumber,
+        },
+      );
+
+      if (response['success'] == true) {
+        state = state.copyWith(isSaving: false);
+        return response;
+      } else {
+        throw Exception(response['error'] ?? 'Failed to create order');
+      }
+    } catch (e) {
+      state = state.copyWith(isSaving: false, error: e.toString());
+      rethrow;
+    }
+  }
 }
 
 // === Accepted PIs for Conversion ===

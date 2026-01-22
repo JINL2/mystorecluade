@@ -99,44 +99,63 @@ class _POFormPageState extends ConsumerState<POFormPage> {
             }
           },
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: TossSpacing.space3),
-            child: TossButton.textButton(
-              text: 'Save',
-              isLoading: formState.isSaving,
-              onPressed: formState.isSaving ? null : _handleSave,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(TossSpacing.space4),
+                children: [
+                  // Order Number (auto-generated, read-only)
+                  _buildOrderNumberSection(formState),
+                  const SizedBox(height: TossSpacing.space5),
+
+                  // 1. Order Title (Required)
+                  _buildOrderTitleSection(),
+                  const SizedBox(height: TossSpacing.space5),
+
+                  // 2. Order Items
+                  _buildOrderItemsSection(),
+                  const SizedBox(height: TossSpacing.space5),
+
+                  // 3. Supplier Information
+                  _buildSupplierSection(),
+                  const SizedBox(height: TossSpacing.space5),
+
+                  // 4. Notes (Optional)
+                  _buildNotesSection(),
+
+                  const SizedBox(height: TossSpacing.space4),
+                ],
+              ),
+            ),
+          ),
+          // Bottom Save Button
+          Container(
+            padding: EdgeInsets.only(
+              left: TossSpacing.space4,
+              right: TossSpacing.space4,
+              top: TossSpacing.space3,
+              bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space3,
+            ),
+            decoration: const BoxDecoration(
+              color: TossColors.white,
+              border: Border(
+                top: BorderSide(color: TossColors.gray200, width: 1),
+              ),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: TossButton.primary(
+                text: isEditMode ? 'Update Order' : 'Create Order',
+                isLoading: formState.isSaving,
+                onPressed: formState.isSaving ? null : _handleSave,
+              ),
             ),
           ),
         ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          children: [
-            // Order Number (auto-generated, read-only)
-            _buildOrderNumberSection(formState),
-            const SizedBox(height: TossSpacing.space5),
-
-            // 1. Order Title (Required)
-            _buildOrderTitleSection(),
-            const SizedBox(height: TossSpacing.space5),
-
-            // 2. Order Items
-            _buildOrderItemsSection(),
-            const SizedBox(height: TossSpacing.space5),
-
-            // 3. Supplier Information
-            _buildSupplierSection(),
-            const SizedBox(height: TossSpacing.space5),
-
-            // 4. Notes (Optional)
-            _buildNotesSection(),
-
-            const SizedBox(height: TossSpacing.space8),
-          ],
-        ),
       ),
     );
   }
@@ -268,12 +287,14 @@ class _POFormPageState extends ConsumerState<POFormPage> {
           ),
         ],
       ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const ClampingScrollPhysics(),
-        padding: EdgeInsets.zero,
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+      child: RawScrollbar(
+        thumbColor: TossColors.gray300,
+        radius: const Radius.circular(4),
+        thickness: 4,
+        child: ListView.separated(
+          padding: EdgeInsets.zero,
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
         itemBuilder: (context, index) {
           final item = items[index];
           final isAlreadyAdded = _items.any((i) => i.productId == item.uniqueKey);
@@ -320,6 +341,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
             onTap: isAlreadyAdded ? null : () => _addProductItem(item),
           );
         },
+        ),
       ),
     );
   }
@@ -839,6 +861,13 @@ class _POFormPageState extends ConsumerState<POFormPage> {
       _orderTitleError = null;
     }
 
+    // Validate Items
+    if (_items.isEmpty) {
+      isValid = false;
+      TossToast.error(context, 'Please add at least one item');
+      return false;
+    }
+
     // Validate Supplier
     if (_isExistingSupplier) {
       if (_selectedSupplierId == null) {
@@ -862,20 +891,71 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   Future<void> _handleSave() async {
     if (!_validateForm()) {
       setState(() {});
-      TossToast.error(context, 'Please fill in all required fields');
       return;
     }
 
-    // TODO: Implement actual save logic with RPC
-    // For now, show success and navigate back
-    TossToast.success(context, 'Order created successfully!');
+    // Build items array for RPC
+    final itemsJson = _items.map((item) => {
+      'sku': item.sku,
+      'variant_id': item.variantId,
+      'quantity': item.quantity,
+      'unit_price': item.unitPrice,
+    }).toList();
 
-    if (mounted) {
-      ref.read(poListProvider.notifier).refresh();
-      if (context.canPop()) {
-        context.pop();
-      } else {
-        context.go('/purchase-order');
+    // Build supplier_info for one-time supplier
+    Map<String, dynamic>? supplierInfo;
+    if (!_isExistingSupplier) {
+      supplierInfo = {
+        'name': _supplierNameController.text.trim(),
+        if (_supplierPhoneController.text.trim().isNotEmpty)
+          'phone': _supplierPhoneController.text.trim(),
+        if (_supplierEmailController.text.trim().isNotEmpty)
+          'email': _supplierEmailController.text.trim(),
+        if (_supplierAddressController.text.trim().isNotEmpty)
+          'address': _supplierAddressController.text.trim(),
+      };
+    }
+
+    // Build notes with order title
+    final notes = _notesController.text.trim().isNotEmpty
+        ? '${_orderTitleController.text.trim()}\n${_notesController.text.trim()}'
+        : _orderTitleController.text.trim();
+
+    try {
+      final response = await ref.read(poFormProvider.notifier).createOrder(
+        items: itemsJson,
+        orderTitle: _orderTitleController.text.trim(),
+        counterpartyId: _isExistingSupplier ? _selectedSupplierId : null,
+        supplierInfo: supplierInfo,
+        notes: notes,
+      );
+
+      if (response != null && mounted) {
+        final message = response['message'] as String? ?? 'Order created successfully!';
+
+        // Show success dialog
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Order Created',
+            message: message,
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
+        );
+
+        // Refresh list and navigate back
+        if (mounted) {
+          ref.read(poListProvider.notifier).refresh();
+          context.go('/purchase-order');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        TossToast.error(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
