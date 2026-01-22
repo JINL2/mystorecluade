@@ -1,273 +1,111 @@
 /**
  * CashEndingPage Component
  * Cash ending management with step-based left sidebar
+ * Refactored to use Clean Architecture with hooks
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Navbar } from '@/shared/components/common/Navbar';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import { TossSelector } from '@/shared/components/selectors/TossSelector';
+import { ConfirmModal } from '@/shared/components/common/ConfirmModal';
 import { useAppState } from '@/app/providers/app_state_provider';
-import { supabaseService } from '@/core/services/supabase_service';
+import { useCashEnding } from '@/features/cash-ending/presentation/hooks/useCashEnding';
+import { useCashAdjustment } from '@/features/cash-ending/presentation/hooks/useCashAdjustment';
 import type { CashEndingPageProps } from './CashEndingPage.types';
 import type { TossSelectorOption } from '@/shared/components/selectors/TossSelector';
 import styles from './CashEndingPage.module.css';
 
-// Cash location interface from RPC response
-interface CashLocation {
-  cash_location_id: string;
-  location_name: string;
-  location_type: 'cash' | 'bank' | 'vault';
-  store_id: string | null;
-  store_name: string | null;
-  company_id: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-// Denomination interface
-interface Denomination {
-  denomination_id: string;
-  value: number;
-  type: 'bill' | 'coin';
-}
-
-// Currency with exchange rate interface from RPC response
-interface CurrencyWithExchangeRate {
-  currency_id: string;
-  company_currency_id: string;
-  currency_code: string;
-  currency_name: string;
-  symbol: string;
-  flag_emoji: string;
-  is_base_currency: boolean;
-  exchange_rate_to_base: number;
-  denominations: Denomination[];
-  created_at: string;
-}
-
-// Balance summary interface from RPC response
-interface BalanceSummary {
-  success: boolean;
-  location_id: string;
-  location_name: string;
-  location_type: string;
-  total_journal: number;
-  total_real: number;
-  difference: number;
-  is_balanced: boolean;
-  has_shortage: boolean;
-  has_surplus: boolean;
-  currency_symbol: string;
-  currency_code: string;
-  last_updated: string;
-  error?: string;
-}
+// Location type color helper
+const getLocationTypeColors = (type: string) => {
+  switch (type) {
+    case 'cash':
+      return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10B981' };
+    case 'bank':
+      return { bg: 'rgba(59, 130, 246, 0.15)', text: '#3B82F6' };
+    case 'vault':
+      return { bg: 'rgba(139, 92, 246, 0.15)', text: '#8B5CF6' };
+    default:
+      return { bg: 'rgba(107, 114, 128, 0.15)', text: '#6B7280' };
+  }
+};
 
 export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
-  const { currentCompany, currentStore, setCurrentStore } = useAppState();
+  const { currentCompany, currentStore, setCurrentStore, currentUser } = useAppState();
   const companyId = currentCompany?.company_id || '';
+  const userId = currentUser?.user_id || '';
   const stores = currentCompany?.stores || [];
 
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(
-    currentStore?.store_id || null
-  );
+  // Main cash ending hook
+  const {
+    selectedStoreId,
+    cashLocations,
+    selectedLocationId,
+    isLoadingLocations,
+    currencies,
+    selectedCurrencyId,
+    isLoadingCurrencies,
+    denomQuantities,
+    bankAmounts,
+    vaultTransactionType,
+    balanceSummary,
+    isLoadingBalance,
+    isCompareExpanded,
+    isSubmitting,
+    showSuccessModal,
+    showErrorModal,
+    errorMessage,
+    successModalData,
+    selectedLocation,
+    selectedCurrency,
+    canSubmit,
+    handleStoreSelect,
+    handleLocationSelect,
+    setSelectedCurrencyId,
+    setDenomQuantity,
+    setBankAmount,
+    setVaultTransactionType,
+    setIsCompareExpanded,
+    handleSubmit,
+    closeSuccessModal,
+    closeErrorModal,
+    calculateCurrencySubtotal,
+    calculateGrandTotal,
+    getCurrencyEnteredAmount,
+  } = useCashEnding({
+    companyId,
+    userId,
+    stores,
+    currentStoreId: currentStore?.store_id || null,
+    setCurrentStore,
+  });
 
-  // Step 2: Cash location state
-  const [cashLocations, setCashLocations] = useState<CashLocation[]>([]);
-  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
-  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  // Adjustment hook
+  const {
+    isAdjusting,
+    showAdjustmentConfirmModal,
+    adjustmentType,
+    openAdjustmentConfirm,
+    closeAdjustmentConfirm,
+    executeAdjustment,
+  } = useCashAdjustment({
+    companyId,
+    storeId: selectedStoreId,
+    locationId: selectedLocationId,
+    userId,
+  });
 
-  // Step 3: Currency and denomination state
-  const [currencies, setCurrencies] = useState<CurrencyWithExchangeRate[]>([]);
-  const [selectedCurrencyId, setSelectedCurrencyId] = useState<string>('');
-  const [isLoadingCurrencies, setIsLoadingCurrencies] = useState(false);
-
-  // Denomination quantities state: { [denomination_id]: quantity }
-  const [denomQuantities, setDenomQuantities] = useState<Record<string, number>>({});
-
-  // Balance summary state
-  const [balanceSummary, setBalanceSummary] = useState<BalanceSummary | null>(null);
-  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
-  const [isCompareExpanded, setIsCompareExpanded] = useState(true);
-
-  // Handle store selection
-  const handleStoreSelect = (storeId: string | null) => {
-    setSelectedStoreId(storeId);
-    // Reset location when store changes
-    setSelectedLocationId('');
-    setCashLocations([]);
-
-    if (storeId) {
-      const selectedStore = stores.find(s => s.store_id === storeId);
-      if (selectedStore) {
-        setCurrentStore(selectedStore);
-      }
-    } else {
-      setCurrentStore(null);
-    }
-  };
-
-  // Fetch cash locations when store is selected
-  useEffect(() => {
-    const fetchCashLocations = async () => {
-      if (!selectedStoreId || !companyId) {
-        setCashLocations([]);
-        return;
-      }
-
-      setIsLoadingLocations(true);
-      try {
-        const data = await supabaseService.rpc<CashLocation[]>('get_cash_locations_v2', {
-          p_company_id: companyId,
-          p_store_id: selectedStoreId,
-        });
-        setCashLocations(data || []);
-      } catch (error) {
-        console.error('Failed to fetch cash locations:', error);
-        setCashLocations([]);
-      } finally {
-        setIsLoadingLocations(false);
-      }
-    };
-
-    fetchCashLocations();
-  }, [selectedStoreId, companyId]);
-
-  // Convert cash locations to TossSelector options
-  // Using description instead of badge for location type display
-  const getLocationTypeColors = (type: string) => {
-    switch (type) {
-      case 'cash':
-        return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10B981' };
-      case 'bank':
-        return { bg: 'rgba(59, 130, 246, 0.15)', text: '#3B82F6' };
-      case 'vault':
-        return { bg: 'rgba(139, 92, 246, 0.15)', text: '#8B5CF6' };
-      default:
-        return { bg: 'rgba(107, 114, 128, 0.15)', text: '#6B7280' };
-    }
-  };
-
-  const locationOptions: TossSelectorOption[] = cashLocations.map(location => {
-    const colors = getLocationTypeColors(location.location_type);
+  // Convert locations to selector options
+  const locationOptions: TossSelectorOption[] = cashLocations.map((location) => {
+    const colors = getLocationTypeColors(location.locationType);
     return {
-      value: location.cash_location_id,
-      label: location.location_name,
-      description: location.location_type,
+      value: location.cashLocationId,
+      label: location.locationName,
+      description: location.locationType,
       descriptionBgColor: colors.bg,
       descriptionColor: colors.text,
     };
   });
-
-  // Handle location selection
-  const handleLocationSelect = (value: string) => {
-    setSelectedLocationId(value);
-    // Reset currency and quantities when location changes
-    setSelectedCurrencyId('');
-    setDenomQuantities({});
-    setBalanceSummary(null);
-  };
-
-  // Fetch balance summary when location is selected
-  useEffect(() => {
-    const fetchBalanceSummary = async () => {
-      if (!selectedLocationId) {
-        setBalanceSummary(null);
-        return;
-      }
-
-      setIsLoadingBalance(true);
-      try {
-        const data = await supabaseService.rpc<BalanceSummary>(
-          'get_cash_location_balance_summary_v2_utc',
-          { p_location_id: selectedLocationId }
-        );
-        if (data && data.success) {
-          setBalanceSummary(data);
-        } else {
-          setBalanceSummary(null);
-        }
-      } catch (error) {
-        console.error('Failed to fetch balance summary:', error);
-        setBalanceSummary(null);
-      } finally {
-        setIsLoadingBalance(false);
-      }
-    };
-
-    fetchBalanceSummary();
-  }, [selectedLocationId]);
-
-  // Handle quantity change for denomination
-  const handleQuantityChange = (denominationId: string, value: number) => {
-    setDenomQuantities(prev => ({
-      ...prev,
-      [denominationId]: Math.max(0, value),
-    }));
-  };
-
-  // Calculate subtotal for a currency
-  const calculateCurrencySubtotal = (currency: CurrencyWithExchangeRate) => {
-    return currency.denominations.reduce((total, denom) => {
-      const qty = denomQuantities[denom.denomination_id] || 0;
-      return total + (denom.value * qty);
-    }, 0);
-  };
-
-  // Calculate total across all currencies (converted to base currency)
-  const calculateGrandTotal = () => {
-    return currencies.reduce((total, currency) => {
-      const currencySubtotal = calculateCurrencySubtotal(currency);
-      // Convert to base currency using exchange rate
-      return total + (currencySubtotal * currency.exchange_rate_to_base);
-    }, 0);
-  };
-
-  // Fetch currencies when location is selected
-  useEffect(() => {
-    const fetchCurrencies = async () => {
-      if (!selectedLocationId || !companyId) {
-        setCurrencies([]);
-        return;
-      }
-
-      setIsLoadingCurrencies(true);
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const data = await supabaseService.rpc<CurrencyWithExchangeRate[]>(
-          'get_company_currencies_with_exchange_rates',
-          {
-            p_company_id: companyId,
-            p_rate_date: today,
-          }
-        );
-
-        setCurrencies(data || []);
-
-        // Auto-select first currency (base currency is usually first)
-        if (data && data.length > 0) {
-          setSelectedCurrencyId(data[0].currency_id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch currencies:', error);
-        setCurrencies([]);
-      } finally {
-        setIsLoadingCurrencies(false);
-      }
-    };
-
-    fetchCurrencies();
-  }, [selectedLocationId, companyId]);
-
-  // Handle currency selection
-  const handleCurrencySelect = (currencyId: string) => {
-    setSelectedCurrencyId(currencyId);
-  };
-
-  // Get selected currency data
-  const selectedCurrency = currencies.find(c => c.currency_id === selectedCurrencyId);
 
   return (
     <>
@@ -342,91 +180,155 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
               </div>
             ) : (
               <div className={styles.contentArea}>
-                {/* Currency Tabs */}
-                <div className={styles.currencyTabs}>
-                  {currencies.map(currency => (
-                    <button
-                      key={currency.currency_id}
-                      className={`${styles.currencyTab} ${selectedCurrencyId === currency.currency_id ? styles.currencyTabActive : ''}`}
-                      onClick={() => handleCurrencySelect(currency.currency_id)}
-                    >
-                      <span className={styles.currencyFlag}>{currency.flag_emoji}</span>
-                      <span className={styles.currencyCode}>{currency.currency_code}</span>
-                      {currency.is_base_currency && (
-                        <span className={styles.baseBadge}>Base</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                {/* Vault Transaction Type Buttons */}
+                {selectedLocation?.isVault && (
+                  <div className={styles.vaultTransactionSection}>
+                    <div className={styles.vaultTransactionLabel}>Vault Transaction</div>
+                    <div className={styles.vaultTransactionButtons}>
+                      {(['in', 'out', 'recount'] as const).map((type) => (
+                        <button
+                          key={type}
+                          className={`${styles.vaultTransactionButton} ${vaultTransactionType === type ? styles.vaultTransactionButtonActive : ''}`}
+                          onClick={() => setVaultTransactionType(type)}
+                        >
+                          <span className={styles.vaultTransactionIcon}>
+                            {type === 'in' && (
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 8v8M8 12h8" />
+                              </svg>
+                            )}
+                            {type === 'out' && (
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M8 12h8" />
+                              </svg>
+                            )}
+                            {type === 'recount' && (
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 12a9 9 0 11-9-9" />
+                                <path d="M21 3v6h-6" />
+                              </svg>
+                            )}
+                          </span>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                {/* Denomination Grid */}
+                {/* Currency Tabs */}
+                {!selectedLocation?.isBank && (
+                  <div className={styles.currencyTabs}>
+                    {currencies.map((currency) => {
+                      const enteredAmount = getCurrencyEnteredAmount(currency);
+                      const hasData = enteredAmount > 0;
+                      return (
+                        <button
+                          key={currency.currencyId}
+                          className={`${styles.currencyTab} ${selectedCurrencyId === currency.currencyId ? styles.currencyTabActive : ''} ${hasData ? styles.currencyTabHasData : ''}`}
+                          onClick={() => setSelectedCurrencyId(currency.currencyId)}
+                        >
+                          <span className={styles.currencyFlag}>{currency.flagEmoji}</span>
+                          <span className={styles.currencyCode}>{currency.currencyCode}</span>
+                          {currency.isBaseCurrency && <span className={styles.baseBadge}>Base</span>}
+                          {hasData && <span className={styles.currencyDataDot} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Content Section */}
                 {selectedCurrency && (
                   <div className={styles.denominationSection}>
                     <div className={styles.sectionHeader}>
                       <h2 className={styles.sectionTitle}>
-                        {selectedCurrency.currency_name} ({selectedCurrency.symbol})
+                        {selectedCurrency.currencyName} ({selectedCurrency.symbol})
                       </h2>
-                      {!selectedCurrency.is_base_currency && (
+                      {!selectedCurrency.isBaseCurrency && (
                         <span className={styles.exchangeRate}>
-                          1 {selectedCurrency.currency_code} = {selectedCurrency.exchange_rate_to_base.toFixed(4)} base
+                          1 {selectedCurrency.currencyCode} = {selectedCurrency.exchangeRateToBase.toFixed(4)} base
                         </span>
                       )}
                     </div>
 
-                    {selectedCurrency.denominations.length === 0 ? (
-                      <div className={styles.noDenominations}>
-                        <p>No denominations configured for this currency</p>
+                    {/* Bank Type: Simple amount input */}
+                    {selectedLocation?.isBank ? (
+                      <div className={styles.bankAmountSection}>
+                        <label className={styles.bankAmountLabel}>
+                          Current bank balance ({selectedCurrency.currencyCode})
+                        </label>
+                        <div className={styles.bankAmountInputWrapper}>
+                          <span className={styles.bankAmountSymbol}>{selectedCurrency.symbol}</span>
+                          <input
+                            type="number"
+                            className={styles.bankAmountInput}
+                            value={bankAmounts[selectedCurrency.currencyId] || ''}
+                            onChange={(e) => setBankAmount(selectedCurrency.currencyId, parseFloat(e.target.value) || 0)}
+                            placeholder="Enter amount"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
                       </div>
                     ) : (
+                      /* Cash/Vault Type: Denomination table */
                       <>
-                        {/* Denomination Table */}
-                        <table className={styles.denomTable}>
-                          <thead>
-                            <tr>
-                              <th className={styles.denomTableHeader}>Denomination</th>
-                              <th className={styles.denomTableHeader}>Qty</th>
-                              <th className={styles.denomTableHeaderRight}>Amount ({selectedCurrency.currency_code})</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {selectedCurrency.denominations.map(denom => {
-                              const qty = denomQuantities[denom.denomination_id] || 0;
-                              const amount = denom.value * qty;
-                              return (
-                                <tr key={denom.denomination_id} className={styles.denomTableRow}>
-                                  <td className={styles.denomTableCell}>
-                                    <span className={styles.denomValueText}>
-                                      {selectedCurrency.symbol}{denom.value.toLocaleString()}
-                                    </span>
-                                  </td>
-                                  <td className={styles.denomTableCellInput}>
-                                    <input
-                                      type="number"
-                                      className={styles.denomQtyInput}
-                                      value={qty || ''}
-                                      onChange={(e) => handleQuantityChange(denom.denomination_id, parseInt(e.target.value) || 0)}
-                                      placeholder="0"
-                                      min="0"
-                                    />
-                                  </td>
-                                  <td className={styles.denomTableCellAmount}>
-                                    {selectedCurrency.symbol}{amount.toLocaleString()}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                          <tfoot>
-                            <tr className={styles.denomTableFooter}>
-                              <td className={styles.denomTotalLabel} colSpan={2}>
-                                Subtotal {selectedCurrency.currency_code}
-                              </td>
-                              <td className={styles.denomTotalAmount}>
-                                {selectedCurrency.symbol}{calculateCurrencySubtotal(selectedCurrency).toLocaleString()}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
+                        {selectedCurrency.denominations.length === 0 ? (
+                          <div className={styles.noDenominations}>
+                            <p>No denominations configured for this currency</p>
+                          </div>
+                        ) : (
+                          <table className={styles.denomTable}>
+                            <thead>
+                              <tr>
+                                <th className={styles.denomTableHeader}>Denomination</th>
+                                <th className={styles.denomTableHeader}>Qty</th>
+                                <th className={styles.denomTableHeaderRight}>Amount ({selectedCurrency.currencyCode})</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedCurrency.denominations.map((denom) => {
+                                const qty = denomQuantities[denom.denomination_id] || 0;
+                                const amount = denom.value * qty;
+                                return (
+                                  <tr key={denom.denomination_id} className={styles.denomTableRow}>
+                                    <td className={styles.denomTableCell}>
+                                      <span className={styles.denomValueText}>
+                                        {selectedCurrency.symbol}{denom.value.toLocaleString()}
+                                      </span>
+                                    </td>
+                                    <td className={styles.denomTableCellInput}>
+                                      <input
+                                        type="number"
+                                        className={styles.denomQtyInput}
+                                        value={qty || ''}
+                                        onChange={(e) => setDenomQuantity(denom.denomination_id, parseInt(e.target.value) || 0)}
+                                        placeholder="0"
+                                        min="0"
+                                      />
+                                    </td>
+                                    <td className={styles.denomTableCellAmount}>
+                                      {selectedCurrency.symbol}{amount.toLocaleString()}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                            <tfoot>
+                              <tr className={styles.denomTableFooter}>
+                                <td className={styles.denomTotalLabel} colSpan={2}>
+                                  Subtotal {selectedCurrency.currencyCode}
+                                </td>
+                                <td className={styles.denomTotalAmount}>
+                                  {selectedCurrency.symbol}{calculateCurrencySubtotal(selectedCurrency).toLocaleString()}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        )}
                       </>
                     )}
 
@@ -435,11 +337,11 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
                       <div className={styles.totalRow}>
                         <span className={styles.totalLabel}>Total</span>
                         <span className={styles.totalValue}>
-                          {balanceSummary?.currency_symbol || '₫'}{calculateGrandTotal().toLocaleString()}
+                          {balanceSummary?.currencySymbol || '₫'}{calculateGrandTotal().toLocaleString()}
                         </span>
                       </div>
 
-                      {/* Compare with Journal - Collapsible */}
+                      {/* Compare with Journal */}
                       {balanceSummary && (
                         <div className={styles.compareSection}>
                           <button
@@ -461,28 +363,25 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
                           </button>
 
                           {isCompareExpanded && (() => {
-                            const countedTotal = calculateGrandTotal();
-                            const journalTotal = balanceSummary.total_journal;
-                            const difference = countedTotal - journalTotal;
+                            // Always use user's entered amount for difference calculation
+                            const enteredTotal = calculateGrandTotal();
+                            const journalTotal = balanceSummary.totalJournal;
+                            const difference = enteredTotal - journalTotal;
                             return (
                               <div className={styles.compareContent}>
                                 <div className={styles.compareRow}>
                                   <span className={styles.compareLabel}>Journal</span>
                                   <span className={styles.compareValue}>
-                                    {balanceSummary.currency_symbol}{journalTotal.toLocaleString()}
+                                    {balanceSummary.currencySymbol}{journalTotal.toLocaleString()}
                                   </span>
                                 </div>
                                 <div className={styles.compareRow}>
                                   <span className={styles.compareLabel}>Difference</span>
                                   <span className={`${styles.compareValue} ${
-                                    difference > 0
-                                      ? styles.compareSurplus
-                                      : difference < 0
-                                        ? styles.compareShortage
-                                        : ''
+                                    difference > 0 ? styles.compareSurplus : difference < 0 ? styles.compareShortage : ''
                                   }`}>
                                     {difference > 0 ? '+' : difference < 0 ? '-' : ''}
-                                    {balanceSummary.currency_symbol}{Math.abs(difference).toLocaleString()}
+                                    {balanceSummary.currencySymbol}{Math.abs(difference).toLocaleString()}
                                   </span>
                                 </div>
                               </div>
@@ -492,10 +391,19 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
                       )}
 
                       {isLoadingBalance && (
-                        <div className={styles.compareLoading}>
-                          Loading journal data...
-                        </div>
+                        <div className={styles.compareLoading}>Loading journal data...</div>
                       )}
+
+                      {/* Submit Button */}
+                      <div className={styles.submitSection}>
+                        <button
+                          className={styles.submitButton}
+                          onClick={handleSubmit}
+                          disabled={!canSubmit || isSubmitting}
+                        >
+                          {isSubmitting ? 'Submitting...' : 'Submit'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -504,6 +412,205 @@ export const CashEndingPage: React.FC<CashEndingPageProps> = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <ConfirmModal
+        isOpen={showSuccessModal}
+        onClose={closeSuccessModal}
+        onConfirm={closeSuccessModal}
+        variant="success"
+        title="Ending Completed!"
+        confirmText="Close"
+        cancelText=""
+        confirmButtonVariant="primary"
+        showConfirmIcon={false}
+        closeOnBackdropClick={true}
+        showWarningSection={false}
+      >
+        {successModalData && (
+          <div className={styles.successModalContent}>
+            <div className={styles.successAmount}>
+              {successModalData.balanceSummary.currencySymbol}
+              {successModalData.balanceSummary.totalReal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className={styles.successLocationInfo}>
+              {successModalData.locationType.charAt(0).toUpperCase() + successModalData.locationType.slice(1)} · {successModalData.locationName}
+            </div>
+
+            <div className={styles.successSummaryCard}>
+              <div className={styles.successSummaryRow}>
+                <span className={styles.successSummaryLabel}>Total Journal</span>
+                <span className={styles.successSummaryValue}>
+                  {successModalData.balanceSummary.currencySymbol}
+                  {successModalData.balanceSummary.totalJournal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className={styles.successSummaryRow}>
+                <span className={styles.successSummaryLabel}>Total Real</span>
+                <span className={styles.successSummaryValue}>
+                  {successModalData.balanceSummary.currencySymbol}
+                  {successModalData.balanceSummary.totalReal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className={`${styles.successSummaryRow} ${styles.successDifferenceRow}`}>
+                <span className={styles.successSummaryLabel}>Difference</span>
+                <div>
+                  <span className={`${styles.successDifferenceValue} ${
+                    successModalData.balanceSummary.hasSurplus
+                      ? styles.successSurplus
+                      : successModalData.balanceSummary.hasShortage
+                        ? styles.successShortage
+                        : styles.successBalanced
+                  }`}>
+                    {successModalData.balanceSummary.difference > 0 ? '+' : ''}
+                    {successModalData.balanceSummary.currencySymbol}
+                    {successModalData.balanceSummary.difference.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  {successModalData.balanceSummary.totalJournal !== 0 && (
+                    <span className={`${styles.successDifferencePercent} ${
+                      successModalData.balanceSummary.hasSurplus
+                        ? styles.successSurplus
+                        : successModalData.balanceSummary.hasShortage
+                          ? styles.successShortage
+                          : styles.successBalanced
+                    }`}>
+                      {successModalData.balanceSummary.differencePercent > 0 ? '+' : ''}
+                      {successModalData.balanceSummary.differencePercent.toFixed(2)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {successModalData.balanceSummary.needsAdjustment && (
+              <div className={styles.adjustmentButtons}>
+                <button
+                  className={`${styles.adjustmentButton} ${styles.adjustmentButtonPrimary}`}
+                  onClick={() => openAdjustmentConfirm('error')}
+                >
+                  <span className={styles.adjustmentButtonIcon}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </span>
+                  Error Adjustment
+                </button>
+                <button
+                  className={`${styles.adjustmentButton} ${styles.adjustmentButtonSecondary}`}
+                  onClick={() => openAdjustmentConfirm('forex')}
+                >
+                  <span className={styles.adjustmentButtonIcon}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="2" y1="12" x2="22" y2="12" />
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                  </span>
+                  Foreign Currency Translation
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </ConfirmModal>
+
+      {/* Error Modal */}
+      <ConfirmModal
+        isOpen={showErrorModal}
+        onClose={closeErrorModal}
+        onConfirm={closeErrorModal}
+        variant="error"
+        title="Error"
+        message={errorMessage}
+        confirmText="OK"
+        cancelText="Close"
+        confirmButtonVariant="error"
+        showConfirmIcon={false}
+        closeOnBackdropClick={true}
+      />
+
+      {/* Adjustment Confirm Modal */}
+      <ConfirmModal
+        isOpen={showAdjustmentConfirmModal}
+        onClose={closeAdjustmentConfirm}
+        onConfirm={executeAdjustment}
+        variant="info"
+        title={adjustmentType === 'error' ? 'Confirm Auto-Balance' : 'Confirm Foreign Currency Translation'}
+        confirmText="Confirm & Apply"
+        cancelText="Cancel"
+        confirmButtonVariant="primary"
+        showConfirmIcon={true}
+        closeOnBackdropClick={false}
+        closeOnEscape={!isAdjusting}
+        isLoading={isAdjusting}
+        width="480px"
+        showWarningSection={false}
+      >
+        {successModalData && (
+          <div className={styles.adjustmentConfirmContent}>
+            <p className={styles.adjustmentConfirmSubtitle}>
+              Review the details below before applying {adjustmentType === 'error' ? 'Auto-Balance' : 'Foreign Currency Translation'}
+            </p>
+
+            <div className={styles.adjustmentConfirmCard}>
+              <div className={styles.adjustmentConfirmRow}>
+                <span className={styles.adjustmentConfirmLabel}>Location</span>
+                <span className={styles.adjustmentConfirmValue}>
+                  {successModalData.locationName} · {successModalData.locationType}
+                </span>
+              </div>
+              <div className={styles.adjustmentConfirmRow}>
+                <span className={styles.adjustmentConfirmLabel}>Total Real</span>
+                <span className={styles.adjustmentConfirmValue}>
+                  {successModalData.balanceSummary.currencySymbol}
+                  {successModalData.balanceSummary.totalReal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className={styles.adjustmentConfirmRow}>
+                <span className={styles.adjustmentConfirmLabel}>Total Journal</span>
+                <span className={styles.adjustmentConfirmValue}>
+                  {successModalData.balanceSummary.currencySymbol}
+                  {successModalData.balanceSummary.totalJournal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className={`${styles.adjustmentConfirmRow} ${styles.adjustmentConfirmDifferenceRow}`}>
+                <span className={styles.adjustmentConfirmLabel}>Difference</span>
+                <div className={styles.adjustmentConfirmDifferenceValue}>
+                  <span className={`${styles.adjustmentConfirmAmount} ${
+                    successModalData.balanceSummary.hasSurplus
+                      ? styles.adjustmentConfirmSurplus
+                      : successModalData.balanceSummary.hasShortage
+                        ? styles.adjustmentConfirmShortage
+                        : ''
+                  }`}>
+                    {successModalData.balanceSummary.difference > 0 ? '+' : ''}
+                    {successModalData.balanceSummary.currencySymbol}
+                    {successModalData.balanceSummary.difference.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  {successModalData.balanceSummary.totalJournal !== 0 && (
+                    <span className={`${styles.adjustmentConfirmPercent} ${
+                      successModalData.balanceSummary.hasSurplus
+                        ? styles.adjustmentConfirmSurplus
+                        : successModalData.balanceSummary.hasShortage
+                          ? styles.adjustmentConfirmShortage
+                          : ''
+                    }`}>
+                      {successModalData.balanceSummary.differencePercent > 0 ? '+' : ''}
+                      {successModalData.balanceSummary.differencePercent.toFixed(2)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <p className={styles.adjustmentConfirmNote}>
+              This action will add a Journal entry to match the Real amount.
+            </p>
+          </div>
+        )}
+      </ConfirmModal>
     </>
   );
 };

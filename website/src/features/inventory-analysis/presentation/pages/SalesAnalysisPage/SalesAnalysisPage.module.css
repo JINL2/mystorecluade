@@ -1,0 +1,594 @@
+/**
+ * SalesAnalysisPage Styles
+ * With left sidebar filter panel - matching InventoryPage design
+ */
+
+/* Page Layout - Flexbox with sidebar */
+.pageWrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 0 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageWrapper {
+    padding: 0 48px;
+  }
+}
+
+/* Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageWrapper {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px;
+}
+
+/* Main Content Area */
+.pageLayout {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: 0 16px;
+  }
+}
+
+.container {
+  padding: 24px 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.breadcrumbLink {
+  color: var(--color-gray-500, #adb5bd);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbLink:hover {
+  color: #0064ff;
+}
+
+.breadcrumbSeparator {
+  color: var(--color-gray-400, #ced4da);
+}
+
+.breadcrumbCurrent {
+  color: var(--color-gray-700, #495057);
+  font-weight: 500;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-gray-600, #6c757d);
+  margin: 0;
+}
+
+/* Store Selector */
+.storeSelector {
+  margin-bottom: 24px;
+}
+
+/* Summary Section */
+.summarySection {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .summarySection {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .summarySection {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Summary Card */
+.summaryCard {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.summaryLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-500, #adb5bd);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px 0;
+}
+
+.summaryValue {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 4px 0;
+}
+
+.summaryChange {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.summaryChange.positive {
+  color: #00c896;
+}
+
+.summaryChange.negative {
+  color: #ff5847;
+}
+
+.summaryChange.neutral {
+  color: var(--color-gray-500, #adb5bd);
+}
+
+/* Content Grid - First row: BCG Matrix + Category Trend */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Second row: Top Products + Category Analysis */
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .secondaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0;
+}
+
+.cardAction {
+  font-size: 13px;
+  color: #0064ff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cardAction:hover {
+  text-decoration: underline;
+}
+
+/* BCG Matrix */
+.bcgMatrix {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border: 1px solid var(--color-gray-200, #e9ecef);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bcgQuadrant {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--color-gray-600, #6c757d);
+}
+
+.bcgQuadrant.star {
+  top: 0;
+  right: 0;
+  background: rgba(0, 100, 255, 0.05);
+}
+
+.bcgQuadrant.cashCow {
+  bottom: 0;
+  right: 0;
+  background: rgba(0, 200, 150, 0.05);
+}
+
+.bcgQuadrant.problemChild {
+  top: 0;
+  left: 0;
+  background: rgba(255, 149, 0, 0.05);
+}
+
+.bcgQuadrant.dog {
+  bottom: 0;
+  left: 0;
+  background: rgba(108, 117, 125, 0.05);
+}
+
+.bcgQuadrantLabel {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.bcgQuadrantCount {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+}
+
+.bcgAxisX {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--color-gray-500, #adb5bd);
+}
+
+.bcgAxisY {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-size: 11px;
+  color: var(--color-gray-500, #adb5bd);
+}
+
+/* Top Products List */
+.productList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.productItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-gray-100, #f1f3f5);
+}
+
+.productItem:last-child {
+  border-bottom: none;
+}
+
+.productRank {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--color-gray-100, #f1f3f5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-600, #6c757d);
+  margin-right: 12px;
+}
+
+.productRank.top3 {
+  background: #0064ff;
+  color: white;
+}
+
+.productInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.productName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productCategory {
+  font-size: 12px;
+  color: var(--color-gray-500, #adb5bd);
+  margin: 0;
+}
+
+.productMetrics {
+  text-align: right;
+}
+
+.productRevenue {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 2px 0;
+}
+
+.productMargin {
+  font-size: 12px;
+  color: #00c896;
+  margin: 0;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 350px;
+  color: var(--color-gray-500, #adb5bd);
+  font-size: 14px;
+}
+
+/* Loading & Empty States */
+.loadingItem,
+.emptyItem {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-gray-500, #adb5bd);
+  font-size: 14px;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-gray-500, #adb5bd);
+}
+
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Chart Placeholder */
+.chartPlaceholder {
+  width: 100%;
+  height: 200px;
+  background: var(--color-gray-50, #f8f9fa);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-400, #ced4da);
+  font-size: 14px;
+}
+
+/* Product Item Card (for Top Products and Category Analysis) */
+.productItemCard {
+  padding: 16px;
+  background: rgba(0, 100, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid var(--color-gray-100, #f1f3f5);
+  margin-bottom: 12px;
+}
+
+.productItemCard:last-child {
+  margin-bottom: 0;
+}
+
+.productItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.productValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  min-width: 70px;
+}
+
+.productValueRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-gray-100, #f1f3f5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #00C896;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.productStats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.statItem {
+  font-size: 12px;
+  color: #00C896;
+  font-weight: 500;
+}
+
+.growthBadge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.growthBadge.positive {
+  background: rgba(0, 200, 150, 0.1);
+  color: #00C896;
+}
+
+.growthBadge.negative {
+  background: rgba(255, 88, 71, 0.1);
+  color: #FF5847;
+}
+
+/* Category Trend Chart */
+.trendHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.trendIcon {
+  width: 20px;
+  height: 20px;
+  color: #0064FF;
+}
+
+.trendTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0;
+}
+
+/* Category Filter Chips */
+.categoryChips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.categoryChips::-webkit-scrollbar {
+  height: 4px;
+}
+
+.categoryChips::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.categoryChips::-webkit-scrollbar-thumb {
+  background: var(--color-gray-200, #e9ecef);
+  border-radius: 2px;
+}
+
+.categoryChip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--color-gray-100, #f1f3f5);
+  color: var(--color-gray-600, #6c757d);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.categoryChip:hover {
+  background: var(--color-gray-200, #e9ecef);
+}
+
+.categoryChip.active {
+  background: #0064FF;
+  color: white;
+}
+
+/* Line Chart Area */
+.chartArea {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+.lineChart {
+  width: 100%;
+  height: 100%;
+}

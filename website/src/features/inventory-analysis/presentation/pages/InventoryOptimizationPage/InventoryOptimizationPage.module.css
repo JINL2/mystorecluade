@@ -1,0 +1,342 @@
+/**
+ * InventoryOptimizationPage Styles
+ */
+
+/* Page Layout */
+.pageLayout {
+  min-height: calc(100vh - 64px);
+  background: var(--color-gray-50, #f8f9fa);
+  padding: 0 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+}
+
+.container {
+  padding: 24px 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.breadcrumbLink {
+  color: var(--color-gray-500, #adb5bd);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbLink:hover {
+  color: #0064ff;
+}
+
+.breadcrumbSeparator {
+  color: var(--color-gray-400, #ced4da);
+}
+
+.breadcrumbCurrent {
+  color: var(--color-gray-700, #495057);
+  font-weight: 500;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-gray-600, #6c757d);
+  margin: 0;
+}
+
+/* Health Summary */
+.healthSummary {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .healthSummary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .healthSummary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.healthCard {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.healthCard.healthy {
+  border-left: 3px solid #00c896;
+}
+
+.healthCard.low {
+  border-left: 3px solid #ff9500;
+}
+
+.healthCard.critical {
+  border-left: 3px solid #ff5847;
+}
+
+.healthCard.stockout {
+  border-left: 3px solid #dc3545;
+}
+
+.healthCard.overstock {
+  border-left: 3px solid #0064ff;
+}
+
+.healthCard.total {
+  border-left: 3px solid var(--color-gray-400, #ced4da);
+}
+
+.healthLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-gray-500, #adb5bd);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px 0;
+}
+
+.healthValue {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  margin: 0;
+}
+
+/* Content */
+.content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0;
+}
+
+.cardAction {
+  font-size: 13px;
+  color: #0064ff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cardAction:hover {
+  text-decoration: underline;
+}
+
+/* Product List */
+.productList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.productItem {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-gray-100, #f1f3f5);
+}
+
+.productItem:last-child {
+  border-bottom: none;
+}
+
+.productStatus {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.productStatus.healthy {
+  background: #00c896;
+}
+
+.productStatus.low {
+  background: #ff9500;
+}
+
+.productStatus.critical {
+  background: #ff5847;
+}
+
+.productStatus.stockout {
+  background: #dc3545;
+}
+
+.productStatus.overstock {
+  background: #0064ff;
+}
+
+.productInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.productName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productCategory {
+  font-size: 12px;
+  color: var(--color-gray-500, #adb5bd);
+  margin: 0;
+}
+
+.productStock {
+  text-align: right;
+  margin-left: 12px;
+}
+
+.stockValue {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 2px 0;
+}
+
+.stockLabel {
+  font-size: 11px;
+  color: var(--color-gray-500, #adb5bd);
+  margin: 0;
+}
+
+/* Status Badge */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
+.statusBadge.healthy {
+  background: rgba(0, 200, 150, 0.1);
+  color: #00c896;
+}
+
+.statusBadge.low {
+  background: rgba(255, 149, 0, 0.1);
+  color: #ff9500;
+}
+
+.statusBadge.critical {
+  background: rgba(255, 88, 71, 0.1);
+  color: #ff5847;
+}
+
+.statusBadge.stockout {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.statusBadge.overstock {
+  background: rgba(0, 100, 255, 0.1);
+  color: #0064ff;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-gray-500, #adb5bd);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 14px;
+  margin: 0;
+}

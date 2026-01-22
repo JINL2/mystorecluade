@@ -1,0 +1,224 @@
+/**
+ * CategoryTrendChart Styles
+ */
+
+.container {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  color: #0064FF;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0;
+}
+
+/* Category Chips */
+.categoryChips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.categoryChips::-webkit-scrollbar {
+  height: 4px;
+}
+
+.categoryChips::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.categoryChips::-webkit-scrollbar-thumb {
+  background: var(--color-gray-200, #e9ecef);
+  border-radius: 2px;
+}
+
+.chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--color-gray-100, #f1f3f5);
+  color: var(--color-gray-600, #6c757d);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.chip:hover {
+  background: var(--color-gray-200, #e9ecef);
+}
+
+.chip.active {
+  background: #0064FF;
+  color: white;
+}
+
+/* Chart Area */
+.chartArea {
+  width: 100%;
+  flex: 1;
+  min-height: 200px;
+  position: relative;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 200px;
+  color: var(--color-gray-500, #adb5bd);
+  font-size: 14px;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 200px;
+  color: var(--color-gray-400, #ced4da);
+  font-size: 14px;
+}
+
+.emptyIcon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+/* Chart Wrapper */
+.chartWrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  gap: 12px;
+}
+
+/* Y-axis Labels */
+.yAxisLabels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+  height: calc(100% - 24px);
+}
+
+.yAxisLabels span {
+  font-size: 11px;
+  color: var(--color-gray-500, #6c757d);
+  line-height: 1;
+}
+
+/* Chart Main Area */
+.chartMain {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Grid Lines - positioned to align with Y-axis labels */
+.gridLines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.gridLine {
+  width: 100%;
+  height: 1px;
+  background: #e9ecef;
+}
+
+.gridLine:first-child,
+.gridLine:nth-child(2) {
+  background: repeating-linear-gradient(
+    to right,
+    #e9ecef 0,
+    #e9ecef 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+/* Chart Content - contains SVG and data points */
+.chartContent {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Chart SVG - stretched for line/area only */
+.chartSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Data Points - won't distort because they use CSS positioning */
+.dataPoint {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border: 2px solid #0064FF;
+  border-radius: 50%;
+  transform: translate(-50%, 50%);
+  z-index: 2;
+}
+
+/* X-axis Labels */
+.xAxisLabels {
+  height: 24px;
+  width: 100%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.xAxisLabels span {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--color-gray-500, #6c757d);
+  white-space: nowrap;
+}
