@@ -5,7 +5,8 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../data/datasources/po_remote_datasource.dart';
 import '../../data/repositories/po_repository_impl.dart';
 import '../../domain/entities/purchase_order.dart';
-import '../../domain/repositories/po_repository.dart';
+import '../../domain/repositories/po_repository.dart'
+    hide SupplierFilterItem, BaseCurrencyData, CurrencyInfo, ProductItem, ProductSearchResult;
 
 part 'po_providers.g.dart';
 
@@ -466,28 +467,19 @@ class PoForm extends _$PoForm {
     state = state.copyWith(isSaving: true, error: null);
 
     try {
-      final supabase = Supabase.instance.client;
-      final response = await supabase.rpc<Map<String, dynamic>>(
-        'inventory_create_order_v4',
-        params: {
-          'p_company_id': companyId,
-          'p_user_id': userId,
-          'p_items': items,
-          'p_time': DateTime.now().toIso8601String(),
-          'p_timezone': 'Asia/Ho_Chi_Minh',
-          'p_counterparty_id': counterpartyId,
-          'p_supplier_info': supplierInfo,
-          'p_notes': notes ?? orderTitle,
-          'p_order_number': state.generatedNumber,
-        },
+      final response = await _repository.createOrderV4(
+        companyId: companyId,
+        userId: userId,
+        items: items,
+        orderTitle: orderTitle,
+        counterpartyId: counterpartyId,
+        supplierInfo: supplierInfo,
+        notes: notes,
+        orderNumber: state.generatedNumber,
       );
 
-      if (response['success'] == true) {
-        state = state.copyWith(isSaving: false);
-        return response;
-      } else {
-        throw Exception(response['error'] ?? 'Failed to create order');
-      }
+      state = state.copyWith(isSaving: false);
+      return response;
     } catch (e) {
       state = state.copyWith(isSaving: false, error: e.toString());
       rethrow;
@@ -543,26 +535,17 @@ Future<List<SupplierFilterItem>> supplierList(
     return [];
   }
 
-  final supabase = Supabase.instance.client;
+  final repository = ref.watch(poRepositoryProvider);
+  final items = await repository.getSuppliers(companyId);
 
-  // Call get_counterparty_info RPC
-  final response = await supabase.rpc<Map<String, dynamic>>(
-    'get_counterparty_info',
-    params: {'p_company_id': companyId},
-  );
-
-  // Check for RPC error
-  if (response['success'] != true) {
-    throw Exception(response['error'] ?? 'Failed to load suppliers');
-  }
-
-  // Extract data array from response
-  final dataList = response['data'] as List<dynamic>? ?? [];
-
-  // Parse response into SupplierFilterItem
-  return dataList
-      .map((e) => SupplierFilterItem.fromJson(e as Map<String, dynamic>))
-      .toList();
+  // Convert domain SupplierFilterItem to presentation SupplierFilterItem
+  return items.map((e) => SupplierFilterItem(
+    counterpartyId: e.counterpartyId,
+    name: e.name,
+    type: e.type,
+    email: e.email,
+    phone: e.phone,
+  )).toList();
 }
 
 // === Base Currency for PO ===
@@ -690,14 +673,30 @@ Future<POBaseCurrencyData> poBaseCurrency(PoBaseCurrencyRef ref) async {
     );
   }
 
-  final supabase = Supabase.instance.client;
+  final repository = ref.watch(poRepositoryProvider);
+  final data = await repository.getBaseCurrency(companyId);
 
-  final response = await supabase.rpc<Map<String, dynamic>>(
-    'get_base_currency',
-    params: {'p_company_id': companyId},
+  // Convert domain BaseCurrencyData to presentation POBaseCurrencyData
+  return POBaseCurrencyData(
+    baseCurrency: POCurrencyInfo(
+      currencyId: data.baseCurrency.currencyId,
+      currencyCode: data.baseCurrency.currencyCode,
+      currencyName: data.baseCurrency.currencyName,
+      symbol: data.baseCurrency.symbol,
+      flagEmoji: data.baseCurrency.flagEmoji,
+      exchangeRateToBase: data.baseCurrency.exchangeRateToBase,
+      rateDate: data.baseCurrency.rateDate,
+    ),
+    companyCurrencies: data.companyCurrencies.map((c) => POCurrencyInfo(
+      currencyId: c.currencyId,
+      currencyCode: c.currencyCode,
+      currencyName: c.currencyName,
+      symbol: c.symbol,
+      flagEmoji: c.flagEmoji,
+      exchangeRateToBase: c.exchangeRateToBase,
+      rateDate: c.rateDate,
+    )).toList(),
   );
-
-  return POBaseCurrencyData.fromJson(response);
 }
 
 // === Product Search for Order Items ===
@@ -814,6 +813,8 @@ class ProductSearch extends _$ProductSearch {
     return appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null;
   }
 
+  PORepository get _repository => ref.read(poRepositoryProvider);
+
   Future<void> search(String query) async {
     if (_companyId == null || _storeId == null) {
       state = state.copyWith(error: 'Company or store not selected');
@@ -830,29 +831,30 @@ class ProductSearch extends _$ProductSearch {
     }
 
     try {
-      final supabase = Supabase.instance.client;
-      final response = await supabase.rpc<Map<String, dynamic>>(
-        'get_inventory_page_v6',
-        params: {
-          'p_company_id': _companyId,
-          'p_store_id': _storeId,
-          'p_search': query,
-          'p_page': 1,
-          'p_limit': 20,
-          // No availability filter - PO can order any product regardless of stock
-        },
+      final result = await _repository.searchProducts(
+        companyId: _companyId!,
+        storeId: _storeId!,
+        query: query,
       );
 
-      if (response['success'] != true) {
-        throw Exception(response['error'] ?? 'Failed to search products');
-      }
-
-      final data = response['data'] as Map<String, dynamic>;
-      final itemsJson = data['items'] as List<dynamic>? ?? [];
-
-      final items = itemsJson
-          .map((e) => InventoryProductItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+      // Convert domain ProductItem to presentation InventoryProductItem
+      final items = result.items.map((e) => InventoryProductItem(
+        productId: e.productId,
+        productName: e.productName,
+        productSku: e.productSku,
+        productBarcode: e.productBarcode,
+        variantId: e.variantId,
+        variantName: e.variantName,
+        variantSku: e.variantSku,
+        displayName: e.displayName,
+        displaySku: e.displaySku,
+        unit: e.unit,
+        costPrice: e.costPrice,
+        sellingPrice: e.sellingPrice,
+        quantityOnHand: e.quantityOnHand,
+        imageUrls: e.imageUrls,
+        hasVariants: e.hasVariants,
+      )).toList();
 
       state = state.copyWith(items: items, isLoading: false);
     } catch (e) {

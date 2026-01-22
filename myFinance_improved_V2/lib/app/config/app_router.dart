@@ -78,6 +78,8 @@ import '../../features/letter_of_credit/presentation/pages/lc_list_page.dart';
 import '../../features/letter_of_credit/presentation/pages/lc_form_page.dart';
 import '../../features/letter_of_credit/presentation/pages/lc_detail_page.dart';
 import '../../features/shipment/presentation/pages/shipment_page.dart';
+import '../../features/shipment/presentation/pages/shipment_detail_page.dart';
+import '../../features/shipment/presentation/pages/shipment_form_page.dart';
 import '../../features/commercial_invoice/presentation/pages/commercial_invoice_page.dart';
 import '../../shared/themes/toss_colors.dart';
 import '../../shared/themes/toss_spacing.dart';
@@ -1152,6 +1154,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final feature = state.extra;
           return ShipmentPage(feature: feature);
+        },
+      ),
+      // Shipment New - MUST be before :id route
+      GoRoute(
+        path: '/shipment/new',
+        name: 'shipment-new',
+        builder: (context, state) => const ShipmentFormPage(),
+      ),
+      // Shipment Edit
+      GoRoute(
+        path: '/shipment/:id/edit',
+        name: 'shipment-edit',
+        builder: (context, state) {
+          final shipmentId = state.pathParameters['id']!;
+          return ShipmentFormPage(shipmentId: shipmentId);
+        },
+      ),
+      // Shipment Detail
+      GoRoute(
+        path: '/shipment/:id',
+        name: 'shipmentDetail',
+        builder: (context, state) {
+          final shipmentId = state.pathParameters['id']!;
+          return ShipmentDetailPage(shipmentId: shipmentId);
         },
       ),
 

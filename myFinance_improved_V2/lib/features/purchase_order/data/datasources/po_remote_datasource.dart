@@ -23,6 +23,34 @@ abstract class PORemoteDatasource {
     required String companyId,
     String timezone = 'Asia/Ho_Chi_Minh',
   });
+
+  /// Create order using inventory_create_order_v4 RPC
+  Future<Map<String, dynamic>> createOrderV4({
+    required String companyId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required String orderTitle,
+    String? counterpartyId,
+    Map<String, dynamic>? supplierInfo,
+    String? notes,
+    String? orderNumber,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  });
+
+  /// Get suppliers/counterparties for filter selection
+  Future<List<SupplierFilterItem>> getSuppliers(String companyId);
+
+  /// Get base currency and company currencies
+  Future<BaseCurrencyData> getBaseCurrency(String companyId);
+
+  /// Search products for order items
+  Future<ProductSearchResult> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int page = 1,
+    int limit = 20,
+  });
 }
 
 class PORemoteDatasourceImpl implements PORemoteDatasource {
@@ -646,5 +674,174 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
     }
 
     return response;
+  }
+
+  @override
+  Future<Map<String, dynamic>> createOrderV4({
+    required String companyId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required String orderTitle,
+    String? counterpartyId,
+    Map<String, dynamic>? supplierInfo,
+    String? notes,
+    String? orderNumber,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  }) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'inventory_create_order_v4',
+      params: {
+        'p_company_id': companyId,
+        'p_user_id': userId,
+        'p_items': items,
+        'p_time': DateTime.now().toIso8601String(),
+        'p_timezone': timezone,
+        'p_counterparty_id': counterpartyId,
+        'p_supplier_info': supplierInfo,
+        'p_notes': notes ?? orderTitle,
+        'p_order_number': orderNumber,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to create order');
+    }
+
+    return response;
+  }
+
+  @override
+  Future<List<SupplierFilterItem>> getSuppliers(String companyId) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'get_counterparty_info',
+      params: {'p_company_id': companyId},
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to load suppliers');
+    }
+
+    final data = response['data'] as List<dynamic>? ?? [];
+    return data.map((e) {
+      final map = e as Map<String, dynamic>;
+      return SupplierFilterItem(
+        counterpartyId: map['counterparty_id'] as String? ?? '',
+        name: map['name'] as String? ?? 'Unknown',
+        type: map['type'] as String?,
+        email: map['email'] as String?,
+        phone: map['phone'] as String?,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<BaseCurrencyData> getBaseCurrency(String companyId) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'get_base_currency',
+      params: {'p_company_id': companyId},
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to load currency');
+    }
+
+    final data = response['data'] as Map<String, dynamic>? ?? {};
+
+    // Parse base currency
+    final baseCurrency = CurrencyInfo(
+      currencyId: data['base_currency_id'] as String? ?? '',
+      currencyCode: data['base_currency_code'] as String? ?? 'VND',
+      currencyName: data['base_currency_name'] as String? ?? 'Vietnamese Dong',
+      symbol: data['base_currency_symbol'] as String? ?? '₫',
+      flagEmoji: data['base_currency_flag'] as String?,
+      exchangeRateToBase: 1.0,
+    );
+
+    // Parse company currencies
+    final currenciesData = data['currencies'] as List<dynamic>? ?? [];
+    final companyCurrencies = currenciesData.map((e) {
+      final map = e as Map<String, dynamic>;
+      return CurrencyInfo(
+        currencyId: map['currency_id'] as String? ?? '',
+        currencyCode: map['currency_code'] as String? ?? '',
+        currencyName: map['currency_name'] as String? ?? '',
+        symbol: map['symbol'] as String? ?? '',
+        flagEmoji: map['flag_emoji'] as String?,
+        exchangeRateToBase: (map['exchange_rate'] as num?)?.toDouble() ?? 1.0,
+        rateDate: map['rate_date'] != null
+            ? DateTime.tryParse(map['rate_date'] as String)
+            : null,
+      );
+    }).toList();
+
+    return BaseCurrencyData(
+      baseCurrency: baseCurrency,
+      companyCurrencies: companyCurrencies,
+    );
+  }
+
+  @override
+  Future<ProductSearchResult> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'get_inventory_page_v6',
+      params: {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_search': query,
+        'p_page': page,
+        'p_limit': limit,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to search products');
+    }
+
+    final data = response['data'] as Map<String, dynamic>;
+    final items = data['items'] as List<dynamic>? ?? [];
+    final totalCount = data['total_count'] as int? ?? 0;
+
+    final productItems = items.map((e) {
+      final map = e as Map<String, dynamic>;
+      final imageUrls = <String>[];
+      if (map['image_urls'] != null) {
+        imageUrls.addAll((map['image_urls'] as List).cast<String>());
+      } else if (map['image_url'] != null) {
+        imageUrls.add(map['image_url'] as String);
+      }
+
+      return ProductItem(
+        productId: map['product_id'] as String? ?? '',
+        productName: map['product_name'] as String? ?? '',
+        productSku: map['product_sku'] as String?,
+        productBarcode: map['product_barcode'] as String?,
+        variantId: map['variant_id'] as String?,
+        variantName: map['variant_name'] as String?,
+        variantSku: map['variant_sku'] as String?,
+        displayName: map['display_name'] as String? ?? map['product_name'] as String? ?? '',
+        displaySku: map['display_sku'] as String? ?? map['product_sku'] as String?,
+        unit: map['unit'] as String? ?? 'PCS',
+        costPrice: (map['cost_price'] as num?)?.toDouble() ?? 0,
+        sellingPrice: (map['selling_price'] as num?)?.toDouble() ?? 0,
+        quantityOnHand: (map['quantity_on_hand'] as num?)?.toDouble() ?? 0,
+        imageUrls: imageUrls,
+        hasVariants: map['has_variants'] as bool? ?? false,
+      );
+    }).toList();
+
+    final hasMore = (page * limit) < totalCount;
+
+    return ProductSearchResult(
+      items: productItems,
+      totalCount: totalCount,
+      page: page,
+      hasMore: hasMore,
+    );
   }
 }

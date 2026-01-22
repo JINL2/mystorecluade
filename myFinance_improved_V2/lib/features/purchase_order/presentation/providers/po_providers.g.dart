@@ -58,7 +58,7 @@ final acceptedPIsForConversionProvider =
 // ignore: unused_element
 typedef AcceptedPIsForConversionRef
     = AutoDisposeFutureProviderRef<List<AcceptedPIForConversion>>;
-String _$supplierListHash() => r'3b6a6bff685eb10975d36cc61f0cf6366f53fd4c';
+String _$supplierListHash() => r'37e5327ad228e07ab9fb9ec3f05e7962969ef813';
 
 /// See also [supplierList].
 @ProviderFor(supplierList)
@@ -76,7 +76,7 @@ final supplierListProvider =
 // ignore: unused_element
 typedef SupplierListRef
     = AutoDisposeFutureProviderRef<List<SupplierFilterItem>>;
-String _$poBaseCurrencyHash() => r'322be326a5cfadbc13145973ce48cd7845d59857';
+String _$poBaseCurrencyHash() => r'5f1bcfccf4c8b10f4715aeca59b11629b9ab103e';
 
 /// See also [poBaseCurrency].
 @ProviderFor(poBaseCurrency)
@@ -124,7 +124,7 @@ final poDetailProvider =
 );
 
 typedef _$PoDetail = AutoDisposeNotifier<PODetailState>;
-String _$poFormHash() => r'ca34d0be2b57c0e8dfbbc985d8fd6170af95f6d8';
+String _$poFormHash() => r'03e1fac5655764ca55a7a3334e19a9e6cd3072e8';
 
 /// See also [PoForm].
 @ProviderFor(PoForm)
@@ -139,7 +139,7 @@ final poFormProvider =
 );
 
 typedef _$PoForm = AutoDisposeNotifier<POFormState>;
-String _$productSearchHash() => r'e3a0d76b16f072d3256ae21cb8b04ab4ea0ae08b';
+String _$productSearchHash() => r'44f6aebae7bfcc26abf47a28d905f17c0aa42bb2';
 
 /// See also [ProductSearch].
 @ProviderFor(ProductSearch)

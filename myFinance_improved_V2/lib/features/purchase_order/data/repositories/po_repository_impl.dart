@@ -78,4 +78,56 @@ class PORepositoryImpl implements PORepository {
   Future<List<AcceptedPIForConversion>> getAcceptedPIsForConversion() async {
     return _datasource.getAcceptedPIsForConversion();
   }
+
+  @override
+  Future<Map<String, dynamic>> createOrderV4({
+    required String companyId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required String orderTitle,
+    String? counterpartyId,
+    Map<String, dynamic>? supplierInfo,
+    String? notes,
+    String? orderNumber,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  }) async {
+    return _datasource.createOrderV4(
+      companyId: companyId,
+      userId: userId,
+      items: items,
+      orderTitle: orderTitle,
+      counterpartyId: counterpartyId,
+      supplierInfo: supplierInfo,
+      notes: notes,
+      orderNumber: orderNumber,
+      timezone: timezone,
+    );
+  }
+
+  @override
+  Future<List<SupplierFilterItem>> getSuppliers(String companyId) async {
+    return _datasource.getSuppliers(companyId);
+  }
+
+  @override
+  Future<BaseCurrencyData> getBaseCurrency(String companyId) async {
+    return _datasource.getBaseCurrency(companyId);
+  }
+
+  @override
+  Future<ProductSearchResult> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _datasource.searchProducts(
+      companyId: companyId,
+      storeId: storeId,
+      query: query,
+      page: page,
+      limit: limit,
+    );
+  }
 }
