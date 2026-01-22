@@ -1,0 +1,443 @@
+/**
+ * DiscrepancyPage Styles
+ * Inventory discrepancy analysis page styles following Toss Design System
+ */
+
+.pageLayout {
+  min-height: 100vh;
+  background-color: #f4f4f4;
+  padding-top: 60px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 48px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    padding: 48px 96px;
+  }
+}
+
+/* Header */
+.header {
+  margin-bottom: 32px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.breadcrumbLink {
+  color: #6b7684;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumbLink:hover {
+  color: #0064FF;
+}
+
+.breadcrumbSeparator {
+  color: #b0b8c1;
+}
+
+.breadcrumbCurrent {
+  color: #191f28;
+  font-weight: 500;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #191f28;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #6b7684;
+  margin: 0;
+}
+
+/* Overview Summary */
+.overviewSummary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.summaryCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.summaryLabel {
+  font-size: 13px;
+  color: #6b7684;
+  margin: 0 0 8px 0;
+}
+
+.summaryValue {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.summaryValue.positive {
+  color: #00c853;
+}
+
+.summaryValue.negative {
+  color: #f04452;
+}
+
+.summaryValue.neutral {
+  color: #191f28;
+}
+
+.summarySubtext {
+  font-size: 12px;
+  color: #8b95a1;
+  margin: 4px 0 0 0;
+}
+
+/* Net Value Card */
+.netValueCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.netValueInfo {
+  flex: 1;
+}
+
+.netValueLabel {
+  font-size: 14px;
+  color: #6b7684;
+  margin: 0 0 8px 0;
+}
+
+.netValueAmount {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.netValueAmount.positive {
+  color: #00c853;
+}
+
+.netValueAmount.negative {
+  color: #f04452;
+}
+
+.netValueAmount.neutral {
+  color: #191f28;
+}
+
+.netValueRatio {
+  font-size: 14px;
+  color: #6b7684;
+  margin: 8px 0 0 0;
+}
+
+.statusBadgeLarge {
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.statusBadgeLarge.good {
+  background: #f0fdf4;
+  color: #00c853;
+}
+
+.statusBadgeLarge.warning {
+  background: #fff8e6;
+  color: #f59e0b;
+}
+
+.statusBadgeLarge.critical {
+  background: #fff1f2;
+  color: #f04452;
+}
+
+.statusBadgeLarge.insufficient {
+  background: #f4f4f4;
+  color: #6b7684;
+}
+
+/* Content */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Card */
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #191f28;
+  margin: 0;
+}
+
+.cardAction {
+  font-size: 14px;
+  color: #0064FF;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0;
+}
+
+.cardAction:hover {
+  text-decoration: underline;
+}
+
+/* Store List */
+.storeList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.storeItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f2f4f6;
+}
+
+.storeItem:last-child {
+  border-bottom: none;
+}
+
+.storeStatus {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.storeStatus.abnormal {
+  background: #f04452;
+}
+
+.storeStatus.warning {
+  background: #f59e0b;
+}
+
+.storeStatus.normal {
+  background: #00c853;
+}
+
+.storeInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.storeName {
+  font-size: 15px;
+  font-weight: 500;
+  color: #191f28;
+  margin: 0 0 4px 0;
+}
+
+.storeEvents {
+  font-size: 13px;
+  color: #6b7684;
+  margin: 0;
+}
+
+.storeMetrics {
+  display: flex;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.metricItem {
+  text-align: right;
+  min-width: 80px;
+}
+
+.metricValue {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.metricValue.positive {
+  color: #00c853;
+}
+
+.metricValue.negative {
+  color: #f04452;
+}
+
+.metricValue.neutral {
+  color: #191f28;
+}
+
+.metricLabel {
+  font-size: 11px;
+  color: #8b95a1;
+  margin: 0;
+}
+
+/* Status Badge */
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.statusBadge.abnormal {
+  background: #fff1f2;
+  color: #f04452;
+}
+
+.statusBadge.warning {
+  background: #fff8e6;
+  color: #f59e0b;
+}
+
+.statusBadge.normal {
+  background: #f0fdf4;
+  color: #00c853;
+}
+
+/* Empty/Insufficient State */
+.insufficientState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 16px;
+}
+
+.insufficientIcon {
+  width: 80px;
+  height: 80px;
+  color: #b0b8c1;
+  margin-bottom: 24px;
+}
+
+.insufficientTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #191f28;
+  margin: 0 0 8px 0;
+}
+
+.insufficientText {
+  font-size: 14px;
+  color: #6b7684;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  color: #00c853;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #191f28;
+  margin: 0 0 8px 0;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: #6b7684;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .overviewSummary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .netValueCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .storeItem {
+    flex-wrap: wrap;
+  }
+
+  .storeMetrics {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 8px;
+    margin-left: 26px;
+  }
+
+  .statusBadge {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .overviewSummary {
+    grid-template-columns: 1fr;
+  }
+}

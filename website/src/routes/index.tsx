@@ -27,6 +27,11 @@ import { InvoicePage } from '@/features/invoice/presentation/pages/InvoicePage';
 import { SaleProductPage } from '@/features/sale-product/presentation/pages/SaleProductPage';
 import { JournalInputPage } from '@/features/journal-input/presentation/pages/JournalInputPage';
 import { MarketingPlanPage } from '@/features/marketing-plan/presentation/pages/MarketingPlanPage';
+import { InventoryAnalysisPage } from '@/features/inventory-analysis/presentation/pages/InventoryAnalysisPage';
+import { SalesAnalysisPage } from '@/features/inventory-analysis/presentation/pages/SalesAnalysisPage';
+import { InventoryOptimizationPage } from '@/features/inventory-analysis/presentation/pages/InventoryOptimizationPage';
+import { SupplyChainPage } from '@/features/inventory-analysis/presentation/pages/SupplyChainPage';
+import { DiscrepancyPage } from '@/features/inventory-analysis/presentation/pages/DiscrepancyPage';
 import { OrderPage } from '@/features/order/presentation/pages/OrderPage';
 import { OrderCreatePage } from '@/features/order/presentation/pages/OrderCreatePage';
 import { OrderDetailPage } from '@/features/order/presentation/pages/OrderDetailPage';
@@ -281,6 +286,48 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="069fc24c-915b-43a0-8c27-6872badfc4a1">
             <MarketingPlanPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected Routes - Analysis */}
+      <Route
+        path="/analysis/inventory-analysis"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <InventoryAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/sales"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <SalesAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/optimization"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <InventoryOptimizationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/supply-chain"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <SupplyChainPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/discrepancy"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <DiscrepancyPage />
           </ProtectedRoute>
         }
       />

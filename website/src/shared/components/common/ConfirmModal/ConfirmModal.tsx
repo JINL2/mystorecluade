@@ -222,14 +222,16 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
         {/* Modal Footer */}
         <div className={styles.modalFooter}>
-          <button
-            className={styles.cancelButton}
-            onClick={handleCancel}
-            disabled={isLoading}
-            type="button"
-          >
-            {cancelText}
-          </button>
+          {cancelText && (
+            <button
+              className={styles.cancelButton}
+              onClick={handleCancel}
+              disabled={isLoading}
+              type="button"
+            >
+              {cancelText}
+            </button>
+          )}
           <button
             className={`${styles.confirmButton} ${getConfirmButtonClass()}`}
             onClick={handleConfirm}
