@@ -36,6 +36,7 @@ import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/core/utils/account_type_utils.dart';
 import 'package:myfinance_improved/core/utils/quick_access_helper.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import 'account_selector_sheet.dart';
 import 'account_multi_select.dart';
@@ -299,11 +300,9 @@ class _AccountSelectorState extends ConsumerState<AccountSelector> {
   }
 
   void _showSingleSelectionSheet(List<AccountData> allAccounts) {
-    showModalBottomSheet<void>(
+    TossBottomSheet.showWithBuilder<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black54,
+      heightFactor: 0.8,
       builder: (context) => AccountSelectorSheet(
         accounts: allAccounts,
         quickAccessAccounts: _quickAccessAccounts,
@@ -324,15 +323,14 @@ class _AccountSelectorState extends ConsumerState<AccountSelector> {
   }
 
   void _showMultiSelectionSheet(List<AccountData> allAccounts) {
-    showModalBottomSheet<void>(
+    TossBottomSheet.showWithBuilder<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black54,
+      heightFactor: 0.9,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.4,
         maxChildSize: 0.9,
+        expand: false,
         builder: (context, scrollController) => AccountMultiSelectSheet(
           accounts: allAccounts,
           quickAccessAccounts: _quickAccessAccounts,

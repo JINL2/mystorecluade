@@ -9,6 +9,7 @@ import '../../domain/entities/denomination_delete_result.dart';
 import '../providers/currency_providers.dart';
 import '../providers/denomination_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 class DenominationGrid extends ConsumerWidget {
   final List<Denomination> denominations;
@@ -41,16 +42,10 @@ class DenominationGrid extends ConsumerWidget {
   void _onDenominationTap(BuildContext context, WidgetRef ref, Denomination denomination) {
     HapticFeedback.lightImpact();
 
-    showModalBottomSheet<void>(
+    TossBottomSheet.show<void>(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: _buildDenominationOptionsSheet(context, ref, denomination),
-      ),
+      title: '${denomination.formattedValue} ${denomination.displayName}',
+      content: _buildDenominationOptionsContent(context, ref, denomination),
     );
   }
 
@@ -87,61 +82,31 @@ class DenominationGrid extends ConsumerWidget {
     );
   }
 
-  Widget _buildDenominationOptionsSheet(BuildContext context, WidgetRef ref, Denomination denomination) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xxl),
-          topRight: Radius.circular(TossBorderRadius.xxl),
+  Widget _buildDenominationOptionsContent(BuildContext context, WidgetRef ref, Denomination denomination) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Hint text
+        Text(
+          'Choose an action for this denomination',
+          style: TossTextStyles.caption.copyWith(
+            color: TossColors.gray500,
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          const SizedBox(height: TossSpacing.space3),
-          Container(
-            width: TossSpacing.space9,
-            height: TossSpacing.space1,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space5),
-          
-          // Title
-          Text(
-            '${denomination.formattedValue} ${denomination.displayName}',
-            style: TossTextStyles.h3,
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          
-          // Hint text
-          Text(
-            'Choose an action for this denomination',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space4),
-          
-          // Options
-          _buildOptionItem(
-            context,
-            icon: Icons.delete,
-            title: 'Delete',
-            isDestructive: true,
-            onTap: () async {
-              context.pop(); // Close the bottom sheet first
-              await _removeDenominationWithRefresh(context, ref, denomination);
-            },
-          ),
-          
-          SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
-        ],
-      ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Options
+        _buildOptionItem(
+          context,
+          icon: Icons.delete,
+          title: 'Delete',
+          isDestructive: true,
+          onTap: () async {
+            context.pop(); // Close the bottom sheet first
+            await _removeDenominationWithRefresh(context, ref, denomination);
+          },
+        ),
+      ],
     );
   }
 

@@ -14,6 +14,7 @@
 library;
 
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -202,14 +203,9 @@ class _TemplateUsageBottomSheetState extends ConsumerState<TemplateUsageBottomSh
   /// Show exchange rate calculator bottom sheet
   void _showExchangeRateCalculator() {
     final state = ref.read(templateUsageNotifierProvider(_templateId));
-    showModalBottomSheet<void>(
+    TossBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black.withValues(alpha: 0.5),
-      isDismissible: true,
-      enableDrag: true,
-      builder: (ctx) => ExchangeRateCalculator(
+      content: ExchangeRateCalculator(
         initialAmount: state.amount.replaceAll(',', ''),
         onAmountSelected: (amount) {
           final formatter = NumberFormat('#,##0.##', 'en_US');

@@ -135,9 +135,8 @@ class _MonthlyScheduleTabState extends ConsumerState<MonthlyScheduleTab>
                 // Selected Date Detail
                 Text(
                   DateFormat('EEE, d MMM').format(_selectedDate),
-                  style: TossTextStyles.body.copyWith(
+                  style: TossTextStyles.bodyMedium.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
                 const SizedBox(height: TossSpacing.space3),

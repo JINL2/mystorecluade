@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import '../../domain/entities/template_entity.dart';
 import '../../domain/enums/template_constants.dart';
@@ -326,11 +327,10 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
     if (_isFilterSheetOpen) return;
     _isFilterSheetOpen = true;
 
-    showModalBottomSheet(
+    TossBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => const TemplateFilterSheet(),
+      title: 'Filter Templates',
+      content: const TemplateFilterSheet(),
     ).whenComplete(() {
       _isFilterSheetOpen = false;
     });

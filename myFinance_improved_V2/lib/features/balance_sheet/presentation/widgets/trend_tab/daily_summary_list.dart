@@ -42,10 +42,7 @@ class DailySummaryList extends StatelessWidget {
             padding: const EdgeInsets.all(TossSpacing.space4),
             child: Text(
               'Daily Summary',
-              style: TossTextStyles.bodyMedium.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TossTextStyles.bodyMediumBold,
             ),
           ),
           Container(height: 1, color: TossColors.gray100),
@@ -73,19 +70,14 @@ class DailySummaryList extends StatelessWidget {
                       children: [
                         Text(
                           DateFormat('MMM d').format(item.date),
-                          style: TossTextStyles.bodySmall.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight:
-                                isToday ? FontWeight.w600 : FontWeight.w500,
-                          ),
+                          style: isToday
+                              ? TossTextStyles.bodySmallBold
+                              : TossTextStyles.bodySmall,
                         ),
                         if (isToday)
                           Text(
                             'Today',
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.primary,
-                              fontSize: 10,
-                            ),
+                            style: TossTextStyles.captionPrimary,
                           ),
                       ],
                     ),
@@ -95,9 +87,7 @@ class DailySummaryList extends StatelessWidget {
                   Expanded(
                     child: Text(
                       '$currencySymbol${formatter.format(item.revenue)}',
-                      style: TossTextStyles.bodySmall.copyWith(
-                        color: TossColors.gray600,
-                      ),
+                      style: TossTextStyles.bodySmallGray600,
                       textAlign: TextAlign.right,
                     ),
                   ),
@@ -118,9 +108,8 @@ class DailySummaryList extends StatelessWidget {
                     width: 100,
                     child: Text(
                       '${isProfit ? '' : '-'}$currencySymbol${formatter.format(item.netIncome.abs())}',
-                      style: TossTextStyles.bodySmall.copyWith(
+                      style: TossTextStyles.bodySmallBold.copyWith(
                         color: isProfit ? TossColors.gray900 : TossColors.error,
-                        fontWeight: FontWeight.w600,
                       ),
                       textAlign: TextAlign.right,
                     ),

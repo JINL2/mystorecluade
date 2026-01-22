@@ -42,9 +42,7 @@ class BsHeroCard extends StatelessWidget {
           // Total Assets
           Text(
             'Total Assets',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-            ),
+            style: TossTextStyles.captionGray500,
           ),
 
           const SizedBox(height: TossSpacing.space2),
@@ -55,10 +53,7 @@ class BsHeroCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   '$currencySymbol${formatter.format(summary.totalAssets)}',
-                  style: TossTextStyles.h1.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TossTextStyles.h1Bold,
                 ),
               ),
 
@@ -165,9 +160,8 @@ class BsHeroCard extends StatelessWidget {
           const SizedBox(width: 2),
           Text(
             '${changePct.abs().toStringAsFixed(1)}%',
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.captionBold.copyWith(
               color: isPositive ? TossColors.success : TossColors.error,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -185,10 +179,7 @@ class BsHeroCard extends StatelessWidget {
       children: [
         Text(
           'Assets = Liabilities + Equity',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-            fontSize: 11,
-          ),
+          style: TossTextStyles.captionGray500,
         ),
         const SizedBox(height: TossSpacing.space2),
         ClipRRect(
@@ -243,10 +234,7 @@ class BsHeroCard extends StatelessWidget {
         const SizedBox(width: TossSpacing.space1),
         Text(
           '$label $value',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
-            fontSize: 10,
-          ),
+          style: TossTextStyles.captionGray600,
         ),
       ],
     );
@@ -266,18 +254,12 @@ class BsHeroCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-              fontSize: 11,
-            ),
+            style: TossTextStyles.captionGray500,
           ),
           const SizedBox(height: TossSpacing.space1),
           Text(
             '$currencySymbol${formatter.format(total)}',
-            style: TossTextStyles.bodyMedium.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TossTextStyles.bodyMediumBold,
           ),
           if (breakdown.isNotEmpty) ...[
             const SizedBox(height: TossSpacing.space1),
@@ -285,10 +267,7 @@ class BsHeroCard extends StatelessWidget {
                   isRatio
                       ? '${item.$1}: ${item.$2.toStringAsFixed(1)}${item.$1.contains('%') ? '%' : 'x'}'
                       : '${item.$1}: ${formatter.format(item.$2)}',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                    fontSize: 9,
-                  ),
+                  style: TossTextStyles.captionGray500,
                 )),
           ],
         ],
@@ -314,9 +293,7 @@ class BsHeroCard extends StatelessWidget {
           Expanded(
             child: Text(
               'Unreconciled: $currencySymbol${formatter.format(summary.balanceCheck.abs())} (unclosed P&L)',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray700,
-              ),
+              style: TossTextStyles.captionGray700,
             ),
           ),
         ],

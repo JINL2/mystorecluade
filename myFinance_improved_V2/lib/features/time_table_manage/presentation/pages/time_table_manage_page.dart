@@ -16,6 +16,7 @@ import '../widgets/schedule/schedule_tab_content.dart';
 import '../widgets/timesheets/timesheets_tab.dart';
 import 'shift_stats_tab.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 class TimeTableManagePage extends ConsumerStatefulWidget {
   final dynamic feature;
@@ -497,9 +498,8 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
 
   // Show add shift bottom sheet
   void _showAddShiftBottomSheet() async {
-    final result = await showModalBottomSheet<bool>(
+    final result = await TossBottomSheet.showWithBuilder<bool>(
       context: context,
-      backgroundColor: TossColors.transparent,
       isScrollControlled: true,
       builder: (context) => AddShiftBottomSheet(
         onShiftAdded: () async {
@@ -510,7 +510,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
             // Refresh Manage tab data
             await fetchManagerOverview(forDate: manageSelectedDate, forceRefresh: true);
             await fetchManagerCards(forDate: manageSelectedDate, forceRefresh: true);
-            // ✅ Provider가 자동으로 UI 업데이트하므로 setState() 불필요
+            // Provider auto-updates UI, setState() not needed
           }
         },
       ),
@@ -519,7 +519,7 @@ class _TimeTableManagePageState extends ConsumerState<TimeTableManagePage> with 
     // Additional refresh after bottom sheet closes
     if (result == true && mounted) {
       await fetchMonthlyShiftStatus(forDate: focusedMonth, forceRefresh: true);
-      // ✅ Provider가 자동으로 UI 업데이트하므로 setState() 불필요
+      // Provider auto-updates UI, setState() not needed
     }
   }
 }

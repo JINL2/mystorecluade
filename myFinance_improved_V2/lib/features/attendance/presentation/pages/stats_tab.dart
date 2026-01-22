@@ -50,7 +50,7 @@ class _StatsTabState extends ConsumerState<StatsTab> {
         return SelectionListItem(
           item: item,
           isSelected: isSelected,
-          variant: SelectionItemVariant.standard,
+          variant: SelectionItemVariant.compact,
           onTap: () {
             setState(() {
               _selectedPeriod = item.id;

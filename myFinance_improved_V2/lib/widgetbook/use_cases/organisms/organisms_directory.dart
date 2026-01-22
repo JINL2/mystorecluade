@@ -16,10 +16,9 @@ import 'pickers/toss_time_picker_use_case.dart';
 
 // Sheets
 import 'sheets/toss_bottom_sheet_use_case.dart';
-import 'sheets/toss_selection_bottom_sheet_use_case.dart';
 
 final organismsDirectory = WidgetbookCategory(
-  name: 'Organisms (10)',
+  name: 'Organisms (9)',
   children: [
     WidgetbookFolder(
       name: 'Calendars (3)',
@@ -45,10 +44,9 @@ final organismsDirectory = WidgetbookCategory(
       ],
     ),
     WidgetbookFolder(
-      name: 'Sheets (2) - 11 UseCases',
+      name: 'Sheets (1) - 5 UseCases',
       children: [
-        tossBottomSheetComponent,        // 5 use cases
-        tossSelectionBottomSheetComponent, // 6 use cases
+        tossBottomSheetComponent, // 5 use cases
       ],
     ),
   ],

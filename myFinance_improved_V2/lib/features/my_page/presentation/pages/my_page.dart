@@ -20,6 +20,7 @@ import '../widgets/profile_header_section.dart';
 import '../widgets/settings_section.dart';
 import '../widgets/subscription_section.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 class MyPage extends ConsumerStatefulWidget {
   const MyPage({super.key});
@@ -238,10 +239,9 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
     final profile = myPageState.userProfile;
     if (profile == null) return;
 
-    showModalBottomSheet<void>(
+    TossBottomSheet.show<void>(
       context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => AvatarOptionsBottomSheet(
+      content: AvatarOptionsBottomSheet(
         hasProfileImage: profile.hasProfileImage,
         onPickImage: _pickImage,
         onRemoveImage: _removeProfileImage,

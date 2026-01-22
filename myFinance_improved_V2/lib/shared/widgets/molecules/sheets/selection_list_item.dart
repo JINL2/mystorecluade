@@ -56,7 +56,7 @@ class SelectionListItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(
           horizontal: TossSpacing.space5,
           vertical: variant == SelectionItemVariant.compact
-              ? TossSpacing.space2
+              ? TossSpacing.space1
               : TossSpacing.space3,
         ),
         decoration: BoxDecoration(

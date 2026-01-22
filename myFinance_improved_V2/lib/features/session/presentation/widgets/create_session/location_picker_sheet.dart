@@ -5,6 +5,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import '../../../../auth/domain/entities/store_entity.dart';
 
 /// Bottom sheet picker for selecting store location
@@ -29,23 +30,35 @@ class LocationPickerSheet extends StatelessWidget {
   }) {
     if (stores.isEmpty) return Future.value();
 
-    return showModalBottomSheet<void>(
+    return SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.bottomSheet),
-        ),
-      ),
-      builder: (context) => LocationPickerSheet(
-        stores: stores,
-        selectedStore: selectedStore,
-        onSelected: (store) {
-          Navigator.pop(context);
-          onSelected(store);
-        },
-      ),
+      title: 'Select Store Location',
+      maxHeightRatio: 0.6,
+      itemCount: stores.length,
+      itemBuilder: (context, index) {
+        final store = stores[index];
+        final isSelected = store.id == selectedStore?.id;
+        return ListTile(
+          leading: Icon(
+            Icons.store_outlined,
+            color: isSelected ? TossColors.primary : TossColors.gray600,
+          ),
+          title: Text(
+            store.name,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: TossFontWeight.medium,
+              color: isSelected ? TossColors.primary : TossColors.gray900,
+            ),
+          ),
+          trailing: isSelected
+              ? const Icon(Icons.check, color: TossColors.primary)
+              : null,
+          onTap: () {
+            Navigator.pop(context);
+            onSelected(store);
+          },
+        );
+      },
     );
   }
 
@@ -59,7 +72,7 @@ class LocationPickerSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: TossSpacing.space2),
+            SizedBox(height: TossSpacing.space2),
             Container(
               width: 36,
               height: 4,
@@ -68,14 +81,14 @@ class LocationPickerSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(TossBorderRadius.xs),
               ),
             ),
-            const SizedBox(height: TossSpacing.space4),
+            SizedBox(height: TossSpacing.space4),
             Text(
               'Select Store Location',
               style: TossTextStyles.titleLarge.copyWith(
                 color: TossColors.gray900,
               ),
             ),
-            const SizedBox(height: TossSpacing.space3),
+            SizedBox(height: TossSpacing.space3),
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
@@ -109,7 +122,7 @@ class LocationPickerSheet extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: TossSpacing.space4),
+            SizedBox(height: TossSpacing.space4),
           ],
         ),
       ),

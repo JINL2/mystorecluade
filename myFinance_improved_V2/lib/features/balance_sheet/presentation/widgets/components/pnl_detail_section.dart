@@ -65,17 +65,12 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
               children: [
                 Text(
                   'Breakdown',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TossTextStyles.bodyMediumBold,
                 ),
                 const Spacer(),
                 Text(
                   '${sortedSections.length} sections',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
+                  style: TossTextStyles.captionGray500,
                 ),
               ],
             ),
@@ -136,19 +131,15 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
                 Expanded(
                   child: Text(
                     sectionName,
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TossTextStyles.bodyMedium,
                   ),
                 ),
 
                 // Section total
                 Text(
                   '${widget.currencySymbol}${formatter.format(sectionTotal.abs())}',
-                  style: TossTextStyles.bodyMedium.copyWith(
+                  style: TossTextStyles.bodyMediumBold.copyWith(
                     color: isExpense ? TossColors.gray600 : TossColors.gray900,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -195,15 +186,14 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
               vertical: 2,
             ),
             decoration: BoxDecoration(
-              color: TossColors.gray200,
+              color: TossColors.white,
+              border: Border.all(color: TossColors.gray200),
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
             child: Text(
               account.accountCode,
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.codeSmall.copyWith(
                 color: TossColors.gray600,
-                fontSize: 10,
-                fontFamily: 'JetBrains Mono',
               ),
             ),
           ),
@@ -214,20 +204,18 @@ class _PnlDetailSectionState extends State<PnlDetailSection> {
           Expanded(
             child: Text(
               account.accountName,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: hasActivity ? TossColors.gray700 : TossColors.gray500,
-                fontWeight: FontWeight.w400,
-              ),
+              style: hasActivity
+                  ? TossTextStyles.bodySmallGray700
+                  : TossTextStyles.bodySmallGray500,
             ),
           ),
 
           // Amount
           Text(
             '${widget.currencySymbol}${formatter.format(account.amount.abs())}',
-            style: TossTextStyles.bodySmall.copyWith(
-              color: hasActivity ? TossColors.gray700 : TossColors.gray400,
-              fontWeight: hasActivity ? FontWeight.w500 : FontWeight.w400,
-            ),
+            style: hasActivity
+                ? TossTextStyles.bodySmall.copyWith(color: TossColors.gray700)
+                : TossTextStyles.bodySmallGray400,
           ),
         ],
       ),

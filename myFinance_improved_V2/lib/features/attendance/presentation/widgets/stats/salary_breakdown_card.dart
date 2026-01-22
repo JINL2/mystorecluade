@@ -22,7 +22,8 @@ class SalaryBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TossCard(
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.all(TossSpacing.space2),
+      showBorder: false,
       child: Column(
         children: [
           // Total confirmed time
@@ -96,21 +97,13 @@ class _BreakdownRow extends StatelessWidget {
         // Label
         Text(
           label,
-          style: (isTotal ? TossTextStyles.titleMedium : TossTextStyles.bodySmall).copyWith(
-            fontWeight: isTotal ? TossFontWeight.bold : TossFontWeight.medium,
-            color: isTotal ? TossColors.gray900 : TossColors.gray600,
-            height: 1.4,
-          ),
+          style: isTotal ? TossTextStyles.titleMedium : TossTextStyles.captionGray600,
         ),
 
         // Value
         Text(
           value,
-          style: (isTotal ? TossTextStyles.titleMedium : TossTextStyles.body).copyWith(
-            fontWeight: isTotal ? TossFontWeight.bold : TossFontWeight.semibold,
-            color: isTotal ? TossColors.primary : TossColors.gray900,
-            height: 1.4,
-          ),
+          style: isTotal ? TossTextStyles.dialogSubtitle : TossTextStyles.bodyMedium,
         ),
       ],
     );

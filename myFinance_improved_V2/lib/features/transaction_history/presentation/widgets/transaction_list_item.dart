@@ -11,6 +11,7 @@ import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/ai/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import '../../domain/entities/transaction.dart';
 import 'transaction_detail_sheet.dart';
@@ -328,11 +329,9 @@ class TransactionListItem extends ConsumerWidget {
   }
 
   void _showTransactionDetail(BuildContext context) {
-    showModalBottomSheet<void>(
+    TossBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => TransactionDetailSheet(
+      content: TransactionDetailSheet(
         transaction: transaction,
       ),
     );

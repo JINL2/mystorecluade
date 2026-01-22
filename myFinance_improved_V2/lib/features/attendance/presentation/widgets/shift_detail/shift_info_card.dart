@@ -143,25 +143,17 @@ class ShiftInfoCard extends StatelessWidget {
               children: [
                 Text(
                   _formatDate(shift.requestDate),
-                  style: TossTextStyles.bodySmall.copyWith(
-                    color: TossColors.gray600,
-                    fontWeight: TossFontWeight.semibold,
-                  ),
+                  style: TossTextStyles.captionBold,
                 ),
                 const SizedBox(height: TossSpacing.badgePaddingHorizontalXS),
                 Text(
                   shift.shiftName ?? 'Shift',
-                  style: TossTextStyles.titleMedium.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: TossFontWeight.semibold,
-                  ),
+                  style: TossTextStyles.titleMedium,
                 ),
                 const SizedBox(height: TossSpacing.badgePaddingHorizontalXS),
                 Text(
                   '${_formatHours(shift.scheduledHours)} scheduled',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                  ),
+                  style: TossTextStyles.bodyGray600,
                 ),
               ],
             ),

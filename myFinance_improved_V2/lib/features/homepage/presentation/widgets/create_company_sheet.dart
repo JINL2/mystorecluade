@@ -265,16 +265,11 @@ class _CreateCompanySheetState extends ConsumerState<CreateCompanySheet> {
                     children: [
                       Text(
                         'Create Company',
-                        style: TossTextStyles.h3.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TossTextStyles.sheetTitle,
                       ),
                       Text(
                         'Enter company details',
-                        style: TossTextStyles.caption.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                        style: TossTextStyles.captionSecondary,
                       ),
                     ],
                   ),

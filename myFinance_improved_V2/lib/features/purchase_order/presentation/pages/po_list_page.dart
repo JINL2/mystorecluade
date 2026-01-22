@@ -12,6 +12,8 @@ import '../providers/po_providers.dart';
 import '../widgets/po_list_item.dart';
 import '../widgets/po_filter_chips.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 class POListPage extends ConsumerStatefulWidget {
   const POListPage({super.key});
@@ -65,138 +67,100 @@ class _POListPageState extends ConsumerState<POListPage> {
   }
 
   void _showCreatePOOptions() {
-    showModalBottomSheet(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: TossSpacing.iconXL,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-                  decoration: BoxDecoration(
-                    color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
-                  ),
-                ),
-              ),
-              Text(
-                'Create Purchase Order',
-                style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: TossSpacing.space2),
-              Text(
-                'How would you like to create a new PO?',
-                style: TossTextStyles.bodyMedium.copyWith(
-                  color: TossColors.gray600,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space5),
-
-              // Option 1: Convert from PI
-              _CreateOptionTile(
-                icon: Icons.swap_horiz,
-                iconColor: TossColors.primary,
-                title: 'Convert from PI',
-                subtitle: 'Select an accepted Proforma Invoice to convert',
-                onTap: () {
-                  Navigator.pop(context);
-                  _showPISelectionSheet();
-                },
-              ),
-
-              const SizedBox(height: TossSpacing.space3),
-
-              // Option 2: Create from scratch
-              _CreateOptionTile(
-                icon: Icons.add_circle_outline,
-                iconColor: TossColors.success,
-                title: 'Create from scratch',
-                subtitle: 'Start with a blank Purchase Order',
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/purchase-order/new');
-                },
-              ),
-
-              const SizedBox(height: TossSpacing.space4),
-            ],
+      title: 'Create Purchase Order',
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          child: Text(
+            'How would you like to create a new PO?',
+            style: TossTextStyles.bodyMedium.copyWith(
+              color: TossColors.gray600,
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: TossSpacing.space3),
+
+        // Option 1: Convert from PI
+        _CreateOptionTile(
+          icon: Icons.swap_horiz,
+          iconColor: TossColors.primary,
+          title: 'Convert from PI',
+          subtitle: 'Select an accepted Proforma Invoice to convert',
+          onTap: () {
+            Navigator.pop(context);
+            _showPISelectionSheet();
+          },
+        ),
+
+        const SizedBox(height: TossSpacing.space3),
+
+        // Option 2: Create from scratch
+        _CreateOptionTile(
+          icon: Icons.add_circle_outline,
+          iconColor: TossColors.success,
+          title: 'Create from scratch',
+          subtitle: 'Start with a blank Purchase Order',
+          onTap: () {
+            Navigator.pop(context);
+            context.push('/purchase-order/new');
+          },
+        ),
+      ],
     );
   }
 
   void _showPISelectionSheet() {
-    showModalBottomSheet(
+    TossBottomSheet.showWithBuilder<void>(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => _PISelectionSheet(
-          scrollController: scrollController,
-          onPISelected: (piId) async {
-            // Close the bottom sheet first
-            Navigator.pop(sheetContext);
+      heightFactor: 0.85,
+      builder: (sheetContext) => _PISelectionSheet(
+        scrollController: ScrollController(),
+        onPISelected: (piId) async {
+          // Close the bottom sheet first
+          Navigator.pop(sheetContext);
 
-            // Show loading snackbar
-            if (mounted) {
-              ScaffoldMessenger.of(this.context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      TossLoadingView.inline(size: 20, color: TossColors.white),
-                      SizedBox(width: TossSpacing.space3),
-                      const Text('Converting PI to PO...'),
-                    ],
-                  ),
-                  duration: const Duration(seconds: 30),
+          // Show loading snackbar
+          if (mounted) {
+            ScaffoldMessenger.of(this.context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    TossLoadingView.inline(size: 20, color: TossColors.white),
+                    SizedBox(width: TossSpacing.space3),
+                    const Text('Converting PI to PO...'),
+                  ],
                 ),
-              );
+                duration: const Duration(seconds: 30),
+              ),
+            );
+          }
+
+          // Convert PI to PO
+          final poId = await ref
+              .read(poFormProvider.notifier)
+              .convertFromPI(piId);
+
+          if (mounted) {
+            TossToast.hide(this.context);
+
+            final formState = ref.read(poFormProvider);
+            if (formState.error != null) {
+              // Show error
+              TossToast.error(this.context, 'Error: ${formState.error}');
+            } else if (poId != null) {
+              // Show success
+              TossToast.success(this.context, 'PO created successfully!');
+
+              // Refresh PO list
+              ref.read(poListProvider.notifier).refresh();
+
+              // Navigate to the new PO detail
+              this.context.push('/purchase-order/$poId');
             }
-
-            // Convert PI to PO
-            final poId = await ref
-                .read(poFormProvider.notifier)
-                .convertFromPI(piId);
-
-            if (mounted) {
-              TossToast.hide(this.context);
-
-              final formState = ref.read(poFormProvider);
-              if (formState.error != null) {
-                // Show error
-                TossToast.error(this.context, 'Error: ${formState.error}');
-              } else if (poId != null) {
-                // Show success
-                TossToast.success(this.context, 'PO created successfully!');
-
-                // Refresh PO list
-                ref.read(poListProvider.notifier).refresh();
-
-                // Navigate to the new PO detail
-                this.context.push('/purchase-order/$poId');
-              }
-            }
-          },
-        ),
+          }
+        },
       ),
     );
   }

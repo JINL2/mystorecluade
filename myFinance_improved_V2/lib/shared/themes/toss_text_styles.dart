@@ -54,12 +54,28 @@ class TossTextStyles {
     height: 1.33,
   );
 
+  /// The 18px Bucket (Title Large)
+  static TextStyle get _text18 => GoogleFonts.inter(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0,
+    height: 1.35,
+  );
+
   /// The 16px Bucket (Subtitle, Titles)
   static TextStyle get _text16 => GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.4, // Generous height for reading
+  );
+
+  /// The 15px Bucket (Title Medium)
+  static TextStyle get _text15 => GoogleFonts.inter(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0,
+    height: 1.4,
   );
 
   /// The 14px Bucket (Body, Buttons)
@@ -99,10 +115,14 @@ class TossTextStyles {
 
   // --- Titles ---
 
-  // All these old confusing sizes now point to the clean 16px bucket
-  static TextStyle get titleLarge => _text16;  // Was 17px
-  static TextStyle get titleMedium => _text16; // Was 15px
-  static TextStyle get subtitle => _text16;    // Was 16px
+  /// 18px, w700 - For prominent card titles, section headers
+  static TextStyle get titleLarge => _text18;
+
+  /// 15px, w500 - For secondary titles, list item titles
+  static TextStyle get titleMedium => _text15;
+
+  /// 16px, w600 - For subtitles, supporting text under headings
+  static TextStyle get subtitle => _text16;
 
   // --- Body ---
 
@@ -268,6 +288,18 @@ class TossTextStyles {
     fontWeight: FontWeight.w700,
   );
 
+  /// Body medium bold - 14px, w700, gray900 (for card titles, section headers)
+  static TextStyle get bodyMediumBold => _text14.copyWith(
+    fontWeight: FontWeight.w700,
+    color: const Color(0xFF111827),
+  );
+
+  /// Body small bold - 12px, w600, gray900 (for emphasized small text)
+  static TextStyle get bodySmallBold => _text12.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF111827),
+  );
+
   /// Caption bold - 12px, w600
   static TextStyle get captionBold => _text12.copyWith(
     fontWeight: FontWeight.w600,
@@ -276,6 +308,30 @@ class TossTextStyles {
   /// Label bold - 12px, w700
   static TextStyle get labelBold => _text12.copyWith(
     fontWeight: FontWeight.w700,
+  );
+
+  /// Label gray600 - 12px, w500, gray600 (for secondary labels)
+  static TextStyle get labelGray600 => _text12.copyWith(
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFF4B5563),
+  );
+
+  /// Caption bold white - 12px, w600, white (for selected chips)
+  static TextStyle get captionBoldWhite => _text12.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFFFFFFFF),
+  );
+
+  // --- Heading Bold Variants ---
+  /// H1 bold - 28px, w700, gray900 (for hero numbers)
+  static TextStyle get h1Bold => _heading28.copyWith(
+    color: const Color(0xFF111827),
+  );
+
+  /// H4 bold - 18px, w700, gray900 (for modal titles)
+  static TextStyle get h4Bold => _heading18.copyWith(
+    fontWeight: FontWeight.w700,
+    color: const Color(0xFF111827),
   );
 
   // --- Gray Variants (by shade) ---
@@ -309,6 +365,27 @@ class TossTextStyles {
 
   /// Caption gray700 - 12px, gray700
   static TextStyle get captionGray700 => _text12.copyWith(
+    color: const Color(0xFF374151),
+  );
+
+  // --- Body Small Gray Variants ---
+  /// Body small gray400 - 12px, gray400 (for disabled/muted)
+  static TextStyle get bodySmallGray400 => _text12.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  /// Body small gray500 - 12px, gray500 (for secondary text)
+  static TextStyle get bodySmallGray500 => _text12.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Body small gray600 - 12px, gray600 (for tertiary text)
+  static TextStyle get bodySmallGray600 => _text12.copyWith(
+    color: const Color(0xFF4B5563),
+  );
+
+  /// Body small gray700 - 12px, gray700 (for emphasized secondary)
+  static TextStyle get bodySmallGray700 => _text12.copyWith(
     color: const Color(0xFF374151),
   );
 
@@ -348,6 +425,11 @@ class TossTextStyles {
 
   /// Caption primary - 12px, primary blue
   static TextStyle get captionPrimary => _text12.copyWith(
+    color: const Color(0xFF3182F6),
+  );
+
+  /// Display primary - 32px, w800, primary blue (for hero amounts in completion pages)
+  static TextStyle get displayPrimary => _heading32.copyWith(
     color: const Color(0xFF3182F6),
   );
 
@@ -527,6 +609,75 @@ class TossTextStyles {
   static TextStyle get captionReadable => _text12.copyWith(
     height: 1.5,
     color: const Color(0xFF374151),
+  );
+
+  // ==================== 5. ADDITIONAL SEMANTIC STYLES ====================
+  // Added to prevent copyWith abuse in feature implementations
+
+  // --- Title Variants ---
+  /// Title bold - 16px, w700 (for card titles, section headers)
+  static TextStyle get titleBold => _text16.copyWith(
+    fontWeight: FontWeight.w700,
+  );
+
+  // --- H3 Variants ---
+  /// H3 secondary - 20px, w600, gray500 (for secondary headings)
+  static TextStyle get h3Secondary => _heading20.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  // --- Caption Variants ---
+  /// Caption secondary - 12px, textSecondary (for subtitles, hints)
+  static TextStyle get captionSecondary => _text12.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Caption tertiary - 12px, textTertiary (for empty states, placeholders)
+  static TextStyle get captionTertiary => _text12.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  // --- Small Variants ---
+  /// Small bold - 12px, w600 (for button-like small text)
+  static TextStyle get smallBold => _text12.copyWith(
+    fontWeight: FontWeight.w600,
+  );
+
+  /// Small secondary - 12px, textSecondary (for chart labels)
+  static TextStyle get smallSecondary => _text12.copyWith(
+    color: const Color(0xFF6B7280),
+  );
+
+  /// Small tertiary - 12px, textTertiary (for counts, hints)
+  static TextStyle get smallTertiary => _text12.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  /// Small primary - 12px, w500, primary (for links, actions)
+  static TextStyle get smallPrimary => _text12.copyWith(
+    fontWeight: FontWeight.w500,
+    color: const Color(0xFF3182F6),
+  );
+
+  /// Small gray400 - 12px, gray400 (for tooltip headers)
+  static TextStyle get smallGray400 => _text12.copyWith(
+    color: const Color(0xFF9CA3AF),
+  );
+
+  // --- Badge ---
+  /// Badge text - 10px, w600, white, tight line height (for notification badges)
+  static TextStyle get badgeText => GoogleFonts.inter(
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFFFFFFFF),
+    height: 1,
+  );
+
+  // --- Body Small Success ---
+  /// Body small success - 12px, w600, success green (for bonus/positive indicators)
+  static TextStyle get bodySmallSuccess => _text12.copyWith(
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF10B981),
   );
 
   // For amount, we swap the Font Family but keep the size logic if we wanted,

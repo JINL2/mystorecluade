@@ -6,6 +6,7 @@ import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/widgets/index.dart';
+import '../../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import '../../../domain/entities/shipment.dart';
 
 /// Bottom sheet picker for selecting shipment
@@ -33,23 +34,41 @@ class ShipmentPickerSheet extends StatelessWidget {
       return Future.value();
     }
 
-    return showModalBottomSheet<void>(
+    return SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.bottomSheet),
-        ),
-      ),
-      builder: (context) => ShipmentPickerSheet(
-        shipments: shipments,
-        selectedShipment: selectedShipment,
-        onSelected: (shipment) {
-          Navigator.pop(context);
-          onSelected(shipment);
-        },
-      ),
+      title: 'Select Shipment',
+      maxHeightRatio: 0.6,
+      itemCount: shipments.length,
+      itemBuilder: (context, index) {
+        final shipment = shipments[index];
+        final isSelected = shipment.shipmentId == selectedShipment?.shipmentId;
+        return ListTile(
+          leading: Icon(
+            Icons.local_shipping_outlined,
+            color: isSelected ? TossColors.primary : TossColors.gray600,
+          ),
+          title: Text(
+            shipment.shipmentNumber,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: TossFontWeight.medium,
+              color: isSelected ? TossColors.primary : TossColors.gray900,
+            ),
+          ),
+          subtitle: Text(
+            '${shipment.supplierName} - ${shipment.itemCount} items',
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray500,
+            ),
+          ),
+          trailing: isSelected
+              ? const Icon(Icons.check, color: TossColors.primary)
+              : null,
+          onTap: () {
+            Navigator.pop(context);
+            onSelected(shipment);
+          },
+        );
+      },
     );
   }
 

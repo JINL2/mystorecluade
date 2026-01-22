@@ -193,6 +193,11 @@ Map<String, List<DemoItem>> getAtomsDemos() => {
       builder: () => const _TossTextFieldDemo(),
     ),
     DemoItem(
+      name: 'TossTextField.filled',
+      description: 'Filled text field with gray background (all variants)',
+      builder: () => const _TossTextFieldFilledDemo(),
+    ),
+    DemoItem(
       name: 'TossSearchField',
       description: 'Search input with clear button',
       builder: () => const _TossSearchFieldDemo(),
@@ -841,6 +846,160 @@ class _TossTextFieldDemoState extends State<_TossTextFieldDemo> {
   }
 }
 
+class _TossTextFieldFilledDemo extends StatefulWidget {
+  const _TossTextFieldFilledDemo();
+  @override
+  State<_TossTextFieldFilledDemo> createState() => _TossTextFieldFilledDemoState();
+}
+
+class _TossTextFieldFilledDemoState extends State<_TossTextFieldFilledDemo> {
+  final _basicController = TextEditingController();
+  final _labelController = TextEditingController();
+  final _requiredController = TextEditingController();
+  final _prefixSuffixController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _multilineController = TextEditingController();
+  final _disabledController = TextEditingController(text: 'Disabled value');
+  final _errorController = TextEditingController(text: 'Invalid input');
+  final _inlineLabelController = TextEditingController();
+
+  @override
+  void dispose() {
+    _basicController.dispose();
+    _labelController.dispose();
+    _requiredController.dispose();
+    _prefixSuffixController.dispose();
+    _passwordController.dispose();
+    _multilineController.dispose();
+    _disabledController.dispose();
+    _errorController.dispose();
+    _inlineLabelController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Basic
+        Text('Basic', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _basicController,
+          hintText: 'Enter text here',
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // With Label
+        Text('With Label', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _labelController,
+          label: 'Full Name',
+          hintText: 'Enter your full name',
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Required Field
+        Text('Required Field', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _requiredController,
+          label: 'Email Address',
+          hintText: 'Enter your email',
+          isRequired: true,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // With Prefix & Suffix Icons
+        Text('With Prefix & Suffix Icons', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _prefixSuffixController,
+          label: 'Search',
+          hintText: 'Search...',
+          prefixIcon: const Icon(Icons.search, color: TossColors.gray500),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.clear, color: TossColors.gray500),
+            onPressed: () => _prefixSuffixController.clear(),
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // With Prefix & Suffix Text
+        Text('With Prefix & Suffix Text', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: TextEditingController(),
+          label: 'Amount',
+          hintText: '0.00',
+          prefixText: 'USD ',
+          suffixText: ' /month',
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Password Field
+        Text('Password (obscured)', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _passwordController,
+          label: 'Password',
+          hintText: 'Enter password',
+          obscureText: true,
+          suffixIcon: const Icon(Icons.visibility_off, color: TossColors.gray500),
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Multiline
+        Text('Multiline', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _multilineController,
+          label: 'Description',
+          hintText: 'Enter a detailed description...',
+          maxLines: 4,
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // With Inline Label (floating)
+        Text('With Inline Label (floating)', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _inlineLabelController,
+          hintText: 'Enter phone number',
+          inlineLabel: 'Phone Number',
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Disabled State
+        Text('Disabled State', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _disabledController,
+          label: 'Read Only',
+          hintText: 'Cannot edit',
+          enabled: false,
+        ),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Error State
+        Text('Error State', style: TossTextStyles.label.copyWith(color: TossColors.gray600)),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _errorController,
+          label: 'Username',
+          hintText: 'Enter username',
+          errorText: 'This username is already taken',
+        ),
+      ],
+    );
+  }
+}
+
 class _TossSearchFieldDemo extends StatefulWidget {
   const _TossSearchFieldDemo();
   @override
@@ -1447,43 +1606,20 @@ class _OptionTriggerDemoState extends State<_OptionTriggerDemo> {
   }
 
   void _showLocationPicker(BuildContext context) {
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Center(
-              child: Text('Cash Location', style: TossTextStyles.h4),
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            ..._locations.map((loc) => ListTile(
-              title: Text(loc),
-              trailing: _selectedLocation == loc
-                  ? Icon(Icons.check, color: TossColors.primary)
-                  : null,
-              onTap: () {
-                setState(() => _selectedLocation = loc);
-                Navigator.pop(ctx);
-              },
-            )),
-            SizedBox(height: MediaQuery.of(ctx).padding.bottom),
-          ],
-        ),
-      ),
+      title: 'Cash Location',
+      maxHeightRatio: 0.5,
+      children: _locations.map((loc) => ListTile(
+        title: Text(loc),
+        trailing: _selectedLocation == loc
+            ? Icon(Icons.check, color: TossColors.primary)
+            : null,
+        onTap: () {
+          setState(() => _selectedLocation = loc);
+          Navigator.pop(context);
+        },
+      )).toList(),
     );
   }
 }

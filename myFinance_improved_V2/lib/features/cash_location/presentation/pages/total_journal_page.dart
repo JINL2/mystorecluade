@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 // Import providers (includes domain entities via export)
 import '../providers/cash_location_providers.dart';
@@ -496,15 +497,11 @@ class _TotalJournalPageState extends ConsumerState<TotalJournalPage> {
   }
   
   void _showTransactionDetailBottomSheet(TransactionDisplay transaction) {
-    showModalBottomSheet(
+    TossBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return TransactionDetailSheet(
-          transaction: transaction,
-        );
-      },
+      content: TransactionDetailSheet(
+        transaction: transaction,
+      ),
     );
   }
 

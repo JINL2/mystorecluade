@@ -62,17 +62,12 @@ class ReportIssueDialog {
                             children: [
                               Text(
                                 'Report Issue',
-                                style: TossTextStyles.h4.copyWith(
-                                  color: TossColors.gray900,
-                                  fontWeight: TossFontWeight.bold,
-                                ),
+                                style: TossTextStyles.h4,
                               ),
                               const SizedBox(height: TossSpacing.space1),
                               Text(
                                 'Please describe the problem',
-                                style: TossTextStyles.bodySmall.copyWith(
-                                  color: TossColors.gray600,
-                                ),
+                                style: TossTextStyles.captionGray600,
                               ),
                             ],
                           ),
@@ -309,19 +304,13 @@ class ReportIssueDialog {
                 const SizedBox(height: TossSpacing.space4),
                 Text(
                   'Report Submitted',
-                  style: TossTextStyles.h4.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: TossFontWeight.bold,
-                  ),
+                  style: TossTextStyles.h4,
                 ),
                 const SizedBox(height: TossSpacing.space2),
                 Text(
                   'Your issue has been reported\nand will be reviewed soon',
                   textAlign: TextAlign.center,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                    height: 1.5,
-                  ),
+                  style: TossTextStyles.bodyGray600,
                 ),
               ],
             ),
@@ -371,19 +360,13 @@ class ReportIssueDialog {
                 const SizedBox(height: TossSpacing.space4),
                 Text(
                   'Report Failed',
-                  style: TossTextStyles.h4.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: TossFontWeight.bold,
-                  ),
+                  style: TossTextStyles.h4,
                 ),
                 const SizedBox(height: TossSpacing.space2),
                 Text(
                   'Failed to report issue.\nPlease try again later.',
                   textAlign: TextAlign.center,
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.gray600,
-                    height: 1.5,
-                  ),
+                  style: TossTextStyles.bodyGray600,
                 ),
                 const SizedBox(height: TossSpacing.space4),
                 TossButton.primary(

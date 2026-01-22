@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/account_provider.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
 import '../../domain/enums/template_constants.dart';
@@ -21,14 +22,9 @@ class AddTemplateBottomSheet extends ConsumerStatefulWidget {
   const AddTemplateBottomSheet({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+    return TossBottomSheet.showWithBuilder(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      // Prevent the modal from resizing when keyboard appears
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
-      ),
+      heightFactor: 0.9,
       builder: (context) => const Padding(
         // This padding prevents the modal from being pushed up by keyboard
         // We use zero padding to override the default keyboard avoidance

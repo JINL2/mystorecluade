@@ -5,6 +5,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/sheets/sheet_header.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/sheets/search_field.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/sheets/bottom_sheet_wrapper.dart';
 
 /// Configuration for ModalBottomSheet appearance
 class ModalSheetConfig {
@@ -89,11 +90,10 @@ class ModalBottomSheet extends StatefulWidget {
     ValueChanged<SelectionItem>? onSelected,
     ModalSheetConfig config = const ModalSheetConfig(),
   }) {
-    return showModalBottomSheet<SelectionItem>(
+    return BottomSheetWrapper.show<SelectionItem>(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => ModalBottomSheet(
+      maxHeightRatio: config.maxHeightFraction,
+      child: ModalBottomSheet(
         title: title,
         items: items,
         selectedId: selectedId,

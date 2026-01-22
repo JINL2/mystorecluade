@@ -52,9 +52,7 @@ class CodesBottomSheet extends StatelessWidget {
               children: [
                 Text(
                   'Company & Store Codes',
-                  style: TossTextStyles.h3.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TossTextStyles.sheetTitle,
                 ),
                 const Spacer(),
                 IconButton(
@@ -173,16 +171,12 @@ class _CodeCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TossTextStyles.bodyMedium,
                     ),
                     SizedBox(height: TossSpacing.space1 / 2),
                     Text(
                       subtitle,
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.textSecondary,
-                      ),
+                      style: TossTextStyles.captionSecondary,
                     ),
                   ],
                 ),
@@ -194,12 +188,9 @@ class _CodeCard extends StatelessWidget {
                 children: [
                   Text(
                     code.isEmpty ? 'No code' : code,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: code.isEmpty
-                          ? TossColors.textTertiary
-                          : TossColors.textPrimary,
-                    ),
+                    style: code.isEmpty
+                        ? TossTextStyles.bodyTertiary
+                        : TossTextStyles.bodyMedium,
                   ),
                   if (code.isNotEmpty) ...[
                     SizedBox(height: TossSpacing.space1),
@@ -223,10 +214,7 @@ class _CodeCard extends StatelessWidget {
                           SizedBox(width: TossSpacing.space1),
                           Text(
                             'Copy',
-                            style: TossTextStyles.small.copyWith(
-                              color: TossColors.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: TossTextStyles.smallPrimary,
                           ),
                         ],
                       ),

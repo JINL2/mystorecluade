@@ -11,6 +11,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../di/session_providers.dart';
 import '../../domain/entities/session_list_item.dart';
 import '../providers/session_list_provider.dart';
@@ -366,13 +367,8 @@ class _SessionCountDetailPageState
   }
 
   void _onMerge() {
-    showModalBottomSheet<void>(
+    TossBottomSheet.showCompact(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (context) => MergeSessionBottomSheet(
         currentSessionId: widget.sessionId,
         sessionType: widget.sessionType,

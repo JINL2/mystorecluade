@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Currency exchange input modal with custom number pad
 /// Used for entering currency amounts in exchange rate calculator
@@ -40,11 +41,9 @@ class TossCurrencyExchangeModal extends StatefulWidget {
     required ValueChanged<String> onConfirm,
     VoidCallback? onClose,
   }) {
-    return showModalBottomSheet<String>(
+    return TossBottomSheet.showWithBuilder<String>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black54,
+      heightFactor: 0.75,
       builder: (context) => TossCurrencyExchangeModal(
         title: title,
         initialValue: initialValue,

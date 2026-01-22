@@ -6,6 +6,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../providers/session_review_provider.dart';
 import '../../providers/states/session_review_state.dart';
 import 'receiving_edit_quantity_dialog.dart';
@@ -23,10 +24,9 @@ class ReceivingItemRow extends ConsumerWidget {
   });
 
   void _showDetailBottomSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet<void>(
+    TossBottomSheet.showWithBuilder(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
+      heightFactor: 0.9,
       builder: (context) => ReceivingItemDetailSheet(
         item: item,
         params: params,

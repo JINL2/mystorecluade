@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../shared/index.dart';
+import '../../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import '../../domain/entities/inventory_status.dart';
 import '../providers/inventory_optimization_providers.dart';
 import '../widgets/product_list_tile.dart';
@@ -200,20 +201,57 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
   }
 
   void _showFilterSheet() {
-    showModalBottomSheet<void>(
+    final filters = [
+      (null, 'All', Icons.all_inclusive),
+      (InventoryStatus.abnormal, 'Abnormal', Icons.warning_rounded),
+      (InventoryStatus.stockout, 'Stockout', Icons.inventory_2_outlined),
+      (InventoryStatus.critical, 'Critical', Icons.local_fire_department_rounded),
+      (InventoryStatus.warning, 'Warning', Icons.warning_amber_rounded),
+      (InventoryStatus.reorderNeeded, 'Reorder Needed', Icons.shopping_cart_outlined),
+      (InventoryStatus.deadStock, 'Dead Stock', Icons.hourglass_empty_rounded),
+      (InventoryStatus.overstock, 'Overstock', Icons.trending_up_rounded),
+    ];
+
+    SelectionBottomSheetCommon.show(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.bottomSheet),
-        ),
-      ),
-      builder: (context) => _FilterBottomSheet(
-        selectedFilter: _selectedFilter,
-        onFilterSelected: (filter) {
-          setState(() => _selectedFilter = filter);
-          Navigator.pop(context);
-        },
-      ),
+      title: 'Filter by Status',
+      maxHeightRatio: 0.6,
+      itemCount: filters.length,
+      itemBuilder: (context, index) {
+        final filter = filters[index];
+        final status = filter.$1;
+        final label = filter.$2;
+        final icon = filter.$3;
+        final isSelected = status?.filterValue == _selectedFilter ||
+            (status == null && _selectedFilter == null);
+
+        return ListTile(
+          leading: Icon(
+            icon,
+            color: isSelected
+                ? TossColors.primary
+                : TossColors.textSecondary,
+          ),
+          title: Text(
+            status != null ? '${status.emoji} $label' : label,
+            style: TextStyle(
+              color: isSelected
+                  ? TossColors.primary
+                  : TossColors.textPrimary,
+              fontWeight: isSelected
+                  ? TossFontWeight.semibold
+                  : TossFontWeight.regular,
+            ),
+          ),
+          trailing: isSelected
+              ? const Icon(Icons.check, color: TossColors.primary)
+              : null,
+          onTap: () {
+            setState(() => _selectedFilter = status?.filterValue);
+            Navigator.pop(context);
+          },
+        );
+      },
     );
   }
 
@@ -232,76 +270,3 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
   }
 }
 
-class _FilterBottomSheet extends StatelessWidget {
-  final String? selectedFilter;
-  final void Function(String?) onFilterSelected;
-
-  const _FilterBottomSheet({
-    required this.selectedFilter,
-    required this.onFilterSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final filters = [
-      (null, 'All', Icons.all_inclusive),
-      (InventoryStatus.abnormal, 'Abnormal', Icons.warning_rounded),
-      (InventoryStatus.stockout, 'Stockout', Icons.inventory_2_outlined),
-      (InventoryStatus.critical, 'Critical', Icons.local_fire_department_rounded),
-      (InventoryStatus.warning, 'Warning', Icons.warning_amber_rounded),
-      (InventoryStatus.reorderNeeded, 'Reorder Needed', Icons.shopping_cart_outlined),
-      (InventoryStatus.deadStock, 'Dead Stock', Icons.hourglass_empty_rounded),
-      (InventoryStatus.overstock, 'Overstock', Icons.trending_up_rounded),
-    ];
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.paddingXL),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Filter by Status',
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: TossFontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.gapLG),
-            ...filters.map((filter) {
-              final status = filter.$1;
-              final label = filter.$2;
-              final icon = filter.$3;
-              final isSelected = status?.filterValue == selectedFilter ||
-                  (status == null && selectedFilter == null);
-
-              return ListTile(
-                leading: Icon(
-                  icon,
-                  color: isSelected
-                      ? TossColors.primary
-                      : TossColors.textSecondary,
-                ),
-                title: Text(
-                  status != null ? '${status.emoji} $label' : label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? TossColors.primary
-                        : TossColors.textPrimary,
-                    fontWeight: isSelected
-                        ? TossFontWeight.semibold
-                        : TossFontWeight.regular,
-                  ),
-                ),
-                trailing: isSelected
-                    ? const Icon(Icons.check, color: TossColors.primary)
-                    : null,
-                onTap: () => onFilterSelected(status?.filterValue),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-}

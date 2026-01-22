@@ -6,11 +6,10 @@ import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/app_state.dart';
 import '../../di/inventory_providers.dart';
 import '../../../../shared/themes/toss_animations.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
-import '../../../../shared/themes/toss_dimensions.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../../domain/value_objects/pagination_params.dart';
@@ -449,43 +448,18 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
   }
 
   void _showMoreOptions(BuildContext context, WidgetRef ref, Product product) {
-    showModalBottomSheet(
+    TossBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.bottomSheet),
+      title: 'Options',
+      content: const SizedBox.shrink(),
+      actions: [
+        TossActionItem(
+          title: 'Delete Product',
+          icon: Icons.delete_outline,
+          isDestructive: true,
+          onTap: () => _showDeleteConfirmation(product),
         ),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: TossSpacing.space2),
-            Container(
-              width: TossDimensions.dragHandleWidth,
-              height: TossDimensions.dragHandleHeight,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: TossColors.error),
-              title: Text(
-                'Delete Product',
-                style: TossTextStyles.body.copyWith(color: TossColors.error),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteConfirmation(product);
-              },
-            ),
-            const SizedBox(height: TossSpacing.space2),
-          ],
-        ),
-      ),
+      ],
     );
   }
 

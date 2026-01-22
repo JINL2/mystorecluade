@@ -81,10 +81,7 @@ class ShiftSignupCard extends StatelessWidget {
                   // Shift name (h3)
                   Text(
                     shiftType,
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: TossFontWeight.bold,
-                    ),
+                    style: TossTextStyles.h3,
                   ),
                   SizedBox(height: TossSpacing.space2),
 
@@ -99,10 +96,7 @@ class ShiftSignupCard extends StatelessWidget {
                       SizedBox(width: TossSpacing.badgePaddingHorizontalXS),
                       Text(
                         timeRange,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.gray700,
-                          fontWeight: TossFontWeight.medium,
-                        ),
+                        style: TossTextStyles.captionGray700,
                       ),
                     ],
                   ),
@@ -112,10 +106,7 @@ class ShiftSignupCard extends StatelessWidget {
                   // Location
                   Text(
                     location,
-                    style: TossTextStyles.bodySmall.copyWith(
-                      color: TossColors.gray700,
-                      fontWeight: TossFontWeight.medium,
-                    ),
+                    style: TossTextStyles.captionGray700,
                   ),
 
                   // Always show applied count with avatars (if any applicants exist)
@@ -132,9 +123,7 @@ class ShiftSignupCard extends StatelessWidget {
                         ],
                         Text(
                           '$appliedCount applied',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                          ),
+                          style: TossTextStyles.captionGray600,
                         ),
                       ],
                     ),
@@ -156,9 +145,7 @@ class ShiftSignupCard extends StatelessWidget {
               Text(
                 // Always show "X/Y assigned" - filledSlots = approved employees count
                 '$filledSlots/$totalSlots assigned',
-                style: TossTextStyles.small.copyWith(
-                  color: TossColors.gray500,
-                ),
+                style: TossTextStyles.captionGray500,
               ),
             ],
           ),

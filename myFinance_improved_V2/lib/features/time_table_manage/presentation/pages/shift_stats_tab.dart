@@ -11,14 +11,16 @@ import '../providers/state/reliability_score_provider.dart';
 import '../providers/states/time_table_state.dart';
 import '../widgets/stats/helpers/stats_format_helpers.dart';
 import '../widgets/stats/helpers/stats_problem_calculator.dart';
-import '../widgets/stats/period_selector_bottom_sheet.dart';
 import '../widgets/stats/stats_gauge_card.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import '../widgets/stats/stats_metric_row.dart';
 import 'employee_detail_page.dart';
 import 'reliability_rankings_page.dart';
+import 'package:myfinance_improved/shared/models/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';
 import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 /// Period options for Store Health section
 enum StatsPeriod {
@@ -343,24 +345,32 @@ class _ShiftStatsTabState extends ConsumerState<ShiftStatsTab> {
   /// Show period selector bottom sheet
   void _showPeriodSelector(BuildContext context) {
     HapticFeedback.selectionClick();
-    showModalBottomSheet<StatsPeriod>(
+    SelectionBottomSheetCommon.show<StatsPeriod>(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
-      ),
-      builder: (context) => PeriodSelectorBottomSheet(
-        selectedPeriod: selectedPeriod,
-        onPeriodSelected: (period) {
-          Navigator.pop(context);
-          if (period != selectedPeriod) {
-            HapticFeedback.selectionClick();
-            setState(() {
-              selectedPeriod = period;
-            });
-          }
-        },
-      ),
+      title: 'Select Period',
+      itemCount: StatsPeriod.values.length,
+      itemSpacing: 0,
+      itemBuilder: (context, index) {
+        final period = StatsPeriod.values[index];
+        return SelectionListItem(
+          item: SelectionItem(
+            id: period.name,
+            title: period.label,
+            icon: Icons.calendar_today_outlined,
+          ),
+          isSelected: period == selectedPeriod,
+          variant: SelectionItemVariant.compact,
+          onTap: () {
+            Navigator.pop(context);
+            if (period != selectedPeriod) {
+              HapticFeedback.selectionClick();
+              setState(() {
+                selectedPeriod = period;
+              });
+            }
+          },
+        );
+      },
     );
   }
 

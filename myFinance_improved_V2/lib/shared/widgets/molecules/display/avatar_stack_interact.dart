@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 /// Model for user data in the avatar stack
 class AvatarUser {
@@ -316,151 +317,27 @@ class AvatarStackInteract extends StatelessWidget {
 
   /// Show bottom sheet with full user list
   void _showUsersBottomSheet(BuildContext context) {
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (sheetContext) => _UsersBottomSheet(
-        title: title,
-        subtitle: subtitle,
-        users: users,
-        emptyMessage: emptyMessage,
-        userItemBuilder: userItemBuilder,
-        onUserTap: onUserTap,
-        actionButtons: actionButtons,
-        onActionTap: onActionTap != null
-            ? (user, actionId) {
-                // Call the original callback which updates parent state
-                onActionTap!(user, actionId);
-                // Close the bottom sheet after action completes
-                Navigator.of(sheetContext).pop();
-              }
-            : null,
-      ),
-    );
-  }
-}
+      title: title,
+      maxHeightRatio: 0.75,
+      itemCount: users.isEmpty ? 1 : users.length,
+      itemBuilder: (sheetContext, index) {
+        // Empty state
+        if (users.isEmpty) {
+          return _buildEmptyState();
+        }
 
-/// Bottom sheet widget showing the full list of users
-class _UsersBottomSheet extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final List<AvatarUser> users;
-  final String? emptyMessage;
-  final Widget Function(BuildContext context, AvatarUser user, int index)? userItemBuilder;
-  final void Function(AvatarUser user)? onUserTap;
-  final List<UserActionButton>? actionButtons;
-  final void Function(AvatarUser user, String actionId)? onActionTap;
+        final user = users[index];
 
-  const _UsersBottomSheet({
-    required this.title,
-    this.subtitle,
-    required this.users,
-    this.emptyMessage,
-    this.userItemBuilder,
-    this.onUserTap,
-    this.actionButtons,
-    this.onActionTap,
-  });
+        // Use custom builder if provided
+        if (userItemBuilder != null) {
+          return userItemBuilder!(sheetContext, user, index);
+        }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.75,
-      ),
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.xl),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Drag handle
-          Container(
-            width: 36,
-            height: 4,
-            margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2), // 2.0 - handle
-            ),
-          ),
-
-          // Header - centered like TossDropdown
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TossTextStyles.h3.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Subtitle (if provided)
-          if (subtitle != null) ...[
-            SizedBox(height: TossSpacing.space1),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Text(
-                subtitle!,
-                textAlign: TextAlign.center,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ],
-
-          SizedBox(height: TossSpacing.space3),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4 * 2),
-            child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
-          ),
-          SizedBox(height: TossSpacing.space2),
-
-          // User list
-          Flexible(
-            child: users.isEmpty
-                ? _buildEmptyState()
-                : ListView.separated(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.only(top: TossSpacing.space2, bottom: TossSpacing.space4 * 2),
-                    itemCount: users.length,
-                    separatorBuilder: (context, index) => const Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: TossColors.gray50,
-                      indent: 68,
-                    ),
-                    itemBuilder: (context, index) {
-                      final user = users[index];
-
-                      // Use custom builder if provided
-                      if (userItemBuilder != null) {
-                        return userItemBuilder!(context, user, index);
-                      }
-
-                      // Default list tile
-                      return _buildDefaultUserItem(context, user);
-                    },
-                  ),
-          ),
-        ],
-      ),
+        // Default list tile
+        return _buildDefaultUserItem(sheetContext, user);
+      },
     );
   }
 
@@ -469,17 +346,21 @@ class _UsersBottomSheet extends StatelessWidget {
     return InkWell(
       onTap: onUserTap != null ? () => onUserTap!(user) : null,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5, vertical: TossSpacing.space3),
+        padding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space5, vertical: TossSpacing.space3),
         child: Row(
           children: [
             // Avatar
             CircleAvatar(
               radius: 20,
               backgroundColor: TossColors.gray200,
-              backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-              onBackgroundImageError: user.avatarUrl != null ? (_, __) {} : null,
+              backgroundImage:
+                  user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+              onBackgroundImageError:
+                  user.avatarUrl != null ? (_, __) {} : null,
               child: user.avatarUrl == null
-                  ? Icon(Icons.person, size: TossSpacing.iconSM, color: TossColors.gray500)
+                  ? Icon(Icons.person,
+                      size: TossSpacing.iconSM, color: TossColors.gray500)
                   : null,
             ),
             SizedBox(width: TossSpacing.space3),
@@ -516,7 +397,7 @@ class _UsersBottomSheet extends StatelessWidget {
               user.trailingWidget!,
             ] else if (actionButtons != null && actionButtons!.isNotEmpty) ...[
               SizedBox(width: TossSpacing.space3),
-              _buildActionButtons(user),
+              _buildActionButtons(context, user),
             ],
           ],
         ),
@@ -525,7 +406,7 @@ class _UsersBottomSheet extends StatelessWidget {
   }
 
   /// Build action button for user (single pill button with 2 stages)
-  Widget _buildActionButtons(AvatarUser user) {
+  Widget _buildActionButtons(BuildContext context, AvatarUser user) {
     if (actionButtons == null || actionButtons!.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -538,7 +419,8 @@ class _UsersBottomSheet extends StatelessWidget {
 
     if (actionButtons!.length == 2) {
       // Binary toggle: switch between first and second button
-      final isFirstState = user.actionState == actionButtons![0].id || user.actionState == null;
+      final isFirstState =
+          user.actionState == actionButtons![0].id || user.actionState == null;
       currentButton = isFirstState ? actionButtons![0] : actionButtons![1];
       nextActionId = isFirstState ? actionButtons![1].id : actionButtons![0].id;
     } else {
@@ -556,12 +438,18 @@ class _UsersBottomSheet extends StatelessWidget {
     final isActive = user.actionState == currentButton.id;
 
     return GestureDetector(
-      onTap: onActionTap != null ? () => onActionTap!(user, nextActionId) : null,
+      onTap: onActionTap != null
+          ? () {
+              onActionTap!(user, nextActionId);
+              Navigator.of(context).pop();
+            }
+          : null,
       child: AnimatedContainer(
         duration: TossAnimations.normal,
         curve: TossAnimations.standard,
         height: TossSpacing.iconLG2,
-        padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space3, vertical: TossSpacing.space1 + 2),
+        padding: const EdgeInsets.symmetric(
+            horizontal: TossSpacing.space3, vertical: TossSpacing.space1 + 2),
         decoration: BoxDecoration(
           color: isActive
               ? (currentButton.backgroundColor ?? TossColors.primary)

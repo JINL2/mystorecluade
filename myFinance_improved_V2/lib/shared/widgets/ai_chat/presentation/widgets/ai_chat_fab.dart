@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../themes/toss_animations.dart';
 import '../../../../themes/toss_colors.dart';
+import '../../../organisms/sheets/toss_bottom_sheet.dart';
 import '../providers/ai_chat_provider.dart';
 import 'ai_chat_bottom_sheet.dart';
 
@@ -87,10 +88,8 @@ class _AiChatFabState extends ConsumerState<AiChatFab>
         // Mark as read when opening
         ref.read(aiChatProvider(widget.featureName).notifier).setChatOpen(true);
 
-        showModalBottomSheet<void>(
+        TossBottomSheet.showFullscreen<void>(
           context: context,
-          isScrollControlled: true,
-          backgroundColor: TossColors.transparent,
           builder: (context) => AiChatBottomSheet(
             featureName: widget.featureName,
             pageContext: widget.pageContext,

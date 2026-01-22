@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../../shared/themes/toss_colors.dart';
-import '../../../../../../shared/themes/toss_dimensions.dart';
 import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import '../../../pages/barcode_scanner_page.dart';
 import 'barcode_input_dialog.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -44,102 +43,55 @@ class SkuInputSheet {
         ),
     ];
 
-    await showModalBottomSheet<void>(
+    await SelectionBottomSheetCommon.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xxl)),
-      ),
-      builder: (sheetContext) => Container(
-        padding: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.paddingXL),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              width: TossDimensions.dragHandleWidth,
-              height: TossDimensions.dragHandleHeight,
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
-              ),
+      title: 'Choose an SKU Option',
+      showCloseButton: true,
+      maxHeightRatio: 0.5,
+      children: skuOptions.map(
+        (option) => InkWell(
+          onTap: () {
+            Navigator.pop(context);
+            _handleOptionSelected(
+              context: context,
+              optionId: option.id,
+              currentSku: currentSku,
+              onSkuChanged: onSkuChanged,
+              onAutoGenerate: onAutoGenerate,
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space5,
+              vertical: TossSpacing.space4,
             ),
-            const SizedBox(height: TossSpacing.space4),
-            // Header with title and close button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: TossSpacing.iconMD2), // Spacer for centering
-                  Text(
-                    'Choose an SKU Option',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: TossFontWeight.bold,
+            child: Row(
+              children: [
+                Icon(
+                  option.icon,
+                  size: TossSpacing.iconMD2,
+                  color: TossColors.gray600,
+                ),
+                const SizedBox(width: TossSpacing.space4),
+                Expanded(
+                  child: Text(
+                    option.title,
+                    style: TossTextStyles.body.copyWith(
+                      fontWeight: TossFontWeight.medium,
                       color: TossColors.gray900,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(sheetContext),
-                    child: const Icon(
-                      Icons.close,
-                      size: TossSpacing.iconMD2,
-                      color: TossColors.gray600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: TossSpacing.paddingXL),
-            // Options list
-            ...skuOptions.map(
-              (option) => InkWell(
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _handleOptionSelected(
-                    context: context,
-                    optionId: option.id,
-                    currentSku: currentSku,
-                    onSkuChanged: onSkuChanged,
-                    onAutoGenerate: onAutoGenerate,
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TossSpacing.space5,
-                    vertical: TossSpacing.space4,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        option.icon,
-                        size: TossSpacing.iconMD2,
-                        color: TossColors.gray600,
-                      ),
-                      const SizedBox(width: TossSpacing.space4),
-                      Expanded(
-                        child: Text(
-                          option.title,
-                          style: TossTextStyles.body.copyWith(
-                            fontWeight: TossFontWeight.medium,
-                            color: TossColors.gray900,
-                          ),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.chevron_right,
-                        size: TossSpacing.iconMD,
-                        color: TossColors.gray400,
-                      ),
-                    ],
-                  ),
                 ),
-              ),
+                const Icon(
+                  Icons.chevron_right,
+                  size: TossSpacing.iconMD,
+                  color: TossColors.gray400,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ).toList(),
     );
   }
 

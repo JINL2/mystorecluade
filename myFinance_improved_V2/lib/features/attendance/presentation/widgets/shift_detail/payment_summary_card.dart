@@ -77,10 +77,7 @@ class PaymentSummaryCard extends ConsumerWidget {
             label: 'Bonus pay',
             value: _formatMoney(shift.bonusAmount, currencySymbol),
             valueStyle: shift.bonusAmount < 0
-                ? TossTextStyles.bodyLarge.copyWith(
-                    color: TossColors.error,
-                    fontWeight: TossFontWeight.semibold,
-                  )
+                ? TossTextStyles.bodyError
                 : null,
           ),
         ],
@@ -88,14 +85,8 @@ class PaymentSummaryCard extends ConsumerWidget {
         _buildInfoRow(
           label: 'Total payment',
           value: _formatMoney(shift.totalPayAmount, currencySymbol),
-          labelStyle: TossTextStyles.titleMedium.copyWith(
-            color: TossColors.gray900,
-            fontWeight: TossFontWeight.semibold,
-          ),
-          valueStyle: TossTextStyles.titleMedium.copyWith(
-            color: TossColors.primary,
-            fontWeight: TossFontWeight.bold,
-          ),
+          labelStyle: TossTextStyles.titleMedium,
+          valueStyle: TossTextStyles.dialogSubtitle,
         ),
       ],
     );

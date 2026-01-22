@@ -67,9 +67,7 @@ class _HomepageAlertDialogState extends State<HomepageAlertDialog> {
             },
             child: Text(
               "Don't show again",
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textSecondary,
-              ),
+              style: TossTextStyles.secondaryText,
             ),
           ),
         ],

@@ -43,10 +43,7 @@ class RevenueExpenseChart extends StatelessWidget {
             children: [
               Text(
                 'Revenue vs Expenses',
-                style: TossTextStyles.bodyMedium.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TossTextStyles.bodyMediumBold,
               ),
               const Spacer(),
               _buildChartLegend(),
@@ -74,10 +71,7 @@ class RevenueExpenseChart extends StatelessWidget {
                       reservedSize: 40,
                       getTitlesWidget: (value, meta) => Text(
                         '${value.toInt()}M',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                          fontSize: 10,
-                        ),
+                        style: TossTextStyles.captionGray500,
                       ),
                     ),
                   ),
@@ -95,10 +89,7 @@ class RevenueExpenseChart extends StatelessWidget {
                         }
                         return Text(
                           DateFormat('d').format(data[index].date),
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                            fontSize: 10,
-                          ),
+                          style: TossTextStyles.captionGray500,
                         );
                       },
                     ),
@@ -123,7 +114,7 @@ class RevenueExpenseChart extends StatelessWidget {
                           rodIndex == 0 ? item.revenue : (item.cogs + item.opex);
                       return BarTooltipItem(
                         '$label\n$currencySymbol${formatter.format(value)}',
-                        TossTextStyles.caption.copyWith(color: TossColors.white),
+                        TossTextStyles.captionWhite,
                       );
                     },
                   ),
@@ -162,10 +153,7 @@ class RevenueExpenseChart extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray600,
-            fontSize: 10,
-          ),
+          style: TossTextStyles.captionGray600,
         ),
       ],
     );

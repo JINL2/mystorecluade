@@ -12,6 +12,7 @@ import '../../../../shared/themes/index.dart';
 import '../../../homepage/presentation/providers/homepage_providers.dart';
 import '../providers/repository_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 /// Complete Profile Page - For Email Signup and Apple Sign-In Users
 ///
@@ -235,126 +236,90 @@ class _CompleteProfilePageState extends ConsumerState<CompleteProfilePage>
   }
 
   void _showImagePickerOptions() {
-    showModalBottomSheet(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle bar
-              Container(
-                width: TossSpacing.iconXL,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
-                ),
-              ),
-
-              // Title
-              Padding(
-                padding: const EdgeInsets.only(bottom: TossSpacing.space4),
-                child: Text(
-                  'Choose Photo',
-                  style: TossTextStyles.h3.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-
-              // Camera option
-              ListTile(
-                leading: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  ),
-                  child: Icon(
-                    Icons.camera_alt_rounded,
-                    color: TossColors.primary,
-                  ),
-                ),
-                title: Text(
-                  'Take Photo',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-
-              // Gallery option
-              ListTile(
-                leading: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: TossColors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                  ),
-                  child: Icon(
-                    Icons.photo_library_rounded,
-                    color: TossColors.success,
-                  ),
-                ),
-                title: Text(
-                  'Choose from Gallery',
-                  style: TossTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-
-              // Remove photo option (if photo selected)
-              if (_selectedImage != null)
-                ListTile(
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: TossColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                    ),
-                    child: Icon(
-                      Icons.delete_outline_rounded,
-                      color: TossColors.error,
-                    ),
-                  ),
-                  title: Text(
-                    'Remove Photo',
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.error,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    setState(() => _selectedImage = null);
-                  },
-                ),
-
-              const SizedBox(height: TossSpacing.space2),
-            ],
+      title: 'Choose Photo',
+      children: [
+        // Camera option
+        ListTile(
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: TossColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Icon(
+              Icons.camera_alt_rounded,
+              color: TossColors.primary,
+            ),
           ),
+          title: Text(
+            'Take Photo',
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            _pickImage(ImageSource.camera);
+          },
         ),
-      ),
+
+        // Gallery option
+        ListTile(
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: TossColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            ),
+            child: Icon(
+              Icons.photo_library_rounded,
+              color: TossColors.success,
+            ),
+          ),
+          title: Text(
+            'Choose from Gallery',
+            style: TossTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            _pickImage(ImageSource.gallery);
+          },
+        ),
+
+        // Remove photo option (if photo selected)
+        if (_selectedImage != null)
+          ListTile(
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: TossColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+              ),
+              child: Icon(
+                Icons.delete_outline_rounded,
+                color: TossColors.error,
+              ),
+            ),
+            title: Text(
+              'Remove Photo',
+              style: TossTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: TossColors.error,
+              ),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() => _selectedImage = null);
+            },
+          ),
+      ],
     );
   }
 

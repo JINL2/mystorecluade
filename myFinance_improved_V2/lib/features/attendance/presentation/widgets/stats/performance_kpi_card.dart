@@ -32,7 +32,8 @@ class PerformanceKpiCard extends StatelessWidget {
       children: [
         // KPI Card
         TossCard(
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.all(TossSpacing.space2),
+          showBorder: false,
           child: Row(
             children: [
               // On-time Rate
@@ -148,10 +149,7 @@ class _KpiColumn extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style: TossTextStyles.small.copyWith(
-                  fontWeight: TossFontWeight.medium,
-                  color: TossColors.gray600,
-                ),
+                style: TossTextStyles.captionGray600,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -179,16 +177,12 @@ class _KpiColumn extends StatelessWidget {
           children: [
             Text(
               value,
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: TossFontWeight.bold,
-                color: TossColors.gray900,
-              ),
+              style: TossTextStyles.h4,
             ),
             if (changePercentage != null)
               Text(
                 changePercentage!,
-                style: TossTextStyles.small.copyWith(
-                  fontWeight: TossFontWeight.semibold,
+                style: TossTextStyles.smallBold.copyWith(
                   color: _changeColor,
                 ),
               ),

@@ -359,6 +359,181 @@ class _TypographyTab extends StatelessWidget {
           _TypoItem('sheetTitle', TossTextStyles.sheetTitle),
           _TypoItem('linkText', TossTextStyles.linkText),
         ]),
+
+        // === COLOR VARIANTS SECTION ===
+        _buildSectionHeader('COLOR VARIANTS', 'Use these instead of copyWith(color:)'),
+
+        _buildSection('Body Gray Variants (14px)', [
+          _TypoItem('bodyGray400', TossTextStyles.bodyGray400),
+          _TypoItem('bodyTertiary', TossTextStyles.bodyTertiary),
+          _TypoItem('bodyGray600', TossTextStyles.bodyGray600),
+          _TypoItem('bodySecondary', TossTextStyles.bodySecondary),
+          _TypoItem('bodyGray700', TossTextStyles.bodyGray700),
+        ]),
+        _buildSection('Body Semantic Colors (14px)', [
+          _TypoItem('bodyPrimary', TossTextStyles.bodyPrimary),
+          _TypoItem('bodyPrimaryBold', TossTextStyles.bodyPrimaryBold),
+          _TypoItem('bodySuccess', TossTextStyles.bodySuccess),
+          _TypoItem('bodyError', TossTextStyles.bodyError),
+          _TypoItem('bodyWarning', TossTextStyles.bodyWarning),
+          _TypoItem('bodyInfo', TossTextStyles.bodyInfo),
+        ]),
+        _buildColoredSection('Body White Variants (14px)', TossColors.gray700, [
+          _TypoItem('bodyWhite', TossTextStyles.bodyWhite),
+          _TypoItem('bodyWhiteBold', TossTextStyles.bodyWhiteBold),
+        ]),
+        _buildSection('Caption Gray Variants (12px)', [
+          _TypoItem('captionGray400', TossTextStyles.captionGray400),
+          _TypoItem('captionTertiary', TossTextStyles.captionTertiary),
+          _TypoItem('captionGray500', TossTextStyles.captionGray500),
+          _TypoItem('captionSecondary', TossTextStyles.captionSecondary),
+          _TypoItem('captionGray600', TossTextStyles.captionGray600),
+          _TypoItem('captionGray700', TossTextStyles.captionGray700),
+          _TypoItem('secondaryText', TossTextStyles.secondaryText),
+        ]),
+        _buildSection('Caption Semantic Colors (12px)', [
+          _TypoItem('captionPrimary', TossTextStyles.captionPrimary),
+          _TypoItem('captionSuccess', TossTextStyles.captionSuccess),
+          _TypoItem('captionError', TossTextStyles.captionError),
+          _TypoItem('captionWarning', TossTextStyles.captionWarning),
+          _TypoItem('captionInfo', TossTextStyles.captionInfo),
+        ]),
+        _buildColoredSection('Caption White Variant (12px)', TossColors.gray700, [
+          _TypoItem('captionWhite', TossTextStyles.captionWhite),
+        ]),
+
+        // === WEIGHT VARIANTS SECTION ===
+        _buildSectionHeader('WEIGHT VARIANTS', 'Use these instead of copyWith(fontWeight:)'),
+
+        _buildSection('Bold Variants', [
+          _TypoItem('bodyBold (14px w700)', TossTextStyles.bodyBold),
+          _TypoItem('captionBold (12px w600)', TossTextStyles.captionBold),
+          _TypoItem('labelBold (12px w700)', TossTextStyles.labelBold),
+          _TypoItem('smallBold (12px w600)', TossTextStyles.smallBold),
+          _TypoItem('titleBold (16px w700)', TossTextStyles.titleBold),
+        ]),
+
+        // === SEMANTIC UI STYLES SECTION ===
+        _buildSectionHeader('SEMANTIC UI STYLES', 'Pre-built styles for common UI patterns'),
+
+        _buildSection('List Items', [
+          _TypoItem('listItemTitle', TossTextStyles.listItemTitle),
+          _TypoItem('listItemSubtitle', TossTextStyles.listItemSubtitle),
+        ]),
+        _buildSection('Form/Input', [
+          _TypoItem('inputValue', TossTextStyles.inputValue),
+          _TypoItem('inputHint', TossTextStyles.inputHint),
+          _TypoItem('fieldLabel', TossTextStyles.fieldLabel),
+          _TypoItem('fieldHelper', TossTextStyles.fieldHelper),
+          _TypoItem('fieldError', TossTextStyles.fieldError),
+        ]),
+        _buildSection('Totals/Amounts', [
+          _TypoItem('totalLabel', TossTextStyles.totalLabel),
+          _TypoItem('totalValue', TossTextStyles.totalValue),
+          _TypoItem('denominationValue', TossTextStyles.denominationValue),
+          _TypoItem('denominationLabel', TossTextStyles.denominationLabel),
+          _TypoItem('amountZero', TossTextStyles.amountZero),
+        ]),
+        _buildSection('Dialog Styles', [
+          _TypoItem('dialogTitle', TossTextStyles.dialogTitle),
+          _TypoItem('dialogTitleLarge', TossTextStyles.dialogTitleLarge),
+          _TypoItem('dialogMessage', TossTextStyles.dialogMessage),
+          _TypoItem('dialogButton', TossTextStyles.dialogButton),
+          _TypoItem('dialogButtonPrimary', TossTextStyles.dialogButtonPrimary),
+        ]),
+        _buildSection('Navigation', [
+          _TypoItem('menuItem', TossTextStyles.menuItem),
+          _TypoItem('menuItemActive', TossTextStyles.menuItemActive),
+          _TypoItem('tabLabel', TossTextStyles.tabLabel),
+          _TypoItem('tabLabelActive', TossTextStyles.tabLabelActive),
+        ]),
+        _buildSection('Other Semantic', [
+          _TypoItem('cardTitle', TossTextStyles.cardTitle),
+          _TypoItem('emptyState', TossTextStyles.emptyState),
+          _TypoItem('gridHeader', TossTextStyles.gridHeader),
+          _TypoItem('smallSectionTitle', TossTextStyles.smallSectionTitle),
+        ]),
+
+        // === MONOSPACE SECTION ===
+        _buildSectionHeader('MONOSPACE (JetBrains Mono)', 'For amounts and code'),
+
+        _buildSection('Amount Styles', [
+          _TypoItem('amountSmall (16px)', TossTextStyles.amountSmall),
+          _TypoItem('amount (20px)', TossTextStyles.amount),
+          _TypoItem('amountLarge (24px)', TossTextStyles.amountLarge),
+          _TypoItem('amountXL (32px)', TossTextStyles.amountXL),
+        ]),
+        _buildSection('Code Styles', [
+          _TypoItem('codeSmall (10px)', TossTextStyles.codeSmall),
+          _TypoItem('code (12px)', TossTextStyles.code),
+        ]),
+
+        const SizedBox(height: TossSpacing.space8),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.only(top: TossSpacing.space6, bottom: TossSpacing.space2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space1,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.primary,
+              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+            ),
+            child: Text(
+              title,
+              style: TossTextStyles.labelSmall.copyWith(
+                color: TossColors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space1),
+          Text(
+            subtitle,
+            style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColoredSection(String title, Color bgColor, List<_TypoItem> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
+          child: Text(
+            title,
+            style: TossTextStyles.titleMedium.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            border: Border.all(color: TossColors.gray200),
+          ),
+          child: Column(
+            children: items
+                .asMap()
+                .entries
+                .map((entry) => _buildTypoRow(entry.value, entry.key == items.length - 1))
+                .toList(),
+          ),
+        ),
+        const SizedBox(height: TossSpacing.space4),
       ],
     );
   }

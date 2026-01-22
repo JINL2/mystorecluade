@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_dimensions.dart';
 import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import '../../di/inventory_providers.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../utils/store_utils.dart';
@@ -364,84 +364,46 @@ class _InventoryHistoryPageState extends ConsumerState<InventoryHistoryPage> {
   }
 
   void _showStorePicker(BuildContext context, List<StoreOption> stores) {
-    showModalBottomSheet(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
+      title: 'Select Store',
+      maxHeightRatio: 0.6,
+      itemCount: stores.length,
+      itemBuilder: (context, index) {
+        final store = stores[index];
+        return ListTile(
+          leading: Icon(
+            Icons.store_outlined,
+            color: store.id == _selectedStoreId
+                ? TossColors.primary
+                : TossColors.gray600,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: TossSpacing.space2),
-              Container(
-                width: TossDimensions.dragHandleWidth,
-                height: TossDimensions.dragHandleHeight,
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              Text(
-                'Select Store',
-                style: TossTextStyles.titleLarge.copyWith(
-                  color: TossColors.gray900,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space3),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: stores.length,
-                  itemBuilder: (context, index) {
-                    final store = stores[index];
-                    return ListTile(
-                      leading: Icon(
-                        Icons.store_outlined,
-                        color: store.id == _selectedStoreId
-                            ? TossColors.primary
-                            : TossColors.gray600,
-                      ),
-                      title: Text(
-                        store.name,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: TossFontWeight.medium,
-                          color: store.id == _selectedStoreId
-                              ? TossColors.primary
-                              : TossColors.gray900,
-                        ),
-                      ),
-                      trailing: store.id == _selectedStoreId
-                          ? Icon(
-                              Icons.check,
-                              color: TossColors.primary,
-                            )
-                          : null,
-                      onTap: () {
-                        Navigator.pop(context);
-                        setState(() {
-                          _selectedStoreId = store.id;
-                          _selectedStoreName = store.name;
-                        });
-                        // Reload history with new store
-                        _loadHistory(refresh: true);
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-            ],
+          title: Text(
+            store.name,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: TossFontWeight.medium,
+              color: store.id == _selectedStoreId
+                  ? TossColors.primary
+                  : TossColors.gray900,
+            ),
           ),
-        ),
-      ),
+          trailing: store.id == _selectedStoreId
+              ? Icon(
+                  Icons.check,
+                  color: TossColors.primary,
+                )
+              : null,
+          onTap: () {
+            Navigator.pop(context);
+            setState(() {
+              _selectedStoreId = store.id;
+              _selectedStoreName = store.name;
+            });
+            // Reload history with new store
+            _loadHistory(refresh: true);
+          },
+        );
+      },
     );
   }
 

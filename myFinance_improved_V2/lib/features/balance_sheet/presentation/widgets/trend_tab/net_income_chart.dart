@@ -51,16 +51,11 @@ class NetIncomeChart extends StatelessWidget {
         children: [
           Text(
             'Net Income Trend',
-            style: TossTextStyles.bodyMedium.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TossTextStyles.bodyMediumBold,
           ),
           Text(
             'in millions (${currencySymbol}M)',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-            ),
+            style: TossTextStyles.captionGray500,
           ),
           const SizedBox(height: TossSpacing.space4),
           SizedBox(
@@ -83,10 +78,7 @@ class NetIncomeChart extends StatelessWidget {
                       reservedSize: 40,
                       getTitlesWidget: (value, meta) => Text(
                         '${value.toInt()}M',
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                          fontSize: 10,
-                        ),
+                        style: TossTextStyles.captionGray500,
                       ),
                     ),
                   ),
@@ -102,10 +94,7 @@ class NetIncomeChart extends StatelessWidget {
                         }
                         return Text(
                           DateFormat('d').format(data[index].date),
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray500,
-                            fontSize: 10,
-                          ),
+                          style: TossTextStyles.captionGray500,
                         );
                       },
                     ),
@@ -159,9 +148,7 @@ class NetIncomeChart extends StatelessWidget {
                         final formatter = NumberFormat('#,##0', 'en_US');
                         return LineTooltipItem(
                           '${DateFormat('MMM d').format(item.date)}\n$currencySymbol${formatter.format(item.netIncome)}',
-                          TossTextStyles.caption.copyWith(
-                            color: TossColors.white,
-                          ),
+                          TossTextStyles.captionWhite,
                         );
                       }).toList();
                     },

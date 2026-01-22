@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -47,10 +48,7 @@ class CompanyActionsSheet extends ConsumerWidget {
               children: [
                 Text(
                   'Company Actions',
-                  style: TossTextStyles.h3.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TossTextStyles.sheetTitle,
                 ),
                 const Spacer(),
                 IconButton(
@@ -142,10 +140,7 @@ class CompanyActionsSheet extends ConsumerWidget {
                   children: [
                     Text(
                       title,
-                      style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TossTextStyles.bodyMedium,
                     ),
                     const SizedBox(height: TossSpacing.space1/2),
                     Text(
@@ -174,10 +169,9 @@ class CompanyActionsSheet extends ConsumerWidget {
     required VoidCallback onCreateCompany,
     required VoidCallback onJoinCompany,
   }) {
-    return showModalBottomSheet<T>(
+    return TossBottomSheet.showWithBuilder<T>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
+      heightFactor: 0.5,
       builder: (context) => CompanyActionsSheet(
         onCreateCompany: onCreateCompany,
         onJoinCompany: onJoinCompany,

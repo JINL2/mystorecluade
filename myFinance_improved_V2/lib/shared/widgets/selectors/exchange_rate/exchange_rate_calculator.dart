@@ -32,6 +32,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/buttons/toss_button.dart';
 import 'package:myfinance_improved/shared/widgets/atoms/feedback/toss_loading_view.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/keyboard/toss_currency_exchange_modal.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import 'exchange_rate_provider.dart';
 
@@ -70,11 +71,9 @@ class ExchangeRateCalculator extends ConsumerStatefulWidget {
     String? companyId,
     String? storeId,
   }) {
-    return showModalBottomSheet<void>(
+    return TossBottomSheet.showWithBuilder<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black54,
+      heightFactor: 0.8,
       builder: (context) => ExchangeRateCalculator(
         initialAmount: initialAmount,
         onAmountSelected: onAmountSelected,

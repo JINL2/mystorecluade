@@ -51,7 +51,7 @@ class LocationSelectionCard extends ConsumerWidget {
           },
         ),
 
-        const SizedBox(height: TossSpacing.space4),
+        const SizedBox(height: TossSpacing.space6),
 
         // Always show dropdown - it handles empty/loading states internally
         _buildLocationSelector(ref),

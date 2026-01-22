@@ -10,6 +10,8 @@ import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../counter_party/presentation/widgets/counter_party_form.dart';
 import '../../providers/pi_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 /// Counterparty selector section for PI form
 class PICounterpartySection extends ConsumerStatefulWidget {
@@ -32,16 +34,9 @@ class PICounterpartySection extends ConsumerStatefulWidget {
 
 class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
   void _showCreateCounterpartySheet() {
-    showModalBottomSheet<bool>(
+    TossBottomSheet.showFullscreen<bool>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).size.height * 0.1,
-        ),
-        child: const CounterPartyForm(),
-      ),
+      builder: (context) => const CounterPartyForm(),
     ).then((result) {
       if (result == true) {
         ref.invalidate(currentCounterpartiesProvider);
@@ -222,131 +217,72 @@ class _PICounterpartySectionState extends ConsumerState<PICounterpartySection> {
   }
 
   void _showBottomSheet(List<CounterpartyData> counterparties) {
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.xl),
-            topRight: Radius.circular(TossBorderRadius.xl),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              width: TossSpacing.space9,
-              height: TossSpacing.space1,
-              margin: const EdgeInsets.only(top: TossSpacing.space3, bottom: TossSpacing.space4),
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+      title: 'Counterparty',
+      maxHeightRatio: 0.8,
+      itemCount: counterparties.length,
+      itemBuilder: (context, index) {
+        final cp = counterparties[index];
+        final isSelected = cp.id == widget.counterpartyId;
+        return Material(
+          color: TossColors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+            onTap: () {
+              // Build address from additionalData
+              final additionalData = cp.additionalData;
+              final parts = <String>[];
+              if (additionalData != null) {
+                if (additionalData['address'] != null) parts.add(additionalData['address'].toString());
+                if (additionalData['city'] != null) parts.add(additionalData['city'].toString());
+                if (additionalData['country'] != null) parts.add(additionalData['country'].toString());
+              }
+              widget.counterpartyInfoController.text = parts.join(', ');
+              widget.onCounterpartyChanged(cp);
+              Navigator.pop(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: TossSpacing.space3,
+                vertical: TossSpacing.space3,
               ),
-            ),
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              child: Text(
-                'Counterparty',
-                style: TossTextStyles.h3.copyWith(
-                  color: TossColors.textPrimary,
-                  fontWeight: TossFontWeight.semibold,
-                ),
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space3),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: TossSpacing.space8),
-              child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            // Options list
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
-                ),
-                itemCount: counterparties.length,
-                itemBuilder: (context, index) {
-                  final cp = counterparties[index];
-                  final isSelected = cp.id == widget.counterpartyId;
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space4,
-                      vertical: TossSpacing.space0_5,
-                    ),
-                    child: Material(
-                      color: TossColors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                        onTap: () {
-                          // Build address from additionalData
-                          final additionalData = cp.additionalData;
-                          final parts = <String>[];
-                          if (additionalData != null) {
-                            if (additionalData['address'] != null) parts.add(additionalData['address'].toString());
-                            if (additionalData['city'] != null) parts.add(additionalData['city'].toString());
-                            if (additionalData['country'] != null) parts.add(additionalData['country'].toString());
-                          }
-                          widget.counterpartyInfoController.text = parts.join(', ');
-                          widget.onCounterpartyChanged(cp);
-                          Navigator.pop(context);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space3,
-                            vertical: TossSpacing.space3,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      cp.name,
-                                      style: TossTextStyles.body.copyWith(
-                                        color: TossColors.textPrimary,
-                                        fontWeight: TossFontWeight.medium,
-                                      ),
-                                    ),
-                                    if (cp.type.isNotEmpty) ...[
-                                      const SizedBox(height: TossSpacing.space0_5),
-                                      Text(
-                                        cp.type,
-                                        style: TossTextStyles.caption.copyWith(
-                                          color: TossColors.gray600,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              if (isSelected)
-                                const Icon(
-                                  Icons.check,
-                                  color: TossColors.primary,
-                                ),
-                            ],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cp.name,
+                          style: TossTextStyles.body.copyWith(
+                            color: TossColors.textPrimary,
+                            fontWeight: TossFontWeight.medium,
                           ),
                         ),
-                      ),
+                        if (cp.type.isNotEmpty) ...[
+                          const SizedBox(height: TossSpacing.space0_5),
+                          Text(
+                            cp.type,
+                            style: TossTextStyles.caption.copyWith(
+                              color: TossColors.gray600,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  );
-                },
+                  ),
+                  if (isSelected)
+                    const Icon(
+                      Icons.check,
+                      color: TossColors.primary,
+                    ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

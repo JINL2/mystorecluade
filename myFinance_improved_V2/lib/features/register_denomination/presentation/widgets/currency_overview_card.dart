@@ -16,6 +16,7 @@ import 'currency_overview_card/delete_currency_dialog.dart';
 import 'denomination_grid.dart';
 import 'edit_exchange_rate_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Currency overview card displaying currency info and expandable denominations
 class CurrencyOverviewCard extends ConsumerWidget {
@@ -119,20 +120,18 @@ class CurrencyOverviewCard extends ConsumerWidget {
   }
 
   void _showAddDenominationSheet(BuildContext context) {
-    showModalBottomSheet<void>(
+    TossBottomSheet.show<void>(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => AddDenominationBottomSheet(currency: currency),
+      title: 'Add Denomination',
+      content: AddDenominationBottomSheet(currency: currency),
     );
   }
 
   void _showEditExchangeRateSheet(BuildContext context) {
-    showModalBottomSheet<void>(
+    TossBottomSheet.show<void>(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => EditExchangeRateBottomSheet(currency: currency),
+      title: 'Edit Exchange Rate',
+      content: EditExchangeRateBottomSheet(currency: currency),
     );
   }
 

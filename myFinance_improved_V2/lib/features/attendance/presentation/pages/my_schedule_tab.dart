@@ -577,9 +577,8 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
                 // Selected date shifts label
                 Text(
                   'Shifts for ${DateFormat('EEE, d MMM').format(_selectedDate)}',
-                  style: TossTextStyles.body.copyWith(
+                  style: TossTextStyles.bodyMedium.copyWith(
                     color: TossColors.gray600,
-                    fontWeight: TossFontWeight.semibold,
                   ),
                 ),
                 SizedBox(height: TossSpacing.space3),

@@ -6,6 +6,7 @@ import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/features/attendance/domain/entities/shift_card.dart';
 import 'package:myfinance_improved/features/attendance/presentation/providers/attendance_providers.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import '../widgets/shift_detail/shift_info_card.dart';
 import '../widgets/shift_detail/payment_summary_card.dart';
@@ -60,15 +61,9 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   TextStyle? _getCheckInTimeColor() {
     final isConfirmedByManager = widget.shift.confirmStartTime != null;
     if (widget.shift.isLate && !isConfirmedByManager) {
-      return TossTextStyles.bodyLarge.copyWith(
-        color: TossColors.error,
-        fontWeight: TossFontWeight.semibold,
-      );
+      return TossTextStyles.bodyError;
     } else if (isConfirmedByManager) {
-      return TossTextStyles.bodyLarge.copyWith(
-        color: TossColors.primary,
-        fontWeight: TossFontWeight.semibold,
-      );
+      return TossTextStyles.bodyPrimaryBold;
     }
     return null;
   }
@@ -76,15 +71,9 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
   TextStyle? _getCheckOutTimeColor() {
     final isConfirmedByManager = widget.shift.confirmEndTime != null;
     if (widget.shift.isExtratime && !isConfirmedByManager) {
-      return TossTextStyles.bodyLarge.copyWith(
-        color: TossColors.error,
-        fontWeight: TossFontWeight.semibold,
-      );
+      return TossTextStyles.bodyError;
     } else if (isConfirmedByManager) {
-      return TossTextStyles.bodyLarge.copyWith(
-        color: TossColors.primary,
-        fontWeight: TossFontWeight.semibold,
-      );
+      return TossTextStyles.bodyPrimaryBold;
     }
     return null;
   }
@@ -197,92 +186,67 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
     final TextEditingController reasonController = TextEditingController();
     bool isSubmitting = false;
 
-    showModalBottomSheet<void>(
+    TossBottomSheet.show<void>(
       context: context,
-      isScrollControlled: true,
-      isDismissible: true,
-      backgroundColor: TossColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
-      ),
-      builder: (BuildContext bottomSheetContext) {
-        return StatefulBuilder(
-          builder: (context, setBottomSheetState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: TossSpacing.space4,
-                right: TossSpacing.space4,
-                top: TossSpacing.space6,
-                bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 48,
+      title: 'Report Issue',
+      content: StatefulBuilder(
+        builder: (context, setBottomSheetState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please describe the problem with this shift',
+                style: TossTextStyles.bodyGray600,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              SizedBox(height: TossSpacing.space4),
+              TossTextField(
+                controller: reasonController,
+                hintText: 'Enter the reason for reporting this issue...',
+                maxLines: 4,
+                enabled: !isSubmitting,
+              ),
+              SizedBox(height: TossSpacing.paddingXL),
+              Row(
                 children: [
-                  Text(
-                    'Report Issue',
-                    style: TossTextStyles.titleMedium.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: TossFontWeight.bold,
+                  Expanded(
+                    child: TossButton.secondary(
+                      text: 'Cancel',
+                      fullWidth: true,
+                      isEnabled: !isSubmitting,
+                      onPressed: isSubmitting
+                          ? null
+                          : () => Navigator.pop(context),
                     ),
                   ),
-                  SizedBox(height: TossSpacing.space2),
-                  Text(
-                    'Please describe the problem with this shift',
-                    style: TossTextStyles.bodyLarge.copyWith(
-                      color: TossColors.gray600,
+                  SizedBox(width: TossSpacing.space3),
+                  Expanded(
+                    child: TossButton.primary(
+                      text: isSubmitting ? 'Submitting...' : 'OK',
+                      fullWidth: true,
+                      isEnabled: !isSubmitting,
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                              final reason = reasonController.text.trim();
+                              if (reason.isEmpty) {
+                                TossToast.error(this.context, 'Please enter a reason');
+                                return;
+                              }
+                              setBottomSheetState(() {
+                                isSubmitting = true;
+                              });
+                              Navigator.pop(context);
+                              await _submitReport(reason);
+                            },
                     ),
-                  ),
-                  SizedBox(height: TossSpacing.space4),
-                  TossTextField.filled(
-                    controller: reasonController,
-                    hintText: 'Enter the reason for reporting this issue...',
-                    maxLines: 4,
-                    enabled: !isSubmitting,
-                  ),
-                  SizedBox(height: TossSpacing.paddingXL),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TossButton.secondary(
-                          text: 'Cancel',
-                          fullWidth: true,
-                          isEnabled: !isSubmitting,
-                          onPressed: isSubmitting
-                              ? null
-                              : () => Navigator.pop(bottomSheetContext),
-                        ),
-                      ),
-                      SizedBox(width: TossSpacing.space3),
-                      Expanded(
-                        child: TossButton.primary(
-                          text: isSubmitting ? 'Submitting...' : 'OK',
-                          fullWidth: true,
-                          isEnabled: !isSubmitting,
-                          onPressed: isSubmitting
-                              ? null
-                              : () async {
-                                  final reason = reasonController.text.trim();
-                                  if (reason.isEmpty) {
-                                    TossToast.error(this.context, 'Please enter a reason');
-                                    return;
-                                  }
-                                  setBottomSheetState(() {
-                                    isSubmitting = true;
-                                  });
-                                  Navigator.pop(bottomSheetContext);
-                                  await _submitReport(reason);
-                                },
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -407,10 +371,7 @@ class _ShiftDetailPageState extends ConsumerState<ShiftDetailPage> {
                         SizedBox(height: TossSpacing.space5),
                         Text(
                           'Recorded attendance is based on your check-in/out records.\nConfirmed attendance is the manager-approved time used for salary.',
-                          style: TossTextStyles.caption.copyWith(
-                            color: TossColors.gray600,
-                            height: 1.6,
-                          ),
+                          style: TossTextStyles.captionGray600,
                         ),
                         SizedBox(height: TossSpacing.space4),
                       ],

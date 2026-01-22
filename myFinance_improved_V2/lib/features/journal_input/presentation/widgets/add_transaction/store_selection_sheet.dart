@@ -4,6 +4,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 /// Callback type for store selection
 typedef OnStoreSelected = void Function(String storeId, String storeName);
@@ -28,87 +29,33 @@ class StoreSelectionSheet extends StatelessWidget {
     required List<Map<String, dynamic>> stores,
     required OnStoreSelected onStoreSelected,
   }) {
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => StoreSelectionSheet(
-        stores: stores,
-        onStoreSelected: onStoreSelected,
-      ),
+      title: 'Select Store',
+      showDividers: true,
+      itemCount: stores.length,
+      itemBuilder: (ctx, index) {
+        final store = stores[index];
+        final storeId = store['store_id'] as String?;
+        final storeName = store['store_name'] as String? ?? 'Unknown Store';
+
+        return _StoreListItem(
+          storeName: storeName,
+          onTap: () {
+            if (storeId != null) {
+              onStoreSelected(storeId, storeName);
+            }
+            Navigator.pop(context);
+          },
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xxl),
-          topRight: Radius.circular(TossBorderRadius.xxl),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            ),
-          ),
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Select Store',
-                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: TossColors.gray500),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-          // Store list
-          Flexible(
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              itemCount: stores.length,
-              separatorBuilder: (context, index) => Container(
-                height: 1,
-                color: TossColors.gray100,
-              ),
-              itemBuilder: (context, index) {
-                final store = stores[index];
-                final storeId = store['store_id'] as String?;
-                final storeName = store['store_name'] as String? ?? 'Unknown Store';
-
-                return _StoreListItem(
-                  storeName: storeName,
-                  onTap: () {
-                    if (storeId != null) {
-                      onStoreSelected(storeId, storeName);
-                    }
-                    Navigator.pop(context);
-                  },
-                );
-              },
-            ),
-          ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
-        ],
-      ),
-    );
+    // This widget is no longer used directly; the static show method handles everything
+    return const SizedBox.shrink();
   }
 }
 

@@ -42,9 +42,7 @@ class PnlHeroCard extends StatelessWidget {
           // Net Income Label
           Text(
             'Net Income',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-            ),
+            style: TossTextStyles.captionGray500,
           ),
 
           const SizedBox(height: TossSpacing.space2),
@@ -56,9 +54,8 @@ class PnlHeroCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   '${isProfit ? '' : '-'}$currencySymbol${formatter.format(summary.netIncome.abs())}',
-                  style: TossTextStyles.h1.copyWith(
+                  style: TossTextStyles.h1Bold.copyWith(
                     color: isProfit ? TossColors.gray900 : TossColors.error,
-                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -140,9 +137,8 @@ class PnlHeroCard extends StatelessWidget {
           SizedBox(width: TossSpacing.space1 / 2),
           Text(
             '${changePct.abs().toStringAsFixed(1)}%',
-            style: TossTextStyles.caption.copyWith(
+            style: TossTextStyles.captionBold.copyWith(
               color: isPositive ? TossColors.success : TossColors.error,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -159,26 +155,19 @@ class PnlHeroCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-            fontSize: 11,
-          ),
+          style: TossTextStyles.captionGray500,
         ),
         const SizedBox(height: TossSpacing.space1),
         Text(
           '${isNegative ? '-' : ''}$currencySymbol${formatter.format(value.abs())}',
-          style: TossTextStyles.bodyMedium.copyWith(
+          style: TossTextStyles.bodyMediumBold.copyWith(
             color: isNegative ? TossColors.error : TossColors.gray900,
-            fontWeight: FontWeight.w600,
           ),
         ),
         if (margin != null)
           Text(
             '${margin.toStringAsFixed(1)}%',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-              fontSize: 11,
-            ),
+            style: TossTextStyles.captionGray500,
           ),
       ],
     );
@@ -195,10 +184,7 @@ class PnlHeroCard extends StatelessWidget {
       children: [
         Text(
           'Margin Analysis',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.gray500,
-            fontSize: 11,
-          ),
+          style: TossTextStyles.captionGray500,
         ),
         const SizedBox(height: TossSpacing.space2),
         Row(
@@ -232,20 +218,14 @@ class PnlHeroCard extends StatelessWidget {
               const SizedBox(width: TossSpacing.space1),
               Text(
                 label,
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray600,
-                  fontSize: 10,
-                ),
+                style: TossTextStyles.captionGray600,
               ),
             ],
           ),
           SizedBox(height: TossSpacing.space1 / 2),
           Text(
             '${margin.toStringAsFixed(1)}%',
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TossTextStyles.bodySmallBold,
           ),
         ],
       ),

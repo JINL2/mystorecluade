@@ -9,6 +9,7 @@ import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
 import '../../../../counter_party/presentation/widgets/counter_party_form.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Buyer selector section for PO form
 class POBuyerSection extends ConsumerStatefulWidget {
@@ -29,23 +30,9 @@ class POBuyerSection extends ConsumerStatefulWidget {
 
 class _POBuyerSectionState extends ConsumerState<POBuyerSection> {
   void _showCreateCounterpartySheet() {
-    showModalBottomSheet<bool>(
+    TossBottomSheet.showFullscreen<bool>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: const CounterPartyForm(),
-        ),
-      ),
+      builder: (context) => const CounterPartyForm(),
     ).then((result) {
       if (result == true) {
         ref.invalidate(currentCounterpartiesProvider);

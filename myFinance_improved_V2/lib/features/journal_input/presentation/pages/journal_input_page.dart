@@ -13,6 +13,7 @@ import '../../../../shared/themes/toss_dimensions.dart';
 import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 // Shared widgets
 // Domain
 import '../../domain/entities/transaction_line.dart';
@@ -107,11 +108,9 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
     required double? suggestedAmount,
     required Set<String> blockedCashLocationIds,
   }) async {
-    return showModalBottomSheet<TransactionLine>(
+    return TossBottomSheet.showWithBuilder<TransactionLine>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      useRootNavigator: true,
+      heightFactor: 0.8,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -150,11 +149,9 @@ class _JournalInputPageState extends ConsumerState<JournalInputPage>
         .map((entry) => entry.value.cashLocationId!)
         .toSet();
 
-    final result = await showModalBottomSheet<TransactionLine>(
+    final result = await TossBottomSheet.showWithBuilder<TransactionLine>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      useRootNavigator: true,
+      heightFactor: 0.8,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,

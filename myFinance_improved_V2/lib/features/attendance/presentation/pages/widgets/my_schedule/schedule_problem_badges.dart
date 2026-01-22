@@ -56,10 +56,7 @@ class ScheduleProblemBadges extends StatelessWidget {
         badgesWithSeparators.add(
           Text(
             ' \u00b7 ',
-            style: TossTextStyles.labelSmall.copyWith(
-              color: TossColors.gray400,
-              fontWeight: TossFontWeight.semibold,
-            ),
+            style: TossTextStyles.captionGray400,
           ),
         );
       }
@@ -72,9 +69,8 @@ class ScheduleProblemBadges extends StatelessWidget {
         if (hiddenCount > 0)
           Text(
             ' +$hiddenCount',
-            style: TossTextStyles.labelSmall.copyWith(
+            style: TossTextStyles.captionBold.copyWith(
               color: TossColors.gray600,
-              fontWeight: TossFontWeight.semibold,
             ),
           ),
       ],
@@ -86,10 +82,9 @@ class ScheduleProblemBadges extends StatelessWidget {
   Widget _buildProblemBadge(String label, {required bool isProblem}) {
     return Text(
       label,
-      style: TossTextStyles.labelSmall.copyWith(
-        color: isProblem ? TossColors.error : TossColors.gray600,
-        fontWeight: TossFontWeight.semibold,
-      ),
+      style: isProblem
+          ? TossTextStyles.captionError
+          : TossTextStyles.captionGray600,
     );
   }
 }

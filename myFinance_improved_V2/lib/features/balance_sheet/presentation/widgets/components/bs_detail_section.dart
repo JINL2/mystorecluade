@@ -65,17 +65,12 @@ class _BsDetailSectionState extends State<BsDetailSection> {
               children: [
                 Text(
                   'Account Details',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TossTextStyles.bodyMediumBold,
                 ),
                 const Spacer(),
                 Text(
                   '${sortedSections.length} sections',
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
+                  style: TossTextStyles.captionGray500,
                 ),
               ],
             ),
@@ -136,20 +131,14 @@ class _BsDetailSectionState extends State<BsDetailSection> {
                 Expanded(
                   child: Text(
                     sectionName,
-                    style: TossTextStyles.bodyMedium.copyWith(
-                      color: TossColors.gray900,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TossTextStyles.bodyMedium,
                   ),
                 ),
 
                 // Section total
                 Text(
                   '${widget.currencySymbol}${formatter.format(sectionTotal.abs())}',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TossTextStyles.bodyMediumBold,
                 ),
               ],
             ),
@@ -195,15 +184,14 @@ class _BsDetailSectionState extends State<BsDetailSection> {
               vertical: 2,
             ),
             decoration: BoxDecoration(
-              color: TossColors.gray200,
+              color: TossColors.white,
+              border: Border.all(color: TossColors.gray200),
               borderRadius: BorderRadius.circular(TossBorderRadius.xs),
             ),
             child: Text(
               account.accountCode,
-              style: TossTextStyles.caption.copyWith(
+              style: TossTextStyles.codeSmall.copyWith(
                 color: TossColors.gray600,
-                fontSize: 10,
-                fontFamily: 'JetBrains Mono',
               ),
             ),
           ),
@@ -214,20 +202,18 @@ class _BsDetailSectionState extends State<BsDetailSection> {
           Expanded(
             child: Text(
               account.accountName,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: hasBalance ? TossColors.gray700 : TossColors.gray500,
-                fontWeight: FontWeight.w400,
-              ),
+              style: hasBalance
+                  ? TossTextStyles.bodySmallGray700
+                  : TossTextStyles.bodySmallGray500,
             ),
           ),
 
           // Balance
           Text(
             '${widget.currencySymbol}${formatter.format(account.balance.abs())}',
-            style: TossTextStyles.bodySmall.copyWith(
-              color: hasBalance ? TossColors.gray700 : TossColors.gray400,
-              fontWeight: hasBalance ? FontWeight.w500 : FontWeight.w400,
-            ),
+            style: hasBalance
+                ? TossTextStyles.bodySmall.copyWith(color: TossColors.gray700)
+                : TossTextStyles.bodySmallGray400,
           ),
         ],
       ),

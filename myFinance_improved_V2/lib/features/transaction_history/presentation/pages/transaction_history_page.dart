@@ -7,6 +7,7 @@ import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import '../../domain/entities/transaction_filter.dart';
 import '../providers/transaction_providers.dart';
@@ -83,11 +84,10 @@ class _TransactionHistoryPageState extends ConsumerState<TransactionHistoryPage>
     if (_isFilterSheetOpen) return;
     _isFilterSheetOpen = true;
 
-    showModalBottomSheet<void>(
+    TossBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (context) => const TransactionFilterSheet(),
+      title: 'Filter Transactions',
+      content: const TransactionFilterSheet(),
     ).whenComplete(() {
       _isFilterSheetOpen = false;
     });

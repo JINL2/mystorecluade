@@ -16,7 +16,7 @@ class TossSpacing {
   static const double space3 = 12.0;   // Small spacing (3x base)
   static const double space4 = 16.0;   // Default spacing (4x base) ⭐
   static const double space5 = 20.0;   // Medium spacing (5x base)
-  static const double space6 = 30.0;   // Large spacing (6x base) ⭐
+  static const double space6 = 24.0;   // Large spacing (6x base) ⭐
   static const double space7 = 28.0;   // Extra spacing (7x base)
   static const double space8 = 32.0;   // Section spacing (8x base)
   static const double space9 = 36.0;   // Content spacing (9x base)

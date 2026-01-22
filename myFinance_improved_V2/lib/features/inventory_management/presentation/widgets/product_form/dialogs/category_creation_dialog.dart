@@ -9,6 +9,7 @@ import '../../../../../../shared/themes/toss_colors.dart';
 import '../../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import '../../../../domain/entities/inventory_metadata.dart';
 import '../../../providers/inventory_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -132,46 +133,29 @@ class _CategoryCreationDialogState
   void _showParentCategorySelector(InventoryMetadata metadata) {
     if (metadata.categories.isEmpty) return;
 
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show(
       context: context,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.6,
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Parent Category',
-              style: TossTextStyles.h3.copyWith(fontWeight: TossFontWeight.bold),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Expanded(
-              child: ListView.builder(
-                itemCount: metadata.categories.length,
-                itemBuilder: (context, index) {
-                  final category = metadata.categories[index];
-                  return ListTile(
-                    leading: const Icon(Icons.help_outline,
-                        color: TossColors.gray400),
-                    title: Text(category.name),
-                    subtitle: Text('${category.productCount ?? 0} products'),
-                    trailing: _selectedParentCategory?.id == category.id
-                        ? const Icon(Icons.check, color: TossColors.primary)
-                        : null,
-                    onTap: () {
-                      setState(() {
-                        _selectedParentCategory = category;
-                      });
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+      title: 'Parent Category',
+      maxHeightRatio: 0.6,
+      itemCount: metadata.categories.length,
+      itemBuilder: (context, index) {
+        final category = metadata.categories[index];
+        return ListTile(
+          leading: const Icon(Icons.help_outline,
+              color: TossColors.gray400),
+          title: Text(category.name),
+          subtitle: Text('${category.productCount ?? 0} products'),
+          trailing: _selectedParentCategory?.id == category.id
+              ? const Icon(Icons.check, color: TossColors.primary)
+              : null,
+          onTap: () {
+            setState(() {
+              _selectedParentCategory = category;
+            });
+            Navigator.pop(context);
+          },
+        );
+      },
     );
   }
 

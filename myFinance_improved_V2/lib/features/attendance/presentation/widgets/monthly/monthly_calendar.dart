@@ -40,10 +40,9 @@ class MonthlyCalendar extends StatelessWidget {
           child: Center(
             child: Text(
               day,
-              style: TossTextStyles.caption.copyWith(
-                color: isWeekend ? TossColors.gray400 : TossColors.gray600,
-                fontWeight: TossFontWeight.semibold,
-              ),
+              style: isWeekend
+                  ? TossTextStyles.captionGray400
+                  : TossTextStyles.captionBold,
             ),
           ),
         );
@@ -135,10 +134,10 @@ class MonthlyCalendar extends StatelessWidget {
           child: Center(
             child: Text(
               '${date.day}',
-              style: TossTextStyles.caption.copyWith(
-                color: textColor,
-                fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+              style: (isToday || isSelected
+                      ? TossTextStyles.captionBold
+                      : TossTextStyles.caption)
+                  .copyWith(color: textColor),
             ),
           ),
         ),

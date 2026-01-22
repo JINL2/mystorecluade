@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Date range model
 class DateRange {
@@ -65,15 +66,9 @@ class CalendarTimeRange extends StatefulWidget {
     DateRange? initialRange,
     required void Function(DateRange? range) onRangeSelected,
   }) {
-    return showModalBottomSheet<void>(
+    return TossBottomSheet.showWithBuilder<void>(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.bottomSheet),
-        ),
-      ),
+      heightFactor: 0.75,
       builder: (context) => CalendarTimeRange(
         initialRange: initialRange,
         onRangeSelected: onRangeSelected,

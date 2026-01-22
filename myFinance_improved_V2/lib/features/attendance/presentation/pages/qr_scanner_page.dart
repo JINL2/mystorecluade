@@ -374,16 +374,12 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                       const SizedBox(height: TossSpacing.space4),
                       Text(
                         'Camera Error',
-                        style: TossTextStyles.h3.copyWith(
-                          color: TossColors.white,
-                        ),
+                        style: TossTextStyles.h3White,
                       ),
                       const SizedBox(height: TossSpacing.space2),
                       Text(
                         _getCameraErrorMessage(error),
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray300,
-                        ),
+                        style: TossTextStyles.bodyTertiary,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: TossSpacing.space4),
@@ -622,9 +618,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                       else
                         Text(
                           'Scan QR Code',
-                          style: TossTextStyles.h3.copyWith(
-                            color: TossColors.white,
-                          ),
+                          style: TossTextStyles.h3White,
                           textAlign: TextAlign.center,
                         ),
                       const SizedBox(height: TossSpacing.space2),
@@ -632,7 +626,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                         scannerState.isProcessing
                             ? 'Processing...'
                             : 'Position the QR code within the frame',
-                        style: TossTextStyles.body.copyWith(
+                        style: TossTextStyles.bodyWhite.copyWith(
                           color: TossColors.white.withValues(alpha: TossOpacity.modalBackdrop),
                         ),
                         textAlign: TextAlign.center,

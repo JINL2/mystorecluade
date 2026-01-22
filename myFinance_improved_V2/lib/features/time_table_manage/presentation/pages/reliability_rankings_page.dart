@@ -8,6 +8,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import 'employee_detail_page.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 /// Ranking criteria enum for filtering employees
 enum RankingCriteria {
@@ -209,22 +210,49 @@ class _ReliabilityRankingsPageState
 
   void _showCriteriaBottomSheet() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show<void>(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
-      ),
-      builder: (context) => _RankingCriteriaBottomSheet(
-        selectedCriteria: selectedCriteria,
-        onCriteriaSelected: (criteria) {
-          Navigator.pop(context);
-          setState(() {
-            selectedCriteria = criteria;
-            _updateDisplayedEmployees();
-          });
-        },
-      ),
+      title: 'Reliability Rankings',
+      showCloseButton: true,
+      onClose: () => Navigator.pop(context),
+      children: RankingCriteria.values.map((criteria) {
+        final isSelected = criteria == selectedCriteria;
+        return GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            Navigator.pop(context);
+            setState(() {
+              selectedCriteria = criteria;
+              _updateDisplayedEmployees();
+            });
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space4,
+              vertical: TossSpacing.space4,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  criteria.label,
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: TossFontWeight.medium,
+                    color: isSelected ? TossColors.primary : TossColors.gray900,
+                  ),
+                ),
+                if (isSelected)
+                  Icon(
+                    Icons.check,
+                    color: TossColors.primary,
+                    size: TossSpacing.iconLG,
+                  ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -458,110 +486,6 @@ class _RankingRow extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Bottom sheet for selecting ranking criteria
-class _RankingCriteriaBottomSheet extends StatelessWidget {
-  final RankingCriteria selectedCriteria;
-  final void Function(RankingCriteria) onCriteriaSelected;
-
-  const _RankingCriteriaBottomSheet({
-    required this.selectedCriteria,
-    required this.onCriteriaSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: EdgeInsets.only(
-              top: TossSpacing.space3,
-              bottom: TossSpacing.space2,
-            ),
-            width: TossDimensions.dragHandleWidth,
-            height: TossDimensions.dragHandleHeight,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.dragHandle),
-            ),
-          ),
-
-          // Title with close button
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: TossSpacing.space4,
-              vertical: TossSpacing.space2,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(width: TossDimensions.dragHandleWidth), // Spacer for centering
-                Text(
-                  'Reliability Rankings',
-                  style: TossTextStyles.titleMedium.copyWith(
-                    fontWeight: TossFontWeight.bold,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Icon(
-                    Icons.close,
-                    color: TossColors.gray600,
-                    size: TossSpacing.iconLG,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const Divider(height: 1, color: TossColors.gray200),
-
-          // Criteria list
-          ...RankingCriteria.values.map((criteria) {
-            final isSelected = criteria == selectedCriteria;
-            return GestureDetector(
-              onTap: () {
-                HapticFeedback.selectionClick();
-                onCriteriaSelected(criteria);
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space4,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      criteria.label,
-                      style: TossTextStyles.body.copyWith(
-                        fontWeight: TossFontWeight.medium,
-                        color:
-                            isSelected ? TossColors.primary : TossColors.gray900,
-                      ),
-                    ),
-                    if (isSelected)
-                      Icon(
-                        Icons.check,
-                        color: TossColors.primary,
-                        size: TossSpacing.iconLG,
-                      ),
-                  ],
-                ),
-              ),
-            );
-          }),
-
-          const SizedBox(height: TossSpacing.space4),
-        ],
       ),
     );
   }

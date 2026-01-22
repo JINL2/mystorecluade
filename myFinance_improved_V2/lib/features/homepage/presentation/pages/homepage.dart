@@ -199,7 +199,7 @@ class _HomepageState extends ConsumerState<Homepage> {
               if (appState.companyChoosen.isNotEmpty && _hasRevenuePermission())
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.only(left: TossSpacing.space4, right: TossSpacing.space4, top: TossSpacing.space4),
+                    padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4),
                     child: const RevenueChartCard(),
                   ),
                 ),

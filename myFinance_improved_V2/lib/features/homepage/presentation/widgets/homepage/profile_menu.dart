@@ -36,9 +36,7 @@ void showProfileMenu({
             const SizedBox(width: TossSpacing.space3),
             Text(
               'My Profile',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.textPrimary,
-              ),
+              style: TossTextStyles.body,
             ),
           ],
         ),
@@ -56,9 +54,7 @@ void showProfileMenu({
             const SizedBox(width: TossSpacing.space3),
             Text(
               'Logout',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.error,
-              ),
+              style: TossTextStyles.bodyError,
             ),
           ],
         ),

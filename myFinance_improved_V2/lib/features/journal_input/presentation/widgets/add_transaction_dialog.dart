@@ -11,6 +11,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../domain/entities/transaction_line.dart';
 import '../../../../core/domain/entities/selector_entities.dart';
 
@@ -300,25 +301,18 @@ class _AddTransactionDialogState extends ConsumerState<AddTransactionDialog> {
   }
 
   void _showExchangeRateCalculator() {
-    showModalBottomSheet<void>(
+    TossBottomSheet.showWithBuilder(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black.withValues(alpha: 0.5),
-      isDismissible: true,
-      enableDrag: true,
-      builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.85,
-        child: ExchangeRateCalculator(
-          initialAmount: _amountController.text.replaceAll(',', ''),
-          onAmountSelected: (amount) {
-            final formatter = NumberFormat('#,##0.##', 'en_US');
-            final numericValue = double.tryParse(amount) ?? 0;
-            setState(() {
-              _amountController.text = formatter.format(numericValue);
-            });
-          },
-        ),
+      heightFactor: 0.85,
+      builder: (context) => ExchangeRateCalculator(
+        initialAmount: _amountController.text.replaceAll(',', ''),
+        onAmountSelected: (amount) {
+          final formatter = NumberFormat('#,##0.##', 'en_US');
+          final numericValue = double.tryParse(amount) ?? 0;
+          setState(() {
+            _amountController.text = formatter.format(numericValue);
+          });
+        },
       ),
     );
   }

@@ -52,16 +52,12 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           // Title
           Text(
             'Reliability Score',
-            style: TossTextStyles.h3.copyWith(
-              fontWeight: TossFontWeight.bold,
-            ),
+            style: TossTextStyles.h3,
           ),
           SizedBox(height: TossSpacing.space1),
           Text(
             'How we calculate your reliability',
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray600,
-            ),
+            style: TossTextStyles.captionGray600,
           ),
 
           SizedBox(height: TossSpacing.space5),
@@ -75,16 +71,20 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           if (criteria.isNotEmpty) ...[
             Text(
               'Performance Overview',
-              style: TossTextStyles.body.copyWith(
-                fontWeight: TossFontWeight.semibold,
-                color: TossColors.gray900,
-              ),
+              style: TossTextStyles.bodyMedium,
             ),
             SizedBox(height: TossSpacing.gapMD),
             TossCard(
-              padding: EdgeInsets.all(TossSpacing.space5),
-              child: ReliabilityRadarChart(
-                criteria: criteria.cast<Map<String, dynamic>>(),
+              padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+              showBorder: false,
+              child: Column(
+                children: [
+                  SizedBox(height: TossSpacing.space4),
+                  ReliabilityRadarChart(
+                    criteria: criteria.cast<Map<String, dynamic>>(),
+                  ),
+                  SizedBox(height: TossSpacing.space4),
+                ],
               ),
             ),
             SizedBox(height: TossSpacing.space5),
@@ -93,10 +93,7 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
           // Components - 2x2 Grid
           Text(
             'Detailed Breakdown',
-            style: TossTextStyles.body.copyWith(
-              fontWeight: TossFontWeight.semibold,
-              color: TossColors.gray900,
-            ),
+            style: TossTextStyles.bodyMedium,
           ),
           SizedBox(height: TossSpacing.gapMD),
 
@@ -128,16 +125,12 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
             SizedBox(height: TossSpacing.space4),
             Text(
               'Not Enough Data',
-              style: TossTextStyles.h4.copyWith(
-                fontWeight: TossFontWeight.semibold,
-              ),
+              style: TossTextStyles.h4,
             ),
             SizedBox(height: TossSpacing.space2),
             Text(
               'Complete more shifts to see your score',
-              style: TossTextStyles.body.copyWith(
-                color: TossColors.gray600,
-              ),
+              style: TossTextStyles.bodyGray600,
               textAlign: TextAlign.center,
             ),
           ],
@@ -152,14 +145,13 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
 
     return TossCard(
       padding: EdgeInsets.zero,
+      showBorder: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Your Score',
-            style: TossTextStyles.labelSmall.copyWith(
-              color: TossColors.gray600,
-            ),
+            style: TossTextStyles.captionGray600,
           ),
           SizedBox(height: TossSpacing.space1 + TossSpacing.space1 / 2), // 6px
           Row(
@@ -168,9 +160,7 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
               Text(
                 widget.finalScore.toStringAsFixed(1),
                 style: TossTextStyles.h1.copyWith(
-                  fontWeight: TossFontWeight.bold,
                   color: color,
-                  height: 1.0,
                 ),
               ),
               SizedBox(width: TossSpacing.space2),
@@ -178,8 +168,7 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
                 padding: EdgeInsets.only(bottom: TossSpacing.space1),
                 child: Text(
                   label,
-                  style: TossTextStyles.bodyLarge.copyWith(
-                    fontWeight: TossFontWeight.semibold,
+                  style: TossTextStyles.bodyMedium.copyWith(
                     color: color,
                   ),
                 ),
@@ -253,27 +242,19 @@ class _ReliabilityScoreBottomSheetState extends State<ReliabilityScoreBottomShee
             SizedBox(width: TossSpacing.space2),
             Text(
               'Data Confidence',
-              style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: TossFontWeight.semibold,
-              ),
+              style: TossTextStyles.captionBold,
             ),
           ],
         ),
         SizedBox(height: TossSpacing.space2),
         Text(
           'Score is adjusted based on your work history. More shifts = higher confidence.',
-          style: TossTextStyles.labelSmall.copyWith(
-            color: TossColors.gray600,
-            height: 1.4,
-          ),
+          style: TossTextStyles.captionGray600,
         ),
         SizedBox(height: TossSpacing.space2),
         Text(
           'Confidence: ${(reliabilityValue * 100).toStringAsFixed(0)}%',
-          style: TossTextStyles.bodySmall.copyWith(
-            fontWeight: TossFontWeight.semibold,
-            color: TossColors.primary,
-          ),
+          style: TossTextStyles.captionPrimary,
         ),
       ],
     );

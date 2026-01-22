@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Enhanced bottom sheet with fixed UX pattern for keyboard handling
 /// 
@@ -42,14 +43,11 @@ class TossTextFieldKeyboardModal extends StatefulWidget {
     bool dismissOnTapOutside = true,
     VoidCallback? onDismiss,
   }) {
-    return showModalBottomSheet<T>(
+    return TossBottomSheet.showWithBuilder<T>(
       context: context,
-      backgroundColor: TossColors.transparent,
-      barrierColor: TossColors.black54,
-      isScrollControlled: true,
+      heightFactor: maxHeightFactor,
       isDismissible: dismissOnTapOutside,
       enableDrag: true,
-      useSafeArea: true,
       builder: (context) => TossTextFieldKeyboardModal(
         title: title,
         content: content,

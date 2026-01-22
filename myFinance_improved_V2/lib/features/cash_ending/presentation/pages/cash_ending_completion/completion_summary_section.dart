@@ -122,9 +122,7 @@ class CompletionSummarySection extends StatelessWidget {
             // Helper text
             Text(
               'Make sure today\'s Journal entries are complete before using Auto-Balance - missing entries often cause differences.',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray500,
-              ),
+              style: TossTextStyles.captionGray500,
             ),
           ],
         ],
@@ -140,35 +138,41 @@ class CompletionSummarySection extends StatelessWidget {
     String? subtitle,
     Color? subtitleColor,
   }) {
+    // Use semantic styles based on isLarge flag
+    final labelStyle = isLarge
+        ? TossTextStyles.bodyMedium
+        : TossTextStyles.bodyGray600;
+    final valueStyle = isLarge
+        ? TossTextStyles.bodyMedium
+        : TossTextStyles.body;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
           label,
-          style: (isLarge ? TossTextStyles.bodyMedium : TossTextStyles.body).copyWith(
-            color: TossColors.gray600,
-          ),
+          style: isLarge
+              ? labelStyle
+              : labelStyle, // bodyGray600 already has gray600 color
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               value,
-              style: (isLarge ? TossTextStyles.bodyMedium : TossTextStyles.body).copyWith(
-                color: valueColor ?? TossColors.gray900,
-                fontWeight: isLarge ? FontWeight.w600 : FontWeight.w400,
-              ),
+              style: valueColor != null
+                  ? valueStyle.copyWith(color: valueColor)
+                  : valueStyle,
             ),
             // Show subtitle (percentage) if provided
             if (subtitle != null) ...[
               SizedBox(height: TossSpacing.space1 / 2),
               Text(
                 subtitle,
-                style: TossTextStyles.small.copyWith(
-                  color: subtitleColor ?? TossColors.gray500,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: subtitleColor != null
+                    ? TossTextStyles.smallPrimary.copyWith(color: subtitleColor)
+                    : TossTextStyles.smallSecondary,
               ),
             ],
           ],
@@ -257,9 +261,8 @@ class _AdjustmentInfoSection extends StatelessWidget {
               const SizedBox(width: TossSpacing.space2),
               Text(
                 'Auto-Balance Applied',
-                style: TossTextStyles.bodySmall.copyWith(
+                style: TossTextStyles.captionBold.copyWith(
                   color: boxColor,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -298,22 +301,19 @@ class _AdjustmentInfoSection extends StatelessWidget {
   }
 
   Widget _buildAdjustmentRow(String label, String value, Color color, {bool isBold = false}) {
+    // Use semantic styles - bodySmall is 12px
+    final baseStyle = isBold ? TossTextStyles.captionBold : TossTextStyles.caption;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: color,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
-          ),
+          style: baseStyle.copyWith(color: color),
         ),
         Text(
           value,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: color,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.w500,
-          ),
+          style: baseStyle.copyWith(color: color),
         ),
       ],
     );

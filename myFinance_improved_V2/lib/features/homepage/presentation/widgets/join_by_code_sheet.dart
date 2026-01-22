@@ -160,16 +160,12 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                     children: [
                       Text(
                         widget.title,
-                        style: TossTextStyles.h3.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TossTextStyles.sheetTitle,
                       ),
                       SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         widget.subtitle,
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.textSecondary,
-                        ),
+                        style: TossTextStyles.captionSecondary,
                       ),
                     ],
                   ),
@@ -236,10 +232,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                           Expanded(
                             child: Text(
                               _errorMessage!,
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.error,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: TossTextStyles.captionError,
                             ),
                           ),
                         ],
@@ -251,9 +244,7 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                   // Info text
                   Text(
                     'Enter the invite code shared with you',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.textTertiary,
-                    ),
+                    style: TossTextStyles.captionTertiary,
                   ),
 
                   const SizedBox(height: TossSpacing.space6),

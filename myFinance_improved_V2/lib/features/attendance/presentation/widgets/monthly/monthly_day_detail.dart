@@ -35,8 +35,7 @@ class MonthlyDayDetail extends StatelessWidget {
             children: [
               Text(
                 _getStatusText(),
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: TossFontWeight.semibold,
+                style: TossTextStyles.bodyMedium.copyWith(
                   color: _getStatusColor(),
                 ),
               ),
@@ -111,9 +110,8 @@ class MonthlyDayDetail extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: TossTextStyles.labelSmall.copyWith(
+        style: TossTextStyles.smallBold.copyWith(
           color: color,
-          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );
@@ -131,7 +129,7 @@ class MonthlyDayDetail extends StatelessWidget {
       child: Center(
         child: Text(
           isFuture ? 'Scheduled work day' : 'No record',
-          style: TossTextStyles.body.copyWith(color: TossColors.gray500),
+          style: TossTextStyles.bodyTertiary,
         ),
       ),
     );

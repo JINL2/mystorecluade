@@ -56,15 +56,15 @@ class PeriodSelector extends StatelessWidget {
           vertical: TossSpacing.space2,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? TossColors.gray900 : TossColors.gray100,
+          color: isSelected ? TossColors.gray900 : TossColors.white,
+          border: isSelected ? null : Border.all(color: TossColors.gray200),
           borderRadius: BorderRadius.circular(TossBorderRadius.full),
         ),
         child: Text(
           label,
-          style: TossTextStyles.caption.copyWith(
-            color: isSelected ? TossColors.white : TossColors.gray600,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          ),
+          style: isSelected
+              ? TossTextStyles.captionBoldWhite
+              : TossTextStyles.labelGray600,
         ),
       ),
     );

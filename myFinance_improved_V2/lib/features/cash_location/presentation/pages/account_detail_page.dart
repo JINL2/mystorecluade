@@ -8,6 +8,7 @@ import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import '../providers/cash_location_providers.dart';
 import '../widgets/account_balance_card_widget.dart';
@@ -537,11 +538,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
 
   void _showJournalDetailBottomSheet(JournalFlow flow) {
     final currencySymbol = _getCurrencySymbol();
-    showModalBottomSheet(
+    TossBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => JournalDetailSheet(
+      content: JournalDetailSheet(
         flow: flow,
         currencySymbol: currencySymbol,
         formatTransactionAmount: _formatTransactionAmount,
@@ -553,11 +552,9 @@ class _AccountDetailPageState extends ConsumerState<AccountDetailPage>
   void _showRealDetailBottomSheet(ActualFlow flow) {
     final baseCurrencySymbol =
         _locationSummary?.baseCurrencySymbol ?? flow.currency.symbol;
-    showModalBottomSheet(
+    TossBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => RealDetailSheet(
+      content: RealDetailSheet(
         flow: flow,
         baseCurrencySymbol: baseCurrencySymbol,
         formatBalance: _formatBalance,

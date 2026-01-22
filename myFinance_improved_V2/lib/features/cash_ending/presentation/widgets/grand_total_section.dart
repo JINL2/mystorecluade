@@ -189,9 +189,9 @@ class _GrandTotalSectionState extends State<GrandTotalSection> {
 
           // View History link (only show if available)
           if (widget.onHistoryTap != null) ...[
-            const SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space4),
             Container(height: 1, color: TossColors.gray200),
-            const SizedBox(height: TossSpacing.space3),
+            const SizedBox(height: TossSpacing.space4),
             GestureDetector(
               onTap: widget.onHistoryTap,
               behavior: HitTestBehavior.opaque,

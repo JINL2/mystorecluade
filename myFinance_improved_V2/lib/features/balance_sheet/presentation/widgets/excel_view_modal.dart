@@ -93,17 +93,12 @@ class ExcelViewModal extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TossTextStyles.h4.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TossTextStyles.h4Bold,
                 ),
                 const SizedBox(height: TossSpacing.space1),
                 Text(
                   dateRange,
-                  style: TossTextStyles.caption.copyWith(
-                    color: TossColors.gray500,
-                  ),
+                  style: TossTextStyles.captionGray500,
                 ),
               ],
             ),
@@ -113,7 +108,8 @@ class ExcelViewModal extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(TossSpacing.space2),
               decoration: BoxDecoration(
-                color: TossColors.gray100,
+                color: TossColors.white,
+                border: Border.all(color: TossColors.gray200),
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: Icon(
@@ -280,7 +276,7 @@ class ExcelViewModal extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Difference: $currencySymbol${formatter.format(bsSummary!.balanceCheck.abs())} (unclosed P&L)',
-                      style: TossTextStyles.caption.copyWith(color: TossColors.gray700),
+                      style: TossTextStyles.captionGray700,
                     ),
                   ),
                 ],
@@ -305,9 +301,8 @@ class ExcelViewModal extends StatelessWidget {
             flex: 3,
             child: Text(
               headers[0],
-              style: TossTextStyles.bodySmall.copyWith(
+              style: TossTextStyles.bodySmallBold.copyWith(
                 color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -315,9 +310,8 @@ class ExcelViewModal extends StatelessWidget {
             flex: 2,
             child: Text(
               headers[1],
-              style: TossTextStyles.bodySmall.copyWith(
+              style: TossTextStyles.bodySmallBold.copyWith(
                 color: TossColors.gray600,
-                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.right,
             ),
@@ -336,9 +330,8 @@ class ExcelViewModal extends StatelessWidget {
       color: TossColors.gray50,
       child: Text(
         section.toUpperCase(),
-        style: TossTextStyles.caption.copyWith(
+        style: TossTextStyles.captionBold.copyWith(
           color: TossColors.gray700,
-          fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
         ),
       ),
@@ -357,10 +350,8 @@ class ExcelViewModal extends StatelessWidget {
             flex: 3,
             child: Text(
               name,
-              style: TossTextStyles.bodySmall.copyWith(
+              style: TossTextStyles.codeSmall.copyWith(
                 color: TossColors.gray700,
-                fontFamily: 'JetBrains Mono',
-                fontSize: 12,
               ),
             ),
           ),
@@ -368,10 +359,8 @@ class ExcelViewModal extends StatelessWidget {
             flex: 2,
             child: Text(
               isNegative ? '($value)' : value,
-              style: TossTextStyles.bodySmall.copyWith(
+              style: TossTextStyles.codeSmall.copyWith(
                 color: isNegative ? TossColors.error : TossColors.gray700,
-                fontFamily: 'JetBrains Mono',
-                fontSize: 12,
               ),
               textAlign: TextAlign.right,
             ),
@@ -398,22 +387,14 @@ class ExcelViewModal extends StatelessWidget {
             flex: 3,
             child: Text(
               label,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TossTextStyles.bodySmallBold,
             ),
           ),
           Expanded(
             flex: 2,
             child: Text(
               value,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray900,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'JetBrains Mono',
-                fontSize: 12,
-              ),
+              style: TossTextStyles.codeSmall,
               textAlign: TextAlign.right,
             ),
           ),
@@ -428,29 +409,27 @@ class ExcelViewModal extends StatelessWidget {
         horizontal: TossSpacing.space2,
         vertical: TossSpacing.space2,
       ),
-      color: isHighlight ? TossColors.gray100 : null,
+      color: isHighlight ? TossColors.gray50 : null,
       child: Row(
         children: [
           Expanded(
             flex: 3,
             child: Text(
               label,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: TossColors.gray900,
-                fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
-              ),
+              style: isHighlight
+                  ? TossTextStyles.bodySmallBold
+                  : TossTextStyles.bodySmall,
             ),
           ),
           Expanded(
             flex: 2,
             child: Text(
               value,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: isPercentage ? TossColors.gray600 : TossColors.gray900,
-                fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
-                fontFamily: isPercentage ? null : 'JetBrains Mono',
-                fontSize: 12,
-              ),
+              style: isPercentage
+                  ? (isHighlight
+                      ? TossTextStyles.bodySmallBold.copyWith(color: TossColors.gray600)
+                      : TossTextStyles.bodySmallGray600)
+                  : TossTextStyles.codeSmall,
               textAlign: TextAlign.right,
             ),
           ),

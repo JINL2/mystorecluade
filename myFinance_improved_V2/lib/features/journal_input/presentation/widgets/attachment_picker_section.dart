@@ -11,6 +11,7 @@ import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import '../../domain/entities/journal_attachment.dart';
 import '../providers/journal_input_providers.dart';
 import '../providers/states/journal_entry_state.dart';
@@ -151,80 +152,50 @@ class _AttachmentPickerSectionState
 
   /// Show source selection dialog
   void _showSourceSelectionDialog() {
-    showModalBottomSheet<void>(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.xl),
-        ),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle bar
-              Container(
-                width: TossSpacing.iconXL,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: TossSpacing.space4),
-                decoration: BoxDecoration(
-                  color: TossColors.gray300,
-                  borderRadius: BorderRadius.circular(TossBorderRadius.xs / 2),
-                ),
-              ),
-              Text(
-                'Add Attachment',
-                style: TossTextStyles.h4.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(TossSpacing.space2),
-                  decoration: BoxDecoration(
-                    color: TossColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  child: const Icon(
-                    Icons.photo_library_outlined,
-                    color: TossColors.primary,
-                  ),
-                ),
-                title: const Text('Choose from Gallery'),
-                subtitle: const Text('Select multiple images'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImagesFromGallery();
-                },
-              ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(TossSpacing.space2),
-                  decoration: BoxDecoration(
-                    color: TossColors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: TossColors.success,
-                  ),
-                ),
-                title: const Text('Take Photo'),
-                subtitle: const Text('Use camera to capture'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImageFromCamera();
-                },
-              ),
-              const SizedBox(height: TossSpacing.space2),
-            ],
+      title: 'Add Attachment',
+      maxHeightRatio: 0.4,
+      children: [
+        ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(TossSpacing.space2),
+            decoration: BoxDecoration(
+              color: TossColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: const Icon(
+              Icons.photo_library_outlined,
+              color: TossColors.primary,
+            ),
           ),
+          title: const Text('Choose from Gallery'),
+          subtitle: const Text('Select multiple images'),
+          onTap: () {
+            Navigator.pop(context);
+            _pickImagesFromGallery();
+          },
         ),
-      ),
+        ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(TossSpacing.space2),
+            decoration: BoxDecoration(
+              color: TossColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: const Icon(
+              Icons.camera_alt_outlined,
+              color: TossColors.success,
+            ),
+          ),
+          title: const Text('Take Photo'),
+          subtitle: const Text('Use camera to capture'),
+          onTap: () {
+            Navigator.pop(context);
+            _pickImageFromCamera();
+          },
+        ),
+      ],
     );
   }
 

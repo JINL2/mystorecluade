@@ -32,7 +32,7 @@ dependencies:
   flutter_screenutil: ^5.9.0
   cached_network_image: ^3.3.0
   shimmer: ^3.0.0
-  skeletonizer: ^1.4.3  # skeleton loading (compatible with Flutter 3.29)
+  skeletonizer: ^2.0.0  # skeleton loading (compatible with Flutter 3.32+)
   google_fonts: ^6.1.0
   flutter_slidable: ^3.0.1
   flutter_markdown: ^0.6.18

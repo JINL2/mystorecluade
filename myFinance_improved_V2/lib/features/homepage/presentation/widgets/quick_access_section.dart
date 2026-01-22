@@ -28,7 +28,7 @@ class QuickAccessSection extends ConsumerWidget {
         return Container(
           color: TossColors.surface,
           padding: const EdgeInsets.only(
-            bottom: TossSpacing.space3,
+            bottom: 28, // 12px original + 16px extra spacing before Revenue Overview
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,12 +93,7 @@ class _QuickAccessItem extends StatelessWidget {
             width: 80,
             child: Text(
               feature.featureName.split(' ').join('\n'),
-              style: TossTextStyles.small.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
-                letterSpacing: -0.2,
-              ),
+              style: TossTextStyles.smallBold,
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,

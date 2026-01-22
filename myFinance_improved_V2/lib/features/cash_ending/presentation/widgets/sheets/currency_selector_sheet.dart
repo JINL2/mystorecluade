@@ -14,7 +14,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Currency selector bottom sheet
 ///
-/// Displays a list of currencies to select from
+/// Uses SelectionBottomSheetCommon for consistent UI with search functionality
 class CurrencySelectorSheet extends ConsumerStatefulWidget {
   final List<Currency> currencies;
   final String? selectedCurrencyId;
@@ -35,15 +35,20 @@ class CurrencySelectorSheet extends ConsumerStatefulWidget {
     required String? selectedCurrencyId,
     required String tabType,
   }) {
-    showModalBottomSheet(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => CurrencySelectorSheet(
-        currencies: currencies,
-        selectedCurrencyId: selectedCurrencyId,
-        tabType: tabType,
-      ),
+      title: 'Choose currency',
+      showSearch: true,
+      searchHint: 'Search currency',
+      maxHeightRatio: 0.8,
+      itemSpacing: 4,
+      children: [
+        _CurrencyListContent(
+          currencies: currencies,
+          selectedCurrencyId: selectedCurrencyId,
+          tabType: tabType,
+        ),
+      ],
     );
   }
 
@@ -61,169 +66,64 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Filter currencies based on search query
-    final filteredCurrencies = widget.currencies.where((currency) {
-      if (_searchQuery.isEmpty) return true;
-      final query = _searchQuery.toLowerCase();
+  List<Currency> get _filteredCurrencies {
+    if (_searchQuery.isEmpty) return widget.currencies;
+    final query = _searchQuery.toLowerCase();
+    return widget.currencies.where((currency) {
       return currency.currencyCode.toLowerCase().contains(query) ||
           currency.currencyName.toLowerCase().contains(query);
     }).toList();
+  }
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
-        minHeight: 200,
-      ),
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xl),
-          topRight: Radius.circular(TossBorderRadius.xl),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            width: 36,
-            height: 4,
-            margin: const EdgeInsets.only(
-              top: TossSpacing.space3,
-              bottom: TossSpacing.space4,
-            ),
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-            ),
-          ),
+  void _handleCurrencySelection(Currency currency) {
+    HapticFeedback.selectionClick();
+    Navigator.pop(context);
 
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: Text(
-              'Choose currency',
-              style: TossTextStyles.sheetTitle,
-            ),
-          ),
+    // Update selected currency based on tab type
+    switch (widget.tabType) {
+      case 'cash':
+        ref.read(cashEndingProvider.notifier).addCashCurrency(currency.currencyId);
+        break;
+      case 'bank':
+        ref.read(cashEndingProvider.notifier).setSelectedBankCurrency(currency.currencyId);
+        break;
+      case 'vault':
+        ref.read(cashEndingProvider.notifier).addVaultCurrency(currency.currencyId);
+        break;
+    }
+  }
 
-          const SizedBox(height: TossSpacing.space3),
+  @override
+  Widget build(BuildContext context) {
+    final filteredCurrencies = _filteredCurrencies;
 
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: TossSpacing.space4 * 2),
-            child: Divider(height: 1, thickness: 1, color: TossColors.gray100),
-          ),
+    return SelectionBottomSheetCommon(
+      title: 'Choose currency',
+      showSearch: true,
+      searchHint: 'Search currency',
+      searchController: _searchController,
+      onSearchChanged: (value) {
+        setState(() {
+          _searchQuery = value;
+        });
+      },
+      maxHeightRatio: 0.8,
+      itemSpacing: 4,
+      itemCount: filteredCurrencies.isEmpty ? 1 : filteredCurrencies.length,
+      itemBuilder: (context, index) {
+        if (filteredCurrencies.isEmpty) {
+          return _buildEmptyState();
+        }
 
-          const SizedBox(height: TossSpacing.space4),
+        final currency = filteredCurrencies[index];
+        final isSelected = currency.currencyId == widget.selectedCurrencyId;
 
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: TossSearchField(
-              hintText: 'Search currency',
-              controller: _searchController,
-              prefixIcon: Icons.search,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              onClear: () {
-                setState(() {
-                  _searchQuery = '';
-                });
-              },
-            ),
-          ),
-
-          const SizedBox(height: TossSpacing.space2),
-
-          // Currency list using TossDropdown item style
-          Flexible(
-            child: filteredCurrencies.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space4,
-                    ),
-                    itemCount: filteredCurrencies.length,
-                    itemBuilder: (context, index) {
-                      final currency = filteredCurrencies[index];
-                      final isSelected = currency.currencyId == widget.selectedCurrencyId;
-
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space4,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                          color: TossColors.transparent,
-                        ),
-                        child: Material(
-                          color: TossColors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              Navigator.pop(context);
-
-                              // Update selected currency based on tab type
-                              switch (widget.tabType) {
-                                case 'cash':
-                                  ref.read(cashEndingProvider.notifier).addCashCurrency(currency.currencyId);
-                                  break;
-                                case 'bank':
-                                  ref.read(cashEndingProvider.notifier).setSelectedBankCurrency(currency.currencyId);
-                                  break;
-                                case 'vault':
-                                  ref.read(cashEndingProvider.notifier).addVaultCurrency(currency.currencyId);
-                                  break;
-                              }
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: TossSpacing.space3,
-                                vertical: TossSpacing.space3,
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          currency.currencyCode,
-                                          style: TossTextStyles.listItemTitle,
-                                        ),
-                                        SizedBox(height: TossSpacing.space1 / 2),
-                                        Text(
-                                          currency.currencyName,
-                                          style: TossTextStyles.listItemSubtitle,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (isSelected)
-                                    const Icon(
-                                      Icons.check,
-                                      color: TossColors.primary,
-                                      size: 24,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+        return _CurrencyListItem(
+          currency: currency,
+          isSelected: isSelected,
+          onTap: () => _handleCurrencySelection(currency),
+        );
+      },
     );
   }
 
@@ -245,6 +145,145 @@ class _CurrencySelectorSheetState extends ConsumerState<CurrencySelectorSheet> {
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Internal widget for currency list content (used in static show method)
+class _CurrencyListContent extends ConsumerStatefulWidget {
+  final List<Currency> currencies;
+  final String? selectedCurrencyId;
+  final String tabType;
+
+  const _CurrencyListContent({
+    required this.currencies,
+    required this.selectedCurrencyId,
+    required this.tabType,
+  });
+
+  @override
+  ConsumerState<_CurrencyListContent> createState() => _CurrencyListContentState();
+}
+
+class _CurrencyListContentState extends ConsumerState<_CurrencyListContent> {
+  void _handleCurrencySelection(Currency currency) {
+    HapticFeedback.selectionClick();
+    Navigator.pop(context);
+
+    // Update selected currency based on tab type
+    switch (widget.tabType) {
+      case 'cash':
+        ref.read(cashEndingProvider.notifier).addCashCurrency(currency.currencyId);
+        break;
+      case 'bank':
+        ref.read(cashEndingProvider.notifier).setSelectedBankCurrency(currency.currencyId);
+        break;
+      case 'vault':
+        ref.read(cashEndingProvider.notifier).addVaultCurrency(currency.currencyId);
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.currencies.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(TossSpacing.space8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.currency_exchange,
+              size: 64,
+              color: TossColors.gray400,
+            ),
+            const SizedBox(height: TossSpacing.space4),
+            Text(
+              'No currencies found',
+              style: TossTextStyles.emptyState,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: widget.currencies.map((currency) {
+        final isSelected = currency.currencyId == widget.selectedCurrencyId;
+        return _CurrencyListItem(
+          currency: currency,
+          isSelected: isSelected,
+          onTap: () => _handleCurrencySelection(currency),
+        );
+      }).toList(),
+    );
+  }
+}
+
+/// Currency list item widget
+class _CurrencyListItem extends StatelessWidget {
+  final Currency currency;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CurrencyListItem({
+    required this.currency,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        color: TossColors.transparent,
+      ),
+      child: Material(
+        color: TossColors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space3,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currency.currencyCode,
+                        style: TossTextStyles.listItemTitle,
+                      ),
+                      SizedBox(height: TossSpacing.space1 / 2),
+                      Text(
+                        currency.currencyName,
+                        style: TossTextStyles.listItemSubtitle,
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  const Icon(
+                    Icons.check,
+                    color: TossColors.primary,
+                    size: 24,
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

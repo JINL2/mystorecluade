@@ -11,6 +11,7 @@ class TossCard extends StatefulWidget {
   final EdgeInsets? padding;
   final Color? backgroundColor;
   final double borderRadius;
+  final bool showBorder;
 
   const TossCard({
     super.key,
@@ -19,6 +20,7 @@ class TossCard extends StatefulWidget {
     this.padding,
     this.backgroundColor,
     this.borderRadius = TossBorderRadius.lg,
+    this.showBorder = true,
   });
 
   @override
@@ -62,6 +64,7 @@ class _TossCardState extends State<TossCard>
             padding: widget.padding ?? const EdgeInsets.all(TossSpacing.space5),
             backgroundColor: widget.backgroundColor,
             borderRadius: widget.borderRadius,
+            borderColor: widget.showBorder ? null : Colors.transparent,
             child: widget.child,
           ),
         ),

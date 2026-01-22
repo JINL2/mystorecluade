@@ -7,6 +7,7 @@ import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../../../notifications/presentation/providers/notification_provider.dart';
 import '../company_store_selector.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
@@ -78,21 +79,13 @@ class HomepageHeader extends ConsumerWidget {
                               children: [
                                 Text(
                                   companyName,
-                                  style: TossTextStyles.titleMedium.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: TossColors.textPrimary,
-                                    height: 1.2,
-                                  ),
+                                  style: TossTextStyles.titleBold,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                 ),
                                 Text(
                                   storeName,
-                                  style: TossTextStyles.bodySmall.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: TossColors.textSecondary,
-                                    height: 1.2,
-                                  ),
+                                  style: TossTextStyles.listItemSubtitle,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                 ),
@@ -150,12 +143,8 @@ class HomepageHeader extends ConsumerWidget {
   }
 
   void _showCompanyStoreDrawer(BuildContext context) {
-    showModalBottomSheet(
+    TossBottomSheet.showFullscreen(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: true,
       builder: (context) => const CompanyStoreSelector(),
     );
   }
@@ -206,11 +195,7 @@ class _IconGhost extends StatelessWidget {
                 child: Center(
                   child: Text(
                     badgeCount > 99 ? '99+' : badgeCount.toString(),
-                    style: TossTextStyles.small.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: TossColors.white,
-                      height: 1,
-                    ),
+                    style: TossTextStyles.badgeText,
                   ),
                 ),
               ),

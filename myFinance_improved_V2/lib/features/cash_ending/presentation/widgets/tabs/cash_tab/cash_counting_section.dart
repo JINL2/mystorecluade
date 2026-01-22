@@ -74,11 +74,9 @@ class _CashCountingSectionState extends ConsumerState<CashCountingSection> {
             // Currency accordion sections
             ..._buildCurrencySections(),
 
-            const SizedBox(height: TossSpacing.space5),
-
-            // Grand Total (add vertical padding in layout)
+            // Grand Total (only bottom padding, top padding removed)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: TossSpacing.space4),
+              padding: const EdgeInsets.only(bottom: TossSpacing.space4),
               child: _buildGrandTotal(),
             ),
 

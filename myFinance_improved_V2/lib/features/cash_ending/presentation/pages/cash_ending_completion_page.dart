@@ -318,10 +318,7 @@ class _CashEndingCompletionPageState
               child: TossButton.primary(
                 text: 'Close',
                 fullWidth: true,
-                textStyle: TossTextStyles.bodyLarge.copyWith(
-                  color: TossColors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+                textStyle: TossTextStyles.bodyWhiteBold,
                 padding: const EdgeInsets.symmetric(
                   horizontal: TossSpacing.space4,
                   vertical: TossSpacing.space3,
@@ -344,10 +341,7 @@ class _CashEndingCompletionPageState
           const Spacer(),
           Text(
             'Ending Completed!',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray900,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TossTextStyles.bodyBold,
           ),
           const Spacer(),
         ],
@@ -363,10 +357,7 @@ class _CashEndingCompletionPageState
 
     return Text(
       formattedAmount,
-      style: TossTextStyles.display.copyWith(
-        color: TossColors.primary,
-        fontFeatures: const [FontFeature.slashedZero()],
-      ),
+      style: TossTextStyles.displayPrimary,
       textAlign: TextAlign.center,
     );
   }
@@ -375,9 +366,7 @@ class _CashEndingCompletionPageState
     final typeLabel = _getTypeLabel();
     return Text(
       '$typeLabel · ${widget.storeName} · ${widget.locationName}',
-      style: TossTextStyles.body.copyWith(
-        color: TossColors.gray600,
-      ),
+      style: TossTextStyles.bodyGray600,
       textAlign: TextAlign.center,
     );
   }

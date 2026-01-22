@@ -117,8 +117,6 @@ class _VaultCountingSectionState extends ConsumerState<VaultCountingSection> {
 
             ..._buildCurrencySections(selectedCurrencyIds),
 
-            const SizedBox(height: TossSpacing.space5),
-
             _buildGrandTotal(),
 
             const SizedBox(height: TossSpacing.space2),

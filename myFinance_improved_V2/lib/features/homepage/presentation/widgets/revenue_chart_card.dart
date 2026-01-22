@@ -214,11 +214,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
   Widget _buildHeader() {
     return Text(
       'Revenue Overview',
-      style: TossTextStyles.titleMedium.copyWith(
-        color: TossColors.textPrimary,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.4,
-      ),
+      style: TossTextStyles.titleBold,
     );
   }
 
@@ -247,10 +243,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
         SizedBox(width: TossSpacing.space1 + 2),
         Text(
           label,
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TossTextStyles.captionSecondary,
         ),
       ],
     );
@@ -311,31 +304,19 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
               final formatter = NumberFormat.compact();
               return BarTooltipItem(
                 '${point.label}\n',
-                TossTextStyles.small.copyWith(
-                  color: TossColors.gray400,
-                  fontWeight: FontWeight.w500,
-                ),
+                TossTextStyles.smallGray400,
                 children: [
                   TextSpan(
                     text: 'Revenue: ${formatter.format(point.revenue)}\n',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TossTextStyles.captionBold.copyWith(color: TossColors.white),
                   ),
                   TextSpan(
                     text: 'Gross Profit: ${formatter.format(point.grossProfit)}\n',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.success,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TossTextStyles.captionBold.copyWith(color: TossColors.success),
                   ),
                   TextSpan(
                     text: 'Margin: ${point.marginPercent.toStringAsFixed(1)}%',
-                    style: TossTextStyles.caption.copyWith(
-                      color: TossColors.warning,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TossTextStyles.captionBold.copyWith(color: TossColors.warning),
                   ),
                 ],
               );
@@ -368,13 +349,9 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
                   padding: const EdgeInsets.only(top: TossSpacing.space2),
                   child: Text(
                     chartPoints[index].label,
-                    style: TossTextStyles.small.copyWith(
-                      color: isSelected
-                          ? TossColors.primary
-                          : TossColors.textSecondary,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
-                    ),
+                    style: isSelected
+                        ? TossTextStyles.smallPrimary.copyWith(fontWeight: FontWeight.w700)
+                        : TossTextStyles.smallSecondary,
                   ),
                 );
               },
@@ -389,10 +366,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
               getTitlesWidget: (value, meta) {
                 return Text(
                   _formatYAxisLabel(value),
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TossTextStyles.smallSecondary,
                 );
               },
             ),
@@ -568,9 +542,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
           const SizedBox(height: TossSpacing.space2),
           Text(
             'No data available',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.textTertiary,
-            ),
+            style: TossTextStyles.captionTertiary,
           ),
         ],
       ),
@@ -590,9 +562,7 @@ class _RevenueChartCardState extends ConsumerState<RevenueChartCard> {
           const SizedBox(height: TossSpacing.space2),
           Text(
             'Failed to load chart',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.error,
-            ),
+            style: TossTextStyles.captionError,
           ),
         ],
       ),

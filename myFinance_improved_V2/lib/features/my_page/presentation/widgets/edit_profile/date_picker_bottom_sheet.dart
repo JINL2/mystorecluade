@@ -6,6 +6,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Shows a date picker bottom sheet
 void showDatePickerBottomSheet({
@@ -16,112 +17,131 @@ void showDatePickerBottomSheet({
   final now = DateTime.now();
   final defaultDate = initialDate ?? DateTime(now.year - 25, now.month, now.day);
 
-  int selectedYear = defaultDate.year;
-  int selectedMonth = defaultDate.month;
-  int selectedDay = defaultDate.day;
-
-  showModalBottomSheet(
+  TossBottomSheet.show<void>(
     context: context,
-    backgroundColor: TossColors.white,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
+    title: 'Select Date',
+    content: _DatePickerContent(
+      initialDate: defaultDate,
+      now: now,
+      onDateSelected: onDateSelected,
     ),
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setModalState) {
-          final daysInMonth = DateTime(selectedYear, selectedMonth + 1, 0).day;
-          if (selectedDay > daysInMonth) {
-            selectedDay = daysInMonth;
-          }
+  );
+}
 
-          return Container(
-            height: TossSpacing.space20 * 5, // 400
-            padding: const EdgeInsets.all(TossSpacing.space6),
-            child: Column(
+/// Stateful content widget for date picker
+class _DatePickerContent extends StatefulWidget {
+  final DateTime initialDate;
+  final DateTime now;
+  final ValueChanged<DateTime> onDateSelected;
+
+  const _DatePickerContent({
+    required this.initialDate,
+    required this.now,
+    required this.onDateSelected,
+  });
+
+  @override
+  State<_DatePickerContent> createState() => _DatePickerContentState();
+}
+
+class _DatePickerContentState extends State<_DatePickerContent> {
+  late int selectedYear;
+  late int selectedMonth;
+  late int selectedDay;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedYear = widget.initialDate.year;
+    selectedMonth = widget.initialDate.month;
+    selectedDay = widget.initialDate.day;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final daysInMonth = DateTime(selectedYear, selectedMonth + 1, 0).day;
+    if (selectedDay > daysInMonth) {
+      selectedDay = daysInMonth;
+    }
+
+    return SizedBox(
+      height: TossSpacing.space20 * 4, // 320
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TossButton.textButton(
+                text: 'Cancel',
+                onPressed: () => Navigator.pop(context),
+                textColor: TossColors.gray600,
+              ),
+              TossButton.textButton(
+                text: 'Done',
+                onPressed: () {
+                  widget.onDateSelected(DateTime(selectedYear, selectedMonth, selectedDay));
+                  Navigator.pop(context);
+                },
+                textColor: TossColors.primary,
+                fontWeight: TossFontWeight.semibold,
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space4),
+          Expanded(
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TossButton.textButton(
-                      text: 'Cancel',
-                      onPressed: () => Navigator.pop(context),
-                      textColor: TossColors.gray600,
-                    ),
-                    Text(
-                      'Select Date',
-                      style: TossTextStyles.h3.copyWith(
-                        fontWeight: TossFontWeight.bold,
-                      ),
-                    ),
-                    TossButton.textButton(
-                      text: 'Done',
-                      onPressed: () {
-                        onDateSelected(DateTime(selectedYear, selectedMonth, selectedDay));
-                        Navigator.pop(context);
-                      },
-                      textColor: TossColors.primary,
-                      fontWeight: TossFontWeight.semibold,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: TossSpacing.space4),
                 Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _WheelPicker(
-                          items: List.generate(100, (i) => (now.year - i).toString()),
-                          selectedValue: selectedYear.toString(),
-                          onChanged: (value) {
-                            setModalState(() {
-                              selectedYear = int.parse(value);
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: _WheelPicker(
-                          items: const [
-                            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-                          ],
-                          selectedValue: const [
-                            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-                          ][selectedMonth - 1],
-                          onChanged: (value) {
-                            setModalState(() {
-                              selectedMonth = const [
-                                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-                              ].indexOf(value) + 1;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: TossSpacing.space2),
-                      Expanded(
-                        child: _WheelPicker(
-                          items: List.generate(daysInMonth, (i) => (i + 1).toString()),
-                          selectedValue: selectedDay.toString(),
-                          onChanged: (value) {
-                            setModalState(() {
-                              selectedDay = int.parse(value);
-                            });
-                          },
-                        ),
-                      ),
+                  child: _WheelPicker(
+                    items: List.generate(100, (i) => (widget.now.year - i).toString()),
+                    selectedValue: selectedYear.toString(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedYear = int.parse(value);
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: _WheelPicker(
+                    items: const [
+                      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
                     ],
+                    selectedValue: const [
+                      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+                    ][selectedMonth - 1],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMonth = const [
+                          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+                        ].indexOf(value) + 1;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space2),
+                Expanded(
+                  child: _WheelPicker(
+                    items: List.generate(daysInMonth, (i) => (i + 1).toString()),
+                    selectedValue: selectedDay.toString(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDay = int.parse(value);
+                      });
+                    },
                   ),
                 ),
               ],
             ),
-          );
-        },
-      );
-    },
-  );
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _WheelPicker extends StatelessWidget {

@@ -5,6 +5,7 @@ import 'package:myfinance_improved/shared/themes/index.dart';
 
 import '../../../domain/entities/leaderboard_employee.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 export '../../../domain/entities/leaderboard_employee.dart';
 
@@ -136,13 +137,10 @@ class _StatsLeaderboardState extends State<StatsLeaderboard> {
 
   void _showAllEmployeesBottomSheet() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet<void>(
+    TossBottomSheet.showWithBuilder<void>(
       context: context,
-      backgroundColor: TossColors.white,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
-      ),
+      heightFactor: 0.9,
       builder: (context) => _AllEmployeesBottomSheet(
         employees: widget.allEmployeesList,
         initialTab: selectedTab,

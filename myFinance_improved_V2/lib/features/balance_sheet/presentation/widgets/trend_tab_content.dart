@@ -105,35 +105,9 @@ class _TrendTabContentState extends ConsumerState<TrendTabContent> {
   }
 
   Widget _buildError(String error) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 48,
-              color: TossColors.gray400,
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'Failed to load trend data',
-              style: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              error,
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return TossErrorView(
+      title: 'Failed to load trend data',
+      error: error,
     );
   }
 }

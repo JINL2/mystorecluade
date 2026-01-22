@@ -13,6 +13,7 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import 'bottom_sheets/company_actions_sheet.dart';
 import 'company_store_list.dart';
@@ -84,16 +85,12 @@ class CompanyStoreSelector extends ConsumerWidget {
                             Text(
                               '${userData['user_first_name'] ?? ''} ${userData['user_last_name'] ?? ''}'
                                   .trim(),
-                              style: TossTextStyles.body.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: TossTextStyles.bodyMedium,
                             ),
                             SizedBox(height: TossSpacing.space1 / 2),
                             Text(
                               'Select Company & Store',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.textSecondary,
-                              ),
+                              style: TossTextStyles.captionSecondary,
                             ),
                           ],
                         ),
@@ -121,21 +118,12 @@ class CompanyStoreSelector extends ConsumerWidget {
           ),
 
           // Create Company Button at bottom
-          Container(
+          Padding(
             padding: EdgeInsets.only(
               left: TossSpacing.space4,
               right: TossSpacing.space4,
               top: TossSpacing.space4,
               bottom: TossSpacing.space4 + MediaQuery.of(context).padding.bottom,
-            ),
-            decoration: const BoxDecoration(
-              color: TossColors.surface,
-              border: Border(
-                top: BorderSide(
-                  color: TossColors.border,
-                  width: 1,
-                ),
-              ),
             ),
             child: SizedBox(
               width: double.infinity,
@@ -162,11 +150,8 @@ class CompanyStoreSelector extends ConsumerWidget {
 
   void _handleCreateCompany(BuildContext context, WidgetRef ref) {
     Navigator.of(context).pop(); // Close company actions sheet
-    showModalBottomSheet(
+    TossBottomSheet.showWithBuilder(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      elevation: 0,
       builder: (context) => const CreateCompanySheet(),
     ).then((company) {
       if (company != null && company is Company) {
@@ -179,11 +164,8 @@ class CompanyStoreSelector extends ConsumerWidget {
     Navigator.of(context).pop(); // Close company actions sheet
     Future.delayed(TossAnimations.quick, () {
       if (context.mounted) {
-        showModalBottomSheet(
+        TossBottomSheet.showWithBuilder(
           context: context,
-          isScrollControlled: true,
-          backgroundColor: TossColors.transparent,
-          elevation: 0,
           builder: (context) => const JoinByCodeSheet(
             title: 'Join Company',
             subtitle: 'Enter company invite code',

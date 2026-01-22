@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// A custom time picker bottom sheet for confirming check-in/check-out times.
 ///
@@ -33,10 +34,10 @@ class TimePickerBottomSheet extends StatefulWidget {
     required TimeOfDay initialTime,
     int initialSeconds = 0,
   }) async {
-    return showModalBottomSheet<Map<String, dynamic>>(
+    return TossBottomSheet.showWithBuilder<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
+      heightFactor: 0.6,
       builder: (context) => TimePickerBottomSheet(
         title: title,
         recordedTimeLabel: recordedTimeLabel,

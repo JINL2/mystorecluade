@@ -7,6 +7,7 @@ import '../../../../../shared/themes/toss_dimensions.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import 'product_image_picker.dart';
 
 /// A bottom sheet for selecting image upload options
@@ -25,13 +26,40 @@ class ImageUploadSheet extends StatelessWidget {
     required BuildContext context,
     required void Function(List<XFile> images) onImagesSelected,
   }) {
-    return showModalBottomSheet<void>(
+    return SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
-      builder: (context) => ImageUploadSheet(
-        onImagesSelected: onImagesSelected,
-      ),
+      title: 'Upload Image',
+      maxHeightRatio: 0.4,
+      children: [
+        _ImageOptionItem(
+          icon: Icons.photo_library_outlined,
+          title: 'Choose from Library',
+          onTap: () async {
+            Navigator.pop(context);
+            final images =
+                await ProductImagePicker.pickFromGalleryWithValidation(
+              context,
+            );
+            if (images.isNotEmpty) {
+              onImagesSelected(images);
+            }
+          },
+        ),
+        _ImageOptionItem(
+          icon: Icons.camera_alt_outlined,
+          title: 'Take Photo',
+          onTap: () async {
+            Navigator.pop(context);
+            final images = await ProductImagePicker.takePhotoWithValidation(
+              context,
+            );
+            if (images.isNotEmpty) {
+              onImagesSelected(images);
+            }
+          },
+          isLast: true,
+        ),
+      ],
     );
   }
 

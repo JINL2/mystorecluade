@@ -7,6 +7,7 @@ import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../providers/session_history_provider.dart';
 import '../../providers/states/session_history_filter_state.dart';
 import 'filter_chip_widget.dart';
@@ -17,10 +18,9 @@ class SessionHistoryFilterSheet extends ConsumerStatefulWidget {
   const SessionHistoryFilterSheet({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+    return TossBottomSheet.showWithBuilder(
       context: context,
-      backgroundColor: TossColors.transparent,
-      isScrollControlled: true,
+      heightFactor: 0.85,
       builder: (context) => const SessionHistoryFilterSheet(),
     );
   }

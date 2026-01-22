@@ -51,10 +51,7 @@ class CalendarIconWithBadge extends StatelessWidget {
               ),
               child: Text(
                 badgeCount > 99 ? '99+' : '$badgeCount',
-                style: TossTextStyles.small.copyWith(
-                  color: TossColors.white,
-                  fontWeight: TossFontWeight.bold,
-                ),
+                style: TossTextStyles.captionWhite,
                 textAlign: TextAlign.center,
               ),
             ),

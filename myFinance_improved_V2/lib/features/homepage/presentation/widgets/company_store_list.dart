@@ -13,6 +13,8 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 import 'bottom_sheets/store_actions_sheet.dart';
 import 'view_invite_codes_sheet.dart';
@@ -76,16 +78,12 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
           const SizedBox(height: TossSpacing.space4),
           Text(
             'No Companies',
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textSecondary,
-            ),
+            style: TossTextStyles.h3Secondary,
           ),
           const SizedBox(height: TossSpacing.space2),
           Text(
             'Create or join a company to get started',
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.textTertiary,
-            ),
+            style: TossTextStyles.bodyTertiary,
           ),
         ],
       ),
@@ -96,29 +94,92 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     final companyId = company['company_id'] as String;
     final companyName = company['company_name'] as String;
     final stores = company['stores'] as List<dynamic>? ?? [];
-    final isSelected = expandedCompanyId == companyId;
+    final isExpanded = expandedCompanyId == companyId;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+    // Find the selected store name for this company (for footer display)
+    final selectedStoreId = appState.storeChoosen as String?;
+    String? selectedStoreName;
+    for (final store in stores) {
+      if (store['store_id'] == selectedStoreId) {
+        selectedStoreName = store['store_name'] as String?;
+        break;
+      }
+    }
+
+    // Show footer only when collapsed AND a store is selected for this company
+    final showFooter = !isExpanded && selectedStoreName != null;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: Container(
+        decoration: BoxDecoration(
+          color: TossColors.surface,
+          border: Border.all(color: TossColors.gray100),
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header (always visible, tappable)
+            InkWell(
+              onTap: () => _toggleCompanyExpansion(companyId),
+              borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(TossBorderRadius.lg),
+                bottom: (isExpanded || showFooter) ? Radius.zero : const Radius.circular(TossBorderRadius.lg),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(TossSpacing.space4),
+                child: _buildCompanyHeader(context, company, companyId, companyName, stores, isExpanded),
+              ),
+            ),
+
+            // Content (only when expanded)
+            if (isExpanded) ...[
+              Container(height: 1, color: TossColors.gray100),
+              stores.isNotEmpty
+                  ? _buildStoresList(context, stores, companyId, companyName, appState)
+                  : _buildNoStoresMessage(),
+            ],
+
+            // Footer (only when collapsed AND store is selected)
+            if (showFooter && selectedStoreName != null) ...[
+              Container(height: 1, color: TossColors.gray100),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TossSpacing.space4,
+                  vertical: TossSpacing.space3,
+                ),
+                child: _buildSelectedStoreFooter(selectedStoreName, stores.length),
+              ),
+            ],
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Company Header
-          _buildCompanyHeader(context, company, companyId, companyName, stores, isSelected),
+    );
+  }
 
-          // Stores List (if company is selected)
-          if (isSelected && stores.isNotEmpty)
-            _buildStoresList(context, stores, companyId, companyName, appState),
-
-          // Show empty state if no stores (for selected company)
-          if (isSelected && stores.isEmpty)
-            _buildNoStoresMessage(),
-        ],
-      ),
+  /// Footer showing the selected store (shown only when collapsed and store is selected)
+  Widget _buildSelectedStoreFooter(String selectedStoreName, int storeCount) {
+    return Row(
+      children: [
+        const Icon(
+          LucideIcons.store,
+          size: TossSpacing.iconSM2,
+          color: TossColors.textSecondary,
+        ),
+        const SizedBox(width: TossSpacing.space2),
+        Expanded(
+          child: Text(
+            selectedStoreName,
+            style: TossTextStyles.caption, // 12px, default color
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Text(
+          '$storeCount ${storeCount == 1 ? 'store' : 'stores'}',
+          style: TossTextStyles.captionTertiary,
+        ),
+      ],
     );
   }
 
@@ -128,115 +189,69 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     String companyId,
     String companyName,
     List<dynamic> stores,
-    bool isSelected,
+    bool isExpanded,
   ) {
-    return Padding(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      child: Row(
-        children: [
-          // Expand/Collapse Arrow (on the left)
-          _buildExpandCollapseButton(companyId, isSelected),
-          const SizedBox(width: TossSpacing.space2),
-          // Company Icon and Name
-          Expanded(
-            child: _buildCompanyInfo(companyId, companyName, stores, isSelected, company),
+    return Row(
+      children: [
+        // Company Icon
+        Container(
+          width: TossSpacing.space8,
+          height: TossSpacing.space8,
+          decoration: BoxDecoration(
+            color: isExpanded ? TossColors.primary : TossColors.gray200,
+            borderRadius: BorderRadius.circular(TossBorderRadius.sm),
           ),
-          // 3-dot menu (on the right)
-          _buildMenuButton(context, company),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExpandCollapseButton(String companyId, bool isSelected) {
-    return InkWell(
-      onTap: () => _toggleCompanyExpansion(companyId),
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space1),
-        child: Icon(
-          isSelected ? LucideIcons.chevronDown : LucideIcons.chevronRight,
-          size: TossSpacing.iconSM3,
-          color: TossColors.textSecondary,
+          child: Icon(
+            LucideIcons.building2,
+            color: isExpanded ? TossColors.white : TossColors.textSecondary,
+            size: TossSpacing.iconSM3,
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCompanyInfo(
-    String companyId,
-    String companyName,
-    List<dynamic> stores,
-    bool isSelected,
-    dynamic company,
-  ) {
-    return InkWell(
-      onTap: () => _toggleCompanyExpansion(companyId),
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Row(
-        children: [
-          Container(
-            width: TossSpacing.space8,
-            height: TossSpacing.space8,
-            decoration: BoxDecoration(
-              color: isSelected ? TossColors.primary : TossColors.gray200,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
+        const SizedBox(width: TossSpacing.space3),
+        // Company Name and Badge
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  companyName,
+                  style: TossTextStyles.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              SubscriptionBadge.fromPlanType(
+                (company['subscription'] as Map<String, dynamic>?)?['plan_name'] as String?,
+                compact: true,
+              ),
+            ],
+          ),
+        ),
+        // 3-dot menu (stop propagation to not trigger expand/collapse)
+        GestureDetector(
+          onTap: () => _showCompanyMenuBottomSheet(context, ref, company),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.all(TossSpacing.space1),
             child: Icon(
-              LucideIcons.building2,
-              color: isSelected ? TossColors.white : TossColors.textSecondary,
+              LucideIcons.moreHorizontal,
               size: TossSpacing.iconSM3,
+              color: TossColors.textSecondary,
             ),
           ),
-          const SizedBox(width: TossSpacing.space2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        companyName,
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: TossSpacing.space1 + TossSpacing.space1 / 2),
-                    SubscriptionBadge.fromPlanType(
-                      (company['subscription'] as Map<String, dynamic>?)?['plan_name'] as String?,
-                      compact: true,
-                    ),
-                  ],
-                ),
-                Text(
-                  '${stores.length} ${stores.length == 1 ? 'store' : 'stores'}',
-                  style: TossTextStyles.small.copyWith(
-                    color: TossColors.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuButton(BuildContext context, dynamic company) {
-    return InkWell(
-      onTap: () => _showCompanyMenuBottomSheet(context, ref, company),
-      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space1),
-        child: Icon(
-          LucideIcons.moreHorizontal,
-          size: TossSpacing.iconSM3,
-          color: TossColors.textSecondary,
         ),
-      ),
+        const SizedBox(width: TossSpacing.space1),
+        // Expand/collapse arrow indicator (using AnimatedRotation like TossExpandableCard)
+        AnimatedRotation(
+          turns: isExpanded ? 0.5 : 0,
+          duration: TossAnimations.fast,
+          child: Icon(
+            LucideIcons.chevronDown,
+            size: TossSpacing.iconMD,
+            color: TossColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -247,30 +262,22 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     String companyName,
     dynamic appState,
   ) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: TossSpacing.space4,
-        right: TossSpacing.space4,
-        top: TossSpacing.space1,
-        bottom: TossSpacing.space2,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: stores.map((store) {
-          final storeId = store['store_id'] as String;
-          final storeName = store['store_name'] as String;
-          final isStoreSelected = appState.storeChoosen == storeId;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: stores.map((store) {
+        final storeId = store['store_id'] as String;
+        final storeName = store['store_name'] as String;
+        final isStoreSelected = appState.storeChoosen == storeId;
 
-          return _buildStoreItem(
-            context,
-            storeId,
-            storeName,
-            companyId,
-            companyName,
-            isStoreSelected,
-          );
-        }).toList(),
-      ),
+        return _buildStoreItem(
+          context,
+          storeId,
+          storeName,
+          companyId,
+          companyName,
+          isStoreSelected,
+        );
+      }).toList(),
     );
   }
 
@@ -282,14 +289,15 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     String companyName,
     bool isStoreSelected,
   ) {
+    // Align store icon with company icon:
+    // Company icon starts at space4 (16px) from edge
+    // Store item needs same left padding to align icons
     return InkWell(
       onTap: () {
         final appStateNotifier = ref.read(appStateProvider.notifier);
         final currentCompanyId = ref.read(appStateProvider).companyChoosen;
 
         // ✅ FIX: Only call selectCompany if company actually changed
-        // Previously always called selectCompany which triggered provider rebuilds
-        // even when selecting a different store within the same company
         if (currentCompanyId != companyId) {
           appStateNotifier.selectCompany(companyId, companyName: companyName);
         }
@@ -299,31 +307,24 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
       child: Container(
         padding: const EdgeInsets.only(
-          left: TossSpacing.space8,
-          right: TossSpacing.space2,
-          top: TossSpacing.space2,
-          bottom: TossSpacing.space2,
+          left: TossSpacing.space4,  // Align with company icon
+          right: TossSpacing.space4,
+          top: TossSpacing.space3,
+          bottom: TossSpacing.space3,
         ),
-        margin: const EdgeInsets.only(bottom: TossSpacing.space1),
-        decoration: BoxDecoration(
-          color: isStoreSelected ? TossColors.primarySurface : TossColors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-        ),
+        // No background color - transparent for both selected and unselected
         child: Row(
           children: [
             Icon(
               LucideIcons.store,
               size: TossSpacing.iconSM2,
-              color: isStoreSelected ? TossColors.textPrimary : TossColors.textSecondary,
+              color: isStoreSelected ? TossColors.primary : TossColors.textSecondary,
             ),
-            const SizedBox(width: TossSpacing.space2),
+            const SizedBox(width: TossSpacing.space3), // 12px spacing
             Expanded(
               child: Text(
                 storeName,
-                style: TossTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: TossColors.textPrimary,
-                ),
+                style: TossTextStyles.body, // 14px, black text for all
               ),
             ),
             if (isStoreSelected)
@@ -340,21 +341,13 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
 
   Widget _buildNoStoresMessage() {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: TossSpacing.space4,
-        right: TossSpacing.space4,
-        top: TossSpacing.space1,
-        bottom: TossSpacing.space2,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
       ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: TossSpacing.space8),
-        child: Text(
-          'No stores',
-          style: TossTextStyles.body.copyWith(
-            fontWeight: FontWeight.w500,
-            color: TossColors.textTertiary,
-          ),
-        ),
+      child: Text(
+        'No stores available',
+        style: TossTextStyles.captionTertiary,
       ),
     );
   }
@@ -371,68 +364,38 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
 
   /// Show codes bottom sheet
   void _showCodesBottomSheet(BuildContext context, dynamic company) {
-    showModalBottomSheet(
+    TossBottomSheet.showWithBuilder(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      elevation: 0,
       builder: (context) => CodesBottomSheet(company: company),
     );
   }
 
   /// Show company menu bottom sheet (3-dot menu)
   void _showCompanyMenuBottomSheet(BuildContext context, WidgetRef ref, dynamic company) {
-    showModalBottomSheet(
+    final companyName = company['company_name'] as String;
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      elevation: 0,
-      builder: (bottomSheetContext) => Container(
-        decoration: const BoxDecoration(
-          color: TossColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(TossBorderRadius.bottomSheet),
-            topRight: Radius.circular(TossBorderRadius.bottomSheet),
-          ),
+      title: companyName,
+      showDividers: true,
+      maxHeightRatio: 0.4,
+      children: [
+        ListTile(
+          leading: const Icon(LucideIcons.qrCode, size: TossSpacing.iconMD),
+          title: const Text('View Codes'),
+          onTap: () {
+            Navigator.pop(context);
+            _showCodesBottomSheet(context, company);
+          },
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              width: TossSpacing.space10,
-              height: TossSpacing.space1,
-              margin: const EdgeInsets.only(
-                top: TossSpacing.space2,
-                bottom: TossSpacing.space4,
-              ),
-              decoration: BoxDecoration(
-                color: TossColors.textTertiary.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-              ),
-            ),
-            // View codes option
-            ListTile(
-              leading: const Icon(LucideIcons.qrCode, size: TossSpacing.iconMD),
-              title: const Text('View Codes'),
-              onTap: () {
-                Navigator.pop(bottomSheetContext);
-                _showCodesBottomSheet(context, company);
-              },
-            ),
-            const Divider(height: 1),
-            // Add store option (create or join)
-            ListTile(
-              leading: const Icon(LucideIcons.plus, size: TossSpacing.iconMD),
-              title: const Text('Add Store'),
-              onTap: () {
-                Navigator.pop(bottomSheetContext);
-                _showStoreActionsBottomSheet(context, ref, company);
-              },
-            ),
-            SizedBox(height: MediaQuery.of(bottomSheetContext).padding.bottom),
-          ],
+        ListTile(
+          leading: const Icon(LucideIcons.plus, size: TossSpacing.iconMD),
+          title: const Text('Add Store'),
+          onTap: () {
+            Navigator.pop(context);
+            _showStoreActionsBottomSheet(context, ref, company);
+          },
         ),
-      ),
+      ],
     );
   }
 
@@ -451,11 +414,8 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
 
   void _handleCreateStore(BuildContext context, WidgetRef ref, String companyId, String companyName) {
     Navigator.of(context).pop(); // Close store actions sheet
-    showModalBottomSheet(
+    TossBottomSheet.showWithBuilder(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      elevation: 0,
       builder: (context) => CreateStoreSheet(
         companyId: companyId,
         companyName: companyName,
@@ -471,11 +431,8 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     Navigator.of(context).pop(); // Close store actions sheet
     Future.delayed(TossAnimations.quick, () {
       if (context.mounted) {
-        showModalBottomSheet(
+        TossBottomSheet.showWithBuilder(
           context: context,
-          isScrollControlled: true,
-          backgroundColor: TossColors.transparent,
-          elevation: 0,
           builder: (context) => const JoinByCodeSheet(
             title: 'Join Store',
             subtitle: 'Enter store invite code',

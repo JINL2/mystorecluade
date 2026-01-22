@@ -41,10 +41,10 @@ class ScheduleMonthNavigation extends StatelessWidget {
             onNextMonth: onNextMonth,
           ),
         ),
-        // Calendar toggle button (active state) with problem count badge
+        // Calendar toggle button with problem count badge
         CalendarIconWithBadge(
           icon: Icons.calendar_view_week,
-          iconColor: TossColors.primary,
+          iconColor: TossColors.gray600,
           badgeCount: unsolvedCount,
           onPressed: onToggleExpanded,
           tooltip: 'Show week view',

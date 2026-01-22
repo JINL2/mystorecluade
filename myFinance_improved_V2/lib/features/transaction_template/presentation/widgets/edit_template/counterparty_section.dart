@@ -10,6 +10,7 @@
 library;
 
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -286,132 +287,57 @@ class _CounterpartyStoreSelector extends ConsumerWidget {
     BuildContext context,
     List<Map<String, dynamic>> stores,
   ) {
-    showModalBottomSheet(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (ctx) => _StoreSelectionSheet(
-        stores: stores,
-        entryState: entryState,
-        onStateChanged: onStateChanged,
-      ),
-    );
-  }
-}
-
-/// Store selection bottom sheet
-class _StoreSelectionSheet extends StatelessWidget {
-  final List<Map<String, dynamic>> stores;
-  final EntryEditState entryState;
-  final VoidCallback onStateChanged;
-
-  const _StoreSelectionSheet({
-    required this.stores,
-    required this.entryState,
-    required this.onStateChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(TossBorderRadius.xxl),
-          topRight: Radius.circular(TossBorderRadius.xxl),
+      title: 'Select Store',
+      showDividers: true,
+      children: [
+        // Clear selection option
+        ListTile(
+          leading: const Icon(Icons.clear, color: TossColors.gray500),
+          title: Text('No store selected',
+              style: TossTextStyles.body.copyWith(color: TossColors.gray600)),
+          onTap: () {
+            entryState.counterpartyStoreId = null;
+            entryState.counterpartyStoreName = null;
+            entryState.counterpartyCashLocationId = null;
+            entryState.counterpartyCashLocationName = null;
+            onStateChanged();
+            Navigator.pop(context);
+          },
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: TossSpacing.space9,
-            height: TossSpacing.space1,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+        ...stores.map((store) {
+          final storeId = store['store_id'] as String?;
+          final storeName = store['store_name'] as String? ?? 'Unknown Store';
+          final isSelected = entryState.counterpartyStoreId == storeId;
+
+          return ListTile(
+            leading: Icon(
+              Icons.store,
+              color: isSelected ? TossColors.primary : TossColors.gray500,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Select Store',
-                    style:
-                        TossTextStyles.h3.copyWith(fontWeight: TossFontWeight.semibold)),
-                IconButton(
-                  icon: const Icon(Icons.close, color: TossColors.gray500),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
+            title: Text(
+              storeName,
+              style: TossTextStyles.body.copyWith(
+                fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
+                color: isSelected ? TossColors.primary : TossColors.gray900,
+              ),
             ),
-          ),
-          // Clear selection option
-          ListTile(
-            leading: const Icon(Icons.clear, color: TossColors.gray500),
-            title: Text('No store selected',
-                style: TossTextStyles.body.copyWith(color: TossColors.gray600)),
+            trailing: isSelected
+                ? const Icon(Icons.check, color: TossColors.primary)
+                : null,
             onTap: () {
-              entryState.counterpartyStoreId = null;
-              entryState.counterpartyStoreName = null;
+              entryState.counterpartyStoreId = storeId;
+              entryState.counterpartyStoreName = storeName;
+              // Clear cash location when store changes
               entryState.counterpartyCashLocationId = null;
               entryState.counterpartyCashLocationName = null;
               onStateChanged();
               Navigator.pop(context);
             },
-          ),
-          const Divider(height: 1),
-          Flexible(
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-              itemCount: stores.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: TossColors.gray100),
-              itemBuilder: (_, i) {
-                final store = stores[i];
-                final storeId = store['store_id'] as String?;
-                final storeName =
-                    store['store_name'] as String? ?? 'Unknown Store';
-                final isSelected = entryState.counterpartyStoreId == storeId;
-
-                return ListTile(
-                  leading: Icon(
-                    Icons.store,
-                    color:
-                        isSelected ? TossColors.primary : TossColors.gray500,
-                  ),
-                  title: Text(
-                    storeName,
-                    style: TossTextStyles.body.copyWith(
-                      fontWeight:
-                          isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
-                      color:
-                          isSelected ? TossColors.primary : TossColors.gray900,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? const Icon(Icons.check, color: TossColors.primary)
-                      : null,
-                  onTap: () {
-                    entryState.counterpartyStoreId = storeId;
-                    entryState.counterpartyStoreName = storeName;
-                    // Clear cash location when store changes
-                    entryState.counterpartyCashLocationId = null;
-                    entryState.counterpartyCashLocationName = null;
-                    onStateChanged();
-                    Navigator.pop(context);
-                  },
-                );
-              },
-            ),
-          ),
-          SizedBox(
-              height: MediaQuery.of(context).padding.bottom + TossSpacing.space4),
-        ],
-      ),
+          );
+        }),
+      ],
     );
   }
 }

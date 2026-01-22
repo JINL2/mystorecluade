@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/models/selection_item.dart';
-import 'package:myfinance_improved/shared/themes/index.dart';
 import 'package:myfinance_improved/shared/widgets/molecules/sheets/selection_list_item.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/trigger_bottom_sheet_common.dart';
 
 /// Toss-style dropdown with bottom sheet selection
+///
+/// Uses [TriggerBottomSheetCommon] for consistent trigger + sheet UI.
 class TossDropdown<T> extends StatelessWidget {
   final String label;
   final T? value;
@@ -15,9 +15,6 @@ class TossDropdown<T> extends StatelessWidget {
   final String? errorText;
   final bool isLoading;
   final bool isRequired;
-
-  // Constants for better maintainability
-  static const double _iconSize = TossSpacing.iconMD;
 
   const TossDropdown({
     super.key,
@@ -34,138 +31,21 @@ class TossDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasError = errorText != null && errorText!.isNotEmpty;
-    final selectedItem = _getSelectedItem();
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label (only show if not empty)
-        if (label.isNotEmpty) ...[
-          Row(
-            children: [
-              Text(
-                label,
-                style: hasError
-                    ? TossTextStyles.smallSectionTitle.copyWith(color: TossColors.error)
-                    : TossTextStyles.smallSectionTitle,
-              ),
-              if (isRequired) ...[
-                SizedBox(width: TossSpacing.space1 / 2),
-                Text(
-                  '*',
-                  style: TossTextStyles.smallSectionTitle.copyWith(
-                    color: TossColors.error,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: TossSpacing.space2),
-        ],
-        
-        // Dropdown Field
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            color: TossColors.surface,
-            border: Border.all(
-              color: hasError
-                ? TossColors.error
-                : TossColors.border,
-              width: hasError ? 2 : 1,
-            ),
-          ),
-          child: Material(
-            color: TossColors.transparent,
-            child: InkWell(
-              onTap: isLoading || onChanged == null 
-                ? null 
-                : () => _showSelectionBottomSheet(context),
-              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TossSpacing.space4,
-                  vertical: TossSpacing.space3,
-                ),
-                child: Row(
-                  children: [
-                    
-                    // Selected value or hint
-                    Expanded(
-                      child: isLoading
-                        ? _buildLoadingIndicator(context)
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _getDisplayText(selectedItem),
-                                style: _getDisplayTextStyle(),
-                              ),
-                              // Remove subtitle display in main field for cleaner look
-                            ],
-                          ),
-                    ),
-                    
-                    // Dropdown icon
-                    const Icon(
-                      LucideIcons.chevronDown,
-                      color: TossColors.gray700,
-                      size: _iconSize,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        
-        // Error text
-        if (hasError) ...[
-          const SizedBox(height: TossSpacing.space1),
-          Text(
-            errorText!,
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.error,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-  
-  Widget _buildLoadingIndicator(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: TossSpacing.iconSM2,
-          height: TossSpacing.iconSM2,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              TossColors.primary,
-            ),
-          ),
-        ),
-        const SizedBox(width: TossSpacing.space2),
-        Text(
-          'Loading...',
-          style: TossTextStyles.caption.copyWith(
-            color: TossColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-  
-  void _showSelectionBottomSheet(BuildContext context) {
-    SelectionBottomSheetCommon.show(
-      context: context,
-      title: label,
+
+    return TriggerBottomSheetCommon<T>(
+      label: label,
+      value: value,
+      displayText: _getDisplayText(),
+      hint: hint ?? 'Select $label',
+      onChanged: onChanged,
+      isLoading: isLoading,
+      hasError: hasError,
+      errorText: errorText,
+      isRequired: isRequired,
       itemCount: items.length,
-      itemBuilder: (context, index) {
+      isItemSelected: (index) => items[index].value == value,
+      itemBuilder: (context, index, isSelected, onSelect) {
         final item = items[index];
-        final isSelected = item.value == value;
         return SelectionListItem(
           item: SelectionItem(
             id: item.value.toString(),
@@ -175,42 +55,21 @@ class TossDropdown<T> extends StatelessWidget {
           ),
           isSelected: isSelected,
           variant: SelectionItemVariant.minimal,
-          onTap: () {
-            onChanged?.call(item.value);
-            Navigator.of(context).pop();
-          },
+          onTap: () => onSelect(item.value),
         );
       },
     );
   }
 
-  /// Helper method to get selected item efficiently
-  TossDropdownItem<T>? _getSelectedItem() {
+  /// Helper method to get display text
+  String? _getDisplayText() {
     if (value == null) return null;
     try {
-      return items.firstWhere((item) => item.value == value);
-    } catch (e) {
-      return null; // Return null if value not found in items
-    }
-  }
-
-  /// Helper method to get display text
-  String _getDisplayText(TossDropdownItem<T>? selectedItem) {
-    if (selectedItem != null) {
+      final selectedItem = items.firstWhere((item) => item.value == value);
       return selectedItem.label;
+    } catch (e) {
+      return null;
     }
-    if (value != null) {
-      return 'Invalid selection'; // Value exists but not in items
-    }
-    return hint ?? 'Select $label';
-  }
-
-  /// Helper method to get display text style
-  TextStyle _getDisplayTextStyle() {
-    return TossTextStyles.bodyLarge.copyWith(
-      color: value != null ? TossColors.textPrimary : TossColors.textTertiary,
-      fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
-    );
   }
 }
 

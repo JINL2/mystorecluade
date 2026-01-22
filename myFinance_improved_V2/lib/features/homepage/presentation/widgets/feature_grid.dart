@@ -176,11 +176,7 @@ class _CategorySection extends StatelessWidget {
           // Category Header
           Text(
             category.categoryName,
-            style: TossTextStyles.h3.copyWith(
-              color: TossColors.textPrimary,
-              fontWeight: FontWeight.w400,
-              letterSpacing: -0.4,
-            ),
+            style: TossTextStyles.h3,
           ),
           const SizedBox(height: TossSpacing.space3),
 
@@ -271,12 +267,7 @@ class _FeatureListItem extends ConsumerWidget {
                   children: [
                     Text(
                       feature.featureName,
-                      style: TossTextStyles.titleMedium.copyWith(
-                        color: TossColors.textPrimary,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.4,
-                        height: 1.3,
-                      ),
+                      style: TossTextStyles.subtitle, // 16px, w600
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
@@ -285,11 +276,7 @@ class _FeatureListItem extends ConsumerWidget {
                       SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         feature.featureDescription!,
-                        style: TossTextStyles.bodySmall.copyWith(
-                          color: TossColors.textSecondary,
-                          letterSpacing: -0.2,
-                          height: 1.2,
-                        ),
+                        style: TossTextStyles.listItemSubtitle,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -326,11 +313,7 @@ class _LoadingFeatures extends StatelessWidget {
           children: [
             Text(
               'All Features',
-              style: TossTextStyles.h2.copyWith(
-                color: TossColors.textPrimary,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.6,
-              ),
+              style: TossTextStyles.h2,
             ),
             const SizedBox(height: TossSpacing.space6),
             const TossLoadingView(),
@@ -370,16 +353,12 @@ class _EmptyFeatures extends StatelessWidget {
               const SizedBox(height: TossSpacing.space4),
               Text(
                 'Setting up your workspace...',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.textSecondary,
-                ),
+                style: TossTextStyles.secondaryText,
               ),
               const SizedBox(height: TossSpacing.space2),
               Text(
                 'Please wait while we load your features',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.textTertiary,
-                ),
+                style: TossTextStyles.captionTertiary,
               ),
             ],
           ),
@@ -421,10 +400,7 @@ class _ErrorFeatures extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Unable to load features',
-                  style: TossTextStyles.body.copyWith(
-                    color: TossColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TossTextStyles.bodyMedium,
                 ),
               ),
             ],

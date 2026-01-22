@@ -48,10 +48,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
         // Section title
         Text(
           'Salary Trend (Last 5 Weeks)',
-          style: TossTextStyles.bodySmall.copyWith(
-            fontWeight: TossFontWeight.bold,
-            color: TossColors.gray900,
-          ),
+          style: TossTextStyles.captionBold,
         ),
 
         SizedBox(height: TossSpacing.space3),
@@ -97,10 +94,9 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
                     final isSelected = _selectedIndex == index;
                     return Text(
                       widget.weekLabels[index],
-                      style: TossTextStyles.labelSmall.copyWith(
-                        fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
-                        color: isSelected ? TossColors.primary : TossColors.gray600,
-                      ),
+                      style: isSelected
+                          ? TossTextStyles.smallPrimary
+                          : TossTextStyles.captionGray600,
                     );
                   }),
                 ),
@@ -114,10 +110,7 @@ class _SalaryTrendSectionState extends State<SalaryTrendSection> {
         // Footer note
         Text(
           widget.footerNote,
-          style: TossTextStyles.labelSmall.copyWith(
-            color: TossColors.gray600,
-            height: 1.4,
-          ),
+          style: TossTextStyles.captionGray600,
         ),
       ],
     );
@@ -262,10 +255,7 @@ class _TrendLinePainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: selectedValue,
-        style: TossTextStyles.labelSmall.copyWith(
-          fontWeight: TossFontWeight.semibold,
-          color: TossColors.gray900,
-        ),
+        style: TossTextStyles.smallBold,
       ),
       textDirection: TextDirection.ltr,
     );

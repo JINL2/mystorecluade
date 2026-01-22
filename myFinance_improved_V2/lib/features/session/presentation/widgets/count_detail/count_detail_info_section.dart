@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
-import '../../../../../shared/themes/toss_font_weight.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
 import '../../../../../shared/themes/toss_text_styles.dart';
+import '../../../../../shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Info section with session details (status, started, location, items, memo)
@@ -139,52 +138,14 @@ class CountDetailInfoSection extends StatelessWidget {
   }
 
   void _showFullMemo(BuildContext context) {
-    showModalBottomSheet<void>(
+    TossBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.space4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: TossColors.gray300,
-                    borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-                  ),
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              // Title
-              Text(
-                'Memo',
-                style: TossTextStyles.titleMedium.copyWith(
-                  fontWeight: TossFontWeight.bold,
-                  color: TossColors.gray900,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space3),
-              // Full memo content
-              Text(
-                memo!,
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray900,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-            ],
-          ),
+      title: 'Memo',
+      content: Text(
+        memo!,
+        style: TossTextStyles.body.copyWith(
+          color: TossColors.gray900,
+          height: 1.5,
         ),
       ),
     );

@@ -16,6 +16,7 @@ import '../widgets/employee_detail/salary_row.dart';
 import '../widgets/stats/stats_leaderboard.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_detail_skeleton.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Employee Detail Page
 class EmployeeDetailPage extends ConsumerStatefulWidget {
@@ -173,13 +174,10 @@ class _EmployeeDetailPageState extends ConsumerState<EmployeeDetailPage> {
 
   void _showMonthPicker() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet(
+    TossBottomSheet.show(
       context: context,
-      backgroundColor: TossColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
-      ),
-      builder: (context) => MonthPickerSheet(
+      title: 'Select Month',
+      content: MonthPickerSheet(
         selectedMonth: _selectedMonth,
         onMonthSelected: (month) {
           Navigator.pop(context);

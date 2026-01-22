@@ -31,17 +31,12 @@ void showAutoBalanceTypeSelection({
               const SizedBox(height: TossSpacing.space2),
               Text(
                 'Select Adjustment Type',
-                style: TossTextStyles.titleLarge.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TossTextStyles.dialogTitleLarge,
               ),
               const SizedBox(height: TossSpacing.space5),
               Text(
                 'Choose the type of adjustment to apply',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                ),
+                style: TossTextStyles.bodyGray600,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: TossSpacing.space6),
@@ -50,10 +45,7 @@ void showAutoBalanceTypeSelection({
               TossButton.primary(
                 text: 'Error Adjustment',
                 fullWidth: true,
-                textStyle: TossTextStyles.body.copyWith(
-                  color: TossColors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+                textStyle: TossTextStyles.bodyWhiteBold,
                 padding: const EdgeInsets.symmetric(
                   vertical: TossSpacing.space3,
                 ),
@@ -74,10 +66,7 @@ void showAutoBalanceTypeSelection({
               TossButton.secondary(
                 text: 'Foreign Currency Translation',
                 fullWidth: true,
-                textStyle: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                  fontWeight: FontWeight.w600,
-                ),
+                textStyle: TossTextStyles.bodyMedium,
                 padding: const EdgeInsets.symmetric(
                   vertical: TossSpacing.space3,
                 ),
@@ -98,9 +87,7 @@ void showAutoBalanceTypeSelection({
               TossButton.textButton(
                 text: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
-                textStyle: TossTextStyles.body.copyWith(
-                  color: TossColors.gray500,
-                ),
+                textStyle: TossTextStyles.bodyTertiary,
               ),
             ],
           ),
@@ -158,19 +145,14 @@ void showAutoBalanceConfirmation({
               // Title
               Text(
                 'Confirm Auto-Balance',
-                style: TossTextStyles.titleLarge.copyWith(
-                  color: TossColors.gray900,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TossTextStyles.dialogTitleLarge,
               ),
               const SizedBox(height: TossSpacing.space5),
 
               // Description
               Text(
                 'Review the details below before applying Auto-Balance',
-                style: TossTextStyles.body.copyWith(
-                  color: TossColors.gray600,
-                ),
+                style: TossTextStyles.bodyGray600,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: TossSpacing.space6),
@@ -202,19 +184,15 @@ void showAutoBalanceConfirmation({
                       children: [
                         Text(
                           'Difference',
-                          style: TossTextStyles.bodyMedium.copyWith(
-                            color: TossColors.gray900,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: TossTextStyles.bodyMedium,
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
                               formattedDifference,
-                              style: TossTextStyles.bodyMedium.copyWith(
+                              style: TossTextStyles.bodyBold.copyWith(
                                 color: differenceColor,
-                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             // Show percentage below difference in dialog
@@ -222,9 +200,8 @@ void showAutoBalanceConfirmation({
                               SizedBox(height: TossSpacing.space1 / 2),
                               Text(
                                 balanceSummary.formattedPercentage,
-                                style: TossTextStyles.small.copyWith(
+                                style: TossTextStyles.smallPrimary.copyWith(
                                   color: getPercentageColor(balanceSummary),
-                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -240,9 +217,7 @@ void showAutoBalanceConfirmation({
               // Explanation text
               Text(
                 'This action will add a Journal entry to match the Real amount.',
-                style: TossTextStyles.caption.copyWith(
-                  color: TossColors.gray500,
-                ),
+                style: TossTextStyles.captionGray500,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: TossSpacing.space6),
@@ -255,10 +230,7 @@ void showAutoBalanceConfirmation({
                     child: TossButton.secondary(
                       text: 'Cancel',
                       fullWidth: true,
-                      textStyle: TossTextStyles.body.copyWith(
-                        color: TossColors.gray600,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      textStyle: TossTextStyles.bodyMedium,
                       padding: const EdgeInsets.symmetric(
                         vertical: TossSpacing.space3,
                       ),
@@ -278,10 +250,7 @@ void showAutoBalanceConfirmation({
                     child: TossButton.primary(
                       text: 'Confirm & Apply',
                       fullWidth: true,
-                      textStyle: TossTextStyles.body.copyWith(
-                        color: TossColors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      textStyle: TossTextStyles.bodyWhiteBold,
                       padding: const EdgeInsets.symmetric(
                         vertical: TossSpacing.space3,
                       ),
@@ -316,18 +285,13 @@ Widget _buildConfirmationRow(String label, String value) {
     children: [
       Text(
         label,
-        style: TossTextStyles.body.copyWith(
-          color: TossColors.gray600,
-        ),
+        style: TossTextStyles.dialogInfoLabel,
       ),
       const SizedBox(width: TossSpacing.space2),
       Flexible(
         child: Text(
           value,
-          style: TossTextStyles.body.copyWith(
-            color: TossColors.gray900,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TossTextStyles.listItemTitle,
           textAlign: TextAlign.right,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,

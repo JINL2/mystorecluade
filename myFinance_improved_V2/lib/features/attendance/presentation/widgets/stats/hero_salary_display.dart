@@ -32,10 +32,7 @@ class HeroSalaryDisplay extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TossTextStyles.bodySmall.copyWith(
-                  color: TossColors.gray700,
-                  fontWeight: TossFontWeight.bold,
-                ),
+                style: TossTextStyles.captionBold,
               ),
               SizedBox(width: TossSpacing.space1),
               Icon(
@@ -52,12 +49,7 @@ class HeroSalaryDisplay extends StatelessWidget {
         // Large amount display
         Text(
           amount,
-          style: TossTextStyles.h1.copyWith(
-            fontWeight: TossFontWeight.bold,
-            color: TossColors.gray900,
-            height: 1.2,
-            letterSpacing: -0.5,
-          ),
+          style: TossTextStyles.h1,
         ),
 
         SizedBox(height: TossSpacing.space2 + TossSpacing.space1 / 2),
@@ -73,10 +65,9 @@ class HeroSalaryDisplay extends StatelessWidget {
             SizedBox(width: TossSpacing.space1),
             Text(
               growthText,
-              style: TossTextStyles.bodySmall.copyWith(
-                fontWeight: TossFontWeight.semibold,
-                color: isPositiveGrowth ? TossColors.primary : TossColors.loss,
-              ),
+              style: isPositiveGrowth
+                  ? TossTextStyles.captionPrimary
+                  : TossTextStyles.captionError,
             ),
           ],
         ),

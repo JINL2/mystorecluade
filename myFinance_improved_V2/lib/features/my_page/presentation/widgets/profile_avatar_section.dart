@@ -109,6 +109,7 @@ class ProfileAvatarSection extends StatelessWidget {
   }
 }
 
+/// Content widget for avatar options - used inside TossBottomSheet
 class AvatarOptionsBottomSheet extends StatelessWidget {
   final bool hasProfileImage;
   final Future<void> Function(ImageSource) onPickImage;
@@ -123,101 +124,77 @@ class AvatarOptionsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.bottomSheet)),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: TossDimensions.dragHandleWidth,
-              height: TossDimensions.dragHandleHeight,
-              margin: const EdgeInsets.symmetric(vertical: TossSpacing.space3),
-              decoration: BoxDecoration(
-                color: TossColors.gray300,
-                borderRadius: BorderRadius.circular(TossBorderRadius.xs),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(TossSpacing.space4),
-              child: Column(
-                children: [
-                  Text(
-                    'Change Profile Picture',
-                    style: TossTextStyles.h3.copyWith(
-                      fontWeight: TossFontWeight.bold,
-                      color: TossColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(height: TossSpacing.space6),
-                  _AvatarOption(
-                    icon: Icons.camera_alt_outlined,
-                    title: 'Take Photo',
-                    onTap: () async {
-                      Navigator.pop(context);
-                      final status = await Permission.camera.status;
-                      if (!status.isGranted) {
-                        final result = await Permission.camera.request();
-                        if (result.isGranted) {
-                          await onPickImage(ImageSource.camera);
-                        } else {
-                          if (context.mounted) {
-                            _showPermissionDeniedDialog(context);
-                          }
-                        }
-                      } else {
-                        await onPickImage(ImageSource.camera);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  _AvatarOption(
-                    icon: Icons.photo_library_outlined,
-                    title: 'Choose from Gallery',
-                    onTap: () async {
-                      Navigator.pop(context);
-                      final status = await Permission.photos.status;
-                      if (!status.isGranted) {
-                        final result = await Permission.photos.request();
-                        if (result.isGranted) {
-                          await onPickImage(ImageSource.gallery);
-                        } else {
-                          if (context.mounted) {
-                            _showPermissionDeniedDialog(context);
-                          }
-                        }
-                      } else {
-                        await onPickImage(ImageSource.gallery);
-                      }
-                    },
-                  ),
-                  if (hasProfileImage) ...[
-                    const SizedBox(height: TossSpacing.space3),
-                    _AvatarOption(
-                      icon: Icons.delete_outline,
-                      title: 'Remove Photo',
-                      onTap: () {
-                        Navigator.pop(context);
-                        onRemoveImage();
-                      },
-                      isDestructive: true,
-                    ),
-                  ],
-                  const SizedBox(height: TossSpacing.space3),
-                  _AvatarOption(
-                    icon: Icons.close,
-                    title: 'Cancel',
-                    onTap: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Change Profile Picture',
+          style: TossTextStyles.h3.copyWith(
+            fontWeight: TossFontWeight.bold,
+            color: TossColors.gray900,
+          ),
         ),
-      ),
+        const SizedBox(height: TossSpacing.space6),
+        _AvatarOption(
+          icon: Icons.camera_alt_outlined,
+          title: 'Take Photo',
+          onTap: () async {
+            Navigator.pop(context);
+            final status = await Permission.camera.status;
+            if (!status.isGranted) {
+              final result = await Permission.camera.request();
+              if (result.isGranted) {
+                await onPickImage(ImageSource.camera);
+              } else {
+                if (context.mounted) {
+                  _showPermissionDeniedDialog(context);
+                }
+              }
+            } else {
+              await onPickImage(ImageSource.camera);
+            }
+          },
+        ),
+        const SizedBox(height: TossSpacing.space3),
+        _AvatarOption(
+          icon: Icons.photo_library_outlined,
+          title: 'Choose from Gallery',
+          onTap: () async {
+            Navigator.pop(context);
+            final status = await Permission.photos.status;
+            if (!status.isGranted) {
+              final result = await Permission.photos.request();
+              if (result.isGranted) {
+                await onPickImage(ImageSource.gallery);
+              } else {
+                if (context.mounted) {
+                  _showPermissionDeniedDialog(context);
+                }
+              }
+            } else {
+              await onPickImage(ImageSource.gallery);
+            }
+          },
+        ),
+        if (hasProfileImage) ...[
+          const SizedBox(height: TossSpacing.space3),
+          _AvatarOption(
+            icon: Icons.delete_outline,
+            title: 'Remove Photo',
+            onTap: () {
+              Navigator.pop(context);
+              onRemoveImage();
+            },
+            isDestructive: true,
+          ),
+        ],
+        const SizedBox(height: TossSpacing.space3),
+        _AvatarOption(
+          icon: Icons.close,
+          title: 'Cancel',
+          onTap: () => Navigator.pop(context),
+        ),
+      ],
     );
   }
 

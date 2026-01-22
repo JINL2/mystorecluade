@@ -40,9 +40,8 @@ class ScheduleStatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TossTextStyles.labelSmall.copyWith(
+        style: TossTextStyles.smallBold.copyWith(
           color: TossColors.white,
-          fontWeight: TossFontWeight.semibold,
         ),
       ),
     );

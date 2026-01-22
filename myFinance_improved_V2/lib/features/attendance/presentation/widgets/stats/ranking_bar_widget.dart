@@ -35,10 +35,7 @@ class RankingBarWidget extends StatelessWidget {
           // Name
           Text(
             name,
-            style: TossTextStyles.bodySmall.copyWith(
-              fontWeight: TossFontWeight.semibold,
-              color: TossColors.gray700,
-            ),
+            style: TossTextStyles.captionBold,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -48,10 +45,7 @@ class RankingBarWidget extends StatelessWidget {
           // Value
           Text(
             '$value$unit',
-            style: TossTextStyles.h3.copyWith(
-              fontWeight: TossFontWeight.bold,
-              color: TossColors.gray900,
-            ),
+            style: TossTextStyles.h3,
           ),
 
           SizedBox(height: TossSpacing.space2),
@@ -68,8 +62,7 @@ class RankingBarWidget extends StatelessWidget {
               Expanded(
                 child: Text(
                   rankingLabel,
-                  style: TossTextStyles.small.copyWith(
-                    fontWeight: TossFontWeight.semibold,
+                  style: TossTextStyles.smallBold.copyWith(
                     color: color,
                   ),
                   maxLines: 1,

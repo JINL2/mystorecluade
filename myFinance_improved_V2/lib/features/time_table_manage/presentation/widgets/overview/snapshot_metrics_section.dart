@@ -4,6 +4,7 @@ import '../../../../../shared/themes/index.dart';
 import '../../../domain/entities/shift_card.dart';
 import 'shift_info_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 /// Snapshot Metrics Section
 ///
@@ -85,10 +86,10 @@ class SnapshotMetricsSection extends StatelessWidget {
         onTap: employees.isNotEmpty
             ? () {
                 // Show bottom sheet for entire metric area
-                showModalBottomSheet<void>(
+                TossBottomSheet.showWithBuilder<void>(
                   context: context,
                   isScrollControlled: true,
-                  backgroundColor: TossColors.transparent,
+                  heightFactor: 0.75,
                   builder: (sheetContext) => _MetricBottomSheet(
                     title: label,
                     users: users,

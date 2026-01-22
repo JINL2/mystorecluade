@@ -30,6 +30,7 @@ import 'package:myfinance_improved/app/providers/cash_location_provider.dart';
 import 'package:myfinance_improved/core/data/models/transaction_history_model.dart';
 import 'package:myfinance_improved/core/domain/entities/selector_entities.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 
 import 'cash_location_selector_sheet.dart';
 
@@ -280,10 +281,9 @@ class _CashLocationSelectorState extends ConsumerState<CashLocationSelector> {
           ? storeLocations
           : locations;
 
-      showModalBottomSheet<void>(
+      TossBottomSheet.showWithBuilder<void>(
         context: context,
-        isScrollControlled: true,
-        backgroundColor: TossColors.transparent,
+        heightFactor: 0.7,
         builder: (context) => CashLocationSimpleSheet(
           locations: filteredLocations,
           selectedLocationId: widget.selectedLocationId,
@@ -296,10 +296,9 @@ class _CashLocationSelectorState extends ConsumerState<CashLocationSelector> {
       );
     } else {
       // Scoped mode with tabs
-      showModalBottomSheet<void>(
+      TossBottomSheet.showWithBuilder<void>(
         context: context,
-        isScrollControlled: true,
-        backgroundColor: TossColors.transparent,
+        heightFactor: 0.8,
         builder: (context) => CashLocationScopedSheet(
           companyLocations: companyLocations,
           storeLocations: storeLocations,

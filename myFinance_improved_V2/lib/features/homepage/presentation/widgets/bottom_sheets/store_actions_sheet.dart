@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -52,10 +53,7 @@ class StoreActionsSheet extends ConsumerWidget {
                   children: [
                     Text(
                       'Add Store',
-                      style: TossTextStyles.h3.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: TossTextStyles.sheetTitle,
                     ),
                     Text(
                       'For $companyName',
@@ -189,10 +187,9 @@ class StoreActionsSheet extends ConsumerWidget {
     required VoidCallback onCreateStore,
     required VoidCallback onJoinStore,
   }) {
-    return showModalBottomSheet<T>(
+    return TossBottomSheet.showWithBuilder<T>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
+      heightFactor: 0.5,
       builder: (context) => StoreActionsSheet(
         companyName: companyName,
         onCreateStore: onCreateStore,

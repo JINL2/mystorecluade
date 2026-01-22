@@ -212,16 +212,11 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
                     children: [
                       Text(
                         'Create Store',
-                        style: TossTextStyles.h3.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TossTextStyles.sheetTitle,
                       ),
                       Text(
                         'For ${widget.companyName}',
-                        style: TossTextStyles.caption.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                        style: TossTextStyles.captionSecondary,
                       ),
                     ],
                   ),

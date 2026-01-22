@@ -68,16 +68,12 @@ class ScheduleShiftCard extends StatelessWidget {
                     children: [
                       Text(
                         card.shiftName ?? 'Unknown Shift',
-                        style: TossTextStyles.body.copyWith(
-                          fontWeight: TossFontWeight.semibold,
-                          color: TossColors.gray900,
-                        ),
+                        style: TossTextStyles.bodyMedium,
                       ),
                       const SizedBox(height: TossSpacing.space1 / 2),
                       Text(
                         timeRange,
-                        style: TossTextStyles.labelSmall.copyWith(
-                          color: TossColors.gray500,
+                        style: TossTextStyles.captionGray500.copyWith(
                           fontFeatures: [const FontFeature.tabularFigures()],
                         ),
                       ),

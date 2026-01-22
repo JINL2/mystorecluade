@@ -5,6 +5,7 @@ import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_font_weight.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 import 'move_stock_dialog.dart';
 
 /// Reusable bottom sheet for selecting a store from a list
@@ -27,20 +28,48 @@ class StorePickerSheet extends StatelessWidget {
     required List<StoreLocation> stores,
     required void Function(StoreLocation store) onSelect,
   }) {
-    return showModalBottomSheet(
+    return SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(TossBorderRadius.bottomSheet),
-        ),
-      ),
-      builder: (context) => StorePickerSheet(
-        title: title,
-        stores: stores,
-        onSelect: onSelect,
-      ),
+      title: title,
+      maxHeightRatio: 0.6,
+      itemCount: stores.length,
+      itemBuilder: (context, index) {
+        final store = stores[index];
+        return ListTile(
+          leading: const Icon(
+            Icons.store_outlined,
+            color: TossColors.gray600,
+          ),
+          title: Text(
+            store.name,
+            style: TossTextStyles.body.copyWith(
+              fontWeight: TossFontWeight.medium,
+              color: TossColors.gray900,
+            ),
+          ),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.badgePaddingHorizontalLG,
+              vertical: TossSpacing.space1,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.primarySurface,
+              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+            ),
+            child: Text(
+              '${store.stock}',
+              style: TossTextStyles.bodySmall.copyWith(
+                fontWeight: TossFontWeight.semibold,
+                color: TossColors.primary,
+              ),
+            ),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            onSelect(store);
+          },
+        );
+      },
     );
   }
 

@@ -7,6 +7,8 @@ import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/toss_bottom_sheet.dart';
+import 'package:myfinance_improved/shared/widgets/organisms/sheets/selection_bottom_sheet_common.dart';
 
 import '../providers/account_settings_notifier.dart';
 import '../providers/states/account_settings_state.dart';
@@ -579,60 +581,35 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
   void _showAccountTypeSelector(String currentValue) {
     final accountTypes = ['Savings', 'Checking', 'Current', 'Business'];
 
-    showModalBottomSheet(
+    SelectionBottomSheetCommon.show(
       context: context,
-      backgroundColor: TossColors.transparent,
-      builder: (BuildContext modalContext) {
-        return Container(
-          padding: const EdgeInsets.all(TossSpacing.space5),
-          decoration: const BoxDecoration(
-            color: TossColors.white,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(TossBorderRadius.xl),
+      title: 'Select Account Type',
+      children: accountTypes.map((type) {
+        final isSelected = currentValue == type;
+        return ListTile(
+          title: Text(
+            type,
+            style: TossTextStyles.h4.copyWith(
+              fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : TossColors.gray800,
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select Account Type',
-                style: TossTextStyles.h4.copyWith(
-                  fontWeight: TossFontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: TossSpacing.space4),
-              ...accountTypes.map((type) {
-                final isSelected = currentValue == type;
-                return ListTile(
-                  title: Text(
-                    type,
-                    style: TossTextStyles.h4.copyWith(
-                      fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.regular,
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : TossColors.gray800,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? Icon(
-                          Icons.check,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : null,
-                  onTap: () async {
-                    Navigator.of(modalContext).pop();
-                    await ref
-                        .read(accountSettingsNotifierProvider(_params).notifier)
-                        .updateAccountType(type);
-                  },
-                );
-              }),
-              const SizedBox(height: TossSpacing.space4),
-            ],
-          ),
+          trailing: isSelected
+              ? Icon(
+                  Icons.check,
+                  color: Theme.of(context).colorScheme.primary,
+                )
+              : null,
+          onTap: () async {
+            Navigator.of(context).pop();
+            await ref
+                .read(accountSettingsNotifierProvider(_params).notifier)
+                .updateAccountType(type);
+          },
         );
-      },
+      }).toList(),
     );
   }
 
@@ -644,26 +621,21 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage>
     TextInputType? keyboardType,
     required Future<bool> Function(String) onSave,
   }) async {
-    await showModalBottomSheet(
+    await TossBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      isDismissible: true,
-      enableDrag: true,
-      builder: (BuildContext modalContext) {
-        return TextEditSheet(
-          title: title,
-          initialText: initialText,
-          hintText: hintText,
-          multiline: multiline,
-          keyboardType: keyboardType,
-          onSave: (String newValue) async {
-            Navigator.of(modalContext).pop();
-            await onSave(newValue);
-          },
-          onCancel: () => Navigator.of(modalContext).pop(),
-        );
-      },
+      title: title,
+      content: TextEditSheet(
+        title: title,
+        initialText: initialText,
+        hintText: hintText,
+        multiline: multiline,
+        keyboardType: keyboardType,
+        onSave: (String newValue) async {
+          Navigator.of(context).pop();
+          await onSave(newValue);
+        },
+        onCancel: () => Navigator.of(context).pop(),
+      ),
     );
   }
 

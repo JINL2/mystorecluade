@@ -39,18 +39,12 @@ class ReportResponseCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TossTextStyles.bodyLarge.copyWith(
-            color: TossColors.gray600,
-          ),
+          style: TossTextStyles.bodyGray600,
         ),
         const SizedBox(height: TossSpacing.space1),
         Text(
           value,
-          style: valueStyle ??
-              TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray900,
-                fontWeight: TossFontWeight.medium,
-              ),
+          style: valueStyle ?? TossTextStyles.bodyMedium,
           maxLines: 5,
           overflow: TextOverflow.ellipsis,
         ),
@@ -88,10 +82,7 @@ class ReportResponseCard extends StatelessWidget {
             _buildVerticalInfoRow(
               label: 'Manager response',
               value: managerMemoContent,
-              valueStyle: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.primary,
-                fontWeight: TossFontWeight.semibold,
-              ),
+              valueStyle: TossTextStyles.bodyPrimaryBold,
             ),
           ],
           if (hasReport) ...[
@@ -99,10 +90,7 @@ class ReportResponseCard extends StatelessWidget {
             _buildInfoRow(
               label: 'Status',
               value: isSolved ? 'Resolved' : 'Pending',
-              valueStyle: TossTextStyles.bodyLarge.copyWith(
-                color: isSolved ? TossColors.success : TossColors.warning,
-                fontWeight: TossFontWeight.semibold,
-              ),
+              valueStyle: isSolved ? TossTextStyles.bodySuccess : TossTextStyles.bodyWarning,
             ),
           ],
         ],

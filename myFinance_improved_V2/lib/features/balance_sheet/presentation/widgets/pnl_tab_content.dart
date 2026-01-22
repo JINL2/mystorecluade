@@ -139,7 +139,8 @@ class PnlTabContent extends ConsumerWidget {
           vertical: TossSpacing.space2,
         ),
         decoration: BoxDecoration(
-          color: TossColors.gray100,
+          color: TossColors.white,
+          border: Border.all(color: TossColors.gray200),
           borderRadius: BorderRadius.circular(TossBorderRadius.sm),
         ),
         child: Row(
@@ -153,10 +154,7 @@ class PnlTabContent extends ConsumerWidget {
             const SizedBox(width: TossSpacing.space1),
             Text(
               'Excel',
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray600,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TossTextStyles.labelGray600,
             ),
           ],
         ),
@@ -202,35 +200,9 @@ class PnlTabContent extends ConsumerWidget {
   }
 
   Widget _buildError(String error) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: TossColors.gray400,
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'Failed to load data',
-              style: TossTextStyles.bodyLarge.copyWith(
-                color: TossColors.gray600,
-              ),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              error,
-              style: TossTextStyles.caption.copyWith(
-                color: TossColors.gray500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return TossErrorView(
+      title: 'Failed to load data',
+      error: error,
     );
   }
 }
