@@ -22,8 +22,8 @@ import { SalaryPage } from '@/features/employee-salary/presentation/pages/Salary
 import { SchedulePage } from '@/features/employee-schedule/presentation/pages/SchedulePage';
 import { EmployeeSettingPage } from '@/features/employee-setting/presentation/pages/EmployeeSettingPage';
 import { IncomeStatementPage } from '@/features/income-statement/presentation/pages/IncomeStatementPage';
-import { InventoryPage } from '@/features/inventory/presentation/pages/InventoryPage';
-import { InvoicePage } from '@/features/invoice/presentation/pages/InvoicePage';
+import { InventoryPage } from '@/features/inventory-management/presentation/pages/InventoryPage';
+import { InvoicePage } from '@/features/sales-invoice/presentation/pages/InvoicePage';
 import { SaleProductPage } from '@/features/sale-product/presentation/pages/SaleProductPage';
 import { JournalInputPage } from '@/features/journal-input/presentation/pages/JournalInputPage';
 import { MarketingPlanPage } from '@/features/marketing-plan/presentation/pages/MarketingPlanPage';
@@ -34,9 +34,9 @@ import { CategoryAnalysisPage } from '@/features/inventory-analysis/presentation
 import { InventoryOptimizationPage } from '@/features/inventory-analysis/presentation/pages/InventoryOptimizationPage';
 import { SupplyChainPage } from '@/features/inventory-analysis/presentation/pages/SupplyChainPage';
 import { DiscrepancyPage } from '@/features/inventory-analysis/presentation/pages/DiscrepancyPage';
-import { OrderPage } from '@/features/order/presentation/pages/OrderPage';
-import { OrderCreatePage } from '@/features/order/presentation/pages/OrderCreatePage';
-import { OrderDetailPage } from '@/features/order/presentation/pages/OrderDetailPage';
+import { OrderPage } from '@/features/purchase-order/presentation/pages/OrderPage';
+import { OrderCreatePage } from '@/features/purchase-order/presentation/pages/OrderCreatePage';
+import { OrderDetailPage } from '@/features/purchase-order/presentation/pages/OrderDetailPage';
 import { ProductReceivePage } from '@/features/session/presentation/pages/ProductReceivePage';
 import { ReceivingSessionPage } from '@/features/session/presentation/pages/ReceivingSessionPage';
 import { CountingSessionPage } from '@/features/session/presentation/pages/CountingSessionPage';
@@ -44,7 +44,7 @@ import { SessionHistoryDetailPage } from '@/features/session/presentation/pages/
 import { ShipmentPage } from '@/features/shipment/presentation/pages/ShipmentPage';
 import { ShipmentCreatePage } from '@/features/shipment/presentation/pages/ShipmentCreatePage';
 import { ShipmentDetailPage } from '@/features/shipment/presentation/pages/ShipmentDetailPage';
-import { StoreSettingPage } from '@/features/store-setting/presentation/pages/StoreSettingPage';
+import { StoreSettingPage } from '@/features/store-shift/presentation/pages/StoreSettingPage';
 import { TrackingPage } from '@/features/tracking/presentation/pages/TrackingPage';
 import { TransactionHistoryPage } from '@/features/transaction-history/presentation/pages/TransactionHistoryPage';
 import { CashBalancePage } from '@/features/cash-balance/presentation/pages/CashBalancePage';

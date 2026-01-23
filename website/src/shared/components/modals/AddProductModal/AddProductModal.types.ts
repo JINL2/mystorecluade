@@ -2,7 +2,7 @@
  * AddProductModal Component Types
  */
 
-import type { InventoryMetadata } from '@/features/inventory/domain/entities/InventoryMetadata';
+import type { InventoryMetadata } from '@/features/inventory-management/domain/entities/InventoryMetadata';
 
 export interface AddProductModalProps {
   isOpen: boolean;
