@@ -190,3 +190,65 @@
   color: #8B95A1;
   font-size: 14px;
 }
+
+/* Compact Size Variant */
+.compact .control {
+  height: 32px;
+  padding: 6px 10px;
+  gap: 8px;
+  border-radius: 8px;
+}
+
+.compact .control.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.compact .controlIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.compact .controlLabel {
+  font-size: 12px;
+}
+
+.compact .controlArrow {
+  width: 14px;
+  height: 14px;
+}
+
+.compact .dropdown {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.compact .option {
+  height: 32px;
+  padding: 6px 10px;
+  gap: 8px;
+}
+
+.compact .option:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.compact .optionIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.compact .optionText {
+  font-size: 12px;
+}
+
+.compact .checkmarkIcon {
+  width: 12px;
+  height: 12px;
+}
+
+.compact .emptyState {
+  padding: 12px 10px;
+  font-size: 11px;
+}

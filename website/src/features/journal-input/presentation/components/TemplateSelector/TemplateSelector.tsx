@@ -2,16 +2,26 @@
  * TemplateSelector Component
  * Displays transaction templates as clickable chips above the Excel table
  * Shows detail panel with account info and amount input when template is clicked
+ * Includes store selector for filtering templates by store
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { TransactionTemplate } from '../../../domain/repositories/IJournalInputRepository';
+import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
 import styles from './TemplateSelector.module.css';
+
+interface Store {
+  store_id: string;
+  store_name: string;
+}
 
 export interface TemplateSelectorProps {
   templates: TransactionTemplate[];
   loading: boolean;
   accounts: Array<{ accountId: string; accountName: string }>;
+  stores: Store[];
+  selectedStoreId: string | null;
+  onStoreChange: (storeId: string | null) => void;
   onApplyTemplate: (templateData: any, amount: number) => void;
 }
 
@@ -26,10 +36,19 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   templates,
   loading,
   accounts,
+  stores,
+  selectedStoreId,
+  onStoreChange,
   onApplyTemplate,
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<TransactionTemplate | null>(null);
   const [amount, setAmount] = useState<string>('');
+
+  // Reset selected template when store changes
+  useEffect(() => {
+    setSelectedTemplate(null);
+    setAmount('');
+  }, [selectedStoreId]);
 
   // Parse template data to extract line info
   const templateLines = useMemo((): TemplateLineInfo[] => {
@@ -123,7 +142,18 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   return (
     <div className={styles.container}>
-      <div className={styles.label}>Templates:</div>
+      <div className={styles.header}>
+        <div className={styles.label}>Templates:</div>
+        <StoreSelector
+          stores={stores}
+          selectedStoreId={selectedStoreId}
+          onStoreSelect={onStoreChange}
+          showAllStoresOption={false}
+          width="160px"
+          size="compact"
+          className={styles.storeSelector}
+        />
+      </div>
       <div className={styles.templateList}>
         {templates.map((template) => (
           <button

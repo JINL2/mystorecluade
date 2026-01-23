@@ -13,11 +13,21 @@
   margin-bottom: 16px;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .label {
   font-size: 13px;
   font-weight: 500;
   color: #495057;
   white-space: nowrap;
+}
+
+.storeSelector {
+  flex-shrink: 0;
 }
 
 .templateList {

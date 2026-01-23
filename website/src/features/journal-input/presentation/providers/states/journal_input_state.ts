@@ -72,7 +72,7 @@ export interface JournalInputState {
   loadCashLocations: (storeId: string | null) => Promise<CashLocation[]>;
 
   // Async Actions - Template Operations
-  loadTransactionTemplates: () => Promise<void>;
+  loadTransactionTemplates: (newStoreId?: string | null) => Promise<void>;
   applyTemplate: (templateId: string) => void;
 
   // Reset

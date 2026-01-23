@@ -187,9 +187,13 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
   },
 
   // Template Operations
-  loadTransactionTemplates: async () => {
+  // storeId parameter allows passing the new storeId directly when store changes
+  // This fixes the race condition where state.storeId hasn't updated yet
+  loadTransactionTemplates: async (newStoreId?: string | null) => {
     const state = get();
-    if (!state.companyId || !state.storeId || !state.userId) {
+    const storeIdToUse = newStoreId !== undefined ? newStoreId : state.storeId;
+
+    if (!state.companyId || !storeIdToUse || !state.userId) {
       return;
     }
 
@@ -198,7 +202,7 @@ export const useJournalInputStore = create<JournalInputState>((set, get) => ({
     try {
       const templates = await repository.getTransactionTemplates(
         state.companyId,
-        state.storeId,
+        storeIdToUse,
         state.userId
       );
       set({ templates, loadingTemplates: false });

@@ -22,7 +22,11 @@ export interface ExcelTabContentProps {
   onGetCounterpartyStores?: (linkedCompanyId: string) => Promise<Array<{ storeId: string; storeName: string }>>;
   onGetCounterpartyCashLocations?: (linkedCompanyId: string, storeId?: string | null) => Promise<any[]>;
   onLoadCashLocations?: (storeId: string | null) => Promise<any[]>;
+  onLoadTemplates?: (storeId: string | null) => Promise<void>;
   onApplyTemplate?: (templateId: string) => void;
   onSubmitSuccess?: () => void;
   onSubmitError?: (error: string) => void;
+  // App state store connection
+  currentStoreId?: string | null;
+  onCurrentStoreChange?: (storeId: string | null) => void;
 }

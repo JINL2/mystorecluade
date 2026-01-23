@@ -28,12 +28,34 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
   onGetCounterpartyStores,
   onGetCounterpartyCashLocations,
   onLoadCashLocations,
+  onLoadTemplates,
   onApplyTemplate,
   onSubmitSuccess,
   onSubmitError,
+  currentStoreId,
+  onCurrentStoreChange,
 }) => {
   // Local state for store and date selection (independent - for submission only, no page refresh)
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  // Template store selection - uses app state's currentStore if available
+  const [templateStoreId, setTemplateStoreId] = useState<string | null>(
+    currentStoreId ?? (stores.length > 0 ? stores[0].store_id : null)
+  );
+
+  // Sync templateStoreId with app state's currentStoreId when it changes externally
+  useEffect(() => {
+    if (currentStoreId !== undefined && currentStoreId !== templateStoreId) {
+      setTemplateStoreId(currentStoreId);
+    }
+  }, [currentStoreId]);
+
+  // Handle template store change - update both local and app state
+  const handleTemplateStoreChange = (storeId: string | null) => {
+    setTemplateStoreId(storeId);
+    if (onCurrentStoreChange) {
+      onCurrentStoreChange(storeId);
+    }
+  };
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date();
     const year = today.getFullYear();
@@ -61,6 +83,13 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
     };
     loadCashLocations();
   }, [selectedStoreId, onLoadCashLocations, initialCashLocations]);
+
+  // Load templates when template store changes
+  useEffect(() => {
+    if (onLoadTemplates && templateStoreId) {
+      onLoadTemplates(templateStoreId);
+    }
+  }, [templateStoreId, onLoadTemplates]);
 
   // Use custom hook (provider wrapper)
   const {
@@ -398,6 +427,9 @@ export const ExcelTabContent: React.FC<ExcelTabContentProps> = ({
         templates={templates}
         loading={loadingTemplates}
         accounts={accounts.map((acc) => ({ accountId: acc.accountId, accountName: acc.accountName || acc.account_name || '' }))}
+        stores={stores}
+        selectedStoreId={templateStoreId}
+        onStoreChange={handleTemplateStoreChange}
         onApplyTemplate={handleApplyTemplate}
       />
 
