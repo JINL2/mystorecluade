@@ -1,0 +1,1180 @@
+/**
+ * InventoryTableSection Component Styles
+ * All table-related styles extracted from InventoryPage
+ * Following ARCHITECTURE.md: CSS ≤ 20KB, separate per component
+ */
+
+/* Table Styles */
+.inventoryTableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.inventoryTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+}
+
+.inventoryTable th {
+  background: var(--toss-gray-50);
+  color: #6C757D;
+  font-weight: 600;
+  font-size: 12px;
+  text-align: left;
+  padding: 16px 6px;
+  border-bottom: 1px solid var(--toss-gray-200);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.inventoryTable th.quantityCell,
+.inventoryTable th.priceCell,
+.inventoryTable th.costCell {
+  text-align: center;
+}
+
+.inventoryTable td {
+  padding: 16px 6px;
+  border-bottom: 1px solid var(--color-gray-100);
+  vertical-align: middle;
+}
+
+.inventoryTable tbody tr:hover {
+  background: var(--color-gray-50);
+}
+
+.inventoryTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Column Width Styles */
+.checkboxCell {
+  width: 48px;
+  padding-left: 6px !important;
+  padding-right: 4px !important;
+}
+
+.imageCell {
+  width: 60px;
+  padding: 8px 4px !important;
+  text-align: center;
+}
+
+.productThumbnail {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #E9ECEF;
+  display: block;
+  margin: 0 auto;
+}
+
+.noImagePlaceholder {
+  width: 44px;
+  height: 44px;
+  background-color: #F8F9FA;
+  border: 1px solid #E9ECEF;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ADB5BD;
+  margin: 0 auto;
+}
+
+.inventoryTable th:nth-child(3) {
+  width: 24%;
+}
+
+.inventoryTable th:nth-child(4) {
+  width: 13%;
+}
+
+.inventoryTable th:nth-child(5) {
+  width: 11%;
+}
+
+.inventoryTable th:nth-child(6) {
+  width: 9%;
+}
+
+.inventoryTable th:nth-child(7) {
+  width: 11%;
+}
+
+.inventoryTable th:nth-child(8) {
+  width: 11%;
+}
+
+.inventoryTable th:nth-child(9) {
+  width: 11%;
+}
+
+.productCheckbox,
+.selectAllCheckbox {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 4px;
+  background: var(--color-white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+.productCheckbox:hover,
+.selectAllCheckbox:hover {
+  border-color: var(--color-blue-600);
+  background: rgba(0, 100, 255, 0.05);
+}
+
+.productCheckbox:checked,
+.selectAllCheckbox:checked {
+  background: var(--color-blue-600);
+  border-color: var(--color-blue-600);
+  color: var(--color-white);
+}
+
+.productCheckbox:checked::after,
+.selectAllCheckbox:checked::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+  top: 50%;
+  left: 50%;
+}
+
+.productCheckbox {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.productRow:hover .productCheckbox {
+  opacity: 1;
+}
+
+/* Product Name and Code */
+.productNameCell {
+  font-weight: 500;
+  color: var(--color-gray-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productName {
+  font-weight: 500;
+  color: var(--color-gray-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.productCodeCell {
+  font-weight: 400;
+  color: var(--color-gray-700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productCode {
+  font-weight: 400;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.barcodeCell {
+  color: var(--color-gray-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barcode {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+/* Quantity Styles */
+.quantityCell {
+  text-align: center;
+}
+
+.quantityValue {
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.quantityOut {
+  color: #dc2626 !important;
+}
+
+.quantityLow {
+  color: #ea580c !important;
+}
+
+.quantityNegative {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+}
+
+/* Price and Cost Styles */
+.priceCell,
+.costCell {
+  text-align: center;
+}
+
+.priceValue {
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #0064FF;
+}
+
+.costValue {
+  font-weight: 400;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #212529;
+}
+
+/* Status Badge Styles */
+.statusCell {
+  text-align: left;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statusInStock {
+  background: #E3FFF4;
+  color: #00A67E;
+  border: 1px solid #00C896;
+}
+
+.statusLowStock {
+  background: #FFF4E6;
+  color: #E68600;
+  border: 1px solid #FF9500;
+}
+
+.statusOutOfStock {
+  background: #FFEFED;
+  color: #E63E2C;
+  border: 1px solid #FF5847;
+}
+
+/* Actions Cell */
+.moveCell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.actionsCell {
+  text-align: left;
+}
+
+.editProductBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--color-blue-600);
+  background: var(--color-white);
+  color: var(--color-blue-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editProductBtn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.editProductBtn:hover {
+  background: var(--color-blue-50);
+  border-color: var(--color-blue-700);
+  color: var(--color-blue-700);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 64px 16px;
+  color: var(--color-gray-600);
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0 0 12px 0;
+}
+
+.emptyText {
+  font-size: 16px;
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+/* Loading State Overlay */
+.loadingOverlay {
+  position: relative;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Error Container */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.errorIcon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.errorTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0 0 12px 0;
+}
+
+.errorMessage {
+  font-size: 16px;
+  color: var(--color-gray-600);
+  margin: 0 0 24px 0;
+  max-width: 500px;
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.paginationInfo {
+  font-size: 14px;
+  color: var(--color-gray-600);
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paginationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+}
+
+.paginationButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.paginationButton.active {
+  background: var(--color-blue-600);
+  color: var(--color-white);
+  border-color: var(--color-blue-600);
+  font-weight: 700;
+}
+
+.paginationButton.active:hover {
+  background: var(--color-blue-700);
+  border-color: var(--color-blue-700);
+}
+
+.paginationEllipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-gray-500);
+  font-size: 14px;
+  font-weight: 500;
+  user-select: none;
+}
+
+/* Product Row Expansion Styles */
+.productRow {
+  transition: background-color 0.2s ease;
+}
+
+.productRow:hover {
+  background-color: #F8F9FA;
+}
+
+.expandedRow {
+  background-color: #E7F3FF !important;
+  border-bottom: none !important;
+}
+
+.detailRow {
+  background-color: #F8FBFF;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailRow td {
+  padding: 0 !important;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailContent {
+  padding: 24px 12px;
+  animation: slideDown 0.3s ease;
+}
+
+/* Tab Navigation Styles */
+.detailTabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailTab {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6C757D;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -1px;
+}
+
+.detailTab:hover {
+  color: #0064FF;
+  background: rgba(0, 100, 255, 0.05);
+}
+
+.detailTabActive {
+  color: #0064FF;
+  border-bottom-color: #0064FF;
+  font-weight: 600;
+}
+
+.detailTabContent {
+  min-height: 200px;
+}
+
+/* History Tab Styles */
+.historyTabContent {
+  padding: 20px 0;
+}
+
+.historyEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #9CA3AF;
+  text-align: center;
+}
+
+.historyEmpty svg {
+  margin-bottom: 16px;
+  color: #D1D5DB;
+}
+
+.historyEmpty p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* History Loading State */
+.historyLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+/* History Error State */
+.historyError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #dc2626;
+  text-align: center;
+}
+
+.historyError svg {
+  margin-bottom: 16px;
+  color: #fca5a5;
+}
+
+.historyError p {
+  font-size: 14px;
+  margin: 0 0 16px 0;
+}
+
+.retryButton {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0064FF;
+  background: white;
+  border: 1px solid #0064FF;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: #f0f6ff;
+}
+
+/* History Table Styles - Excel Style */
+.historyTableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #D1D5DB;
+  border-radius: 0;
+  background: white;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: auto;
+}
+
+.historyTable td {
+  border-bottom: none;
+  vertical-align: middle;
+  color: #374151;
+  background: white;
+}
+
+.historyTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.historyTable tbody tr:hover {
+  background: #F8FBFF;
+}
+
+.historyTable tbody tr:hover td {
+  background: #F8FBFF;
+}
+
+.historyTableRow {
+  transition: background-color 0.15s ease;
+}
+
+/* History Header Row - Excel Style */
+.historyHeaderRow {
+  background: #F8F9FA !important;
+}
+
+.historyHeaderRow:hover {
+  background: #F8F9FA !important;
+}
+
+.historyHeaderRow:hover td {
+  background: #F8F9FA !important;
+}
+
+.historyHeader {
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: #6C757D !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: #F8F9FA !important;
+  border-bottom: 1px solid #D1D5DB !important;
+}
+
+/* History Table Column Widths - Percentage Based */
+.historyColTime {
+  width: 18%;
+  font-size: 13px;
+  color: #6B7280;
+  white-space: nowrap;
+  text-align: left;
+  padding: 12px 8px;
+}
+
+.historyColType {
+  width: 12%;
+  text-align: left;
+  padding: 12px 8px;
+}
+
+.historyColDesc {
+  width: 25%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  padding: 12px 8px;
+}
+
+.historyColUser {
+  width: 18%;
+  color: #6B7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  padding: 12px 8px;
+}
+
+.historyColQty {
+  width: 12%;
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  text-align: right;
+  padding: 12px 8px;
+}
+
+.historyColStock {
+  width: 15%;
+  font-weight: 600;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #111827;
+  text-align: right;
+  padding: 12px 8px;
+}
+
+/* History Type Badge */
+.historyTypeBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Quantity Colors for History */
+.quantityPositive {
+  color: #16a34a !important;
+}
+
+.quantityNegativeHistory {
+  color: #dc2626 !important;
+}
+
+/* History Pagination */
+.historyPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #E9ECEF;
+}
+
+.historyPaginationInfo {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+.historyPaginationControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.historyPaginationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.historyPaginationButton:hover:not(:disabled) {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.historyPaginationButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.historyPaginationActive {
+  background: #0064FF !important;
+  color: white !important;
+  border-color: #0064FF !important;
+}
+
+.historyPaginationActive:hover {
+  background: #0052CC !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.detailSection {
+  background: white;
+  padding: 16px 8px;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+}
+
+.detailSectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailImages {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.detailImage {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+}
+
+.detailInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F8F9FA;
+}
+
+.detailItem:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6C757D;
+}
+
+.detailValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: #212529;
+  text-align: right;
+}
+
+.detailActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #E9ECEF;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .inventoryTableWrapper {
+    overflow-x: auto;
+  }
+
+  .inventoryTable {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 767px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .detailActions {
+    justify-content: stretch;
+  }
+
+  .detailActions button {
+    flex: 1;
+  }
+}
+
+/* Clickable History Row Styles */
+.historyClickableRow {
+  transition: background-color 0.15s ease;
+}
+
+.historyClickableRow:hover {
+  background: #E7F3FF !important;
+}
+
+.historyClickableRow:hover td {
+  background: #E7F3FF !important;
+}
+
+/* Invoice Detail Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E9ECEF;
+  background: #F8F9FA;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+.invoiceNumber {
+  color: #0064FF;
+  font-weight: 700;
+}
+
+.modalCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #6C757D;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modalCloseBtn:hover {
+  background: #E9ECEF;
+  color: #212529;
+}
+
+.modalBody {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modalLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.modalError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* Invoice Section Styles */
+.invoiceSection {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+  margin-bottom: 16px;
+}
+
+.invoiceSectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+/* Invoice Items Table */
+.invoiceItemsTable {
+  overflow-x: auto;
+}
+
+.invoiceItemsTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.invoiceItemsTable thead {
+  background: #F8F9FA;
+}
+
+.invoiceItemsTable th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.invoiceItemsTable th:nth-child(3),
+.invoiceItemsTable th:nth-child(4),
+.invoiceItemsTable th:nth-child(5),
+.invoiceItemsTable th:nth-child(6) {
+  text-align: right;
+}
+
+.invoiceItemsTable td {
+  padding: 12px;
+  color: #212529;
+  border-bottom: 1px solid #F8F9FA;
+}
+
+.invoiceItemsTable td:nth-child(3),
+.invoiceItemsTable td:nth-child(4),
+.invoiceItemsTable td:nth-child(5),
+.invoiceItemsTable td:nth-child(6) {
+  text-align: right;
+}
+
+.invoiceItemsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.invoiceItemsTable tbody tr:hover {
+  background: #F8F9FA;
+}
+
+/* Invoice Bottom Grid */
+.invoiceBottomGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.invoiceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.invoiceInfoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F8F9FA;
+}
+
+.invoiceInfoItem:last-child {
+  border-bottom: none;
+}
+
+.invoiceInfoLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6C757D;
+}
+
+.invoiceInfoValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: #212529;
+  text-align: right;
+}
+
+.invoiceStatus {
+  text-transform: capitalize;
+  color: #16a34a;
+}
+
+.invoiceTotalRow {
+  border-top: 2px solid #E9ECEF !important;
+  padding-top: 12px !important;
+  margin-top: 8px;
+}
+
+.invoiceTotalLabel {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #212529 !important;
+}
+
+.invoiceTotalValue {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #0064FF !important;
+}
+
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .invoiceBottomGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceItemsTable {
+    overflow-x: auto;
+  }
+
+  .invoiceItemsTable table {
+    min-width: 500px;
+  }
+}

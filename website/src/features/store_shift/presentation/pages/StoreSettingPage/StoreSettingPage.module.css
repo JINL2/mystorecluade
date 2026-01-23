@@ -1,0 +1,436 @@
+/* Page Layout - Following 2025 Design System: Responsive padding with max-width: 100% */
+/* Page Layout - Outer wrapper with responsive padding */
+.pageLayout {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* Horizontal padding only */
+  max-width: 100%; /* Full width by default */
+  margin: 0 auto;
+}
+
+/* Page Content - Inner content wrapper */
+.pageContent {
+  padding: var(--space-6) 0; /* Vertical padding only */
+  max-width: 100%; /* Match Navbar alignment */
+  width: 100%;
+}
+
+/* Page Header */
+.pageHeader {
+  margin-bottom: var(--space-8);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pageHeaderContent {
+  flex: 1;
+}
+
+.pageTitle {
+  font-size: var(--font-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pageSubtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Add Store Button */
+.addStoreBtn {
+  background: var(--toss-primary);
+  color: var(--toss-white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-medium);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.addStoreBtn:hover {
+  background: var(--toss-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Stores Container */
+.storesContainer {
+  margin-top: var(--space-6);
+}
+
+.storesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+/* Store Card - Backup Style */
+.storeCard {
+  background: var(--toss-white);
+  border: 1px solid var(--toss-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.storeCard:hover {
+  background: var(--toss-surface-primary, #f0f8ff);
+  border-color: var(--toss-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.storeCardHeader {
+  padding-right: var(--space-8);
+}
+
+.storeName {
+  font-size: var(--font-h4);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.storeDetail {
+  color: var(--text-secondary);
+  font-size: var(--font-small);
+  margin-top: var(--space-2);
+  line-height: 1.4;
+}
+
+/* Store Actions - Backup Style */
+.storeActions {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  gap: var(--space-1);
+  opacity: 1;
+  transition: all 0.2s ease;
+}
+
+.storeActionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--toss-white);
+  border: 1px solid var(--toss-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: var(--text-tertiary);
+}
+
+.storeActionBtn:hover {
+  transform: scale(1.1);
+}
+
+.storeActionBtn.delete:hover {
+  background: var(--toss-error);
+  color: var(--toss-white);
+  border-color: var(--toss-error);
+  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+}
+
+/* Empty State - Backup Style */
+.emptyState {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  background: var(--toss-white);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--toss-gray-200);
+}
+
+.emptyStateIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.emptyStateTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.emptyStateText {
+  font-size: var(--font-medium);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Modal Styles - Backup Style */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.modalContent {
+  background: var(--toss-white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.deleteModal {
+  max-width: 400px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.modalTitle {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  padding: var(--space-2);
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: color 0.2s ease;
+}
+
+.modalClose:hover {
+  color: var(--text-primary);
+}
+
+.modalBody {
+  margin-bottom: var(--space-6);
+}
+
+/* Form Styles */
+.formGroup {
+  margin-bottom: var(--space-5);
+}
+
+.formLabel {
+  display: block;
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.required {
+  color: var(--toss-error);
+}
+
+.optional {
+  color: var(--text-tertiary);
+  font-size: var(--font-small);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.formInput {
+  display: block;
+  width: 100%;
+  font-family: var(--font-family);
+  font-size: var(--font-body);
+  color: var(--text-primary);
+  background: var(--toss-white);
+  border: 1px solid var(--toss-gray-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  transition: all 0.2s ease;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+}
+
+.formInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Modal Footer */
+.modalFooter {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.modalBtnCancel,
+.modalBtnSave,
+.modalBtnDelete {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--font-medium);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalBtnCancel {
+  background: var(--toss-gray-100);
+  color: var(--text-secondary);
+}
+
+.modalBtnCancel:hover {
+  background: var(--toss-gray-200);
+  transform: translateY(-1px);
+}
+
+.modalBtnSave {
+  background: var(--toss-primary);
+  color: var(--toss-white);
+}
+
+.modalBtnSave:hover:not(:disabled) {
+  background: var(--toss-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.modalBtnSave:disabled {
+  background: var(--toss-gray-300);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.modalBtnDelete {
+  background: var(--toss-error);
+  color: var(--toss-white);
+}
+
+.modalBtnDelete:hover:not(:disabled) {
+  background: var(--toss-error-dark, #d32f2f);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Delete Confirmation Modal */
+.deleteConfirmIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-4);
+  background: var(--toss-error-light, #ffebee);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-error);
+}
+
+.deleteConfirmTitle {
+  font-size: var(--font-large);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  text-align: center;
+}
+
+.deleteConfirmText {
+  font-size: var(--font-medium);
+  color: var(--text-secondary);
+  margin: 0;
+  text-align: center;
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Wide screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Ultra-wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .pageContent {
+    padding: var(--space-4) 0;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .storesGrid {
+    grid-template-columns: 1fr;
+  }
+}

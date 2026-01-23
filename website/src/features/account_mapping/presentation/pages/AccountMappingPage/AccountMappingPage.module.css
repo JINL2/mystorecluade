@@ -1,0 +1,549 @@
+/**
+ * AccountMappingPage Styles
+ * Account mapping configuration page styling
+ */
+
+/* ⭐ NEW: Page Layout with responsive horizontal padding */
+.pageLayout {
+  min-height: 100vh;
+  background: white;
+  padding: 0 24px;              /* ⭐ Responsive horizontal padding */
+  max-width: 100%;              /* ⭐ Full flexibility */
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ⭐ Inner container for content (vertical padding only) */
+.container {
+  padding: 32px 0;              /* ⭐ Vertical padding only - no horizontal */
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-size: var(--font-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pageSubtitle {
+  font-size: var(--font-large);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: var(--toss-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background: var(--toss-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 100, 255, 0.3);
+}
+
+/* Loading & Error States */
+.loadingSpinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-8);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--toss-gray-200);
+  border-top-color: var(--toss-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorState {
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.errorMessage {
+  color: var(--toss-red-500);
+  font-size: var(--font-base);
+  margin-bottom: var(--space-4);
+}
+
+.retryButton {
+  padding: var(--space-3) var(--space-4);
+  background: var(--toss-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: var(--toss-blue-600);
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: var(--space-8);
+  background: white;
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+}
+
+.emptySection {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--text-tertiary);
+  background: white;
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+}
+
+/* Section */
+.section {
+  margin-bottom: var(--space-8);
+}
+
+.sectionTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sectionSubtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.lockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--toss-gray-100);
+  border-radius: var(--radius-small);
+  font-size: 12px;
+  color: var(--toss-gray-600);
+  font-weight: 500;
+}
+
+/* Cards Grid */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.card {
+  background: var(--toss-white);
+  border: 1px solid var(--toss-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  background: var(--toss-surface-primary);
+  border-color: var(--toss-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card.readOnly {
+  background: white;
+  border-color: var(--toss-gray-200);
+  cursor: default;
+  opacity: 0.9;
+}
+
+.card.readOnly:hover {
+  background: white;
+  border-color: var(--toss-gray-200);
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.direction {
+  flex: 1;
+}
+
+.directionBadge {
+  font-size: 12px;
+  color: var(--toss-primary);
+  font-weight: 600;
+  background: var(--toss-primary-surface);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.card.readOnly .directionBadge {
+  background: var(--toss-gray-100);
+  color: var(--toss-gray-500);
+}
+
+.readOnlyIndicator {
+  display: flex;
+  align-items: center;
+  color: var(--toss-gray-400);
+}
+
+.cardHeader .deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--toss-gray-500);
+}
+
+.cardHeader .deleteButton:hover {
+  background: rgba(244, 67, 54, 0.1);
+  color: var(--toss-red-500);
+}
+
+/* Account Details */
+.accountDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mappingItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--toss-surface-secondary);
+}
+
+.card.readOnly .mappingItem {
+  background: var(--toss-surface-secondary);
+}
+
+.accountIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--toss-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.card.readOnly .accountIcon {
+  background: var(--toss-gray-400);
+}
+
+.accountInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.accountName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.card.readOnly .accountName {
+  color: var(--toss-gray-600);
+}
+
+.accountCode {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.card.readOnly .accountCode {
+  color: var(--toss-gray-600);
+}
+
+.companyName {
+  font-size: 11px;
+  color: var(--toss-gray-500);
+  margin-top: 2px;
+}
+
+.arrow {
+  text-align: center;
+  color: var(--toss-primary);
+  font-size: 18px;
+  font-weight: 600;
+  padding: var(--space-2) 0;
+}
+
+.card.readOnly .arrow {
+  color: var(--toss-gray-400);
+}
+
+.mappingConnection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) 0;
+  color: var(--text-tertiary);
+}
+
+.mappingArrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 12px;
+}
+
+.card.readOnly .mappingArrow {
+  color: var(--toss-gray-400);
+}
+
+.companyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 6px;
+  background: var(--toss-gray-100);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-left: var(--space-1);
+}
+
+.card.readOnly .companyBadge {
+  background: var(--toss-gray-200);
+  color: var(--toss-gray-600);
+}
+
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: var(--radius-large);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: var(--shadow-large);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--toss-gray-200);
+}
+
+.modalHeader h2 {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--toss-gray-100);
+  color: var(--text-primary);
+}
+
+.modalBody {
+  padding: var(--space-5);
+}
+
+.formGroup {
+  margin-bottom: var(--space-4);
+}
+
+.formGroup label {
+  display: block;
+  font-size: var(--font-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--toss-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--font-base);
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.modalFooter {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-top: 1px solid var(--toss-gray-200);
+}
+
+.cancelButton,
+.saveButton {
+  flex: 1;
+  padding: var(--space-3);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--font-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton {
+  background: var(--toss-gray-100);
+  color: var(--text-primary);
+}
+
+.cancelButton:hover {
+  background: var(--toss-gray-200);
+}
+
+.saveButton {
+  background: var(--toss-primary);
+  color: white;
+}
+
+.saveButton:hover {
+  background: var(--toss-blue-600);
+}
+
+/* Responsive Design */
+/* ⭐ Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* ⭐ Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;            /* ⭐ Mobile standard padding */
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .addButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    width: 95%;
+  }
+}

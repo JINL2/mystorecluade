@@ -1,0 +1,162 @@
+/**
+ * InvoiceDetailPanel Component Styles
+ */
+
+.detailLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 24px;
+}
+
+.detailError {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--color-red-600);
+  font-size: 14px;
+}
+
+.detailBottomGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.detailSection {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+}
+
+.detailSectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F8F9FA;
+}
+
+.detailItem:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6C757D;
+}
+
+.detailValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: #212529;
+  text-align: right;
+}
+
+/* Items Table in Detail Row */
+.detailItems {
+  margin-top: 12px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+/* Detail Actions (Refund Button) */
+.detailActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-right: 16px;
+}
+
+.itemsTable thead {
+  background: #F8F9FA;
+}
+
+.itemsTable th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.itemsTable th:first-child {
+  padding-left: 24px;
+}
+
+/* Right align numeric columns (Qty, Unit Price, Unit Cost, Discount, Total) */
+.itemsTable th:nth-child(3),
+.itemsTable th:nth-child(4),
+.itemsTable th:nth-child(5),
+.itemsTable th:nth-child(6),
+.itemsTable th:nth-child(7) {
+  text-align: right;
+}
+
+.itemsTable td {
+  padding: 12px;
+  font-size: 13px;
+  color: #212529;
+  border-bottom: 1px solid #F8F9FA;
+}
+
+.itemsTable td:first-child {
+  padding-left: 24px;
+}
+
+/* Right align numeric columns (Qty, Unit Price, Unit Cost, Discount, Total) */
+.itemsTable td:nth-child(3),
+.itemsTable td:nth-child(4),
+.itemsTable td:nth-child(5),
+.itemsTable td:nth-child(6),
+.itemsTable td:nth-child(7) {
+  text-align: right;
+}
+
+.itemsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.itemsTable tbody tr:hover {
+  background: #F8F9FA;
+}
+
+@media (max-width: 768px) {
+  /* Responsive grid for detail sections */
+  .detailBottomGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .itemsTable {
+    overflow-x: auto;
+    display: block;
+  }
+
+  .itemsTable table {
+    min-width: 600px;
+  }
+}

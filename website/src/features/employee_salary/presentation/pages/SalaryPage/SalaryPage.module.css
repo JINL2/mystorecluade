@@ -1,0 +1,1137 @@
+/* ==================== BASE STYLES - UPDATED WITH LEFTFILTER ==================== */
+/* Following Inventory page layout with LeftFilter sidebar */
+
+/* Page Layout with Sidebar */
+.pageLayout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+    flex-direction: column;
+  }
+}
+
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px;
+}
+
+@media (max-width: 768px) {
+  .sidebarWrapper {
+    display: none;
+  }
+}
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Inner container */
+.container {
+  padding: 24px 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ==================== HEADER SECTION ==================== */
+.salaryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.salaryTitleSection {
+  flex: 1;
+  min-width: 200px;
+}
+
+.salaryTitle {
+  font-size: 32px; /* DESIGN_SYSTEM: Page Title = 32px */
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.salarySubtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* Period Controls Wrapper */
+.periodControlsWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Export Excel Button */
+.exportExcelBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 16px;
+  background: #217346;
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-xs);
+  height: 48px;
+}
+
+.exportExcelBtn:hover {
+  background: #1a5c37;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.exportExcelBtn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.exportExcelBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.exportExcelBtn svg {
+  flex-shrink: 0;
+}
+
+.spinAnimation {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Period Selector */
+.periodControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--toss-white);
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  height: 48px;
+}
+
+.periodNavBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--toss-gray-600);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 20px;
+}
+
+.periodNavBtn:hover {
+  background: var(--toss-gray-100);
+  color: var(--toss-gray-900);
+}
+
+.periodDisplay {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0 var(--space-3);
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ==================== STORE FILTER ==================== */
+.controlsCard {
+  background: transparent;
+  padding: 0;
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controlSection {
+  flex: 0 1 auto;
+  min-width: 200px;
+  max-width: 280px;
+  width: 280px;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  gap: 10px;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: white;
+  height: 44px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  z-index: 10;
+}
+
+.controlSection:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.controlSection.dropdownOpen {
+  background: white;
+  border-color: #0064ff;
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.08);
+}
+
+.controlSection.dropdownOpen .controlLabel {
+  color: var(--toss-primary);
+}
+
+.controlSection.dropdownOpen .controlDropdown {
+  color: var(--toss-primary);
+  transform: rotate(180deg);
+}
+
+.controlIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--toss-text-secondary);
+}
+
+.controlLabel {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--toss-text-primary);
+  user-select: none;
+}
+
+.controlDropdown {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--toss-text-secondary);
+  transition: transform 0.2s ease;
+  margin-left: auto;
+}
+
+/* Store Filter Dropdown */
+.storeFilterDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 380px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.96);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.storeFilterDropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.storeFilterDropdownOption {
+  position: relative;
+  padding: 10px 16px;
+  margin: 0 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 120ms ease-out;
+  font-size: 14px;
+  color: var(--toss-text-primary);
+  user-select: none;
+}
+
+.storeFilterDropdownOption:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.storeFilterDropdownOption:active {
+  background: rgba(0, 0, 0, 0.08);
+  transform: scale(0.98);
+}
+
+.storeFilterDropdownOption.selected {
+  background: rgba(0, 100, 255, 0.08);
+  color: #0064ff;
+  font-weight: 500;
+}
+
+.storeFilterDropdownOption.selected:hover {
+  background: rgba(0, 100, 255, 0.12);
+}
+
+.storeFilterDropdownOptionIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.storeFilterDropdownOption.selected .storeFilterDropdownOptionIcon {
+  color: var(--toss-primary);
+}
+
+.storeFilterDropdownOptionText {
+  font-size: 14px;
+  color: currentColor;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storeFilterDropdownOption.selected .storeFilterDropdownOptionText {
+  color: var(--toss-primary);
+  font-weight: 500;
+}
+
+.storeFilterDropdownOptionCheck {
+  width: 16px;
+  height: 16px;
+  color: var(--toss-primary);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ==================== SUMMARY CARDS ==================== */
+.summarySection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.summaryCard {
+  background: var(--toss-white);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summaryCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.summaryLabel {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.summaryValue {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.summaryValue.total {
+  color: var(--toss-primary);
+}
+
+.summaryValue.problems {
+  color: var(--toss-warning);
+}
+
+.summaryDetail {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  margin-top: var(--space-2);
+}
+
+.summaryIcon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+/* ==================== SEARCH BAR ==================== */
+.searchBar {
+  background: var(--toss-white);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-xs);
+}
+
+.searchBox {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  padding-left: var(--space-10);
+  border: 1px solid var(--toss-gray-200);
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--toss-primary);
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--toss-gray-500);
+  width: 20px;
+  height: 20px;
+}
+
+/* ==================== EMPLOYEE LIST ==================== */
+.employeeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.employeeCard {
+  background: var(--toss-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.employeeCard:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Employee Header */
+.employeeHeader {
+  padding: var(--space-5);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.employeeHeader:hover {
+  background: var(--toss-gray-50);
+}
+
+.employeeMainInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+}
+
+.employeeIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.employeeAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--toss-primary-surface);
+  color: var(--toss-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--font-large);
+}
+
+.employeeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.employeeName {
+  font-size: var(--font-large);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.employeeType {
+  display: inline-flex;
+  padding: var(--space-1) var(--space-2);
+  background: var(--toss-gray-100);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  width: fit-content;
+}
+
+.employeeType.monthly {
+  background: var(--toss-primary-surface);
+  color: var(--toss-primary);
+}
+
+.employeeType.hourly {
+  background: var(--toss-success-light);
+  color: var(--toss-success-dark);
+}
+
+/* Salary Summary */
+.employeeSalarySummary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.totalPayment {
+  font-size: var(--font-h3);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.paymentBreakdown {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+}
+
+/* Store Badges */
+.employeeStores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.storeBadge {
+  padding: var(--space-1) var(--space-2);
+  background: var(--toss-gray-50);
+  border: 1px solid var(--toss-gray-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+}
+
+/* Quick Stats */
+.employeeQuickStats {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--toss-gray-100);
+}
+
+.quickStat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-small);
+}
+
+.quickStatLabel {
+  color: var(--text-secondary);
+}
+
+.quickStatValue {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quickStatValue.positive {
+  color: var(--toss-success);
+}
+
+.quickStatValue.negative {
+  color: var(--toss-error);
+}
+
+.quickStatValue.warning {
+  color: var(--toss-warning);
+}
+
+/* Expand Icon */
+.expandIcon {
+  margin-left: auto;
+  transition: transform 0.2s;
+  color: var(--toss-gray-400);
+  width: 24px;
+  height: 24px;
+}
+
+.employeeCard.expanded .expandIcon {
+  transform: rotate(180deg);
+}
+
+/* ==================== EMPLOYEE DETAILS (Expandable) ==================== */
+.employeeDetails {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: var(--toss-gray-50);
+  border-top: 1px solid var(--toss-gray-100);
+}
+
+.employeeCard.expanded .employeeDetails {
+  max-height: 1000px;
+}
+
+.detailsContent {
+  padding: var(--space-5);
+}
+
+/* Detail Sections */
+.detailSection {
+  margin-bottom: var(--space-5);
+}
+
+.detailSection:last-child {
+  margin-bottom: 0;
+}
+
+.detailSectionTitle {
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Salary Breakdown Table */
+.salaryBreakdownTable {
+  background: var(--toss-white);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--toss-gray-100);
+}
+
+.breakdownRow:last-child {
+  border-bottom: none;
+  background: var(--toss-gray-50);
+  font-weight: 600;
+}
+
+.breakdownLabel {
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+}
+
+.breakdownValue {
+  color: var(--text-primary);
+  font-size: var(--font-base);
+  font-weight: 500;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.breakdownValue.positive {
+  color: var(--toss-success);
+}
+
+.breakdownValue.negative {
+  color: var(--toss-error);
+}
+
+.breakdownValue.notRegistered {
+  color: var(--toss-text-tertiary);
+  font-style: italic;
+}
+
+.statusBadge {
+  display: inline-flex;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  font-weight: 500;
+  width: fit-content;
+}
+
+.statusBadge.pending {
+  background: var(--toss-warning-light);
+  color: var(--toss-warning-dark);
+}
+
+.statusBadge.paid {
+  background: var(--toss-success-light);
+  color: var(--toss-success-dark);
+}
+
+.statusBadge.processing {
+  background: var(--toss-primary-surface);
+  color: var(--toss-primary);
+}
+
+/* ==================== EMPTY & ERROR STATES ==================== */
+.emptyState {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  background: var(--toss-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 24px; /* DESIGN_SYSTEM: Empty State Title = 24px */
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.emptyText {
+  font-size: 16px; /* DESIGN_SYSTEM: Empty State Text = 16px */
+  color: var(--text-secondary);
+}
+
+/* Loading and Error states are now handled by shared components */
+
+.errorTitle {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.errorMessage {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.retryButton {
+  padding: var(--space-3) var(--space-5);
+  background: var(--toss-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retryButton:hover {
+  background: var(--toss-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==================== EXPORT MODAL ==================== */
+.exportModalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.exportModalContainer {
+  background: var(--toss-white);
+  border-radius: var(--radius-xl);
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.exportModalHeader {
+  background: #217346;
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.exportModalHeaderIcon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.exportModalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.exportModalBody {
+  padding: var(--space-5);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.exportModalMessage {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+/* Always Included Section */
+.alwaysIncludedSection {
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--toss-gray-200);
+}
+
+.alwaysIncludedTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.alwaysIncludedTitle svg {
+  color: var(--toss-gray-500);
+}
+
+.alwaysIncludedItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.alwaysIncludedItem {
+  background: var(--toss-white);
+  border: 1px solid var(--toss-gray-300);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-small);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Column Selection Section */
+.columnSelectionSection {
+  margin-bottom: var(--space-5);
+}
+
+.columnSelectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.columnSelectionTitle {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.selectAllButton {
+  font-size: var(--font-small);
+  color: var(--toss-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.selectAllButton:hover {
+  background: var(--toss-primary-surface);
+}
+
+.columnGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+@media (max-width: 500px) {
+  .columnGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.columnCheckboxItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.columnCheckboxItem:hover {
+  background: var(--toss-gray-100);
+}
+
+.columnCheckboxItem.checked {
+  background: var(--toss-primary-surface);
+  border-color: var(--toss-primary);
+}
+
+.columnCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--toss-primary);
+  cursor: pointer;
+}
+
+.columnLabel {
+  font-size: var(--font-small);
+  color: var(--text-primary);
+  flex: 1;
+  user-select: none;
+}
+
+.columnCheckboxItem.checked .columnLabel {
+  color: var(--toss-primary);
+  font-weight: 500;
+}
+
+/* Important column (with star) */
+.columnCheckboxItem.important {
+  background: #FFF8E1;
+  border-color: #FFB300;
+}
+
+.columnCheckboxItem.important:hover {
+  background: #FFECB3;
+}
+
+.columnCheckboxItem.important.checked {
+  background: #FFE082;
+  border-color: #FFA000;
+}
+
+.columnCheckboxItem.important .columnLabel {
+  color: #F57C00;
+  font-weight: 600;
+}
+
+/* Export Scope Section */
+.exportScopeSection {
+  border-top: 1px solid var(--toss-gray-200);
+  padding-top: var(--space-4);
+}
+
+.exportScopeTitle {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.exportScopeOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.exportScopeOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--toss-gray-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--toss-gray-200);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exportScopeOption:hover {
+  background: var(--toss-gray-100);
+  border-color: var(--toss-gray-300);
+}
+
+.exportScopeOption:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exportScopeIcon {
+  width: 40px;
+  height: 40px;
+  background: var(--toss-white);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-gray-600);
+}
+
+.exportScopeContent {
+  flex: 1;
+}
+
+.exportScopeLabel {
+  font-size: var(--font-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.exportScopeDescription {
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+}
+
+.exportScopeArrow {
+  color: var(--toss-gray-400);
+}
+
+/* Export Modal Footer */
+.exportModalFooter {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--toss-gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.exportCancelButton {
+  padding: var(--space-3) var(--space-5);
+  background: var(--toss-gray-100);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exportCancelButton:hover {
+  background: var(--toss-gray-200);
+}
+
+.exportCancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading Overlay */
+.exportModalLoading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}

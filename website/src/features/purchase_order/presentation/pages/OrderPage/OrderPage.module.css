@@ -1,0 +1,772 @@
+/**
+ * OrderPage Styles
+ * Following 2025 Design System: Responsive padding with sidebar layout
+ */
+
+/* Page Layout - Flexbox with sidebar */
+.pageLayout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px;
+}
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Container */
+.container {
+  padding: 24px 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Page Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+}
+
+/* Content Card */
+.contentCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  min-height: 400px;
+}
+
+/* Placeholder */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.activeFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.filterInfo {
+  padding: 6px 12px;
+  background: var(--toss-blue-surface, #F0F6FF);
+  border-radius: 8px;
+  color: var(--toss-primary, #0064FF);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* ===== Supplier Filter Styles ===== */
+.supplierFilterContent {
+  padding: 4px 0;
+}
+
+/* ===== Order Header Styles ===== */
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--toss-gray-100, #F1F3F5);
+}
+
+.orderTitleSection {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.orderListTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+  margin: 0;
+}
+
+.orderSearchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--toss-primary, #0064FF);
+  pointer-events: none;
+}
+
+.orderSearch {
+  width: 280px;
+  padding: 10px 8px 10px 44px;
+  border: 1px solid var(--toss-primary, #0064FF);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary, #212529);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.08);
+  transition: all 0.2s ease;
+}
+
+.orderSearch::placeholder {
+  color: var(--text-secondary, #6C757D);
+}
+
+.orderSearch:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.12);
+}
+
+.orderActions {
+  display: flex;
+  gap: 12px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid var(--toss-gray-300, #DEE2E6);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-primary, #212529);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actionButton:hover {
+  background: var(--toss-gray-50, #F8F9FA);
+  border-color: var(--toss-gray-400, #CED4DA);
+}
+
+.primaryButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.primaryButton:hover {
+  background: var(--toss-primary-dark, #0050CC);
+}
+
+/* View Button */
+.viewButton {
+  padding: 6px 12px;
+  border: 1px solid var(--toss-primary, #0064FF);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--toss-primary, #0064FF);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.viewButton:hover {
+  background: var(--toss-blue-surface, #F0F6FF);
+}
+
+/* Status Badge - Process */
+.statusBadge.process {
+  background: #E3F2FD;
+  color: #0064FF;
+}
+
+/* Status Badge - Complete */
+.statusBadge.complete {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+/* ===== Date Filter Styles ===== */
+.dateFilterContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+/* Date Preset Option (Radio style) */
+.datePresetOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.datePresetOption:hover {
+  background: var(--toss-gray-50, #F8F9FA);
+}
+
+.radioInput {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--toss-primary, #0064FF);
+}
+
+.radioLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+  flex: 1;
+}
+
+/* Custom Date Button */
+.customDateButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.customDateButton:hover {
+  border-color: var(--toss-gray-300, #DEE2E6);
+  background: var(--toss-gray-50, #F8F9FA);
+}
+
+.customDateButton.active {
+  border-color: var(--toss-primary, #0064FF);
+  background: var(--toss-blue-surface, #F0F6FF);
+  color: var(--toss-primary, #0064FF);
+}
+
+.customDateButton svg {
+  color: var(--text-secondary, #6C757D);
+}
+
+.customDateButton.active svg {
+  color: var(--toss-primary, #0064FF);
+}
+
+/* Selected Date Range Display */
+.selectedDateRange {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--toss-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--toss-gray-100, #F1F3F5);
+}
+
+.dateRangeText {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #6C757D);
+}
+
+/* ===== Date Picker Modal ===== */
+.datePickerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.datePickerModal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.datePickerHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--toss-gray-100, #F1F3F5);
+  font-size: 15px;
+  color: var(--toss-primary, #0064FF);
+}
+
+.datePickerHeader strong {
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+}
+
+.datePickerBody {
+  padding: 24px;
+}
+
+.calendarContainer {
+  display: flex;
+  gap: 24px;
+}
+
+.calendarSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calendarLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #6C757D);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendarInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--toss-gray-200, #E9ECEF);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text-primary, #212529);
+  background: white;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.calendarInput:hover {
+  border-color: var(--toss-gray-300, #DEE2E6);
+}
+
+.calendarInput:focus {
+  outline: none;
+  border-color: var(--toss-primary, #0064FF);
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.1);
+}
+
+.calendarInput::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.calendarInput::-webkit-calendar-picker-indicator:hover {
+  background: var(--toss-gray-100, #F1F3F5);
+}
+
+.datePickerFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid var(--toss-gray-100, #F1F3F5);
+  background: var(--toss-gray-50, #F8F9FA);
+}
+
+.todayButton {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--toss-primary, #0064FF);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.todayButton:hover {
+  background: var(--toss-blue-surface, #F0F6FF);
+}
+
+.datePickerActions {
+  display: flex;
+  gap: 12px;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  border: 1px solid var(--toss-gray-300, #DEE2E6);
+  border-radius: 8px;
+  background: white;
+  color: var(--text-primary, #212529);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelButton:hover {
+  background: var(--toss-gray-50, #F8F9FA);
+  border-color: var(--toss-gray-400, #CED4DA);
+}
+
+.applyButton {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--toss-primary, #0064FF);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.applyButton:hover:not(:disabled) {
+  background: var(--toss-primary-dark, #0050CC);
+}
+
+.applyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Table Styles (for future use) ===== */
+.tableContainer {
+  overflow-x: auto;
+}
+
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ordersTable thead {
+  background: var(--toss-gray-50, #F8F9FA);
+  border-bottom: 2px solid var(--toss-gray-200, #E9ECEF);
+}
+
+.ordersTable th {
+  padding: 16px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-secondary, #6C757D);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ordersTable tbody tr {
+  border-bottom: 1px solid var(--toss-gray-100, #F1F3F5);
+  transition: background-color 0.15s ease;
+}
+
+.ordersTable tbody tr:hover {
+  background: var(--toss-gray-50, #F8F9FA);
+}
+
+.ordersTable td {
+  padding: 16px;
+  color: var(--text-primary, #212529);
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Order Number */
+.orderNumber {
+  font-weight: 600;
+  color: var(--toss-primary, #0064FF);
+  cursor: pointer;
+}
+
+.orderNumber:hover {
+  text-decoration: underline;
+}
+
+/* Currency Amount */
+.currencyAmount {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+}
+
+/* Status Badge */
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusBadge.pending {
+  background: #FFF4E6;
+  color: #FF8A00;
+}
+
+.statusBadge.cancelled {
+  background: var(--toss-gray-100, #F1F3F5);
+  color: var(--toss-gray-600, #6C757D);
+}
+
+/* Table Cell Styles */
+.noDate {
+  color: var(--text-secondary, #6C757D);
+}
+
+.supplierName {
+  font-weight: 500;
+  color: var(--text-primary, #212529);
+}
+
+.itemCount {
+  font-weight: 500;
+  color: var(--text-secondary, #6C757D);
+}
+
+/* Progress Bar */
+.progressCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 120px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 8px;
+  background: var(--toss-gray-100, #F1F3F5);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--toss-primary, #0064FF);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressFill.complete {
+  background: #2E7D32;
+}
+
+.progressText {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #6C757D);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Loading State */
+.loadingState {
+  text-align: center;
+  padding: 80px 32px;
+  color: var(--text-secondary, #6C757D);
+}
+
+.loadingState p {
+  margin: 16px 0 0 0;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--toss-gray-200, #E9ECEF);
+  border-top-color: var(--toss-primary, #0064FF);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #212529);
+  margin: 0 0 12px 0;
+}
+
+.emptyDescription {
+  font-size: 14px;
+  color: var(--text-secondary, #6C757D);
+  margin: 0;
+}
+
+/* ===== Responsive Design ===== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .contentCard {
+    padding: 20px;
+  }
+
+  .ordersTable th,
+  .ordersTable td {
+    padding: 12px;
+  }
+
+  .calendarContainer {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .datePickerModal {
+    max-width: 90%;
+    margin: 0 16px;
+  }
+}
+
+/* Mobile - hide sidebar */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .sidebarWrapper {
+    display: none;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .contentCard {
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .ordersTable {
+    min-width: 700px;
+  }
+
+  .ordersTable th,
+  .ordersTable td {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .datePickerModal {
+    max-width: 100%;
+    margin: 0 12px;
+    border-radius: 12px;
+  }
+
+  .datePickerFooter {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .datePickerActions {
+    width: 100%;
+  }
+
+  .cancelButton,
+  .applyButton {
+    flex: 1;
+  }
+}

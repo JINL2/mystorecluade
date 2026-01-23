@@ -1,0 +1,387 @@
+/* RecentTransactionHistory.module.css */
+/* Reusing Transaction History page styles */
+
+.container {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 24px;
+}
+
+/* State Styles */
+.emptyState,
+.loadingState {
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.emptyIcon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: #F0F6FF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ADB5BD;
+  font-size: 40px;
+}
+
+.emptyIcon svg {
+  color: #0064FF;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.emptyText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Table Styles */
+.tableWrapper {
+  margin-top: 0;
+  overflow-x: auto;
+}
+
+.tableHeader {
+  margin-bottom: 24px;
+}
+
+.tableHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.titleSection {
+  flex-shrink: 0;
+}
+
+.tableTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 4px 0;
+}
+
+.tableSubtitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+}
+
+/* Filter Section - Same row as title */
+.filterSection {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filterLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dateInput {
+  padding: 8px 12px;
+  border: 1px solid #DEE2E6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #212529;
+  background: white;
+  min-width: 140px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dateInput:hover {
+  border-color: #ADB5BD;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #0064FF;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+}
+
+.transactionTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.transactionTable thead {
+  background: #F8F9FA;
+  border-bottom: 1px solid #DEE2E6;
+}
+
+.transactionTable th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transactionTable th:nth-child(6),
+.transactionTable th:nth-child(7) {
+  text-align: right;
+}
+
+/* Header with filter */
+.headerWithFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerWithFilter span {
+  white-space: nowrap;
+}
+
+.createdBySelector {
+  min-width: 120px;
+  max-width: 140px;
+}
+
+.createdBySelector button {
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 28px;
+}
+
+/* Dropdown menu option text size */
+.createdBySelector [class*="tossSelectOptionLabel"] {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.createdBySelector [class*="tossSelectSearchInput"] {
+  font-size: 11px;
+}
+
+.accountSelector {
+  min-width: 120px;
+  max-width: 160px;
+}
+
+.accountSelector button {
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 28px;
+}
+
+/* Dropdown menu option text size */
+.accountSelector [class*="tossSelectOptionLabel"] {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.accountSelector [class*="tossSelectSearchInput"] {
+  font-size: 11px;
+}
+
+.transactionTable td {
+  padding: 20px;
+  border-bottom: 1px solid #F0F0F0;
+  font-size: 14px;
+  color: #212529;
+  vertical-align: top;
+}
+
+/* Empty Table State */
+.emptyTableCell {
+  padding: 60px 20px !important;
+  text-align: center;
+}
+
+.emptyTableState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #ADB5BD;
+}
+
+.emptyTableState svg {
+  color: #0064FF;
+  opacity: 0.5;
+}
+
+.emptyTableState p {
+  margin: 0;
+  font-size: 14px;
+  color: #6C757D;
+}
+
+/* Journal Header Row */
+.journalHeader {
+  background: #F0F6FF !important;
+  font-weight: 700;
+  border-bottom: 2px solid #0064FF !important;
+}
+
+/* Separator between transactions */
+.journalSeparator {
+  border-top: 12px solid #E9ECEF !important;
+}
+
+.journalSeparator td:first-child {
+  position: relative;
+}
+
+.journalSeparator td:first-child::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: #E9ECEF;
+}
+
+.journalHeader td {
+  font-weight: 600;
+  color: #212529;
+  background: #F0F6FF;
+  padding: 16px 20px;
+}
+
+.journalDate {
+  font-weight: 700;
+  font-size: 14px;
+  color: #212529;
+}
+
+.journalTime {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6C757D;
+  margin-top: 4px;
+}
+
+.storeBadge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #F0F6FF;
+  color: #0064FF;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Line Rows */
+.lineRow {
+  background: white;
+  border-left: 3px solid #F0F6FF;
+}
+
+.lineRow.alternate {
+  background: #F8F9FA;
+}
+
+.lineRow:hover {
+  background: #F8F9FA !important;
+  border-left: 3px solid #0064FF !important;
+}
+
+.lineRow td {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.accountCell {
+  padding-left: 24px !important;
+}
+
+.accountCell strong {
+  color: #212529;
+  font-weight: 700;
+}
+
+.lineDescription {
+  color: #6C757D;
+  font-weight: 400;
+}
+
+/* Total Row */
+.totalRow {
+  background: #F8F9FA !important;
+  font-weight: 700;
+  border-top: 2px solid #DEE2E6 !important;
+  border-bottom: 2px solid #DEE2E6 !important;
+}
+
+.totalRow td {
+  font-weight: 700;
+  background: #F8F9FA;
+  padding: 16px 20px;
+}
+
+.totalLabel {
+  text-align: right;
+  padding-right: 20px !important;
+  color: #212529;
+}
+
+/* Amount Cells */
+.amountCell {
+  text-align: right;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.debitAmount {
+  color: #FF5847;
+}
+
+.creditAmount {
+  color: #00C896;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .transactionTable th,
+  .transactionTable td {
+    padding: 12px;
+    font-size: 12px;
+  }
+}

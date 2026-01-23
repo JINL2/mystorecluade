@@ -1,0 +1,304 @@
+/**
+ * ExcelTabContent Component Styles
+ */
+
+.container {
+  padding: var(--space-4);
+}
+
+/* Store cell - spans multiple rows with high z-index for dropdown */
+.storeCell {
+  position: relative;
+  padding: 0;
+  vertical-align: top;
+  background: #fafbfc;
+  min-width: 160px;
+  max-width: 200px;
+  z-index: 100;
+}
+
+.storeCell:focus-within {
+  z-index: 1001;
+}
+
+.storeSelectorWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 80px;
+  padding: 8px;
+  z-index: inherit;
+}
+
+/* Date cell - spans multiple rows like store cell */
+.dateCell {
+  position: relative;
+  padding: 0;
+  vertical-align: top;
+  background: #fafbfc;
+  min-width: 140px;
+  max-width: 160px;
+}
+
+.dateCell .dateInput {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 14px;
+  color: #212529;
+}
+
+.dateCell .dateInput:focus {
+  background: #f0f7ff;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  position: relative;
+  overflow: visible;
+}
+
+.table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+.table td {
+  padding: 0;
+  border: 1px solid #dee2e6;
+}
+
+.table input {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 14px;
+  color: #212529;
+}
+
+/* Date input - Use Pretendard for numbers */
+.table input[type="date"] {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 14px;
+  color: #212529;
+}
+
+/* Financial number inputs - Use Pretendard */
+.table input[type="text"][inputmode="decimal"] {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.table input:focus {
+  background: #f0f7ff;
+}
+
+.table input:disabled {
+  background: #F1F3F5;
+  color: #ADB5BD;
+  cursor: not-allowed;
+}
+
+/* Hide number input arrows */
+.table input[type="text"][inputmode="decimal"]::-webkit-outer-spin-button,
+.table input[type="text"][inputmode="decimal"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.table input[type="text"][inputmode="decimal"] {
+  -moz-appearance: textfield;
+}
+
+/* TossSelector cells */
+.selectorCell {
+  position: relative;
+  padding: 0;
+}
+
+.selectorCell.disabled {
+  background: #F1F3F5;
+}
+
+.selectorCell:focus-within:not(.disabled) {
+  background: #f0f7ff;
+}
+
+/* Counterparty cell with clear button */
+.counterpartyCell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.clearButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #6C757D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.clearButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #FF5847;
+}
+
+.clearButton:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 0 16px;
+}
+
+/* Summary Section */
+.summary {
+  display: flex;
+  gap: 24px;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summaryLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.summaryValue {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.summarySuccess {
+  color: #22C55E;
+}
+
+.summaryError {
+  color: #EF4444;
+}
+
+/* Button Group */
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.addLineButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addLineButton:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.addLineButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.submitButton {
+  padding: 12px 24px;
+  background: #0064FF;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitButton:hover {
+  background: #0050CC;
+}
+
+.submitButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.deleteButton {
+  padding: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #FF5847;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: #FFEFED;
+}
+
+.deleteButton:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Small font size for Store and Location selectors */
+.storeCell [class*="tossSelect"],
+.storeCell [class*="tossSelectValue"],
+.storeCell [class*="tossSelectOptionLabel"],
+.storeCell [class*="tossSelectSearchInput"],
+.selectorCell [class*="tossSelect"],
+.selectorCell [class*="tossSelectValue"],
+.selectorCell [class*="tossSelectOptionLabel"],
+.selectorCell [class*="tossSelectSearchInput"] {
+  font-size: 12px !important;
+}
+
+.storeCell [class*="tossSelectOptionDescription"],
+.selectorCell [class*="tossSelectOptionDescription"] {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+}

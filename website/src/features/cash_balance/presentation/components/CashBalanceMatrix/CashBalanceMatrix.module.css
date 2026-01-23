@@ -1,0 +1,152 @@
+/**
+ * CashBalanceMatrix Component Styles
+ */
+
+.matrixContainer {
+  overflow-x: auto;
+  border: 1px solid #E9ECEF;
+  border-radius: 8px;
+}
+
+.matrixTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 800px;
+}
+
+.matrixTable th,
+.matrixTable td {
+  padding: 12px 16px;
+  text-align: right;
+  border-bottom: 1px solid #E9ECEF;
+  white-space: nowrap;
+}
+
+.matrixTable th {
+  background: #F8F9FA;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.matrixTable th:first-child,
+.matrixTable td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #FFFFFF;
+  z-index: 2;
+  border-right: 1px solid #E9ECEF;
+  min-width: 100px;
+}
+
+.matrixTable th:first-child {
+  background: #F8F9FA;
+  z-index: 3;
+}
+
+.matrixTable tbody tr:hover {
+  background: #F8F9FA;
+}
+
+.matrixTable tbody tr:hover td:first-child {
+  background: #F8F9FA;
+}
+
+/* Date Cell */
+.dateCell {
+  font-weight: 500;
+  color: #212529;
+}
+
+/* Column Header */
+.columnHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.columnName {
+  font-weight: 600;
+  color: #212529;
+  font-size: 12px;
+}
+
+.columnCurrency {
+  font-size: 11px;
+  color: #6C757D;
+  font-weight: 400;
+}
+
+/* Amount Cell */
+.amountCell {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.amountIn {
+  color: #0064FF;
+  font-weight: 500;
+}
+
+.amountOut {
+  color: #FF5847;
+  font-weight: 500;
+}
+
+.emptyCell {
+  color: #CED4DA;
+}
+
+/* Total Row */
+.totalRow {
+  background: #F8F9FA !important;
+  font-weight: 700;
+}
+
+.totalRow td {
+  border-top: 2px solid #DEE2E6;
+  font-weight: 600;
+}
+
+.totalRow td:first-child {
+  background: #F8F9FA !important;
+}
+
+/* Location Type Badge */
+.typeBadge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-left: 8px;
+}
+
+.typeBadge.cash {
+  background: rgba(0, 200, 150, 0.1);
+  color: #00C896;
+}
+
+.typeBadge.vault {
+  background: rgba(0, 100, 255, 0.1);
+  color: #0064FF;
+}
+
+.typeBadge.bank {
+  background: rgba(255, 149, 0, 0.1);
+  color: #FF9500;
+}
+
+.typeBadge.digital_wallet {
+  background: rgba(155, 89, 182, 0.1);
+  color: #9B59B6;
+}

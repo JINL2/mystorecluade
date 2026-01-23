@@ -1,0 +1,391 @@
+/* TransactionHistoryPage.module.css */
+
+/* ⭐ STEP 1: Page Layout with responsive padding */
+.pageLayout {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* ⭐ DEFAULT: 24px horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: 100% not 1400px */
+  margin: 0 auto;
+}
+
+/* ⭐ STEP 2: Inner container */
+.container {
+  padding: 24px 0; /* ⭐ VERTICAL ONLY - no horizontal padding */
+  max-width: 100%; /* ⭐ IMPORTANT: Use 100% to align with Navbar */
+  width: 100%;
+}
+
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+}
+
+.contentCard {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  min-height: 400px;
+}
+
+/* State Styles */
+.emptyState,
+.loadingState {
+  text-align: center;
+  padding: 80px 32px;
+}
+
+.emptyIcon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: #F0F6FF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ADB5BD;
+  font-size: 40px;
+}
+
+.emptyIcon svg {
+  color: #0064FF;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.emptyText {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Table Styles */
+.tableWrapper {
+  margin-top: 24px;
+  overflow-x: auto;
+}
+
+.tableHeader {
+  margin-bottom: 24px;
+}
+
+.tableTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.tableSubtitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6C757D;
+  margin: 0;
+}
+
+.transactionTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.transactionTable thead {
+  background: #F8F9FA;
+  border-bottom: 1px solid #DEE2E6;
+}
+
+.transactionTable th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transactionTable th:nth-child(6),
+.transactionTable th:nth-child(7) {
+  text-align: right;
+}
+
+.transactionTable td {
+  padding: 20px;
+  border-bottom: 1px solid #F0F0F0;
+  font-size: 14px;
+  color: #212529;
+  vertical-align: top;
+}
+
+/* Journal Header Row */
+.journalHeader {
+  background: #F0F6FF !important;
+  font-weight: 700;
+  border-bottom: 2px solid #0064FF !important;
+}
+
+/* Separator between transactions */
+.journalSeparator {
+  border-top: 12px solid #E9ECEF !important;
+}
+
+.journalSeparator td:first-child {
+  position: relative;
+}
+
+.journalSeparator td:first-child::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: #E9ECEF;
+}
+
+.journalHeader td {
+  font-weight: 600;
+  color: #212529;
+  background: #F0F6FF;
+  padding: 16px 20px;
+}
+
+.journalDate {
+  font-weight: 700;
+  font-size: 14px;
+  color: #212529;
+}
+
+.journalTime {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6C757D;
+  margin-top: 4px;
+}
+
+.storeBadge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #F0F6FF;
+  color: #0064FF;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Line Rows */
+.lineRow {
+  background: white;
+  border-left: 3px solid #F0F6FF;
+}
+
+.lineRow.alternate {
+  background: #F8F9FA;
+}
+
+.lineRow:hover {
+  background: #F8F9FA !important;
+  border-left: 3px solid #0064FF !important;
+}
+
+.lineRow td {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.accountCell {
+  padding-left: 24px !important;
+}
+
+.accountCell strong {
+  color: #212529;
+  font-weight: 700;
+}
+
+.lineDescription {
+  color: #6C757D;
+  font-weight: 400;
+}
+
+/* Total Row */
+.totalRow {
+  background: #F8F9FA !important;
+  font-weight: 700;
+  border-top: 1px solid #DEE2E6 !important;
+  border-bottom: none !important;
+}
+
+.totalRow td {
+  font-weight: 700;
+  background: #F8F9FA;
+  padding: 12px 20px;
+}
+
+.totalLabel {
+  text-align: right;
+  padding-right: 20px !important;
+  color: #212529;
+}
+
+/* Amount Cells */
+.amountCell {
+  text-align: right;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.debitAmount {
+  color: #FF5847;
+}
+
+.creditAmount {
+  color: #00C896;
+}
+
+/* Header with filter */
+.headerWithFilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerWithFilter span {
+  white-space: nowrap;
+}
+
+.createdBySelector {
+  min-width: 120px;
+  max-width: 140px;
+}
+
+.createdBySelector button {
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 28px;
+}
+
+/* Dropdown menu option text size */
+.createdBySelector [class*="tossSelectOptionLabel"] {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.createdBySelector [class*="tossSelectSearchInput"] {
+  font-size: 11px;
+}
+
+.accountSelector {
+  min-width: 120px;
+  max-width: 160px;
+}
+
+.accountSelector button {
+  padding: 4px 8px;
+  font-size: 11px;
+  min-height: 28px;
+}
+
+/* Dropdown menu option text size */
+.accountSelector [class*="tossSelectOptionLabel"] {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.accountSelector [class*="tossSelectSearchInput"] {
+  font-size: 11px;
+}
+
+/* Empty Table State */
+.emptyTableCell {
+  padding: 60px 20px !important;
+  text-align: center;
+}
+
+.emptyTableState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #ADB5BD;
+}
+
+.emptyTableState svg {
+  color: #0064FF;
+  opacity: 0.5;
+}
+
+.emptyTableState p {
+  margin: 0;
+  font-size: 14px;
+  color: #6C757D;
+}
+
+/* ⭐ STEP 3: Responsive padding media queries */
+/* Wider screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+  }
+}
+
+/* Extra wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
+    max-width: 1920px; /* ⭐ Cap width at 1920px */
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .contentCard {
+    padding: 16px;
+  }
+
+  .transactionTable th,
+  .transactionTable td {
+    padding: 12px;
+    font-size: 12px;
+  }
+}

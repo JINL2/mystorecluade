@@ -1,0 +1,506 @@
+/**
+ * InvoiceTable Component Styles
+ */
+
+.invoiceTableContainer {
+  background: var(--color-white);
+  border-radius: 0 0 12px 12px;
+  border: 1px solid var(--color-gray-200);
+  border-top: none;
+}
+
+.invoiceTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoiceTable thead tr {
+  background: var(--toss-gray-50);
+  border-bottom: 2px solid var(--color-gray-200);
+}
+
+.invoiceTable th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.invoiceTable td {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+/* Checkbox Column Styles */
+.checkboxCell {
+  width: 48px;
+  text-align: center;
+  padding: 12px 16px;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #0064FF;
+  border-radius: 4px;
+  border: 2px solid var(--color-gray-300);
+  transition: all 0.2s ease;
+}
+
+.checkbox:hover {
+  border-color: #0064FF;
+}
+
+.checkbox:checked {
+  background-color: #0064FF;
+  border-color: #0064FF;
+}
+
+/* Invoice Row Styles */
+.invoiceRow:hover {
+  background-color: #F8F9FA;
+}
+
+.expandedRow {
+  background-color: #E7F3FF !important;
+  border-bottom: none !important;
+}
+
+.invoiceNumber {
+  font-weight: 600;
+  color: #0064FF;
+  font-size: 14px;
+}
+
+.invoiceDate {
+  color: var(--color-gray-700);
+  font-size: 13px;
+}
+
+.customerCell {
+  color: var(--color-gray-900);
+  font-size: 14px;
+}
+
+.itemsCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemCount {
+  font-size: 13px;
+  color: var(--color-gray-700);
+}
+
+.itemQty {
+  font-size: 11px;
+  color: var(--color-gray-500);
+}
+
+.paymentCell {
+  text-align: center !important;
+}
+
+.paymentBadge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Payment Method Colors */
+.paymentBadge.payment-cash {
+  background: #d4edda;
+  color: #155724;
+}
+
+.paymentBadge.payment-bank {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.paymentBadge.payment-card {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.paymentBadge.payment-default {
+  background: #e9ecef;
+  color: #495057;
+}
+
+/* Legacy styles for backward compatibility */
+.paymentBadge.payment-paid,
+.paymentBadge.paymentPaid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.paymentBadge.payment-pending,
+.paymentBadge.paymentPending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.totalCell {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-gray-900);
+}
+
+.statusCell {
+  text-align: center !important;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.statusBadge.completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.statusBadge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.statusBadge.cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.statusBadge.refunded {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.actionsCell {
+  text-align: center;
+}
+
+.actionBtn {
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  color: var(--color-gray-500);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionBtn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-red-600);
+}
+
+/* Expanded Detail Row */
+.detailRow {
+  background-color: #F8FBFF;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailRow td {
+  padding: 0 !important;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.detailContent {
+  padding: 24px 12px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Empty State */
+.emptyStateCell {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  margin-bottom: 24px;
+}
+
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0 0 8px 0;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Expanded Panel Styles */
+.expandedPanel {
+  padding: 24px;
+}
+
+.expandedPanelGrid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+}
+
+.productListSection {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  padding: 16px;
+  margin: 0;
+  background: #F8F9FA;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.productTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.productTable thead tr th {
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  background: #FAFBFC;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.productTable thead tr th:first-child {
+  padding-left: 24px !important;
+}
+
+.productTable thead tr th:last-child {
+  padding-right: 24px !important;
+}
+
+.productTable tbody tr td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #212529;
+  border-bottom: 1px solid #F8F9FA;
+  text-align: center;
+}
+
+.productTable tbody tr td:first-child {
+  padding-left: 24px !important;
+}
+
+.productTable tbody tr td:last-child {
+  padding-right: 24px !important;
+}
+
+.productTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.productTable tbody tr:hover {
+  background: #F8F9FA;
+}
+
+.productName {
+  font-weight: 500;
+}
+
+.productSku {
+  font-size: 11px;
+  color: #6C757D;
+  margin-top: 2px;
+}
+
+.infoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoCard {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #E9ECEF;
+  padding: 16px;
+}
+
+.infoCardTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6C757D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F8F9FA;
+}
+
+.infoItem:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-size: 13px;
+  color: #6C757D;
+}
+
+.infoValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: #212529;
+}
+
+.infoValueHighlight {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0064FF;
+}
+
+.cashLocationType {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-left: 8px;
+}
+
+.cashLocationType.cash {
+  background: #d4edda;
+  color: #155724;
+}
+
+.cashLocationType.bank {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.totalRow {
+  border-top: 2px solid #E9ECEF;
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+.profitPositive {
+  color: #155724;
+}
+
+.profitNegative {
+  color: #721c24;
+}
+
+/* Refund Button */
+.refundButton {
+  width: 100%;
+  padding: 12px 24px;
+  background: #DC3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.refundButton:hover:not(:disabled) {
+  background: #C82333;
+}
+
+.refundButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.refundButtonDisabled {
+  background: #ADB5BD;
+  cursor: not-allowed;
+}
+
+.refundButtonDisabled:hover {
+  background: #ADB5BD;
+}
+
+.detailLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 24px;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .expandedPanelGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .invoiceTable {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .invoiceTable table {
+    min-width: 700px;
+  }
+
+  .productTable {
+    display: block;
+    overflow-x: auto;
+  }
+}

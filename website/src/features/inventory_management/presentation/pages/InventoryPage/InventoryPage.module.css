@@ -1,0 +1,417 @@
+/**
+ * InventoryPage Component Styles
+ * With left sidebar filter panel
+ */
+
+/* Page Layout - Flexbox with sidebar */
+.pageLayout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px; /* Reduced padding for better space usage */
+  max-width: 100%; /* Remove max-width constraint for full flexibility */
+  margin: 0 auto;
+}
+
+/* Wider screens - add more padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Extra wide screens - maximum padding */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px; /* Gap between sidebar and main content */
+}
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0; /* Allow content to shrink */
+  overflow-x: hidden;
+}
+
+/* Container */
+.container {
+  padding: 24px 0; /* Remove horizontal padding, only vertical */
+  width: 100%;
+  max-width: 100%;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px; /* Body Large - DESIGN_SYSTEM.md */
+  font-weight: 400; /* Regular - DESIGN_SYSTEM.md */
+  color: #6C757D; /* Gray 600 - Secondary Text */
+  margin: 0;
+}
+
+/* Store Filter Control Styles - Exact match to employee settings */
+.controlsCard {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controlSection {
+  flex: 0 1 auto;
+  min-width: 200px;
+  max-width: 280px;
+  width: 280px;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 8px; /* MD - DESIGN_SYSTEM.md Button radius */
+  transition: all 0.2s ease;
+  gap: 10px;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: white;
+  height: 44px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Level 1 - DESIGN_SYSTEM.md */
+}
+
+.controlSection:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.controlSection.dropdownOpen {
+  background: white;
+  border-color: #0064FF;
+  box-shadow: 0 0 0 4px rgba(0, 100, 255, 0.08);
+}
+
+.controlSection.dropdownOpen .controlDropdown {
+  transform: rotate(180deg);
+  color: #0064FF;
+}
+
+.controlSection.dropdownOpen .controlLabel {
+  color: #0064FF;
+  font-weight: 500;
+}
+
+.controlSection.dropdownOpen .controlIcon {
+  color: #0064FF;
+}
+
+.controlIcon {
+  width: 18px;
+  height: 18px;
+  color: rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.controlLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+}
+
+.controlDropdown {
+  width: 16px;
+  height: 16px;
+  color: rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Store Filter Dropdown Styles */
+.storeFilterDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 380px;
+  background: white;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.96);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 0;
+}
+
+.storeFilterDropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.storeFilterDropdownOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  position: relative;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.storeFilterDropdownOption:hover {
+  background: var(--color-gray-50);
+}
+
+.storeFilterDropdownOption.selected {
+  background: rgba(0, 100, 255, 0.08);
+  color: #0064FF;
+}
+
+.storeFilterDropdownOption.selected:hover {
+  background: rgba(0, 100, 255, 0.12);
+}
+
+.storeFilterDropdownOptionIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-gray-500);
+  flex-shrink: 0;
+  transition: color 150ms ease;
+}
+
+.storeFilterDropdownOption.selected .storeFilterDropdownOptionIcon {
+  color: #0064FF;
+}
+
+.storeFilterDropdownOptionText {
+  flex: 1;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storeFilterDropdownOption.selected .storeFilterDropdownOptionText {
+  font-weight: 500;
+}
+
+.checkmarkIcon {
+  width: 18px;
+  height: 18px;
+  color: #0064FF;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Content Card */
+.contentCard {
+  background: var(--color-white);
+  border-radius: 12px; /* LG - DESIGN_SYSTEM.md Card radius */
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Level 1 - DESIGN_SYSTEM.md Card shadow */
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+/* Inventory Header Styles */
+/* Inventory header styles moved to InventoryHeader component */
+
+/* Button Styles */
+.tossBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-white);
+  color: var(--color-gray-900);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tossBtn:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+}
+
+.tossBtnPrimary {
+  background: var(--color-blue-600);
+  color: var(--color-white);
+  border-color: var(--color-blue-600);
+}
+
+.tossBtnPrimary:hover {
+  background: var(--color-blue-700);
+  border-color: var(--color-blue-700);
+}
+
+.tossBtnSecondary {
+  background: var(--color-white);
+  color: var(--color-gray-900);
+  border: 1px solid var(--color-gray-300);
+}
+
+.tossBtnSecondary:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+}
+
+.deleteBtn {
+  background: var(--color-white);
+  color: var(--color-red-600);
+  border: 1px solid var(--color-red-300);
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: var(--color-red-50);
+  border-color: var(--color-red-600);
+  color: var(--color-red-700);
+}
+
+.deleteBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--color-white);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-400);
+}
+
+.deleteBtn:disabled:hover {
+  background: var(--color-white);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-400);
+}
+
+/* Search bar styles moved to InventoryHeader component */
+
+/* Table Styles - All table styles moved to InventoryTableSection component */
+
+/* Import Loading Overlay */
+.importOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.importContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 48px 32px;
+  background: var(--color-white);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  min-width: 400px;
+  position: relative;
+}
+
+.importText {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.importSubtext {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  margin: 0;
+  min-height: 20px;
+  transition: opacity 0.2s ease;
+  text-align: center;
+  line-height: 1.5;
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .sidebarWrapper {
+    display: none;
+  }
+
+  /* .mobileFilterWrapper moved to InventoryHeader component */
+
+  .mainContent {
+    width: 100%;
+  }
+
+  .container {
+    padding: 16px 0;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  /* Mobile header styles moved to InventoryHeader component */
+  /* Mobile table styles moved to InventoryTableSection component */
+
+  .importContent {
+    padding: 32px 20px;
+    margin: 16px;
+  }
+
+  .importText {
+    font-size: 16px;
+  }
+
+  .importSubtext {
+    font-size: 13px;
+  }
+}
+
+/* Product Row Expansion Styles - All moved to InventoryTableSection component */

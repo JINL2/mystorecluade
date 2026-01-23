@@ -1,0 +1,157 @@
+/**
+ * MarketingPlanPage Styles
+ * Following 2025 Design System: Responsive padding with max-width: 100%
+ */
+
+/* Page Layout - Outer wrapper with responsive padding */
+.pageLayout {
+  min-height: 100vh;
+  background: var(--toss-gray-50);
+  padding: 0 24px; /* Horizontal padding only */
+  max-width: 100%; /* Full width by default */
+  margin: 0 auto;
+}
+
+/* Page Container - Inner content wrapper */
+.container {
+  padding: var(--space-6) 0; /* Vertical padding only */
+  max-width: 100%; /* Match Navbar alignment */
+  width: 100%;
+}
+
+.header {
+  margin-bottom: var(--space-8);
+}
+
+.title {
+  font-size: var(--font-h1);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.subtitle {
+  font-size: var(--font-large);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.comingSoonCard {
+  background: white;
+  border-radius: var(--radius-large);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+
+.comingSoon {
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+}
+
+.icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto var(--space-6);
+  background: var(--toss-blue-50);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toss-primary);
+}
+
+.comingSoonTitle {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.comingSoonText {
+  font-size: var(--font-large);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-8) 0;
+}
+
+.features {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: left;
+  background: var(--toss-gray-50);
+  padding: var(--space-5);
+  border-radius: var(--radius-large);
+}
+
+.features h3 {
+  font-size: var(--font-h4);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+  text-align: center;
+}
+
+.features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.features li {
+  padding: var(--space-3);
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--toss-gray-200);
+}
+
+.features li:last-child {
+  border-bottom: none;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Wide screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px;
+  }
+}
+
+/* Ultra-wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px;
+    max-width: 1920px;
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .container {
+    padding: var(--space-4) 0;
+  }
+
+  .title {
+    font-size: var(--font-h2);
+  }
+
+  .subtitle {
+    font-size: var(--font-base);
+  }
+
+  .icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .comingSoonTitle {
+    font-size: var(--font-h3);
+  }
+
+  .comingSoonText {
+    font-size: var(--font-base);
+  }
+}

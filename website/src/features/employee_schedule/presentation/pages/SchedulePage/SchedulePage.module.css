@@ -1,0 +1,899 @@
+/**
+ * SchedulePage Component Styles
+ * With left sidebar filter panel (LeftFilter + StoreSelector)
+ * Following DESIGN_SYSTEM.md - Toss Design System
+ */
+
+/* Page Layout - Flexbox with sidebar */
+.pageLayout {
+  display: flex;
+  min-height: 100vh;
+  background: #FFFFFF;
+  padding: 0 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px; /* Gap between sidebar and main content */
+}
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0; /* Allow content to shrink */
+  overflow-x: hidden;
+}
+
+/* Container */
+.container {
+  padding: 24px 0; /* Remove horizontal padding, only vertical */
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Page Header */
+.header {
+  margin-bottom: var(--space-8, 32px);
+}
+
+.breadcrumb {
+  margin-bottom: var(--space-3, 12px);
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 var(--space-2, 8px) 0;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--color-gray-600, #6C757D);
+  margin: 0;
+}
+
+/* Week Navigator */
+.weekNavigator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4, 16px);
+  background: #FFFFFF;
+  padding: var(--space-5, 20px);
+  border-radius: 16px;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  margin-bottom: var(--space-6, 24px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  justify-content: center;
+}
+
+.weekDisplay {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  min-width: 250px;
+  text-align: center;
+}
+
+/* Schedule Section */
+.scheduleSection {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: var(--space-6, 24px);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Schedule Grid Container */
+.scheduleGridContainer {
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+}
+
+/* Schedule Header Row */
+.scheduleHeader {
+  display: grid;
+  grid-template-columns: 200px repeat(7, 1fr);
+  gap: 1px;
+  background: var(--color-gray-300, #DEE2E6);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  border-radius: 8px 8px 0 0;
+}
+
+.shiftHeaderCell {
+  background: var(--color-gray-50, #F8F9FA);
+  padding: var(--space-4, 16px);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dateHeaderCell {
+  background: var(--color-gray-50, #F8F9FA);
+  padding: var(--space-3, 12px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.dateHeaderCell.today {
+  background: #F0F6FF;
+}
+
+.dayName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+}
+
+.todayBadge {
+  display: inline-block;
+  padding: 2px var(--space-2, 8px);
+  background: #0064FF;
+  color: white;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Shift Rows */
+.shiftRow {
+  display: grid;
+  grid-template-columns: 200px repeat(7, 1fr);
+  gap: 1px;
+  background: var(--color-gray-300, #DEE2E6);
+  border-left: 1px solid var(--color-gray-300, #DEE2E6);
+  border-right: 1px solid var(--color-gray-300, #DEE2E6);
+  border-bottom: 1px solid var(--color-gray-300, #DEE2E6);
+}
+
+.shiftRow:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+.shiftInfoCell {
+  background: #FFFFFF;
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 4px solid #0064FF;
+  min-height: 80px;
+}
+
+.shiftName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  margin-bottom: 4px;
+}
+
+.shiftTime {
+  font-size: 12px;
+  color: var(--color-gray-600, #6C757D);
+}
+
+/* Assignment Cells */
+.assignmentCell {
+  background: #FFFFFF;
+  padding: var(--space-2, 8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.assignmentCell.today {
+  background: #F0F6FF;
+}
+
+.assignmentCell.dropTarget {
+  background: #F0F6FF;
+  border: 2px dashed #0064FF;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Employee List in Cell */
+.employeeList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.employeeChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 6px;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  transition: all 0.2s ease;
+}
+
+.employeeChip:hover {
+  background: #F0F6FF;
+  border-color: #0064FF;
+}
+
+.employeeName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-900, #212529);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status Dot - Following DESIGN_SYSTEM semantic colors */
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.statusDot.scheduled {
+  background: #FF9500; /* Warning - Pending/Scheduled */
+}
+
+.statusDot.confirmed {
+  background: #00C896; /* Success - Confirmed */
+}
+
+.statusDot.absent {
+  background: #FF5847; /* Error - Absent */
+}
+
+/* Add Employee Buttons */
+.addEmployeeCellButton {
+  width: 100%;
+  height: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 2px dashed var(--color-gray-300, #DEE2E6);
+  border-radius: 6px;
+  color: var(--color-gray-500, #ADB5BD);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addEmployeeCellButton:hover {
+  border-color: #0064FF;
+  color: #0064FF;
+  background: #F0F6FF;
+}
+
+.addEmployeeCellButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
+}
+
+.addIconSmall {
+  width: 20px;
+  height: 20px;
+}
+
+.addEmployeeCellButtonSmall {
+  width: 100%;
+  padding: 4px;
+  background: #FFFFFF;
+  border: 1px dashed var(--color-gray-300, #DEE2E6);
+  border-radius: 4px;
+  color: var(--color-gray-600, #6C757D);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addEmployeeCellButtonSmall:hover {
+  border-color: #0064FF;
+  color: #0064FF;
+  background: #F0F6FF;
+}
+
+.addEmployeeCellButtonSmall:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.emptyTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0 0 12px 0;
+}
+
+.emptyText {
+  font-size: 16px;
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.spinner {
+  font-size: 18px;
+  color: var(--color-gray-600);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 48px;
+}
+
+.errorIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.errorTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0 0 12px 0;
+}
+
+.errorMessage {
+  font-size: 16px;
+  color: var(--color-gray-600);
+  margin: 0 0 24px 0;
+  max-width: 500px;
+}
+
+/* Dashboard Overview Cards */
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-6, 24px);
+  margin-bottom: var(--space-8, 32px);
+}
+
+.overviewCard {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: var(--space-6, 24px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4, 16px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+}
+
+.overviewCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.overviewIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0064FF;
+}
+
+.overviewIcon svg {
+  flex-shrink: 0;
+}
+
+.overviewContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.overviewNumber {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  line-height: 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.overviewLabel {
+  font-size: 14px;
+  color: var(--color-gray-600, #6C757D);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* Store Cards Grid */
+.storesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--space-6, 24px);
+}
+
+.storeCard {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: var(--space-6, 24px);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.storeCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #0064FF;
+}
+
+.storeHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  margin-bottom: var(--space-5, 20px);
+  padding-bottom: var(--space-4, 16px);
+  border-bottom: 1px solid var(--color-gray-200, #E9ECEF);
+}
+
+.storeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0064FF;
+}
+
+.storeIcon svg {
+  flex-shrink: 0;
+}
+
+.storeName {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  margin: 0;
+}
+
+.storeStats {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-5, 20px);
+}
+
+.employeeCount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.statNumber {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-gray-900, #212529);
+  line-height: 1;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--color-gray-600, #6C757D);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.storeScheduleSection {
+  padding-top: var(--space-4, 16px);
+  border-top: 1px solid var(--color-gray-200, #E9ECEF);
+}
+
+.scheduleSectionTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-gray-600, #6C757D);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 var(--space-3, 12px) 0;
+}
+
+.scheduleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.shiftItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2, 8px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 4px;
+}
+
+.shiftName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-900, #212529);
+}
+
+.shiftTime {
+  font-size: 12px;
+  color: var(--color-gray-600, #6C757D);
+}
+
+.noShifts {
+  text-align: center;
+  padding: var(--space-4, 16px);
+  color: var(--color-gray-500, #ADB5BD);
+  font-size: 14px;
+}
+
+/* Employee Section */
+.employeeSection {
+  background: #FFFFFF;
+  padding: var(--space-5, 20px);
+  border-radius: 12px;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  margin-top: var(--space-6, 24px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 var(--space-4, 16px) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.dragHint {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-gray-500, #ADB5BD);
+  font-style: italic;
+}
+
+.noEmployees {
+  text-align: center;
+  color: var(--color-gray-500, #ADB5BD);
+  font-size: 14px;
+  padding: var(--space-4, 16px);
+}
+
+.employeeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3, 12px);
+}
+
+.employeeCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  padding: var(--space-3, 12px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  transition: all 0.2s ease;
+  cursor: move;
+  user-select: none;
+}
+
+.employeeCard:hover {
+  border-color: #0064FF;
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.1);
+}
+
+.employeeCard.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.employeeAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0064FF;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.employeeInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.employeeName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.employeeRole {
+  font-size: 12px;
+  color: var(--color-gray-600, #6C757D);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Add Employee Button */
+.addEmployeeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  width: 100%;
+  padding: var(--space-3, 12px);
+  margin-top: var(--space-2, 8px);
+  background: #FFFFFF;
+  border: 2px dashed var(--color-gray-300, #DEE2E6);
+  border-radius: 8px;
+  color: var(--color-gray-600, #6C757D);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addEmployeeButton:hover {
+  border-color: #0064FF;
+  color: #0064FF;
+  background: #F0F6FF;
+}
+
+.addEmployeeButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.15);
+}
+
+.addIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive Design - Following DESIGN_SYSTEM.md Standard */
+/* Wider screens - increase padding */
+@media (min-width: 1600px) {
+  .pageLayout {
+    padding: 0 48px; /* ⭐ Increase to 48px on wide screens */
+  }
+}
+
+/* Extra wide screens - maximum padding with width constraint */
+@media (min-width: 2000px) {
+  .pageLayout {
+    padding: 0 96px; /* ⭐ Maximum 96px on ultra-wide screens */
+    max-width: 1920px; /* ⭐ Cap width at 1920px */
+  }
+}
+
+/* Tablet - Reduce grid columns */
+@media (max-width: 1200px) {
+  .scheduleHeader,
+  .shiftRow {
+    grid-template-columns: 180px repeat(7, minmax(100px, 1fr));
+  }
+}
+
+/* Mobile - reduce padding */
+@media (max-width: 768px) {
+  .pageLayout {
+    padding: 0 16px; /* ⭐ Reduce to 16px on mobile */
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .weekNavigator {
+    flex-wrap: wrap;
+  }
+
+  .scheduleHeader,
+  .shiftRow {
+    grid-template-columns: 150px repeat(7, minmax(80px, 1fr));
+  }
+
+  .shiftHeaderCell,
+  .shiftInfoCell {
+    padding: var(--space-3, 12px);
+  }
+
+  .dateHeaderCell {
+    padding: var(--space-2, 8px);
+  }
+
+  .dayName {
+    font-size: 12px;
+  }
+
+  .shiftName {
+    font-size: 13px;
+  }
+
+  .shiftTime {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scheduleHeader,
+  .shiftRow {
+    grid-template-columns: 120px repeat(7, minmax(70px, 1fr));
+  }
+
+  .employeeName {
+    font-size: 12px;
+  }
+
+  .statusDot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Confirmation Modal Content */
+.confirmContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-200, #E9ECEF);
+}
+
+.confirmRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2, 8px) 0;
+  border-bottom: 1px solid var(--color-gray-200, #E9ECEF);
+}
+
+.confirmRow:last-child {
+  border-bottom: none;
+}
+
+.confirmLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-600, #6C757D);
+  min-width: 100px;
+}
+
+.confirmValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-900, #212529);
+  text-align: right;
+  flex: 1;
+}
+
+/* Approval Modal Content */
+.approvalContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-200, #E9ECEF);
+  margin-top: var(--space-4, 16px);
+}
+
+.approvalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2, 8px) 0;
+  border-bottom: 1px solid var(--color-gray-200, #E9ECEF);
+}
+
+.approvalRow:last-child {
+  border-bottom: none;
+}
+
+.approvalLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-600, #6C757D);
+  min-width: 100px;
+}
+
+.approvalValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-900, #212529);
+  text-align: right;
+  flex: 1;
+}
+
+/* Approval Status Colors */
+.statusApproved {
+  color: #0064FF !important;
+  font-weight: 600 !important;
+}
+
+.statusPending {
+  color: #FFB800 !important;
+  font-weight: 600 !important;
+}

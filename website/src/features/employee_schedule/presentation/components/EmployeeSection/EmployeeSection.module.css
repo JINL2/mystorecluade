@@ -1,0 +1,107 @@
+/**
+ * EmployeeSection Component Styles
+ * Following DESIGN_SYSTEM.md - Toss Design System
+ */
+
+.employeeSection {
+  margin-top: var(--space-6, 24px);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: var(--space-5, 20px);
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 var(--space-4, 16px) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.dragHint {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-gray-500, #ADB5BD);
+}
+
+.noEmployees {
+  padding: var(--space-8, 32px);
+  text-align: center;
+  color: var(--color-gray-500, #ADB5BD);
+  font-size: 14px;
+}
+
+.employeeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3, 12px);
+}
+
+.employeeCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  padding: var(--space-3, 12px);
+  background: var(--color-gray-50, #F8F9FA);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.employeeCard:hover {
+  background: #F0F6FF;
+  border-color: #4D94FF;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 100, 255, 0.1);
+}
+
+.employeeCard:active {
+  cursor: grabbing;
+}
+
+.employeeCard.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.employeeAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #F0F6FF;
+  color: #0064FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.employeeInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.employeeName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.employeeRole {
+  font-size: 12px;
+  color: var(--color-gray-500, #ADB5BD);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

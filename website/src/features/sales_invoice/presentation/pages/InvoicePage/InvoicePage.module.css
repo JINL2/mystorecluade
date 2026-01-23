@@ -1,0 +1,116 @@
+/**
+ * InvoicePage Component Styles
+ * Simplified - component-specific styles moved to their respective modules
+ */
+
+/* ⭐ Page Layout */
+.pageLayout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 0 24px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* ⭐ Sidebar Wrapper */
+.sidebarWrapper {
+  flex-shrink: 0;
+  margin-right: 24px;
+}
+
+/* ⭐ Main Content Area */
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* ⭐ Container */
+.container {
+  padding: 24px 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Page Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+/* Controls Container */
+.controlsContainer {
+  margin-bottom: 16px;
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.errorTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-red-600);
+  margin: 0 0 16px 0;
+}
+
+.errorMessage {
+  font-size: 16px;
+  color: var(--color-gray-600);
+  margin: 0 0 24px 0;
+  max-width: 500px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .pageLayout {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Hide sidebar on mobile */
+  .sidebarWrapper {
+    display: none;
+  }
+
+  .pageLayout {
+    padding: 0 16px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

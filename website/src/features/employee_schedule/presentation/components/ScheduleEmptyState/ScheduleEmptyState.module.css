@@ -1,0 +1,48 @@
+/**
+ * ScheduleEmptyState Component Styles
+ * Following DESIGN_SYSTEM.md - Toss Design System
+ */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12, 48px) var(--space-6, 24px);
+  text-align: center;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid var(--color-gray-300, #DEE2E6);
+}
+
+.errorState {
+  border-color: #FFEFED;
+  background: #FFEFED;
+}
+
+.emptyIcon,
+.errorIcon {
+  margin-bottom: var(--space-6, 24px);
+}
+
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-gray-900, #212529);
+  margin: 0 0 var(--space-2, 8px) 0;
+}
+
+.errorState .emptyTitle {
+  color: #E63E2C;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: var(--color-gray-500, #ADB5BD);
+  margin: 0 0 var(--space-6, 24px) 0;
+  max-width: 400px;
+}
+
+.errorState .emptyText {
+  color: #FF5847;
+}

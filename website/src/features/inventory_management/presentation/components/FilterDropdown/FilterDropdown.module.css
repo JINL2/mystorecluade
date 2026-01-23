@@ -1,0 +1,183 @@
+/**
+ * FilterDropdown Component Styles
+ * Styles for filter dropdown component
+ */
+
+.filterContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.filterButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-white);
+  color: var(--color-gray-900);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filterButton:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+}
+
+.filterIcon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-gray-600);
+}
+
+.dropdownArrow {
+  width: 12px;
+  height: 12px;
+  color: var(--color-gray-500);
+  transition: transform 0.2s ease;
+}
+
+.dropdownArrowOpen {
+  transform: rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  background: white;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1000;
+  padding: 6px 0;
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  color: var(--color-gray-900);
+  font-size: 14px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dropdownItem:hover {
+  background: var(--color-gray-50);
+}
+
+.dropdownItem.active {
+  background: rgba(0, 100, 255, 0.08);
+  color: #0064FF;
+  font-weight: 500;
+}
+
+.dropdownItem.active:hover {
+  background: rgba(0, 100, 255, 0.12);
+}
+
+.checkIcon {
+  width: 16px;
+  height: 16px;
+  color: #0064FF;
+  flex-shrink: 0;
+}
+
+.chevronRight {
+  width: 16px;
+  height: 16px;
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-gray-200);
+  margin: 6px 0;
+}
+
+.brandMenuItem {
+  position: relative;
+}
+
+.brandSubmenu {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 6px;
+  min-width: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1001;
+  padding: 6px 0;
+  animation: submenuFadeIn 0.15s ease;
+}
+
+@keyframes submenuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.emptyBrands {
+  padding: 16px;
+  text-align: center;
+  color: var(--color-gray-500);
+  font-size: 13px;
+}
+
+/* Scrollbar styling for brand submenu */
+.brandSubmenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.brandSubmenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.brandSubmenu::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 3px;
+}
+
+.brandSubmenu::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
