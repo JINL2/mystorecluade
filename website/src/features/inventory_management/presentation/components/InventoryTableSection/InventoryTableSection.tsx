@@ -13,7 +13,7 @@ import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import type { InventoryTableSectionProps } from './InventoryTableSection.types';
 import type { InventoryItem } from '../../../domain/entities/InventoryItem';
 import { InventoryDataSource, type ProductHistoryItem } from '../../../data/datasources/InventoryDataSource';
-import { InvoiceDataSource, type InvoiceDetailResponse } from '@/features/sales-invoice/data/datasources/InvoiceDataSource';
+import { InvoiceDataSource, type InvoiceDetailResponse } from '@/features/sales_invoice/data/datasources/InvoiceDataSource';
 import styles from './InventoryTableSection.module.css';
 
 type DetailTab = 'detail' | 'history';

@@ -9,8 +9,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
 import { TossSelector } from '@/shared/components/selectors/TossSelector';
 import { StoreSelector } from '@/shared/components/selectors/StoreSelector';
-import { useJournalHistory } from '@/features/transaction-history/presentation/hooks/useJournalHistory';
-import { JournalEntry } from '@/features/transaction-history/domain/entities/JournalEntry';
+import { useJournalHistory } from '@/features/transaction_history/presentation/hooks/useJournalHistory';
+import { JournalEntry } from '@/features/transaction_history/domain/entities/JournalEntry';
 import type { RecentTransactionHistoryProps } from './RecentTransactionHistory.types';
 import styles from './RecentTransactionHistory.module.css';
 
