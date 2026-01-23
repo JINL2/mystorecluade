@@ -46,6 +46,7 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
     getCounterpartyStores,
     getCounterpartyCashLocations,
     loadCashLocations,
+    loadTransactionTemplates,
     applyTemplate,
   } = useJournalInput(companyId, selectedStoreId, user?.id || '');
 
@@ -294,11 +295,17 @@ export const JournalInputPage: React.FC<JournalInputPageProps> = () => {
             onGetCounterpartyStores={getCounterpartyStores}
             onGetCounterpartyCashLocations={getCounterpartyCashLocations}
             onLoadCashLocations={loadCashLocations}
+            onLoadTemplates={loadTransactionTemplates}
             onApplyTemplate={applyTemplate}
             onSubmitSuccess={() => setShowSuccessMessage(true)}
             onSubmitError={(error) => {
               setErrorMessageText(error);
               setShowErrorMessage(true);
+            }}
+            currentStoreId={currentStore?.store_id || null}
+            onCurrentStoreChange={(storeId) => {
+              const store = stores.find(s => s.store_id === storeId) || null;
+              setCurrentStore(store);
             }}
           />
         )}

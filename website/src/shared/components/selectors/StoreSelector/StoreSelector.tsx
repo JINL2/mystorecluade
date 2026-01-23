@@ -29,6 +29,7 @@ export const StoreSelector = ({
   showAllStoresOption = true,
   allStoresLabel = 'All Stores',
   disabled = false,
+  size = 'default',
 }: StoreSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,7 +83,7 @@ export const StoreSelector = ({
   return (
     <div
       ref={containerRef}
-      className={`${styles.storeSelector} ${disabled ? styles.disabled : ''} ${className}`}
+      className={`${styles.storeSelector} ${disabled ? styles.disabled : ''} ${size === 'compact' ? styles.compact : ''} ${className}`}
       style={
         {
           '--store-selector-width': width,

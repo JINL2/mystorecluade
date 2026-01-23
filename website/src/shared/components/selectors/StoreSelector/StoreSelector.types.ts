@@ -70,4 +70,11 @@ export interface StoreSelectorProps {
    * Default: false
    */
   disabled?: boolean;
+
+  /**
+   * Optional size variant
+   * Default: 'default'
+   * 'compact' - smaller height and font size for inline use
+   */
+  size?: 'default' | 'compact';
 }

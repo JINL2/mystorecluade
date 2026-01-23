@@ -55,9 +55,10 @@ export const useJournalInput = (
     // Load initial data
     if (companyId) {
       loadInitialData();
-      // Load templates after store state is set
+      // Load templates with explicit storeId to avoid race condition
+      // where state.storeId hasn't updated yet
       if (storeId) {
-        loadTransactionTemplates();
+        loadTransactionTemplates(storeId);
       }
     }
   }, [companyId, storeId, userId, loadInitialData, loadTransactionTemplates]);
