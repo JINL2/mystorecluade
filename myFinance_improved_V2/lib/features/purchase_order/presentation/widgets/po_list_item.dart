@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../../../shared/widgets/index.dart';
 import '../../domain/entities/purchase_order.dart';
 
 class POListItemWidget extends StatelessWidget {
@@ -21,113 +23,117 @@ class POListItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Material(
-        color: TossColors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          child: Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: TossCard(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row: PO number + Status
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Header row: PO number + Status
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.poNumber,
-                            style: TossTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (item.piNumber != null)
-                            Text(
-                              'From: ${item.piNumber}',
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.gray500,
-                              ),
-                            ),
-                        ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.poNumber,
+                        style: TossTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    POStatusChip(status: item.status),
-                  ],
-                ),
-                const SizedBox(height: TossSpacing.space2),
-
-                // Buyer name
-                Text(
-                  item.buyerName ?? 'Unknown Buyer',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: TossColors.gray700,
+                      if (item.piNumber != null)
+                        Text(
+                          'From: ${item.piNumber}',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray500,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+                TossBadge.status(
+                  label: item.status.label,
+                  status: _getStatusType(item.status),
+                ),
+              ],
+            ),
+            const SizedBox(height: TossSpacing.space2),
 
-                // Buyer PO number if exists
-                if (item.buyerPoNumber != null) ...[
-                  const SizedBox(height: TossSpacing.space1),
+            // Buyer name
+            Text(
+              item.buyerName ?? 'Unknown Buyer',
+              style: TossTextStyles.bodyMedium.copyWith(
+                color: TossColors.gray700,
+              ),
+            ),
+
+            // Buyer PO number if exists
+            if (item.buyerPoNumber != null) ...[
+              const SizedBox(height: TossSpacing.space1),
+              Text(
+                'Buyer PO: ${item.buyerPoNumber}',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.gray500,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: TossSpacing.space3),
+
+            // Bottom row: Amount + Date
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Amount (display in base currency)
+                Text(
+                  '${baseCurrencyCode ?? item.currencyCode} ${_formatAmount(item.totalAmount)}',
+                  style: TossTextStyles.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: TossColors.gray900,
+                  ),
+                ),
+                // Date
+                if (item.orderDateUtc != null)
                   Text(
-                    'Buyer PO: ${item.buyerPoNumber}',
+                    _formatDate(item.orderDateUtc!),
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.gray500,
                     ),
                   ),
-                ],
-
-                const SizedBox(height: TossSpacing.space3),
-
-                // Bottom row: Amount + Date
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Amount (display in base currency)
-                    Text(
-                      '${baseCurrencyCode ?? item.currencyCode} ${_formatAmount(item.totalAmount)}',
-                      style: TossTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: TossColors.gray900,
-                      ),
-                    ),
-                    // Date
-                    if (item.orderDateUtc != null)
-                      Text(
-                        _formatDate(item.orderDateUtc!),
-                        style: TossTextStyles.caption.copyWith(
-                          color: TossColors.gray500,
-                        ),
-                      ),
-                  ],
-                ),
-
-                // Shipment progress if applicable
-                if (item.shippedPercent > 0) ...[
-                  const SizedBox(height: TossSpacing.space2),
-                  _ShipmentProgress(percent: item.shippedPercent),
-                ],
-
-                // Required shipment date warning
-                if (item.requiredShipmentDateUtc != null) ...[
-                  const SizedBox(height: TossSpacing.space2),
-                  _ShipmentDateInfo(date: item.requiredShipmentDateUtc!),
-                ],
               ],
             ),
-          ),
+
+            // Shipment progress if applicable
+            if (item.shippedPercent > 0) ...[
+              const SizedBox(height: TossSpacing.space2),
+              _ShipmentProgress(percent: item.shippedPercent),
+            ],
+
+            // Required shipment date warning
+            if (item.requiredShipmentDateUtc != null) ...[
+              const SizedBox(height: TossSpacing.space2),
+              _ShipmentDateInfo(date: item.requiredShipmentDateUtc!),
+            ],
+          ],
         ),
       ),
     );
+  }
+
+  BadgeStatus _getStatusType(POStatus status) {
+    switch (status) {
+      case POStatus.pending:
+        return BadgeStatus.neutral;
+      case POStatus.process:
+        return BadgeStatus.warning;
+      case POStatus.complete:
+        return BadgeStatus.success;
+      case POStatus.cancelled:
+        return BadgeStatus.error;
+    }
   }
 
   String _formatAmount(double amount) {
@@ -239,7 +245,7 @@ class _ShipmentDateInfo extends StatelessWidget {
     if (isOverdue) {
       return Row(
         children: [
-          const Icon(Icons.warning_amber, size: 14, color: TossColors.error),
+          const Icon(LucideIcons.alertTriangle, size: 14, color: TossColors.error),
           const SizedBox(width: TossSpacing.space1),
           Text(
             'Shipment overdue by ${-diff} day${diff == -1 ? '' : 's'}',
@@ -252,7 +258,7 @@ class _ShipmentDateInfo extends StatelessWidget {
     if (isUrgent) {
       return Row(
         children: [
-          const Icon(Icons.schedule, size: 14, color: TossColors.warning),
+          const Icon(LucideIcons.clock, size: 14, color: TossColors.warning),
           const SizedBox(width: TossSpacing.space1),
           Text(
             'Ship by ${DateFormat('MMM dd').format(date)} ($diff day${diff == 1 ? '' : 's'} left)',
@@ -264,7 +270,7 @@ class _ShipmentDateInfo extends StatelessWidget {
 
     return Row(
       children: [
-        const Icon(Icons.local_shipping_outlined,
+        const Icon(LucideIcons.truck,
             size: 14, color: TossColors.gray500),
         const SizedBox(width: TossSpacing.space1),
         Text(

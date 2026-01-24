@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../shared/themes/toss_colors.dart';
@@ -82,8 +83,8 @@ class _POListPageState extends ConsumerState<POListPage> {
       return TossScaffold(
         appBar: TossAppBar(
           title: 'Purchase Orders',
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+          leading: TossIconButton.ghost(
+            icon: LucideIcons.arrowLeft,
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -100,8 +101,8 @@ class _POListPageState extends ConsumerState<POListPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Purchase Orders',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+        leading: TossIconButton.ghost(
+          icon: LucideIcons.arrowLeft,
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -110,7 +111,7 @@ class _POListPageState extends ConsumerState<POListPage> {
             }
           },
         ),
-        primaryActionIcon: Icons.add,
+        primaryActionIcon: LucideIcons.plus,
         primaryActionText: 'New',
         onPrimaryAction: () => context.push('/purchase-order/new'),
       ),
@@ -121,7 +122,7 @@ class _POListPageState extends ConsumerState<POListPage> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             child: TossTextField.filled(
               hintText: 'Search by PO number or buyer...',
-              prefixIcon: const Icon(Icons.search, size: TossSpacing.iconMD),
+              prefixIcon: const Icon(LucideIcons.search, size: TossSpacing.iconMD),
               onChanged: _onSearch,
             ),
           ),
@@ -150,7 +151,7 @@ class _POListPageState extends ConsumerState<POListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: TossSpacing.iconXXL, color: TossColors.gray400),
+            Icon(LucideIcons.alertCircle, size: TossSpacing.iconXXL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space3),
             Text(
               'Failed to load',
@@ -172,7 +173,7 @@ class _POListPageState extends ConsumerState<POListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_cart_outlined,
+            Icon(LucideIcons.shoppingCart,
                 size: TossSpacing.icon4XL, color: TossColors.gray400),
             const SizedBox(height: TossSpacing.space4),
             Text(
@@ -188,7 +189,7 @@ class _POListPageState extends ConsumerState<POListPage> {
             const SizedBox(height: TossSpacing.space4),
             TossButton.primary(
               text: 'Create PO',
-              leadingIcon: const Icon(Icons.add, size: TossSpacing.iconMD, color: TossColors.white),
+              leadingIcon: const Icon(LucideIcons.plus, size: TossSpacing.iconMD, color: TossColors.white),
               onPressed: () => context.push('/purchase-order/new'),
             ),
           ],

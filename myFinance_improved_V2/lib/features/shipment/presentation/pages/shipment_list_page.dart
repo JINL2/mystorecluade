@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/currency_provider.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
-import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../attendance/presentation/providers/attendance_providers.dart';
 import '../../domain/entities/shipment.dart';
 import '../providers/shipment_providers.dart';
 import '../widgets/shipment_filter_section.dart';
@@ -75,8 +75,8 @@ class _ShipmentListPageState extends ConsumerState<ShipmentListPage> {
       return TossScaffold(
         appBar: TossAppBar(
           title: 'Shipments',
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+          leading: TossIconButton.ghost(
+            icon: LucideIcons.arrowLeft,
             onPressed: () => _navigateBack(context),
           ),
         ),
@@ -105,8 +105,8 @@ class _ShipmentListPageState extends ConsumerState<ShipmentListPage> {
       return TossScaffold(
         appBar: TossAppBar(
           title: 'Shipments',
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+          leading: TossIconButton.ghost(
+            icon: LucideIcons.arrowLeft,
             onPressed: () => _navigateBack(context),
           ),
         ),
@@ -117,11 +117,11 @@ class _ShipmentListPageState extends ConsumerState<ShipmentListPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: 'Shipments',
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+        leading: TossIconButton.ghost(
+          icon: LucideIcons.arrowLeft,
           onPressed: () => _navigateBack(context),
         ),
-        primaryActionIcon: Icons.add,
+        primaryActionIcon: LucideIcons.plus,
         primaryActionText: 'New',
         onPrimaryAction: () => context.push('/shipment/new'),
       ),
@@ -132,7 +132,7 @@ class _ShipmentListPageState extends ConsumerState<ShipmentListPage> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             child: TossTextField.filled(
               hintText: 'Search by shipment number...',
-              prefixIcon: const Icon(Icons.search, size: TossSpacing.iconMD),
+              prefixIcon: const Icon(LucideIcons.search, size: TossSpacing.iconMD),
               onChanged: _onSearch,
             ),
           ),
@@ -167,27 +167,9 @@ class _ShipmentListPageState extends ConsumerState<ShipmentListPage> {
   }
 
   Widget _buildErrorView(String error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: TossSpacing.iconXXL,
-            color: TossColors.gray400,
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          Text(
-            'Failed to load',
-            style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          TossButton.textButton(
-            text: 'Retry',
-            onPressed: () => ref.invalidate(shipmentsProvider),
-          ),
-        ],
-      ),
+    return TossErrorView(
+      error: error,
+      onRetry: () => ref.invalidate(shipmentsProvider),
     );
   }
 
@@ -197,37 +179,22 @@ class _ShipmentListPageState extends ConsumerState<ShipmentListPage> {
     final baseCurrencyCode = baseCurrencyAsync.valueOrNull?.symbol;
 
     if (items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.local_shipping_outlined,
-              size: TossSpacing.icon4XL,
-              color: TossColors.gray400,
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            Text(
-              'No Shipments',
-              style: TossTextStyles.h3.copyWith(color: TossColors.gray600),
-            ),
-            const SizedBox(height: TossSpacing.space2),
-            Text(
-              'Create your first shipment to get started',
-              style:
-                  TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
-            ),
-            const SizedBox(height: TossSpacing.space4),
-            TossButton.primary(
-              text: 'Create Shipment',
-              leadingIcon: const Icon(
-                Icons.add,
-                size: TossSpacing.iconMD,
-                color: TossColors.white,
-              ),
-              onPressed: () => context.push('/shipment/new'),
-            ),
-          ],
+      return TossEmptyView(
+        icon: const Icon(
+          LucideIcons.truck,
+          size: TossSpacing.icon4XL,
+          color: TossColors.gray400,
+        ),
+        title: 'No Shipments',
+        description: 'Create your first shipment to get started',
+        action: TossButton.primary(
+          text: 'Create Shipment',
+          leadingIcon: const Icon(
+            LucideIcons.plus,
+            size: TossSpacing.iconMD,
+            color: TossColors.white,
+          ),
+          onPressed: () => context.push('/shipment/new'),
         ),
       );
     }

@@ -4,18 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
-import '../../di/shipment_providers.dart';
-import '../../domain/entities/create_shipment_params.dart';
 import '../../../../app/providers/counterparty_provider.dart';
+import '../../../../app/providers/product_search_provider.dart';
 import '../../../../core/domain/entities/selector_entities.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../purchase_order/presentation/providers/po_providers.dart';
+import '../../di/shipment_providers.dart';
+import '../../domain/entities/create_shipment_params.dart';
 import '../providers/shipment_providers.dart';
 
 class ShipmentFormPage extends ConsumerStatefulWidget {
@@ -89,8 +90,8 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: isEditMode ? 'Edit Shipment' : 'New Shipment',
-        leading: IconButton(
-          icon: const Icon(Icons.close),
+        leading: TossIconButton.ghost(
+          icon: LucideIcons.x,
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -201,25 +202,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
 
         // Show error if any
         if (_sourceError != null) ...[
-          Container(
-            padding: const EdgeInsets.all(TossSpacing.space3),
-            decoration: BoxDecoration(
-              color: TossColors.errorLight,
-              borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.error_outline, color: TossColors.error, size: 16),
-                const SizedBox(width: TossSpacing.space2),
-                Expanded(
-                  child: Text(
-                    _sourceError!,
-                    style: TossTextStyles.caption.copyWith(color: TossColors.error),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          InfoCard.alertError(message: _sourceError!),
           const SizedBox(height: TossSpacing.space3),
         ],
 
@@ -233,92 +216,36 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
   }
 
   Widget _buildSourceTypeToggle() {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildSourceToggleButton(
-              label: 'Link to Order',
-              icon: Icons.shopping_bag_outlined,
-              isSelected: _sourceType == 'order',
-              onTap: () => setState(() {
-                _sourceType = 'order';
-                _sourceError = null;
-                // Clear supplier selection when switching to order
-                _selectedSupplierId = null;
-                _selectedSupplier = null;
-              }),
-            ),
-          ),
-          Expanded(
-            child: _buildSourceToggleButton(
-              label: 'Select Supplier',
-              icon: Icons.person_outline,
-              isSelected: _sourceType == 'supplier',
-              onTap: () => setState(() {
-                _sourceType = 'supplier';
-                _sourceError = null;
-                // Clear order selection when switching to supplier
-                _selectedOrderId = null;
-                _selectedOrderNumber = null;
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSourceToggleButton({
-    required String label,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space3,
+    return ToggleButtonGroup(
+      items: const [
+        ToggleButtonItem(
+          id: 'order',
+          label: 'Link to Order',
+          icon: LucideIcons.shoppingBag,
         ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.white : TossColors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: TossColors.gray300.withValues(alpha: 0.5),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
+        ToggleButtonItem(
+          id: 'supplier',
+          label: 'Select Supplier',
+          icon: LucideIcons.user,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isSelected ? TossColors.primary : TossColors.gray500,
-            ),
-            const SizedBox(width: TossSpacing.space2),
-            Text(
-              label,
-              style: TossTextStyles.bodySmall.copyWith(
-                color: isSelected ? TossColors.gray900 : TossColors.gray500,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
+      selectedId: _sourceType,
+      onToggle: (id) {
+        setState(() {
+          _sourceType = id;
+          _sourceError = null;
+          if (id == 'order') {
+            // Clear supplier selection when switching to order
+            _selectedSupplierId = null;
+            _selectedSupplier = null;
+          } else {
+            // Clear order selection when switching to supplier
+            _selectedOrderId = null;
+            _selectedOrderNumber = null;
+          }
+        });
+      },
+      layout: ToggleButtonLayout.expanded,
     );
   }
 
@@ -334,7 +261,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
             padding: const EdgeInsets.all(TossSpacing.space4),
             decoration: BoxDecoration(
               color: TossColors.white,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+              borderRadius: BorderRadius.circular(TossBorderRadius.lg),
               border: Border.all(
                 color: _selectedOrderId != null ? TossColors.primary : TossColors.gray200,
               ),
@@ -350,7 +277,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Icon(
-                    Icons.shopping_bag_outlined,
+                    LucideIcons.shoppingBag,
                     size: 20,
                     color: _selectedOrderId != null ? TossColors.primary : TossColors.gray400,
                   ),
@@ -381,7 +308,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
                   ),
                 ),
                 Icon(
-                  _selectedOrderId != null ? Icons.check_circle : Icons.chevron_right,
+                  _selectedOrderId != null ? LucideIcons.checkCircle : LucideIcons.chevronRight,
                   color: _selectedOrderId != null ? TossColors.primary : TossColors.gray400,
                 ),
               ],
@@ -410,7 +337,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.check_circle, size: 16, color: TossColors.primary),
+              const Icon(LucideIcons.checkCircle, size: 16, color: TossColors.primary),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 'Order Linked',
@@ -456,18 +383,17 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
     // Reset search when opening
     ref.read(linkableOrderSearchProvider.notifier).state = '';
 
-    showModalBottomSheet<void>(
+    TossBottomSheet.show<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: TossColors.transparent,
-      builder: (sheetContext) => _OrderSelectionSheet(
+      title: 'Select Order',
+      content: _OrderSelectionSheetContent(
         onOrderSelected: (LinkableOrderItem order) {
           setState(() {
             _selectedOrderId = order.orderId;
             _selectedOrderNumber = order.orderNumber;
             _sourceError = null;
           });
-          Navigator.pop(sheetContext);
+          Navigator.pop(context);
         },
       ),
     );
@@ -492,73 +418,25 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
   }
 
   Widget _buildSupplierTypeToggle() {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildToggleButton(
-              label: 'Existing Supplier',
-              isSelected: _isExistingSupplier,
-              onTap: () => setState(() {
-                _isExistingSupplier = true;
-                _supplierError = null;
-              }),
-            ),
-          ),
-          Expanded(
-            child: _buildToggleButton(
-              label: 'One-time Supplier',
-              isSelected: !_isExistingSupplier,
-              onTap: () => setState(() {
-                _isExistingSupplier = false;
-                _supplierError = null;
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButton({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space2,
+    return ToggleButtonGroup(
+      items: const [
+        ToggleButtonItem(
+          id: 'existing',
+          label: 'Existing Supplier',
         ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.white : TossColors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: TossColors.gray300.withValues(alpha: 0.5),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
+        ToggleButtonItem(
+          id: 'onetime',
+          label: 'One-time Supplier',
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: isSelected ? TossColors.gray900 : TossColors.gray500,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
-        ),
-      ),
+      ],
+      selectedId: _isExistingSupplier ? 'existing' : 'onetime',
+      onToggle: (id) {
+        setState(() {
+          _isExistingSupplier = id == 'existing';
+          _supplierError = null;
+        });
+      },
+      layout: ToggleButtonLayout.expanded,
     );
   }
 
@@ -567,29 +445,17 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
 
     return counterpartyAsync.when(
       loading: () => const Center(child: TossLoadingView()),
-      error: (error, _) => Container(
-        padding: const EdgeInsets.all(TossSpacing.space4),
-        decoration: BoxDecoration(
-          color: TossColors.errorLight,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        ),
-        child: Text(
-          'Failed to load suppliers',
-          style: TossTextStyles.bodyMedium.copyWith(color: TossColors.error),
-        ),
+      error: (error, _) => InfoCard.alertError(
+        message: 'Failed to load suppliers',
       ),
       data: (counterparties) {
         if (counterparties.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            decoration: BoxDecoration(
-              color: TossColors.gray50,
-              borderRadius: BorderRadius.circular(TossBorderRadius.md),
-            ),
+          return TossCard(
+            backgroundColor: TossColors.gray50,
             child: Column(
               children: [
                 const Icon(
-                  Icons.person_add_outlined,
+                  LucideIcons.userPlus,
                   size: TossSpacing.iconXL,
                   color: TossColors.gray400,
                 ),
@@ -657,7 +523,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.check_circle, size: 16, color: TossColors.primary),
+              const Icon(LucideIcons.checkCircle, size: 16, color: TossColors.primary),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 'Selected Supplier',
@@ -749,10 +615,10 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
         TossTextField.filled(
           controller: _productSearchController,
           hintText: 'Search products by name, SKU, or barcode',
-          prefixIcon: const Icon(Icons.search, color: TossColors.gray400),
+          prefixIcon: const Icon(LucideIcons.search, color: TossColors.gray400),
           suffixIcon: _productSearchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear, color: TossColors.gray400),
+                  icon: const Icon(LucideIcons.x, color: TossColors.gray400),
                   onPressed: () {
                     _productSearchController.clear();
                     ref.read(productSearchProvider.notifier).clear();
@@ -863,20 +729,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
                 style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
               ),
               trailing: isAlreadyAdded
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TossSpacing.space2,
-                        vertical: TossSpacing.space1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: TossColors.gray100,
-                        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                      ),
-                      child: Text(
-                        'Added',
-                        style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
-                      ),
-                    )
+                  ? TossBadge(label: 'Added')
                   : Text(
                       _formatPrice(item.costPrice),
                       style: TossTextStyles.bodySmall.copyWith(
@@ -893,83 +746,72 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
   }
 
   Widget _buildNoSearchResults() {
-    return Container(
-      margin: const EdgeInsets.only(top: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Center(
-        child: Text(
-          'No products found',
-          style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+    return Padding(
+      padding: const EdgeInsets.only(top: TossSpacing.space2),
+      child: TossCard(
+        backgroundColor: TossColors.gray50,
+        child: Center(
+          child: Text(
+            'No products found',
+            style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildEmptyItemsPlaceholder() {
-    return Container(
-      width: double.infinity,
+    return TossCard(
+      backgroundColor: TossColors.gray50,
       padding: const EdgeInsets.all(TossSpacing.space6),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200, style: BorderStyle.solid),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.local_shipping_outlined,
-            size: TossSpacing.icon3XL,
-            color: TossColors.gray400,
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          Text(
-            'No items added yet',
-            style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
-          ),
-          const SizedBox(height: TossSpacing.space1),
-          Text(
-            'Search and select products above',
-            style: TossTextStyles.caption.copyWith(color: TossColors.gray400),
-          ),
-        ],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              LucideIcons.truck,
+              size: TossSpacing.icon3XL,
+              color: TossColors.gray400,
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            Text(
+              'No items added yet',
+              style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+            ),
+            const SizedBox(height: TossSpacing.space1),
+            Text(
+              'Search and select products above',
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray400),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildItemCard(int index, ShipmentItemData item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product name and delete button
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.name,
-                  style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+      child: TossCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name and delete button
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                color: TossColors.gray400,
-                onPressed: () => _deleteItem(index),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
+                TossIconButton.ghost(
+                  icon: LucideIcons.trash2,
+                  size: TossIconButtonSize.small,
+                  onPressed: () => _deleteItem(index),
+                ),
+              ],
+            ),
           if (item.sku != null) ...[
             const SizedBox(height: TossSpacing.space1),
             Text(
@@ -982,36 +824,11 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
           // Quantity and price row
           Row(
             children: [
-              // Quantity controls
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: TossColors.gray200),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildQuantityButton(
-                      icon: Icons.remove,
-                      onPressed: item.quantity > 1
-                          ? () => _updateQuantity(index, item.quantity - 1)
-                          : null,
-                    ),
-                    Container(
-                      constraints: const BoxConstraints(minWidth: 50),
-                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-                      child: Text(
-                        item.quantity.toInt().toString(),
-                        textAlign: TextAlign.center,
-                        style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    _buildQuantityButton(
-                      icon: Icons.add,
-                      onPressed: () => _updateQuantity(index, item.quantity + 1),
-                    ),
-                  ],
-                ),
+              // Quantity controls using design system component
+              TossQuantityInput(
+                value: item.quantity.toInt(),
+                minValue: 1,
+                onChanged: (value) => _updateQuantity(index, value.toDouble()),
               ),
               const SizedBox(width: TossSpacing.space2),
               Text(
@@ -1042,22 +859,6 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildQuantityButton({
-    required IconData icon,
-    VoidCallback? onPressed,
-  }) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space2),
-        child: Icon(
-          icon,
-          size: 18,
-          color: onPressed != null ? TossColors.gray700 : TossColors.gray300,
-        ),
       ),
     );
   }
@@ -1120,7 +921,7 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
           controller: _trackingNumberController,
           inlineLabel: 'Tracking Number (Optional)',
           hintText: 'Enter tracking number',
-          prefixIcon: const Icon(Icons.local_shipping_outlined, color: TossColors.gray400),
+          prefixIcon: const Icon(LucideIcons.truck, color: TossColors.gray400),
         ),
         const SizedBox(height: TossSpacing.space3),
 
@@ -1140,20 +941,16 @@ class _ShipmentFormPageState extends ConsumerState<ShipmentFormPage> {
   // ==========================================================================
 
   Widget _buildSectionHeader(String title, {bool isRequired = false}) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: TossTextStyles.h4.copyWith(color: TossColors.gray900),
-        ),
-        if (isRequired) ...[
-          const SizedBox(width: TossSpacing.space1),
-          Text(
-            '*',
-            style: TossTextStyles.h4.copyWith(color: TossColors.error),
-          ),
-        ],
-      ],
+    return TossSectionHeader(
+      title: title,
+      trailing: isRequired
+          ? Text(
+              '*',
+              style: TossTextStyles.h4.copyWith(color: TossColors.error),
+            )
+          : null,
+      backgroundColor: TossColors.transparent,
+      padding: EdgeInsets.zero,
     );
   }
 
@@ -1348,19 +1145,19 @@ class ShipmentItemData {
 }
 
 // =============================================================================
-// Order Selection Bottom Sheet Widget
+// Order Selection Bottom Sheet Content Widget
 // =============================================================================
 
-class _OrderSelectionSheet extends ConsumerStatefulWidget {
+class _OrderSelectionSheetContent extends ConsumerStatefulWidget {
   final void Function(LinkableOrderItem order) onOrderSelected;
 
-  const _OrderSelectionSheet({required this.onOrderSelected});
+  const _OrderSelectionSheetContent({required this.onOrderSelected});
 
   @override
-  ConsumerState<_OrderSelectionSheet> createState() => _OrderSelectionSheetState();
+  ConsumerState<_OrderSelectionSheetContent> createState() => _OrderSelectionSheetContentState();
 }
 
-class _OrderSelectionSheetState extends ConsumerState<_OrderSelectionSheet> {
+class _OrderSelectionSheetContentState extends ConsumerState<_OrderSelectionSheetContent> {
   final _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -1382,67 +1179,33 @@ class _OrderSelectionSheetState extends ConsumerState<_OrderSelectionSheet> {
   Widget build(BuildContext context) {
     final ordersAsync = ref.watch(linkableOrdersProvider);
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TossBorderRadius.xl)),
-      ),
-      child: Column(
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: TossSpacing.space3),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: TossColors.gray300,
-              borderRadius: BorderRadius.circular(2),
-            ),
+    // Content for TossBottomSheet - handle and title are provided by TossBottomSheet
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Search
+        TossTextField.filled(
+          controller: _searchController,
+          hintText: 'Search by order number or supplier...',
+          prefixIcon: const Icon(LucideIcons.search, color: TossColors.gray400),
+          onChanged: _onSearchChanged,
+        ),
+        const SizedBox(height: TossSpacing.space3),
+        // Order list
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: ordersAsync.when(
+            loading: () => const Center(child: TossLoadingView()),
+            error: (error, _) => _buildErrorView(error.toString()),
+            data: (orders) {
+              if (orders.isEmpty) {
+                return _buildEmptyView();
+              }
+              return _buildOrderList(orders);
+            },
           ),
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(TossSpacing.space4),
-            child: Row(
-              children: [
-                Text(
-                  'Select Order',
-                  style: TossTextStyles.h3.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-          // Search
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
-            child: TossTextField.filled(
-              controller: _searchController,
-              hintText: 'Search by order number or supplier...',
-              prefixIcon: const Icon(Icons.search, color: TossColors.gray400),
-              onChanged: _onSearchChanged,
-            ),
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          // Order list
-          Expanded(
-            child: ordersAsync.when(
-              loading: () => const Center(child: TossLoadingView()),
-              error: (error, _) => _buildErrorView(error.toString()),
-              data: (orders) {
-                if (orders.isEmpty) {
-                  return _buildEmptyView();
-                }
-                return _buildOrderList(orders);
-              },
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1452,7 +1215,7 @@ class _OrderSelectionSheetState extends ConsumerState<_OrderSelectionSheet> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
-            Icons.error_outline,
+            LucideIcons.alertCircle,
             size: 48,
             color: TossColors.gray300,
           ),
@@ -1478,7 +1241,7 @@ class _OrderSelectionSheetState extends ConsumerState<_OrderSelectionSheet> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
-            Icons.shopping_bag_outlined,
+            LucideIcons.shoppingBag,
             size: 48,
             color: TossColors.gray300,
           ),
@@ -1542,7 +1305,7 @@ class _OrderListTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(TossBorderRadius.sm),
               ),
               child: const Icon(
-                Icons.shopping_bag_outlined,
+                LucideIcons.shoppingBag,
                 size: 20,
                 color: TossColors.primary,
               ),
@@ -1595,7 +1358,7 @@ class _OrderListTile extends StatelessWidget {
                   ),
                 ),
                 const Icon(
-                  Icons.chevron_right,
+                  LucideIcons.chevronRight,
                   color: TossColors.gray400,
                   size: 20,
                 ),
@@ -1608,43 +1371,26 @@ class _OrderListTile extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(String status) {
-    Color bgColor;
-    Color textColor;
+    BadgeStatus badgeStatus;
     String label;
 
     switch (status.toLowerCase()) {
       case 'pending':
-        bgColor = TossColors.warningLight;
-        textColor = TossColors.warning;
+        badgeStatus = BadgeStatus.warning;
         label = 'Pending';
         break;
       case 'process':
-        bgColor = TossColors.primarySurface;
-        textColor = TossColors.primary;
+        badgeStatus = BadgeStatus.info;
         label = 'Processing';
         break;
       default:
-        bgColor = TossColors.gray100;
-        textColor = TossColors.gray600;
+        badgeStatus = BadgeStatus.neutral;
         label = status;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      ),
-      child: Text(
-        label,
-        style: TossTextStyles.caption.copyWith(
-          color: textColor,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+    return TossBadge.status(
+      label: label,
+      status: badgeStatus,
     );
   }
 }

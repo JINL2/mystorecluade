@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/counterparty_provider.dart';
@@ -89,8 +90,8 @@ class _POFormPageState extends ConsumerState<POFormPage> {
     return TossScaffold(
       appBar: TossAppBar(
         title: isEditMode ? 'Edit Order' : 'New Order',
-        leading: IconButton(
-          icon: const Icon(Icons.close),
+        leading: TossIconButton.ghost(
+          icon: LucideIcons.x,
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -108,10 +109,6 @@ class _POFormPageState extends ConsumerState<POFormPage> {
               child: ListView(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 children: [
-                  // Order Number (auto-generated, read-only)
-                  _buildOrderNumberSection(formState),
-                  const SizedBox(height: TossSpacing.space5),
-
                   // 1. Order Title (Required)
                   _buildOrderTitleSection(),
                   const SizedBox(height: TossSpacing.space5),
@@ -160,32 +157,6 @@ class _POFormPageState extends ConsumerState<POFormPage> {
     );
   }
 
-  Widget _buildOrderNumberSection(POFormState formState) {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Order Number',
-            style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray600),
-          ),
-          Text(
-            formState.generatedNumber ?? 'Generating...',
-            style: TossTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w600,
-              color: TossColors.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildOrderTitleSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,10 +190,10 @@ class _POFormPageState extends ConsumerState<POFormPage> {
         TossTextField.filled(
           controller: _productSearchController,
           hintText: 'Search products by name, SKU, or barcode',
-          prefixIcon: const Icon(Icons.search, color: TossColors.gray400),
+          prefixIcon: const Icon(LucideIcons.search, color: TossColors.gray400),
           suffixIcon: _productSearchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear, color: TossColors.gray400),
+                  icon: const Icon(LucideIcons.x, color: TossColors.gray400),
                   onPressed: () {
                     _productSearchController.clear();
                     ref.read(productSearchProvider.notifier).clear();
@@ -317,20 +288,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
               style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
             ),
             trailing: isAlreadyAdded
-                ? Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space2,
-                      vertical: TossSpacing.space1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: TossColors.gray100,
-                      borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                    ),
-                    child: Text(
-                      'Added',
-                      style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
-                    ),
-                  )
+                ? TossBadge(label: 'Added')
                 : Text(
                     _formatPrice(item.costPrice),
                     style: TossTextStyles.bodySmall.copyWith(
@@ -347,36 +305,29 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   }
 
   Widget _buildNoSearchResults() {
-    return Container(
-      margin: const EdgeInsets.only(top: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space4),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Center(
-        child: Text(
-          'No products found',
-          style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+    return Padding(
+      padding: const EdgeInsets.only(top: TossSpacing.space2),
+      child: TossCard(
+        backgroundColor: TossColors.gray50,
+        child: Center(
+          child: Text(
+            'No products found',
+            style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildEmptyItemsPlaceholder() {
-    return SizedBox(
-      width: double.infinity,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space6),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.md),
-          border: Border.all(color: TossColors.gray200, style: BorderStyle.solid),
-        ),
+    return TossCard(
+      backgroundColor: TossColors.gray50,
+      child: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.shopping_cart_outlined,
+              LucideIcons.shoppingCart,
               size: TossSpacing.icon3XL,
               color: TossColors.gray400,
             ),
@@ -397,28 +348,23 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   }
 
   Widget _buildItemCard(int index, OrderItemData item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product name and delete button
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.name,
-                  style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+      child: TossCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name and delete button
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                  ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
+                icon: const Icon(LucideIcons.trash2, size: 20),
                 color: TossColors.gray400,
                 onPressed: () => _deleteItem(index),
                 padding: EdgeInsets.zero,
@@ -438,36 +384,11 @@ class _POFormPageState extends ConsumerState<POFormPage> {
           // Quantity and price row
           Row(
             children: [
-              // Quantity controls
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: TossColors.gray200),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildQuantityButton(
-                      icon: Icons.remove,
-                      onPressed: item.quantity > 1
-                          ? () => _updateQuantity(index, item.quantity - 1)
-                          : null,
-                    ),
-                    Container(
-                      constraints: const BoxConstraints(minWidth: 50),
-                      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space2),
-                      child: Text(
-                        item.quantity.toInt().toString(),
-                        textAlign: TextAlign.center,
-                        style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    _buildQuantityButton(
-                      icon: Icons.add,
-                      onPressed: () => _updateQuantity(index, item.quantity + 1),
-                    ),
-                  ],
-                ),
+              // Quantity controls using design system component
+              TossQuantityInput(
+                value: item.quantity.toInt(),
+                minValue: 1,
+                onChanged: (value) => _updateQuantity(index, value.toDouble()),
               ),
               const SizedBox(width: TossSpacing.space2),
               Text(
@@ -497,22 +418,6 @@ class _POFormPageState extends ConsumerState<POFormPage> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuantityButton({
-    required IconData icon,
-    VoidCallback? onPressed,
-  }) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space2),
-        child: Icon(
-          icon,
-          size: 18,
-          color: onPressed != null ? TossColors.gray700 : TossColors.gray300,
         ),
       ),
     );
@@ -577,73 +482,27 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   }
 
   Widget _buildSupplierTypeToggle() {
-    return Container(
-      decoration: BoxDecoration(
-        color: TossColors.gray100,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildToggleButton(
-              label: 'Existing Supplier',
-              isSelected: _isExistingSupplier,
-              onTap: () => setState(() {
-                _isExistingSupplier = true;
-                _supplierError = null;
-              }),
-            ),
-          ),
-          Expanded(
-            child: _buildToggleButton(
-              label: 'One-time Supplier',
-              isSelected: !_isExistingSupplier,
-              onTap: () => setState(() {
-                _isExistingSupplier = false;
-                _supplierError = null;
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButton({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TossSpacing.space3,
-          vertical: TossSpacing.space2,
+    return ToggleButtonGroup(
+      items: const [
+        ToggleButtonItem(
+          id: 'existing',
+          label: 'Existing Supplier',
+          icon: LucideIcons.building2,
         ),
-        decoration: BoxDecoration(
-          color: isSelected ? TossColors.white : TossColors.transparent,
-          borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: TossColors.gray300.withValues(alpha: 0.5),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
+        ToggleButtonItem(
+          id: 'onetime',
+          label: 'One-time Supplier',
+          icon: LucideIcons.userPlus,
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TossTextStyles.bodySmall.copyWith(
-            color: isSelected ? TossColors.gray900 : TossColors.gray500,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
-        ),
-      ),
+      ],
+      selectedId: _isExistingSupplier ? 'existing' : 'onetime',
+      onToggle: (id) {
+        setState(() {
+          _isExistingSupplier = id == 'existing';
+          _supplierError = null;
+        });
+      },
+      layout: ToggleButtonLayout.expanded,
     );
   }
 
@@ -673,7 +532,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
             ),
             child: Column(
               children: [
-                Icon(Icons.person_add_outlined, size: TossSpacing.iconXL, color: TossColors.gray400),
+                Icon(LucideIcons.userPlus, size: TossSpacing.iconXL, color: TossColors.gray400),
                 const SizedBox(height: TossSpacing.space2),
                 Text(
                   'No suppliers found',
@@ -738,7 +597,7 @@ class _POFormPageState extends ConsumerState<POFormPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.check_circle, size: 16, color: TossColors.primary),
+              Icon(LucideIcons.checkCircle, size: 16, color: TossColors.primary),
               const SizedBox(width: TossSpacing.space2),
               Text(
                 'Selected Supplier',

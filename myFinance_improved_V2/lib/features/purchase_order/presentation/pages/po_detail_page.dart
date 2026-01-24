@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
 import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
-import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 import '../../domain/entities/purchase_order.dart';
 import '../providers/po_providers.dart';
-import '../widgets/po_list_item.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 class PODetailPage extends ConsumerStatefulWidget {
@@ -37,9 +36,10 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     final state = ref.watch(poDetailProvider);
 
     return TossScaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+      appBar: TossAppBar(
+        title: state.po?.poNumber ?? 'PO Detail',
+        leading: TossIconButton.ghost(
+          icon: LucideIcons.arrowLeft,
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -48,7 +48,6 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
             }
           },
         ),
-        title: Text(state.po?.poNumber ?? 'PO Detail'),
       ),
       body: _buildBody(state),
     );
@@ -60,21 +59,9 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     }
 
     if (state.error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline,
-                size: 48, color: TossColors.gray400),
-            const SizedBox(height: TossSpacing.space3),
-            Text(state.error!, style: TossTextStyles.bodyMedium),
-            TossButton.textButton(
-              text: 'Retry',
-              onPressed: () =>
-                  ref.read(poDetailProvider.notifier).load(widget.poId),
-            ),
-          ],
-        ),
+      return TossErrorView(
+        error: state.error!,
+        onRetry: () => ref.read(poDetailProvider.notifier).load(widget.poId),
       );
     }
 
@@ -137,26 +124,13 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
   }
 
   Future<void> _showCancelConfirmDialog(PurchaseOrder po) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await TossConfirmCancelDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Order'),
-        content: Text(
-          'Are you sure you want to cancel order ${po.poNumber}?\n\n'
-          'This will also cancel all linked shipments and sessions.',
-        ),
-        actions: [
-          TossButton.textButton(
-            text: 'No',
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          TossButton.textButton(
-            text: 'Yes, Cancel',
-            textColor: TossColors.error,
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
+      title: 'Cancel Order',
+      message: 'Are you sure you want to cancel order ${po.poNumber}?\n\nThis will also cancel all linked shipments and sessions.',
+      confirmButtonText: 'Yes, Cancel',
+      cancelButtonText: 'No',
+      isDangerousAction: true,
     );
 
     if (confirmed == true && mounted) {
@@ -190,17 +164,20 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
   }
 
   Widget _buildStatusSection(PurchaseOrder po) {
-    return TradeSimpleCard(
+    return TossCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              POStatusChip(status: po.status),
+              TossBadge.status(
+                label: po.status.label,
+                status: _getStatusType(po.status),
+              ),
               const Spacer(),
               if (po.requiredShipmentDateUtc != null) ...[
                 Icon(
-                  Icons.local_shipping_outlined,
+                  LucideIcons.truck,
                   size: TossSpacing.iconSM2,
                   color: _getShipmentDateColor(po.requiredShipmentDateUtc!),
                 ),
@@ -221,6 +198,19 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
         ],
       ),
     );
+  }
+
+  BadgeStatus _getStatusType(POStatus status) {
+    switch (status) {
+      case POStatus.pending:
+        return BadgeStatus.neutral;
+      case POStatus.process:
+        return BadgeStatus.warning;
+      case POStatus.complete:
+        return BadgeStatus.success;
+      case POStatus.cancelled:
+        return BadgeStatus.error;
+    }
   }
 
   Color _getShipmentDateColor(DateTime date) {
@@ -269,29 +259,29 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Basic Information'),
+        const TossSectionHeader(title: 'Basic Information'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Column(
             children: [
-              _InfoRow(label: 'PO Number', value: po.poNumber),
+              InfoRow.between(label: 'PO Number', value: po.poNumber),
               if (po.piNumber != null)
-                _InfoRow(label: 'From PI', value: po.piNumber!),
+                InfoRow.between(label: 'From PI', value: po.piNumber!),
               if (po.buyerPoNumber != null)
-                _InfoRow(label: 'Buyer PO #', value: po.buyerPoNumber!),
+                InfoRow.between(label: 'Buyer PO #', value: po.buyerPoNumber!),
               if (po.orderDateUtc != null)
-                _InfoRow(
+                InfoRow.between(
                   label: 'Order Date',
                   value: DateFormat('MMM dd, yyyy').format(po.orderDateUtc!),
                 ),
               if (po.incotermsCode != null)
-                _InfoRow(
+                InfoRow.between(
                   label: 'Incoterms',
                   value:
                       '${po.incotermsCode}${po.incotermsPlace != null ? ' - ${po.incotermsPlace}' : ''}',
                 ),
               if (po.paymentTermsCode != null)
-                _InfoRow(
+                InfoRow.between(
                   label: 'Payment Terms',
                   value: po.paymentTermsCode!,
                 ),
@@ -306,9 +296,9 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Buyer'),
+        const TossSectionHeader(title: 'Buyer'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -344,22 +334,22 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Shipping'),
+        const TossSectionHeader(title: 'Shipping'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Column(
             children: [
               if (po.requiredShipmentDateUtc != null)
-                _InfoRow(
+                InfoRow.between(
                   label: 'Required Shipment Date',
                   value: DateFormat('MMM dd, yyyy')
                       .format(po.requiredShipmentDateUtc!),
                 ),
-              _InfoRow(
+              InfoRow.between(
                 label: 'Partial Shipment',
                 value: po.partialShipmentAllowed ? 'Allowed' : 'Not Allowed',
               ),
-              _InfoRow(
+              InfoRow.between(
                 label: 'Transshipment',
                 value: po.transshipmentAllowed ? 'Allowed' : 'Not Allowed',
               ),
@@ -388,7 +378,10 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TradeSectionHeader(title: 'Items', badge: '${po.items.length}'),
+        TossSectionHeader(
+          title: 'Items',
+          trailing: TossBadge(label: '${po.items.length}'),
+        ),
         const SizedBox(height: TossSpacing.space2),
         ...po.items.map((item) => _POItemCard(
               item: item,
@@ -413,67 +406,33 @@ class _PODetailPageState extends ConsumerState<PODetailPage> {
     // Use base currency from exchange rate data
     final currencyCode = exchangeRateData?.baseCurrencyCode ?? 'VND';
 
-    return TradeSimpleCard(
-      child: TradeDualCurrencyInfoRow(
+    return TossCard(
+      child: InfoRow.between(
         label: 'Total',
-        primaryCurrency: currencyCode,
-        primaryAmount: po.totalAmount,
-        secondaryCurrency: null,
-        secondaryAmount: null,
-        highlight: true,
+        value: '$currencyCode ${_formatAmount(po.totalAmount, currencyCode)}',
+        isTotal: true,
       ),
     );
+  }
+
+  String _formatAmount(double amount, String currencyCode) {
+    final noDecimalCurrencies = ['VND', 'KRW', 'JPY', 'IDR'];
+    if (noDecimalCurrencies.contains(currencyCode)) {
+      return NumberFormat('#,##0').format(amount);
+    }
+    return NumberFormat('#,##0.00').format(amount);
   }
 
   Widget _buildNotesSection(PurchaseOrder po) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Notes'),
+        const TossSectionHeader(title: 'Notes'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Text(po.notes!, style: TossTextStyles.bodyMedium),
         ),
       ],
-    );
-  }
-
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color? valueColor;
-  final bool isBold;
-
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-    this.isBold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style:
-                TossTextStyles.bodyMedium.copyWith(color: TossColors.gray600),
-          ),
-          Text(
-            value,
-            style: TossTextStyles.bodyMedium.copyWith(
-              color: valueColor ?? TossColors.gray900,
-              fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -500,23 +459,18 @@ class _POItemCard extends StatelessWidget {
     final hasShipped = item.shippedQuantity > 0;
     final remainingQty = item.quantity - item.shippedQuantity;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Description
-          Text(
-            item.description,
-            style:
-                TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
-          ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+      child: TossCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Description
+            Text(
+              item.description,
+              style:
+                  TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
+            ),
           if (item.sku != null) ...[
             const SizedBox(height: TossSpacing.space1),
             Text(
@@ -548,7 +502,7 @@ class _POItemCard extends StatelessWidget {
             const SizedBox(height: TossSpacing.space2),
             Row(
               children: [
-                const Icon(Icons.local_shipping,
+                const Icon(LucideIcons.truck,
                     size: TossSpacing.iconXS, color: TossColors.success),
                 const SizedBox(width: TossSpacing.space1),
                 Text(
@@ -582,6 +536,7 @@ class _POItemCard extends StatelessWidget {
             ],
           ),
         ],
+        ),
       ),
     );
   }

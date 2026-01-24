@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
@@ -87,7 +88,7 @@ class POItemsSection extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle, color: TossColors.primary),
+                  icon: const Icon(LucideIcons.plusCircle, color: TossColors.primary),
                   onPressed: onAddItem,
                 ),
               ],
@@ -134,7 +135,7 @@ class POItemsSection extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_circle_outline, color: TossColors.primary, size: TossSpacing.iconMD),
+            Icon(LucideIcons.plusCircle, color: TossColors.primary, size: TossSpacing.iconMD),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Add items',
@@ -204,14 +205,14 @@ class POItemCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: TossSpacing.iconMD),
+                  icon: const Icon(LucideIcons.pencil, size: TossSpacing.iconMD),
                   onPressed: onEdit,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
                 const SizedBox(width: TossSpacing.space2),
                 IconButton(
-                  icon: Icon(Icons.delete_outline, size: TossSpacing.iconMD, color: TossColors.error),
+                  icon: Icon(LucideIcons.trash2, size: TossSpacing.iconMD, color: TossColors.error),
                   onPressed: onDelete,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),

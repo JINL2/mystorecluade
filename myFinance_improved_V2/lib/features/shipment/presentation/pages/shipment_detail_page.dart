@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/currency_provider.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../attendance/presentation/providers/attendance_providers.dart';
-import '../../../trade_shared/presentation/widgets/trade_widgets.dart';
 import '../../di/shipment_providers.dart';
 import '../../domain/entities/shipment.dart';
 import '../providers/shipment_providers.dart';
-import '../widgets/shipment_list_item.dart';
 
 class ShipmentDetailPage extends ConsumerStatefulWidget {
   final String shipmentId;
@@ -36,13 +35,11 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     final baseCurrencyCode = baseCurrencyAsync.valueOrNull?.currencyCode ?? 'USD';
 
     return TossScaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+      appBar: TossAppBar(
+        title: detailAsync.valueOrNull?.shipmentNumber ?? 'Shipment Detail',
+        leading: TossIconButton.ghost(
+          icon: LucideIcons.arrowLeft,
           onPressed: () => _navigateBack(context),
-        ),
-        title: Text(
-          detailAsync.valueOrNull?.shipmentNumber ?? 'Shipment Detail',
         ),
       ),
       body: _isClosing
@@ -74,51 +71,23 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
   }
 
   Widget _buildErrorView(BuildContext context, String error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: TossSpacing.iconXXL,
-            color: TossColors.gray400,
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          Text(
-            'Failed to load',
-            style: TossTextStyles.bodyLarge.copyWith(color: TossColors.gray600),
-          ),
-          const SizedBox(height: TossSpacing.space2),
-          TossButton.textButton(
-            text: 'Retry',
-            onPressed: () => ref.invalidate(shipmentDetailV2Provider(widget.shipmentId)),
-          ),
-        ],
-      ),
+    return TossErrorView(
+      error: error,
+      onRetry: () => ref.invalidate(shipmentDetailV2Provider(widget.shipmentId)),
     );
   }
 
   Widget _buildNotFoundView(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.local_shipping_outlined,
-            size: TossSpacing.icon4XL,
-            color: TossColors.gray400,
-          ),
-          const SizedBox(height: TossSpacing.space4),
-          Text(
-            'Shipment not found',
-            style: TossTextStyles.h3.copyWith(color: TossColors.gray600),
-          ),
-          const SizedBox(height: TossSpacing.space4),
-          TossButton.secondary(
-            text: 'Go Back',
-            onPressed: () => _navigateBack(context),
-          ),
-        ],
+    return TossEmptyView(
+      icon: const Icon(
+        LucideIcons.truck,
+        size: TossSpacing.icon4XL,
+        color: TossColors.gray400,
+      ),
+      title: 'Shipment not found',
+      action: TossButton.secondary(
+        text: 'Go Back',
+        onPressed: () => _navigateBack(context),
       ),
     );
   }
@@ -181,17 +150,20 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
   }
 
   Widget _buildStatusSection(ShipmentDetail detail) {
-    return TradeSimpleCard(
+    return TossCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              ShipmentStatusChip(status: detail.status),
+              TossBadge.status(
+                label: detail.status.label,
+                status: _getStatusType(detail.status),
+              ),
               const Spacer(),
               if (detail.shippedDate != null) ...[
                 const Icon(
-                  Icons.calendar_today,
+                  LucideIcons.calendar,
                   size: TossSpacing.iconSM,
                   color: TossColors.gray500,
                 ),
@@ -253,21 +225,21 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Basic Information'),
+        const TossSectionHeader(title: 'Basic Information'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Column(
             children: [
-              _InfoRow(label: 'Shipment Number', value: detail.shipmentNumber),
+              InfoRow.between(label: 'Shipment Number', value: detail.shipmentNumber),
               if (detail.trackingNumber != null)
-                _InfoRow(label: 'Tracking Number', value: detail.trackingNumber!),
+                InfoRow.between(label: 'Tracking Number', value: detail.trackingNumber!),
               if (detail.shippedDate != null)
-                _InfoRow(
+                InfoRow.between(
                   label: 'Shipped Date',
                   value: DateFormat('MMM dd, yyyy').format(detail.shippedDate!),
                 ),
               if (detail.createdAt != null)
-                _InfoRow(
+                InfoRow.between(
                   label: 'Created',
                   value: DateFormat('MMM dd, yyyy HH:mm').format(detail.createdAt!),
                 ),
@@ -285,9 +257,9 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Supplier'),
+        const TossSectionHeader(title: 'Supplier'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -310,9 +282,9 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
                   supplier.supplierEmail != null) ...[
                 const SizedBox(height: TossSpacing.space3),
                 if (supplier.supplierPhone != null)
-                  _InfoRow(label: 'Phone', value: supplier.supplierPhone!),
+                  InfoRow.between(label: 'Phone', value: supplier.supplierPhone!),
                 if (supplier.supplierEmail != null)
-                  _InfoRow(label: 'Email', value: supplier.supplierEmail!),
+                  InfoRow.between(label: 'Email', value: supplier.supplierEmail!),
               ],
             ],
           ),
@@ -325,32 +297,32 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Receiving Summary'),
+        const TossSectionHeader(title: 'Receiving Summary'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Column(
             children: [
-              _InfoRow(
+              InfoRow.between(
                 label: 'Total Shipped',
                 value: NumberFormat('#,##0.##').format(summary.totalShipped),
               ),
-              _InfoRow(
+              InfoRow.between(
                 label: 'Total Received',
                 value: NumberFormat('#,##0.##').format(summary.totalReceived),
                 valueColor: TossColors.primary,
               ),
-              _InfoRow(
+              InfoRow.between(
                 label: 'Accepted',
                 value: NumberFormat('#,##0.##').format(summary.totalAccepted),
                 valueColor: TossColors.success,
               ),
               if (summary.totalRejected > 0)
-                _InfoRow(
+                InfoRow.between(
                   label: 'Rejected',
                   value: NumberFormat('#,##0.##').format(summary.totalRejected),
                   valueColor: TossColors.error,
                 ),
-              _InfoRow(
+              InfoRow.between(
                 label: 'Remaining',
                 value: NumberFormat('#,##0.##').format(summary.totalRemaining),
                 valueColor: summary.totalRemaining > 0
@@ -372,7 +344,10 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TradeSectionHeader(title: 'Items', badge: '${detail.items.length}'),
+        TossSectionHeader(
+          title: 'Items',
+          trailing: _buildBadge('${detail.items.length}'),
+        ),
         const SizedBox(height: TossSpacing.space2),
         ...detail.items.map(
           (item) => _ShipmentItemCard(
@@ -390,11 +365,11 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     String baseCurrencySymbol,
     String baseCurrencyCode,
   ) {
-    return TradeSimpleCard(
-      child: _InfoRow(
+    return TossCard(
+      child: InfoRow.between(
         label: 'Total',
         value: '$baseCurrencySymbol ${_formatAmount(detail.totalAmount, baseCurrencyCode)}',
-        isBold: true,
+        isTotal: true,
       ),
     );
   }
@@ -411,9 +386,12 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TradeSectionHeader(title: 'Linked Orders', badge: '${detail.orderCount}'),
+        TossSectionHeader(
+          title: 'Linked Orders',
+          trailing: _buildBadge('${detail.orderCount}'),
+        ),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Column(
             children: detail.linkedOrders.map((order) {
               return InkWell(
@@ -427,7 +405,7 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
                   child: Row(
                     children: [
                       const Icon(
-                        Icons.receipt_long,
+                        LucideIcons.fileText,
                         size: TossSpacing.iconSM,
                         color: TossColors.primary,
                       ),
@@ -454,23 +432,7 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
                         ),
                       ),
                       if (order.orderStatus != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TossSpacing.space2,
-                            vertical: TossSpacing.space1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: TossColors.gray100,
-                            borderRadius:
-                                BorderRadius.circular(TossBorderRadius.sm),
-                          ),
-                          child: Text(
-                            order.orderStatus!,
-                            style: TossTextStyles.caption.copyWith(
-                              color: TossColors.gray600,
-                            ),
-                          ),
-                        ),
+                        TossBadge(label: order.orderStatus!),
                     ],
                   ),
                 ),
@@ -486,9 +448,9 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TradeSectionHeader(title: 'Notes'),
+        const TossSectionHeader(title: 'Notes'),
         const SizedBox(height: TossSpacing.space2),
-        TradeSimpleCard(
+        TossCard(
           child: Text(notes, style: TossTextStyles.bodyMedium),
         ),
       ],
@@ -512,26 +474,13 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
     BuildContext context,
     ShipmentDetail detail,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await TossConfirmCancelDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Cancel Shipment'),
-        content: Text(
-          'Are you sure you want to cancel shipment ${detail.shipmentNumber}?\n\n'
-          'This will also close all linked sessions.',
-        ),
-        actions: [
-          TossButton.textButton(
-            text: 'No',
-            onPressed: () => Navigator.pop(dialogContext, false),
-          ),
-          TossButton.textButton(
-            text: 'Yes, Cancel',
-            textColor: TossColors.error,
-            onPressed: () => Navigator.pop(dialogContext, true),
-          ),
-        ],
-      ),
+      title: 'Cancel Shipment',
+      message: 'Are you sure you want to cancel shipment ${detail.shipmentNumber}?\n\nThis will also close all linked sessions.',
+      confirmButtonText: 'Yes, Cancel',
+      cancelButtonText: 'No',
+      isDangerousAction: true,
     );
 
     if (confirmed == true && mounted) {
@@ -615,48 +564,28 @@ class _ShipmentDetailPageState extends ConsumerState<ShipmentDetailPage> {
       }
     }
   }
+
+  BadgeStatus _getStatusType(ShipmentStatus status) {
+    switch (status) {
+      case ShipmentStatus.pending:
+        return BadgeStatus.neutral;
+      case ShipmentStatus.process:
+        return BadgeStatus.warning;
+      case ShipmentStatus.complete:
+        return BadgeStatus.success;
+      case ShipmentStatus.cancelled:
+        return BadgeStatus.error;
+    }
+  }
+
+  Widget _buildBadge(String text) {
+    return TossBadge(label: text);
+  }
 }
 
 // =============================================================================
 // Helper Widgets
 // =============================================================================
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color? valueColor;
-  final bool isBold;
-
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-    this.isBold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray600),
-          ),
-          Text(
-            value,
-            style: TossTextStyles.bodyMedium.copyWith(
-              color: valueColor ?? TossColors.gray900,
-              fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ShipmentItemCard extends StatelessWidget {
   final ShipmentDetailItem item;
@@ -681,15 +610,10 @@ class _ShipmentItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasReceived = item.quantityReceived > 0;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: TossSpacing.space2),
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.white,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-        border: Border.all(color: TossColors.gray200),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+      child: TossCard(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product name with variant
@@ -751,7 +675,7 @@ class _ShipmentItemCard extends StatelessWidget {
             Row(
               children: [
                 const Icon(
-                  Icons.inventory_2,
+                  LucideIcons.package,
                   size: TossSpacing.iconXS,
                   color: TossColors.success,
                 ),
@@ -781,7 +705,7 @@ class _ShipmentItemCard extends StatelessWidget {
               Row(
                 children: [
                   const Icon(
-                    Icons.cancel_outlined,
+                    LucideIcons.xCircle,
                     size: TossSpacing.iconXS,
                     color: TossColors.error,
                   ),
@@ -812,6 +736,7 @@ class _ShipmentItemCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }
