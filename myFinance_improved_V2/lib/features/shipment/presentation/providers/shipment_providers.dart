@@ -155,45 +155,6 @@ final shipmentsWithContextProvider =
   );
 });
 
-// =============================================================================
-// Shipment Detail Provider
-// =============================================================================
-
-/// Provider for fetching a single shipment by ID
-final shipmentDetailProvider =
-    FutureProvider.autoDispose.family<Shipment?, String>((ref, shipmentId) async {
-  final useCase = ref.watch(getShipmentByIdUseCaseProvider);
-  return useCase(shipmentId);
-});
-
-// =============================================================================
-// Shipment by Order ID Provider
-// =============================================================================
-
-/// Provider for fetching shipments by Order ID
-final shipmentsByOrderIdProvider = FutureProvider.autoDispose
-    .family<List<ShipmentListItem>, String>((ref, orderId) async {
-  final useCase = ref.watch(getShipmentsByOrderIdUseCaseProvider);
-  return useCase(orderId);
-});
-
-// =============================================================================
-// Shipment Count Provider
-// =============================================================================
-
-/// Provider for fetching shipment count by status
-final shipmentCountByStatusProvider =
-    FutureProvider.autoDispose<Map<String, int>>((ref) async {
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
-
-  if (companyId.isEmpty) {
-    return {};
-  }
-
-  final useCase = ref.watch(getShipmentCountByStatusUseCaseProvider);
-  return useCase(companyId: companyId);
-});
 
 // =============================================================================
 // Search Provider
@@ -202,28 +163,6 @@ final shipmentCountByStatusProvider =
 /// Provider for search query state
 final shipmentSearchQueryProvider = StateProvider<String>((ref) => '');
 
-/// Provider for searching shipments (paginated)
-final shipmentSearchResultsProvider =
-    FutureProvider.autoDispose<PaginatedShipmentResponse>((ref) async {
-  final query = ref.watch(shipmentSearchQueryProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
-
-  if (companyId.isEmpty || query.isEmpty) {
-    return const PaginatedShipmentResponse(
-      data: [],
-      totalCount: 0,
-      limit: 50,
-      offset: 0,
-    );
-  }
-
-  final useCase = ref.watch(searchShipmentsUseCaseProvider);
-  return useCase(
-    companyId: companyId,
-    query: query,
-  );
-});
 
 // =============================================================================
 // Filter Providers
@@ -235,11 +174,6 @@ final shipmentStatusFilterProvider = StateProvider<String?>((ref) => null);
 /// Provider for date range filter
 final shipmentDateRangeProvider = StateProvider<DateTimeRange?>((ref) => null);
 
-/// Provider for supplier filter
-final shipmentSupplierFilterProvider = StateProvider<String?>((ref) => null);
-
-/// Provider for order linkage filter
-final shipmentHasOrderFilterProvider = StateProvider<bool?>((ref) => null);
 
 /// Date range class for filtering
 class DateTimeRange {
@@ -287,17 +221,6 @@ class ShipmentPaginationState {
 final shipmentPaginationProvider =
     StateProvider<ShipmentPaginationState>((ref) => const ShipmentPaginationState());
 
-// =============================================================================
-// Shipment Items Provider
-// =============================================================================
-
-/// Provider for fetching shipment items by shipment ID
-final shipmentItemsProvider = FutureProvider.autoDispose
-    .family<List<ShipmentItem>, String>((ref, shipmentId) async {
-  final useCase = ref.watch(getShipmentItemsUseCaseProvider);
-  return useCase(shipmentId);
-});
-
 /// Provider for fetching shipment detail using RPC (inventory_get_shipment_detail_v2)
 /// Returns ShipmentDetail with variant support and receiving progress
 final shipmentDetailV2Provider =
@@ -312,16 +235,6 @@ final shipmentDetailV2Provider =
   final useCase = ref.watch(getShipmentDetailUseCaseProvider);
   return useCase(shipmentId: shipmentId, companyId: companyId);
 });
-
-// =============================================================================
-// Loading State Provider
-// =============================================================================
-
-/// Provider for tracking loading state during operations
-final shipmentLoadingProvider = StateProvider<bool>((ref) => false);
-
-/// Provider for tracking error state
-final shipmentErrorProvider = StateProvider<String?>((ref) => null);
 
 // =============================================================================
 // Counterparty (Supplier) Provider

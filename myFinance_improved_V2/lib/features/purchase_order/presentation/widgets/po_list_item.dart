@@ -145,48 +145,6 @@ class POListItemWidget extends StatelessWidget {
   }
 }
 
-class POStatusChip extends StatelessWidget {
-  final POStatus status;
-
-  const POStatusChip({super.key, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final (color, bgColor) = _getStatusStyle();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.space2,
-        vertical: TossSpacing.space1,
-      ),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(TossBorderRadius.sm),
-      ),
-      child: Text(
-        status.label,
-        style: TossTextStyles.caption.copyWith(
-          color: color,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  (Color, Color) _getStatusStyle() {
-    switch (status) {
-      case POStatus.pending:
-        return (TossColors.gray700, TossColors.gray100);
-      case POStatus.process:
-        return (TossColors.warning, TossColors.warningLight);
-      case POStatus.complete:
-        return (TossColors.success, TossColors.successLight);
-      case POStatus.cancelled:
-        return (TossColors.error, TossColors.errorLight);
-    }
-  }
-}
-
 class _ShipmentProgress extends StatelessWidget {
   final double percent;
 
