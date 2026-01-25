@@ -6,7 +6,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
@@ -16,6 +16,8 @@ import '../../../domain/usecases/get_manager_overview.dart';
 import '../states/time_table_state.dart';
 import '../usecase/time_table_usecase_providers.dart';
 
+part 'manager_overview_provider.g.dart';
+
 /// Manager Overview Notifier
 ///
 /// Features:
@@ -23,23 +25,41 @@ import '../usecase/time_table_usecase_providers.dart';
 /// - Lazy loading
 /// - Force refresh support
 /// - Date range calculation (first day to last day of month)
-class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
-  final GetManagerOverview _getManagerOverviewUseCase;
-  final String _companyId;
-  final String _storeId;
-  final String _timezone;
+@riverpod
+class ManagerOverviewNotifier extends _$ManagerOverviewNotifier {
+  late final GetManagerOverview _getManagerOverviewUseCase;
+  late final String _companyId;
+  late final String _storeId;
+  late final String _timezone;
 
-  ManagerOverviewNotifier(
-    this._getManagerOverviewUseCase,
-    this._companyId,
-    this._storeId,
-    this._timezone,
-  ) : super(const ManagerOverviewState());
+  @override
+  ManagerOverviewState build(String storeId) {
+    _getManagerOverviewUseCase = ref.watch(getManagerOverviewUseCaseProvider);
+    // Use select to only rebuild when companyChoosen actually changes
+    _companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
+    _storeId = storeId;
+    // Use device local timezone instead of user DB timezone
+    _timezone = DateTimeUtils.getLocalTimezone();
+
+    return const ManagerOverviewState();
+  }
+
+  /// Check if notifier is still active
+  bool get _isMounted {
+    try {
+      // Access state to check if notifier is still active
+      // ignore: unnecessary_statements
+      state;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Safely update state - avoids "setState during build" errors
   /// by deferring state updates if called during widget build phase
   void _safeSetState(ManagerOverviewState newState) {
-    if (!mounted) return;
+    if (!_isMounted) return;
 
     // Check if we're in the middle of a build phase
     final phase = SchedulerBinding.instance.schedulerPhase;
@@ -47,7 +67,7 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
         phase == SchedulerPhase.midFrameMicrotasks) {
       // Defer state update to after the current frame
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+        if (_isMounted) {
           state = newState;
         }
       });
@@ -102,16 +122,20 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
       final newDataByMonth = Map<String, ManagerOverview>.from(state.dataByMonth);
       newDataByMonth[monthKey] = data;
 
-      _safeSetState(state.copyWith(
-        dataByMonth: newDataByMonth,
-        isLoading: false,
-      ));
+      _safeSetState(
+        state.copyWith(
+          dataByMonth: newDataByMonth,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
       debugPrint('   ❌ [managerOverviewProvider] Failed after retries: $e');
-      _safeSetState(state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      ));
+      _safeSetState(
+        state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        ),
+      );
     }
   }
 
@@ -127,24 +151,7 @@ class ManagerOverviewNotifier extends StateNotifier<ManagerOverviewState> {
   }
 }
 
-/// Manager Overview Provider
-///
-/// Usage:
-/// ```dart
-/// final overview = ref.watch(managerOverviewProvider(storeId));
-/// await overview.notifier.loadMonth(month: DateTime.now());
-/// final monthData = overview.notifier.getMonthData(DateTime.now());
-/// ```
-final managerOverviewProvider = StateNotifierProvider.family<
-    ManagerOverviewNotifier,
-    ManagerOverviewState,
-    String>((ref, storeId) {
-  final useCase = ref.watch(getManagerOverviewUseCaseProvider);
-  // ✅ FIX: Use select to only rebuild when companyChoosen actually changes
-  // Previously used ref.watch(appStateProvider) which caused rebuilds on ANY appState change
-  final companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
-  // Use device local timezone instead of user DB timezone
-  final timezone = DateTimeUtils.getLocalTimezone();
-
-  return ManagerOverviewNotifier(useCase, companyId, storeId, timezone);
-});
+/// @deprecated Use [managerOverviewNotifierProvider] instead.
+/// This alias is kept for backward compatibility during migration.
+@Deprecated('Use managerOverviewNotifierProvider instead')
+const managerOverviewProvider = managerOverviewNotifierProvider;

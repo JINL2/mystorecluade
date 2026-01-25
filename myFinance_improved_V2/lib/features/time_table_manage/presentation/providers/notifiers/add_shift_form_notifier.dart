@@ -1,28 +1,42 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../core/utils/datetime_utils.dart';
 import '../../../domain/usecases/get_schedule_data.dart';
 import '../../../domain/usecases/insert_schedule.dart';
 import '../states/add_shift_form_state.dart';
+import '../usecase/time_table_usecase_providers.dart';
+
+part 'add_shift_form_notifier.g.dart';
 
 /// Add Shift Form Notifier
 ///
 /// Manages the business logic for the Add Shift form.
 /// Uses UseCases for Clean Architecture compliance.
-class AddShiftFormNotifier extends StateNotifier<AddShiftFormState> {
-  final GetScheduleData _getScheduleDataUseCase;
-  final InsertSchedule _insertScheduleUseCase;
-  final String _storeId;
-  final String _timezone;
+///
+/// Usage:
+/// ```dart
+/// final formState = ref.watch(addShiftFormNotifierProvider(storeId));
+/// final notifier = ref.read(addShiftFormNotifierProvider(storeId).notifier);
+/// ```
+@riverpod
+class AddShiftFormNotifier extends _$AddShiftFormNotifier {
+  late final GetScheduleData _getScheduleDataUseCase;
+  late final InsertSchedule _insertScheduleUseCase;
+  late final String _storeId;
+  late final String _timezone;
 
-  AddShiftFormNotifier(
-    this._getScheduleDataUseCase,
-    this._insertScheduleUseCase,
-    this._storeId,
-    this._timezone,
-  ) : super(const AddShiftFormState()) {
-    // Load data on initialization
-    loadScheduleData();
+  @override
+  AddShiftFormState build(String storeId) {
+    _getScheduleDataUseCase = ref.watch(getScheduleDataUseCaseProvider);
+    _insertScheduleUseCase = ref.watch(insertScheduleUseCaseProvider);
+    _storeId = storeId;
+    // Use device local timezone instead of user DB timezone
+    _timezone = DateTimeUtils.getLocalTimezone();
+
+    // Load data on initialization (deferred to avoid state mutation during build)
+    Future.microtask(loadScheduleData);
+
+    return const AddShiftFormState();
   }
 
   /// Load employees and shifts for the selected store

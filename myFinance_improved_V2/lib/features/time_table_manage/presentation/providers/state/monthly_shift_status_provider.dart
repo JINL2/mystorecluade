@@ -6,7 +6,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
@@ -17,6 +17,8 @@ import '../../../domain/usecases/get_monthly_shift_status.dart';
 import '../states/time_table_state.dart';
 import '../usecase/time_table_usecase_providers.dart';
 
+part 'monthly_shift_status_provider.g.dart';
+
 /// Monthly Shift Status Notifier
 ///
 /// Features:
@@ -24,32 +26,34 @@ import '../usecase/time_table_usecase_providers.dart';
 /// - Caching to prevent redundant API calls
 /// - Force refresh capability
 /// - Multi-month support (RPC returns current + next month)
-class MonthlyShiftStatusNotifier
-    extends StateNotifier<MonthlyShiftStatusState> {
-  final GetMonthlyShiftStatus _getMonthlyShiftStatusUseCase;
-  final String _companyId;
-  final String _storeId;
+@riverpod
+class MonthlyShiftStatusNotifier extends _$MonthlyShiftStatusNotifier {
+  late final String _storeId;
 
-  MonthlyShiftStatusNotifier(
-    this._getMonthlyShiftStatusUseCase,
-    this._companyId,
-    this._storeId,
-  ) : super(const MonthlyShiftStatusState());
+  @override
+  MonthlyShiftStatusState build(String storeId) {
+    _storeId = storeId;
+    return const MonthlyShiftStatusState();
+  }
+
+  /// Get the UseCase from ref
+  GetMonthlyShiftStatus get _getMonthlyShiftStatusUseCase =>
+      ref.read(getMonthlyShiftStatusUseCaseProvider);
+
+  /// Get company ID from app state
+  String get _companyId =>
+      ref.read(appStateProvider.select((s) => s.companyChoosen));
 
   /// Safely update state - avoids "setState during build" errors
   /// by deferring state updates if called during widget build phase
   void _safeSetState(MonthlyShiftStatusState newState) {
-    if (!mounted) return;
-
     // Check if we're in the middle of a build phase
     final phase = SchedulerBinding.instance.schedulerPhase;
     if (phase == SchedulerPhase.persistentCallbacks ||
         phase == SchedulerPhase.midFrameMicrotasks) {
       // Defer state update to after the current frame
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          state = newState;
-        }
+        state = newState;
       });
     } else {
       state = newState;
@@ -126,18 +130,22 @@ class MonthlyShiftStatusNotifier
           '${nextMonth.year}-${nextMonth.month.toString().padLeft(2, '0')}';
       newLoadedMonths.add(nextMonthKey);
 
-      _safeSetState(state.copyWith(
-        dataByMonth: newDataByMonth,
-        loadedMonths: newLoadedMonths,
-        isLoading: false,
-      ));
+      _safeSetState(
+        state.copyWith(
+          dataByMonth: newDataByMonth,
+          loadedMonths: newLoadedMonths,
+          isLoading: false,
+        ),
+      );
       debugPrint('   ✅ State updated - loadedMonths: $newLoadedMonths');
     } catch (e) {
       debugPrint('   ❌ [monthlyShiftStatusProvider] Failed after retries: $e');
-      _safeSetState(state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      ));
+      _safeSetState(
+        state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        ),
+      );
     }
   }
 
@@ -149,7 +157,6 @@ class MonthlyShiftStatusNotifier
 
   /// Clear all loaded data
   void clearAll() {
-    if (!mounted) return;
     _safeSetState(const MonthlyShiftStatusState());
   }
 
@@ -168,7 +175,6 @@ class MonthlyShiftStatusNotifier
     required bool isApproved,
     required String shiftDate,
   }) {
-    if (!mounted) return;
 
     // Parse month from shiftDate (yyyy-MM-dd)
     final parts = shiftDate.split('-');
@@ -205,17 +211,21 @@ class MonthlyShiftStatusNotifier
           if (isApproved && pendingIndex != -1) {
             // Move from pending to approved
             final request = newPendingRequests.removeAt(pendingIndex);
-            newApprovedRequests.add(request.copyWith(
-              isApproved: true,
-              approvedAt: DateTime.now(),
-            ));
+            newApprovedRequests.add(
+              request.copyWith(
+                isApproved: true,
+                approvedAt: DateTime.now(),
+              ),
+            );
           } else if (!isApproved && approvedIndex != -1) {
             // Move from approved to pending
             final request = newApprovedRequests.removeAt(approvedIndex);
-            newPendingRequests.add(request.copyWith(
-              isApproved: false,
-              approvedAt: null,
-            ));
+            newPendingRequests.add(
+              request.copyWith(
+                isApproved: false,
+                approvedAt: null,
+              ),
+            );
           }
 
           return ShiftWithRequests(
@@ -243,22 +253,15 @@ class MonthlyShiftStatusNotifier
   }
 }
 
-/// Monthly Shift Status Provider
+/// Legacy Monthly Shift Status Provider (deprecated alias)
 ///
-/// Usage:
+/// @deprecated Use monthlyShiftStatusNotifierProvider instead.
+/// This alias is kept for backward compatibility during migration.
+///
+/// Usage (new):
 /// ```dart
-/// final statusNotifier = ref.watch(monthlyShiftStatusProvider(storeId));
-/// await statusNotifier.notifier.loadMonth(month: DateTime.now());
-/// final monthData = statusNotifier.notifier.getMonthData(DateTime.now());
+/// final state = ref.watch(monthlyShiftStatusNotifierProvider(storeId));
+/// ref.read(monthlyShiftStatusNotifierProvider(storeId).notifier).loadMonth(month: DateTime.now());
 /// ```
-final monthlyShiftStatusProvider = StateNotifierProvider.family<
-    MonthlyShiftStatusNotifier,
-    MonthlyShiftStatusState,
-    String>((ref, storeId) {
-  final useCase = ref.watch(getMonthlyShiftStatusUseCaseProvider);
-  // ✅ FIX: Use select to only rebuild when companyChoosen actually changes
-  // Previously used ref.watch(appStateProvider) which caused rebuilds on ANY appState change
-  final companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
-
-  return MonthlyShiftStatusNotifier(useCase, companyId, storeId);
-});
+@Deprecated('Use monthlyShiftStatusNotifierProvider instead')
+const monthlyShiftStatusProvider = monthlyShiftStatusNotifierProvider;

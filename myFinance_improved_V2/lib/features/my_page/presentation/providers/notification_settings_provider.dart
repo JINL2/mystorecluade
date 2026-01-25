@@ -120,12 +120,7 @@ class NotificationSettingsNotifier extends _$NotificationSettingsNotifier {
       final userId = _currentUserId;
       final companyId = appState.companyChoosen;
 
-      // ignore: avoid_print
-      print('[NotificationSettings] userId: $userId, companyId: $companyId');
-
       if (userId == null || companyId.isEmpty) {
-        // ignore: avoid_print
-        print('[NotificationSettings] ERROR: User or company not found');
         state = state.copyWith(
           isLoading: false,
           errorMessage: 'User or company not found',
@@ -138,12 +133,8 @@ class NotificationSettingsNotifier extends _$NotificationSettingsNotifier {
         userId: userId,
         companyId: companyId,
       );
-      // ignore: avoid_print
-      print('[NotificationSettings] roleInfo: $roleInfo');
 
       if (roleInfo == null) {
-        // ignore: avoid_print
-        print('[NotificationSettings] ERROR: User role not found');
         state = state.copyWith(
           isLoading: false,
           errorMessage: 'User role not found',
@@ -165,19 +156,12 @@ class NotificationSettingsNotifier extends _$NotificationSettingsNotifier {
         roleType: roleInfo.roleType,
       );
 
-      // ignore: avoid_print
-      print('[NotificationSettings] Loaded ${settings.length} settings, masterPush: $masterPushEnabled');
-
       state = state.copyWith(
         isLoading: false,
         settings: settings,
         masterPushEnabled: masterPushEnabled,
       );
-    } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('[NotificationSettings] ERROR: $e');
-      // ignore: avoid_print
-      print('[NotificationSettings] StackTrace: $stackTrace');
+    } catch (e, _) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),

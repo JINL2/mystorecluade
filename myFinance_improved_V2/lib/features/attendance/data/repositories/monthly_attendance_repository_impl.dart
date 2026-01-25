@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/monthly_attendance.dart';
@@ -130,20 +129,10 @@ class MonthlyAttendanceRepositoryImpl implements MonthlyAttendanceRepository {
     required String companyId,
   }) async {
     try {
-      // 🔍 DEBUG
-      debugPrint('🔍 [Repository] getTodayAttendance called');
-      debugPrint('   userId: $userId');
-      debugPrint('   companyId: $companyId');
-
       final result = await _dataSource.getStats(
         userId: userId,
         companyId: companyId,
       );
-
-      // 🔍 DEBUG: Raw RPC response
-      debugPrint('🔍 [Repository] getStats result:');
-      debugPrint('   success: ${result.success}');
-      debugPrint('   today raw: ${result.today}');
 
       if (!result.success) {
         return Left(ServerFailure(
@@ -153,16 +142,9 @@ class MonthlyAttendanceRepositoryImpl implements MonthlyAttendanceRepository {
       }
 
       final stats = result.toEntity();
-      // 🔍 DEBUG: After toEntity()
-      debugPrint('🔍 [Repository] stats.today: ${stats.today}');
-      if (stats.today != null) {
-        debugPrint('   → status: ${stats.today!.status}');
-        debugPrint('   → isLate: ${stats.today!.isLate}');
-      }
 
       return Right(stats.today);
     } catch (e) {
-      debugPrint('🔍 [Repository] ERROR: $e');
       return Left(ServerFailure(message: e.toString(), code: 'UNKNOWN'));
     }
   }

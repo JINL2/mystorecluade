@@ -18,7 +18,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 /// AddShiftBottomSheet
 ///
 /// Bottom sheet for adding new shifts to the schedule
-/// ✅ Refactored to use Riverpod Provider (addShiftFormProvider)
+/// ✅ Refactored to use @riverpod annotation pattern (addShiftFormNotifierProvider)
 class AddShiftBottomSheet extends ConsumerWidget {
   final Future<void> Function()? onShiftAdded;
 
@@ -37,7 +37,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
     );
 
     if (picked != null) {
-      ref.read(addShiftFormProvider(storeId).notifier).selectDate(picked);
+      ref.read(addShiftFormNotifierProvider(storeId).notifier).selectDate(picked);
     }
   }
 
@@ -59,7 +59,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
     }
 
     // Save via Provider
-    final success = await ref.read(addShiftFormProvider(storeId).notifier).saveShift(
+    final success = await ref.read(addShiftFormNotifierProvider(storeId).notifier).saveShift(
           approvedBy: approvedBy,
         );
 
@@ -88,7 +88,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
       }
     } else {
       // Error is already set in state, will be displayed
-      final error = ref.read(addShiftFormProvider(storeId)).error;
+      final error = ref.read(addShiftFormNotifierProvider(storeId)).error;
       await showDialog<bool>(
         context: context,
         barrierDismissible: true,
@@ -124,7 +124,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
     }
 
     // Watch form state
-    final formState = ref.watch(addShiftFormProvider(storeId));
+    final formState = ref.watch(addShiftFormNotifierProvider(storeId));
 
     // ✅ Use shiftMetadataProvider for shifts data (same as Schedule tab)
     final shiftMetadataAsync = ref.watch(shiftMetadataProvider(storeId));
@@ -215,7 +215,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
                             const SizedBox(height: TossSpacing.space4),
                             InkWell(
                               onTap: () {
-                                ref.read(addShiftFormProvider(storeId).notifier).loadScheduleData();
+                                ref.read(addShiftFormNotifierProvider(storeId).notifier).loadScheduleData();
                               },
                               borderRadius: BorderRadius.circular(TossBorderRadius.md),
                               child: Container(
@@ -258,7 +258,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
                               onChanged: formState.isSaving
                                   ? null
                                   : (value) {
-                                      ref.read(addShiftFormProvider(storeId).notifier).selectEmployee(value);
+                                      ref.read(addShiftFormNotifierProvider(storeId).notifier).selectEmployee(value);
                                     },
                               isLoading: false,
                             ),
@@ -283,7 +283,7 @@ class AddShiftBottomSheet extends ConsumerWidget {
                               onChanged: formState.isSaving
                                   ? null
                                   : (value) {
-                                      ref.read(addShiftFormProvider(storeId).notifier).selectShift(value);
+                                      ref.read(addShiftFormNotifierProvider(storeId).notifier).selectShift(value);
                                     },
                               isLoading: false,
                             ),

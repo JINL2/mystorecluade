@@ -9,6 +9,8 @@ import '../../providers/state/coverage_gap_provider.dart';
 import '../../providers/time_table_providers.dart';
 import 'mixins/schedule_approval_handler.dart';
 import 'mixins/schedule_date_helpers.dart';
+import 'schedule_empty_state.dart';
+import 'schedule_month_navigation.dart';
 import 'schedule_shift_card.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:myfinance_improved/shared/widgets/organisms/skeleton/toss_list_skeleton.dart';
@@ -321,27 +323,7 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
 
   /// Build empty state widget
   Widget _buildEmptyState(String message) {
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.calendar_today_outlined,
-            size: TossSpacing.icon3XL,
-            color: TossColors.gray400,
-          ),
-          const SizedBox(height: TossSpacing.space3),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TossTextStyles.body.copyWith(
-              color: TossColors.gray500,
-            ),
-          ),
-        ],
-      ),
-    );
+    return ScheduleEmptyState(message: message);
   }
 
   /// Build store selector dropdown
@@ -505,45 +487,11 @@ class _ScheduleTabContentState extends ConsumerState<ScheduleTabContent>
 
   /// Build month navigation widget (same style as timesheets_tab.dart)
   Widget _buildMonthNavigation() {
-    final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    final monthName = months[widget.focusedMonth.month - 1];
-    final year = widget.focusedMonth.year;
-
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => widget.onPreviousMonth(),
-          icon: Icon(Icons.chevron_left, color: TossColors.gray600),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-        ),
-        Expanded(
-          child: GestureDetector(
-            onTap: _jumpToToday,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '$monthName $year',
-                  style: TossTextStyles.h4.copyWith(
-                    color: TossColors.gray900,
-                    fontWeight: TossFontWeight.semibold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        IconButton(
-          onPressed: () => widget.onNextMonth(),
-          icon: Icon(Icons.chevron_right, color: TossColors.gray600),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-        ),
-      ],
+    return ScheduleMonthNavigation(
+      focusedMonth: widget.focusedMonth,
+      onPreviousMonth: () => widget.onPreviousMonth(),
+      onNextMonth: () => widget.onNextMonth(),
+      onTodayTap: _jumpToToday,
     );
   }
 
