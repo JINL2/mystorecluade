@@ -49,15 +49,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     if (companyId.isEmpty) return;
 
     try {
-      final currency = await ref.read(companyBaseCurrencyProvider(companyId).future);
-      if (mounted && currency != null) {
-        final symbol = await ref.read(currencySymbolProvider(currency).future);
-        if (mounted) {
-          ref.read(fixedAssetProvider.notifier).updateCurrency(
-            baseCurrencyId: currency,
-            currencySymbol: symbol,
-          );
-        }
+      final currencyInfo =
+          await ref.read(baseCurrencyInfoProvider(companyId).future);
+      final currencyId = currencyInfo.currencyId;
+      if (mounted && currencyId != null) {
+        ref.read(fixedAssetProvider.notifier).updateCurrency(
+              baseCurrencyId: currencyId,
+              currencySymbol: currencyInfo.symbol,
+            );
       }
     } catch (e) {
       // Handle error silently

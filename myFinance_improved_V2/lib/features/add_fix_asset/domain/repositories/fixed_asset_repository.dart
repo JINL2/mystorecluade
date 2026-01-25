@@ -11,9 +11,6 @@ abstract class FixedAssetRepository {
     String? storeId,
   });
 
-  /// 고정자산 단일 조회
-  Future<FixedAsset?> getFixedAssetById(String assetId);
-
   /// 고정자산 추가
   Future<void> createFixedAsset(FixedAsset asset);
 
@@ -23,9 +20,8 @@ abstract class FixedAssetRepository {
   /// 고정자산 삭제
   Future<void> deleteFixedAsset(String assetId);
 
-  /// 회사의 기본 통화 조회
-  Future<String?> getCompanyBaseCurrency(String companyId);
-
-  /// 통화 심볼 조회
-  Future<String> getCurrencySymbol(String currencyId);
+  /// 회사 기본 통화 정보 조회 (currencyId, symbol 반환)
+  Future<({String? currencyId, String symbol})> getBaseCurrencyInfo(
+    String companyId,
+  );
 }

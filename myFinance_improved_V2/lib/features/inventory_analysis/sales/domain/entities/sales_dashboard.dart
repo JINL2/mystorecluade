@@ -24,7 +24,7 @@ class GrowthMetrics with _$GrowthMetrics {
 }
 
 /// 수익률 대시보드 종합 데이터
-/// RPC: get_sales_dashboard 응답
+/// RPC: inventory_analysis_get_sales_dashboard 응답
 @freezed
 class SalesDashboard with _$SalesDashboard {
   const SalesDashboard._();

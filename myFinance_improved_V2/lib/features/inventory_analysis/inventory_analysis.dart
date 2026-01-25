@@ -20,7 +20,6 @@ export 'shared/presentation/widgets/analytics_widgets.dart';
 
 // Domain - Entities
 export 'sales/domain/entities/bcg_category.dart';
-export 'sales/domain/entities/category_detail.dart';
 export 'sales/domain/entities/sales_analytics.dart';
 export 'sales/domain/entities/sales_dashboard.dart';
 
@@ -29,11 +28,9 @@ export 'sales/domain/repositories/sales_repository.dart';
 
 // Presentation - Pages
 export 'sales/presentation/pages/sales_analytics_v2_page.dart';
-export 'sales/presentation/pages/sales_dashboard_page.dart';
 
 // Presentation - Providers (@riverpod 2025)
 export 'sales/presentation/providers/sales_analytics_v2_notifier.dart';
-export 'sales/presentation/providers/sales_dashboard_notifier.dart';
 export 'sales/presentation/providers/sales_di_provider.dart';
 export 'sales/presentation/providers/states/sales_analytics_state.dart';
 

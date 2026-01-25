@@ -3,7 +3,6 @@ import 'package:dartz/dartz.dart';
 import '../../../../../core/errors/failures.dart';
 import '../entities/sales_dashboard.dart';
 import '../entities/bcg_category.dart';
-import '../entities/category_detail.dart';
 import '../entities/sales_analytics.dart';
 
 /// Sales Analytics V2 Query Parameters
@@ -58,7 +57,7 @@ class DrillDownParams {
 /// 수익률/매출 분석 관련 데이터 조회를 담당합니다.
 abstract class SalesRepository {
   /// 수익률 대시보드 데이터 조회
-  /// RPC: get_sales_dashboard
+  /// RPC: inventory_analysis_get_sales_dashboard
   ///
   /// [companyId] 회사 ID (필수)
   /// [storeId] 매장 ID (선택, null이면 전체 매장)
@@ -67,48 +66,24 @@ abstract class SalesRepository {
     String? storeId,
   });
 
-  /// BCG Matrix 데이터 조회
-  /// RPC: get_bcg_matrix
-  ///
-  /// [companyId] 회사 ID (필수)
-  /// [month] 기준 월 (선택, null이면 현재 월)
-  /// [storeId] 매장 ID (선택, null이면 전체 매장)
-  Future<Either<Failure, BcgMatrix>> getBcgMatrix({
-    required String companyId,
-    DateTime? month,
-    String? storeId,
-  });
-
-  /// 카테고리 상세 데이터 조회
-  /// RPC: get_category_detail
-  ///
-  /// [companyId] 회사 ID (필수)
-  /// [categoryId] 카테고리 ID (필수)
-  /// [month] 기준 월 (선택, null이면 현재 월)
-  Future<Either<Failure, CategoryDetail>> getCategoryDetail({
-    required String companyId,
-    required String categoryId,
-    DateTime? month,
-  });
-
   // ═══════════════════════════════════════════════════════════════
   // V2 Analytics Methods (2025)
   // ═══════════════════════════════════════════════════════════════
 
-  /// Sales Analytics 데이터 조회 (V2)
-  /// RPC: get_sales_analytics
+  /// Sales Analytics 데이터 조회
+  /// RPC: inventory_analysis_get_sales_analytics
   Future<Either<Failure, SalesAnalyticsResponse>> getSalesAnalytics(
     SalesAnalyticsParams params,
   );
 
-  /// Drill-down 데이터 조회 (V2)
-  /// RPC: get_drill_down_analytics
+  /// Drill-down 데이터 조회
+  /// RPC: inventory_analysis_get_drill_down_analytics
   Future<Either<Failure, DrillDownResponse>> getDrillDownAnalytics(
     DrillDownParams params,
   );
 
   /// BCG Matrix V2 데이터 조회
-  /// RPC: get_bcg_matrix_v2
+  /// RPC: inventory_analysis_get_bcg_matrix
   Future<Either<Failure, BcgMatrix>> getBcgMatrixV2({
     required String companyId,
     required DateTime startDate,

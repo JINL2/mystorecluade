@@ -8,44 +8,31 @@ class FixedAssetDataSource {
 
   FixedAssetDataSource(this._supabase);
 
-  /// 고정자산 목록 조회
+  /// 고정자산 목록 조회 (RPC 사용)
   Future<List<FixedAssetModel>> getFixedAssets({
     required String companyId,
     String? storeId,
   }) async {
-    var query = _supabase
-        .from('fixed_assets')
-        .select('asset_id, asset_name, acquisition_date, acquisition_cost, useful_life_years, salvage_value, company_id, store_id, created_at')
-        .eq('company_id', companyId);
+    // storeId 매핑:
+    // null -> 본사 자산 (store_id IS NULL)
+    // "" (empty) -> 전체 자산
+    // "uuid" -> 특정 매장 자산
+    final includeAllStores = storeId != null && storeId.isEmpty;
+    final actualStoreId =
+        (storeId == null || storeId.isEmpty) ? null : storeId;
 
-    // Store filter
-    if (storeId == null) {
-      // Headquarters - filter for null store_id
-      query = query.isFilter('store_id', null);
-    } else if (storeId.isNotEmpty) {
-      // Specific store
-      query = query.eq('store_id', storeId);
-    }
-    // If storeId is empty string, no filter = all stores
+    final response = await _supabase.rpc<List<dynamic>>(
+      'add_fix_asset_get_fixed_assets',
+      params: {
+        'p_company_id': companyId,
+        'p_store_id': actualStoreId,
+        'p_include_all_stores': includeAllStores,
+      },
+    );
 
-    final response = await query.order('acquisition_date', ascending: false);
-
-    return (response as List)
+    return response
         .map((json) => FixedAssetModel.fromJson(json as Map<String, dynamic>))
         .toList();
-  }
-
-  /// 고정자산 단일 조회
-  Future<FixedAssetModel?> getFixedAssetById(String assetId) async {
-    final response = await _supabase
-        .from('fixed_assets')
-        .select()
-        .eq('asset_id', assetId)
-        .maybeSingle();
-
-    if (response == null) return null;
-
-    return FixedAssetModel.fromJson(response);
   }
 
   /// 고정자산 추가
@@ -70,29 +57,28 @@ class FixedAssetDataSource {
     await _supabase.from('fixed_assets').delete().eq('asset_id', assetId);
   }
 
-  /// 회사 기본 통화 조회
-  Future<String?> getCompanyBaseCurrency(String companyId) async {
-    final response = await _supabase
-        .from('companies')
-        .select('base_currency_id')
-        .eq('company_id', companyId)
-        .maybeSingle();
-
-    return response?['base_currency_id'] as String?;
-  }
-
-  /// 통화 심볼 조회
-  Future<String> getCurrencySymbol(String currencyId) async {
+  /// 회사 기본 통화 정보 조회 (RPC 사용)
+  /// Returns: {currencyId, symbol}
+  Future<({String? currencyId, String symbol})> getBaseCurrencyInfo(
+    String companyId,
+  ) async {
     try {
-      final response = await _supabase
-          .from('currency_types')
-          .select('symbol')
-          .eq('currency_id', currencyId)
-          .single();
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'get_base_currency',
+        params: {'p_company_id': companyId},
+      );
 
-      return response['symbol'] as String? ?? '\$';
+      final baseCurrency = response['base_currency'] as Map<String, dynamic>?;
+      if (baseCurrency == null) {
+        return (currencyId: null, symbol: '\$');
+      }
+
+      return (
+        currencyId: baseCurrency['currency_id'] as String?,
+        symbol: baseCurrency['symbol'] as String? ?? '\$',
+      );
     } catch (e) {
-      return '\$'; // Default fallback
+      return (currencyId: null, symbol: '\$');
     }
   }
 }

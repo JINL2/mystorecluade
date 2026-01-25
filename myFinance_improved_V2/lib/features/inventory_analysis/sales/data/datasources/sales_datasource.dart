@@ -2,10 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/bcg_category.dart';
 import '../../domain/repositories/sales_repository.dart';
-import '../models/sales_dashboard_model.dart';
-import '../models/bcg_matrix_model.dart';
-import '../models/category_detail_model.dart';
 import '../models/sales_analytics_dto.dart';
+import '../models/sales_dashboard_model.dart';
 
 /// Sales Analytics Remote DataSource
 ///
@@ -16,7 +14,7 @@ class SalesDatasource {
   SalesDatasource(this._client);
 
   /// 수익률 대시보드 데이터 조회
-  /// RPC: get_sales_dashboard
+  /// RPC: inventory_analysis_get_sales_dashboard
   Future<SalesDashboardModel> getSalesDashboard({
     required String companyId,
     String? storeId,
@@ -27,58 +25,12 @@ class SalesDatasource {
     };
 
     final response = await _client
-        .rpc<Map<String, dynamic>>('get_sales_dashboard', params: params)
+        .rpc<Map<String, dynamic>>('inventory_analysis_get_sales_dashboard', params: params)
         .single();
 
     return _handleResponse(
       response,
       (data) => SalesDashboardModel.fromJson(data),
-    );
-  }
-
-  /// BCG Matrix 데이터 조회
-  /// RPC: get_bcg_matrix
-  Future<BcgMatrixModel> getBcgMatrix({
-    required String companyId,
-    DateTime? month,
-    String? storeId,
-  }) async {
-    final params = {
-      'p_company_id': companyId,
-      if (month != null) 'p_month': month.toIso8601String().substring(0, 10),
-      if (storeId != null) 'p_store_id': storeId,
-    };
-
-    final response = await _client
-        .rpc<Map<String, dynamic>>('get_bcg_matrix', params: params)
-        .single();
-
-    return _handleResponse(
-      response,
-      (data) => BcgMatrixModel.fromJson(data),
-    );
-  }
-
-  /// 카테고리 상세 데이터 조회
-  /// RPC: get_category_detail
-  Future<CategoryDetailModel> getCategoryDetail({
-    required String companyId,
-    required String categoryId,
-    DateTime? month,
-  }) async {
-    final params = {
-      'p_company_id': companyId,
-      'p_category_id': categoryId,
-      if (month != null) 'p_month': month.toIso8601String().substring(0, 10),
-    };
-
-    final response = await _client
-        .rpc<Map<String, dynamic>>('get_category_detail', params: params)
-        .single();
-
-    return _handleResponse(
-      response,
-      (data) => CategoryDetailModel.fromJson(data),
     );
   }
 
@@ -108,8 +60,8 @@ class SalesDatasource {
   // V2 Analytics Methods (2025)
   // ═══════════════════════════════════════════════════════════════
 
-  /// Sales Analytics 조회 (V2)
-  /// RPC: get_sales_analytics
+  /// Sales Analytics 조회
+  /// RPC: inventory_analysis_get_sales_analytics
   ///
   /// Timezone is automatically read from companies table in RPC.
   Future<SalesAnalyticsResponseDto> getSalesAnalytics(
@@ -129,15 +81,15 @@ class SalesDatasource {
     };
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'get_sales_analytics',
+      'inventory_analysis_get_sales_analytics',
       params: rpcParams,
     );
 
     return SalesAnalyticsResponseDto.fromJson(response);
   }
 
-  /// Drill-down 조회 (V2)
-  /// RPC: get_drill_down_analytics
+  /// Drill-down 조회
+  /// RPC: inventory_analysis_get_drill_down_analytics
   ///
   /// Timezone is automatically read from companies table in RPC.
   Future<DrillDownResponseDto> getDrillDownAnalytics(
@@ -153,15 +105,15 @@ class SalesDatasource {
     };
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'get_drill_down_analytics',
+      'inventory_analysis_get_drill_down_analytics',
       params: rpcParams,
     );
 
     return DrillDownResponseDto.fromJson(response);
   }
 
-  /// BCG Matrix V2 조회
-  /// RPC: get_bcg_matrix_v2
+  /// BCG Matrix 조회
+  /// RPC: inventory_analysis_get_bcg_matrix
   ///
   /// Timezone is automatically read from companies table in RPC.
   Future<BcgMatrix> getBcgMatrixV2({
@@ -178,7 +130,7 @@ class SalesDatasource {
     };
 
     final response = await _client.rpc<Map<String, dynamic>>(
-      'get_bcg_matrix_v2',
+      'inventory_analysis_get_bcg_matrix',
       params: params,
     );
 

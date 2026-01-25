@@ -11,7 +11,7 @@ enum BcgQuadrant {
 }
 
 /// BCG Matrix Category Data
-/// RPC: get_bcg_matrix response
+/// RPC: inventory_analysis_get_bcg_matrix response
 @freezed
 class BcgCategory with _$BcgCategory {
   const BcgCategory._();

@@ -28,16 +28,6 @@ class FixedAssetRepositoryImpl implements FixedAssetRepository {
   }
 
   @override
-  Future<FixedAsset?> getFixedAssetById(String assetId) async {
-    try {
-      final model = await _dataSource.getFixedAssetById(assetId);
-      return model?.toEntity();
-    } catch (e) {
-      throw Exception('Failed to fetch fixed asset: $e');
-    }
-  }
-
-  @override
   Future<void> createFixedAsset(FixedAsset asset) async {
     try {
       if (!asset.isValid) {
@@ -79,20 +69,13 @@ class FixedAssetRepositoryImpl implements FixedAssetRepository {
   }
 
   @override
-  Future<String?> getCompanyBaseCurrency(String companyId) async {
+  Future<({String? currencyId, String symbol})> getBaseCurrencyInfo(
+    String companyId,
+  ) async {
     try {
-      return await _dataSource.getCompanyBaseCurrency(companyId);
+      return await _dataSource.getBaseCurrencyInfo(companyId);
     } catch (e) {
-      return null;
-    }
-  }
-
-  @override
-  Future<String> getCurrencySymbol(String currencyId) async {
-    try {
-      return await _dataSource.getCurrencySymbol(currencyId);
-    } catch (e) {
-      return '\$'; // Default fallback
+      return (currencyId: null, symbol: '\$');
     }
   }
 }

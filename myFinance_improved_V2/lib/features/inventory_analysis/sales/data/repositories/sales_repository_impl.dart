@@ -3,7 +3,6 @@ import 'package:dartz/dartz.dart';
 import '../../../../../core/errors/failures.dart';
 import '../../domain/entities/sales_dashboard.dart';
 import '../../domain/entities/bcg_category.dart';
-import '../../domain/entities/category_detail.dart';
 import '../../domain/entities/sales_analytics.dart';
 import '../../domain/repositories/sales_repository.dart';
 import '../datasources/sales_datasource.dart';
@@ -27,42 +26,6 @@ class SalesRepositoryImpl implements SalesRepository {
       return Right(model.toEntity());
     } catch (e) {
       return Left(ServerFailure(message: e.toString(), code: 'SALES_DASHBOARD_ERROR'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, BcgMatrix>> getBcgMatrix({
-    required String companyId,
-    DateTime? month,
-    String? storeId,
-  }) async {
-    try {
-      final model = await _datasource.getBcgMatrix(
-        companyId: companyId,
-        month: month,
-        storeId: storeId,
-      );
-      return Right(model.toEntity());
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString(), code: 'BCG_MATRIX_ERROR'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, CategoryDetail>> getCategoryDetail({
-    required String companyId,
-    required String categoryId,
-    DateTime? month,
-  }) async {
-    try {
-      final model = await _datasource.getCategoryDetail(
-        companyId: companyId,
-        categoryId: categoryId,
-        month: month,
-      );
-      return Right(model.toEntity());
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString(), code: 'CATEGORY_DETAIL_ERROR'));
     }
   }
 

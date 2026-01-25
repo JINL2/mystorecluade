@@ -62,7 +62,7 @@ class GrowthMetricsModel {
 }
 
 /// 수익률 대시보드 Model
-/// RPC: get_sales_dashboard 응답 파싱
+/// RPC: inventory_analysis_get_sales_dashboard 응답 파싱
 @JsonSerializable(fieldRename: FieldRename.snake)
 class SalesDashboardModel {
   @JsonKey(name: 'this_month')

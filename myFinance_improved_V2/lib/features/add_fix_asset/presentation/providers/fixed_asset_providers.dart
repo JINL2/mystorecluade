@@ -43,14 +43,10 @@ final fixedAssetProvider = StateNotifierProvider<FixedAssetNotifier, FixedAssetS
 /// 🎯 Helper Providers (Computed/Utility)
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-/// 회사 기본 통화 Provider
-final companyBaseCurrencyProvider = FutureProvider.family<String?, String>((ref, companyId) async {
+/// 회사 기본 통화 정보 Provider (RPC 사용)
+final baseCurrencyInfoProvider = FutureProvider.family<
+    ({String? currencyId, String symbol}),
+    String>((ref, companyId) async {
   final repository = ref.watch(fixedAssetRepositoryProvider);
-  return await repository.getCompanyBaseCurrency(companyId);
-});
-
-/// 통화 심볼 Provider
-final currencySymbolProvider = FutureProvider.family<String, String>((ref, currencyId) async {
-  final repository = ref.watch(fixedAssetRepositoryProvider);
-  return await repository.getCurrencySymbol(currencyId);
+  return await repository.getBaseCurrencyInfo(companyId);
 });
