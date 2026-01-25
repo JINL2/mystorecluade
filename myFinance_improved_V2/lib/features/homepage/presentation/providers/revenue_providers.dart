@@ -94,16 +94,9 @@ final selectedRevenueTabProvider = StateProvider<RevenueViewTab>((ref) {
   return RevenueViewTab.store;
 });
 
-/// Provider that auto-switches to Store tab when store selection changes
-/// Use ref.watch(autoSwitchToStoreTabProvider) in homepage widgets to enable this behavior
-final autoSwitchToStoreTabProvider = Provider<void>((ref) {
-  ref.listen(appStateProvider.select((state) => state.storeChoosen), (previous, next) {
-    // Auto-switch to Store tab when store changes (not on initial load)
-    if (previous != null && previous != next && next.isNotEmpty) {
-      ref.read(selectedRevenueTabProvider.notifier).state = RevenueViewTab.store;
-    }
-  });
-});
+// REMOVED: autoSwitchToStoreTabProvider
+// 이유: 사용자가 Company 탭을 선택한 상태에서 회사/가게를 변경하면
+// 탭 상태가 유지되어야 함. 자동 전환은 UX를 해침.
 
 // ============================================================================
 // Revenue Period Selection

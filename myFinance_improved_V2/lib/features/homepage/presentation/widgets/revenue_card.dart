@@ -20,8 +20,7 @@ class RevenueCard extends ConsumerWidget {
     final selectedPeriod = ref.watch(selectedRevenuePeriodProvider);
     final selectedTab = ref.watch(selectedRevenueTabProvider);
 
-    // Enable auto-switch to Store tab when store changes
-    ref.watch(autoSwitchToStoreTabProvider);
+    // REMOVED: autoSwitchToStoreTabProvider - 사용자 탭 선택 유지
 
     // Enable company/store change logging (debug only)
     ref.watch(companyChangeListenerProvider);
@@ -70,6 +69,7 @@ class RevenueCard extends ConsumerWidget {
 
               // Company/Store tabs on right
               _TabSelector(
+                key: ValueKey(selectedTab), // 탭 상태 변경 시 위젯 재생성
                 selectedTab: selectedTab,
                 onTabChanged: (RevenueViewTab tab) {
                   ref.read(selectedRevenueTabProvider.notifier).state = tab;
@@ -391,6 +391,7 @@ class _TabSelector extends StatefulWidget {
   final ValueChanged<RevenueViewTab> onTabChanged;
 
   const _TabSelector({
+    super.key,
     required this.selectedTab,
     required this.onTabChanged,
   });

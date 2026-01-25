@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/core/services/revenuecat_service.dart';
@@ -387,7 +385,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         } catch (_) {}
       }
 
-      await _syncAfterManagementSheet();
+      await _refreshAfterManagementSheet();
     } catch (e) {
       if (mounted) {
         SubscriptionDialogs.showErrorDialog(context, message: 'Failed: $e');
@@ -399,67 +397,27 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     }
   }
 
-  Future<void> _handleSyncToDatabase() async {
-    debugPrint('🔄 [SubscriptionPage] _handleSyncToDatabase() called');
+  /// 구독 상태 새로고침
+  ///
+  /// NOTE: DB 동기화는 RevenueCat Webhook이 담당합니다.
+  /// 이 함수는 단순히 상태를 새로고침합니다.
+  Future<void> _handleRefreshStatus() async {
+    debugPrint('🔄 [SubscriptionPage] _handleRefreshStatus() called');
     setState(() => _isPurchasing = true);
 
     try {
       debugPrint('🔄 [SubscriptionPage] Invalidating customer info cache...');
       await Purchases.invalidateCustomerInfoCache();
-      final customerInfo = await Purchases.getCustomerInfo();
-      debugPrint('🔄 [SubscriptionPage] Customer info received');
-      debugPrint('🔄 [SubscriptionPage] Active entitlements: ${customerInfo.entitlements.active.keys.toList()}');
-      final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
-      final userId = ref.read(currentUserIdProvider)!;
 
-      if (hasActiveEntitlements) {
-        final proEntitlement = _findEntitlementByMatch(customerInfo, 'pro');
-        final basicEntitlement = _findEntitlementByMatch(customerInfo, 'basic');
-        final activeEntitlement = proEntitlement ?? basicEntitlement;
-
-        if (activeEntitlement != null) {
-          final planType = proEntitlement != null ? 'pro' : 'basic';
-          final willRenew = activeEntitlement.willRenew;
-          final productId = activeEntitlement.productIdentifier;
-          final expiresAt = activeEntitlement.expirationDate;
-          final isTrial = activeEntitlement.periodType == PeriodType.trial;
-
-          await RevenueCatService().syncSubscriptionToDatabase(
-            userId: userId,
-            planType: planType,
-            productId: productId,
-            expiresAt: expiresAt,
-            isTrial: isTrial,
-            willRenew: willRenew,
-          );
-
-          if (mounted) {
-            if (willRenew) {
-              TossToast.success(context, 'Synced: $planType (Auto-renew ON)');
-            } else {
-              TossToast.warning(context, 'Synced: $planType (Canceled, expires ${_formatShortDate(DateTime.parse(expiresAt!))})');
-            }
-          }
-        }
-      } else {
-        await RevenueCatService().syncSubscriptionToDatabase(
-          userId: userId,
-          planType: 'free',
-          productId: null,
-          expiresAt: null,
-          isTrial: false,
-          willRenew: false,
-        );
-
-        if (mounted) {
-          TossToast.success(context, 'Synced: Free plan');
-        }
-      }
-
+      // Refresh subscription state from DB (Webhook updates DB)
       await _refreshSubscriptionState();
+
+      if (mounted) {
+        TossToast.success(context, 'Subscription status refreshed');
+      }
     } catch (e) {
       if (mounted) {
-        TossToast.error(context, 'Sync failed: $e');
+        TossToast.error(context, 'Refresh failed: $e');
       }
     } finally {
       if (mounted) {
@@ -468,60 +426,17 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     }
   }
 
-  Future<void> _syncAfterManagementSheet() async {
-    final customerInfo = await Purchases.getCustomerInfo();
-    final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
-    final userId = ref.read(currentUserIdProvider)!;
-
-    if (hasActiveEntitlements) {
-      final proEntitlement = _findEntitlementByMatch(customerInfo, 'pro');
-      final basicEntitlement = _findEntitlementByMatch(customerInfo, 'basic');
-      final activeEntitlement = proEntitlement ?? basicEntitlement;
-
-      if (activeEntitlement != null) {
-        final planType = proEntitlement != null ? 'pro' : 'basic';
-        final willRenew = activeEntitlement.willRenew;
-        final productId = activeEntitlement.productIdentifier;
-        final expiresAt = activeEntitlement.expirationDate;
-        final isTrial = activeEntitlement.periodType == PeriodType.trial;
-
-        await RevenueCatService().syncSubscriptionToDatabase(
-          userId: userId,
-          planType: planType,
-          productId: productId,
-          expiresAt: expiresAt,
-          isTrial: isTrial,
-          willRenew: willRenew,
-        );
-
-        if (mounted) {
-          if (willRenew) {
-            TossToast.success(context, 'Subscription active (Auto-renew ON)');
-          } else {
-            TossToast.warning(context, 'Subscription canceled (expires ${_formatShortDate(DateTime.parse(expiresAt!))})');
-          }
-        }
-      }
-    } else {
-      await RevenueCatService().syncSubscriptionToDatabase(
-        userId: userId,
-        planType: 'free',
-        productId: null,
-        expiresAt: null,
-        isTrial: false,
-        willRenew: false,
-      );
-
-      if (mounted) {
-        TossToast.success(context, 'Synced: Now on Free plan');
-      }
-    }
-
+  /// Customer Center에서 돌아온 후 상태 새로고침
+  ///
+  /// NOTE: DB 동기화는 RevenueCat Webhook이 담당합니다.
+  Future<void> _refreshAfterManagementSheet() async {
+    // Webhook이 DB를 업데이트할 시간을 줌
+    await Future<void>.delayed(const Duration(seconds: 1));
     await _refreshSubscriptionState();
-  }
 
-  String _formatShortDate(DateTime date) {
-    return DateFormat('MMM d').format(date);
+    if (mounted) {
+      TossToast.success(context, 'Subscription status updated');
+    }
   }
 
   /// Handle Offer Code redemption (iOS only)
@@ -629,7 +544,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
                           onSubscribe: _handleSubscribe,
                           onRestorePurchases: _handleRestorePurchases,
                           onManageSubscription: _handleCancelSubscription,
-                          onSyncToDatabase: _handleSyncToDatabase,
+                          onSyncToDatabase: _handleRefreshStatus,
                           onRedeemOfferCode: _handleRedeemOfferCode,
                           // Trial info
                           isOnTrial: _isOnTrial,

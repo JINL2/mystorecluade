@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
+import '../../core/homepage_logger.dart';
 import '../providers/homepage_providers.dart';
 import '../providers/notifier_providers.dart';
-import '../providers/states/join_state.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Join by Code Bottom Sheet Widget
 ///
@@ -37,7 +38,6 @@ class JoinByCodeSheet extends ConsumerStatefulWidget {
 class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -58,18 +58,27 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
   Widget build(BuildContext context) {
     // Listen to state changes for navigation and error handling
     ref.listen<JoinState>(joinNotifierProvider, (previous, next) {
+      homepageLogger.d('JoinState changed: ${next.runtimeType}');
+
       next.when(
         initial: () {
-          setState(() => _errorMessage = null);
+          // Do nothing
         },
         loading: () {
-          setState(() => _errorMessage = null);
+          homepageLogger.d('Showing loading SnackBar');
+          SnackBarHelper.showLoading(context, 'Joining...');
         },
         error: (message, errorCode) {
-          // Show error inline in the sheet
-          setState(() => _errorMessage = message);
+          homepageLogger.e('Showing error SnackBar: $message');
+          SnackBarHelper.hideAndShowError(
+            context,
+            message,
+            onRetry: _handleJoin,
+          );
         },
         success: (result) {
+          homepageLogger.i('Join successful: ${result.entityName}');
+
           // 1. AppState 즉시 업데이트 (UI 반영)
           final appStateNotifier = ref.read(appStateProvider.notifier);
 
@@ -113,7 +122,10 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
           Navigator.of(context).pop(result);
 
           // 5. 성공 메시지 표시
-          TossToast.success(context, 'Successfully joined ${result.entityName}!');
+          SnackBarHelper.hideAndShowSuccess(
+            context,
+            'Successfully joined ${result.entityName}!',
+          );
         },
       );
     });
@@ -218,35 +230,6 @@ class _JoinByCodeSheetState extends ConsumerState<JoinByCodeSheet> {
                   ),
 
                   const SizedBox(height: TossSpacing.space4),
-
-                  // Error message (if any)
-                  if (_errorMessage != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(TossSpacing.space3),
-                      decoration: BoxDecoration(
-                        color: TossColors.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-                        border: Border.all(color: TossColors.error.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: TossColors.error, size: TossSpacing.iconMD),
-                          const SizedBox(width: TossSpacing.space2),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: TossTextStyles.caption.copyWith(
-                                color: TossColors.error,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space4),
-                  ],
 
                   // Info text
                   Text(

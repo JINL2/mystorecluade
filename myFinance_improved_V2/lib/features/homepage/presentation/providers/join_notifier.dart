@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/monitoring/sentry_config.dart';
+import '../../core/homepage_logger.dart';
 import '../../domain/usecases/join_by_code.dart';
 import 'states/join_state.dart';
 import 'usecase_providers.dart';
@@ -26,23 +28,41 @@ class JoinNotifier extends _$JoinNotifier {
   }) async {
     final joinByCode = ref.read(joinByCodeUseCaseProvider);
 
+    homepageLogger.d('joinByCode called - userId: $userId, code: $code');
+
     state = const JoinState.loading();
+    homepageLogger.d('State set to JoinLoading');
 
-    final result = await joinByCode(
-      JoinByCodeParams(
-        userId: userId,
-        code: code,
-      ),
-    );
+    try {
+      final result = await joinByCode(
+        JoinByCodeParams(
+          userId: userId,
+          code: code,
+        ),
+      );
 
-    result.fold(
-      (failure) {
-        state = JoinState.error(failure.message, failure.code);
-      },
-      (joinResult) {
-        state = JoinState.success(joinResult);
-      },
-    );
+      homepageLogger.d('Result received from use case');
+      result.fold(
+        (failure) {
+          homepageLogger.e('Error: ${failure.message}');
+          state = JoinState.error(failure.message, failure.code);
+        },
+        (joinResult) {
+          final joinType = joinResult.isStoreJoin ? 'store' : 'company';
+          homepageLogger.i('Success: Joined $joinType - ${joinResult.entityName}');
+          state = JoinState.success(joinResult);
+        },
+      );
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'JoinNotifier.joinByCode failed',
+        extra: {'userId': userId, 'code': code},
+      );
+      homepageLogger.e('Exception caught: $e');
+      state = JoinState.error(e.toString(), 'EXCEPTION');
+    }
   }
 
   /// Reset state to initial

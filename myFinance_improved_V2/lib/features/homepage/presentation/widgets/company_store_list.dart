@@ -301,6 +301,8 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
         // ✅ FIX: Only call selectCompany if company actually changed
         // Previously always called selectCompany which triggered provider rebuilds
         // even when selecting a different store within the same company
+        // NOTE: selectCompany now automatically updates usage counts from
+        // AppState.user['companies'] data - see app_state_notifier.dart
         if (currentCompanyId != companyId) {
           appStateNotifier.selectCompany(companyId, companyName: companyName);
         }

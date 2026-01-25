@@ -74,7 +74,9 @@ lib/core/subscription/
 | `companyLimitFreshProvider` | 회사 제한 (Fresh RPC) | `Future<SubscriptionLimitCheck>` |
 | `storeLimitFreshProvider()` | 가게 제한 (Fresh RPC) | `Future<SubscriptionLimitCheck>` |
 | `employeeLimitFreshProvider()` | 직원 제한 (Fresh RPC) | `Future<SubscriptionLimitCheck>` |
-| `isProPlanProvider` | Pro 플랜 여부 | `bool` |
+| `subscriptionStateNotifierProvider` | 구독 상태 (Realtime) | `AsyncValue<SubscriptionState>` |
+
+> **Note**: Pro 플랜 여부는 `appState.isProPlan` 또는 `subscriptionState.planName == 'pro'`로 직접 확인
 
 ---
 

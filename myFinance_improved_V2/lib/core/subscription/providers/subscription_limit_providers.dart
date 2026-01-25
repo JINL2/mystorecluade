@@ -3,19 +3,17 @@
 /// Provides both cache-based (instant) and fresh (RPC-based) limit checks.
 /// Use cache providers for UI state, fresh providers before create actions.
 ///
-/// 2026 Update: Added integration with SubscriptionStateNotifier for
-/// real-time subscription updates via RevenueCat + Supabase Realtime.
+/// 2026-01-25 Cleanup: Removed unused xxxFromSubscriptionState providers.
+/// Use cache-based providers for UI, fresh providers before create actions.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../app/providers/app_state.dart';
+import '../../../app/providers/app_state.dart'; // AppStateExtensions 사용을 위해 필요
 import '../../../app/providers/app_state_provider.dart';
 import '../entities/subscription_limit_check.dart';
-import '../entities/subscription_state.dart';
-import 'subscription_state_notifier.dart';
 
 part 'subscription_limit_providers.g.dart';
 
@@ -193,111 +191,20 @@ Future<SubscriptionLimitCheck> employeeLimitFresh(
 }
 
 // =====================================================
-// HELPER PROVIDERS
+// REMOVED UNUSED PROVIDERS (2026-01-25 Cleanup)
 // =====================================================
-
-/// Check if current plan is Pro (unlimited everything)
-@riverpod
-bool isProPlan(Ref ref) {
-  final appState = ref.watch(appStateProvider);
-  return appState.isProPlan;
-}
-
-/// Check if user should see upgrade prompt
-@riverpod
-bool shouldShowUpgradePrompt(Ref ref) {
-  final appState = ref.watch(appStateProvider);
-
-  // Don't show for Pro users
-  if (appState.isProPlan) return false;
-
-  // Show if any limit is close to being reached
-  final storeLimit = ref.watch(storeLimitFromCacheProvider);
-  final employeeLimit = ref.watch(employeeLimitFromCacheProvider);
-
-  return storeLimit.isCloseToLimit || employeeLimit.isCloseToLimit;
-}
-
-// =====================================================
-// SUBSCRIPTION STATE NOTIFIER INTEGRATION (2026)
-// =====================================================
-
-/// Employee limit check from SubscriptionStateNotifier
-///
-/// New 2026 provider that uses real-time subscription data.
-/// Falls back to AppState if SubscriptionState is not yet loaded.
-///
-/// Combines SubscriptionState (limits) + AppState (usage counts).
-@riverpod
-SubscriptionLimitCheck employeeLimitFromSubscriptionState(Ref ref) {
-  final subscriptionAsync = ref.watch(subscriptionStateNotifierProvider);
-  final appState = ref.watch(appStateProvider);
-
-  return subscriptionAsync.when(
-    data: (subState) {
-      return SubscriptionLimitCheck.fromCache(
-        canAdd: subState.canAddEmployee(appState.currentEmployeeCount),
-        planName: subState.planName,
-        maxLimit: subState.hasUnlimitedEmployees ? null : subState.maxEmployees,
-        currentCount: appState.currentEmployeeCount,
-        checkType: 'employee',
-      );
-    },
-    loading: () => ref.read(employeeLimitFromCacheProvider),
-    error: (_, __) => ref.read(employeeLimitFromCacheProvider),
-  );
-}
-
-/// Store limit check from SubscriptionStateNotifier
-@riverpod
-SubscriptionLimitCheck storeLimitFromSubscriptionState(Ref ref) {
-  final subscriptionAsync = ref.watch(subscriptionStateNotifierProvider);
-  final appState = ref.watch(appStateProvider);
-
-  return subscriptionAsync.when(
-    data: (subState) {
-      return SubscriptionLimitCheck.fromCache(
-        canAdd: subState.canAddStore(appState.currentStoreCount),
-        planName: subState.planName,
-        maxLimit: subState.hasUnlimitedStores ? null : subState.maxStores,
-        currentCount: appState.currentStoreCount,
-        checkType: 'store',
-      );
-    },
-    loading: () => ref.read(storeLimitFromCacheProvider),
-    error: (_, __) => ref.read(storeLimitFromCacheProvider),
-  );
-}
-
-/// Company limit check from SubscriptionStateNotifier
-@riverpod
-SubscriptionLimitCheck companyLimitFromSubscriptionState(Ref ref) {
-  final subscriptionAsync = ref.watch(subscriptionStateNotifierProvider);
-  final appState = ref.watch(appStateProvider);
-
-  return subscriptionAsync.when(
-    data: (subState) {
-      return SubscriptionLimitCheck.fromCache(
-        canAdd: subState.canAddCompany(appState.currentCompanyCount),
-        planName: subState.planName,
-        maxLimit: subState.hasUnlimitedCompanies ? null : subState.maxCompanies,
-        currentCount: appState.currentCompanyCount,
-        checkType: 'company',
-      );
-    },
-    loading: () => ref.read(companyLimitFromCacheProvider),
-    error: (_, __) => ref.read(companyLimitFromCacheProvider),
-  );
-}
-
-/// Check if subscription is stale and needs refresh
-@riverpod
-bool isSubscriptionDataStale(Ref ref) {
-  final subscriptionAsync = ref.watch(subscriptionStateNotifierProvider);
-  return subscriptionAsync.when(
-    data: (subState) =>
-        subState.syncStatus == SyncStatus.stale || subState.isStale,
-    loading: () => false,
-    error: (_, __) => true,
-  );
-}
+//
+// The following providers were removed as they had ZERO usage in the codebase:
+//
+// 1. isProPlanProvider - Use appState.isProPlan directly
+// 2. shouldShowUpgradePromptProvider - Use appState.isProPlan directly
+// 3. employeeLimitFromSubscriptionStateProvider - Use employeeLimitFromCacheProvider
+// 4. storeLimitFromSubscriptionStateProvider - Use storeLimitFromCacheProvider
+// 5. companyLimitFromSubscriptionStateProvider - Use companyLimitFromCacheProvider
+// 6. isSubscriptionDataStaleProvider - Use subscriptionStateNotifierProvider directly
+//
+// The cache-based providers (xxxLimitFromCache) are fast and reliable since
+// AppState is already loaded at app startup. For real-time updates, watch
+// subscriptionStateNotifierProvider directly.
+//
+// See: lib/core/subscription/README.md for usage guide

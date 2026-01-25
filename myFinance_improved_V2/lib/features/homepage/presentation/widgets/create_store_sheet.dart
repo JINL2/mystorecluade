@@ -4,14 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../providers/homepage_providers.dart';
-import '../providers/notifier_providers.dart';
-import '../providers/states/store_state.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+
+import '../../core/homepage_logger.dart';
+import '../providers/notifier_providers.dart';
 
 /// Create Store Bottom Sheet Widget
 /// Uses Riverpod StateNotifier for state management
@@ -55,10 +56,55 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
   bool get _isFormValid => _nameController.text.trim().isNotEmpty;
 
   void _createStore() {
+    homepageLogger.d('Button pressed - isFormValid: $_isFormValid, Name: "${_nameController.text.trim()}"');
+
     if (!_isFormValid) {
+      homepageLogger.w('Form is invalid, showing alert');
+
+      // Show alert dialog for missing store name
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              SizedBox(width: TossSpacing.space3),
+              const Text('Required Fields'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Please fill in the following required fields:'),
+              SizedBox(height: TossSpacing.space3),
+              Padding(
+                padding: const EdgeInsets.only(bottom: TossSpacing.space1),
+                child: Text(
+                  '• Store Name',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TossButton.primary(
+              text: 'OK',
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
       return;
     }
 
+    homepageLogger.i('Calling createStore...');
     ref.read(storeNotifierProvider.notifier).createStore(
           storeName: _nameController.text.trim(),
           companyId: widget.companyId,
@@ -80,51 +126,26 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
   Widget build(BuildContext context) {
     // Listen to store state changes
     ref.listen<StoreState>(storeNotifierProvider, (previous, next) {
+      homepageLogger.d('State changed: ${next.runtimeType}');
+
       next.when(
         initial: () {
           // Do nothing
         },
         loading: () {
-          // Show loading snackbar
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  TossLoadingView.inline(size: 20, color: TossColors.white),
-                  SizedBox(width: TossSpacing.space3),
-                  Text('Creating store...'),
-                ],
-              ),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              duration: const Duration(seconds: 30),
-            ),
-          );
+          homepageLogger.d('Showing loading SnackBar');
+          SnackBarHelper.showLoading(context, 'Creating store...');
         },
         error: (message, errorCode) {
-          // Hide loading, show error
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: TossColors.white),
-                  const SizedBox(width: TossSpacing.space3),
-                  Expanded(child: Text(message)),
-                ],
-              ),
-              backgroundColor: TossColors.error,
-              duration: const Duration(seconds: 4),
-              action: SnackBarAction(
-                label: 'Retry',
-                textColor: TossColors.white,
-                onPressed: _createStore,
-              ),
-            ),
+          homepageLogger.e('Showing error SnackBar: $message');
+          SnackBarHelper.hideAndShowError(
+            context,
+            message,
+            onRetry: _createStore,
           );
         },
         created: (store) {
-          // Hide loading
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          homepageLogger.i('Store created successfully: ${store.name}');
 
           // 1. AppState 즉시 업데이트 (UI 반영)
           final appStateNotifier = ref.read(appStateProvider.notifier);
@@ -144,28 +165,17 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
           // 3. Close bottom sheet and return store
           Navigator.of(context).pop(store);
 
-          // 5. Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle_outline, color: TossColors.white),
-                  const SizedBox(width: TossSpacing.space3),
-                  Expanded(
-                    child: Text('Store "${store.name}" created successfully!'),
-                  ),
-                ],
-              ),
-              backgroundColor: TossColors.success,
-              duration: const Duration(seconds: 3),
-              action: store.code.isNotEmpty
-                  ? SnackBarAction(
-                      label: 'Share Code',
-                      textColor: TossColors.white,
-                      onPressed: () => _copyToClipboard(store.code),
-                    )
-                  : null,
-            ),
+          // 4. Show success message
+          SnackBarHelper.hideAndShowSuccess(
+            context,
+            'Store "${store.name}" created successfully!',
+            action: store.code.isNotEmpty
+                ? SnackBarAction(
+                    label: 'Share Code',
+                    textColor: TossColors.white,
+                    onPressed: () => _copyToClipboard(store.code),
+                  )
+                : null,
           );
         },
       );
@@ -181,8 +191,8 @@ class _CreateStoreSheetState extends ConsumerState<CreateStoreSheet> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+            topLeft: Radius.circular(TossBorderRadius.bottomSheet),
+            topRight: Radius.circular(TossBorderRadius.bottomSheet),
           ),
         ),
         child: Column(

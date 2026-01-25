@@ -6,7 +6,7 @@ part of 'company_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$companyNotifierHash() => r'e6dad2d630c4833048ad6230ba4a18ad0f6de5b9';
+String _$companyNotifierHash() => r'4429b3e5de7efd80292e2742d8a4ea779ea34363';
 
 /// Notifier for managing Company creation state
 ///

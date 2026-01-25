@@ -1,6 +1,8 @@
 import 'package:myfinance_improved/features/homepage/data/models/store_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/homepage_logger.dart';
+
 /// Remote data source for store operations
 /// Handles all direct Supabase communication for store feature
 abstract class StoreRemoteDataSource {
@@ -38,12 +40,20 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
     int? paymentTime,
     int? allowedDistance,
   }) async {
+    homepageLogger.d(
+      'createStore called - storeName: $storeName, '
+      'companyId: $companyId, storeAddress: $storeAddress, storePhone: $storePhone',
+    );
+
     final userId = supabaseClient.auth.currentUser?.id;
     if (userId == null) {
+      homepageLogger.e('User not authenticated');
       throw Exception('User not authenticated');
     }
+    homepageLogger.d('Authenticated userId: $userId');
 
     // Call create_store RPC
+    homepageLogger.d('Calling create_store RPC...');
     final result = await supabaseClient.rpc<Map<String, dynamic>>(
       'create_store',
       params: {
@@ -54,14 +64,18 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       },
     );
 
+    homepageLogger.d('RPC response received: $result');
+
     if (result['success'] != true) {
       final errorMessage = result['message'] ?? result['error'] ?? 'Failed to create store';
+      homepageLogger.e('RPC failed: $errorMessage');
       throw Exception(errorMessage);
     }
 
     final data = result['data'] as Map<String, dynamic>;
+    homepageLogger.d('Parsing store data: $data');
 
-    return StoreModel(
+    final store = StoreModel(
       id: data['store_id'] as String,
       name: data['store_name'] as String,
       code: data['store_code'] as String,
@@ -72,5 +86,8 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       paymentTime: paymentTime,
       allowedDistance: allowedDistance,
     );
+
+    homepageLogger.i('Store created successfully: ${store.id} (${store.name})');
+    return store;
   }
 }

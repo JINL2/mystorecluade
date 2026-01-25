@@ -286,29 +286,16 @@ class SubscriptionStateNotifier extends _$SubscriptionStateNotifier {
 }
 
 // =============================================================================
-// CONVENIENCE PROVIDERS
+// CONVENIENCE PROVIDERS (REMOVED 2026-01-25)
 // =============================================================================
-
-/// 현재 플랜 이름 (free, basic, pro)
-@riverpod
-String currentPlanName(Ref ref) {
-  return ref.watch(subscriptionStateNotifierProvider).valueOrNull?.planName ?? 'free';
-}
-
-/// 유료 구독 여부
-@riverpod
-bool isPaidSubscription(Ref ref) {
-  return ref.watch(subscriptionStateNotifierProvider).valueOrNull?.isPaid ?? false;
-}
-
-/// 구독 동기화 상태
-@riverpod
-SyncStatus subscriptionSyncStatus(Ref ref) {
-  return ref.watch(subscriptionStateNotifierProvider).valueOrNull?.syncStatus ?? SyncStatus.unknown;
-}
-
-/// 구독 데이터 stale 여부
-@riverpod
-bool isSubscriptionStale(Ref ref) {
-  return ref.watch(subscriptionStateNotifierProvider).valueOrNull?.isStale ?? true;
-}
+//
+// The following convenience providers were removed as they had ZERO usage:
+// - currentPlanNameProvider - Use subscriptionStateNotifierProvider.valueOrNull?.planName
+// - isPaidSubscriptionProvider - Use subscriptionStateNotifierProvider.valueOrNull?.isPaid
+// - subscriptionSyncStatusProvider - Use subscriptionStateNotifierProvider.valueOrNull?.syncStatus
+// - isSubscriptionStaleProvider - Use subscriptionStateNotifierProvider.valueOrNull?.isStale
+//
+// Access these values directly from SubscriptionState:
+//   final subState = ref.watch(subscriptionStateNotifierProvider).valueOrNull;
+//   final planName = subState?.planName ?? 'free';
+//   final isPaid = subState?.isPaid ?? false;

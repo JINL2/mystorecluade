@@ -201,7 +201,12 @@ class TokenManager {
 
           case AuthChangeEvent.signedOut:
             _monitor.logEvent('auth_signed_out');
-            await _clearTokenInfo();
+            // 2025 Best Practice: 현재 세션이 정말 없는지 확인 후 토큰 정리
+            // (다른 기기 로그인/로그아웃으로 인한 false positive 방지)
+            final currentSession = _supabase.auth.currentSession;
+            if (currentSession == null || currentSession.isExpired) {
+              await _clearTokenInfo();
+            }
             break;
 
           default:

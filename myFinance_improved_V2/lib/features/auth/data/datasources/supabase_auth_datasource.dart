@@ -257,7 +257,10 @@ class SupabaseAuthDataSource implements AuthDataSource {
   @override
   Future<void> signOut() async {
     try {
-      await _client.auth.signOut();
+      // 2025 Best Practice: 명시적으로 local scope 지정 (현재 기기만 로그아웃)
+      // Dart 기본값이 local이지만 명확성을 위해 명시
+      // 참고: https://supabase.com/docs/guides/auth/signout
+      await _client.auth.signOut(scope: SignOutScope.local);
     } catch (e) {
       throw Exception('Failed to sign out: $e');
     }

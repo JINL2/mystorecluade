@@ -156,13 +156,35 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   /// Update company selection
+  ///
+  /// Automatically updates usage counts (storeCount, employeeCount) from
+  /// the company data stored in AppState.user['companies'].
+  /// This ensures subscription_section displays correct data after company switch.
   void selectCompany(String companyId, {String? companyName}) {
+    // Find the company data from user's companies list
+    final companies = state.user['companies'] as List<dynamic>? ?? [];
+    Map<String, dynamic>? selectedCompany;
+
+    for (final company in companies) {
+      if ((company as Map<String, dynamic>)['company_id'] == companyId) {
+        selectedCompany = company;
+        break;
+      }
+    }
+
+    // Extract usage counts from company data
+    final stores = selectedCompany?['stores'] as List<dynamic>? ?? [];
+    final employeeCount = selectedCompany?['employee_count'] as int? ?? 0;
+
     state = state.copyWith(
       companyChoosen: companyId,
       companyName: companyName ?? '',
       // Reset store when company changes
       storeChoosen: '',
       storeName: '',
+      // ✅ Update usage counts from selected company's data
+      currentStoreCount: stores.length,
+      currentEmployeeCount: employeeCount,
     );
     // Save to cache
     _saveLastSelection();

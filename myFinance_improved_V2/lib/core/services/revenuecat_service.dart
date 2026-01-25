@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../monitoring/sentry_config.dart';
 
@@ -31,28 +29,6 @@ class RevenueCatService {
   // StoreKit Configuration 테스트 시에는 false 사용 (Apple API Key 필요)
   // TODO: Production 배포 시 false로 유지
   static const bool _useTestStore = false;
-
-  // Entitlement identifiers (from RevenueCat)
-  // Note: RevenueCat uses format like 'storebase.pro.monthly', 'storebase.basic.monthly'
-  // We check for partial matches containing 'basic' or 'pro'
-  static const String _basicEntitlementId = 'basic';
-  static const String _proEntitlementId = 'pro';
-
-  /// Check if entitlement key contains the target identifier
-  static bool _hasEntitlement(Map<String, dynamic> entitlements, String targetId) {
-    return entitlements.keys.any((key) => key.toLowerCase().contains(targetId.toLowerCase()));
-  }
-
-  /// Get entitlement by partial match
-  static MapEntry<String, dynamic>? _getEntitlement(Map<String, dynamic> entitlements, String targetId) {
-    try {
-      return entitlements.entries.firstWhere(
-        (entry) => entry.key.toLowerCase().contains(targetId.toLowerCase()),
-      );
-    } catch (e) {
-      return null;
-    }
-  }
 
   // Offering identifier
   static const String _offeringId = 'storebase';
@@ -121,7 +97,7 @@ class RevenueCatService {
 
       // 기존 구독 정보 확인
       debugPrint('🔵 [RevenueCat] Syncing subscription status...');
-      await _syncSubscriptionStatus(result.customerInfo);
+      _logSubscriptionStatus(result.customerInfo);
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -200,7 +176,7 @@ class RevenueCatService {
 
       // 구매 후 구독 상태 동기화
       debugPrint('🟢 [RevenueCat] Syncing subscription to DB...');
-      await _syncSubscriptionStatus(customerInfo);
+      _logSubscriptionStatus(customerInfo);
 
       // Basic 또는 Pro 권한 확인 (둘 중 하나라도 있으면 성공)
       final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
@@ -231,12 +207,15 @@ class RevenueCatService {
       debugPrint('🟡 [RevenueCat] ✅ Restore SUCCESS');
       debugPrint('🟡 [RevenueCat] Active entitlements: ${customerInfo.entitlements.active.keys.toList()}');
 
-      await _syncSubscriptionStatus(customerInfo);
+      _logSubscriptionStatus(customerInfo);
 
-      bool isPro = customerInfo.entitlements.active.containsKey(_proEntitlementId);
-      debugPrint('🟡 [RevenueCat] isPro after restore: $isPro');
+      // Basic 또는 Pro 권한 확인 (둘 중 하나라도 있으면 성공)
+      final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
+      final hasPro = _hasEntitlementMatch(customerInfo, 'pro');
+      final hasSubscription = hasBasic || hasPro;
+      debugPrint('🟡 [RevenueCat] hasBasic: $hasBasic, hasPro: $hasPro, hasSubscription: $hasSubscription');
 
-      return isPro;
+      return hasSubscription;
     } catch (e) {
       debugPrint('🟡 [RevenueCat] ❌ Restore FAILED: $e');
       return false;
@@ -250,58 +229,12 @@ class RevenueCatService {
     );
   }
 
-  /// 현재 구독 상태 확인 (Basic 또는 Pro)
-  Future<bool> checkProStatus() async {
-    debugPrint('🔵 [RevenueCat] checkProStatus() called');
-    try {
-      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
-      // Check if user has any entitlement containing 'basic' or 'pro'
-      final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
-      final hasPro = _hasEntitlementMatch(customerInfo, 'pro');
-      debugPrint('🔵 [RevenueCat] checkProStatus - hasBasic: $hasBasic, hasPro: $hasPro');
-      debugPrint('🔵 [RevenueCat] Active entitlements: ${customerInfo.entitlements.active.keys.toList()}');
-      return hasBasic || hasPro;
-    } catch (e) {
-      debugPrint('🔵 [RevenueCat] ❌ checkProStatus FAILED: $e');
-      return false;
-    }
-  }
-
-  /// Check if user has Basic entitlement
-  Future<bool> checkBasicStatus() async {
-    try {
-      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
-      return _hasEntitlementMatch(customerInfo, 'basic');
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Check if user has Pro entitlement specifically
-  Future<bool> checkProOnlyStatus() async {
-    try {
-      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
-      return _hasEntitlementMatch(customerInfo, 'pro');
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Get current subscription tier: 'free', 'basic', or 'pro'
-  Future<String> getCurrentTier() async {
-    try {
-      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
-      // Pro takes priority over basic
-      if (_hasEntitlementMatch(customerInfo, 'pro')) {
-        return 'pro';
-      } else if (_hasEntitlementMatch(customerInfo, 'basic')) {
-        return 'basic';
-      }
-      return 'free';
-    } catch (_) {
-      return 'free';
-    }
-  }
+  // NOTE: 다음 함수들 제거됨 (2026-01-25)
+  // - checkProStatus(), checkBasicStatus(), checkProOnlyStatus(), getCurrentTier()
+  //
+  // 이유: 구독 상태는 Supabase DB(subscription_user)가 Single Source of Truth
+  // 향후 Stripe 웹 결제도 지원하므로 RevenueCat에서 직접 가져오면 안 됨
+  // 대신 SubscriptionStateNotifier를 통해 DB 기반으로 조회할 것
 
   /// 현재 고객 정보 가져오기
   Future<CustomerInfo?> getCustomerInfo() async {
@@ -324,259 +257,63 @@ class RevenueCatService {
     }
   }
 
-  /// 구독 상태를 Supabase와 동기화
+  /// RevenueCat 구독 상태 로깅 (디버그용)
   ///
-  /// 이 메서드는 두 가지 역할을 합니다:
-  /// 1. RevenueCat 상태를 Supabase DB에 직접 동기화 (Webhook 백업)
-  /// 2. 로컬 상태 업데이트용 로깅
-  ///
-  /// Webhook이 실패하거나 Xcode 환경에서 작동하지 않을 때 백업으로 작동합니다.
-  Future<void> _syncSubscriptionStatus(CustomerInfo customerInfo) async {
-    debugPrint('🟣 [RevenueCat] _syncSubscriptionStatus() called');
+  /// NOTE: DB 동기화는 Webhook이 전담합니다.
+  /// 이 함수는 디버그 로깅만 수행합니다.
+  void _logSubscriptionStatus(CustomerInfo customerInfo) {
+    debugPrint('🟣 [RevenueCat] _logSubscriptionStatus() called');
     debugPrint('🟣 [RevenueCat] All entitlements: ${customerInfo.entitlements.all.keys.toList()}');
     debugPrint('🟣 [RevenueCat] Active entitlements: ${customerInfo.entitlements.active.keys.toList()}');
-    try {
-      final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
 
-      if (userId == null) {
-        debugPrint('🟣 [RevenueCat] ⚠️ No userId, skipping sync');
-        return;
-      }
-      debugPrint('🟣 [RevenueCat] userId: $userId');
+    // Check for entitlements containing 'basic' or 'pro' (partial match)
+    final hasPro = _hasEntitlementMatch(customerInfo, 'pro');
+    final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
+    debugPrint('🟣 [RevenueCat] hasPro: $hasPro, hasBasic: $hasBasic');
 
-      // Check for entitlements containing 'basic' or 'pro' (partial match)
-      final hasPro = _hasEntitlementMatch(customerInfo, 'pro');
-      final hasBasic = _hasEntitlementMatch(customerInfo, 'basic');
-      debugPrint('🟣 [RevenueCat] hasPro: $hasPro, hasBasic: $hasBasic');
-
-      // Determine current tier
-      String currentTier = 'free';
-      if (hasPro) {
-        currentTier = 'pro';
-      } else if (hasBasic) {
-        currentTier = 'basic';
-      }
-      debugPrint('🟣 [RevenueCat] Determined tier: $currentTier');
-
-      String? productId;
-      String? expiresAt;
-      bool isTrial = false;
-
-      // Get entitlement details (pro takes priority over basic)
-      EntitlementInfo? entitlement;
-      if (hasPro) {
-        entitlement = _findEntitlementByKeyMatch(customerInfo, 'pro');
-      } else if (hasBasic) {
-        entitlement = _findEntitlementByKeyMatch(customerInfo, 'basic');
-      }
-
-      String? originalPurchaseDate;
-      bool? willRenew;
-
-      if (entitlement != null) {
-        productId = entitlement.productIdentifier;
-        expiresAt = entitlement.expirationDate;
-        isTrial = entitlement.periodType == PeriodType.trial;
-        originalPurchaseDate = entitlement.originalPurchaseDate;
-        willRenew = entitlement.willRenew;
-        debugPrint('🟣 [RevenueCat] Entitlement details:');
-        debugPrint('   - productId: $productId');
-        debugPrint('   - expiresAt: $expiresAt');
-        debugPrint('   - isTrial: $isTrial');
-        debugPrint('   - willRenew: $willRenew');
-        debugPrint('   - originalPurchaseDate: $originalPurchaseDate');
-      }
-
-      // ✅ Supabase DB에 구독 상태 동기화 (Webhook 백업)
-      debugPrint('🟣 [RevenueCat] Calling syncSubscriptionToDatabase()...');
-      await syncSubscriptionToDatabase(
-        userId: userId,
-        planType: currentTier,
-        productId: productId,
-        expiresAt: expiresAt,
-        isTrial: isTrial,
-        willRenew: willRenew,
-        trialStartDate: isTrial ? originalPurchaseDate : null,
-        trialEndDate: isTrial ? expiresAt : null,
-      );
-      debugPrint('🟣 [RevenueCat] ✅ Sync to DB completed');
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'Subscription sync failed',
-      );
+    // Determine current tier
+    String currentTier = 'free';
+    if (hasPro) {
+      currentTier = 'pro';
+    } else if (hasBasic) {
+      currentTier = 'basic';
     }
+    debugPrint('🟣 [RevenueCat] Determined tier: $currentTier');
+
+    // Get entitlement details (pro takes priority over basic)
+    EntitlementInfo? entitlement;
+    if (hasPro) {
+      entitlement = _findEntitlementByKeyMatch(customerInfo, 'pro');
+    } else if (hasBasic) {
+      entitlement = _findEntitlementByKeyMatch(customerInfo, 'basic');
+    }
+
+    if (entitlement != null) {
+      debugPrint('🟣 [RevenueCat] Entitlement details:');
+      debugPrint('   - productId: ${entitlement.productIdentifier}');
+      debugPrint('   - expiresAt: ${entitlement.expirationDate}');
+      debugPrint('   - isTrial: ${entitlement.periodType == PeriodType.trial}');
+      debugPrint('   - willRenew: ${entitlement.willRenew}');
+      debugPrint('   - originalPurchaseDate: ${entitlement.originalPurchaseDate}');
+    }
+
+    // NOTE: DB 동기화는 RevenueCat Webhook이 처리합니다.
+    // 앱에서는 로깅만 수행합니다.
+    debugPrint('🟣 [RevenueCat] ✅ Status logged (DB sync via Webhook)');
   }
 
-  /// Supabase DB에 구독 상태를 직접 업데이트
-  ///
-  /// Webhook이 작동하지 않는 환경(Xcode StoreKit)에서도
-  /// DB를 최신 상태로 유지합니다.
-  ///
-  /// planType: 'free', 'basic', or 'pro'
-  /// willRenew: 자동 갱신 여부 (취소하면 false)
-  Future<void> syncSubscriptionToDatabase({
-    required String userId,
-    required String planType,
-    String? productId,
-    String? expiresAt,
-    bool isTrial = false,
-    bool? willRenew,  // null이면 isActive로 기본값 설정
-    String? trialStartDate,  // Trial 시작일 (originalPurchaseDate)
-    String? trialEndDate,    // Trial 종료일 (expirationDate during trial)
-  }) async {
-    debugPrint('🟠 [RevenueCat] syncSubscriptionToDatabase() called');
-    debugPrint('🟠 [RevenueCat] Params:');
-    debugPrint('   - userId: $userId');
-    debugPrint('   - planType: $planType');
-    debugPrint('   - productId: $productId');
-    debugPrint('   - expiresAt: $expiresAt');
-    debugPrint('   - isTrial: $isTrial');
-    debugPrint('   - willRenew: $willRenew');
-    try {
-      final supabase = Supabase.instance.client;
-
-      // Plan IDs from subscription_plans table
-      const planIds = {
-        'free': '499b821f-c0c3-4eaf-ba4e-c5aaaf9759be',
-        'basic': 'c484321e-99c6-4cd7-af77-e74c325acede',
-        'pro': '29e2647b-082b-45e9-b228-ac78fc87daec',
-      };
-
-      final planId = planIds[planType] ?? planIds['free']!;
-      final isActive = planType != 'free';
-      final autoRenew = willRenew ?? isActive;  // willRenew가 명시되지 않으면 isActive 사용
-      final now = DateTime.now().toUtc();
-
-      // Determine billing cycle from product ID
-      String billingCycle = 'monthly';
-      if (productId != null) {
-        if (productId.contains('yearly') || productId.contains('annual')) {
-          billingCycle = 'yearly';
-        }
-      }
-
-      // Parse expiration date
-      // ⚠️ Sandbox에서는 RevenueCat이 실제 기간(1달/1년)으로 반환하지만
-      // 실제 갱신은 5분/1시간마다 발생함. DB에는 RevenueCat 값 그대로 저장.
-      // (Sandbox 테스트 시 이 점 참고)
-      DateTime? expirationDate;
-      if (expiresAt != null) {
-        expirationDate = DateTime.tryParse(expiresAt);
-
-        // 🧪 DEBUG: Sandbox 환경에서는 실제 갱신 주기로 조정 (옵션)
-        // Monthly = 5분, Annual = 1시간
-        // 주석 해제하면 Sandbox 테스트 시 실제 갱신 시간 반영
-        /*
-        if (kDebugMode && expirationDate != null) {
-          final isAnnual = productId?.contains('yearly') == true ||
-                          productId?.contains('annual') == true;
-          if (isAnnual) {
-            expirationDate = now.add(const Duration(hours: 1));
-          } else {
-            expirationDate = now.add(const Duration(minutes: 5));
-          }
-          debugPrint('  - [Sandbox] Adjusted expiration: $expirationDate');
-        }
-        */
-      }
-
-      // Determine status: active, trialing, or canceled (based on willRenew)
-      String status;
-      if (!isActive) {
-        status = 'canceled';
-      } else if (isTrial) {
-        status = 'trialing';
-      } else if (autoRenew) {
-        status = 'active';
-      } else {
-        status = 'canceled';  // 취소 예정 (만료일까지 사용 가능)
-      }
-
-      // Check if user already has a subscription record
-      debugPrint('🟠 [RevenueCat] Checking existing subscription record...');
-      final existingRecord = await supabase
-          .from('subscription_user')
-          .select('subscription_id')
-          .eq('user_id', userId)
-          .maybeSingle();
-      debugPrint('🟠 [RevenueCat] Existing record: ${existingRecord != null ? 'YES' : 'NO'}');
-
-      // Parse trial dates
-      DateTime? trialStart;
-      DateTime? trialEnd;
-      if (isTrial) {
-        trialStart = trialStartDate != null ? DateTime.tryParse(trialStartDate) : now;
-        trialEnd = trialEndDate != null ? DateTime.tryParse(trialEndDate) : expirationDate;
-      }
-
-      if (existingRecord != null) {
-        // Update existing record
-        debugPrint('🟠 [RevenueCat] Updating existing subscription_user record...');
-        await supabase.from('subscription_user').update({
-          'plan_id': planId,
-          'status': status,
-          'billing_cycle': billingCycle,
-          'current_period_end': expirationDate?.toIso8601String(),
-          'expiration_date': expirationDate?.toIso8601String(),
-          'trial_start': isTrial ? trialStart?.toIso8601String() : null,
-          'trial_end': isTrial ? trialEnd?.toIso8601String() : null,
-          'revenuecat_product_id': productId,
-          'revenuecat_store': Platform.isIOS ? 'APP_STORE' : 'PLAY_STORE',
-          'is_sandbox': kDebugMode,
-          'auto_renew_status': autoRenew,
-          'payment_provider': Platform.isIOS ? 'revenuecat_apple' : 'revenuecat_google',
-          'updated_at': now.toIso8601String(),
-        }).eq('user_id', userId);
-        debugPrint('🟠 [RevenueCat] ✅ subscription_user UPDATE completed');
-      } else {
-        // Insert new record
-        debugPrint('🟠 [RevenueCat] Inserting new subscription_user record...');
-        await supabase.from('subscription_user').insert({
-          'user_id': userId,
-          'plan_id': planId,
-          'status': status,
-          'billing_cycle': billingCycle,
-          'current_period_start': trialStart?.toIso8601String() ?? now.toIso8601String(),
-          'current_period_end': expirationDate?.toIso8601String(),
-          'trial_start': isTrial ? trialStart?.toIso8601String() : null,
-          'trial_end': isTrial ? trialEnd?.toIso8601String() : null,
-          'expiration_date': expirationDate?.toIso8601String(),
-          'revenuecat_app_user_id': userId,
-          'revenuecat_product_id': productId,
-          'revenuecat_store': Platform.isIOS ? 'APP_STORE' : 'PLAY_STORE',
-          'is_sandbox': kDebugMode,
-          'auto_renew_status': autoRenew,
-          'payment_provider': Platform.isIOS ? 'revenuecat_apple' : 'revenuecat_google',
-          'created_at': now.toIso8601String(),
-          'updated_at': now.toIso8601String(),
-        });
-        debugPrint('🟠 [RevenueCat] ✅ subscription_user INSERT completed');
-      }
-
-      // 2. companies 테이블도 업데이트 (이 유저가 소유한 회사들)
-      // companies 테이블은 inherited_plan_id (UUID)를 사용
-      debugPrint('🟠 [RevenueCat] Updating companies table for owner...');
-      await supabase.from('companies').update({
-        'inherited_plan_id': planId,
-        'plan_updated_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
-      }).eq('owner_id', userId);
-      debugPrint('🟠 [RevenueCat] ✅ companies UPDATE completed');
-      debugPrint('🟠 [RevenueCat] ===== DB SYNC COMPLETE =====');
-    } catch (e, stackTrace) {
-      debugPrint('🟠 [RevenueCat] ❌ DB sync FAILED: $e');
-      // 실패해도 앱은 계속 작동 (RevenueCat이 source of truth)
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'Failed to sync subscription to DB',
-        extra: {'userId': userId, 'planType': planType},
-      );
-    }
-  }
+  // NOTE: syncSubscriptionToDatabase() 함수 제거됨 (2026-01-25)
+  //
+  // 이유: subscription_user 테이블은 RevenueCat Webhook(Edge Function)만
+  // INSERT/UPDATE해야 합니다. 앱 클라이언트에서 직접 DB 조작 시 RLS 정책과
+  // 충돌하며, Webhook이 Single Source of Truth입니다.
+  //
+  // 구독 상태 동기화는 다음 경로로 이루어집니다:
+  // 1. RevenueCat → Webhook → Supabase DB
+  // 2. Supabase Realtime → SubscriptionStateNotifier → UI
+  //
+  // 앱에서는 RevenueCat SDK의 CustomerInfo만 로컬에서 확인하고,
+  // DB 업데이트는 Webhook에 전적으로 위임합니다.
 
   /// 구독 상태 변경 리스너 설정
   ///
@@ -739,7 +476,7 @@ class RevenueCatService {
 
       // 코드 적용 후 구독 상태 동기화
       final customerInfo = await Purchases.getCustomerInfo();
-      await _syncSubscriptionStatus(customerInfo);
+      _logSubscriptionStatus(customerInfo);
     } catch (e, stackTrace) {
       debugPrint('🟢 [RevenueCat] ❌ Code Redemption FAILED: $e');
       SentryConfig.captureException(

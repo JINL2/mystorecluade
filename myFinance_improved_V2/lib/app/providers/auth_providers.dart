@@ -31,13 +31,43 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Current auth state (user)
 ///
-/// This provider listens to Supabase auth state changes
+/// This provider listens to Supabase auth state changes.
+///
+/// **2025 Best Practice**: 이벤트 타입별로 적절한 처리를 수행합니다.
+/// - signedIn, tokenRefreshed: 세션의 user 반환
+/// - signedOut: 현재 세션이 정말 무효한지 확인 후 처리 (다른 기기 로그인으로 인한 false positive 방지)
+/// - 기타 이벤트: 현재 세션 상태 기준
+///
+/// 참고: https://github.com/supabase/auth/issues/2036
 final authStateProvider = StreamProvider<User?>((ref) {
   final supabase = Supabase.instance.client;
 
   return supabase.auth.onAuthStateChange.map((data) {
-    final user = data.session?.user;
-    return user;
+    final event = data.event;
+    final sessionUser = data.session?.user;
+
+    // signedIn, tokenRefreshed: 세션의 user 반환
+    if (event == AuthChangeEvent.signedIn ||
+        event == AuthChangeEvent.tokenRefreshed) {
+      return sessionUser;
+    }
+
+    // signedOut: 현재 세션이 정말 없는지 확인
+    // (다른 기기 로그인/로그아웃으로 인한 false positive 방지)
+    if (event == AuthChangeEvent.signedOut) {
+      final currentSession = supabase.auth.currentSession;
+      // 세션이 여전히 유효하면 user 유지
+      if (currentSession != null && !currentSession.isExpired) {
+        return currentSession.user;
+      }
+      // 세션이 정말 없으면 null 반환 (실제 로그아웃)
+      return null;
+    }
+
+    // 기타 이벤트 (initialSession, passwordRecovery, userUpdated 등):
+    // 현재 세션 상태 기준으로 처리
+    final currentSession = supabase.auth.currentSession;
+    return currentSession?.user ?? sessionUser;
   });
 });
 

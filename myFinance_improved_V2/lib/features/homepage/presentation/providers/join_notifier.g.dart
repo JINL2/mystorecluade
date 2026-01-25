@@ -6,7 +6,7 @@ part of 'join_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$joinNotifierHash() => r'4cd810a1f5d99138e79fd5a8689e9592e60b466b';
+String _$joinNotifierHash() => r'672219210af83be5356a850b9390a0f7d90da94d';
 
 /// Notifier for managing join operations
 ///
